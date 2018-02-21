@@ -1,0 +1,48 @@
+;******************************************************************************
+;Filename    : init_STM32F767IG.sct
+;Author      : pry
+;Date        : 24/06/2017
+;Licence     : LGPL v3+; see COPYING for details.
+;Description : The scatter file for Cortex-M7 init process layout. This file is
+;              intended to be used with STM32F767IGT6.
+;              Init ROM layout:
+;              |0x08010000                                          0x0801FFFF|
+;              |<-                            Init                          ->|
+;              Init RAM layout:
+;              |0x20010000            0x2001EFFF|0x2001F000         0x2001FFFF|
+;              |<-         Init Data          ->|<-       Init Stack        ->|
+;******************************************************************************
+INIT 0x08010000 0x00010000
+{   
+    ; Process code segment - 64kB
+    INIT_CODE 0x08010000 0x00010000
+    {   ; The entry will be the first instruction
+        *.o                    (ARCH, +First)
+        ; The lib code copying code
+        *                      (InRoot$$Sections)
+        ; The init code section
+        .ANY                   (+RO)
+    }
+    
+    ; The data section of the INIT process - 40kB total
+    INIT_DATA 0x20010000 0x0000A000
+    {
+        .ANY                   (+RW +ZI)
+    }
+    
+    ; The virtual machine register data section of the INIT process - 20kB total
+    INIT_HYP 0x2001A000 0x00005000
+    {
+        .ANY                   (+RW +ZI)
+    }
+    
+    ; The initial stack section of the INIT process - 4kB total.
+    INIT_STACK 0x2001F000 EMPTY 0x00001000
+    {
+        /* Place the stack array here */
+    }
+}
+; End Of File *****************************************************************
+
+; Copyright (C) Evo-Devo Instrum. All rights reserved *************************
+

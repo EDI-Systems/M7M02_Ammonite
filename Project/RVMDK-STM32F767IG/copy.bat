@@ -1,0 +1,1 @@
+copy rvmlib_cmx_conf.h ..\..\MAmmonite\Include\Platform\CortexM\rvmlib_cmx_conf.h
