@@ -479,8 +479,8 @@ void RVM_Timer_Daemon(void)
         RVM_Sig_Rcv(RVM_BOOT_INIT_TIMER);
         RVM_Tick++;
         
-        if((RVM_Tick%10000)==0)
-            RVM_LOG_S("TIMD:Timer daemon passed 10000 ticks.\r\n");
+        if((RVM_Tick%1000)==0)
+            RVM_LOG_S("TIMD:Timer daemon passed 1000 ticks.\r\n");
         
         Slot=&(RVM_Wheel[RVM_Tick%RVM_WHEEL_SIZE]);
         
@@ -553,7 +553,7 @@ void RVM_VMM_Daemon(void)
     {
         RVM_Sig_Rcv(RVM_VMM_VMMD_SIG);
         
-        RVM_LOG_SIS("VMMD:Hypercall ",RVM_Cur_Virt->Image->Param->Number," called.\r\n");
+        //RVM_LOG_SIS("VMMD:Hypercall ",RVM_Cur_Virt->Image->Param->Number," called.\r\n");
         /* See what system call it is */
         Param=RVM_Cur_Virt->Image->Param->Param;
         switch(RVM_Cur_Virt->Image->Param->Number)
@@ -612,7 +612,7 @@ void RVM_VMM_Daemon(void)
             
             default:break;
         }
-        RVM_LOG_SIS("VMMD:Hypercall ",RVM_Cur_Virt->Image->Param->Number," processed.\r\n");
+        //RVM_LOG_SIS("VMMD:Hypercall ",RVM_Cur_Virt->Image->Param->Number," processed.\r\n");
     }
 }
 /* End Function:RVM_VMM_Daemon ***********************************************/

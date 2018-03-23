@@ -1,5 +1,5 @@
 /******************************************************************************
-Filename   : syslib_STM32F767IG.h
+Filename   : rvmlib_STM32F767IG.h
 Author     : pry
 Date       : 26/06/2017
 Licence    : LGPL v3+; see COPYING for details.
