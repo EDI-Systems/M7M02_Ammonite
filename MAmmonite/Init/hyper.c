@@ -152,9 +152,9 @@ Return      : If there is one interrupt pending, return 1; else 0.
 ret_t _RVM_Check_Int_Pend(struct RVM_Virt* Virt)
 {
     cnt_t Count;
-    for(Count=0;Count<RVM_VECT_BITMAP;Count++)
+    for(Count=0;Count<(Virt->Image->Int_Num)>>RVM_WORD_ORDER;Count++)
     {
-        if(Virt->Image->Int_Flags->Flags[Count]!=0)
+        if(Virt->Image->Int_Flags[Count]!=0)
             return 1;
     }
     return 0;
@@ -170,7 +170,7 @@ Return      : None.
 ******************************************************************************/
 void _RVM_Set_Int_Flag(struct RVM_Virt* Virt, ptr_t Int_Num)
 {
-    Virt->Image->Int_Flags->Flags[Int_Num>>RVM_WORD_ORDER]|=((ptr_t)1)<<(Int_Num&RVM_WORD_MASK);
+    Virt->Image->Int_Flags[Int_Num>>RVM_WORD_ORDER]|=((ptr_t)1)<<(Int_Num&RVM_WORD_MASK);
 }
 /* End Function:_RVM_Set_Int_Flag ********************************************/
 
@@ -183,7 +183,7 @@ Return      : None.
 ******************************************************************************/
 void _RVM_Clr_Int_Flag(struct RVM_Virt* Virt, ptr_t Int_Num)
 {    
-    Virt->Image->Int_Flags->Flags[Int_Num>>RVM_WORD_ORDER]&=~(((ptr_t)1)<<(Int_Num&RVM_WORD_MASK));
+    Virt->Image->Int_Flags[Int_Num>>RVM_WORD_ORDER]&=~(((ptr_t)1)<<(Int_Num&RVM_WORD_MASK));
 }
 /* End Function:_RVM_Clr_Int_Flag ********************************************/
 
@@ -238,6 +238,80 @@ ret_t RVM_Hyp_Disable_Int(void)
 }
 /* End Function:RVM_Hyp_Disable_Int ******************************************/
 
+/* Begin Function:RVM_Hyp_Reg_Int *********************************************
+Description : Register an interrupt line. This will link the physical vector with
+              ID Vect_Num to virtual vector with ID Int_Num.
+Input       : ptr_t Vect_Num - The physical vector number.
+              ptr_t Int_Num - The virtual vector number.
+Output      : None.
+Return      : ret_t - If successful, the interrupt registration ID; else an error code.
+******************************************************************************/
+ret_t RVM_Hyp_Reg_Int(ptr_t Vect_Num, ptr_t Int_Num)
+{
+    struct RVM_Int* Int;
+    ptr_t VMID;
+    
+    /* See if both numbers are overrange */
+    if((Vect_Num>=RVM_INT_VECT_NUM)||(Int_Num>=(RVM_Cur_Virt->Image->Int_Num)))
+        return RVM_ERR_RANGE;
+    
+    /* Check if the VM have registered for this interrupt before */
+    VMID=RVM_VMID(RVM_Cur_Virt);
+    Int=(struct RVM_Int*)(RVM_Int_Vect[Vect_Num].Next);
+    while(Int!=(struct RVM_Int*)(&RVM_Int_Vect[Vect_Num]))
+    {
+        if(Int->VM_ID==VMID)
+            return RVM_ERR_INT;
+        
+        Int=(struct RVM_Int*)(Int->Head.Next);
+    }
+    
+    /* See if there are empty interrupt registration blocks available */
+    if(RVM_Int_Free.Next==&RVM_Int_Free)
+        return RVM_ERR_INT;
+    
+    /* Insert this event into the current VM's event list */
+    Int=(struct RVM_Int*)(RVM_Int_Free.Next);
+    RVM_List_Del(Int->Head.Prev,Int->Head.Next);
+    RVM_List_Ins(&(Int->Head),RVM_Int_Vect[Vect_Num].Prev, &RVM_Int_Vect[Vect_Num]);
+    
+    Int->State=RVM_INT_USED;
+    Int->Int_Num=Int_Num;
+    Int->VM_ID=VMID;
+    
+    return 0;
+}
+/* End Function:RVM_Hyp_Reg_Int **********************************************/
+
+/* Begin Function:RVM_Hyp_Del_Int *********************************************
+Description : Delete one interrupt line.
+Input       : cnt_t Int_ID - The interrupt registration ID returned by RVM_Hyp_Reg_Int.
+Output      : None.
+Return      : ret_t - If successful, 0; else an error code.
+******************************************************************************/
+ret_t RVM_Hyp_Del_Int(cnt_t Int_ID)
+{
+    /* See if the number is overrange */
+    if(Int_ID>=RVM_INT_MAP_NUM)
+        return RVM_ERR_RANGE;
+    
+    /* Is the block empty? */
+    if(RVM_Int_DB[Int_ID].State==RVM_INT_FREE)
+        return RVM_ERR_STATE;
+    
+    /* Are we the creator of the channel? */
+    if(RVM_Int_DB[Int_ID].VM_ID!=RVM_VMID(RVM_Cur_Virt))
+        return RVM_ERR_INT;
+    
+    /* Delete it from database */
+    RVM_Int_DB[Int_ID].State=RVM_EVT_FREE;
+    RVM_List_Del(RVM_Int_DB[Int_ID].Head.Prev,RVM_Int_DB[Int_ID].Head.Next);
+    RVM_List_Ins(&(RVM_Int_DB[Int_ID].Head),RVM_Int_Free.Prev, &(RVM_Int_Free));
+    
+    return 0;
+}
+/* End Function:RVM_Hyp_Del_Int **********************************************/
+
 /* Begin Function:RVM_Hyp_Reg_Evt *********************************************
 Description : Register an event channel. Any sends to this channel will lead to
               one interrupt bit set, and an interrupt sent to this virtual machine.
@@ -252,7 +326,7 @@ ret_t RVM_Hyp_Reg_Evt(ptr_t Int_Num, ptr_t VMID)
     struct RVM_Evt* Event;
     
     /* See if both numbers are overrange */
-    if((VMID>=RVM_VM_Num)||(Int_Num>=RVM_MAX_INTVECT))
+    if((VMID>=RVM_VM_Num)||(Int_Num>=(RVM_Cur_Virt->Image->Int_Num)))
         return RVM_ERR_RANGE;
     
     /* See if there are empty events available */
@@ -276,7 +350,7 @@ ret_t RVM_Hyp_Reg_Evt(ptr_t Int_Num, ptr_t VMID)
 /* Begin Function:RVM_Hyp_Del_Evt *********************************************
 Description : Delete the event channel from the database. Only the creator of the
               event can delete the event.
-Input       : None.
+Input       : cnt_t Evt_ID - The ID of the event block to delete.
 Output      : None.
 Return      : ret_t - If successful, 0; else an error code.
 ******************************************************************************/

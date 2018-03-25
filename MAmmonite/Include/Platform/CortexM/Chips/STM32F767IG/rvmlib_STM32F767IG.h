@@ -13,9 +13,9 @@ Description: The configuration file for STM32F767IG. The values listed here shou
 #include "core_cm7.h"
 /* Kernel configurations - keep the same with the kernel *********************/
 /* The virtual memory start address for the kernel objects */
-#define RVM_KMEM_VA_START            0x20004000
+#define RVM_KMEM_VA_START            0x20003000
 /* The size of the kernel object virtual memory */
-#define RVM_KMEM_SIZE                0xC000
+#define RVM_KMEM_SIZE                0xD000
 /* The granularity of kernel memory allocation, order of 2 in bytes */
 #define RVM_KMEM_SLOT_ORDER          4
 /* Kernel stack size and address */
@@ -23,13 +23,17 @@ Description: The configuration file for STM32F767IG. The values listed here shou
 /* The maximum number of preemption priority levels in the system.
  * This parameter must be divisible by the word length - 32 is usually sufficient */
 #define RVM_MAX_PREEMPT_PRIO         32
-/* The maximum interrupt vectors for each virtual machine */
-#define RVM_MAX_INTVECT              32
 /* The maximum number of events in the system */
 #define RVM_MAX_EVT_NUM              1024
+/* Shared interrupt flag region address - this will only appear on MPU-based systems */
+#define RVM_INT_FLAG_ADDR            0x20010000
+/* How many interrupts are there in the hardware */
+#define RVM_INT_VECT_NUM             110
+/* How many interrupt mappings are we going to make? */
+#define RVM_INT_MAP_NUM              1024
 
 /* Initial kenel object frontier limit */
-#define RVM_CMX_KMEM_BOOT_FRONTIER   0x20005000
+#define RVM_CMX_KMEM_BOOT_FRONTIER   0x20003400
 /* Number of MPU regions available */
 #define RVM_CMX_MPU_REGIONS          8
 /* Init process's first thread's entry point address */

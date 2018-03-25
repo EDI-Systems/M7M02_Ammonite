@@ -17,21 +17,25 @@ Description : The header of microcontroller user-level library.
 /* Disable interrupts */
 #define RVM_HYP_DISINT           1
 /* Register a vector */
-#define RVM_HYP_REGEVT           2
+#define RVM_HYP_REGINT           2
 /* Delete a vector */
-#define RVM_HYP_DELEVT           3
+#define RVM_HYP_DELINT           3
+/* Register a event */
+#define RVM_HYP_REGEVT           4
+/* Delete a event */
+#define RVM_HYP_DELEVT           5
 /* Wait for an interrupt to come */
-#define RVM_HYP_WAITEVT          4
+#define RVM_HYP_WAITEVT          6
 /* Trigger a vector */
-#define RVM_HYP_SENDEVT          5
+#define RVM_HYP_SENDEVT          7
 /* Returning from a vector */
-#define RVM_HYP_QUERYEVT         6
+#define RVM_HYP_QUERYEVT         8
 /* Query the VM's ID given its name */
-#define RVM_HYP_QUERY            7
+#define RVM_HYP_QUERY            9
 /* Send to another VM */
-#define RVM_HYP_TIMPROG          8
+#define RVM_HYP_TIMPROG          10
 /* Print to the console */
-#define RVM_HYP_PRINT            9
+#define RVM_HYP_PRINT            11
 
 /* Error codes */
 /* The state is wrong */
@@ -40,8 +44,10 @@ Description : The header of microcontroller user-level library.
 #define RVM_ERR_RANGE            (-2)
 /* The error is address related */
 #define RVM_ERR_ADDR             (-3)
+/* The error is interrupt related */
+#define RVM_ERR_INT              (-4)
 /* The error is event related */
-#define RVM_ERR_EVENT            (-4)
+#define RVM_ERR_EVENT            (-5)
 
 /* Get VM ID or event ID from their address */
 #define RVM_VMID(ADDR)           ((((ptr_t)(ADDR))-((ptr_t)RVM_Virt_DB))/sizeof(struct RVM_Virt))
@@ -50,6 +56,9 @@ Description : The header of microcontroller user-level library.
 /* Event states */
 #define RVM_EVT_FREE             0
 #define RVM_EVT_USED             1
+/* Interrupt states */
+#define RVM_INT_FREE             0
+#define RVM_INT_USED             1
 /*****************************************************************************/
 /* __HYPER_H_DEFS__ */
 #endif
@@ -79,6 +88,19 @@ struct RVM_Param
 {
     ptr_t Number;
     ptr_t Param[4];
+};
+
+/* The interrupt handling structure */
+struct RVM_Int
+{
+    /* The receiver list for this interrupt source */
+    struct RVM_List Head;
+    /* The state */
+    ptr_t State;
+    /* The virtual machine to receive this interrupt */
+    ptr_t VM_ID;
+    /* The virtual machine vector that should receive this interrupt */
+    ptr_t Int_Num;
 };
 /*****************************************************************************/
 /* __HYPER_H_STRUCTS__ */
@@ -125,6 +147,9 @@ struct RVM_Param
 /*****************************************************************************/
 __EXTERN__ struct RVM_List RVM_Evt_Free;
 __EXTERN__ struct RVM_Evt RVM_Evt_DB[RVM_MAX_EVT_NUM];
+__EXTERN__ struct RVM_List RVM_Int_Free;
+__EXTERN__ struct RVM_List RVM_Int_Vect[RVM_INT_VECT_NUM];
+__EXTERN__ struct RVM_Int RVM_Int_DB[RVM_INT_MAP_NUM];
 /*****************************************************************************/
 
 /* End Public Global Variables ***********************************************/
@@ -143,6 +168,8 @@ __EXTERN__ void _RVM_Clr_Int_Flag(struct RVM_Virt* Virt, ptr_t Int_Num);
 
 __EXTERN__ ret_t RVM_Hyp_Enable_Int(void);
 __EXTERN__ ret_t RVM_Hyp_Disable_Int(void);
+__EXTERN__ ret_t RVM_Hyp_Reg_Int(ptr_t Vect_Num, ptr_t Int_Num);
+__EXTERN__ ret_t RVM_Hyp_Del_Int(cnt_t Int_ID);
 __EXTERN__ ret_t RVM_Hyp_Reg_Evt(ptr_t Int_Num, ptr_t VMID);
 __EXTERN__ ret_t RVM_Hyp_Del_Evt(cnt_t Evt_ID);
 __EXTERN__ ret_t RVM_Hyp_Wait_Evt(void);

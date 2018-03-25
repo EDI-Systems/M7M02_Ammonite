@@ -24,14 +24,14 @@ INIT 0x08010000 0x00010000
         .ANY                   (+RO)
     }
     
-    ; The data section of the INIT process - 40kB total
-    INIT_DATA 0x20010000 0x0000A000
+    ; Interrupt flag & other shared data region - 4kB total
+    INIT_SHARED 0x20000000 EMPTY 0x00001000
     {
-        .ANY                   (+RW +ZI)
+    
     }
     
-    ; The virtual machine register data section of the INIT process - 20kB total
-    INIT_HYP 0x2001A000 0x00005000
+    ; The data section of the INIT process - 56kB total
+    INIT_DATA 0x20011000 0x0000E000
     {
         .ANY                   (+RW +ZI)
     }

@@ -52,8 +52,8 @@ typedef unsigned char  u8;
 #define EXTERN                              extern
 /* The order of bits in one CPU machine word */
 #define RVM_WORD_ORDER           5
-/* The stack safe redundancy size in words - set to 0x30 words */
-#define RVM_STACK_SAFE_SIZE                 0x30
+/* The stack safe redundancy size in words - set to 0x20 words */
+#define RVM_STACK_SAFE_SIZE                 0x20
 /* FPU type definitions - keep in accordance with kernel */
 #define RVM_CMX_FPU_NONE                    0
 #define RVM_CMX_FPU_VFPV4                   1
@@ -65,6 +65,14 @@ typedef unsigned char  u8;
 #define RVM_PGTBL_WORD_SIZE_NOM(NUM_ORDER)   ((((ptr_t)1)<<(NUM_ORDER))+5)
 /* Top-level page directory */
 #define RVM_PGTBL_WORD_SIZE_TOP(NUM_ORDER)   (RVM_PGTBL_SIZE_NOM(NUM_ORDER)+11)
+
+/* Kernel functions standard to Cortex-M, interrupt management and power */
+#define RVM_CMX_KERN_INT(X)                  (X)
+#define RVM_CMX_INT_OP                       0
+#define RVM_CMX_INT_ENABLE                   1
+#define RVM_CMX_INT_DISABLE                  0
+#define RVM_CMX_INT_PRIO                     1
+#define RVM_CMX_KERN_PWR                     240
 
 /* Platform-specific includes */
 #include "Platform\CortexM\rvmlib_cmx_conf.h"
@@ -203,6 +211,20 @@ struct RVM_Regs
 {
     struct RVM_Reg_Struct Reg;
     struct RVM_Cop_Struct Cop_Reg;
+};
+
+/* Interrupt flags */
+struct RVM_Flag_Set
+{
+    ptr_t Lock;
+    ptr_t Group;
+    ptr_t Flags[32];
+};
+
+struct RVM_Flags
+{
+    struct RVM_Flag_Set Set0;
+    struct RVM_Flag_Set Set1;
 };
 
 /* The page table layout is statically decided, the first one being the top-level */

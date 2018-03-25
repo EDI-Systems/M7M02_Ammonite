@@ -39,6 +39,38 @@ Description : The init process of MPU-based RVM systems. This process just sets
 #undef __HDR_PUBLIC_MEMBERS__
 /* End Includes **************************************************************/
 
+/* Begin Function:RVM_Clear ***************************************************
+Description : Memset a memory area to zero.
+Input       : void* Addr - The address to clear.
+              ptr_t Size - The size to clear.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void RVM_Clear(void* Addr, ptr_t Size)
+{
+    ptr_t* Word_Inc;
+    u8* Byte_Inc;
+    ptr_t Words;
+    ptr_t Bytes;
+    
+    /* On processors not that fast, copy by word is really important */
+    Word_Inc=(ptr_t*)Addr;
+    for(Words=Size/sizeof(ptr_t);Words>0;Words--)
+    {
+        *Word_Inc=0;
+        Word_Inc++;
+    }
+    
+    /* Get the final bytes */
+    Byte_Inc=(u8*)Word_Inc;
+    for(Bytes=Size%sizeof(ptr_t);Bytes>0;Bytes--)
+    {
+        *Byte_Inc=0;
+        Byte_Inc++;
+    }
+}
+/* End Function:RVM_Clear ****************************************************/
+
 /* Begin Function:RVM_VM_Cnt **************************************************
 Description : Count the page tables' and VM images' total number.
 Input       : None.
@@ -124,21 +156,24 @@ void RVM_Load_Image(struct RVM_Image** Image, ptr_t* Pgtbl_Bump, ptr_t* Kmem_Bum
     /* Check parameter, register & interrupt flag space */
     RVM_ASSERT(_RVM_Pgtbl_Check(Virt->Image->Pgtbl,Virt->Image->Pgtbl_Num,Virt->Image->Param,sizeof(struct RVM_Param))==0);
     RVM_ASSERT(_RVM_Pgtbl_Check(Virt->Image->Pgtbl,Virt->Image->Pgtbl_Num,Virt->Image->Regs,sizeof(struct RVM_Regs))==0);
-    RVM_ASSERT(_RVM_Pgtbl_Check(Virt->Image->Pgtbl,Virt->Image->Pgtbl_Num,Virt->Image->Int_Flags,sizeof(struct RVM_Int_Flag))==0);
+    RVM_ASSERT(_RVM_Pgtbl_Check(Virt->Image->Pgtbl,Virt->Image->Pgtbl_Num,Virt->Image->Int_Flags,sizeof(ptr_t)*RVM_VECT_BITMAP(Virt->Image->Int_Num))==0);
     /* Check console space */
     RVM_ASSERT(_RVM_Pgtbl_Check(Virt->Image->Pgtbl,Virt->Image->Pgtbl_Num,Virt->Image->Console_Buf,Virt->Image->Console_Size)==0);
     RVM_LOG_S("Init:Virtual machine system shared memory mapping check complete.\r\n");
+    /* Clean up the interrupt flag space */
+    RVM_Clear(Virt->Image->Int_Flags,sizeof(ptr_t)*RVM_VECT_BITMAP(Virt->Image->Int_Num));
     
     /* Actually do the page table setup */
     for(Count=0;Count<Virt->Image->Pgtbl_Num;Count++)
         _RVM_Pgtbl_Setup(Pgtbl, RVM_VIRT_TBL_PGTBL, Pgtbl_Bump, RVM_BOOT_INIT_KMEM, Kmem_Bump, Count);
     RVM_LOG_SIS("Init:Created ",Virt->Image->Pgtbl_Num," page tables.\r\n");   
-        
-    /* Create the virtual machine capability table - it always contains 2 entries */
+    
+    /* Create the virtual machine capability table */
     Virt->Cap.Captbl=RVM_VIRT_CAPTBL(VMID);
-    RVM_ASSERT(RVM_Captbl_Crt(RVM_VIRT_TBL_CAPPROC, RVM_BOOT_INIT_KMEM, VMID*2, *Kmem_Bump, 2)==0);
+    RVM_ASSERT(RVM_Captbl_Crt(RVM_VIRT_TBL_CAPPROC, RVM_BOOT_INIT_KMEM, VMID*2, *Kmem_Bump, Virt->Image->Kcap_Num+2)==0);
     RVM_LOG_SISUS("Init:Created virtual machine capability table CID ",VMID*2," @ address 0x",*Kmem_Bump,".\r\n");
-    *Kmem_Bump+=RVM_CAPTBL_SIZE(2);
+    RVM_LOG_SIS("Init:Virtual machine capability table size ",Virt->Image->Kcap_Num+2,".\r\n");
+    *Kmem_Bump+=RVM_CAPTBL_SIZE(Virt->Image->Kcap_Num+2);
     
     /* Create the virtual machine process */
     Virt->Cap.Proc=RVM_VIRT_PROC(VMID);
@@ -184,6 +219,12 @@ void RVM_Load_Image(struct RVM_Image** Image, ptr_t* Pgtbl_Bump, ptr_t* Kmem_Bum
      * The VMM daemon endpoint is always at 0, the interrupt handler endpoint is always at 1 */
     RVM_ASSERT(RVM_Captbl_Add(RVM_VIRT_CAPTBL(VMID), 0, RVM_BOOT_CAPTBL, RVM_VMM_VMMD_SIG, RME_SIG_FLAG_SND)==0);
     RVM_ASSERT(RVM_Captbl_Add(RVM_VIRT_CAPTBL(VMID), 1, RVM_VIRT_TBL_THDSIG, VMID*3+2, RME_SIG_FLAG_SND|RME_SIG_FLAG_RCV)==0);
+    /* Delegate the kernel function capabilities to the VM according to their respective declarations */
+    for(Count=0;Count<Virt->Image->Kcap_Num;Count++)
+    {
+        RVM_ASSERT(RVM_Captbl_Kern(RVM_VIRT_CAPTBL(VMID), Count+2, RVM_BOOT_CAPTBL, RVM_BOOT_INIT_KERN, 
+                                   Virt->Image->Kcap[Count], Virt->Image->Kcap[Count])==0);
+    }
     
     /* Initialize all other data structures */
     RVM_List_Crt(&(Virt->Evt_Head));
@@ -266,21 +307,33 @@ void RVM_Daemon_Init(ptr_t* Kmem_Bump)
     
     RVM_List_Crt(&RVM_Wait);
     RVM_List_Crt(&RVM_Free);
+    RVM_List_Crt(&RVM_Int_Free);
     RVM_List_Crt(&RVM_Evt_Free);
     
-    /* Insert all the blocks into the free header */
+    /* VM init */
     for(Count=0;Count<RVM_MAX_VM_NUM;Count++)
         RVM_List_Ins(&(RVM_Virt_DB[Count].Head),RVM_Free.Prev,&RVM_Free);
+    /* Interrupts init */
+    for(Count=0;Count<RVM_INT_VECT_NUM;Count++)
+        RVM_List_Crt(&RVM_Int_Vect[Count]);
+    for(Count=0;Count<RVM_INT_MAP_NUM;Count++)
+    {
+        RVM_Evt_DB[Count].State=RVM_INT_FREE;
+        RVM_List_Ins(&(RVM_Int_DB[Count].Head),RVM_Int_Free.Prev,&RVM_Int_Free);
+    }
+    /* Event init */
     for(Count=0;Count<RVM_MAX_EVT_NUM;Count++)
     {
         RVM_Evt_DB[Count].State=RVM_EVT_FREE;
         RVM_List_Ins(&(RVM_Evt_DB[Count].Head),RVM_Evt_Free.Prev,&RVM_Evt_Free);
     }
+    /* Run list init */
     for(Count=0;Count<RVM_MAX_PREEMPT_PRIO;Count++)
         RVM_List_Crt(&RVM_Run[Count]);
-    /* Initialize timer wheel data structures */
+    /* Timer wheel init */
     for(Count=0;Count<RVM_WHEEL_SIZE;Count++)
         RVM_List_Crt(&(RVM_Wheel[Count]));
+    
     RVM_LOG_S("Init:Virtual machine database initialization complete.\r\n");
     
     /* Guard daemon initialization - highest priority as always */
@@ -325,10 +378,6 @@ void RVM_Daemon_Init(ptr_t* Kmem_Bump)
                            RVM_BOOT_INIT_PROC, RVM_INTD_PRIO, *Kmem_Bump)>=0);
     RVM_LOG_SISUS("Init:Created Interrupt daemon CID ",RVM_VMM_INTD_THD," @ address 0x",*Kmem_Bump,".\r\n");
     *Kmem_Bump+=RVM_THD_SIZE;
-    
-    RVM_ASSERT(RVM_Sig_Crt(RVM_BOOT_CAPTBL, RVM_BOOT_INIT_KMEM, RVM_VMM_INTD_SIG, *Kmem_Bump)==0);
-    RVM_LOG_SISUS("Init:Created Interrupt endpoint CID ",RVM_VMM_INTD_SIG," @ address 0x",*Kmem_Bump,".\r\n");
-    *Kmem_Bump+=RVM_SIG_SIZE;
     
     RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_VMM_INTD_THD, RVM_VMM_GUARD_THD, RVM_INTD_PRIO)==0);
     RVM_ASSERT(RVM_Thd_Exec_Set(RVM_VMM_INTD_THD, (ptr_t)RVM_Interrupt_Daemon, 
@@ -459,6 +508,33 @@ void _RVM_Wheel_Ins(struct RVM_Virt* Virt, ptr_t Period)
 }
 /* End Function:_RVM_Wheel_Ins ***********************************************/
 
+/* Begin Function:RVM_Int_Send ************************************************
+Description : Send an interrupt to a virtual machine.
+Input       : struct RVM_Virt* Virt - The pointer to the virtual machine.
+              ptr_t Int_Num - The virtual interrupt number.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void RVM_Int_Send(struct RVM_Virt* Virt, ptr_t Int_Num)
+{
+    RVM_ASSERT(Int_Num<Virt->Image->Int_Num);
+    
+    if(RVM_VM_STATE(Virt->Sched.State)==RVM_VM_WAITEVT)
+    {
+        RVM_List_Del(Virt->Head.Prev,Virt->Head.Next);
+        _RVM_Set_Rdy(Virt);
+        RVM_VM_STATE_SET(Virt->Sched.State,RVM_VM_RUNNING);
+    }
+    
+    /* Set the corresponding interrupt bit */
+    _RVM_Set_Int_Flag(Virt, Int_Num);
+    
+    /* Send interrupt to it, if its interrupts are enabled */
+    if((Virt->Sched.State&RVM_VM_INTENA)!=0)
+        RVM_Sig_Snd(Virt->Cap.Int_Sig);
+}
+/* End Function:RVM_Int_Send *************************************************/
+
 /* Begin Function:RVM_Timer_Daemon ********************************************
 Description : The timer daemon for timer interrupt handling and time accounting.
 Input       : None.
@@ -478,10 +554,10 @@ void RVM_Timer_Daemon(void)
     {
         RVM_Sig_Rcv(RVM_BOOT_INIT_TIMER);
         RVM_Tick++;
-        
+        /*
         if((RVM_Tick%1000)==0)
             RVM_LOG_S("TIMD:Timer daemon passed 1000 ticks.\r\n");
-        
+        */
         Slot=&(RVM_Wheel[RVM_Tick%RVM_WHEEL_SIZE]);
         
         Trav=Slot->Next;
@@ -499,18 +575,8 @@ void RVM_Timer_Daemon(void)
             RVM_List_Del(Virt->Delay.Prev,Virt->Delay.Next);
             _RVM_Wheel_Ins(Virt,Virt->Sched.Period);
             
-            if(RVM_VM_STATE(Virt->Sched.State)==RVM_VM_WAITEVT)
-            {
-                RVM_List_Del(Virt->Head.Prev,Virt->Head.Next);
-                _RVM_Set_Rdy(Virt);
-                RVM_VM_STATE_SET(Virt->Sched.State,RVM_VM_RUNNING);
-            }
-            
-            /* Set the 0th interrupt bit */
-            _RVM_Set_Int_Flag(Virt, 0);
-            /* Send interrupt to it, if its interrupts are enabled */
-            if((Virt->Sched.State&RVM_VM_INTENA)!=0)
-                RVM_Sig_Snd(Virt->Cap.Int_Sig);
+            /* Send number 0 interrupt to it */
+            RVM_Int_Send(Virt, 0);
         }
         
         /* If there is at least one virtual machine working, check scheduler time expiration */
@@ -568,6 +634,17 @@ void RVM_VMM_Daemon(void)
                 Param[0]=RVM_Hyp_Disable_Int();
                 break;
             }
+            case RVM_HYP_REGINT:
+            {
+                Param[0]=RVM_Hyp_Reg_Int(Param[0] /* ptr_t Vect_Num */,
+                                         Param[1] /* ptr_t Int_Num */);
+                break;
+            }
+            case RVM_HYP_DELINT:
+            {
+                Param[0]=RVM_Hyp_Del_Int(Param[0] /* cnt_t Int_ID */);
+                break;
+            }
             case RVM_HYP_REGEVT:
             {
                 Param[0]=RVM_Hyp_Reg_Evt(Param[0] /* ptr_t Int_Num */,
@@ -617,6 +694,54 @@ void RVM_VMM_Daemon(void)
 }
 /* End Function:RVM_VMM_Daemon ***********************************************/
 
+/* Begin Function:RVM_Int_Get *************************************************
+Description : Get the interrupt source from the interrupt set. When this is called,
+              there must be at least one interrupt pending in this set.
+Input       : struct RVM_Flag_Set* Set - The interrupt set data.
+Output      : struct RVM_Flag_Set* Set - The interrupt set data.
+Return      : cnt_t - The interrupt number.
+******************************************************************************/
+cnt_t RVM_Int_Get(struct RVM_Flag_Set* Set)
+{
+    cnt_t Group;
+    cnt_t Member;
+    /* See which source group could possibly have any interrupts */
+    Group=_RVM_MSB_Get(Set->Group);
+    RVM_ASSERT(Group>=0);
+    
+    Member=_RVM_MSB_Get(Set->Flags[Group]);
+    RVM_ASSERT(Member>=0);
+    
+    /* Clean up the slot now */
+    Set->Flags[Group]&=~(((ptr_t)1)<<Member);
+    if(Set->Flags[Group]==0)
+        Set->Group&=~(((ptr_t)1)<<Group);
+    
+    return (Group<<RVM_WORD_ORDER)|Member;
+}
+/* End Function:RVM_Int_Get **************************************************/
+
+/* Begin Function:RVM_Int_Proc ************************************************
+Description : Process the physical interrupt, and send real interrupts to virtual machines.
+Input       : cnt_t Vect_Num - The physical interrupt number to process.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void RVM_Int_Proc(cnt_t Vect_Num)
+{
+    struct RVM_Int* Int;
+    RVM_ASSERT(Vect_Num<RVM_INT_VECT_NUM);
+    
+    Int=(struct RVM_Int*)(RVM_Int_Vect[Vect_Num].Next);
+    
+    while(Int!=(struct RVM_Int*)(&RVM_Int_Vect[Vect_Num]))
+    {
+        RVM_Int_Send(&RVM_Virt_DB[Int->VM_ID],Int->Int_Num);
+        Int=(struct RVM_Int*)(Int->Head.Next);
+    }
+}
+/* End Function:RVM_Int_Proc *************************************************/
+
 /* Begin Function:RVM_Int_Daemon **********************************************
 Description : The interrupt daemon for interrupt handling.
 Input       : None.
@@ -625,13 +750,34 @@ Return      : None.
 ******************************************************************************/
 void RVM_Interrupt_Daemon(void)
 {
+    cnt_t Num;
+    struct RVM_Flags* Flags;
     RVM_LOG_S("INTD:Interrupt daemon start complete.\r\n");
 
+    Flags=(struct RVM_Flags*)RVM_INT_FLAG_ADDR;
     /* Main cycle - do nothing for now */
     while(1)
     {
-        RVM_Sig_Rcv(RVM_VMM_INTD_SIG);
-        /* Currently we do not send any interrupts to the systems */
+        RVM_Sig_Rcv(RVM_BOOT_INIT_INT);
+        /* Try to lock the first set of table */
+        Flags->Set0.Lock=1;
+        while(Flags->Set0.Group!=0)
+        {
+            /* Process the interrupts in the first group one by one */
+            Num=RVM_Int_Get(&(Flags->Set0));
+            RVM_Int_Proc(Num);
+        }
+        Flags->Set0.Lock=0;
+        Flags->Set1.Lock=1;
+        while(Flags->Set1.Group!=0)
+        {
+            /* Process the interrupts in the first group one by one */
+            Num=RVM_Int_Get(&(Flags->Set1));
+            RVM_Int_Proc(Num);
+        }
+        Flags->Set1.Lock=0;
+        /* Now many VMs are woken up, and many interrupts are delivered. Choose the
+         * one with the highest priority to run */
     }
 }
 /* End Function:RVM_Interrupt_Daemon *****************************************/

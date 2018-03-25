@@ -203,7 +203,6 @@ while(0)
 #define RVM_TLS_MASK_32KB                    RVM_ROUND_DOWN(RVM_ALLBITS,15)
 #define RVM_TLS_MASK_64KB                    RVM_ROUND_DOWN(RVM_ALLBITS,16)
 
-
 /* Initial capability layout - same across all architectures */
 /* The capability table of the init process */
 #define RVM_BOOT_CAPTBL                      0
@@ -221,23 +220,23 @@ while(0)
 #define RVM_BOOT_INIT_TIMER                  6
 /* The initial fault endpoint */
 #define RVM_BOOT_INIT_FAULT                  7
+/* The initial interrupt endpoint */
+#define RVM_BOOT_INIT_INT                    8
 /* This is the capability table containing all the VM process/capability table capabilities */
-#define RVM_VIRT_TBL_CAPPROC                 8
+#define RVM_VIRT_TBL_CAPPROC                 9
 /* This is the capability table containing all the VM thread/endpoing capabilities */
-#define RVM_VIRT_TBL_THDSIG                  9
+#define RVM_VIRT_TBL_THDSIG                  10
 /* This is the capability table for virtual machine page tables */
-#define RVM_VIRT_TBL_PGTBL                   10
+#define RVM_VIRT_TBL_PGTBL                   11
 /* These are the capabilities for the guard thread - guard thread does not have an endpoint */
-#define RVM_VMM_GUARD_THD                    11
+#define RVM_VMM_GUARD_THD                    12
 /* These are the capabilities for the timer thread - timer thread does not have an endpoint */
-#define RVM_VMM_TIMD_THD                     12
+#define RVM_VMM_TIMD_THD                     13
 /* These are the capabilities for the real-time daemon */
-#define RVM_VMM_VMMD_THD                     13
-#define RVM_VMM_VMMD_SIG                     14
+#define RVM_VMM_VMMD_THD                     14
+#define RVM_VMM_VMMD_SIG                     15
 /* These are the capabilities for the Unix daemon */
-#define RVM_VMM_INTD_THD                     15
-#define RVM_VMM_INTD_SIG                     16
-/* All other user interrupts will just follow ... */
+#define RVM_VMM_INTD_THD                     16
 
 /* Helper capability definitions */
 /* The capability to its capability table */

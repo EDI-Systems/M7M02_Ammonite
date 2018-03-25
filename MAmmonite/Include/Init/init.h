@@ -23,7 +23,7 @@ Description : The header of microcontroller user-level library.
 
 /* Size of bitmap */
 #define RVM_PRIO_BITMAP          ((RVM_MAX_PREEMPT_PRIO-1)/RVM_WORD_SIZE+1)
-#define RVM_VECT_BITMAP          ((RVM_MAX_INTVECT-1)/RVM_WORD_SIZE+1)
+#define RVM_VECT_BITMAP(X)       ((X-1)/RVM_WORD_SIZE+1)
 
 /* States of virtual machines */
 #define RVM_VM_STATE(X)          ((X)&0xFF)
@@ -60,11 +60,6 @@ Description : The header of microcontroller user-level library.
 #define __HDR_DEFS__
 #undef __HDR_DEFS__
 /*****************************************************************************/
-struct RVM_Int_Flag
-{
-    ptr_t Flags[RVM_VECT_BITMAP];
-};
-
 /* The image structure */
 struct RVM_Image
 {
@@ -81,22 +76,29 @@ struct RVM_Image
     void* Int_Stack;
     ptr_t Int_Size;
     
-    /* The parameter space, register set space and interrupt flag space */
+    /* The parameter space and register set space */
     struct RVM_Param* Param;
     struct RVM_Regs* Regs;
-    struct RVM_Int_Flag* Int_Flags;
-    
-    /* The console space and size */
-    void* Console_Buf;
-    ptr_t Console_Size;
     
     /* The priority and timeslices */
     ptr_t Prio;
     ptr_t Slices;
+    
+    /* The console space and size */
+    ptr_t Console_Size;
+    void* Console_Buf;
+    
+    /* The interrupt space */
+    ptr_t Int_Num;
+    ptr_t* Int_Flags;
 
     /* The number of page tables in this image, and where are they stored */
     ptr_t Pgtbl_Num;
     const struct RVM_Hdr_Pgtbl* Pgtbl;
+    
+    /* The number of kernel capabilities in this image, and their list */
+    ptr_t Kcap_Num;
+    const ptr_t* Kcap;
 
     /* Is there any other images? If there is, here is a pointer to the start
      * of the next one. This is a constant pointer to a constant pointer to a 
@@ -180,10 +182,16 @@ static ptr_t RVM_INTD_Stack[RVM_INTD_STACK_SIZE/sizeof(ptr_t)];
 /* Private C Function Prototypes *********************************************/ 
 /*****************************************************************************/
 /* Initialization */
+static void RVM_Clear(void* Addr, ptr_t Size);
 static void RVM_VM_Cnt(ptr_t* VM_Num, ptr_t* Pgtbl_Num);
 static void RVM_Load_Image(struct RVM_Image** Image, ptr_t* Pgtbl_Bump, ptr_t* Kmem_Bump, ptr_t Count);
 static void RVM_VM_Init(ptr_t* Kmem_Bump);
 static void RVM_Daemon_Init(ptr_t* Kmem_Bump);
+
+/* Interrupt delivery */
+void RVM_Int_Send(struct RVM_Virt* Virt, ptr_t Int_Num);
+static cnt_t RVM_Int_Get(struct RVM_Flag_Set* Set);
+static void RVM_Int_Proc(cnt_t Vect_Num);
 
 /* Daemons */
 static void RVM_Guard_Daemon(void);
@@ -202,7 +210,7 @@ static void RVM_Interrupt_Daemon(void);
 #endif
 
 /*****************************************************************************/
-/* The internal vitual machine database */
+/* The internal virtual machine database */
 __EXTERN__ struct RVM_Virt RVM_Virt_DB[RVM_MAX_VM_NUM];
 /* The number of virtual machines */
 __EXTERN__ ptr_t RVM_VM_Num;

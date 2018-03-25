@@ -495,8 +495,8 @@ Return      : ret_t - If the call is successful, it will return whatever the
 ******************************************************************************/
 ret_t RVM_Kern_Act(cid_t Cap_Kern, ptr_t Func_ID, ptr_t Param1, ptr_t Param2)
 {
-    return RVM_CAP_OP(RME_SVC_KERN, 0,
-                      RVM_PARAM_D1(Cap_Kern)|RVM_PARAM_D0(Func_ID),
+    return RVM_CAP_OP(RME_SVC_KERN, Cap_Kern,
+                      Func_ID,
                       Param1,
                       Param2);
 }
