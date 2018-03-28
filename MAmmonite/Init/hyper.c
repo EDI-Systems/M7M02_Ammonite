@@ -481,13 +481,13 @@ ret_t RVM_Hyp_Query_Evt(ptr_t VMID)
 }
 /* End Function:RVM_Hyp_Query_Evt ********************************************/
 
-/* Begin Function:RVM_Hyp_Query ***********************************************
+/* Begin Function:RVM_Hyp_Query_VM ********************************************
 Description : This will query the VM ID from its name.
 Input       : s8* Name - The name of the VM, 16 characters max, we only compare the first 15.
 Output      : None.
 Return      : ret_t - If successful, the VM ID; else an error code.
 ******************************************************************************/
-ret_t RVM_Hyp_Query(s8* Name)
+ret_t RVM_Hyp_Query_VM(s8* Name)
 {
     cnt_t Count;
     
@@ -500,7 +500,7 @@ ret_t RVM_Hyp_Query(s8* Name)
     
     return RVM_ERR_RANGE;
 }
-/* End Function:RVM_Hyp_Query ************************************************/
+/* End Function:RVM_Hyp_Query_VM *********************************************/
 
 /* Begin Function:RVM_Hyp_Tim_Prog ********************************************
 Description : Reprgram the timer of this VM, so that the next interrupts will come at

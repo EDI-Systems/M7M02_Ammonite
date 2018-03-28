@@ -97,7 +97,7 @@ void RVM_Disable_Int(void)
 }
 /* End Function:RVM_Disable_Int **********************************************/
 
-/* Begin Function:RVM_Hyp_Reg_Int *********************************************
+/* Begin Function:RVM_Reg_Int *************************************************
 Description : Register an interrupt line. This will link the physical vector with
               ID Vect_Num to virtual vector with ID Int_Num.
 Input       : ptr_t Vect_Num - The physical vector number's place in the kernel function table.
@@ -105,26 +105,26 @@ Input       : ptr_t Vect_Num - The physical vector number's place in the kernel 
 Output      : None.
 Return      : ret_t - If successful, the interrupt registration ID; else an error code.
 ******************************************************************************/
-ret_t RVM_Hyp_Reg_Int(ptr_t Vect_Num, ptr_t Int_Num)
+ret_t RVM_Reg_Int(ptr_t Vect_Num, ptr_t Int_Num)
 {
     if(Vect_Num>=RVM_Img.Kcap_Num)
         return -1;
     
     return RVM_Hypercall(RVM_HYP_REGINT,RVM_Img.Kcap[Vect_Num],Int_Num,0,0);
 }
-/* End Function:RVM_Hyp_Reg_Int **********************************************/
+/* End Function:RVM_Reg_Int **************************************************/
 
-/* Begin Function:RVM_Hyp_Del_Int *********************************************
+/* Begin Function:RVM_Del_Int *************************************************
 Description : Delete one interrupt line.
-Input       : cnt_t Int_ID - The interrupt registration ID returned by RVM_Hyp_Reg_Int.
+Input       : cnt_t Int_ID - The interrupt registration ID returned by RVM_Reg_Int.
 Output      : None.
 Return      : ret_t - If successful, 0; else an error code.
 ******************************************************************************/
-ret_t RVM_Hyp_Del_Int(cnt_t Int_ID)
+ret_t RVM_Del_Int(cnt_t Int_ID)
 {
     return RVM_Hypercall(RVM_HYP_DELEVT,Int_ID,0,0,0);
 }
-/* End Function:RVM_Hyp_Del_Int **********************************************/
+/* End Function:RVM_Del_Int **************************************************/
 
 /* Begin Function:RVM_Reg_Evt *************************************************
 Description : Register an event channel for the current virtual machine.
@@ -202,7 +202,7 @@ ret_t RVM_Query_VM(char* Name)
     char* Name_Array;
     
     /* Pass the parameters */
-    RVM_Param.Number=RVM_HYP_SENDEVT;
+    RVM_Param.Number=RVM_HYP_QUERYVM;
     Name_Array=(char*)(RVM_Param.Param);
     for(Count=0;Count<16;Count++)
     {
@@ -243,8 +243,6 @@ ret_t RVM_Print(void)
 }
 /* End Function:RVM_Print ****************************************************/
 
-/* Stopped here */
-/* Add WFI functionality for the VMM when it detects nobody running. look at what does it do now. */
 /* Begin Function:RVM_HW_Int_Enable *******************************************
 Description : Enable a hardware interrupt.
 Input       : None.
@@ -357,7 +355,7 @@ void RVM_Int(void)
         while(Int_Num>=0)
         {
             if(RVM_Vect[Int_Num]!=0)
-                ((void(*)(void))RVM_Vect[Int_Num])();
+                ((void(*)(ptr_t))RVM_Vect[Int_Num])(Int_Num);
             Int_Num=RVM_Get_Int();
         }
     }

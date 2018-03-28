@@ -671,9 +671,9 @@ void RVM_VMM_Daemon(void)
                 Param[0]=RVM_Hyp_Query_Evt(Param[0] /* ptr_t VMID */);
                 break;
             }
-            case RVM_HYP_QUERY:
+            case RVM_HYP_QUERYVM:
             {
-                Param[0]=RVM_Hyp_Query(((s8*)Param) /* s8* Name */);
+                Param[0]=RVM_Hyp_Query_VM(((s8*)Param) /* s8* Name */);
                 break;
             }
             case RVM_HYP_TIMPROG:

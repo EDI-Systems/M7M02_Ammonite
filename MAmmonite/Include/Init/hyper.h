@@ -31,7 +31,7 @@ Description : The header of microcontroller user-level library.
 /* Returning from a vector */
 #define RVM_HYP_QUERYEVT         8
 /* Query the VM's ID given its name */
-#define RVM_HYP_QUERY            9
+#define RVM_HYP_QUERYVM          9
 /* Send to another VM */
 #define RVM_HYP_TIMPROG          10
 /* Print to the console */
@@ -175,7 +175,7 @@ __EXTERN__ ret_t RVM_Hyp_Del_Evt(cnt_t Evt_ID);
 __EXTERN__ ret_t RVM_Hyp_Wait_Evt(void);
 __EXTERN__ ret_t RVM_Hyp_Send_Evt(ptr_t Evt_ID);
 __EXTERN__ ret_t RVM_Hyp_Query_Evt(ptr_t VMID);
-__EXTERN__ ret_t RVM_Hyp_Query(s8* Name);
+__EXTERN__ ret_t RVM_Hyp_Query_VM(s8* Name);
 __EXTERN__ ret_t RVM_Hyp_Tim_Prog(ptr_t Period);
 __EXTERN__ ret_t RVM_Hyp_Print(void);
 /*****************************************************************************/

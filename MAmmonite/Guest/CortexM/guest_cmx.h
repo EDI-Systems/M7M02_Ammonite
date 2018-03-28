@@ -61,7 +61,7 @@ typedef signed int ret_t;
 /* Returning from a vector */
 #define RVM_HYP_QUERYEVT         8
 /* Query the VM's ID given its name */
-#define RVM_HYP_QUERY            9
+#define RVM_HYP_QUERYVM          9
 /* Send to another VM */
 #define RVM_HYP_TIMPROG          10
 /* Print to the console */
@@ -314,8 +314,8 @@ EXTERN void RVM_Init(void);
 EXTERN ret_t RVM_Vect_Init(ptr_t Num, void* Handler);
 EXTERN void RVM_Disable_Int(void);
 EXTERN void RVM_Enable_Int(void);
-EXTERN ret_t RVM_Hyp_Reg_Int(ptr_t Vect_Num, ptr_t Int_Num);
-EXTERN ret_t RVM_Hyp_Del_Int(cnt_t Int_ID);
+EXTERN ret_t RVM_Reg_Int(ptr_t Vect_Num, ptr_t Int_Num);
+EXTERN ret_t RVM_Del_Int(cnt_t Int_ID);
 EXTERN ret_t RVM_Reg_Evt(ptr_t Int_Num, ptr_t VMID);
 EXTERN ret_t RVM_Del_Evt(cnt_t Evt_ID);
 EXTERN ret_t RVM_Send_Evt(ptr_t Evt_ID);
