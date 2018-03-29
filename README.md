@@ -50,21 +50,23 @@ This software is **triple-licensed**: it is either **[LGPL v3](LICENSE.md)** or 
 
 ### Typical performance figures for all supported architectures
 
-|Machine      |Toolchain     |Flash|SRAM|Yield|Asnd1|Asnd2|Sinv|Sret|Isnd|
-|:-----------:|:------------:|:---:|:--:|:---:|:---:|:---:|:--:|:--:|:--:|
-|Cortex-M4    |Keil uVision 5|     |    |     |     |     |    |    |    |
-|Cortex-M7    |Keil uVision 5|     |    |     |     |     |    |    |    |
-|Cortex-R4    |TI CCS7       |     |    |     |     |     |    |    |    |
-|Cortex-R5    |TI CCS7       |     |    |     |     |     |    |    |    |
-|MIPS M14k    |XC32-GCC      |     |    |     |     |     |    |    |    |
+|Machine      |Toolchain     |RTOS      |Flash|SRAM|Yield|Mail |Sem  |Mail/I|Sem/I|Mem  |
+|:-----------:|:------------:|:--------:|:---:|:--:|:---:|:---:|:---:|:----:|:---:|:---:|
+|Cortex-M4    |Keil uVision 5|RMP       |     |    |     |     |     |      |     |     |
+|Cortex-M4    |Keil uVision 5|FreeRTOS  |     |    |     |     |     |      |     |     |
+|Cortex-M4    |Keil uVision 5|uCOSIII   |     |    |     |     |     |      |     |     |
+|Cortex-M4    |Keil uVision 5|RT-Thread |     |    |     |     |     |      |     |     |
+|Cortex-M7    |Keil uVision 5|RMP       |2.09 |2.29|1068 |1179 |1221 |1402  |1444 |176  |
+|Cortex-M7    |Keil uVision 5|FreeRTOS  |     |    |     |     |     |      |     |     |
+|Cortex-M7    |Keil uVision 5|uCOSIII   |     |    |     |     |     |      |     |     |
+|Cortex-M7    |Keil uVision 5|RT-Thread |     |    |     |     |     |      |     |     |
+|Cortex-R4    |TI CCS7       |RMP       |     |    |     |     |     |      |     |     |
+|Cortex-R5    |TI CCS7       |RMP       |     |    |     |     |     |      |     |     |
+|MIPS M14k    |XC32-GCC      |RMP       |     |    |     |     |     |      |     |     |
   
 *Cortex-R4 and Cortex-R5 are listed here as single-core architectures because their main selling point is CPU redundancy, thus from the viewpoint of the programmer they behave as if they have only one core. Dual-core mode of these two processors are not supported.  
 
 &ensp;&ensp;&ensp;&ensp;**Flash and SRAM consumption is calculated in kB, while the other figures are calculated in CPU clock cycles. All values listed here are typical (useful system) values, not minimum values, because minimum values on system size seldom make any real sense. HAL library are also included in the size numbers. The absolute minimum value for microcontroller-profile RME is about 32k ROM/16k RAM.**
-
-<!-- |Cortex-M4    |GCC           |     |    |     |     |     |    |    |    | -->
-<!-- |Cortex-M7    |GCC           |     |    |     |     |     |    |    |    | -->
-<!-- |Cortex-R4    |GCC           |     |    |     |     |     |    |    |    | -->
 
 - Cortex-M4 is evaluated with STM32F405RGT6.
 - Cortex-M7 is evaluated with STM32F767IGT6.
@@ -74,11 +76,11 @@ This software is **triple-licensed**: it is either **[LGPL v3](LICENSE.md)** or 
 
 **Multi-core microcontrollers**
 
-|Machine      |Toolchain     |Flash|SRAM|Yield|Asnd1|Asnd2|Sinv|Sret|Isnd|
-|:-----------:|:------------:|:---:|:--:|:---:|:---:|:---:|:--:|:--:|:--:|
-|Cortex-R7    |TBD           |     |    |     |     |     |    |    |    |
-|Cortex-R8    |TBD           |     |    |     |     |     |    |    |    |
-|TMS320C66X   |TI CCS7       |     |    |     |     |     |    |    |    |
+|Machine      |Toolchain     |RTOS      |Flash|SRAM|Yield|Mail |Sem  |Mail/I|Sem/I|Mem  |
+|:-----------:|:------------:|:--------:|:---:|:--:|:---:|:---:|:---:|:----:|:---:|:---:|
+|Cortex-R7    |TBD           |RMP       |     |    |     |     |     |      |     |     |
+|Cortex-R8    |TBD           |RMP       |     |    |     |     |     |      |     |     |
+|TMS320C66X   |TI CCS7       |RMP       |     |    |     |     |     |      |     |     |
 
 &ensp;&ensp;&ensp;&ensp;**Flash and SRAM consumption is calculated in kB, while the other figures are calculated in CPU clock cycles. HAL library are also included in the size numbers. The absolute minimum value for MPU-based microprocessor-profile RME is about 64k ROM/32k RAM.**
 
@@ -87,12 +89,12 @@ This software is **triple-licensed**: it is either **[LGPL v3](LICENSE.md)** or 
 - TMS320C66X is evaluated with TMS320C6678.
 
 &ensp;&ensp;&ensp;&ensp;In the 2 tables above, all compiler options are the highest optimization (usually -O3) and optimized for time. 
-- Yield : The time to yield between different threads.  
-- Asnd1 : Intra-process asynchronous send.
-- Asnd2 : Inter-process asynchronous send. 
-- Sinv  : Synchronous invocation entering time. 
-- Sret  : Synchronous invocation returning time. 
-- Isnd  : Interrupt asynchronous send time.
+- Yield    : The time to yield between different threads.  
+- Mail     : The mailbox communication time between two threads.  
+- Sem      : The semaphore communication time between two threads.  
+- Mail/I   : The time to send to a mailbox from interrupt.  
+- Sem/I    : The time to post to a semaphore from interrupt.  
+- Mem      : The time to do an operation on memory, e.g. allocation/free. 
 
 ## Getting Started
 
