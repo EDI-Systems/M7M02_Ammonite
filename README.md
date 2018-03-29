@@ -1,8 +1,8 @@
 <h1 align="center">
-	<img width="300" src="https://raw.githubusercontent.com/EDI-Systems/M7M1_MuEukaron/master/Documents/Demo/logo.png" alt="logo">
+	<img width="300" src="https://raw.githubusercontent.com/EDI-Systems/M7M2_MuAmmonite/master/Documents/Demo/logo.png" alt="logo">
 </h1>
 
-# Unity OS (RME)
+# Unity Platform (RVM)
 
 点击 **[这里](README_CN.md)** 查看中文版。
 
