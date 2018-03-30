@@ -62,8 +62,8 @@ Click **[HERE](README.md)** for English version.
 &emsp;&emsp;有一些人也许会说一个针对微控制器设计的类Unix系统是完全足够好的，我们不需要虚拟化解决方案。然而，这无异于重新发明轮子，而且最终你会得到一个不比Linux好多少的玩意，或者另一个VxWorks（的确有一些小型实时系统在这条路上狂奔，我们不看好它们）。Linux在嵌入式领域并不被认为是可靠的，而且甚至也不安全*；它足够灵活，但是内存开销却难以忍受，因此这不仅没有解决资源消耗问题而反倒激化了它。然而，虚拟机却先天安全和模块化，而且其底层的RME系统还提供了基于权能的安全机制。  
 *Linux在嵌入式系统市场被认为不安全的原因是很多嵌入式系统几乎不在线更新。这使得它们会长久地使用一个漏洞人尽皆知的旧版本内核。你现在去随便找个现有工具扫描下路由器和IP摄像头，还是能随意弄到大把肉鸡。哦，对了，老Android手机其实也差不多。
 
-### Context switch time and interrupt response time are inflated by 4x. Is it acceptable?
-&ensp;&ensp;&ensp;&ensp;In most cases, **yes**. Because this VMM targets high-end MCUs, where the bare-metal RTOS response time is a **overkill** for many sensors and actuators. A Cortex-M4 @ 180MHz running virtualized FreeRTOS will have the same interrupt response time and context switch time of a Cortex-M3 @ 72MHz running bare-metal FreeRTOS. 
+### 线程切换时间和中断响应时间膨胀了将近4倍。这能行吗？
+&emsp;&emsp;在RVM支持的微控制器上， **没问题** 。因为这个虚拟机监视器的目标是支持高端MCU，而在高端MCU的硬件响应速度已经远超很多传感器和执行器的实际所需。一个运行在180MHz的Cortex-M4如果跑虚拟化的FreeRTOS，其中断响应时间和线程切换时间和一个跑在72MHz的Cortex-M3上的原生FreeRTOS差不多。
 
 &ensp;&ensp;&ensp;&ensp;In terms of I/O response time, the Cortex-M3 is sufficient; we choose to use Cortex-M4 in these applications for **enhanced computing capability, not response time**. If your application does need a very low response time, you can write **RME native applications, which have similar response time when compared to FreeRTOS**. If you are using something faster than Cortex-M4 (e.g. Cortex-M7, TMS320C66X), you can ignore the overhead issue.
 
