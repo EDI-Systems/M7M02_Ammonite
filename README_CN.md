@@ -22,18 +22,18 @@ Click **[HERE](README.md)** for English version.
 &emsp;&emsp;有两种主要的虚拟化方式：一种是[全虚拟化](https://en.wikipedia.org/wiki/Full_virtualization)，一种是[准虚拟化](https://en.wikipedia.org/wiki/Paravirtualization)。前者可以运行完全无修改的二进制代码；后者则要求操作系统底层被适当修改以运行于虚拟机上。本虚拟机监视器（RVM）使用准虚拟化技术来减小运行时间消耗和内存消耗。它提供了一系列的超级调用（hypercall）来提供敏感的特权级操作。
 
 ## 为什么要在微控制器上使用虚拟化技术？
-&emsp;&emsp;The virtualization technology will shape the future of IoT systems, just like how it shaped our IT infrastructure today. However, the reasons for this are different: on microcontrollers, the reasons to use this technology is reliability, security and flexibility.
+&emsp;&emsp;正像虚拟化技术塑造了我们今天的IT基础设施那样，虚拟化技术也会塑造[物联网](https://en.wikipedia.org/wiki/Internet_of_things)（IoT）系统的未来。在微控制器系统上，我们使用虚拟化技术的理由和在PC架构上是不太相同的：主要的原因是可靠性，安全性和灵活性。
 
-### Reliability
-&ensp;&ensp;&ensp;&ensp;Traditional RTOSes employ static code analysis and certification to reach its reliability goal. However, this have proved insufficient for many scenarios; besides the RTOS itself, the following will also introduce errors in the system:  
+### 可靠性
+&emsp;&emsp;RTOS通常使用静态代码分析和认证来确保系统的可靠性。然而，这对很多应用场景来说是不够的。除了RTOS自身之外，以下各项也会在系统中导致错误风险：
 
-- Application bugs. Because traditional RTOSes does not have memory isolation of any kind, a bug in a single application will easily propagate and destroy the whole software system.
+- 应用程序编码错误。由于传统的RTOS不提供任何形式的内存隔离，因此一个任务内的错误会很容易传播到其他任务，然后毁掉整个软件系统。
 
-- Radiation and EMI. These external interferences flip bits in softwares and can cause sporadic errors throughout the system.
+- 辐射和[电磁干扰](https://en.wikipedia.org/wiki/Electromagnetic_interference)。这些外部干扰会翻转硬件状态位，从而在整个系统中造成偶发错误。
 
-- Denial of service. One high-priority thread, if dead in a loop due to some error, will cause the whole system to be responseless. If it repeatedly calls some system call that may lock the scheduler, this will degrade performance of the hard real-time system significantly.
+- [拒绝服务](https://en.wikipedia.org/wiki/Denial-of-service_attack)。一个高优先级任务如果在某个循环中死机，有可能导致整个系统失去响应。如果它频繁地调用某个可能导致锁调度器的系统调用，那就更糟，因为这必然会摧毁整个系统的实时性。
 
-- Sabotage. Due to lack of memory protection, hackers can easily infiltrate the IoT device and render it their toy.  
+- 人为破坏。由于系统没有内存保护，黑客可以侵入IoT设备并且把系统功能任意破坏。
 
 &ensp;&ensp;&ensp;&ensp;Though these weaknesses can be mitigated with watch-dog timers (WDTs) by rebooting the system, this method only works for simple applications. For more complex applications or critical applications that cannot afford a complete reboot, traditional RTOSes can do nothing about this situation.
 

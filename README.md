@@ -21,18 +21,18 @@ This software is **triple-licensed**: it is either **[LGPL v3](LICENSE.md)** or 
 &ensp;&ensp;&ensp;&ensp;There are two types of virtualization: [full-virtalization](https://en.wikipedia.org/wiki/Full_virtualization) and [para-virtualization](https://en.wikipedia.org/wiki/Paravirtualization). The former can run an unmodified image of the operating system; while the latter requires the operating system to be modified to some extent. RVM employs the para-virtuliation technology to reduce the time and memory overhead. It provided hypercalls for many sensitive priviledged operations.
 
 ## Why do we need virtualization on MCUs?
-&ensp;&ensp;&ensp;&ensp;The virtualization technology will shape the future of IoT systems, just like how it shaped our IT infrastructure today. However, the reasons for this are different: on microcontrollers, the reasons to use this technology is reliability, security and flexibility.
+&ensp;&ensp;&ensp;&ensp;The virtualization technology will shape the future of [Internet-of-Things](https://en.wikipedia.org/wiki/Internet_of_things) (IoT) systems, just like how it shaped our IT infrastructure today. However, the reasons for this are different: on microcontrollers, the reasons to use this technology is reliability, security and flexibility.
 
 ### Reliability
 &ensp;&ensp;&ensp;&ensp;Traditional RTOSes employ static code analysis and certification to reach its reliability goal. However, this have proved insufficient for many scenarios; besides the RTOS itself, the following will also introduce errors in the system:  
 
 - Application bugs. Because traditional RTOSes does not have memory isolation of any kind, a bug in a single application will easily propagate and destroy the whole software system.
 
-- Radiation and EMI. These external interferences flip bits in softwares and can cause sporadic errors throughout the system.
+- Radiation and [EMI](https://en.wikipedia.org/wiki/Electromagnetic_interference). These external interferences flip bits in hardwares and can cause sporadic errors throughout the system.
 
-- Denial of service. One high-priority thread, if dead in a loop due to some error, will cause the whole system to be responseless. If it repeatedly calls some system call that may lock the scheduler, this will degrade performance of the hard real-time system significantly.
+- [Denial of service](https://en.wikipedia.org/wiki/Denial-of-service_attack). One high-priority thread, if dead in a loop due to some error, will cause the whole system to be responseless. If it repeatedly calls some system call that may lock the scheduler, this will degrade performance of the hard real-time system significantly.
 
-- Sabotage. Due to lack of memory protection, hackers can easily infiltrate the IoT device and render it their toy.  
+- Sabotage. Due to lack of memory protection, hackers can easily infiltrate the IoT device and destroy its functionality.  
 
 &ensp;&ensp;&ensp;&ensp;Though these weaknesses can be mitigated with watch-dog timers (WDTs) by rebooting the system, this method only works for simple applications. For more complex applications or critical applications that cannot afford a complete reboot, traditional RTOSes can do nothing about this situation.
 
