@@ -16,15 +16,31 @@ This software is **triple-licensed**: it is either **[LGPL v3](LICENSE.md)** or 
 &ensp;&ensp;&ensp;&ensp;For vendor-supplied packages and hardware abstraction libraries, please refer to the **[M0P0_Library](https://github.com/EDI-Systems/M0P0_Library)** repo to download and use them properly. This VMM depends on **[M7M1 micro-kernel OS](https://github.com/EDI-Systems/M7M1_MuEukaron)** as well.
 
 ## Introduction to virtualization
+&ensp;&ensp;&ensp;&ensp;Virtualization is a technology that creates logical copies of the same hardware thus that multiple bare-metal programs and operating systems can coexist on the same hardware platform. On the PC architecture, virtual machine monitors such as VMWare and Virtual Box have been around for decades, and have since shaped our IT infrastructure till today. The main reason to run multiple virtual machines on the same piece of hardware include increased isolation, ease of deployment and flexible management of computational resources.
+&ensp;&ensp;&ensp;&ensp;There are two types of virtualization: full-virtalization and para-virtualization. The former can run an unmodified image of the operating system; while the latter requires the operating system to be modified to some extent. RVM employs the para-virtuliation technology to reduce the time and memory overhead. It provided hypercalls for many sensitive priviledged operations.
 
-### What is virtualization?
-&ensp;&ensp;&ensp;&ensp;Capabilities were a kind of certificate initially introduced into multi-user computer systems to control access permissions. It is an unforgeable token that points to some resource and carries the power to allow operations to the object. In some sense, the Unix file descriptor can be treated as a type of capability; the Windows access permissions can also be viewed as a type of capability. Generally speaking, capabilities are fat pointers that points to some resources.  We guarantee the safety of the system by the three rules:
-- Capabilities cannot be modified at user-level;
-- Capabilities can only be transfered between different processes with well-defined interfaces;
-- Capabilities will only be given to processes that can operate on the corresponding resources.
+## Why do we need virtualization on MCUs?
+&ensp;&ensp;&ensp;&ensp;The virtualization technology will shape the future of IoT systems, just like how it shaped our IT infrastructure today. However, the reasons for this are different: on microcontrollers, the reasons to use this technology is reliability, security and flexibility.
 
-### Why do we need virtualization on MCUs?
-&ensp;&ensp;&ensp;&ensp;The idea of capability is nothing new. Thousands of years ago, kings and emperors have made dedicated tokens for their generals to command a specific branch or group of their army. Usually, these tokens will contain unforgeable (or at least, very difficult to fake) alphabets or characters indicating what powers the general should have, and which army can they command, thus safely handing the army commanding duty off to the generals. In the same sense, capability-based systems can provide a very fine grain of resource management in a very elegant way. By exporting policy through combinations of different capabilities to the user-level, capability-based systems reach a much greater level of flexibity when compared to traditional Unix systems. Additional benefits include increased isolation, fault confinement and ease of formal analysis.
+### Reliability
+&ensp;&ensp;&ensp;&ensp;Traditional RTOSes employ static code analysis and certification to reach its reliability goal. However, this have proved insufficient for many scenarios; besides the RTOS itself, the following will also introduce errors in the system:  
+- Application bugs. Because traditional RTOSes does not have memory isolation of any kind, a bug in a single application will easily propagate and destroy the whole software system.
+- Radiation and EMI. These external interferences flip bits in softwares and can cause sporadic errors throughout the system.
+- Denial of service. One high-priority thread, if dead in a loop due to some error, will cause the whole system to be responseless. If it repeatedly calls some system call that may lock the scheduler, this will degrade performance of the hard real-time system significantly.
+- Sabotage. Due to lack of memory protection, hackers can easily infiltrate the IoT device and render it their toy.  
+Though these weaknesses can be mitigated with watch-dog timers (WDTs) by rebooting the system, this method only works for simple applications. For more complex applications or critical applications that cannot afford a complete reboot, traditional RTOSes can do nothing about this situation.
+
+### Security
+&ensp;&ensp;&ensp;&ensp;Traditional RTOSes generally does not consider information security as their design goal. However, as such, they fail to meet security goals for future IoT systems. As stated in the reliability section, hackers can hack into the system and sabotage any part if they want to; usually a buffer overflow attack is sufficient. This is not the worst yet. The following situations can be much worse than a simple sabotage:
+- For IoT blockchain applications such as [IOTA](https://iota.org/), the attacker can read your passwords, hack into your bank accounts, and possess all your money. 
+- For smart home applications, the hackers can infiltrate your cameras and appliance controls and turn your life into a real-world Truman Show.
+- For smart cars, the hackers can force you to drive as if you are in a Formula 1 race. This has happened on Tesla model 3 not long ago; nobody wants to experience this for sure.
+- For critical life-support device such as medical ventilators, hackers can simply shut them down. No lives are lost to this so far, but if no measures are taken there will soon be some.
+- For critical industry applications, hackers can turn off whole production line, or at least parts of it.
+
+### Flexibility
+&ensp;&ensp;&ensp;&ensp;The embedded software market have long been fragmented. Different RTOSes or software stacks target different markets, and each of them supports a mutually incompatible software stack. This was fine because embedded systems have long been designed for a dedicated purpose; nevertheless this assumption is no longer true today. IoT devices face increasing needs to integrate multiple functions. Instead of developing an RTOS that supports all the features, virtualization technology can let the different stacks coexist on the same physical machine.
+ Traditional RTOSes generally does not consider information security as their design goal. However, as such, they fail to meet security goals for future IoT systems. As stated in the reliability section, hackers can hack into the system and sabotage any part if they want to; usually a buffer overflow attack is sufficient. This is not the worst yet. The following situations can be much worse than a simple sabotage:
 
 ### Wouldn't the virtualization solution be very costly?
 &ensp;&ensp;&ensp;&ensp;Short answer: **No**.  
