@@ -50,17 +50,17 @@ Click **[HERE](README.md)** for English version.
 
 - 对于关键的工业应用，黑客可以把整条生产线关掉，或者至少关掉它的一部分。
 
-### Flexibility
-&ensp;&ensp;&ensp;&ensp;The embedded software market have long been fragmented. Different RTOSes or software stacks target different markets, and each of them supports a mutually incompatible software stack. This was fine because embedded systems have long been designed for a dedicated purpose; nevertheless this assumption is no longer true today. IoT devices face increasing needs to integrate multiple functions. 
+### 灵活性
+&emsp;&emsp;嵌入式软件市场长久以来一直都是碎片化的。针对不同的市场有不同的RTOS和软件栈，而且它们之间互相不兼容。在过去这完全没问题，因为嵌入式系统一直都是针对一个特定用途进行设计的。然而，这个假设在今天不再是现实了。IoT设备面临着越来越多的功能整合需求。
 
-&ensp;&ensp;&ensp;&ensp;Instead of developing an RTOS that supports all the features, virtualization technology can let the different stacks coexist on the same physical machine. This will allow many new possibilities, yet it does not require the programmer to changed thei mental model of RTOS software development.
+&emsp;&emsp;虚拟化技术可以让不同的软件栈共存于同一个硬件平台，而不用新开发一个具备所有功能的RTOS。这会为我们打开新世界的大门，允许我们构建全新的应用形式。而且，这样做并不要求工程师们改变已有的RTOS开发的心智模式，因此基本上没有学习成本。
 
-### Wouldn't the virtualization solution be very costly?
-&ensp;&ensp;&ensp;&ensp;Short answer: **No**.  
+### 虚拟化不会有很高的开销吗？ 
+&emsp;&emsp;简而言之： **不会** 。  
+&emsp;&emsp;详细解释：如果虚拟机监视器 **被设计的很好，并且使用方法也正确** 的话（尤其指通信机制），虚拟化的开支可以忽略不计。对于虚拟化后的FreeRTOS而言，它的线程切换和中断响应时间和直接运行在物理硬件上相比只会恶化4倍，而此时的线程切换性能仍然高出RT-Linux整整25倍之多。对于那些CPU占用高而I/O占用低的虚拟机，这开销更是可以忽略不计。
 
-&ensp;&ensp;&ensp;&ensp;Long answer: If the virtualization features are **designed carefully and used correctly** (especially the communication mechanisms), the virtualization overhead is negligible. Despite being virtualized, FreeRTOS's context switch and interrupt response is just 4x of the original FreeRTOS, and is still 25x better than RT-Linux. 
-
-&ensp;&ensp;&ensp;&ensp;Some may argue that an Unix designed for MCUs will be good enough and we don't need virtualization; however this will involve reinventing the wheel and in the end you get something no better than Linux, or another VxWorks. Linux is not considered reliable and secure at all in embedded systems; it is flexible but incurs unacceptable memory overhead, so this doesn't mitigate the overhead issue and instead exacerbate it. On the other hand, virtual-machines are inherently safe and modular, not to mention that the underlying RME system provides capability-based security.
+&emsp;&emsp;有一些人也许会说一个针对微控制器设计的类Unix系统是完全足够好的，我们不需要虚拟化解决方案。然而，这无异于重新发明轮子，而且最终你会得到一个不比Linux好多少的玩意，或者另一个VxWorks（的确有一些小型实时系统在这条路上狂奔，我们不看好它们）。Linux在嵌入式领域并不被认为是可靠，而且甚至也不安全*；它足够灵活，但是内存开销却难以忍受，因此这不仅没有解决资源消耗问题而反倒激化了它。然而，虚拟机却先天安全和模块化，而且其底层的RME系统还提供了基于权能的安全机制。  
+*Linux在嵌入式系统市场被认为不安全的原因是很多嵌入式系统几乎不在线更新。这使得它们会长久地使用一个漏洞人尽皆知的旧版本内核。你现在去随便找个现有工具扫描下路由器和IP摄像头，还是能随意弄到大把肉鸡。
 
 ### Context switch time and interrupt response time are inflated by 4x. Is it acceptable?
 &ensp;&ensp;&ensp;&ensp;In most cases, **yes**. Because this VMM targets high-end MCUs, where the bare-metal RTOS response time is a **overkill** for many sensors and actuators. A Cortex-M4 @ 180MHz running virtualized FreeRTOS will have the same interrupt response time and context switch time of a Cortex-M3 @ 72MHz running bare-metal FreeRTOS. 
