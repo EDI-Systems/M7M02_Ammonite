@@ -39,15 +39,16 @@ Though these weaknesses can be mitigated with watch-dog timers (WDTs) by rebooti
 - For critical industry applications, hackers can turn off whole production line, or at least parts of it.
 
 ### Flexibility
-&ensp;&ensp;&ensp;&ensp;The embedded software market have long been fragmented. Different RTOSes or software stacks target different markets, and each of them supports a mutually incompatible software stack. This was fine because embedded systems have long been designed for a dedicated purpose; nevertheless this assumption is no longer true today. IoT devices face increasing needs to integrate multiple functions. Instead of developing an RTOS that supports all the features, virtualization technology can let the different stacks coexist on the same physical machine.
- Traditional RTOSes generally does not consider information security as their design goal. However, as such, they fail to meet security goals for future IoT systems. As stated in the reliability section, hackers can hack into the system and sabotage any part if they want to; usually a buffer overflow attack is sufficient. This is not the worst yet. The following situations can be much worse than a simple sabotage:
+&ensp;&ensp;&ensp;&ensp;The embedded software market have long been fragmented. Different RTOSes or software stacks target different markets, and each of them supports a mutually incompatible software stack. This was fine because embedded systems have long been designed for a dedicated purpose; nevertheless this assumption is no longer true today. IoT devices face increasing needs to integrate multiple functions. Instead of developing an RTOS that supports all the features, virtualization technology can let the different stacks coexist on the same physical machine. This will allow many new possibilities, yet it does not require the programmer to changed thei mental model of RTOS software development.
 
 ### Wouldn't the virtualization solution be very costly?
 &ensp;&ensp;&ensp;&ensp;Short answer: **No**.  
-&ensp;&ensp;&ensp;&ensp;Long answer: If **designed carefully and used correctly** (especially the communication mechanisms), it would instead **greatly boost performance** in multiple aspects, because the fast-paths are much more aggressively optimized now. For example, on some architectures, the context switch performance and interrupt response performance can be up to **40x** better than RT-Linux. When user-level library overheads are also included, the result is still **25x** better than RT-Linux.
+&ensp;&ensp;&ensp;&ensp;Long answer: If the virtualization features are **designed carefully and used correctly** (especially the communication mechanisms), the virtualization overhead is negligible. Despite being virtualized, FreeRTOS's context switch and interrupt response is just 4x of the original FreeRTOS, and 10x better than RT-Linux.
+
+### context switch time and interrupt response time are inflated by 4x. Is it acceptable?
 
 ### How much do I need to change my existing code to port it to the VMM?
-&ensp;&ensp;&ensp;&ensp;This is made possible by extensively applying lock-free data structures and atomic operations. For more information, please refer to [this article](https://www.cs.tau.ac.il/~shanir/concurrent-data-structures.pdf).
+&ensp;&ensp;&ensp;&ensp;Very little; please read the manual for details. Actually many software packets are already available on the platform, so there's no need to port by yourself. For a comprehensive list of them, read the section below.
 
 ## Available system components
 &ensp;&ensp;&ensp;&ensp;All the systems that have been virtualized on RVM is shown below. If a github link is provided, the component is available for now. New ports are being added at a constant rate.  
@@ -118,19 +119,10 @@ Though these weaknesses can be mitigated with watch-dog timers (WDTs) by rebooti
 
 ### Prerequisites
 
-&ensp;&ensp;&ensp;&ensp;You need to choose a hardware platform listed above to run the tests. This general-purpose OS focuses on high-performance MCU and CPUs and do not concentrate on lower-end MCUs or legacy MPUs. Do not use QEMU simulator to test the projects because they do not behave correctly in many scenarios.  
-
-&ensp;&ensp;&ensp;&ensp;If you do not have a standalone software platform, you can also use VMMs such as VMware and Virtual Box to try out the x86-64 ISO image.
-
-&ensp;&ensp;&ensp;&ensp;Other platform supports should be simple to implement, however they are not scheduled yet. For Cortex-M or 16-bit microcontrollers, go [M5P1_MuProkaron](https://github.com/EDI-Systems/M5P1_MuProkaron) _Real-Time Kernel_ instead; M5P1 supports all Cortex-Ms and some Cortex-Rs, though without memory protection support.
+&ensp;&ensp;&ensp;&ensp;You need to choose a hardware platform listed above to run the tests. M7M1 is also needed t run the tests.
 
 ### Compilation
-**For MCUs**  
 &ensp;&ensp;&ensp;&ensp;The **Vendor Toolchain** or **GNU Makefile** projects for various microcontrollers are available in the **_Project_** folder. Refer to the readme files in each folder for specific instructions about how to run them. However, keep in mind that some examples may need vendor-specific libraries such as the STM HAL. Some additional drivers may be required too.
-
-**For application processors**  
-&ensp;&ensp;&ensp;&ensp;Only GNU makefile projects will be provided, and only GCC is supported at the moment. Other compilers may also be supported as long as it conforms to the GCC conventions.
-
 
 ### Running the tests
 &ensp;&ensp;&ensp;&ensp;To run the sample programs, simply download them into the development board and start step-by-step debugging. All hardware the example will use is the serial port, and it is configured for you in the example.
@@ -152,4 +144,4 @@ Though these weaknesses can be mitigated with watch-dog timers (WDTs) by rebooti
 &ensp;&ensp;&ensp;&ensp;Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 
 ## EDI Project Information
-&ensp;&ensp;&ensp;&ensp;Mutate - Mesazoa - Eukaron (M7M1 R3T1)
+&ensp;&ensp;&ensp;&ensp;Mutate - Mesazoa - Ammonite (M7M2 R2T1)
