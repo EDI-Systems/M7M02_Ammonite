@@ -27,15 +27,15 @@ Click **[HERE](README.md)** for English version.
 ### 可靠性
 &emsp;&emsp;RTOS通常使用静态代码分析和认证来确保系统的可靠性。然而，这对很多应用场景来说是不够的。除了RTOS自身之外，以下各项也会在系统中导致错误风险：
 
-- 应用程序编码错误。由于传统的RTOS不提供任何形式的内存隔离，因此一个任务内的错误会很容易传播到其他任务，然后毁掉整个软件系统。
+- **应用程序编码错误。** 由于传统的RTOS不提供任何形式的内存隔离，因此一个任务内的错误会很容易传播到其他任务，然后毁掉整个软件系统。
 
-- 辐射和[电磁干扰](https://en.wikipedia.org/wiki/Electromagnetic_interference)。这些外部干扰会翻转硬件状态位，从而在整个系统中造成偶发错误。
+- **辐射和[电磁干扰](https://en.wikipedia.org/wiki/Electromagnetic_interference)。** 这些外部干扰会翻转硬件状态位，从而在整个系统中造成偶发错误。
 
-- [拒绝服务](https://en.wikipedia.org/wiki/Denial-of-service_attack)。一个高优先级任务如果在某个循环中死机，有可能导致整个系统失去响应。如果它频繁地调用某个可能导致锁调度器的系统调用，那就更糟，因为这必然会摧毁整个系统的实时性。
+- **[拒绝服务](https://en.wikipedia.org/wiki/Denial-of-service_attack)。** 一个高优先级任务如果在某个循环中死机，有可能导致整个系统失去响应。如果它频繁地调用某个可能导致锁调度器的系统调用，那就更糟，因为这必然会摧毁整个系统的实时性。
 
-- 人为破坏。由于系统没有内存保护，黑客可以侵入IoT设备并且把系统功能任意破坏。
+- **人为破坏。** 由于系统没有内存保护，黑客可以侵入IoT设备并且把系统功能任意破坏。
 
-&emsp;&emsp;尽管这些弱点可以通过使用[看门狗定时器](https://en.wikipedia.org/wiki/Watchdog)重启系统（watch-dog timer，WDT）加以缓解，这种方法只对低复杂度的系统奏效。对于那些更复杂的应用或者关键应用，我们不能允许它们完全重启，这时传统的RTOS对此束手无策。
+&emsp;&emsp;尽管这些弱点可以通过使用[看门狗定时器](https://en.wikipedia.org/wiki/Watchdog)（watch-dog timer，WDT）重启系统加以缓解，这种方法只对低复杂度的系统奏效。对于那些更复杂的应用或者关键应用，我们不能允许它们完全重启，这时传统的RTOS对此束手无策。
 
 ### Security
 &ensp;&ensp;&ensp;&ensp;Traditional RTOSes generally does not consider information security as their design goal. They fail to meet security goals for future IoT systems. As stated in the reliability section, hackers can hack into the system and sabotage any part if they want to; usually a buffer overflow attack is sufficient. This is not the worst yet. The following situations can be much worse than a simple sabotage:
