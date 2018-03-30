@@ -41,7 +41,7 @@ This software is **triple-licensed**: it is either **[LGPL v3](LICENSE.md)** or 
 
 - For IoT blockchain applications such as [IOTA](https://iota.org/), the attacker can read your passwords, hack into your bank accounts, and possess all your money. 
 
-- For smart home applications, the hackers can infiltrate your cameras and appliance controls and turn your life into a real-world Truman Show.
+- For smart home applications, the hackers can infiltrate your cameras and appliance controls and turn your life into a real-world Truman Show. (What else could possibly be the source of interesting racy video snippets that are currently circulating the internet?)
 
 - For smart cars, the hackers can force you to drive as if you are in a Formula 1 race. This has happened on Tesla model 3 not long ago; nobody wants to experience this for sure.
 
