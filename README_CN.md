@@ -37,18 +37,18 @@ Click **[HERE](README.md)** for English version.
 
 &emsp;&emsp;尽管这些弱点可以通过使用[看门狗定时器](https://en.wikipedia.org/wiki/Watchdog)（watch-dog timer，WDT）重启系统加以缓解，这种方法只对低复杂度的系统奏效。对于那些更复杂的应用或者关键应用，我们不能允许它们完全重启，这时传统的RTOS对此束手无策。
 
-### Security
-&ensp;&ensp;&ensp;&ensp;Traditional RTOSes generally does not consider information security as their design goal. They fail to meet security goals for future IoT systems. As stated in the reliability section, hackers can hack into the system and sabotage any part if they want to; usually a buffer overflow attack is sufficient. This is not the worst yet. The following situations can be much worse than a simple sabotage:
+### 安全性
+&emsp;&emsp;传统的RTOS通常不把信息安全作为它们的一个设计目标。这样一来，它们根本无法满足未来的IoT系统对信息安全的需求。正如上节所讲，黑客可以黑进系统并且破坏系统的任意功能；通常而言，缓冲区溢出攻击就足够了。但这还不是最坏的状况。以下所列的情况比简单的破坏要糟糕多了：
 
-- For IoT blockchain applications such as [IOTA](https://iota.org/), the attacker can read your passwords, hack into your bank accounts, and possess all your money. 
+- 对于以[IOTA](https://iota.org/)为代表的物联网[区块链](https://en.wikipedia.org/wiki/Blockchain)应用，攻击者能够读取你的密码，黑进你的账户，然后划走你所有的钱。
 
-- For smart home applications, the hackers can infiltrate your cameras and appliance controls and turn your life into a real-world Truman Show.
+- 对于智能家居应用，黑客可以黑进你的摄像头和家用电器，然后把你的生活变成现实版真人秀。
 
-- For smart cars, the hackers can force you to drive as if you are in a Formula 1 race. This has happened on Tesla model 3 not long ago; nobody wants to experience this for sure.
+- 对于智能汽车，黑客可以强迫你像一级方程式赛车手那样开车。这在Tesla model 3上刚发生过。肯定没有人想在赛场之外的地方赛车。
 
-- For critical life-support device such as medical ventilators, hackers can simply shut them down. No lives are lost to this so far, but if no measures are taken there will soon be some.
+- 对于关键的生命支持系统，比如医用呼吸机，把它们关掉就足够了。目前还没有人因此丧生，但是如果不采取措施，很快就会有的。
 
-- For critical industry applications, hackers can turn off whole production line, or at least parts of it.
+- 对于关键的工业应用，黑客可以把整条生产线关掉，或者至少关掉它的一部分。
 
 ### Flexibility
 &ensp;&ensp;&ensp;&ensp;The embedded software market have long been fragmented. Different RTOSes or software stacks target different markets, and each of them supports a mutually incompatible software stack. This was fine because embedded systems have long been designed for a dedicated purpose; nevertheless this assumption is no longer true today. IoT devices face increasing needs to integrate multiple functions. 
