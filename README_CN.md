@@ -8,12 +8,13 @@ Click **[HERE](README.md)** for English version.
 
 &emsp;&emsp;**RVM** 是一个专为微控制器（microcontroller，MCU）设计的虚拟机监视器（virtual machine monitor，VMM）。这个虚拟机监视器可以高效地准虚拟化很多RTOS和裸机程序。这是一种划时代的技术，并且也是IoT系统的未来。它使得之前很多无法想象的应用变成可能。它同时具备前无古人的可扩展性，可以在1MB的静态内存上运行多达64个虚拟机。
 
-&ensp;&ensp;&ensp;&ensp;该虚拟机监视器的手册可以在 **[这里](https://github.com/EDI-Systems/M7M2_MuAmmonite/blob/master/Documents/M7M2_%E5%BE%AE%E6%8E%A7%E5%88%B6%E5%99%A8%E5%AE%9E%E6%97%B6%E5%87%86%E8%99%9A%E6%8B%9F%E6%9C%BA%E7%9B%91%E8%A7%86%E5%99%A8_%E6%8A%80%E6%9C%AF%E6%89%8B%E5%86%8C.pdf)**找到。
+&emsp;&emsp;该虚拟机监视器的手册可以在 **[这里](https://github.com/EDI-Systems/M7M2_MuAmmonite/blob/master/Documents/M7M2_%E5%BE%AE%E6%8E%A7%E5%88%B6%E5%99%A8%E5%AE%9E%E6%97%B6%E5%87%86%E8%99%9A%E6%8B%9F%E6%9C%BA%E7%9B%91%E8%A7%86%E5%99%A8_%E6%8A%80%E6%9C%AF%E6%89%8B%E5%86%8C.pdf)** 找到。
 
-&ensp;&ensp;&ensp;&ensp;Read **[Contributing](CONTRIBUTING.md)** and **[Code of Conduct](CODE_OF_CONDUCT.md)** if you want to contribute, and **[Pull Request Template](PULL_REQUEST_TEMPLATE.md)** when you make pull requests.
-This software is **triple-licensed**: it is either **[LGPL v3](LICENSE.md)** or **[modified MIT license](MODMIT.md)**. **Commercial** licenses are also available upon request.
+&emsp;&emsp;如果想要参与开发，请阅读 **[参与](CONTRIBUTING.md)** 和 **[规范](CODE_OF_CONDUCT.md)** 两个指导文档。如果要提交拉取请求，请使用 **[拉取请求模板](PULL_REQUEST_TEMPLATE.md)** 。
 
-&ensp;&ensp;&ensp;&ensp;For vendor-supplied packages and hardware abstraction libraries, please refer to the **[M0P0_Library](https://github.com/EDI-Systems/M0P0_Library)** repo to download and use them properly. This VMM depends on **[M7M1 micro-kernel OS](https://github.com/EDI-Systems/M7M1_MuEukaron)** as well.
+本软件采用 **三种不同的授权** ：你可以选择 **[LGPL v3](LICENSE.md)** ，也可以选择 **[经修改的MIT协议](MODMIT.md)** 。 如果有特殊需求， 也可以联系我们请求**商业授权**。
+
+&emsp;&emsp;对于那些由微控制器厂商提供的硬件抽象层软件包，请到 **[M0P0_Library](https://github.com/EDI-Systems/M0P0_Library)** 软件仓库自行下载。 本虚拟机监视器也依赖于 **[M7M1 微内核操作系统](https://github.com/EDI-Systems/M7M1_MuEukaron)** 。
 
 ## Introduction to virtualization
 &ensp;&ensp;&ensp;&ensp;Virtualization is a technology that creates logical copies of the same hardware thus that multiple bare-metal programs and operating systems can coexist on the same hardware platform. On the PC architecture, virtual machine monitors such as VMWare and Virtual Box have been around for decades, and have since shaped our IT infrastructure till today. The main reason to run multiple virtual machines on the same piece of hardware include increased isolation, ease of deployment and flexible management of computational resources.  
