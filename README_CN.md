@@ -60,7 +60,7 @@ Click **[HERE](README.md)** for English version.
 &emsp;&emsp;详细解释：如果虚拟机监视器 **被设计的很好，并且使用方法也正确** 的话（尤其指通信机制），虚拟化的开支可以忽略不计。对于虚拟化后的FreeRTOS而言，它的线程切换和中断响应时间和直接运行在物理硬件上相比只会恶化4倍，而此时的线程切换性能仍然高出RT-Linux整整25倍之多。对于那些CPU占用高而I/O占用低的虚拟机，这开销更是可以忽略不计。
 
 &emsp;&emsp;有一些人也许会说一个针对微控制器设计的类Unix系统是完全足够好的，我们不需要虚拟化解决方案。然而，这无异于重新发明轮子，而且最终你会得到一个不比Linux好多少的玩意，或者另一个VxWorks（的确有一些小型实时系统在这条路上狂奔，我们不看好它们）。Linux在嵌入式领域并不被认为是可靠的，而且甚至也不安全*；它足够灵活，但是内存开销却难以忍受，因此这不仅没有解决资源消耗问题而反倒激化了它。然而，虚拟机却先天安全和模块化，而且其底层的RME系统还提供了基于权能的安全机制。  
-*Linux在嵌入式系统市场被认为不安全的原因是很多嵌入式系统几乎不在线更新。这使得它们会长久地使用一个漏洞人尽皆知的旧版本内核。你现在去随便找个现有工具扫描下路由器和IP摄像头，还是能随意弄到大把肉鸡。哦，对了，Android手机其实也差不多。
+*Linux在嵌入式系统市场被认为不安全的原因是很多嵌入式系统几乎不在线更新。这使得它们会长久地使用一个漏洞人尽皆知的旧版本内核。你现在去随便找个现有工具扫描下路由器和IP摄像头，还是能随意弄到大把肉鸡。哦，对了，老Android手机其实也差不多。
 
 ### Context switch time and interrupt response time are inflated by 4x. Is it acceptable?
 &ensp;&ensp;&ensp;&ensp;In most cases, **yes**. Because this VMM targets high-end MCUs, where the bare-metal RTOS response time is a **overkill** for many sensors and actuators. A Cortex-M4 @ 180MHz running virtualized FreeRTOS will have the same interrupt response time and context switch time of a Cortex-M3 @ 72MHz running bare-metal FreeRTOS. 
