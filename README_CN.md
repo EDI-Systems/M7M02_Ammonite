@@ -16,13 +16,13 @@ Click **[HERE](README.md)** for English version.
 
 &emsp;&emsp;对于那些由微控制器厂商提供的硬件抽象层软件包，请到 **[M0P0_Library](https://github.com/EDI-Systems/M0P0_Library)** 软件仓库自行下载。 本虚拟机监视器也依赖于 **[M7M1 微内核操作系统](https://github.com/EDI-Systems/M7M1_MuEukaron)** 。
 
-## Introduction to virtualization
-&ensp;&ensp;&ensp;&ensp;Virtualization is a technology that creates logical copies of the same hardware thus that multiple bare-metal programs and operating systems can coexist on the same hardware platform. On the PC architecture, virtual machine monitors such as VMWare and Virtual Box have been around for decades, and have since shaped our IT infrastructure till today. The main reason to run multiple virtual machines on the same piece of hardware include increased isolation, ease of deployment and flexible management of computational resources.  
+## 虚拟化技术简介
+&emsp;&emsp;[虚拟化](https://en.wikipedia.org/wiki/Virtualization)是一种可以模拟出多套逻辑硬件并允许多个操作系统或裸机程序共存于同一个物理硬件平台的技术。在PC架构上，[VMware](https://www.vmware.com/)和[Virtual Box](https://www.virtualbox.org/)已经有数十年历史，并且从那时起直至今日都深刻地塑造了我们的IT基础设施。在同一套物理硬件上运行多个虚拟机的主要原因包括进阶隔离、方便部署和易于管理。
 
-&ensp;&ensp;&ensp;&ensp;There are two types of virtualization: full-virtalization and para-virtualization. The former can run an unmodified image of the operating system; while the latter requires the operating system to be modified to some extent. RVM employs the para-virtuliation technology to reduce the time and memory overhead. It provided hypercalls for many sensitive priviledged operations.
+&emsp;&emsp;有两种主要的虚拟化方式：一种是[全虚拟化](https://en.wikipedia.org/wiki/Full_virtualization)，一种是[准虚拟化](https://en.wikipedia.org/wiki/Paravirtualization)。前者可以运行完全无修改的二进制代码；后者则要求操作系统底层被适当修改以运行于虚拟机上。本虚拟机监视器（RVM）使用准虚拟化技术来减小运行时间消耗和内存消耗。它提供了一系列的超级调用（hypercall）来提供敏感的特权级操作。
 
-## Why do we need virtualization on MCUs?
-&ensp;&ensp;&ensp;&ensp;The virtualization technology will shape the future of IoT systems, just like how it shaped our IT infrastructure today. However, the reasons for this are different: on microcontrollers, the reasons to use this technology is reliability, security and flexibility.
+## 为什么要在微控制器上使用虚拟化技术？
+&emsp;&emsp;The virtualization technology will shape the future of IoT systems, just like how it shaped our IT infrastructure today. However, the reasons for this are different: on microcontrollers, the reasons to use this technology is reliability, security and flexibility.
 
 ### Reliability
 &ensp;&ensp;&ensp;&ensp;Traditional RTOSes employ static code analysis and certification to reach its reliability goal. However, this have proved insufficient for many scenarios; besides the RTOS itself, the following will also introduce errors in the system:  
