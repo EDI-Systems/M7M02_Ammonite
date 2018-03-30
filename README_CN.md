@@ -65,29 +65,31 @@ Click **[HERE](README.md)** for English version.
 ### 线程切换时间和中断响应时间膨胀了将近4倍。这能行吗？
 &emsp;&emsp;在RVM支持的微控制器上， **没问题** 。因为这个虚拟机监视器的目标是支持高端MCU，而在高端MCU的硬件响应速度已经远超很多传感器和执行器的实际所需。一个运行在180MHz的Cortex-M4如果跑虚拟化的FreeRTOS，其中断响应时间和线程切换时间和一个跑在72MHz的Cortex-M3上的原生FreeRTOS差不多。
 
-&ensp;&ensp;&ensp;&ensp;In terms of I/O response time, the Cortex-M3 is sufficient; we choose to use Cortex-M4 in these applications for **enhanced computing capability, not response time**. If your application does need a very low response time, you can write **RME native applications, which have similar response time when compared to FreeRTOS**. If you are using something faster than Cortex-M4 (e.g. Cortex-M7, TMS320C66X), you can ignore the overhead issue.
+&emsp;&emsp;在I/O响应时间方面，Cortex-M3已经足够优秀了。我们选择使用Cortex-M4是为了 **增强的计算性能，不是为了响应时间** 。如果你的应用程序的确需要低的响应时间，你可以编写 **RME的原生应用，它们的响应时间和FreeRTOS差不多** 。如果你使用比Cortex-M7快的处理器（比如Cortex-M7和TMS320C66X），那么你完全可以忽略额外开销的问题。
 
-### How much do I need to change my existing code to port it to the VMM?
-&ensp;&ensp;&ensp;&ensp;Very little; please read the manual for details. Actually many software packets are already available on the platform, so there's no need to port by yourself. For a comprehensive list of them, read the section below.
+### 为了移植到虚拟机监视器，我要修改多少代码？
+&emsp;&emsp;非常少。请参阅手册以获取细节。实际上很多软件包在本平台上已经可用了，你不需要自己移植。详细的清单见下节。
 
-## Available system components
-&ensp;&ensp;&ensp;&ensp;All the systems that have been virtualized on RVM is shown below. If a github link is provided, the component is available for now. New ports are being added at a constant rate.  
-- **[RVM/Lib](https://github.com/EDI-Systems/M7M2_MuAmmonite)**, the microcontroller-oriented user-level library for RME.
-- **[RVM/RMP](https://github.com/EDI-Systems/M5P1_MuProkaron)**, a port of the simplistic RMP on RVM, with all functionalities retained.
-- **[RVM/FreeRTOS](https://github.com/EDI-Systems/FreeRTOS)**, a port of the widely-used [FreeRTOS](https://www.freertos.org/) to RVM.
-- **[RVM/RT-Thread](https://github.com/EDI-Systems/rt-thread)**, a port of the promising [RT-Thread](https://www.rt-thread.org/) to RVM, with all frameworks retained.
-- **[RVM/uCOSIII](https://github.com/EDI-Systems/uCOSIII)**, a port of the famous [uC/OS III](https://www.micrium.com/) to RVM. You should have a commercial license to use this port.
-- **[RVM/MicroPython](https://github.com/EDI-Systems/micropython)**, a port of the popular [MicroPython](https://micropython.org/) to RVM.
-- **[RVM/Lua](https://github.com/EDI-Systems/lua)**, a port of the easy-to-use [Lua](https://www.lua.org/) language to RVM.
-- **[RVM/Duktape](https://github.com/EDI-Systems/duktape)**, a port of the emerging [JavaScript](https://github.com/svaarala/duktape) language to RVM.
-- **[RVM/Essentials](https://github.com/EDI-Systems/M5P1_MuProkaron)**, a port of [lwip](https://savannah.nongnu.org/projects/lwip/), [fatfs](http://elm-chan.org/fsw/ff/00index_e.html) and [emWin](https://www.segger.com/products/user-interface/emwin/) to RVM, all packed in one [RMP](https://github.com/EDI-Systems/M5P1_MuProkaron) virtual machine. Be sure to obtain license to use these softwares.
+## 可用的系统组件
 
-## List of system calls
+&emsp;&emsp;所有的现有系统组件列于下表。如果提供了github链接，那么该组件现在就是可用的。新的组件现在还在被持续添加。  
+- **[RVM/Lib](https://github.com/EDI-Systems/M7M2_MuAmmonite)**，一份RME的微控制器用户态库。
+- **[RVM/RMP](https://github.com/EDI-Systems/M5P1_MuProkaron)**，RMP在RME上的一个全功能移植。
+- **[RVM/FreeRTOS](https://github.com/EDI-Systems/FreeRTOS)**，广为应用的[FreeRTOS](https://www.freertos.org/)在RVM上的一个全功能移植。
+- **[RVM/RT-Thread](https://github.com/EDI-Systems/rt-thread)**，颇有前景的[RT-Thread](https://www.rt-thread.org/)在RVM上的一个全功能移植，包括其所有框架。
+- **[RVM/uCOSIII](https://github.com/EDI-Systems/uCOSIII)**，著名的[uC/OS III](https://www.micrium.com/)在RVM上的一个移植。如果要在产品中使用该系统，你应当持有该系统的商业许可。
+- **[RVM/MicroPython](https://github.com/EDI-Systems/micropython)**，广为应用的[MicroPython](https://micropython.org/)在RVM上的一个移植。
+- **[RVM/Lua](https://github.com/EDI-Systems/lua)**，广为应用的[Lua](https://www.lua.org/)在RVM上的一个移植。
+- **[RVM/Duktape](https://github.com/EDI-Systems/duktape)**，新出现的[JavaScript](https://github.com/svaarala/duktape)在RVM上的一个移植。
+- **[RVM/Essentials](https://github.com/EDI-Systems/M5P1_MuProkaron)**，一个包含了[lwip](https://savannah.nongnu.org/projects/lwip/)、[fatfs](http://elm-chan.org/fsw/ff/00index_e.html)和[emWin](https://www.segger.com/products/user-interface/emwin/)的[RMP](https://github.com/EDI-Systems/M5P1_MuProkaron)的RVM移植。要在产品中使用该系统，你应当持有相应的商业许可。
+
+## List of hyper calls
 
 
-### Typical performance figures for all supported architectures
+### 所有受支持架构上的典型性能数据
+**单核微控制器**
 
-|Machine      |Toolchain     |RTOS      |Flash|SRAM|Yield|Mail |Sem  |Mail/I|Sem/I|Mem  |
+|架构          |工具链         |实时系统   |Flash|SRAM|Yield|Mail |Sem  |Mail/I|Sem/I|Mem  |
 |:-----------:|:------------:|:--------:|:---:|:--:|:---:|:---:|:---:|:----:|:---:|:---:|
 |Cortex-M4    |Keil uVision 5|RMP       |     |    |     |     |     |      |     |     |
 |Cortex-M4    |Keil uVision 5|FreeRTOS  |     |    |     |     |     |      |     |     |
@@ -100,68 +102,68 @@ Click **[HERE](README.md)** for English version.
 |Cortex-R4    |TI CCS7       |RMP       |     |    |     |     |     |      |     |     |
 |Cortex-R5    |TI CCS7       |RMP       |     |    |     |     |     |      |     |     |
 |MIPS M14k    |XC32-GCC      |RMP       |     |    |     |     |     |      |     |     |
-  
-*Cortex-R4 and Cortex-R5 are listed here as single-core architectures because their main selling point is CPU redundancy, thus from the viewpoint of the programmer they behave as if they have only one core. Dual-core mode of these two processors are not supported.  
 
-&ensp;&ensp;&ensp;&ensp;**Flash and SRAM consumption is calculated in kB, while the other figures are calculated in CPU clock cycles. All values listed here are typical (useful system) values, not minimum values, because minimum values on system size seldom make any real sense. HAL library are also included in the size numbers. The absolute minimum value for microcontroller-profile RME is about 32k ROM/16k RAM.**
+*Cortex-R4和Cortex-R5在这里被列为单核架构，因为它们的主要卖点是CPU冗余。因此从开发者的视角看来，它们的行为和单核系统一致。Cortex-R4和Cortex-R5上的双核模式不被RME支持。
 
-- Cortex-M4 is evaluated with STM32F405RGT6.
-- Cortex-M7 is evaluated with STM32F767IGT6.
-- Cortex-R4 is evaluated with TMS570LS0432.
-- Cortex-R5 is evaluated with TMS570LC4357.
-- MIPS M14k is evaluated with PIC32MZEFM100.
+&emsp;&emsp;**Flash和SRAM消耗以kB计，其他数据以CPU指令周期计。这里列出的所有值都是典型（有意义的系统配置）值而非绝对意义上的最小值，因为纯技术层面的最小配置在实际工程中很少是真正有用的。HAL库所造成的额外存储器消耗也被计算在内。**
 
-**Multi-core microcontrollers**
+- Cortex-M4平台使用STM32F405RGT6进行评估。
+- Cortex-M7平台使用STM32F767IGT6进行评估。
+- Cortex-R4平台使用TMS570LS0432进行评估。
+- Cortex-R5平台使用TMS570LC4357进行评估。
+- MIPS M14k平台使用PIC32MZ2048EFM100进行评估。
 
-|Machine      |Toolchain     |RTOS      |Flash|SRAM|Yield|Mail |Sem  |Mail/I|Sem/I|Mem  |
+**多核微控制器**
+
+|架构          |工具链         |实时系统   |Flash|SRAM|Yield|Mail |Sem  |Mail/I|Sem/I|Mem  |
 |:-----------:|:------------:|:--------:|:---:|:--:|:---:|:---:|:---:|:----:|:---:|:---:|
 |Cortex-R7    |TBD           |RMP       |     |    |     |     |     |      |     |     |
 |Cortex-R8    |TBD           |RMP       |     |    |     |     |     |      |     |     |
 |TMS320C66X   |TI CCS7       |RMP       |     |    |     |     |     |      |     |     |
 
-&ensp;&ensp;&ensp;&ensp;**Flash and SRAM consumption is calculated in kB, while the other figures are calculated in CPU clock cycles. HAL library are also included in the size numbers. The absolute minimum value for MPU-based microprocessor-profile RME is about 64k ROM/32k RAM.**
+&emsp;&emsp;**Flash和SRAM消耗以kB计，其他数据以CPU指令周期计。HAL库所造成的额外存储器消耗也被计算在内。**
 
-- Cortex-R7 is evaluated with TBD.
-- Cortex-R8 is evaluated with TBD.
-- TMS320C66X is evaluated with TMS320C6678.
+- Cortex-R7平台使用（尚未决定）进行评估。
+- Cortex-R8平台使用（尚未决定）进行评估。
+- TMS320C66X平台使用TMS320C6678进行评估。
 
-&ensp;&ensp;&ensp;&ensp;In the 2 tables above, all compiler options are the highest optimization (usually -O3) and optimized for time. 
-- Yield    : The time to yield between different threads.  
-- Mail     : The mailbox communication time between two threads.  
-- Sem      : The semaphore communication time between two threads.  
-- Mail/I   : The time to send to a mailbox from interrupt.  
-- Sem/I    : The time to post to a semaphore from interrupt.  
-- Mem      : The time to do an operation on memory, e.g. allocation/free. 
+&emsp;&emsp;在上面所列的两个表格中，所有的编译器选项都被设置为最高优化（通常是-O3），而且针对运行时间进行了优化。
+- Yield   ：两线程间进行切换所用的时间。  
+- Mail    ：两线程间使用邮箱进行发送-接收操作的耗时。  
+- Sem     ：两线程间使用计数信号量进行发布-获取操作的耗时。  
+- Mail/I  ：从中断发送到某线程邮箱的耗时。 
+- Sem/I   ：从中断发布信号量的耗时。 
+- Mem     ：进行一次内存操作（比如分配或释放）的用时。 
 
-## Getting Started
+## 新手上路
 
-&ensp;&ensp;&ensp;&ensp;These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+&emsp;&emsp;下面的说明会帮助你在本地快速建立一个可用来评估测试本系统的工程。请参看系统的中文文档以获取更多信息。
 
-### Prerequisites
+### 准备工作
 
-&ensp;&ensp;&ensp;&ensp;You need to choose a hardware platform listed above to run the tests. M7M1 is also needed t run the tests.
+&ensp;&ensp;你需要一个上面列出的硬件平台来进行测试。要运行测试，M7M1也是必要的。
 
-### Compilation
-&ensp;&ensp;&ensp;&ensp;The **Vendor Toolchain** or **GNU Makefile** projects for various microcontrollers are available in the **_Project_** folder. Refer to the readme files in each folder for specific instructions about how to run them. However, keep in mind that some examples may need vendor-specific libraries such as the STM HAL. Some additional drivers may be required too.
+### 编译指南
+&emsp;&emsp;在 **_Project_** 文件夹下能够找到多种微控制器的移植好的 **厂商集成开发环境** 或 **Eclipse** 的工程样板。参看各个工程文件夹下的自述文件以获取更多关于如何编译和运行该工程的信息。某些工程需要额外的厂商硬件抽象层库的支持，它们可以在 **[M0P0_Library](https://github.com/EDI-Systems/M0P0_Library)** 软件仓库被找到。
 
-### Running the tests
-&ensp;&ensp;&ensp;&ensp;To run the sample programs, simply download them into the development board and start step-by-step debugging. All hardware the example will use is the serial port, and it is configured for you in the example.
+### 运行测试
+&emsp;&emsp;要运行测试，只要将测试下载到对应的开发板并开始单步调试即可。某些例子会采用两个LED来指示系统当前的状态，此时要填充LED的点亮和熄灭函数来运行该示例。
 
 
-### Deployment
-&ensp;&ensp;&ensp;&ensp;When deploying this into a production system, it is recommended that you read the manual in the **_Documents_** folder carefully to configure all options correctly. It is not recommended to configure the kernel yourself, anyway; it included too many details. Please use the default configuration file as much as possible. Also, read the user guide for the specific platform you are using.
+### 生产部署
+&emsp;&emsp;当部署本系统到生产环境时，请仔细阅读本系统自带的手册，以确保各项配置正确。本系统的手册可以在 **_Documents_** 文件夹下找到。不推荐由用户自己配置内核；它包含太多的细节。请尽量使用提供好的默认配置文件。此外，一定要阅读对应架构的用户手册。
 
-## Built With
+## 支持的工具链
 
 - Keil uVision 5 (armcc)
 - Code composer studio
 - GCC/Clang-LLVM
 
-&ensp;&ensp;&ensp;&ensp;Other toolchains are neither recommended nor supported at this point, though it might be possible to support them later on.
+&emsp;&emsp;其他的工具链现在不推荐或者当前不受支持，虽然要增加新的支持应该也很简单。
 
 ## Contributing
 
-&ensp;&ensp;&ensp;&ensp;Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
+&emsp;&emsp;请阅读[CONTRIBUTING.md](CONTRIBUTING.md)文档来获得关于行为规范和提交代码的相关信息。
 
 ## EDI Project Information
-&ensp;&ensp;&ensp;&ensp;Mutate - Mesazoa - Ammonite (M7M2 R2T1)
+&emsp;&emsp;演进 - 中生 - 菊石 (M7M2 R2T1)
