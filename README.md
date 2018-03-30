@@ -31,7 +31,7 @@ This software is **triple-licensed**: it is either **[LGPL v3](LICENSE.md)** or 
 Though these weaknesses can be mitigated with watch-dog timers (WDTs) by rebooting the system, this method only works for simple applications. For more complex applications or critical applications that cannot afford a complete reboot, traditional RTOSes can do nothing about this situation.
 
 ### Security
-&ensp;&ensp;&ensp;&ensp;Traditional RTOSes generally does not consider information security as their design goal. However, as such, they fail to meet security goals for future IoT systems. As stated in the reliability section, hackers can hack into the system and sabotage any part if they want to; usually a buffer overflow attack is sufficient. This is not the worst yet. The following situations can be much worse than a simple sabotage:
+&ensp;&ensp;&ensp;&ensp;Traditional RTOSes generally does not consider information security as their design goal. They fail to meet security goals for future IoT systems. As stated in the reliability section, hackers can hack into the system and sabotage any part if they want to; usually a buffer overflow attack is sufficient. This is not the worst yet. The following situations can be much worse than a simple sabotage:
 - For IoT blockchain applications such as [IOTA](https://iota.org/), the attacker can read your passwords, hack into your bank accounts, and possess all your money. 
 - For smart home applications, the hackers can infiltrate your cameras and appliance controls and turn your life into a real-world Truman Show.
 - For smart cars, the hackers can force you to drive as if you are in a Formula 1 race. This has happened on Tesla model 3 not long ago; nobody wants to experience this for sure.
