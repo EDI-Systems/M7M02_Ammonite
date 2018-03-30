@@ -63,7 +63,7 @@ This software is **triple-licensed**: it is either **[LGPL v3](LICENSE.md)** or 
 *The reason why Linux is considered unsafe in embedded realm is that many embedded devices never update their kernel to the latest version. This caused them to rely on an outdated kernel whose vulnerabilities are well-known to all. You can randomly pick a ready-made tool then scan these routers and IP cameras, and get as many zombies as you want. Oh yes, this also plagues the old Android mobile phones.
 
 ### Context switch time and interrupt response time are inflated by 4x. Is it acceptable?
-&ensp;&ensp;&ensp;&ensp;In most cases, **yes**. Because this VMM targets high-end MCUs, where the bare-metal RTOS response time is a **overkill** for many sensors and actuators. A Cortex-M4 @ 180MHz running virtualized FreeRTOS will have the same interrupt response time and context switch time of a Cortex-M3 @ 72MHz running bare-metal FreeRTOS. 
+&ensp;&ensp;&ensp;&ensp;For MCUs that are supported by RVM, **yes**. Because this VMM targets high-end MCUs, where the bare-metal RTOS response time is a **overkill** for many sensors and actuators. A Cortex-M4 @ 180MHz running virtualized FreeRTOS will have the same interrupt response time and context switch time of a Cortex-M3 @ 72MHz running bare-metal FreeRTOS. 
 
 &ensp;&ensp;&ensp;&ensp;In terms of I/O response time, the Cortex-M3 is sufficient; we choose to use Cortex-M4 in these applications for **enhanced computing capability, not response time**. If your application does need a very low response time, you can write **RME native applications, which have similar response time when compared to FreeRTOS**. If you are using something faster than Cortex-M4 (e.g. Cortex-M7, TMS320C66X), you can ignore the overhead issue.
 
