@@ -65,7 +65,7 @@ Click **[HERE](README.md)** for English version.
 ### 线程切换时间和中断响应时间膨胀了将近4倍。这能行吗？
 &emsp;&emsp;在RVM支持的微控制器上， **没问题** 。因为这个虚拟机监视器的目标是支持高端MCU，而在高端MCU的硬件响应速度已经远超很多传感器和执行器的实际所需。一个运行在180MHz的Cortex-M4如果跑虚拟化的FreeRTOS，其中断响应时间和线程切换时间和一个跑在72MHz的Cortex-M3上的原生FreeRTOS差不多。
 
-&emsp;&emsp;在I/O响应时间方面，Cortex-M3已经足够优秀了。我们选择使用Cortex-M4是为了 **增强的计算性能，不是为了响应时间** 。如果你的应用程序的确需要低的响应时间，你可以编写 **RME的原生应用，它们的响应时间和FreeRTOS差不多** 。如果你使用比Cortex-M7快的处理器（比如Cortex-M7和TMS320C66X），那么你完全可以忽略额外开销的问题。
+&emsp;&emsp;在I/O响应时间方面，Cortex-M3已经足够优秀了。我们选择使用Cortex-M4是为了 **增强的计算性能，不是为了响应时间** 。如果你的应用程序的确需要低的响应时间，你可以编写 **RME的原生应用，它们的响应时间和FreeRTOS差不多** 。如果你使用比Cortex-M4快的处理器（比如Cortex-M7和TMS320C66X），那么你完全可以忽略额外开销的问题。
 
 ### 为了移植到虚拟机监视器，我要修改多少代码？
 &emsp;&emsp;非常少。请参阅手册以获取细节。实际上很多软件包在本平台上已经可用了，你不需要自己移植。详细的清单见下节。
@@ -174,9 +174,9 @@ Click **[HERE](README.md)** for English version.
 
 &emsp;&emsp;其他的工具链现在不推荐或者当前不受支持，虽然要增加新的支持应该也很简单。
 
-## Contributing
+## 参与项目
 
 &emsp;&emsp;请阅读[CONTRIBUTING.md](CONTRIBUTING.md)文档来获得关于行为规范和提交代码的相关信息。
 
-## EDI Project Information
+## EDI 工程信息
 &emsp;&emsp;演进 - 中生 - 菊石 (M7M2 R2T1)
