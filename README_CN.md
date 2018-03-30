@@ -35,7 +35,7 @@ Click **[HERE](README.md)** for English version.
 
 - 人为破坏。由于系统没有内存保护，黑客可以侵入IoT设备并且把系统功能任意破坏。
 
-&ensp;&ensp;&ensp;&ensp;Though these weaknesses can be mitigated with watch-dog timers (WDTs) by rebooting the system, this method only works for simple applications. For more complex applications or critical applications that cannot afford a complete reboot, traditional RTOSes can do nothing about this situation.
+&emsp;&emsp;尽管这些弱点可以通过使用[看门狗定时器](https://en.wikipedia.org/wiki/Watchdog)重启系统（watch-dog timer，WDT）加以缓解，这种方法只对低复杂度的系统奏效。对于那些更复杂的应用或者关键应用，我们不能允许它们完全重启，这时传统的RTOS对此束手无策。
 
 ### Security
 &ensp;&ensp;&ensp;&ensp;Traditional RTOSes generally does not consider information security as their design goal. They fail to meet security goals for future IoT systems. As stated in the reliability section, hackers can hack into the system and sabotage any part if they want to; usually a buffer overflow attack is sufficient. This is not the worst yet. The following situations can be much worse than a simple sabotage:
