@@ -83,8 +83,21 @@ Click **[HERE](README.md)** for English version.
 - **[RVM/Duktape](https://github.com/EDI-Systems/duktape)**，新出现的[JavaScript](https://github.com/svaarala/duktape)在RVM上的一个移植。
 - **[RVM/Essentials](https://github.com/EDI-Systems/M5P1_MuProkaron)**，一个包含了[lwip](https://savannah.nongnu.org/projects/lwip/)、[fatfs](http://elm-chan.org/fsw/ff/00index_e.html)和[emWin](https://www.segger.com/products/user-interface/emwin/)的[RMP](https://github.com/EDI-Systems/M5P1_MuProkaron)的RVM移植。要在产品中使用该系统，你应当持有相应的商业许可。
 
-## List of hyper calls
-
+## 超级调用列表
+|超级调用           |调用号|功能描述                                                            |
+|:---------------:|:----:|:----------------------------------------------------------------:|
+|RVM_HYP_ENAINT   |0     |开启虚拟机中断                                                       |
+|RVM_HYP_DISINT   |1     |关闭虚拟机中断                                                       |
+|RVM_HYP_REGINT   |2     |登记一个虚拟机中断                                                   |
+|RVM_HYP_DELINT   |3     |删除一个虚拟机中断                                                   |
+|RVM_HYP_REGEVT   |4     |登记一个虚拟机事件                                                   |
+|RVM_HYP_DELEVT   |5     |删除一个虚拟机事件                                                   |
+|RVM_HYP_WAITEVT  |6     |等待一个中断或事件到来                                                |
+|RVM_HYP_SENDEVT  |7     |向虚拟机发送一个事件                                                  |
+|RVM_HYP_QUERYEVT |8     |搜索一个事件                                                        |
+|RVM_HYP_QUERYVM  |9     |搜索一个虚拟机                                                      |
+|RVM_HYP_TIMPROG  |10    |重新编程虚拟机的定时器中断间隔                                         |
+|RVM_HYP_PRINT    |11    |打印到控制台                                                        |
 
 ### 所有受支持架构上的典型性能数据
 **单核微控制器**

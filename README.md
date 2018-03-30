@@ -84,6 +84,21 @@ This software is **triple-licensed**: it is either **[LGPL v3](LICENSE.md)** or 
 
 ## List of hyper calls
 
+|Hypercall        |Number|Description                                                       |
+|:---------------:|:----:|:----------------------------------------------------------------:|
+|RVM_HYP_ENAINT   |0     |Enable virtual machine interrupts                                 |
+|RVM_HYP_DISINT   |1     |Disable virtual machine interrupts                                |
+|RVM_HYP_REGINT   |2     |Register a virtual machine interrupt                              |
+|RVM_HYP_DELINT   |3     |Delete a virtual machine interrupt                                |
+|RVM_HYP_REGEVT   |4     |Register a virtual machine event                                  |
+|RVM_HYP_DELEVT   |5     |Delete a virtual machine event                                    |
+|RVM_HYP_WAITEVT  |6     |Wait for an interrupt or event to come                            |
+|RVM_HYP_SENDEVT  |7     |Send an event to a virtual machine                                |
+|RVM_HYP_QUERYEVT |8     |Search for an event                                               |
+|RVM_HYP_QUERYVM  |9     |Search for a virtual machine                                      |
+|RVM_HYP_TIMPROG  |10    |Reprogram virtual machine timer interrupt interval                |
+|RVM_HYP_PRINT    |11    |Print to console                                                  |
+
 ### Typical performance figures for all supported architectures
 **Single-core microcontrollers**
 
