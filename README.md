@@ -159,6 +159,16 @@ This software is **triple-licensed**: it is either **[LGPL v3](LICENSE.md)** or 
 ### Compilation
 &ensp;&ensp;&ensp;&ensp;The **Vendor Toolchain** or **GNU Makefile** projects for various microcontrollers are available in the **_Project_** folder. Refer to the readme files in each folder for specific instructions about how to run them. However, keep in mind that some examples may need vendor-specific libraries such as the STM HAL. Some additional drivers may be required too.
 
+&ensp;&ensp;&ensp;&ensp;If you are using the windows operating system, copy the **[binary to C converter](MAmmonite\Guest\bincopy.exe)** to the folder that contains your compiler.  
+&ensp;&ensp;&ensp;&ensp;For Keil uVision 5, this is located at
+```
+    Keil\ARM\ARMCC\bin\bincopy.exe
+```
+&ensp;&ensp;&ensp;&ensp;For Eclipse-GCC users, copy it to the gcc installation folder.
+```
+    gcc-installation-folder\bincopy.exe
+```
+
 ### Running the tests
 &ensp;&ensp;&ensp;&ensp;To run the sample programs, simply download them into the development board and start step-by-step debugging. All hardware the example will use is the serial port, and it is configured for you in the example.
 
