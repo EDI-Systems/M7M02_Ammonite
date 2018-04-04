@@ -22,7 +22,7 @@ void RVM_Init(void)
 {
     cnt_t Count;
     /* Clear all VM-related flags and registration tables */
-    RVM_Ctxsw=0;
+    RVM_Int_Enable=0;
     for(Count=0;Count<RVM_VECT_BITMAP;Count++)
         RVM_Flag[Count]=0;
     for(Count=0;Count<RVM_MAX_INTVECT;Count++)
@@ -80,6 +80,8 @@ Return      : None.
 ******************************************************************************/
 void RVM_Enable_Int(void)
 {
+    /* Must be successful */
+    RVM_Int_Enable=1;
     RVM_Hypercall(RVM_HYP_ENAINT,0,0,0,0);
 }
 /* End Function:RVM_Enable_Int ***********************************************/
@@ -94,6 +96,7 @@ void RVM_Disable_Int(void)
 {
     /* Must be successful */
     RVM_Hypercall(RVM_HYP_DISINT,0,0,0,0);
+    RVM_Int_Enable=0;
 }
 /* End Function:RVM_Disable_Int **********************************************/
 
@@ -243,6 +246,19 @@ ret_t RVM_Print(void)
 }
 /* End Function:RVM_Print ****************************************************/
 
+/* Begin Function:RVM_Yield ***************************************************
+Description : Yield the current thread by triggering the PendSV.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void RVM_Yield(void)
+{
+    RVM_Fetch_Or(RVM_Flag,0x02);
+    _RVM_Yield();
+}
+/* End Function:RVM_Yield ****************************************************/
+
 /* Begin Function:RVM_HW_Int_Enable *******************************************
 Description : Enable a hardware interrupt.
 Input       : None.
@@ -300,6 +316,10 @@ ret_t RVM_Get_Int(void)
     cnt_t Count;
     cnt_t Pos;
     
+    /* See if interrupt enabled */
+    if(RVM_Int_Enable==0)
+        return -1;
+    
     /* See which one is ready, and pick it */
     Pos=-1;
     for(Count=RVM_VECT_BITMAP-1;Count>=0;Count--)
@@ -313,24 +333,7 @@ ret_t RVM_Get_Int(void)
     }
     /* Now kill the bit */
     if(Pos>=0)
-    {
-        /* See if context switch required */
-        if((Pos>1)&&(RVM_Ctxsw!=0))
-        {
-            RVM_Ctxsw=0;
-            Pos=1;
-        }
-        else
-            RVM_Fetch_And(&RVM_Flag[Count],~(((ptr_t)1)<<Pos));
-    }
-    else 
-    {
-        if(RVM_Ctxsw!=0)
-        {
-            RVM_Ctxsw=0;
-            Pos=1;
-        }
-    }
+        RVM_Fetch_And(&RVM_Flag[Count],~(((ptr_t)1)<<Pos));
     
     return Pos;
 }

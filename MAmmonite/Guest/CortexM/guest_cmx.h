@@ -277,6 +277,7 @@ static ret_t RVM_Hypercall(ptr_t Number, ptr_t Param1, ptr_t Param2, ptr_t Param
 static ret_t RVM_Get_Int(void);
 static void RVM_Int(void);
 static void RVM_Wait_Int(void);
+static ptr_t RVM_Int_Enable;
 #endif
 
 /* The debug console buffer and pointer */
@@ -289,8 +290,6 @@ extern ptr_t RVM_Int_Stack;
 EXTERN struct RVM_Param RVM_Param;
 EXTERN struct RVM_Regs RVM_Regs;
 
-/* The interrupt flag used by here */
-EXTERN ptr_t RVM_Ctxsw;
 /* The interrupt handler registration table */
 EXTERN ptr_t RVM_Vect[RVM_MAX_INTVECT];
 /* The interrupt flag registration table */
@@ -302,9 +301,10 @@ EXTERN ptr_t RVM_Flag[RVM_VECT_BITMAP];
 /* Public C Function Prototypes **********************************************/
 /*****************************************************************************/
 extern ptr_t RVM_Fetch_And(ptr_t* Ptr, ptr_t Operand);
+extern ptr_t RVM_Fetch_Or(ptr_t* Ptr, ptr_t Operand);
 extern void RVM_Int_Rcv(void);
 extern ptr_t RVM_MSB_Get(ptr_t Val);
-extern void RVM_Yield(void);
+extern void _RVM_Yield(void);
 extern void _RVM_Hypercall(void);
 extern void _RVM_Entry(void);
 extern ret_t _RVM_Kern(cnt_t Capid, ptr_t Func_ID, ptr_t Param1, ptr_t Param2);
@@ -323,6 +323,7 @@ EXTERN ret_t RVM_Query_Evt(ptr_t VMID);
 EXTERN ret_t RVM_Query(char* Name);
 EXTERN ret_t RVM_Tim_Prog(ptr_t Period);
 EXTERN ret_t RVM_Print(void);
+EXTERN void RVM_Yield(void);
 EXTERN ret_t RVM_HW_Int_Enable(ptr_t Int_ID);
 EXTERN ret_t RVM_HW_Int_Disable(ptr_t Int_ID);
 EXTERN ret_t RVM_HW_Int_Prio(ptr_t Int_ID, ptr_t Prio);
