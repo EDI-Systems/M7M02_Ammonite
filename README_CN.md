@@ -159,6 +159,16 @@ Click **[HERE](README.md)** for English version.
 ### 编译指南
 &emsp;&emsp;在 **_Project_** 文件夹下能够找到多种微控制器的移植好的 **厂商集成开发环境** 或 **Eclipse** 的工程样板。参看各个工程文件夹下的自述文件以获取更多关于如何编译和运行该工程的信息。某些工程需要额外的厂商硬件抽象层库的支持，它们可以在 **[M0P0_Library](https://github.com/EDI-Systems/M0P0_Library)** 软件仓库被找到。
 
+&emsp;&emsp;如果你使用Windows系统，那么请将 **[二进制到C数组转换器](https://github.com/EDI-Systems/M7M2_MuAmmonite/blob/master/MAmmonite/Guest/bincopy.exe)** 拷贝到你的编译器可执行文件所在的文件夹内。
+- 对于Keil uVision 5，这个位置是
+```
+    Keil\ARM\ARMCC\bin\bincopy.exe
+```
+- 对于Eclipse-GCC，请把它拷贝到GCC的安装文件夹
+```
+    gcc-installation-folder\bincopy.exe
+```
+
 ### 运行测试
 &emsp;&emsp;要运行测试，只要将测试下载到对应的开发板并开始单步调试即可。某些例子会采用两个LED来指示系统当前的状态，此时要填充LED的点亮和熄灭函数来运行该示例。
 

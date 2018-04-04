@@ -159,7 +159,7 @@ This software is **triple-licensed**: it is either **[LGPL v3](LICENSE.md)** or 
 ### Compilation
 &ensp;&ensp;&ensp;&ensp;The **Vendor Toolchain** or **GNU Makefile** projects for various microcontrollers are available in the **_Project_** folder. Refer to the readme files in each folder for specific instructions about how to run them. However, keep in mind that some examples may need vendor-specific libraries such as the STM HAL. Some additional drivers may be required too.
 
-&ensp;&ensp;&ensp;&ensp;If you are using the windows operating system, copy the **[binary to C converter](MAmmonite\Guest\bincopy.exe)** to the folder that contains your compiler.  
+&ensp;&ensp;&ensp;&ensp;If you are using the windows operating system, copy the **[binary to C converter](https://github.com/EDI-Systems/M7M2_MuAmmonite/blob/master/MAmmonite/Guest/bincopy.exe)** to the folder that contains your compiler.  
 - For Keil uVision 5, this is located at
 ```
     Keil\ARM\ARMCC\bin\bincopy.exe
