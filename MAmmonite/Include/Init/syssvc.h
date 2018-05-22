@@ -363,7 +363,7 @@ __EXTERN__ ret_t RVM_Pgtbl_Del(cid_t Cap_Captbl, cid_t Cap_Pgtbl);
 __EXTERN__ ret_t RVM_Pgtbl_Add(cid_t Cap_Pgtbl_Dst, ptr_t Pos_Dst, ptr_t Flags_Dst,
                                cid_t Cap_Pgtbl_Src, ptr_t Pos_Src, ptr_t Index);
 __EXTERN__ ret_t RVM_Pgtbl_Rem(cid_t Cap_Pgtbl, ptr_t Pos);
-__EXTERN__ ret_t RVM_Pgtbl_Con(cid_t Cap_Pgtbl_Parent, ptr_t Pos, cid_t Cap_Pgtbl_Child);
+__EXTERN__ ret_t RVM_Pgtbl_Con(cid_t Cap_Pgtbl_Parent, ptr_t Pos, cid_t Cap_Pgtbl_Child, ptr_t Flags_Child);
 __EXTERN__ ret_t RVM_Pgtbl_Des(cid_t Cap_Pgtbl, ptr_t Pos);
 /* Process operations */
 __EXTERN__ ret_t RVM_Proc_Crt(cid_t Cap_Captbl_Crt, cid_t Cap_Kmem, cid_t Cap_Proc,
@@ -392,7 +392,7 @@ __EXTERN__ ret_t RVM_Sig_Rcv(cid_t Cap_Sig);
 __EXTERN__ ret_t RVM_Inv_Crt(cid_t Cap_Captbl, cid_t Cap_Kmem, 
                              cid_t Cap_Inv, cid_t Cap_Proc, ptr_t Vaddr);
 __EXTERN__ ret_t RVM_Inv_Del(cid_t Cap_Captbl, cid_t Cap_Inv);
-__EXTERN__ ret_t RVM_Inv_Set(cid_t Cap_Inv, ptr_t Entry, ptr_t Stack);
+__EXTERN__ ret_t RVM_Inv_Set(cid_t Cap_Inv, ptr_t Entry, ptr_t Stack, ptr_t Fault_Ret_Flag);
 extern ret_t RVM_Inv_Act(cid_t Cap_Inv, ptr_t Param, ptr_t* Retval);
 extern ret_t RVM_Inv_Ret(ptr_t Retval);
 

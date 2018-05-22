@@ -609,15 +609,16 @@ Description : Map a child page table from the parent page table. Basically, we
 Input       : cid_t Cap_Pgtbl_Parent - The capability to the parent page table. 2-Level.
               ptr_t Pos - The virtual address to position map the child page table to.
               cid_t Cap_Pgtbl_Child - The capability to the child page table. 2-Level.
+              ptr_t Flags_Child - This have no effect on MPU-based architectures.
 Output      : None.
 Return      : ret_t - If the mapping is successful, it will return 0; else error code.
 ******************************************************************************/
-ret_t RVM_Pgtbl_Con(cid_t Cap_Pgtbl_Parent, ptr_t Pos, cid_t Cap_Pgtbl_Child)
+ret_t RVM_Pgtbl_Con(cid_t Cap_Pgtbl_Parent, ptr_t Pos, cid_t Cap_Pgtbl_Child, ptr_t Flags_Child)
 {
     return RVM_CAP_OP(RME_SVC_PGTBL_CON, 0,
-                      Cap_Pgtbl_Parent,
+                      RVM_PARAM_D1(Cap_Pgtbl_Parent)|RVM_PARAM_D0(Cap_Pgtbl_Child),
                       Pos,
-                      Cap_Pgtbl_Child);
+                      Flags_Child);
 }
 /* End Function:RVM_Pgtbl_Con ************************************************/
 
@@ -1054,13 +1055,15 @@ Description : Set an invocation stub's entry point and stack. The registers will
 Input       : cid_t Cap_Inv - The capability to the invocation stub. 2-Level.
               ptr_t Entry - The entry of the thread.
               ptr_t Stack - The stack address to use for execution.
+              ptr_t Fault_Ret_Flag - If there is an error in this invocation, we return
+                                     immediately, or we wait for fault handling?
 Output      : None.
 Return      : ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-ret_t RVM_Inv_Set(cid_t Cap_Inv, ptr_t Entry, ptr_t Stack)
+ret_t RVM_Inv_Set(cid_t Cap_Inv, ptr_t Entry, ptr_t Stack, ptr_t Fault_Ret_Flag)
 {
     return RVM_CAP_OP(RME_SVC_INV_SET, 0,
-                      Cap_Inv,
+                      RVM_PARAM_D1(Fault_Ret_Flag)|RVM_PARAM_D0(Cap_Inv),
                       Entry, 
                       Stack);
 }

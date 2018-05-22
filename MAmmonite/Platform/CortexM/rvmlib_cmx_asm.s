@@ -6,38 +6,37 @@
 ;*****************************************************************************/
                 
 ;/* Begin Header *************************************************************/
-                 ;The align is "(2^3)/8=1(Byte)." In fact it does not take effect.            
-                 AREA            ARCH,CODE,READONLY,ALIGN=3                     
-                
-                 THUMB
-                 REQUIRE8
-                 PRESERVE8
+    ;The align is "(2^3)/8=1(Byte)." In fact it does not take effect.
+    AREA                ARCH,CODE,READONLY,ALIGN=3
+    THUMB
+    REQUIRE8
+    PRESERVE8
 ;/* End Header ***************************************************************/
 
 ;/* Begin Exports ************************************************************/
-                 ;User entry stub
-                 EXPORT          _RVM_Entry
-                 ;Get thread local storage position
-                 EXPORT          _RVM_Get_TLS_Pos
-                 ;User level stub for thread creation
-                 EXPORT          _RVM_Thd_Stub
-                 ;User level stub for synchronous invocation
-                 EXPORT          _RVM_Inv_Stub
-                 ;Triggering an invocation
-                 EXPORT          RVM_Inv_Act
-                 ;Returning from an invocation
-                 EXPORT          RVM_Inv_Ret
-                 ;System call gate
-                 EXPORT          RVM_Svc
-                 ;Get the MSB in a word
-                 EXPORT          _RVM_MSB_Get
-                 ;Shut the semihosting up
-                 EXPORT          __user_setup_stackheap
+    ;User entry stub
+    EXPORT              _RVM_Entry
+    ;Get thread local storage position
+    EXPORT              _RVM_Get_TLS_Pos
+    ;User level stub for thread creation
+    EXPORT              _RVM_Thd_Stub
+    ;User level stub for synchronous invocation
+    EXPORT              _RVM_Inv_Stub
+    ;Triggering an invocation
+    EXPORT              RVM_Inv_Act
+    ;Returning from an invocation
+    EXPORT              RVM_Inv_Ret
+    ;System call gate
+    EXPORT              RVM_Svc
+    ;Get the MSB in a word
+    EXPORT              _RVM_MSB_Get
+    ;Shut the semihosting up
+    EXPORT              __user_setup_stackheap
 ;/* End Exports **************************************************************/
 
 ;/* Begin Imports ************************************************************/
-                 ;The ARM C library entrance. This will do all the dirty init jobs for us.
-                 IMPORT          __main
+    ;The ARM C library entrance. This will do all the dirty init jobs for us.
+    IMPORT              __main
 ;/* End Imports **************************************************************/
 
 ;/* Begin Function:_RVM_Entry *************************************************
@@ -46,8 +45,8 @@
 ;Output      : None.
 ;*****************************************************************************/
 _RVM_Entry
-                 LDR     R0, =__main
-                 BX      R0
+    LDR                 R0, =__main
+    BX                  R0
 ;/* End Function:_RVM_Entry **************************************************/
 
 ;/* Begin Function:_RVM_Get_TLS_Pos *******************************************
@@ -57,9 +56,9 @@ _RVM_Entry
 ;Return      : ptr_t* - The thread local storage position.
 ;*****************************************************************************/
 _RVM_Get_TLS_Pos
-                MOV      R1,SP
-                AND      R0,R1
-                BX       LR
+    MOV                 R1,SP
+    AND                 R0,R1
+    BX                  LR
 ;/* End Function:_RVM_Get_TLS_Pos ********************************************/
 
 ;/* Begin Function:_RVM_Thd_Stub **********************************************
@@ -69,9 +68,9 @@ _RVM_Get_TLS_Pos
 ;Output      : None.
 ;*****************************************************************************/
 _RVM_Thd_Stub
-                SUB      SP,#0x40           ; In order not to destroy the context stub
-                BLX      R4                 ; Branch to the actual entry address.
-                B        .                  ; Capture faults.
+    SUB                 SP,#0x40            ; In order not to destroy the context stub
+    BLX                 R4                  ; Branch to the actual entry address.
+    B                   .                   ; Capture faults.
 ;/* End Function:_RVM_Thd_Stub ***********************************************/
 
 ;/* Begin Function:_RVM_Inv_Stub **********************************************
@@ -82,16 +81,16 @@ _RVM_Thd_Stub
 ;Output      : None.
 ;*****************************************************************************/
 _RVM_Inv_Stub
-                SUB      SP,#0x40           ; In order not to destroy the context stub
-                MOV      R0,R5              ; Pass the parameter
-                BLX      R4                 ; Branch to the actual entry address.
+    SUB                 SP,#0x40            ; In order not to destroy the context stub
+    MOV                 R0,R5               ; Pass the parameter
+    BLX                 R4                  ; Branch to the actual entry address.
                 
-                MOV      R4,#0x00           ; RVM_SVC_INV_RET
-                MOV      R5,R0              ; The invocation return value
-                SVC      #0x00              ; System call
+    MOV                 R4,#0x00            ; RVM_SVC_INV_RET
+    MOV                 R5,R0               ; The invocation return value
+    SVC                 #0x00               ; System call
                 
-                ISB                         ; Wait for this to complete
-                B        .                  ; Capture faults.
+    ISB                                     ; Wait for this to complete
+    B                   .                   ; Capture faults.
 ;/* End Function:_RVM_Inv_Stub ***********************************************/
 
 ;/* Begin Function:RVM_Inv_Act ************************************************
@@ -103,23 +102,23 @@ _RVM_Inv_Stub
 ;Return      : R0 - ptr_t - The return value of the system call itself.
 ;*****************************************************************************/
 RVM_Inv_Act
-                PUSH       {R4-R5}  ; Manual clobbering
-                MOV        R4,#0x01 ; RVM_SVC_INV_ACT
-                MOV        R5,R1    ; Parameter
+    PUSH                {R4-R11}            ; User-level is responsible for all clobbering
+    
+    MOV                 R4,#0x10000         ; RVM_SVC_INV_ACT
+    ORR                 R4,R0
+    MOV                 R5,R1               ; Parameter
                 
-                SVC        #0x00    ; System call
-                ISB                 ; Instruction barrier - wait for instruction to complete
+    SVC                 #0x00               ; System call
+    ISB                                     ; Instruction barrier - wait for instruction to complete
                 
-                MOV        R0,R4    ; This is the return value of the system call itself
+    MOV                 R0,R4               ; This is the return value of the system call itself
                 
-                CMP        R2,#0x00 ; See if this return value is desired.
-                IT         NE
-                STRNE      R5,[R2]  ; This is the return value of the invocation
+    CMP                 R2,#0x00            ; See if this return value is desired.
+    IT                  NE
+    STRNE               R5,[R2]             ; This is the return value of the invocation
                 
-                POP        {R4-R5}  ; Manual recovering
-                BX         LR       ; Return from the call
-                
-                B          .        ; Shouldn't reach here.       
+    POP                 {R4-R11}            ; Manual recovering
+    BX                  LR                  ; Return from the call
 ;/* End Function:RVM_Inv_Act *************************************************/
 
 ;/* Begin Function:RVM_Inv_Ret ************************************************
@@ -131,13 +130,13 @@ RVM_Inv_Act
 ;Return      : None.
 ;*****************************************************************************/
 RVM_Inv_Ret
-                MOV        R4,#0x00 ; RVM_SVC_INV_RET
-                MOV        R5,R0    ; Set return value to the register
+    MOV                 R4,#0x00            ; RVM_SVC_INV_RET
+    MOV                 R5,R0               ; Set return value to the register
                 
-                SVC        #0x00    ; System call
-                ISB                 ; Instruction barrier - wait for instruction to complete
+    SVC                 #0x00               ; System call
+    ISB                                     ; Instruction barrier - wait for instruction to complete
                 
-                B          .        ; Shouldn't reach here.       
+    B                   .                   ; Shouldn't reach here.
 ;/* End Function:RVM_Inv_Ret *************************************************/
 
 ;/* Begin Function:RVM_Svc ****************************************************
@@ -149,20 +148,20 @@ RVM_Inv_Ret
 ;Output      : None.                              
 ;*****************************************************************************/
 RVM_Svc
-                PUSH       {R4-R7}  ; Manual clobbering
-                MOV        R4,R0    ; Manually pass the parameters according to ARM calling convention
-                MOV        R5,R1    ; Pass parameters
-                MOV        R6,R2
-                MOV        R7,R3
+    PUSH                {R4-R7}             ; Manual clobbering
+    MOV                 R4,R0               ; Manually pass the parameters according to ARM calling convention
+    MOV                 R5,R1               ; Pass parameters
+    MOV                 R6,R2
+    MOV                 R7,R3
                 
-                SVC        #0x00    ; System call
-                ISB                 ; Instruction barrier - wait for instruction to complete
+    SVC                 #0x00               ; System call
+    ISB                                     ; Instruction barrier - wait for instruction to complete
                 
-                MOV        R0,R4    ; This is the return value
-                POP        {R4-R7}  ; Manual recovering
-                BX         LR       ; Return from the call
+    MOV                 R0,R4               ; This is the return value
+    POP                 {R4-R7}             ; Manual recovering
+    BX                  LR                  ; Return from the call
                 
-                B          .        ; Shouldn't reach here.       
+    B                   .                   ; Shouldn't reach here.
 ;/* End Function:RVM_Svc *****************************************************/
 
 ;/* Begin Function:_RVM_MSB_Get ***********************************************
@@ -173,10 +172,10 @@ RVM_Svc
 ;Register Usage : None. 
 ;*****************************************************************************/
 _RVM_MSB_Get
-                CLZ      R1,R0
-                MOV      R0,#31
-                SUB      R0,R1
-                BX       LR
+    CLZ                 R1,R0
+    MOV                 R0,#31
+    SUB                 R0,R1
+    BX                  LR
 ;/* End Function:_RVM_MSB_Get ************************************************/
 
 ;/* Begin Function:__user_setup_stackheap *************************************
@@ -185,12 +184,13 @@ _RVM_MSB_Get
 ;Output      : None.
 ;*****************************************************************************/
 __user_setup_stackheap
-                MOV      R0,R1     ; Stack as where we came in, and definitely no heap
-                MOV      R2,R1
-                BX       LR
+    MOV                 R0,R1               ; Stack as where we came in, and definitely no heap
+    MOV                 R2,R1
+    BX                  LR
 ;/* End Function:__user_setup_stackheap **************************************/
 
-                END
+    ALIGN
+    END
 ;/* End Of File **************************************************************/
 
 ;/* Copyright (C) Evo-Devo Instrum. All rights reserved **********************/

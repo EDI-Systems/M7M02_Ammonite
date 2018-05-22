@@ -119,7 +119,7 @@ void __RVM_Pgtbl_Map(struct RVM_Hdr_Pgtbl* Pgtbl, ptr_t Pos, cid_t Pgtbl_Cap)
         RVM_ASSERT(Pgtbl[Pos].Addr>=Pgtbl[Pgtbl[Pos].Parent].Addr);
         
         Parent_Slot=(Pgtbl[Pos].Addr-Pgtbl[Pgtbl[Pos].Parent].Addr)>>RVM_PGTBL_SIZE(Pgtbl[Pgtbl[Pos].Parent].Order);
-        RVM_ASSERT(RVM_Pgtbl_Con(Pgtbl_Cap-Pos+Pgtbl[Pos].Parent, Parent_Slot, Pgtbl_Cap)==0);
+        RVM_ASSERT(RVM_Pgtbl_Con(Pgtbl_Cap-Pos+Pgtbl[Pos].Parent, Parent_Slot, Pgtbl_Cap, RME_PGTBL_ALL_PERM)==0);
     }
     else
     {
@@ -149,16 +149,16 @@ void _RVM_Pgtbl_Setup(struct RVM_Hdr_Pgtbl* Pgtbl, cid_t Cap_Captbl, ptr_t* Pgtb
     if(Pos==0)
     {
         RVM_ASSERT(RVM_Pgtbl_Crt(Cap_Captbl, Cap_Kmem, *Pgtbl_Bump, 
-                   *Kmem_Bump, Pgtbl[Pos].Addr, 1, RVM_PGTBL_SIZE(Pgtbl[Pos].Order),
-                   RVM_PGTBL_NUM(Pgtbl[Pos].Order))==0);
+                                 *Kmem_Bump, Pgtbl[Pos].Addr, 1, RVM_PGTBL_SIZE(Pgtbl[Pos].Order),
+                                 RVM_PGTBL_NUM(Pgtbl[Pos].Order))==0);
         RVM_LOG_SISUS("Init:CortexM:Created top-level page table number ",Pos," @ address ",*Kmem_Bump,".\r\n");
         *Kmem_Bump+=RVM_PGTBL_SIZE_TOP(Pgtbl[Pos].Order);
     }
     else
     {
         RVM_ASSERT(RVM_Pgtbl_Crt(Cap_Captbl, Cap_Kmem, *Pgtbl_Bump, 
-                   *Kmem_Bump, Pgtbl[Pos].Addr, 0, RVM_PGTBL_SIZE(Pgtbl[Pos].Order),
-                   RVM_PGTBL_NUM(Pgtbl[Pos].Order))==0);
+                                 *Kmem_Bump, Pgtbl[Pos].Addr, 0, RVM_PGTBL_SIZE(Pgtbl[Pos].Order),
+                                 RVM_PGTBL_NUM(Pgtbl[Pos].Order))==0);
         RVM_LOG_SISUS("Init:CortexM:Created normal page table number ",Pos," @ address ",*Kmem_Bump,".\r\n");
         *Kmem_Bump+=RVM_PGTBL_SIZE_NOM(Pgtbl[Pos].Order);
     }
