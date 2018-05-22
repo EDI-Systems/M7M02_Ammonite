@@ -95,7 +95,10 @@ _RVM_Inv_Stub
 
 ;/* Begin Function:RVM_Inv_Act ************************************************
 ;Description : Activate an invocation. If the return value is not desired, pass
-;              0 into R2.
+;              0 into R2. This is a default implementation that saves all general
+;              purpose registers and doesn't save FPU context. If you need a faster
+;              version, consider inline functions; if you need to save FPU contexts,
+;              please DIY.
 ;Input       : R0 - cid_t Cap_Inv - The capability slot to the invocation stub. 2-Level.
 ;              R1 - ptr_t Param - The parameter for the call.
 ;Output      : R2 - ptr_t* Retval - The return value from the call.
