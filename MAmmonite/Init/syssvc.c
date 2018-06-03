@@ -90,7 +90,7 @@ cnt_t RVM_Print_Int(cnt_t Int)
     /* how many digits are there? */
     if(Int==0)
     {
-        _RVM_Putchar('0');
+        RVM_Putchar('0');
         return 1;
     }
     else if(Int<0)
@@ -107,14 +107,14 @@ cnt_t RVM_Print_Int(cnt_t Int)
         }
         Div/=10;
         
-        _RVM_Putchar('-');
+        RVM_Putchar('-');
         Iter=-Int;
         Num=Count+1;
         
         while(Count>0)
         {
             Count--;
-            _RVM_Putchar(Iter/Div+'0');
+            RVM_Putchar(Iter/Div+'0');
             Iter=Iter%Div;
             Div/=10;
         }
@@ -139,7 +139,7 @@ cnt_t RVM_Print_Int(cnt_t Int)
         while(Count>0)
         {
             Count--;
-            _RVM_Putchar(Iter/Div+'0');
+            RVM_Putchar(Iter/Div+'0');
             Iter=Iter%Div;
             Div/=10;
         }
@@ -165,7 +165,7 @@ cnt_t RVM_Print_Uint(ptr_t Uint)
     /* how many digits are there? */
     if(Uint==0)
     {
-        _RVM_Putchar('0');
+        RVM_Putchar('0');
         return 1;
     }
     else
@@ -186,9 +186,9 @@ cnt_t RVM_Print_Uint(ptr_t Uint)
             Count--;
             Iter=(Uint>>(Count*4))&0x0F;
             if(Iter<10)
-                _RVM_Putchar('0'+Iter);
+                RVM_Putchar('0'+Iter);
             else
-                _RVM_Putchar('A'+Iter-10);
+                RVM_Putchar('A'+Iter-10);
         }
     }
     
@@ -213,88 +213,12 @@ cnt_t RVM_Print_String(s8* String)
         if(String[Count]=='\0')
             break;
         
-        _RVM_Putchar(String[Count++]);
+        RVM_Putchar(String[Count++]);
     }
     
     return Count;
 }
 /* End Function:RVM_Print_String *********************************************/
-
-/* Begin Function:RVM_Thd_Stack_Init ******************************************
-Description : Initialize a thread's stack for synchronous invocation or thread 
-              creation.
-Input       : ptr_t Stack - The address of the stub.
-              ptr_t Size  - The size of the stack.
-              ptr_t Param1 - The parameter 1 to pass to the thread.
-              ptr_t Param2 - The parameter 2 to pass to the thread.
-              ptr_t Param3 - The parameter 3 to pass to the thread.
-              ptr_t Param4 - The parameter 4 to pass to the thread.
-Output      : None.
-Return      : ptr_t - The actual stack address to use for system call.
-******************************************************************************/
-ptr_t RVM_Thd_Stack_Init(ptr_t Stack, ptr_t Size, ptr_t Param1, ptr_t Param2, ptr_t Param3, ptr_t Param4)
-{
-    return _RVM_Stack_Init(Stack, Size, (ptr_t)_RVM_Thd_Stub, Param1, Param2, Param3, Param4);
-}
-/* End Function:RVM_Thd_Stack_Init *******************************************/
-
-/* Begin Function:RVM_Inv_Stack_Init ******************************************
-Description : Initialize a thread's stack for synchronous invocation.
-Input       : ptr_t Stack - The address of the stub.
-              ptr_t Size  - The size of the stack.
-Output      : None.
-Return      : ptr_t - The actual stack address to use for system call.
-******************************************************************************/
-ptr_t RVM_Inv_Stack_Init(ptr_t Stack, ptr_t Size)
-{
-    return _RVM_Stack_Init(Stack, Size, (ptr_t)_RVM_Inv_Stub, 0, 0, 0, 0);
-}
-/* End Function:RVM_Inv_Stack_Init *******************************************/
-
-/* Begin Function:RVM_Set_TLS *************************************************
-Description : Set the thread local storage to execution stack.
-Input       : ptr_t TLS - The thread local storage value.
-              ptr_t Mask - The alignment mask.
-              ptr_t Offset - The offset of the TLS.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void RVM_Set_TLS(ptr_t TLS, ptr_t Mask, ptr_t Offset)
-{
-    ptr_t* Loc;
-    
-    Loc=_RVM_Get_TLS_Pos(Mask);
-    Loc[Offset]=TLS;
-}
-/* End Function:RVM_Set_TLS **************************************************/
-
-/* Begin Function:RVM_Get_TLS *************************************************
-Description : Set the thread local storage to execution stack.
-Input       : ptr_t Mask - The alignment mask.
-              ptr_t Offset - The offset of the TLS.
-Output      : None.
-Return      : ptr_t - The thread local storage value.
-******************************************************************************/
-ptr_t RVM_Get_TLS(ptr_t Mask, ptr_t Offset)
-{
-    ptr_t* Loc;
-    
-    Loc=_RVM_Get_TLS_Pos(Mask);
-    return Loc[Offset];
-}
-/* End Function:RVM_Get_TLS **************************************************/
-
-/* Begin Function:RVM_Idle ****************************************************
-Description : Put the processor into idle state.
-Input       : None.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void RVM_Idle(void)
-{
-    _RVM_Idle();
-}
-/* End Function:RVM_Idle *****************************************************/
 
 /* Begin Function:RVM_Captbl_Crt **********************************************
 Description : Create a capability table.
@@ -483,6 +407,7 @@ ret_t RVM_Captbl_Rem(cid_t Cap_Captbl_Rem, cid_t Cap_Rem)
 Description : Activate a kernel function.
 Input       : cid_t Cap_Kern - The capability to the kernel capability. 2-Level.
               ptr_t Func_ID - The function ID to invoke.
+              ptr_t Sub_ID - The subfunction ID to invoke.
               ptr_t Param1 - The first parameter.
               ptr_t Param2 - The second parameter
 Output      : None.
@@ -493,10 +418,10 @@ Return      : ret_t - If the call is successful, it will return whatever the
                       for setting the return value. On failure, a context switch 
                       in the kernel fucntion is banned.
 ******************************************************************************/
-ret_t RVM_Kern_Act(cid_t Cap_Kern, ptr_t Func_ID, ptr_t Param1, ptr_t Param2)
+ret_t RVM_Kern_Act(cid_t Cap_Kern, ptr_t Func_ID, ptr_t Sub_ID, ptr_t Param1, ptr_t Param2)
 {
     return RVM_CAP_OP(RME_SVC_KERN, Cap_Kern,
-                      Func_ID,
+                      RVM_PARAM_D1(Sub_ID)|RVM_PARAM_D0(Func_ID),
                       Param1,
                       Param2);
 }
@@ -764,15 +689,16 @@ Description : Set a thread's entry point and stack. The registers will be initia
 Input       : cid_t Cap_Thd - The capability to the thread. 2-Level.
               ptr_t Entry - The entry of the thread. An address.
               ptr_t Stack - The stack address to use for execution. An address.
+              ptr_t Param - The parameter of the thread.
 Output      : None.
 Return      : ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-ret_t RVM_Thd_Exec_Set(cid_t Cap_Thd, ptr_t Entry, ptr_t Stack)
+ret_t RVM_Thd_Exec_Set(cid_t Cap_Thd, ptr_t Entry, ptr_t Stack, ptr_t Param)
 {
-    return RVM_CAP_OP(RME_SVC_THD_EXEC_SET, 0,
-                      Cap_Thd,
+    return RVM_CAP_OP(RME_SVC_THD_EXEC_SET, Cap_Thd,
                       Entry, 
-                      Stack);
+                      Stack,
+                      Param);
 }
 /* End Function:RVM_Thd_Exec_Set *********************************************/
 

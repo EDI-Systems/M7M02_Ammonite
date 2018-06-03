@@ -187,7 +187,7 @@ _RVM_Yield
 ;/* Begin Function:_RVM_Kern *************************************************
 ;Description : Invoke customized kernel functions which is compiled into the RME kernel.
 ;Input       : cnt_t Cap_ID - The capability ID.
-;              ptr_t Func_ID - The function ID.
+;              ptr_t Func_ID - The function ID. The subfunction ID is also merged with it.
 ;              ptr_t Param1 - The first parameter.
 ;              ptr_t Param2 - The sencond parameter.
 ;Output      : None.

@@ -22,7 +22,7 @@ Description : The header of microcontroller user-level library.
 #define RVM_WAIT_PRIO            (0)
 
 /* Size of bitmap */
-#define RVM_PRIO_BITMAP          ((RVM_MAX_PREEMPT_PRIO-1)/RVM_WORD_SIZE+1)
+#define RVM_PRIO_BITMAP          ((RVM_MAX_PREEMPT_VPRIO-1)/RVM_WORD_SIZE+1)
 #define RVM_VECT_BITMAP(X)       ((X-1)/RVM_WORD_SIZE+1)
 
 /* States of virtual machines */
@@ -219,7 +219,7 @@ __EXTERN__ struct RVM_Virt* RVM_Cur_Virt;
 
 /* Virtual machine run queue and bitmap */
 __EXTERN__ ptr_t RVM_Bitmap[RVM_PRIO_BITMAP];
-__EXTERN__ struct RVM_List RVM_Run[RVM_MAX_PREEMPT_PRIO];
+__EXTERN__ struct RVM_List RVM_Run[RVM_MAX_PREEMPT_VPRIO];
 /* Virtual machine waiting queue */
 __EXTERN__ struct RVM_List RVM_Wait;
 /* Virtual machine free queue */

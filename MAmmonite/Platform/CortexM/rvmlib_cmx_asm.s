@@ -16,12 +16,8 @@
 ;/* Begin Exports ************************************************************/
     ;User entry stub
     EXPORT              _RVM_Entry
-    ;Get thread local storage position
-    EXPORT              _RVM_Get_TLS_Pos
-    ;User level stub for thread creation
-    EXPORT              _RVM_Thd_Stub
-    ;User level stub for synchronous invocation
-    EXPORT              _RVM_Inv_Stub
+    ;User level stub for thread creation and synchronous invocation
+    EXPORT              _RVM_Jmp_Stub
     ;Triggering an invocation
     EXPORT              RVM_Inv_Act
     ;Returning from an invocation
@@ -49,49 +45,17 @@ _RVM_Entry
     BX                  R0
 ;/* End Function:_RVM_Entry **************************************************/
 
-;/* Begin Function:_RVM_Get_TLS_Pos *******************************************
-;Description : Get the TLS location.
-;Input       : ptr_t Mask - The alignment mask.
-;Output      : None.
-;Return      : ptr_t* - The thread local storage position.
-;*****************************************************************************/
-_RVM_Get_TLS_Pos
-    MOV                 R1,SP
-    AND                 R0,R1
-    BX                  LR
-;/* End Function:_RVM_Get_TLS_Pos ********************************************/
-
-;/* Begin Function:_RVM_Thd_Stub **********************************************
+;/* Begin Function:_RVM_Jmp_Stub **********************************************
 ;Description : The user level stub for thread creation.
 ;Input       : R4 - The entry address.
 ;              R5 - The stack address that we are using now.
 ;Output      : None.
 ;*****************************************************************************/
-_RVM_Thd_Stub
-    SUB                 SP,#0x40            ; In order not to destroy the context stub
+_RVM_Jmp_Stub
+    SUB                 SP,#0x40            ; In order not to destroy the stack
+    MOV                 R0,R5
     BLX                 R4                  ; Branch to the actual entry address.
-    B                   .                   ; Capture faults.
-;/* End Function:_RVM_Thd_Stub ***********************************************/
-
-;/* Begin Function:_RVM_Inv_Stub **********************************************
-;Description : The user level stub for synchronous invocation. This stub will
-;              do a return automatically when the function exits.
-;Input       : R4 - The entry address.
-;              R5 - The stack address that we are using now.
-;Output      : None.
-;*****************************************************************************/
-_RVM_Inv_Stub
-    SUB                 SP,#0x40            ; In order not to destroy the context stub
-    MOV                 R0,R5               ; Pass the parameter
-    BLX                 R4                  ; Branch to the actual entry address.
-                
-    MOV                 R4,#0x00            ; RVM_SVC_INV_RET
-    MOV                 R5,R0               ; The invocation return value
-    SVC                 #0x00               ; System call
-                
-    ISB                                     ; Wait for this to complete
-    B                   .                   ; Capture faults.
-;/* End Function:_RVM_Inv_Stub ***********************************************/
+;/* End Function:_RVM_Jmp_Stub ***********************************************/
 
 ;/* Begin Function:RVM_Inv_Act ************************************************
 ;Description : Activate an invocation. If the return value is not desired, pass

@@ -18,19 +18,9 @@ Description: The configuration file for STM32F767IG. The values listed here shou
 #define RVM_KMEM_SIZE                0xD000
 /* The granularity of kernel memory allocation, order of 2 in bytes */
 #define RVM_KMEM_SLOT_ORDER          4
-/* Kernel stack size and address */
-#define RVM_KMEM_STACK_ADDR          0x20001FF0
 /* The maximum number of preemption priority levels in the system.
  * This parameter must be divisible by the word length - 32 is usually sufficient */
 #define RVM_MAX_PREEMPT_PRIO         32
-/* The maximum number of events in the system */
-#define RVM_MAX_EVT_NUM              1024
-/* Shared interrupt flag region address - this will only appear on MPU-based systems */
-#define RVM_INT_FLAG_ADDR            0x20010000
-/* How many interrupts are there in the hardware */
-#define RVM_INT_VECT_NUM             110
-/* How many interrupt mappings are we going to make? */
-#define RVM_INT_MAP_NUM              1024
 
 /* Initial kenel object frontier limit */
 #define RVM_CMX_KMEM_BOOT_FRONTIER   0x20003400
@@ -43,6 +33,18 @@ Description: The configuration file for STM32F767IG. The values listed here shou
 /* What is the FPU type? */
 #define RVM_CMX_FPU_TYPE             RVM_CMX_FPV5_DP
 /* Syslib configurations *****************************************************/
+/* The priority levels (assuming that the kernel have 32 levels):
+ * 31      : Guard daemon - fixed
+ * 30 - 5  : Handler threads
+ * 4       : Timer daemon (adjustable from 29 to 4)
+ *           Virtual machine monitor daemon
+ *           Interrupt daemon
+ * 3       : Active virtual machine - interrupt thread
+ * 2       : Active virtual machine - user thread
+ * 1       : Init daemon
+ * 0       : Inactive virtual machine
+ */
+#define RVM_VMD_PRIO                 4
 /* The user image header starting position */
 #define RVM_IMAGE_HEADER_START       0x08020000
 
@@ -56,25 +58,26 @@ Description: The configuration file for STM32F767IG. The values listed here shou
 #define RVM_INTD_STACK_SIZE          2048
 
 /* Config settings - modifications not needed for most cases */
-/* How many VMs are allowed? - This is not to exceed 32 in current implementations */
+/* How many VMs are allowed? */
 #define RVM_MAX_VM_NUM               16
-/* How many different priorities are allowed? */
-#define RVM_MAX_PREEMPT_PRIO         32
-/* The priority levels:
- * 31      : Guard daemon - fixed
- * 30 - 5  : Handler threads
- * 4       : Timer daemon (adjustable from 29 to 2)
- *           Virtual machine monitor daemon
- *           Interrupt daemon
- * 3       : Active virtual machine - interrupt thread
- * 2       : Active virtual machine - user thread
- * 1       : Init daemon
- * 0       : Inactive virtual machine
- */
-#define RVM_VMD_PRIO                 4
+/* How many different virtual machine priorities are allowed? */
+#define RVM_MAX_PREEMPT_VPRIO        32
 
-/* Maximum number of interrupts - must be a multiple of word size, and cannot exceed 128 */
-#define RVM_MAX_INT_NUM              ((1)*(sizeof(ptr_t)*8))
+/* Shared interrupt flag region address - this will only appear on MPU-based systems */
+#define RVM_INT_FLAG_ADDR            0x20010000
+/* How many interrupts are there in the hardware */
+#define RVM_INT_VECT_NUM             110
+/* The maximum of interrupt mappings in the system */
+#define RVM_INT_MAP_NUM              1024
+/* The maximum number of event mappings in the system */
+#define RVM_EVT_MAP_NUM              1024
+
+/* Maximum time allowed to set as period */
+#define RVM_MAX_PERIOD               10000
+/* Minimum time allowed to set as period */
+#define RVM_MIN_PERIOD               1
+/* The default value for timer interrupt frequency for a VM */
+#define RVM_DEF_PERIOD               1
 
 /* Is debugging output enabled? */
 #define RVM_DEBUG_LOG                RVM_TRUE

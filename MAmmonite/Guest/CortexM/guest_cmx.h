@@ -140,7 +140,8 @@ typedef signed int ret_t;
 #define RME_PGTBL_NUM_2M            (21)
 #define RME_PGTBL_NUM_4M            (22)
 
-/* Kernel functions standard to Cortex-M, interrupt management and power */
+/* Kernel functions standard to Cortex-M, interrupt management and power.
+ * We do not use subfunction numbers for Cortex-M */
 #define RVM_CMX_KERN_INT(X)         (X)
 #define RVM_CMX_INT_OP              0
 #define RVM_CMX_INT_ENABLE          1

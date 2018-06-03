@@ -165,7 +165,7 @@ void RVM_Load_Image(struct RVM_Image** Image, ptr_t* Pgtbl_Bump, ptr_t* Kmem_Bum
     
     /* Actually do the page table setup */
     for(Count=0;Count<Virt->Image->Pgtbl_Num;Count++)
-        _RVM_Pgtbl_Setup(Pgtbl, RVM_VIRT_TBL_PGTBL, Pgtbl_Bump, RVM_BOOT_INIT_KMEM, Kmem_Bump, Count);
+        _RVM_Pgtbl_Setup(Pgtbl, Count, RVM_VIRT_TBL_PGTBL, Pgtbl_Bump, RVM_BOOT_INIT_KMEM, Kmem_Bump);
     RVM_LOG_SIS("Init:Created ",Virt->Image->Pgtbl_Num," page tables.\r\n");   
     
     /* Create the virtual machine capability table */
@@ -206,9 +206,9 @@ void RVM_Load_Image(struct RVM_Image** Image, ptr_t* Pgtbl_Bump, ptr_t* Kmem_Bum
     /* Set the execution/hypervior properties for both threads, the stack information is from the image header - always set stack to 256 bytes */
     RVM_ASSERT(RVM_Thd_Hyp_Set(RVM_VIRT_USERTHD(VMID), (ptr_t)(Virt->Image->Regs))==0);
     RVM_ASSERT(RVM_Thd_Exec_Set(RVM_VIRT_USERTHD(VMID), (ptr_t)(Virt->Image->User_Entry), 
-                                RVM_Thd_Stack_Init((ptr_t)(Virt->Image->User_Stack),Virt->Image->User_Size,0,0,0,0))==0);
+                                RVM_Stack_Init((ptr_t)(Virt->Image->User_Stack),Virt->Image->User_Size),0)==0);
     RVM_ASSERT(RVM_Thd_Exec_Set(RVM_VIRT_INTTHD(VMID), (ptr_t)(Virt->Image->Int_Entry), 
-                                RVM_Thd_Stack_Init((ptr_t)(Virt->Image->Int_Stack),Virt->Image->Int_Size,0,0,0,0))==0);
+                                RVM_Stack_Init((ptr_t)(Virt->Image->Int_Stack),Virt->Image->Int_Size),0)==0);
     RVM_LOG_S("Init:Thread initialization complete.\r\n");
     
     /* Delegete infinite time to both threads */
@@ -322,13 +322,13 @@ void RVM_Daemon_Init(ptr_t* Kmem_Bump)
         RVM_List_Ins(&(RVM_Int_DB[Count].Head),RVM_Int_Free.Prev,&RVM_Int_Free);
     }
     /* Event init */
-    for(Count=0;Count<RVM_MAX_EVT_NUM;Count++)
+    for(Count=0;Count<RVM_EVT_MAP_NUM;Count++)
     {
         RVM_Evt_DB[Count].State=RVM_EVT_FREE;
         RVM_List_Ins(&(RVM_Evt_DB[Count].Head),RVM_Evt_Free.Prev,&RVM_Evt_Free);
     }
     /* Run list init */
-    for(Count=0;Count<RVM_MAX_PREEMPT_PRIO;Count++)
+    for(Count=0;Count<RVM_MAX_PREEMPT_VPRIO;Count++)
         RVM_List_Crt(&RVM_Run[Count]);
     /* Timer wheel init */
     for(Count=0;Count<RVM_WHEEL_SIZE;Count++)
@@ -344,7 +344,7 @@ void RVM_Daemon_Init(ptr_t* Kmem_Bump)
     
     RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_VMM_GUARD_THD, RVM_BOOT_INIT_THD, RVM_MAX_PREEMPT_PRIO-1)==0);
     RVM_ASSERT(RVM_Thd_Exec_Set(RVM_VMM_GUARD_THD, (ptr_t)RVM_Guard_Daemon, 
-                                RVM_Thd_Stack_Init((ptr_t)RVM_GUARD_Stack,RVM_GUARD_STACK_SIZE,0,0,0,0))==0);
+                                RVM_Stack_Init((ptr_t)RVM_GUARD_Stack,RVM_GUARD_STACK_SIZE),0)==0);
     RVM_LOG_S("Init:Guard daemon initialization complete.\r\n");
 
     /* Timer daemon initialization - main priority */
@@ -355,7 +355,7 @@ void RVM_Daemon_Init(ptr_t* Kmem_Bump)
     
     RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_VMM_TIMD_THD, RVM_VMM_GUARD_THD, RVM_TIMD_PRIO)==0);
     RVM_ASSERT(RVM_Thd_Exec_Set(RVM_VMM_TIMD_THD, (ptr_t)RVM_Timer_Daemon, 
-                                RVM_Thd_Stack_Init((ptr_t)RVM_TIMD_Stack,RVM_TIMD_STACK_SIZE,0,0,0,0))==0);
+                                RVM_Stack_Init((ptr_t)RVM_TIMD_Stack,RVM_TIMD_STACK_SIZE),0)==0);
     RVM_LOG_S("Init:Timer daemon initialization complete.\r\n");
 
     /* VMM daemon initialization - main priority */
@@ -370,7 +370,7 @@ void RVM_Daemon_Init(ptr_t* Kmem_Bump)
     
     RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_VMM_VMMD_THD, RVM_VMM_GUARD_THD, RVM_VMMD_PRIO)==0);
     RVM_ASSERT(RVM_Thd_Exec_Set(RVM_VMM_VMMD_THD, (ptr_t)RVM_VMM_Daemon, 
-                                RVM_Thd_Stack_Init((ptr_t)RVM_VMMD_Stack,RVM_VMMD_STACK_SIZE,0,0,0,0))==0);
+                                RVM_Stack_Init((ptr_t)RVM_VMMD_Stack,RVM_VMMD_STACK_SIZE),0)==0);
     RVM_LOG_S("Init:VMM daemon initialization complete.\r\n");
 
     /* Interrupt daemon initialization - main priority */
@@ -381,7 +381,7 @@ void RVM_Daemon_Init(ptr_t* Kmem_Bump)
     
     RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_VMM_INTD_THD, RVM_VMM_GUARD_THD, RVM_INTD_PRIO)==0);
     RVM_ASSERT(RVM_Thd_Exec_Set(RVM_VMM_INTD_THD, (ptr_t)RVM_Interrupt_Daemon, 
-                                RVM_Thd_Stack_Init((ptr_t)RVM_INTD_Stack,RVM_INTD_STACK_SIZE,0,0,0,0))==0);
+                                RVM_Stack_Init((ptr_t)RVM_INTD_Stack,RVM_INTD_STACK_SIZE),0)==0);
     RVM_LOG_S("Init:Interrupt daemon initialization complete.\r\n");
     
     /* Delegate timeslice to guardd, and make it work - we should stop here actually,
@@ -442,9 +442,9 @@ void RVM_Guard_Daemon(void)
         
         /* Set the execution properties for both threads, the stack information is from the image header - always set stack to 256 bytes */
         RVM_ASSERT(RVM_Thd_Exec_Set(RVM_VIRT_USERTHD(VMID), (ptr_t)(RVM_Cur_Virt->Image->User_Entry), 
-                                    RVM_Thd_Stack_Init((ptr_t)(RVM_Cur_Virt->Image->User_Stack),RVM_Cur_Virt->Image->User_Size,0,0,0,0))==0);
+                                    RVM_Stack_Init((ptr_t)(RVM_Cur_Virt->Image->User_Stack),RVM_Cur_Virt->Image->User_Size),0)==0);
         RVM_ASSERT(RVM_Thd_Exec_Set(RVM_VIRT_INTTHD(VMID), (ptr_t)(RVM_Cur_Virt->Image->Int_Entry), 
-                                    RVM_Thd_Stack_Init((ptr_t)(RVM_Cur_Virt->Image->Int_Stack),RVM_Cur_Virt->Image->Int_Size,0,0,0,0))==0);
+                                    RVM_Stack_Init((ptr_t)(RVM_Cur_Virt->Image->Int_Stack),RVM_Cur_Virt->Image->Int_Size),0)==0);
         
         /* Delegate infinite time to both threads */
         RVM_ASSERT(RVM_Thd_Time_Xfer(RVM_VIRT_USERTHD(VMID), RVM_BOOT_INIT_THD, RVM_THD_INF_TIME)==RVM_THD_INF_TIME);

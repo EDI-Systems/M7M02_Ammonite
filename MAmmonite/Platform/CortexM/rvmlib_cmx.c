@@ -27,14 +27,14 @@ Description : The Cortex-M system library platform specific header.
 #undef __HDR_PUBLIC_MEMBERS__
 /* End Includes **************************************************************/
 
-/* Begin Function:_RVM_Putchar ************************************************
+/* Begin Function:RVM_Putchar *************************************************
 Description : Output a character to console. This is for user-level debugging 
               only.
 Input       : char Char - The character to print.
 Output      : None.
 Return      : ptr_t - Always 0.
 ******************************************************************************/
-ptr_t _RVM_Putchar(char Char)
+ptr_t RVM_Putchar(char Char)
 {
     USART1->TDR=Char;
     
@@ -44,40 +44,30 @@ ptr_t _RVM_Putchar(char Char)
     }
     return 0;
 }
-/* End Function:_RVM_Putchar *************************************************/
+/* End Function:RVM_Putchar **************************************************/
 
-/* Begin Function:_RVM_Stack_Init *********************************************
+/* Begin Function:RVM_Stack_Init **********************************************
 Description : Initialize a thread's stack for synchronous invocation or thread 
               creation.
 Input       : ptr_t Stack - The start(lower) address of the stub.
               ptr_t Size  - The size of the stack.
-              ptr_t Stub  - The address of the stub.
-              ptr_t Param1 - The parameter 1 to pass to the thread.
-              ptr_t Param2 - The parameter 2 to pass to the thread.
-              ptr_t Param3 - The parameter 3 to pass to the thread.
-              ptr_t Param4 - The parameter 4 to pass to the thread.
 Output      : None.
 Return      : ptr_t - The actual stack address to use for system call.
 ******************************************************************************/
-ptr_t _RVM_Stack_Init(ptr_t Stack, ptr_t Size, ptr_t Stub,
-                      ptr_t Param1, ptr_t Param2, ptr_t Param3, ptr_t Param4)
+ptr_t RVM_Stack_Init(ptr_t Stack, ptr_t Size)
 {
     struct RVM_CMX_Ret_Stack* Stack_Ptr;
     
     Stack_Ptr=(struct RVM_CMX_Ret_Stack*)(Stack+Size-RVM_STACK_SAFE_SIZE*sizeof(ptr_t)-sizeof(struct RVM_CMX_Ret_Stack));
-    Stack_Ptr->R0=Param1;
-    Stack_Ptr->R1=Param2;
-    Stack_Ptr->R2=Param3;
-    Stack_Ptr->R3=Param4;
     Stack_Ptr->R12=0;
     Stack_Ptr->LR=0;
-    Stack_Ptr->PC=Stub;
+    Stack_Ptr->PC=(ptr_t)_RVM_Jmp_Stub;
     /* Initialize the xPSR to avoid a transition to ARM state */
     Stack_Ptr->XPSR=0x01000200;
     
     return (ptr_t)Stack_Ptr;
 }
-/* End Function:_RVM_Stack_Init **********************************************/
+/* End Function:RVM_Stack_Init ***********************************************/
 
 /* Begin Function:__RVM_Pgtbl_Map *********************************************
 Description : Actually map and construct the page table itself.
@@ -138,17 +128,18 @@ Input       : struct RVM_Hdr_Pgtbl* Pgtbl - The page table info stored in the he
               ptr_t* Cap_Bump - The pgtbl capability table bump pointer, before allocations.
               ptr_t Cap_Kmem - The kernel memory capability.
               ptr_t* Kmem_Bump - The bump pointer for memory allocation.
-              ptr_t Pos - The position of the page table.
+              ptr_t Pos - The position of the page table in the page table info array.
 Output      : ptr_t* Cap_Bump - The pgtbl capability table bump pointer, after allocations.
 Return      : None.
 ******************************************************************************/
-void _RVM_Pgtbl_Setup(struct RVM_Hdr_Pgtbl* Pgtbl, cid_t Cap_Captbl, ptr_t* Pgtbl_Bump,
-                      cid_t Cap_Kmem, ptr_t* Kmem_Bump, ptr_t Pos)
+void _RVM_Pgtbl_Setup(struct RVM_Hdr_Pgtbl* Pgtbl, ptr_t Pos, 
+                      cid_t Cap_Captbl, ptr_t* Cap_Bump,
+                      cid_t Cap_Kmem, ptr_t* Kmem_Bump)
 {
     /* Create the page table - 0 is always the top level */
     if(Pos==0)
     {
-        RVM_ASSERT(RVM_Pgtbl_Crt(Cap_Captbl, Cap_Kmem, *Pgtbl_Bump, 
+        RVM_ASSERT(RVM_Pgtbl_Crt(Cap_Captbl, Cap_Kmem, *Cap_Bump, 
                                  *Kmem_Bump, Pgtbl[Pos].Addr, 1, RVM_PGTBL_SIZE(Pgtbl[Pos].Order),
                                  RVM_PGTBL_NUM(Pgtbl[Pos].Order))==0);
         RVM_LOG_SISUS("Init:CortexM:Created top-level page table number ",Pos," @ address ",*Kmem_Bump,".\r\n");
@@ -156,7 +147,7 @@ void _RVM_Pgtbl_Setup(struct RVM_Hdr_Pgtbl* Pgtbl, cid_t Cap_Captbl, ptr_t* Pgtb
     }
     else
     {
-        RVM_ASSERT(RVM_Pgtbl_Crt(Cap_Captbl, Cap_Kmem, *Pgtbl_Bump, 
+        RVM_ASSERT(RVM_Pgtbl_Crt(Cap_Captbl, Cap_Kmem, *Cap_Bump, 
                                  *Kmem_Bump, Pgtbl[Pos].Addr, 0, RVM_PGTBL_SIZE(Pgtbl[Pos].Order),
                                  RVM_PGTBL_NUM(Pgtbl[Pos].Order))==0);
         RVM_LOG_SISUS("Init:CortexM:Created normal page table number ",Pos," @ address ",*Kmem_Bump,".\r\n");
@@ -164,8 +155,8 @@ void _RVM_Pgtbl_Setup(struct RVM_Hdr_Pgtbl* Pgtbl, cid_t Cap_Captbl, ptr_t* Pgtb
     }
     
     /* Do the mapping work */
-    __RVM_Pgtbl_Map(Pgtbl,Pos,*Pgtbl_Bump);
-    (*Pgtbl_Bump)++;
+    __RVM_Pgtbl_Map(Pgtbl,Pos,*Cap_Bump);
+    (*Cap_Bump)++;
 }
 /* End Function:_RVM_Pgtbl_Setup *********************************************/
 
@@ -182,6 +173,7 @@ Return      : ret_t - If the address is accessible, 0; else -1.
 ******************************************************************************/
 ret_t _RVM_Pgtbl_Check(const struct RVM_Hdr_Pgtbl* Pgtbl, ptr_t Pgtbl_Num, void* Addr, ptr_t Size)
 {
+    /* Currently we perform no check because the system is under test */
 //    cnt_t Count;
 //    /* Is the address in SRAM or Flash? */
 //    if(Addr<0x20000000)
@@ -197,17 +189,17 @@ ret_t _RVM_Pgtbl_Check(const struct RVM_Hdr_Pgtbl* Pgtbl, ptr_t Pgtbl_Num, void*
 }
 /* End Function:_RVM_Pgtbl_Check *********************************************/
 
-/* Begin Function:_RVM_Idle ***************************************************
+/* Begin Function:RVM_Idle ****************************************************
 Description : Put the processor into idle state.
 Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void _RVM_Idle(void)
+void RVM_Idle(void)
 {
     /* Do nothing. In the future we may call a kernel function to put us to sleep */
 }
-/* End Function:_RVM_Idle ****************************************************/
+/* End Function:RVM_Idle *****************************************************/
 
 /* End Of File ***************************************************************/
 

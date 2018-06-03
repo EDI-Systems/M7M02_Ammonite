@@ -146,7 +146,7 @@ struct RVM_Int
 
 /*****************************************************************************/
 __EXTERN__ struct RVM_List RVM_Evt_Free;
-__EXTERN__ struct RVM_Evt RVM_Evt_DB[RVM_MAX_EVT_NUM];
+__EXTERN__ struct RVM_Evt RVM_Evt_DB[RVM_EVT_MAP_NUM];
 __EXTERN__ struct RVM_List RVM_Int_Free;
 __EXTERN__ struct RVM_List RVM_Int_Vect[RVM_INT_VECT_NUM];
 __EXTERN__ struct RVM_Int RVM_Int_DB[RVM_INT_MAP_NUM];

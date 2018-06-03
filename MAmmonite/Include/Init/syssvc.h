@@ -328,14 +328,6 @@ __EXTERN__ void RVM_List_Del(volatile struct RVM_List* Prev,volatile struct RVM_
 __EXTERN__ void RVM_List_Ins(volatile struct RVM_List* New,
                              volatile struct RVM_List* Prev,
                              volatile struct RVM_List* Next);
-/* Thread local storage */
-__EXTERN__ void RVM_Set_TLS(ptr_t TLS, ptr_t Mask, ptr_t Offset);
-__EXTERN__ ptr_t RVM_Get_TLS(ptr_t Mask, ptr_t Offset);
-/* Helper functions */
-__EXTERN__ ptr_t RVM_Thd_Stack_Init(ptr_t Stack, ptr_t Size, ptr_t Param1, 
-                                    ptr_t Param2, ptr_t Param3, ptr_t Param4);
-__EXTERN__ ptr_t RVM_Inv_Stack_Init(ptr_t Stack, ptr_t Size);
-__EXTERN__ void RVM_Idle(void);
 /* Capability table operations */
 __EXTERN__ ret_t RVM_Captbl_Crt(cid_t Cap_Captbl_Crt, cid_t Cap_Kmem, 
                                 cid_t Cap_Captbl, ptr_t Vaddr, ptr_t Entry_Num);
@@ -354,7 +346,7 @@ __EXTERN__ ret_t RVM_Captbl_Kmem(cid_t Cap_Captbl_Dst, cid_t Cap_Dst,
                                  ptr_t Start, ptr_t End, ptr_t Flags);
 __EXTERN__ ret_t RVM_Captbl_Rem(cid_t Cap_Captbl_Rem, cid_t Cap_Rem);
 /* Kernel function operations */
-__EXTERN__ ret_t RVM_Kern_Act(cid_t Cap_Kern, ptr_t Func_ID, ptr_t Param1, ptr_t Param2);
+__EXTERN__ ret_t RVM_Kern_Act(cid_t Cap_Kern, ptr_t Func_ID, ptr_t Sub_ID, ptr_t Param1, ptr_t Param2);
 /* Page table operations */
 __EXTERN__ ret_t RVM_Pgtbl_Crt(cid_t Cap_Captbl, cid_t Cap_Kmem, cid_t Cap_Pgtbl, 
                                ptr_t Vaddr, ptr_t Start_Addr, ptr_t Top_Flag,
@@ -375,7 +367,7 @@ __EXTERN__ ret_t RVM_Proc_Pgt(cid_t Cap_Proc, cid_t Cap_Pgtbl);
 __EXTERN__ ret_t RVM_Thd_Crt(cid_t Cap_Captbl, cid_t Cap_Kmem, cid_t Cap_Thd,
                              cid_t Cap_Proc, ptr_t Max_Prio, ptr_t Vaddr);
 __EXTERN__ ret_t RVM_Thd_Del(cid_t Cap_Captbl, cid_t Cap_Thd);
-__EXTERN__ ret_t RVM_Thd_Exec_Set(cid_t Cap_Thd, ptr_t Entry, ptr_t Stack);
+__EXTERN__ ret_t RVM_Thd_Exec_Set(cid_t Cap_Thd, ptr_t Entry, ptr_t Stack, ptr_t Param);
 __EXTERN__ ret_t RVM_Thd_Hyp_Set(cid_t Cap_Thd, ptr_t Kaddr);
 __EXTERN__ ret_t RVM_Thd_Sched_Bind(cid_t Cap_Thd, cid_t Cap_Thd_Sched, ptr_t Prio);
 __EXTERN__ ret_t RVM_Thd_Sched_Rcv(cid_t Cap_Thd);
@@ -393,8 +385,6 @@ __EXTERN__ ret_t RVM_Inv_Crt(cid_t Cap_Captbl, cid_t Cap_Kmem,
                              cid_t Cap_Inv, cid_t Cap_Proc, ptr_t Vaddr);
 __EXTERN__ ret_t RVM_Inv_Del(cid_t Cap_Captbl, cid_t Cap_Inv);
 __EXTERN__ ret_t RVM_Inv_Set(cid_t Cap_Inv, ptr_t Entry, ptr_t Stack, ptr_t Fault_Ret_Flag);
-extern ret_t RVM_Inv_Act(cid_t Cap_Inv, ptr_t Param, ptr_t* Retval);
-extern ret_t RVM_Inv_Ret(ptr_t Retval);
 
 /* Debugging helpers */
 __EXTERN__ cnt_t RVM_Print_Int(cnt_t Int);

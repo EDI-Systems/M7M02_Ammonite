@@ -207,7 +207,7 @@ ret_t RVM_Hyp_Enable_Int(void)
             RVM_Cur_Virt->Sched.State|=RVM_VM_BOOTDONE;
             RVM_ASSERT(RVM_Thd_Sched_Prio(RVM_Cur_Virt->Cap.Int_Thd, RVM_VINT_PRIO)==0);
             /* Because some toolchain will reinitialize the memory to zero, we need to init again */
-            RVM_Thd_Stack_Init((ptr_t)(RVM_Cur_Virt->Image->Int_Stack),RVM_Cur_Virt->Image->Int_Size,0,0,0,0);
+            RVM_Stack_Init((ptr_t)(RVM_Cur_Virt->Image->Int_Stack),RVM_Cur_Virt->Image->Int_Size);
         }
         RVM_Cur_Virt->Sched.State|=RVM_VM_INTENA;
         /* See if we do have excess interrupt to process. If yes, send to the endpoint now */
@@ -357,7 +357,7 @@ Return      : ret_t - If successful, 0; else an error code.
 ret_t RVM_Hyp_Del_Evt(cnt_t Evt_ID)
 {
     /* See if the number is overrange */
-    if(Evt_ID>=RVM_MAX_EVT_NUM)
+    if(Evt_ID>=RVM_EVT_MAP_NUM)
         return RVM_ERR_RANGE;
     
     /* Is the block empty? */
@@ -417,7 +417,7 @@ ret_t RVM_Hyp_Send_Evt(ptr_t Evt_ID)
     struct RVM_Virt* Rcv_Virt;
     
     /* See if the number is overrange */
-    if(Evt_ID>=RVM_MAX_EVT_NUM)
+    if(Evt_ID>=RVM_EVT_MAP_NUM)
         return RVM_ERR_RANGE;
     
     /* Is the block empty? */

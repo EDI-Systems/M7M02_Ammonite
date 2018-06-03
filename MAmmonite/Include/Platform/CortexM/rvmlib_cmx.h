@@ -51,7 +51,7 @@ typedef unsigned char  u8;
 /* EXTERN keyword definition */
 #define EXTERN                              extern
 /* The order of bits in one CPU machine word */
-#define RVM_WORD_ORDER           5
+#define RVM_WORD_ORDER                      5
 /* The stack safe redundancy size in words - set to 0x20 words */
 #define RVM_STACK_SAFE_SIZE                 0x20
 /* FPU type definitions - keep in accordance with kernel */
@@ -79,20 +79,7 @@ typedef unsigned char  u8;
 
 /* The boot-time allocation frontier */
 #define RVM_KMEM_BOOT_FRONTIER               RVM_CMX_KMEM_BOOT_FRONTIER
-
-/* Maximum time allowed to set as period */
-#define RVM_MAX_PERIOD                       10000
-/* Minimum time allowed to set as period */
-#define RVM_MIN_PERIOD                       1
-/* The default value for timer interrupt frequency for a VM */
-#define RVM_DEF_PERIOD                       1
 /* Begin Extended Types ******************************************************/
-#ifndef __PID_T__
-#define __PID_T__
-/* The typedef for the Process ID */
-typedef s32 pid_t;
-#endif
-
 #ifndef __TID_T__
 #define __TID_T__
 /* The typedef for the Thread ID */
@@ -292,24 +279,24 @@ static void __RVM_Pgtbl_Map(struct RVM_Hdr_Pgtbl* Pgtbl, ptr_t Pos, cid_t Pgtbl_
 /*****************************************************************************/
 /* Stubs in assembly */
 EXTERN void _RVM_Entry(void);
-EXTERN ptr_t* _RVM_Get_TLS_Pos(ptr_t Mask);
-EXTERN void _RVM_Thd_Stub(void);
-EXTERN void _RVM_Inv_Stub(void);
+EXTERN void _RVM_Jmp_Stub(void);
 EXTERN ptr_t _RVM_MSB_Get(ptr_t Val); 
 EXTERN ret_t RVM_Svc(ptr_t Op_Capid, ptr_t Arg1, ptr_t Arg2, ptr_t Arg3);
-EXTERN ret_t RVM_Svc_Thd_Exec_Get(ptr_t Op_Capid, ptr_t* Param1, ptr_t* Param2, ptr_t* Param3);
+/* Invocation */
+EXTERN ret_t RVM_Inv_Act(cid_t Cap_Inv, ptr_t Param, ptr_t* Retval);
+EXTERN ret_t RVM_Inv_Ret(ptr_t Retval);
 /* Character printing */
-__EXTERN__ ptr_t _RVM_Putchar(char Char);
+__EXTERN__ ptr_t RVM_Putchar(char Char);
 /* Stack operations */
-__EXTERN__ ptr_t _RVM_Stack_Init(ptr_t Stack, ptr_t Size, ptr_t Stub,
-                                 ptr_t Param1, ptr_t Param2, ptr_t Param3, ptr_t Param4);
+__EXTERN__ ptr_t RVM_Stack_Init(ptr_t Stack, ptr_t Size);
 /* Check the page table to see if the access is allowed */
 __EXTERN__ ret_t _RVM_Pgtbl_Check(const struct RVM_Hdr_Pgtbl* Pgtbl, ptr_t Pgtbl_Num, void* Addr, ptr_t Size);
 /* Setup the page table */
-__EXTERN__ void _RVM_Pgtbl_Setup(struct RVM_Hdr_Pgtbl* Pgtbl, cid_t Cap_Captbl, ptr_t* Cap_Bump,
-                                 cid_t Cap_Kmem, ptr_t* Kmem_Bump, ptr_t Pos);
+__EXTERN__ void _RVM_Pgtbl_Setup(struct RVM_Hdr_Pgtbl* Pgtbl, ptr_t Pos, 
+                                 cid_t Cap_Captbl, ptr_t* Cap_Bump,
+                                 cid_t Cap_Kmem, ptr_t* Kmem_Bump);
 /* Idle function */
-__EXTERN__ void _RVM_Idle(void);
+__EXTERN__ void RVM_Idle(void);
 /*****************************************************************************/
 /* Undefine "__EXTERN__" to avoid redefinition */
 #undef __EXTERN__
