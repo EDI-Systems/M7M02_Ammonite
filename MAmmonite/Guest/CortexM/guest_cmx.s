@@ -111,7 +111,7 @@ RVM_Fetch_And_Fail
 ;Input       : ptr_t* Ptr - The pointer to the data.
 ;              ptr_t Operand - The number to logic AND with the destination.
 ;Output      : ptr_t* Ptr - The pointer to the data.
-;Return      : ptr_t - The value before the AND operation.
+;Return      : ptr_t - The value before the OR operation.
 ;*****************************************************************************/
 RVM_Fetch_Or
                 PUSH    {R4}
@@ -143,8 +143,6 @@ _RVM_Hypercall
                 
                 POP        {R4-R5}     ; Manual recovering
                 BX         LR          ; Return from the call
-                
-                B          .           ; Shouldn't reach here.
 ;/* End Function:_RVM_Hypercall **********************************************/
 
 ;/* Begin Function:RVM_Int_Rcv ************************************************
@@ -153,16 +151,16 @@ _RVM_Hypercall
 ;Output      : None.                                      
 ;*****************************************************************************/
 RVM_Int_Rcv
-                PUSH       {R4-R5}       ; Manual clobbering
+                PUSH       {R4-R6}       ; Manual clobbering
                 MOV        R4,#0x30000   ; Asynchronous receive
                 MOV        R5,#1         ; From capability number 1.
+                MOV        R6,#1         ; With blocking receive multi.
                 
                 SVC        #0x00         ; System call
                 ISB                      ; Instruction barrier - wait for instruction to complete.
                 
-                POP        {R4-R5}       ; Manual recovering
+                POP        {R4-R6}       ; Manual recovering
                 BX         LR            ; Return from the call
-                NOP
 ;/* End Function:RVM_Int_Rcv *************************************************/
 
 ;/* Begin Function:_RVM_Yield *************************************************
@@ -174,14 +172,13 @@ RVM_Int_Rcv
 _RVM_Yield
                 PUSH       {R4-R5}       ; Manual clobbering
                 MOV        R4,#0x20000   ; Asynchronous send
-                MOV        R5,#1         ; Flag & capability number
+                MOV        R5,#1         ; Capability number
                 
                 SVC        #0x00         ; System call
                 ISB                      ; Instruction barrier - wait for instruction to complete.
                 
                 POP        {R4-R5}       ; Manual recovering
                 BX         LR            ; Return from the call
-                NOP
 ;/* End Function:_RVM_Yield *************************************************/
 
 ;/* Begin Function:_RVM_Kern *************************************************
@@ -196,7 +193,7 @@ _RVM_Yield
 _RVM_Kern
                 PUSH       {R4-R7}       ; Manual clobbering
                 ADD        R4,R0,#2      ; Capability ID - plus 2 because the first two are occupied.
-                MOVT       R4,#0x4       ; Asynchronous receive
+                MOVT       R4,#0x4       ; Kernel function
                 MOV        R5,R1         ; Parameters
                 MOV        R6,R2
                 MOV        R7,R3
@@ -206,7 +203,7 @@ _RVM_Kern
                 
                 POP        {R4-R7}       ; Manual recovering
                 BX         LR            ; Return from the call
-                NOP
+                ALIGN
 ;/* End Function:_RVM_Kern ***************************************************/
 
                 END

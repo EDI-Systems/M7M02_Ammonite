@@ -183,14 +183,14 @@ void RVM_Load_Image(struct RVM_Image** Image, ptr_t* Pgtbl_Bump, ptr_t* Kmem_Bum
     
     /* Create the virtual machine threads and endpoint in the virtual machine process */
     Virt->Cap.User_Thd=RVM_VIRT_USERTHD(VMID);
-    Virt->Cap.User_TID=RVM_Thd_Crt(RVM_VIRT_TBL_THDSIG, RVM_BOOT_INIT_KMEM, VMID*3, RVM_VIRT_PROC(VMID), RVM_USER_PRIO, *Kmem_Bump);
-    RVM_ASSERT(Virt->Cap.User_TID>=0);
+    RVM_ASSERT(RVM_Thd_Crt(RVM_VIRT_TBL_THDSIG, RVM_BOOT_INIT_KMEM, VMID*3, RVM_VIRT_PROC(VMID), RVM_USER_PRIO, *Kmem_Bump)==0);
+    Virt->Cap.User_TID=RVM_TID_Inc++;
     RVM_LOG_SISUS("Init:Created virual machine user thread CID ",VMID*3 ," @ address 0x",*Kmem_Bump," internal TID ");RVM_LOG_I(Virt->Cap.User_TID);
     *Kmem_Bump+=RVM_THD_SIZE;
     
     Virt->Cap.Int_Thd=RVM_VIRT_INTTHD(VMID);
-    Virt->Cap.Int_TID=RVM_Thd_Crt(RVM_VIRT_TBL_THDSIG, RVM_BOOT_INIT_KMEM, VMID*3+1, RVM_VIRT_PROC(VMID), RVM_VINT_PRIO, *Kmem_Bump);
-    RVM_ASSERT(Virt->Cap.Int_TID>=0);
+    RVM_ASSERT(RVM_Thd_Crt(RVM_VIRT_TBL_THDSIG, RVM_BOOT_INIT_KMEM, VMID*3+1, RVM_VIRT_PROC(VMID), RVM_VINT_PRIO, *Kmem_Bump)==0);
+    Virt->Cap.Int_TID=RVM_TID_Inc++;
     RVM_LOG_SISUS(".\r\nInit:Created virual machine interrupt thread CID ",VMID*3+1 ," @ address 0x",*Kmem_Bump," internal TID ");RVM_LOG_I(Virt->Cap.Int_TID);
     *Kmem_Bump+=RVM_THD_SIZE;
     
@@ -200,8 +200,8 @@ void RVM_Load_Image(struct RVM_Image** Image, ptr_t* Pgtbl_Bump, ptr_t* Kmem_Bum
     *Kmem_Bump+=RVM_SIG_SIZE;
     
     /* Bind both threads to the processor */
-    RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_VIRT_USERTHD(VMID), RVM_VMM_GUARD_THD, RVM_WAIT_PRIO)==0);
-    RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_VIRT_INTTHD(VMID), RVM_VMM_GUARD_THD, RVM_WAIT_PRIO)==0);
+    RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_VIRT_USERTHD(VMID), RVM_VMM_GUARD_THD, RVM_VMM_GUARD_SIG, Virt->Cap.User_TID, RVM_WAIT_PRIO)==0);
+    RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_VIRT_INTTHD(VMID), RVM_VMM_GUARD_THD, RVM_VMM_GUARD_SIG, Virt->Cap.Int_TID, RVM_WAIT_PRIO)==0);
     
     /* Set the execution/hypervior properties for both threads, the stack information is from the image header - always set stack to 256 bytes */
     RVM_ASSERT(RVM_Thd_Hyp_Set(RVM_VIRT_USERTHD(VMID), (ptr_t)(Virt->Image->Regs))==0);
@@ -218,7 +218,11 @@ void RVM_Load_Image(struct RVM_Image** Image, ptr_t* Pgtbl_Bump, ptr_t* Kmem_Bum
     /* Delegate the endpoints to the virtual machine's capability table, only sending allowed.
      * The VMM daemon endpoint is always at 0, the interrupt handler endpoint is always at 1 */
     RVM_ASSERT(RVM_Captbl_Add(RVM_VIRT_CAPTBL(VMID), 0, RVM_BOOT_CAPTBL, RVM_VMM_VMMD_SIG, RME_SIG_FLAG_SND)==0);
-    RVM_ASSERT(RVM_Captbl_Add(RVM_VIRT_CAPTBL(VMID), 1, RVM_VIRT_TBL_THDSIG, VMID*3+2, RME_SIG_FLAG_SND|RME_SIG_FLAG_RCV)==0);
+    RVM_ASSERT(RVM_Captbl_Add(RVM_VIRT_CAPTBL(VMID), 1, RVM_VIRT_TBL_THDSIG, VMID*3+2, RME_SIG_FLAG_SND|
+                                                                                       RME_SIG_FLAG_RCV_BS|
+                                                                                       RME_SIG_FLAG_RCV_BM|
+                                                                                       RME_SIG_FLAG_RCV_NS|
+                                                                                       RME_SIG_FLAG_RCV_NM)==0);
     /* Delegate the kernel function capabilities to the VM according to their respective declarations */
     for(Count=0;Count<Virt->Image->Kcap_Num;Count++)
     {
@@ -290,10 +294,11 @@ void RVM_VM_Init(ptr_t* Kmem_Bump)
 
 /* Begin Function:RVM_Daemon_Init *********************************************
 Description : Initialize the daemons. These daemons include three ones:
-              1. Guardd, the daemon for the startup and process recovery.
-              2. Timerd, the daemon for time accounting.
-              3. RTd, the daemon for real-time scheduling.
-              4. Unixd, the daemon for Unix services.
+              1. GUARDD, the daemon for the startup and process recovery.
+              2. TIMD, the daemon for time accounting.
+              3. VMMD, the daemon for real-time scheduling & hypercall handling.
+              4. INTD, the daemon for interrupt handling.
+              The TID of all daemons are zero.
 Input       : ptr_t Bump_Ptr - The bump pointer for allocation.
 Output      : None.
 Return      : ptr_t - The bump pointer's new location.
@@ -304,6 +309,8 @@ void RVM_Daemon_Init(ptr_t* Kmem_Bump)
     RVM_LOG_S("-------------------------------------------------------------------------------\r\n");
     RVM_Tick=0;
     RVM_VM_Num=0;
+    /* We initialize this to 1 because the init thread already have TID 0 */
+    RVM_TID_Inc=1;
     
     RVM_List_Crt(&RVM_Wait);
     RVM_List_Crt(&RVM_Free);
@@ -336,13 +343,17 @@ void RVM_Daemon_Init(ptr_t* Kmem_Bump)
     
     RVM_LOG_S("Init:Virtual machine database initialization complete.\r\n");
     
-    /* Guard daemon initialization - highest priority as always */
+    /* Guard daemon initialization - highest priority as always */    
+    RVM_ASSERT(RVM_Sig_Crt(RVM_BOOT_CAPTBL, RVM_BOOT_INIT_KMEM, RVM_VMM_GUARD_SIG, *Kmem_Bump)==0);
+    RVM_LOG_SISUS("Init:Created GuardD fault endpoint CID ",RVM_VMM_GUARD_SIG," @ address 0x",*Kmem_Bump,".\r\n");
+    *Kmem_Bump+=RVM_SIG_SIZE;
+    
     RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_CAPTBL, RVM_BOOT_INIT_KMEM, RVM_VMM_GUARD_THD,
                            RVM_BOOT_INIT_PROC, RVM_GUARD_PRIO, *Kmem_Bump)>=0);
     RVM_LOG_SISUS("Init:Created Guard daemon CID ",RVM_VMM_GUARD_THD," @ address 0x",*Kmem_Bump,".\r\n");
     *Kmem_Bump+=RVM_THD_SIZE;
     
-    RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_VMM_GUARD_THD, RVM_BOOT_INIT_THD, RVM_MAX_PREEMPT_PRIO-1)==0);
+    RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_VMM_GUARD_THD, RVM_BOOT_INIT_THD, RVM_VMM_GUARD_SIG, 0, RVM_MAX_PREEMPT_PRIO-1)==0);
     RVM_ASSERT(RVM_Thd_Exec_Set(RVM_VMM_GUARD_THD, (ptr_t)RVM_Guard_Daemon, 
                                 RVM_Stack_Init((ptr_t)RVM_GUARD_Stack,RVM_GUARD_STACK_SIZE),0)==0);
     RVM_LOG_S("Init:Guard daemon initialization complete.\r\n");
@@ -353,22 +364,22 @@ void RVM_Daemon_Init(ptr_t* Kmem_Bump)
     RVM_LOG_SISUS("Init:Created Timer daemon CID ",RVM_VMM_TIMD_THD," @ address 0x",*Kmem_Bump,".\r\n");
     *Kmem_Bump+=RVM_THD_SIZE;
     
-    RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_VMM_TIMD_THD, RVM_VMM_GUARD_THD, RVM_TIMD_PRIO)==0);
+    RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_VMM_TIMD_THD, RVM_VMM_GUARD_THD, RVM_VMM_GUARD_SIG, 0, RVM_TIMD_PRIO)==0);
     RVM_ASSERT(RVM_Thd_Exec_Set(RVM_VMM_TIMD_THD, (ptr_t)RVM_Timer_Daemon, 
                                 RVM_Stack_Init((ptr_t)RVM_TIMD_Stack,RVM_TIMD_STACK_SIZE),0)==0);
     RVM_LOG_S("Init:Timer daemon initialization complete.\r\n");
 
     /* VMM daemon initialization - main priority */
+    RVM_ASSERT(RVM_Sig_Crt(RVM_BOOT_CAPTBL, RVM_BOOT_INIT_KMEM, RVM_VMM_VMMD_SIG, *Kmem_Bump)==0);
+    RVM_LOG_SISUS("Init:Created VMMD endpoint CID ",RVM_VMM_VMMD_SIG," @ address 0x",*Kmem_Bump,".\r\n");
+    *Kmem_Bump+=RVM_SIG_SIZE;
+    
     RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_CAPTBL, RVM_BOOT_INIT_KMEM, RVM_VMM_VMMD_THD,
                            RVM_BOOT_INIT_PROC, RVM_VMMD_PRIO, *Kmem_Bump)>=0);
     RVM_LOG_SISUS("Init:Created VMM daemon CID ",RVM_VMM_VMMD_THD," @ address 0x",*Kmem_Bump,".\r\n");
     *Kmem_Bump+=RVM_THD_SIZE;
     
-    RVM_ASSERT(RVM_Sig_Crt(RVM_BOOT_CAPTBL, RVM_BOOT_INIT_KMEM, RVM_VMM_VMMD_SIG, *Kmem_Bump)==0);
-    RVM_LOG_SISUS("Init:Created VMMD endpoint CID ",RVM_VMM_VMMD_SIG," @ address 0x",*Kmem_Bump,".\r\n");
-    *Kmem_Bump+=RVM_SIG_SIZE;
-    
-    RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_VMM_VMMD_THD, RVM_VMM_GUARD_THD, RVM_VMMD_PRIO)==0);
+    RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_VMM_VMMD_THD, RVM_VMM_GUARD_THD, RVM_VMM_GUARD_SIG, 0, RVM_VMMD_PRIO)==0);
     RVM_ASSERT(RVM_Thd_Exec_Set(RVM_VMM_VMMD_THD, (ptr_t)RVM_VMM_Daemon, 
                                 RVM_Stack_Init((ptr_t)RVM_VMMD_Stack,RVM_VMMD_STACK_SIZE),0)==0);
     RVM_LOG_S("Init:VMM daemon initialization complete.\r\n");
@@ -379,12 +390,12 @@ void RVM_Daemon_Init(ptr_t* Kmem_Bump)
     RVM_LOG_SISUS("Init:Created Interrupt daemon CID ",RVM_VMM_INTD_THD," @ address 0x",*Kmem_Bump,".\r\n");
     *Kmem_Bump+=RVM_THD_SIZE;
     
-    RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_VMM_INTD_THD, RVM_VMM_GUARD_THD, RVM_INTD_PRIO)==0);
+    RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_VMM_INTD_THD, RVM_VMM_GUARD_THD, RVM_VMM_GUARD_SIG, 0, RVM_INTD_PRIO)==0);
     RVM_ASSERT(RVM_Thd_Exec_Set(RVM_VMM_INTD_THD, (ptr_t)RVM_Interrupt_Daemon, 
                                 RVM_Stack_Init((ptr_t)RVM_INTD_Stack,RVM_INTD_STACK_SIZE),0)==0);
     RVM_LOG_S("Init:Interrupt daemon initialization complete.\r\n");
     
-    /* Delegate timeslice to guardd, and make it work - we should stop here actually,
+    /* Delegate timeslice to GuardD, and make it work - we should stop here actually,
      * and we have done operating the database, now all the work is the Guard daemon's.
      * additionally, from then on, no further kernel objects will be created anymore */
     RVM_ASSERT(RVM_Thd_Time_Xfer(RVM_VMM_GUARD_THD, RVM_BOOT_INIT_THD, RVM_THD_INF_TIME)==RVM_THD_INF_TIME);
@@ -412,7 +423,8 @@ void RVM_Guard_Daemon(void)
     /* Main cycle - recover faults if possible */
     while(1)
     {
-        RVM_Sig_Rcv(RVM_BOOT_INIT_FAULT);
+        /* Blocking single receive */
+        RVM_Sig_Rcv(RVM_VMM_GUARD_SIG, RME_RCV_BS);
         
         Thd=RVM_Thd_Sched_Rcv(RVM_VMM_GUARD_THD);
         
@@ -552,7 +564,7 @@ void RVM_Timer_Daemon(void)
     /* We will receive a timer interrupt every tick here */
     while(1)
     {
-        RVM_Sig_Rcv(RVM_BOOT_INIT_TIMER);
+        RVM_Sig_Rcv(RVM_BOOT_INIT_TIMER, RME_RCV_BS);
         RVM_Tick++;
         /*
         if((RVM_Tick%1000)==0)
@@ -617,7 +629,8 @@ void RVM_VMM_Daemon(void)
     /* Main cycle */
     while(1)
     {
-        RVM_Sig_Rcv(RVM_VMM_VMMD_SIG);
+        /* Blocking multi receive */
+        RVM_Sig_Rcv(RVM_VMM_VMMD_SIG, RME_RCV_BS);
         
         //RVM_LOG_SIS("VMMD:Hypercall ",RVM_Cur_Virt->Image->Param->Number," called.\r\n");
         /* See what system call it is */
@@ -758,7 +771,8 @@ void RVM_Interrupt_Daemon(void)
     /* Main cycle - do nothing for now */
     while(1)
     {
-        RVM_Sig_Rcv(RVM_BOOT_INIT_INT);
+        /* Blocking multi receive */
+        RVM_Sig_Rcv(RVM_BOOT_INIT_INT, RME_RCV_BM);
         /* Try to lock the first set of table */
         Flags->Set0.Lock=1;
         while(Flags->Set0.Group!=0)
@@ -776,8 +790,7 @@ void RVM_Interrupt_Daemon(void)
             RVM_Int_Proc(Num);
         }
         Flags->Set1.Lock=0;
-        /* Now many VMs are woken up, and many interrupts are delivered. Choose the
-         * one with the highest priority to run */
+        /* Now many VMs are woken up, and many interrupts are delivered */
     }
 }
 /* End Function:RVM_Interrupt_Daemon *****************************************/

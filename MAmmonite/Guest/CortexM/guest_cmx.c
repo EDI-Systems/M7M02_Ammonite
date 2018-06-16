@@ -23,6 +23,9 @@ void RVM_Init(void)
     cnt_t Count;
     /* Clear all VM-related flags and registration tables */
     RVM_Int_Enable=0;
+    RVM_Int_Pend=0;
+    RVM_Int_Active=0;
+    /* Clean up all global variables */
     for(Count=0;Count<RVM_VECT_BITMAP;Count++)
         RVM_Flag[Count]=0;
     for(Count=0;Count<RVM_MAX_INTVECT;Count++)
@@ -99,6 +102,38 @@ void RVM_Disable_Int(void)
     RVM_Int_Enable=0;
 }
 /* End Function:RVM_Disable_Int **********************************************/
+
+/* Begin Function:RVM_Mask_Int ************************************************
+Description : Mask interrupts; this does not stop the interrupt delivery, but will
+              postpone the processing until we unmask them.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void RVM_Mask_Int(void)
+{
+    RVM_Int_Pend=0;
+    RVM_Int_Enable=0;
+}
+/* End Function:RVM_Mask_Int *************************************************/
+
+/* Begin Function:RVM_Unmask_Int **********************************************
+Description : Unmask pending interrupts so we can process them.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void RVM_Unmask_Int(void)
+{
+    RVM_Int_Enable=1;
+    /* Trigger interrupt processing if there are pending ones */
+    if(RVM_Int_Pend!=0)
+    {
+        RVM_Int_Pend=0;
+        _RVM_Yield();
+    }
+}
+/* End Function:RVM_Unmask_Int ***********************************************/
 
 /* Begin Function:RVM_Reg_Int *************************************************
 Description : Register an interrupt line. This will link the physical vector with
@@ -255,7 +290,15 @@ Return      : None.
 void RVM_Yield(void)
 {
     RVM_Fetch_Or(RVM_Flag,0x02);
-    _RVM_Yield();
+    
+    /* We send a new trigger if the interrupt is not masked and we are not in interrupt */
+    if(RVM_Int_Active==0)
+    {
+        if(RVM_Int_Enable!=0)
+            _RVM_Yield();
+        else
+            RVM_Int_Pend=1;
+    }
 }
 /* End Function:RVM_Yield ****************************************************/
 
@@ -275,7 +318,7 @@ ret_t RVM_HW_Int_Enable(ptr_t Int_ID)
 /* End Function:RVM_HW_Int_Enable ********************************************/
     
 /* Begin Function:RVM_HW_Int_Disable ******************************************
-Description : Disable a hardware interrupt
+Description : Disable a hardware interrupt.
 Input       : None.
 Output      : None.
 Return      : ret_t - If successful, 0; else -1.
@@ -352,15 +395,26 @@ void RVM_Int(void)
     while(1)
     {
         RVM_Int_Rcv();
-        /* Look for interrupts to handle from the first */
-        Int_Num=RVM_Get_Int();
-        /* Handle the interrupt here - the interrupt is tail-chained */
-        while(Int_Num>=0)
+        /* Only try to get interrupts if we didn't mask it */
+        if(RVM_Int_Enable!=0)
         {
-            if(RVM_Vect[Int_Num]!=0)
-                ((void(*)(ptr_t))RVM_Vect[Int_Num])(Int_Num);
+            RVM_Int_Pend=0;
+            /* Look for interrupts to handle from the first */
             Int_Num=RVM_Get_Int();
+            /* Handle the interrupt here - the interrupt is tail-chained */
+            while(Int_Num>=0)
+            {
+                if(RVM_Vect[Int_Num]!=0)
+                {
+                    RVM_Int_Active=1;
+                    ((void(*)(ptr_t))RVM_Vect[Int_Num])(Int_Num);
+                    RVM_Int_Active=0;
+                }
+                Int_Num=RVM_Get_Int();
+            }
         }
+        else
+            RVM_Int_Pend=1;
     }
 }
 /* End Function:RVM_Int ******************************************************/

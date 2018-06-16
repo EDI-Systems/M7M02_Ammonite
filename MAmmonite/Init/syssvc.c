@@ -735,15 +735,21 @@ Description : Set a thread's priority level, and its scheduler thread. When ther
               It is impossible to set a thread's priority beyond its maximum priority. 
 Input       : cid_t Cap_Thd - The capability to the thread. 2-Level.
               cid_t Cap_Thd_Sched - The scheduler thread. 2-Level.
+              cid_t Cap_Sig - The signal endpoint for scheduler notifications. This signal
+                              endpoint will be sent to whenever this thread has a fault, or
+                              timeouts. This is purely optional; if it is not needed, pass
+                              in RME_CAPID_NULL.
+              tid_t TID - The thread ID. This is user-supplied, and the kernel will not
+                          check whether there are two threads that have the same TID.
               ptr_t Prio - The priority level, higher is more critical.
 Output      : None.
 Return      : ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-ret_t RVM_Thd_Sched_Bind(cid_t Cap_Thd, cid_t Cap_Thd_Sched, ptr_t Prio)
+ret_t RVM_Thd_Sched_Bind(cid_t Cap_Thd, cid_t Cap_Thd_Sched, cid_t Cap_Sig, tid_t TID, ptr_t Prio)
 {
-    return RVM_CAP_OP(RME_SVC_THD_SCHED_BIND, 0,
-                      Cap_Thd,
-                      Cap_Thd_Sched, 
+    return RVM_CAP_OP(RME_SVC_THD_SCHED_BIND, Cap_Thd,
+                      RVM_PARAM_D1(Cap_Thd_Sched)|RVM_PARAM_D0(Cap_Sig),
+                      TID, 
                       Prio);
 }
 /* End Function:RVM_Thd_Sched_Bind *******************************************/
@@ -923,15 +929,16 @@ Description : Try to receive a signal capability. The rules for the signal capab
               3.It is not recommended to let 2 cores operate on the rcv endpoint simutaneously.
               This system call can potentially trigger a context switch.
 Input       : cid_t Cap_Sig - The capability to the signal. 2-Level.
+              ptr_t Option - The receive option.
 Output      : None.
-Return      : ret_t - If successful, a non-negative number containing the current
-                      counter value will be returned; else an error code.
+Return      : ret_t - If successful, a non-negative number containing the number of signals
+                      received will be returned; else an error code.
 ******************************************************************************/
-ret_t RVM_Sig_Rcv(cid_t Cap_Sig)
+ret_t RVM_Sig_Rcv(cid_t Cap_Sig, ptr_t Option)
 {
     return RVM_CAP_OP(RME_SVC_SIG_RCV, 0,
                       Cap_Sig,
-                      0, 
+                      Option, 
                       0);
 }
 /* End Function:RVM_Sig_Rcv **************************************************/

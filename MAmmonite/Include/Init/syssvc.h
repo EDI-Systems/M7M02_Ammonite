@@ -134,6 +134,7 @@ while(0)
 #define RVM_PARAM_O0(X)                     ((X)&RVM_PARAM_O_MASK)
 
 /* CID synthesis */
+#define RME_CAPID_NULL                      (1<<(sizeof(ptr_t)*4-1))
 #define RVM_CAPID_2L                        (1<<(sizeof(ptr_t)*2-1))
 #define RVM_CAPID(X,Y)                      (((X)<<(sizeof(ptr_t)*2))|(Y)|RVM_CAPID_2L)
 
@@ -168,11 +169,11 @@ while(0)
 /* Process */
 #define RVM_PROC_WORD_SIZE                   3
 /* Thread */
-#define RVM_THD_WORD_SIZE                    45
+#define RVM_THD_WORD_SIZE                    46
 /* Signal */
 #define RVM_SIG_WORD_SIZE                    3
 /* Invocation */
-#define RVM_INV_WORD_SIZE                    38
+#define RVM_INV_WORD_SIZE                    9
 
 /* Rounded size of each object */
 #define RVM_ROUNDED(X)                       RVM_ROUND_UP(((ptr_t)(X))*sizeof(ptr_t),RVM_KMEM_SLOT_ORDER)
@@ -218,24 +219,23 @@ while(0)
 #define RVM_BOOT_INIT_KMEM                   5
 /* The initial timer endpoint */
 #define RVM_BOOT_INIT_TIMER                  6
-/* The initial fault endpoint */
-#define RVM_BOOT_INIT_FAULT                  7
 /* The initial interrupt endpoint */
-#define RVM_BOOT_INIT_INT                    8
+#define RVM_BOOT_INIT_INT                    7
 /* This is the capability table containing all the VM process/capability table capabilities */
-#define RVM_VIRT_TBL_CAPPROC                 9
+#define RVM_VIRT_TBL_CAPPROC                 8
 /* This is the capability table containing all the VM thread/endpoing capabilities */
-#define RVM_VIRT_TBL_THDSIG                  10
+#define RVM_VIRT_TBL_THDSIG                  9
 /* This is the capability table for virtual machine page tables */
-#define RVM_VIRT_TBL_PGTBL                   11
+#define RVM_VIRT_TBL_PGTBL                   10
 /* These are the capabilities for the guard thread - guard thread does not have an endpoint */
-#define RVM_VMM_GUARD_THD                    12
+#define RVM_VMM_GUARD_THD                    11
+#define RVM_VMM_GUARD_SIG                    12
 /* These are the capabilities for the timer thread - timer thread does not have an endpoint */
 #define RVM_VMM_TIMD_THD                     13
 /* These are the capabilities for the real-time daemon */
 #define RVM_VMM_VMMD_THD                     14
 #define RVM_VMM_VMMD_SIG                     15
-/* These are the capabilities for the Unix daemon */
+/* These are the capabilities for the interrupt daemon */
 #define RVM_VMM_INTD_THD                     16
 
 /* Helper capability definitions */
@@ -369,7 +369,8 @@ __EXTERN__ ret_t RVM_Thd_Crt(cid_t Cap_Captbl, cid_t Cap_Kmem, cid_t Cap_Thd,
 __EXTERN__ ret_t RVM_Thd_Del(cid_t Cap_Captbl, cid_t Cap_Thd);
 __EXTERN__ ret_t RVM_Thd_Exec_Set(cid_t Cap_Thd, ptr_t Entry, ptr_t Stack, ptr_t Param);
 __EXTERN__ ret_t RVM_Thd_Hyp_Set(cid_t Cap_Thd, ptr_t Kaddr);
-__EXTERN__ ret_t RVM_Thd_Sched_Bind(cid_t Cap_Thd, cid_t Cap_Thd_Sched, ptr_t Prio);
+__EXTERN__ ret_t RVM_Thd_Sched_Bind(cid_t Cap_Thd, cid_t Cap_Thd_Sched,
+                                    cid_t Cap_Sig, tid_t TID, ptr_t Prio);
 __EXTERN__ ret_t RVM_Thd_Sched_Rcv(cid_t Cap_Thd);
 __EXTERN__ ret_t RVM_Thd_Sched_Prio(cid_t Cap_Thd, ptr_t Prio);
 __EXTERN__ ret_t RVM_Thd_Sched_Free(cid_t Cap_Thd);
@@ -379,7 +380,7 @@ __EXTERN__ ret_t RVM_Thd_Swt(cid_t Cap_Thd, ptr_t Full_Yield);
 __EXTERN__ ret_t RVM_Sig_Crt(cid_t Cap_Captbl, cid_t Cap_Kmem, cid_t Cap_Sig, ptr_t Vaddr);
 __EXTERN__ ret_t RVM_Sig_Del(cid_t Cap_Captbl, cid_t Cap_Sig);
 __EXTERN__ ret_t RVM_Sig_Snd(cid_t Cap_Sig);
-__EXTERN__ ret_t RVM_Sig_Rcv(cid_t Cap_Sig);
+__EXTERN__ ret_t RVM_Sig_Rcv(cid_t Cap_Sig, ptr_t Option);
 /* Invocation operations */
 __EXTERN__ ret_t RVM_Inv_Crt(cid_t Cap_Captbl, cid_t Cap_Kmem, 
                              cid_t Cap_Inv, cid_t Cap_Proc, ptr_t Vaddr);

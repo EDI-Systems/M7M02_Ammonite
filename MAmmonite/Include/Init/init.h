@@ -171,6 +171,8 @@ struct RVM_Virt
 /* If the header is not used in the public mode */
 #ifndef __HDR_PUBLIC_MEMBERS__
 /*****************************************************************************/
+/* The TID counter */
+static ptr_t RVM_TID_Inc;
 /* The stacks for daemons */
 static ptr_t RVM_GUARD_Stack[RVM_GUARD_STACK_SIZE/sizeof(ptr_t)];
 static ptr_t RVM_TIMD_Stack[RVM_TIMD_STACK_SIZE/sizeof(ptr_t)];

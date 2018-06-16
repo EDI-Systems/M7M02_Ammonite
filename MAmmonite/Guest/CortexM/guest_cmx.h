@@ -279,6 +279,8 @@ static ret_t RVM_Get_Int(void);
 static void RVM_Int(void);
 static void RVM_Wait_Int(void);
 static ptr_t RVM_Int_Enable;
+static ptr_t RVM_Int_Pend;
+static ptr_t RVM_Int_Active;
 #endif
 
 /* The debug console buffer and pointer */
@@ -315,6 +317,8 @@ EXTERN void RVM_Init(void);
 EXTERN ret_t RVM_Vect_Init(ptr_t Num, void* Handler);
 EXTERN void RVM_Disable_Int(void);
 EXTERN void RVM_Enable_Int(void);
+EXTERN void RVM_Mask_Int(void);
+EXTERN void RVM_Unmask_Int(void);
 EXTERN ret_t RVM_Reg_Int(ptr_t Vect_Num, ptr_t Int_Num);
 EXTERN ret_t RVM_Del_Int(cnt_t Int_ID);
 EXTERN ret_t RVM_Reg_Evt(ptr_t Int_Num, ptr_t VMID);
