@@ -95,7 +95,7 @@ do \
 } \
 while(0)
 /* Word size settings */
-#define RVM_WORD_SIZE                      (((ptr_t)1)<<RVM_WORD_ORDER)
+#define RVM_WORD_SIZE                       (((ptr_t)1)<<RVM_WORD_ORDER)
 #define RVM_WORD_MASK                       (~(((ptr_t)(-1))<<(RVM_WORD_ORDER-1)))
 /* Bit mask/address operations */
 #define RVM_ALLBITS                         ((ptr_t)(-1))
@@ -134,8 +134,8 @@ while(0)
 #define RVM_PARAM_O0(X)                     ((X)&RVM_PARAM_O_MASK)
 
 /* CID synthesis */
-#define RME_CAPID_NULL                      (1<<(sizeof(ptr_t)*4-1))
-#define RVM_CAPID_2L                        (1<<(sizeof(ptr_t)*2-1))
+#define RME_CAPID_NULL                      (((cid_t)1)<<(sizeof(ptr_t)*4-1))
+#define RVM_CAPID_2L                        (((cid_t)1)<<(sizeof(ptr_t)*2-1))
 #define RVM_CAPID(X,Y)                      (((X)<<(sizeof(ptr_t)*2))|(Y)|RVM_CAPID_2L)
 
 /* Flag synthesis */
