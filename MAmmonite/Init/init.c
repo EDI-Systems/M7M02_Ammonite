@@ -834,7 +834,8 @@ int main(void)
     RVM_ASSERT(RVM_Thd_Sched_Prio(RVM_BOOT_INIT_THD, RVM_MAX_PREEMPT_PRIO-1)==0);
     RVM_LOG_S("Init:Preparation - priority raised.\r\n");
     
-    Kmem_Bump=RVM_KMEM_BOOT_FRONTIER;
+    RVM_LOG_SUS("Init:Start creating kernel objects @ kernel virtual address base 0x",RVM_KMEM_VA_START+RVM_KMEM_BOOT_FRONTIER,".\r\n");
+    Kmem_Bump=RVM_CMX_KMEM_BOOT_FRONTIER_OFFSET;
     
     /* Create the startup thread in the init process, because the init thread
      * cannot block. Bind that to the processor, and let it have infinite budget.

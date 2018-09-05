@@ -227,17 +227,17 @@ Input       : cid_t Cap_Captbl_Crt - The capability table that contains the newl
               cid_t Cap_Kmem - The kernel memory capability. 2-Level.
               cid_t Cap_Crt - The capability slot that you want this newly created
                               capability table capability to be in. 1-Level.
-              ptr_t Vaddr - The physical address to store the kernel data.
+              ptr_t Raddr - The relative virtual address to store the capability table.
               ptr_t Entry_Num - The number of entries in that capability table.
 Output      : None.
 Return      : ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 ret_t RVM_Captbl_Crt(cid_t Cap_Captbl_Crt, cid_t Cap_Kmem, 
-                     cid_t Cap_Captbl, ptr_t Vaddr, ptr_t Entry_Num)
+                     cid_t Cap_Captbl, ptr_t Raddr, ptr_t Entry_Num)
 {
     return RVM_CAP_OP(RME_SVC_CAPTBL_CRT, Cap_Captbl_Crt, 
                       RVM_PARAM_D1(Cap_Kmem)|RVM_PARAM_D0(Cap_Captbl),
-                      Vaddr,
+                      Raddr,
                       Entry_Num);
 }
 /* End Function:RVM_Captbl_Crt ***********************************************/
@@ -368,8 +368,8 @@ Input       : cid_t Cap_Captbl_Dst - The capability to the destination capabilit
                                      2-Level.
               cid_t Cap_Src - The capability in the source capability table to delegate.
                               1-Level.
-              ptr_t Start - The start address of the kernel memory.
-              ptr_t End - The end address of the kernel memory.
+              ptr_t Start - The relative start virtual address of the kernel memory.
+              ptr_t End - The relative end virtual address of the kernel memory.
               ptr_t Flags - The flags for the kernel memory capability.
 Output      : None.
 Return      : ret_t - If the mapping is successful, it will return 0; else error code.
@@ -438,8 +438,7 @@ Input       : cid_t Cap_Captbl - The capability table that contains the newly cr
               cid_t Cap_Kmem - The kernel memory capability. 2-Level.
               cid_t Cap_Pgtbl - The capability slot that you want this newly created
                                 page table capability to be in. 1-Level.
-              ptr_t Vaddr - The physical address to store the page table. This must fall
-                            within the kernel virtual address.
+              ptr_t Raddr - The relative virtual address to store the page table kernel object.
               ptr_t Start_Addr - The virtual address to start mapping for this page table.  
                                 This address must be aligned to the total size of the table.
               ptr_t Top_Flag - Whether this page table is the top-level. If it is, we will
@@ -451,13 +450,13 @@ Output      : None.
 Return      : ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 ret_t RVM_Pgtbl_Crt(cid_t Cap_Captbl, cid_t Cap_Kmem, cid_t Cap_Pgtbl, 
-                    ptr_t Vaddr, ptr_t Start_Addr, ptr_t Top_Flag,
+                    ptr_t Raddr, ptr_t Start_Addr, ptr_t Top_Flag,
                     ptr_t Size_Order, ptr_t Num_Order)
 {
     
     return RVM_CAP_OP(RVM_PGTBL_SVC(Num_Order,RME_SVC_PGTBL_CRT), Cap_Captbl,
                       RVM_PARAM_D1(Cap_Kmem)|RVM_PARAM_Q1(Cap_Pgtbl)|RVM_PARAM_Q0(Size_Order),
-                      Vaddr, 
+                      Raddr, 
                       Start_Addr|Top_Flag);
 }
 /* End Function:RVM_Pgtbl_Crt ************************************************/
@@ -577,18 +576,17 @@ Input       : cid_t Cap_Captbl_Crt - The capability to the capability table to p
                                  this process. 2-Level.
               cid_t Cap_Pgtbl - The capability to the page table to use for this process.
                                 2-Level.
-              ptr_t Vaddr - The physical address to store the kernel data. This must fall
-                            within the kernel virtual address.
+              ptr_t Raddr - The relative virtual address to store the process kernel object.
 Output      : None.
 Return      : ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 ret_t RVM_Proc_Crt(cid_t Cap_Captbl_Crt, cid_t Cap_Kmem, cid_t Cap_Proc,
-                   cid_t Cap_Captbl, cid_t Cap_Pgtbl, ptr_t Vaddr)
+                   cid_t Cap_Captbl, cid_t Cap_Pgtbl, ptr_t Raddr)
 {
     return RVM_CAP_OP(RME_SVC_PROC_CRT, Cap_Captbl_Crt,
                       RVM_PARAM_D1(Cap_Kmem)|RVM_PARAM_D0(Cap_Proc),
                       RVM_PARAM_D1(Cap_Captbl)|RVM_PARAM_D0(Cap_Pgtbl),
-                      Vaddr);
+                      Raddr);
 }
 /* End Function:RVM_Proc_Crt *************************************************/
 
@@ -653,17 +651,17 @@ Input       : cid_t Cap_Captbl - The capability to the capability table. 2-Level
               cid_t Cap_Proc - The capability to the process that it is in. 2-Level.
               ptr_t Max_Prio - The maximum priority allowed for this thread. Once set,
                                this cannot be changed.
-              ptr_t Vaddr - The physical address to store the kernel object.
+              ptr_t Raddr - The relative virtual address to store the thread kernel object.
 Output      : None.
 Return      : ret_t - If successful, the Thread ID; or an error code.
 ******************************************************************************/
 ret_t RVM_Thd_Crt(cid_t Cap_Captbl, cid_t Cap_Kmem, cid_t Cap_Thd,
-                  cid_t Cap_Proc, ptr_t Max_Prio, ptr_t Vaddr)
+                  cid_t Cap_Proc, ptr_t Max_Prio, ptr_t Raddr)
 {
     return RVM_CAP_OP(RME_SVC_THD_CRT, Cap_Captbl, 
                       RVM_PARAM_D1(Cap_Kmem)|RVM_PARAM_D0(Cap_Thd),
                       RVM_PARAM_D1(Cap_Proc)|RVM_PARAM_D0(Max_Prio),
-                      Vaddr);
+                      Raddr);
 }
 /* End Function:RVM_Thd_Crt **************************************************/
 
@@ -872,17 +870,17 @@ Input       : cid_t Cap_Captbl - The capability to the capability table to use
               cid_t Cap_Kmem - The kernel memory capability. 2-Level.
               cid_t Cap_Inv - The capability slot that you want this newly created
                               signal capability to be in. 1-Level.
-              ptr_t Vaddr - The physical address to store the kernel data. This must fall
-                            within the kernel virtual address.
+              ptr_t Raddr - The relative virtual address to store the signal endpoint
+                            kernel object.
 Output      : None.
 Return      : ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-ret_t RVM_Sig_Crt(cid_t Cap_Captbl, cid_t Cap_Kmem, cid_t Cap_Sig, ptr_t Vaddr)
+ret_t RVM_Sig_Crt(cid_t Cap_Captbl, cid_t Cap_Kmem, cid_t Cap_Sig, ptr_t Raddr)
 {
     return RVM_CAP_OP(RME_SVC_SIG_CRT, Cap_Captbl,
                       Cap_Kmem,
                       Cap_Sig, 
-                      Vaddr);
+                      Raddr);
 }
 /* End Function:RVM_Sig_Crt **************************************************/
 
@@ -950,18 +948,18 @@ Input       : cid_t Cap_Captbl - The capability to the capability table to use
               cid_t Cap_Inv - The capability slot that you want this newly created
                               invocation capability to be in. 1-Level.
               cid_t Cap_Proc - The capability to the process that it is in. 2-Level.
-              ptr_t Vaddr - The physical address to store the kernel data. This must fall
-                            within the kernel virtual address.
+              ptr_t Raddr - The relative virtual address to store the invocation port
+                            kernel object.
 Output      : None.
 Return      : ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 ret_t RVM_Inv_Crt(cid_t Cap_Captbl, cid_t Cap_Kmem, 
-                  cid_t Cap_Inv, cid_t Cap_Proc, ptr_t Vaddr)
+                  cid_t Cap_Inv, cid_t Cap_Proc, ptr_t Raddr)
 {
     return RVM_CAP_OP(RME_SVC_INV_CRT, Cap_Captbl,
                       RVM_PARAM_D1(Cap_Kmem)|RVM_PARAM_D0(Cap_Inv),
                       Cap_Proc, 
-                      Vaddr);
+                      Raddr);
 }
 /* End Function:RVM_Inv_Crt **************************************************/
 

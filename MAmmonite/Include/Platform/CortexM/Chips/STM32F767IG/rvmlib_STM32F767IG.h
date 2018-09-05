@@ -23,7 +23,7 @@ Description: The configuration file for STM32F767IG. The values listed here shou
 #define RVM_MAX_PREEMPT_PRIO         32
 
 /* Initial kenel object frontier limit */
-#define RVM_CMX_KMEM_BOOT_FRONTIER   0x20003400
+#define RVM_CMX_KMEM_BOOT_FRONTIER   0x400
 /* Number of MPU regions available */
 #define RVM_CMX_MPU_REGIONS          8
 /* Init process's first thread's entry point address */
