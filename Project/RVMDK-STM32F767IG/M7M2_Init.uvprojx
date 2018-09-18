@@ -364,10 +364,10 @@
             <TextAddressRange>0x08000000</TextAddressRange>
             <DataAddressRange>0x20000000</DataAddressRange>
             <pXoBase></pXoBase>
-            <ScatterFile>..\..\MAmmonite\Include\Platform\CortexM\Chips\STM32F767IG\init_STM32F767IG.sct</ScatterFile>
+            <ScatterFile>..\..\MAmmonite\Include\Platform\CortexM\Chips\STM32F767IG\rvm_platform_STM32F767IG.sct</ScatterFile>
             <IncludeLibs></IncludeLibs>
             <IncludeLibsPath></IncludeLibsPath>
-            <Misc>--keep=rvmlib_cmx_asm.o</Misc>
+            <Misc>--keep=rvm_platform_cmx_asm.o</Misc>
             <LinkerInputFile></LinkerInputFile>
             <DisabledWarnings></DisabledWarnings>
           </LDads>
@@ -378,19 +378,19 @@
           <GroupName>Init</GroupName>
           <Files>
             <File>
-              <FileName>init.c</FileName>
+              <FileName>rvm_init.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\MAmmonite\Init\init.c</FilePath>
+              <FilePath>..\..\MAmmonite\Init\rvm_init.c</FilePath>
             </File>
             <File>
-              <FileName>syssvc.c</FileName>
+              <FileName>rvm_syssvc.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\MAmmonite\Init\syssvc.c</FilePath>
+              <FilePath>..\..\MAmmonite\Init\rvm_syssvc.c</FilePath>
             </File>
             <File>
-              <FileName>hyper.c</FileName>
+              <FileName>rvm_hyper.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\MAmmonite\Init\hyper.c</FilePath>
+              <FilePath>..\..\MAmmonite\Init\rvm_hyper.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -403,19 +403,19 @@
               <FilePath>.\redirect.c</FilePath>
             </File>
             <File>
-              <FileName>rvmlib_cmx.c</FileName>
+              <FileName>rvm_platform_cmx.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\MAmmonite\Platform\CortexM\rvmlib_cmx.c</FilePath>
+              <FilePath>..\..\MAmmonite\Platform\CortexM\rvm_platform_cmx.c</FilePath>
             </File>
             <File>
-              <FileName>rvmlib_cmx_asm.s</FileName>
+              <FileName>rvm_platform_cmx_asm.s</FileName>
               <FileType>2</FileType>
-              <FilePath>..\..\MAmmonite\Platform\CortexM\rvmlib_cmx_asm.s</FilePath>
+              <FilePath>..\..\MAmmonite\Platform\CortexM\rvm_platform_cmx_asm.s</FilePath>
             </File>
             <File>
-              <FileName>init_STM32F767IG.sct</FileName>
+              <FileName>rvm_platform_STM32F767IG.sct</FileName>
               <FileType>2</FileType>
-              <FilePath>..\..\MAmmonite\Include\Platform\CortexM\Chips\STM32F767IG\init_STM32F767IG.sct</FilePath>
+              <FilePath>..\..\MAmmonite\Include\Platform\CortexM\Chips\STM32F767IG\rvm_platform_STM32F767IG.sct</FilePath>
               <FileOption>
                 <CommonProperty>
                   <UseCPPCompiler>2</UseCPPCompiler>
