@@ -8,7 +8,7 @@ Click **[HERE](README.md)** for English version.
 
 &emsp;&emsp;**RVM** 是一个专为微控制器（microcontroller，MCU）设计的虚拟机监视器（virtual machine monitor，VMM）。这个虚拟机监视器可以高效地准虚拟化很多RTOS和裸机程序。这是一种划时代的技术，并且也是IoT系统的未来。它使得之前很多无法想象的应用变成可能。它同时具备前无古人的可扩展性，可以在1MB的静态内存上运行多达64个虚拟机。
 
-&emsp;&emsp;该虚拟机监视器的手册可以在 **[这里](https://github.com/EDI-Systems/M7M2_MuAmmonite/blob/master/Documents/M7M2_%E5%BE%AE%E6%8E%A7%E5%88%B6%E5%99%A8%E5%AE%9E%E6%97%B6%E5%87%86%E8%99%9A%E6%8B%9F%E6%9C%BA%E7%9B%91%E8%A7%86%E5%99%A8_%E6%8A%80%E6%9C%AF%E6%89%8B%E5%86%8C.pdf)** 找到。
+&emsp;&emsp;该虚拟机监视器的手册可以在 **[这里](https://github.com/EDI-Systems/M7M2_MuAmmonite/blob/master/Documents/M7M2_%E9%80%9A%E7%94%A8%E5%AE%9E%E6%97%B6%E8%99%9A%E6%8B%9F%E6%9C%BA%E7%9B%91%E8%A7%86%E5%99%A8_%E6%8A%80%E6%9C%AF%E6%89%8B%E5%86%8C.pdf)** 找到。
 
 &emsp;&emsp;如果想要参与开发，请阅读 **[参与](CONTRIBUTING.md)** 和 **[规范](CODE_OF_CONDUCT.md)** 两个指导文档。如果要提交拉取请求，请使用 **[拉取请求模板](PULL_REQUEST_TEMPLATE.md)** 。
 
