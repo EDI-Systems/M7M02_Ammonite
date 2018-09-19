@@ -260,7 +260,7 @@ struct RVM_Image
     const struct RVM_Image* const * const Next_Image;
 };
 
-#include "guest_cmx_conf.h"
+#include "rvm_guest_cmx_conf.h"
 /*****************************************************************************/
 /* End Structs ***************************************************************/
 
