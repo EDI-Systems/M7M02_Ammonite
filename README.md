@@ -39,13 +39,13 @@ This software is **triple-licensed**: it is either **[LGPL v3](LICENSE.md)** or 
 ### Security
 &ensp;&ensp;&ensp;&ensp;Traditional RTOSes generally does not consider information security as their design goal. They fail to meet security goals for future IoT systems. As stated in the reliability section, hackers can hack into the system and sabotage any part if they want to; usually a buffer overflow attack is sufficient. This is not the worst yet. The following situations can be much worse than a simple sabotage:
 
-- For IoT blockchain applications such as [IOTA](https://iota.org/), the attacker can read your passwords, hack into your bank accounts, and possess all your money. 
+- For IoT blockchain applications such as [IOTA](https://iota.org/), the attacker can read passwords, hack into bank accounts, and steal all the money. 
 
-- For smart home applications, the hackers can infiltrate your cameras and appliance controls and turn your life into a real-world Truman Show. (What else could possibly be the source of interesting racy video snippets that are currently circulating the internet?)
+- For smart home applications, the hackers can infiltrate cameras and appliance controls and start a real-world Truman Show. (This is possibly the source of some interesting racy video snippets that are currently circulating the internet.)
 
-- For smart cars, the hackers can force you to drive as if you are in a Formula 1 race. This has happened on Tesla model 3 not long ago; nobody wants to experience this for sure.
+- For smart cars, the hackers can force the driver to drive as if you are in a Formula 1 race. This has happened on Tesla model 3 not long ago.
 
-- For critical life-support device such as medical ventilators, hackers can simply shut them down. No lives are lost to this so far, but if no measures are taken there will soon be some.
+- For critical life-support device such as medical ventilators, hackers can simply shut them down.
 
 - For critical industry applications, hackers can turn off whole production line, or at least parts of it.
 

@@ -2,7 +2,7 @@
 ;Filename    : rvm_platform_cmx_asm.s
 ;Author      : pry
 ;Date        : 19/01/2017
-;Description : The Cortex-M user-level assembly scheduling support of the RVM RTOS.
+;Description : The Cortex-M user-level assembly scheduling support of the RVM hypervisor.
 ;*****************************************************************************/
                 
 ;/* Begin Header *************************************************************/
