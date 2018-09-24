@@ -277,7 +277,6 @@ struct RVM_Image
 static rvm_ret_t RVM_Hypercall(rvm_ptr_t Number, rvm_ptr_t Param1, rvm_ptr_t Param2, rvm_ptr_t Param3, rvm_ptr_t Param4);
 static rvm_ret_t RVM_Get_Int(void);
 static void RVM_Int(void);
-static void RVM_Wait_Int(void);
 static rvm_ptr_t RVM_Int_Enable;
 static rvm_ptr_t RVM_Int_Pend;
 static rvm_ptr_t RVM_Int_Active;

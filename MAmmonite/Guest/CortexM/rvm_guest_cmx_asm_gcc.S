@@ -1,5 +1,5 @@
 /******************************************************************************
-Filename    : rvm_guest_cmx_asm_gcc.s
+Filename    : rvm_guest_cmx_asm_gcc.S
 Author      : pry
 Date        : 09/02/2018
 Description : The assembly portion of the RVM guest library for Cortex-M3/4/7.
@@ -7,26 +7,22 @@ Description : The assembly portion of the RVM guest library for Cortex-M3/4/7.
 ******************************************************************************/
 
 /* Begin Header **************************************************************/
-    /* 2^3=8 Byte alignment */
-    AREA                STACK, NOINIT, READWRITE, ALIGN=3
-RVM_User_Stack
-User_Stack SPACE        0x00000100
-__initial_sp
+    .syntax             unified
+    .thumb
 
-RVM_Int_Stack
-Int_Stack SPACE         0x00000400
-    
-    /* The align is "(2^3)/8=1(Byte)." In fact it does not take effect. */
-    AREA                RESET,CODE,READONLY,ALIGN=3
-                
-    THUMB
-    REQUIRE8
-    PRESERVE8
+	.section            ".noinit"
+RVM_User_Stack:
+	.space              0x00000100
+__initial_sp:
+
+RVM_Int_Stack:
+	.space				0x00000400
+
+    .section            ".text"
+    .align              3
 /* End Header ****************************************************************/
 
 /* Begin Exports *************************************************************/
-    /* The initial stack pointer position */
-    .global             __initial_sp
     /* The user stack pointer position */
     .global             RVM_User_Stack
     /* The interrupt stack pointer position */
@@ -50,23 +46,59 @@ Int_Stack SPACE         0x00000400
 
 /* Begin Imports *************************************************************/
     /* The RVM image header */
-    IMPORT              RVM_Img
+    .global             RVM_Img
     /* The real entry */
-    IMPORT              __main
+    .global             main
 /* End Imports ***************************************************************/
 
 /* Begin Global Variable *****************************************************/
-    DCD                 RVM_Img
+    .long               RVM_Img
 /* End Global Variable *******************************************************/
 
 /* Begin Function:RVM_Entry ***************************************************
 Description : The entry of the program, when running in an virtualized environment.
+              This is also responsible for initializing the system.
 Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
+	/* Addresses of variable sections */
+	.global  			_sidata
+	.global  			__data_start__
+	.global  			__data_end__
+	.global  			__bss_start__
+	.global  			__bss_end__
+	.thumb_func
 _RVM_Entry:
-    LDR                 R0, =__main
+  	LDR					SP, =_estack
+    /* Initialize the data section */
+    LDR                 R0,=__data_start__
+    LDR                 R1,=__data_end__
+    LDR                 R2,=_sidata
+load_data:
+    CMP                 R0,R1
+    BEQ                 load_done
+    LDR					R3,[R2]
+    STR                 R3,[R0]
+    ADD                 R0,#0x04
+    ADD                 R2,#0x04
+    B                   load_data
+load_done:
+	/* Initialize the bss section */
+    LDR                 R0,=__bss_start__
+    LDR                 R1,=__bss_end__
+    LDR                 R2,=0x00
+clear_bss:
+    CMP                 R0,R1
+    BEQ                 clear_done
+    STR                 R2,[R0]
+    ADD                 R0,#0x04
+    B                   clear_bss
+clear_done:
+	/* Call static constructors */
+    BL 					__libc_init_array
+	/* Call the application's entry point.*/
+    LDR                 R0, =main
     BX                  R0
 /* End Function:_RMP_Entry ***************************************************/
 
@@ -76,6 +108,7 @@ Input       : rvm_ptr_t Val - The value.
 Output      : None.
 Return      : rvm_ptr_t - The MSB position.   
 ******************************************************************************/
+	.thumb_func
 RVM_MSB_Get:
     CLZ                 R1,R0
     MOV                 R0,#31
@@ -91,6 +124,7 @@ Input       : rvm_ptr_t* Ptr - The pointer to the data.
 Output      : rvm_ptr_t* Ptr - The pointer to the data.
 Return      : rvm_ptr_t - The value before the AND operation.
 ******************************************************************************/
+	.thumb_func
 RVM_Fetch_And:
     PUSH                {R4}
 RVM_Fetch_And_Fail:
@@ -112,6 +146,7 @@ Input       : rvm_ptr_t* Ptr - The pointer to the data.
 Output      : rvm_ptr_t* Ptr - The pointer to the data.
 Return      : rvm_ptr_t - The value before the OR operation.
 ******************************************************************************/
+	.thumb_func
 RVM_Fetch_Or:
     PUSH                {R4}
 RVM_Fetch_Or_Fail:
@@ -131,6 +166,7 @@ Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
+	.thumb_func
 _RVM_Hypercall:
     PUSH                {R4-R5}             /* Manual clobbering */
     MOV                 R4,#0x20000         /* Asynchronous send */
@@ -149,6 +185,7 @@ Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
+	.thumb_func
 RVM_Int_Rcv:
     PUSH                {R4-R6}             /* Manual clobbering */
     MOV                 R4,#0x30000         /* Asynchronous receive */
@@ -169,6 +206,7 @@ Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
+	.thumb_func
 _RVM_Yield:
     PUSH                {R4-R5}             /* Manual clobbering */
     MOV                 R4,#0x20000         /* Asynchronous send */
@@ -190,6 +228,7 @@ Input       : rvm_cnt_t Cap_ID - The capability ID.
 Output      : None.
 Return      : ret_t - If successful, 0; else -1.
 ******************************************************************************/
+	.thumb_func
 _RVM_Kern:
     PUSH                {R4-R7}             /* Manual clobbering */
     ADD                 R4,R0,#2            /* Capability ID - plus 2 because the first two are occupied. */
@@ -203,9 +242,9 @@ _RVM_Kern:
 
     POP                 {R4-R7}             /* Manual recovering */
     BX                  LR                  /* Return from the call */
-    ALIGN
 /* End Function:_RVM_Kern ****************************************************/
 
+    .end
 /* End Of File ***************************************************************/
 
 /* Copyright (C) Evo-Devo Instrum. All rights reserved ***********************/

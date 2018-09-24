@@ -70,7 +70,7 @@ typedef unsigned char rvm_u8_t;
 #define RVM_CMX_KERN_PWR                     240
 
 /* Platform-specific includes */
-#include "Platform\CortexM\rvm_platform_cmx_conf.h"
+#include "Platform/CortexM/rvm_platform_cmx_conf.h"
 
 /* The boot-time allocation frontier */
 #define RVM_KMEM_BOOT_FRONTIER               RVM_CMX_KMEM_BOOT_FRONTIER

@@ -25,7 +25,7 @@ INIT 0x08010000 0x00010000
     }
     
     ; Interrupt flag & other shared data region - 4kB total
-    INIT_SHARED 0x20000000 EMPTY 0x00001000
+    INIT_SHARED 0x20010000 EMPTY 0x00001000
     {
     
     }

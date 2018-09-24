@@ -58,3 +58,4 @@ Documents/*
 
 # Keil specific
 Project/**/Debug/**
+!Project/ECLIPSE-GCC-STM32F767IG/RVM/Debug/*
