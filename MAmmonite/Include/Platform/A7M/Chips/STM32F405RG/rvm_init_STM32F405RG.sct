@@ -1,0 +1,41 @@
+;******************************************************************************
+;Filename    : init_STM32F405RG.sct
+;Author      : pry
+;Date        : 24/06/2017
+;Licence     : LGPL v3+; see COPYING for details.
+;Description : The scatter file for Cortex-M4 init process layout. This file is
+;              intended to be used with STM32F405RGT6.
+;              Init ROM layout:
+;              |0x08004000                                          0x0800FFFF|
+;              |<-                            Init                          ->|
+;              Init RAM layout:
+;              |0x10008000            0x1000F7FF|0x1000F800         0x1000FFFF|
+;              |<-         Init Data          ->|<-       Init Stack        ->|
+;******************************************************************************
+INIT 0x08010000 0x00010000
+{   
+    ; Process code segment - 64kB
+    INIT_CODE 0x08010000 0x00010000
+    {   ; The entry will be the first instruction
+        *.o                    (ARCH, +First)
+        ; The lib code copying code
+        *                      (InRoot$$Sections)
+        ; The kernel code section
+        .ANY                   (+RO)
+    }
+    
+    ; The data section of the INIT process - 30kB total
+    INIT_DATA 0x10008000 0x1000F7FF
+    {
+        .ANY                   (+RW +ZI)
+    }
+    
+    ; The initial stack section of the INIT process - 2kB total 
+    INIT_STACK 0x1000F800 EMPTY 0x00000800
+    {
+        
+    }
+}
+; End Of File *****************************************************************
+
+; Copyright (C) Evo-Devo Instrum. All rights reserved *************************
