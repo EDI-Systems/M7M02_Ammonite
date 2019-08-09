@@ -7,7 +7,7 @@ Description : The platform specific types for MPU-based system library.
 ******************************************************************************/
 
 /* Platform Includes *********************************************************/
-#include "Platform/CortexM/rvm_platform_cmx.h"
+#include "Platform/A7M/rvm_platform_a7m.h"
 /* End Platform Includes *****************************************************/
 
 /* End Of File ***************************************************************/

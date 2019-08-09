@@ -10,12 +10,13 @@
       <TargetName>Init</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
-      <pCCUsed>5060183::V5.06 update 2 (build 183)::ARMCC</pCCUsed>
+      <pCCUsed>5060750::V5.06 update 6 (build 750)::ARMCC</pCCUsed>
+      <uAC6>0</uAC6>
       <TargetOption>
         <TargetCommonOption>
           <Device>STM32F767IGTx</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32F7xx_DFP.2.9.0</PackID>
+          <PackID>Keil.STM32F7xx_DFP.2.11.0</PackID>
           <PackURL>http://www.keil.com/pack</PackURL>
           <Cpu>IRAM(0x20020000,0x60000) IRAM2(0x20000000,0x20000) IROM(0x08000000,0x100000) IROM2(0x00200000,0x100000) CPUTYPE("Cortex-M7") FPU3(DFPU) CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -183,6 +184,7 @@
             <hadXRAM>0</hadXRAM>
             <uocXRam>0</uocXRam>
             <RvdsVP>3</RvdsVP>
+            <RvdsMve>0</RvdsMve>
             <hadIRAM2>1</hadIRAM2>
             <hadIROM2>1</hadIROM2>
             <StupSel>8</StupSel>
@@ -323,6 +325,7 @@
             <uThumb>0</uThumb>
             <uSurpInc>0</uSurpInc>
             <uC99>0</uC99>
+            <uGnu>0</uGnu>
             <useXO>0</useXO>
             <v6Lang>1</v6Lang>
             <v6LangP>1</v6LangP>
@@ -330,6 +333,7 @@
             <vShortWch>1</vShortWch>
             <v6Lto>0</v6Lto>
             <v6WtE>0</v6WtE>
+            <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
               <Define></Define>
@@ -347,6 +351,7 @@
             <NoWarn>0</NoWarn>
             <uSurpInc>0</uSurpInc>
             <useXO>0</useXO>
+            <uClangAs>0</uClangAs>
             <VariousControls>
               <MiscControls></MiscControls>
               <Define></Define>
@@ -364,7 +369,7 @@
             <TextAddressRange>0x08000000</TextAddressRange>
             <DataAddressRange>0x20000000</DataAddressRange>
             <pXoBase></pXoBase>
-            <ScatterFile>..\..\MAmmonite\Include\Platform\CortexM\Chips\STM32F767IG\rvm_platform_STM32F767IG.sct</ScatterFile>
+            <ScatterFile>..\..\MAmmonite\Include\Platform\A7M\Chips\STM32F767IG\rvm_platform_STM32F767IG.sct</ScatterFile>
             <IncludeLibs></IncludeLibs>
             <IncludeLibsPath></IncludeLibsPath>
             <Misc>--keep=rvm_platform_cmx_asm.o</Misc>
@@ -403,19 +408,19 @@
               <FilePath>.\redirect.c</FilePath>
             </File>
             <File>
-              <FileName>rvm_platform_cmx.c</FileName>
+              <FileName>rvm_platform_a7m.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\MAmmonite\Platform\CortexM\rvm_platform_cmx.c</FilePath>
+              <FilePath>..\..\MAmmonite\Platform\A7M\rvm_platform_a7m.c</FilePath>
             </File>
             <File>
-              <FileName>rvm_platform_cmx_asm.s</FileName>
+              <FileName>rvm_platform_a7m_asm.s</FileName>
               <FileType>2</FileType>
-              <FilePath>..\..\MAmmonite\Platform\CortexM\rvm_platform_cmx_asm.s</FilePath>
+              <FilePath>..\..\MAmmonite\Platform\A7M\rvm_platform_a7m_asm.s</FilePath>
             </File>
             <File>
               <FileName>rvm_platform_STM32F767IG.sct</FileName>
               <FileType>2</FileType>
-              <FilePath>..\..\MAmmonite\Include\Platform\CortexM\Chips\STM32F767IG\rvm_platform_STM32F767IG.sct</FilePath>
+              <FilePath>..\..\MAmmonite\Include\Platform\A7M\Chips\STM32F767IG\rvm_platform_STM32F767IG.sct</FilePath>
               <FileOption>
                 <CommonProperty>
                   <UseCPPCompiler>2</UseCPPCompiler>
@@ -444,6 +449,7 @@
                     <NoWarn>2</NoWarn>
                     <uSurpInc>2</uSurpInc>
                     <useXO>2</useXO>
+                    <uClangAs>2</uClangAs>
                     <VariousControls>
                       <MiscControls></MiscControls>
                       <Define></Define>
@@ -459,5 +465,11 @@
       </Groups>
     </Target>
   </Targets>
+
+  <RTE>
+    <apis/>
+    <components/>
+    <files/>
+  </RTE>
 
 </Project>
