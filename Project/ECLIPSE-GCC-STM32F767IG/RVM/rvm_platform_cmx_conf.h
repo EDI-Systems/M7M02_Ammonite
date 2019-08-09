@@ -2,7 +2,7 @@
 Filename    : rvm_platform_conf.h
 Author      : pry 
 Date        : 22/07/2017
-Licence     : LGPL v3+; see COPYING for details.
+Licence     : LGPL v3+; see LICENSE for details.
 Description : The platform specific types for Cortex-M system library.
 ******************************************************************************/
 

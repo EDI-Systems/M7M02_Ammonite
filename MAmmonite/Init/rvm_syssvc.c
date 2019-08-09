@@ -2,7 +2,7 @@
 Filename    : rvm_syssvc.c
 Author      : pry
 Date        : 11/06/2017
-Licence     : LGPL v3+; see COPYING for details.
+Licence     : The Unlicense; see LICENSE for details.
 Description : The system call wrapper of RVM virtual machine monitor.
 ******************************************************************************/
 

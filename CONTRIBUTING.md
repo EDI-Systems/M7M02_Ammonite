@@ -143,7 +143,7 @@ A example C header file:
     Filename    : <Filename>.h
     Author      : <Name>
     Date        : <DD/MM/YYYY>
-    Licence     : LGPL v3+; see COPYING for details.
+    Licence     : LGPL v3+; see LICENSE for details.
     Description : <File description>
     ******************************************************************************/
 
@@ -245,7 +245,7 @@ An example C source file:
     Filename    : <Filename>.c
     Author      : <Name>
     Date        : <DD/MM/YYYY>
-    Licence     : LGPL v3+; see COPYING for details.
+    Licence     : LGPL v3+; see LICENSE for details.
     Description : <File description>
     ******************************************************************************/
 

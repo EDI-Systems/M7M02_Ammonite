@@ -2,7 +2,7 @@
 Filename    : rvm_hyper.h
 Author      : pry
 Date        : 18/10/2017
-Licence     : LGPL v3+; see COPYING for details.
+Licence     : The Unlicense; see LICENSE for details.
 Description : The header of microcontroller user-level library.
 ******************************************************************************/
 

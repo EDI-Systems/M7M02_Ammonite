@@ -2,7 +2,7 @@
 Filename    : rvm_init.c
 Author      : pry
 Date        : 11/06/2017
-Licence     : LGPL v3+; see COPYING for details.
+Licence     : The Unlicense; see LICENSE for details.
 Description : The init process of MPU-based RVM systems. This process just sets
               up all other parts of the system then go idle.
 ******************************************************************************/

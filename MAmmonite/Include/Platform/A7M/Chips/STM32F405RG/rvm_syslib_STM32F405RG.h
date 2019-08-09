@@ -2,7 +2,7 @@
 Filename   : syslib_STM32F405RG.h
 Author     : pry
 Date       : 26/06/2017
-Licence    : LGPL v3+; see COPYING for details.
+Licence    : The Unlicense; see LICENSE for details.
 Description: The configuration file for STM32F767IG. The values listed here should
              be in accordance with that in the kernel.
 ******************************************************************************/

@@ -2,7 +2,7 @@
 Filename    : rvm_hyper.c
 Author      : pry
 Date        : 02/10/2018
-Licence     : LGPL v3+; see COPYING for details.
+Licence     : The Unlicense; see LICENSE for details.
 Description : The hypercall implementation file.
 ******************************************************************************/
 

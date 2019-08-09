@@ -2,7 +2,7 @@
 Filename    : rvm_platform_cmx.h
 Author      : pry
 Date        : 25/06/2017
-Licence     : LGPL v3+; see COPYING for details.
+Licence     : The Unlicense; see LICENSE for details.
 Description : The header of the platform dependent part.
 ******************************************************************************/
 
