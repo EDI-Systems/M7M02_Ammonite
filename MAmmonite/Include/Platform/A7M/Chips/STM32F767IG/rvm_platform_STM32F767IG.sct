@@ -1,47 +1,36 @@
 ;******************************************************************************
 ;Filename    : rvm_platform_STM32F767IG.sct
-;Author      : pry
-;Date        : 24/06/2017
-;Licence     : The Unlicense; see LICENSE for details.
-;Description : The scatter file for Cortex-M7 init process layout. This file is
-;              intended to be used with STM32F767IGT6.
-;              Init ROM layout:
-;              |0x08010000                                          0x0801FFFF|
-;              |<-                            Init                          ->|
-;              Init RAM layout:
-;              |0x20010000            0x2001EFFF|0x2001F000         0x2001FFFF|
-;              |<-         Init Data          ->|<-       Init Stack        ->|
+;Author      : The RME project generator.
+;Date        : 07/10/2019
+;Licence     : LGPL v3+; see COPYING for details.
+;Description : The scatter file for ARMv7-M layout. This file is intended
+;              to be used with STM32F767IG.
 ;******************************************************************************
-INIT 0x08010000 0x00010000
-{   
-    ; Process code segment - 64kB
-    INIT_CODE 0x08010000 0x00010000
-    {   ; The entry will be the first instruction
+
+; Begin Segment:INIT **********************************************************
+; Description : The init segment, which contains the core of the user-level library.
+; *****************************************************************************
+INIT 0x8010000 0x10000
+{
+    ; The code segment of the INIT process
+    INIT_CODE 0x8010000 0x10000
+    {
+        ; The entry will be the first instruction
         *.o                    (ARCH, +First)
         ; The lib code copying code
         *                      (InRoot$$Sections)
         ; The init code section
         .ANY                   (+RO)
     }
-    
-    ; Interrupt flag & other shared data region - 4kB total
-    INIT_SHARED 0x20010000 EMPTY 0x00001000
-    {
-    
-    }
-    
-    ; The data section of the INIT process - 56kB total
-    INIT_DATA 0x20011000 0x0000E000
+
+    ; The data section of the INIT process
+    INIT_DATA 0x20010000 0xB000
     {
         .ANY                   (+RW +ZI)
     }
-    
-    ; The initial stack section of the INIT process - 4kB total.
-    INIT_STACK 0x2001F000 EMPTY 0x00001000
-    {
-        /* Place the stack array here */
-    }
 }
+; End Segment:INIT ************************************************************
+
 ; End Of File *****************************************************************
 
 ; Copyright (C) Evo-Devo Instrum. All rights reserved *************************

@@ -7,7 +7,7 @@ Description : The system call wrapper of RVM virtual machine monitor.
 ******************************************************************************/
 
 /* Includes ******************************************************************/
-#include "rme.h"
+#include "rvm.h"
 
 #define __HDR_DEFS__
 #include "Platform/rvm_platform.h"
@@ -235,7 +235,7 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 rvm_ret_t RVM_Captbl_Crt(rvm_cid_t Cap_Captbl_Crt, rvm_cid_t Cap_Kmem, 
                          rvm_cid_t Cap_Captbl, rvm_ptr_t Raddr, rvm_ptr_t Entry_Num)
 {
-    return RVM_CAP_OP(RME_SVC_CAPTBL_CRT, Cap_Captbl_Crt, 
+    return RVM_CAP_OP(RVM_SVC_CAPTBL_CRT, Cap_Captbl_Crt, 
                       RVM_PARAM_D1(Cap_Kmem)|RVM_PARAM_D0(Cap_Captbl),
                       Raddr,
                       Entry_Num);
@@ -253,7 +253,7 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 rvm_ret_t RVM_Captbl_Del(rvm_cid_t Cap_Captbl_Del, rvm_cid_t Cap_Del)
 {
-    return RVM_CAP_OP(RME_SVC_CAPTBL_DEL, Cap_Captbl_Del,
+    return RVM_CAP_OP(RVM_SVC_CAPTBL_DEL, Cap_Captbl_Del,
                       Cap_Del,
                       0,
                       0);
@@ -270,7 +270,7 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 rvm_ret_t RVM_Captbl_Frz(rvm_cid_t Cap_Captbl_Frz, rvm_cid_t Cap_Frz)
 {
-        return RVM_CAP_OP(RME_SVC_CAPTBL_FRZ, Cap_Captbl_Frz,
+        return RVM_CAP_OP(RVM_SVC_CAPTBL_FRZ, Cap_Captbl_Frz,
                           Cap_Frz,
                           0,
                           0);
@@ -296,7 +296,7 @@ Return      : rvm_ret_t - If the mapping is successful, it will return 0; else e
 rvm_ret_t RVM_Captbl_Add(rvm_cid_t Cap_Captbl_Dst, rvm_cid_t Cap_Dst, 
                          rvm_cid_t Cap_Captbl_Src, rvm_cid_t Cap_Src, rvm_ptr_t Flags)
 {
-    return RVM_CAP_OP(RME_SVC_CAPTBL_ADD, 0,
+    return RVM_CAP_OP(RVM_SVC_CAPTBL_ADD, 0,
                       RVM_PARAM_D1(Cap_Captbl_Dst)|RVM_PARAM_D0(Cap_Dst),
                       RVM_PARAM_D1(Cap_Captbl_Src)|RVM_PARAM_D0(Cap_Src),Flags);
 }
@@ -323,7 +323,7 @@ rvm_ret_t RVM_Captbl_Pgtbl(rvm_cid_t Cap_Captbl_Dst, rvm_cid_t Cap_Dst,
                            rvm_cid_t Cap_Captbl_Src, rvm_cid_t Cap_Src,
                            rvm_ptr_t Start, rvm_ptr_t End, rvm_ptr_t Flags)
 {
-    return RVM_CAP_OP(RME_SVC_CAPTBL_ADD, 0,
+    return RVM_CAP_OP(RVM_SVC_CAPTBL_ADD, 0,
                       RVM_PARAM_D1(Cap_Captbl_Dst)|RVM_PARAM_D0(Cap_Dst),
                       RVM_PARAM_D1(Cap_Captbl_Src)|RVM_PARAM_D0(Cap_Src),
                       RVM_PGTBL_FLAG(End,Start,Flags));
@@ -350,7 +350,7 @@ rvm_ret_t RVM_Captbl_Kern(rvm_cid_t Cap_Captbl_Dst, rvm_cid_t Cap_Dst,
                           rvm_cid_t Cap_Captbl_Src, rvm_cid_t Cap_Src,
                           rvm_ptr_t Start, rvm_ptr_t End)
 {
-    return RVM_CAP_OP(RME_SVC_CAPTBL_ADD, 0,
+    return RVM_CAP_OP(RVM_SVC_CAPTBL_ADD, 0,
                       RVM_PARAM_D1(Cap_Captbl_Dst)|RVM_PARAM_D0(Cap_Dst),
                       RVM_PARAM_D1(Cap_Captbl_Src)|RVM_PARAM_D0(Cap_Src),
                       RVM_KERN_FLAG(End,Start));
@@ -378,7 +378,7 @@ rvm_ret_t RVM_Captbl_Kmem(rvm_cid_t Cap_Captbl_Dst, rvm_cid_t Cap_Dst,
                           rvm_cid_t Cap_Captbl_Src, rvm_cid_t Cap_Src,
                           rvm_ptr_t Start, rvm_ptr_t End, rvm_ptr_t Flags)
 {
-    return RVM_CAP_OP(RVM_KMEM_SVC(End,RME_SVC_CAPTBL_ADD), RVM_KMEM_CAPID(Start,Flags),
+    return RVM_CAP_OP(RVM_KMEM_SVC(End,RVM_SVC_CAPTBL_ADD), RVM_KMEM_CAPID(Start,Flags),
                       RVM_PARAM_D1(Cap_Captbl_Dst)|RVM_PARAM_D0(Cap_Dst),
                       RVM_PARAM_D1(Cap_Captbl_Src)|RVM_PARAM_D0(Cap_Src),
                       RVM_KMEM_FLAG(End,Start));
@@ -396,7 +396,7 @@ Return      : rvm_ret_t - If the mapping is successful, it will return 0; else e
 ******************************************************************************/
 rvm_ret_t RVM_Captbl_Rem(rvm_cid_t Cap_Captbl_Rem, rvm_cid_t Cap_Rem)
 {
-    return RVM_CAP_OP(RME_SVC_CAPTBL_REM, Cap_Captbl_Rem,
+    return RVM_CAP_OP(RVM_SVC_CAPTBL_REM, Cap_Captbl_Rem,
                       Cap_Rem,
                       0,
                       0);
@@ -409,7 +409,7 @@ Input       : rvm_cid_t Cap_Kern - The capability to the kernel capability. 2-Le
               rvm_ptr_t Func_ID - The function ID to invoke.
               rvm_ptr_t Sub_ID - The subfunction ID to invoke.
               rvm_ptr_t Param1 - The first parameter.
-              rvm_ptr_t Param2 - The second parameter
+              rvm_ptr_t Param2 - The second parameter.
 Output      : None.
 Return      : rvm_ret_t - If the call is successful, it will return whatever the 
                           function returned(It is expected that these functions shall
@@ -420,7 +420,7 @@ Return      : rvm_ret_t - If the call is successful, it will return whatever the
 ******************************************************************************/
 rvm_ret_t RVM_Kern_Act(rvm_cid_t Cap_Kern, rvm_ptr_t Func_ID, rvm_ptr_t Sub_ID, rvm_ptr_t Param1, rvm_ptr_t Param2)
 {
-    return RVM_CAP_OP(RME_SVC_KERN, Cap_Kern,
+    return RVM_CAP_OP(RVM_SVC_KERN, Cap_Kern,
                       RVM_PARAM_D1(Sub_ID)|RVM_PARAM_D0(Func_ID),
                       Param1,
                       Param2);
@@ -439,8 +439,8 @@ Input       : rvm_cid_t Cap_Captbl - The capability table that contains the newl
               rvm_cid_t Cap_Pgtbl - The capability slot that you want this newly created
                                     page table capability to be in. 1-Level.
               rvm_ptr_t Raddr - The relative virtual address to store the page table kernel object.
-              rvm_ptr_t Start_Addr - The virtual address to start mapping for this page table.  
-                                     This address must be aligned to the total size of the table.
+              rvm_ptr_t Base_Addr - The virtual address to start mapping for this page table.  
+                                    This address must be aligned to the total size of the table.
               rvm_ptr_t Top_Flag - Whether this page table is the top-level. If it is, we will
                                    map all the kernel page directories into this one.
               rvm_ptr_t Size_Order - The size order of the page table. The size refers to
@@ -450,14 +450,14 @@ Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 rvm_ret_t RVM_Pgtbl_Crt(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Kmem, rvm_cid_t Cap_Pgtbl, 
-                        rvm_ptr_t Raddr, rvm_ptr_t Start_Addr, rvm_ptr_t Top_Flag,
+                        rvm_ptr_t Raddr, rvm_ptr_t Base_Addr, rvm_ptr_t Top_Flag,
                         rvm_ptr_t Size_Order, rvm_ptr_t Num_Order)
 {
     
-    return RVM_CAP_OP(RVM_PGTBL_SVC(Num_Order,RME_SVC_PGTBL_CRT), Cap_Captbl,
+    return RVM_CAP_OP(RVM_PGTBL_SVC(Num_Order,RVM_SVC_PGTBL_CRT), Cap_Captbl,
                       RVM_PARAM_D1(Cap_Kmem)|RVM_PARAM_Q1(Cap_Pgtbl)|RVM_PARAM_Q0(Size_Order),
                       Raddr, 
-                      Start_Addr|Top_Flag);
+                      Base_Addr|Top_Flag);
 }
 /* End Function:RVM_Pgtbl_Crt ************************************************/
 
@@ -475,7 +475,7 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 rvm_ret_t RVM_Pgtbl_Del(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Pgtbl)
 {
-    return RVM_CAP_OP(RME_SVC_PGTBL_DEL, Cap_Captbl,
+    return RVM_CAP_OP(RVM_SVC_PGTBL_DEL, Cap_Captbl,
                       Cap_Pgtbl,
                       0,
                       0);
@@ -504,10 +504,10 @@ Return      : rvm_ret_t - If the unmapping is successful, it will return 0; else
 rvm_ret_t RVM_Pgtbl_Add(rvm_cid_t Cap_Pgtbl_Dst, rvm_ptr_t Pos_Dst, rvm_ptr_t Flags_Dst,
                         rvm_cid_t Cap_Pgtbl_Src, rvm_ptr_t Pos_Src, rvm_ptr_t Index)
 {
-    return RVM_CAP_OP(RME_SVC_PGTBL_ADD, 0,
+    return RVM_CAP_OP(RVM_SVC_PGTBL_ADD, RVM_PARAM_D0(Flags_Dst),
                       RVM_PARAM_D1(Cap_Pgtbl_Dst)|RVM_PARAM_D0(Pos_Dst),
                       RVM_PARAM_D1(Cap_Pgtbl_Src)|RVM_PARAM_D0(Pos_Src),
-                      RVM_PARAM_D1(Flags_Dst)|RVM_PARAM_D0(Index));
+                      Index);
 }
 /* End Function:RVM_Pgtbl_Add ************************************************/
 
@@ -520,7 +520,7 @@ Return      : rvm_ret_t - If the unmapping is successful, it will return 0; else
 ******************************************************************************/
 rvm_ret_t RVM_Pgtbl_Rem(rvm_cid_t Cap_Pgtbl, rvm_ptr_t Pos)
 {
-    return RVM_CAP_OP(RME_SVC_PGTBL_REM, 0,
+    return RVM_CAP_OP(RVM_SVC_PGTBL_REM, 0,
                       Cap_Pgtbl,
                       Pos,
                       0);
@@ -539,7 +539,7 @@ Return      : rvm_ret_t - If the mapping is successful, it will return 0; else e
 ******************************************************************************/
 rvm_ret_t RVM_Pgtbl_Con(rvm_cid_t Cap_Pgtbl_Parent, rvm_ptr_t Pos, rvm_cid_t Cap_Pgtbl_Child, rvm_ptr_t Flags_Child)
 {
-    return RVM_CAP_OP(RME_SVC_PGTBL_CON, 0,
+    return RVM_CAP_OP(RVM_SVC_PGTBL_CON, 0,
                       RVM_PARAM_D1(Cap_Pgtbl_Parent)|RVM_PARAM_D0(Cap_Pgtbl_Child),
                       Pos,
                       Flags_Child);
@@ -557,7 +557,7 @@ Return      : rvm_ret_t - If the mapping is successful, it will return 0; else e
 ******************************************************************************/
 rvm_ret_t RVM_Pgtbl_Des(rvm_cid_t Cap_Pgtbl, rvm_ptr_t Pos)
 {
-    return RVM_CAP_OP(RME_SVC_PGTBL_DES, 0,
+    return RVM_CAP_OP(RVM_SVC_PGTBL_DES, 0,
                       Cap_Pgtbl,
                       Pos,
                       0);
@@ -583,7 +583,7 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 rvm_ret_t RVM_Proc_Crt(rvm_cid_t Cap_Captbl_Crt, rvm_cid_t Cap_Kmem, rvm_cid_t Cap_Proc,
                        rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Pgtbl, rvm_ptr_t Raddr)
 {
-    return RVM_CAP_OP(RME_SVC_PROC_CRT, Cap_Captbl_Crt,
+    return RVM_CAP_OP(RVM_SVC_PROC_CRT, Cap_Captbl_Crt,
                       RVM_PARAM_D1(Cap_Kmem)|RVM_PARAM_D0(Cap_Proc),
                       RVM_PARAM_D1(Cap_Captbl)|RVM_PARAM_D0(Cap_Pgtbl),
                       Raddr);
@@ -599,7 +599,7 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 rvm_ret_t RVM_Proc_Del(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Proc)
 {
-    return RVM_CAP_OP(RME_SVC_PROC_DEL, Cap_Captbl,
+    return RVM_CAP_OP(RVM_SVC_PROC_DEL, Cap_Captbl,
                       Cap_Proc,
                       0,
                       0);
@@ -617,7 +617,7 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 rvm_ret_t RVM_Proc_Cpt(rvm_cid_t Cap_Proc, rvm_cid_t Cap_Captbl)
 {
-    return RVM_CAP_OP(RME_SVC_PROC_CPT, 0,
+    return RVM_CAP_OP(RVM_SVC_PROC_CPT, 0,
                       Cap_Proc,
                       Cap_Captbl,
                       0);
@@ -635,7 +635,7 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 rvm_ret_t RVM_Proc_Pgt(rvm_cid_t Cap_Proc, rvm_cid_t Cap_Pgtbl)
 {
-    return RVM_CAP_OP(RME_SVC_PROC_PGT, 0,
+    return RVM_CAP_OP(RVM_SVC_PROC_PGT, 0,
                       Cap_Proc,
                       Cap_Pgtbl,
                       0);
@@ -658,7 +658,7 @@ Return      : rvm_ret_t - If successful, the Thread ID; or an error code.
 rvm_ret_t RVM_Thd_Crt(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Kmem, rvm_cid_t Cap_Thd,
                   rvm_cid_t Cap_Proc, rvm_ptr_t Max_Prio, rvm_ptr_t Raddr)
 {
-    return RVM_CAP_OP(RME_SVC_THD_CRT, Cap_Captbl, 
+    return RVM_CAP_OP(RVM_SVC_THD_CRT, Cap_Captbl, 
                       RVM_PARAM_D1(Cap_Kmem)|RVM_PARAM_D0(Cap_Thd),
                       RVM_PARAM_D1(Cap_Proc)|RVM_PARAM_D0(Max_Prio),
                       Raddr);
@@ -674,7 +674,7 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 rvm_ret_t RVM_Thd_Del(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Thd)
 {
-    return RVM_CAP_OP(RME_SVC_THD_DEL, Cap_Captbl,
+    return RVM_CAP_OP(RVM_SVC_THD_DEL, Cap_Captbl,
                       Cap_Thd,
                       0,
                       0);
@@ -693,7 +693,7 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 rvm_ret_t RVM_Thd_Exec_Set(rvm_cid_t Cap_Thd, rvm_ptr_t Entry, rvm_ptr_t Stack, rvm_ptr_t Param)
 {
-    return RVM_CAP_OP(RME_SVC_THD_EXEC_SET, Cap_Thd,
+    return RVM_CAP_OP(RVM_SVC_THD_EXEC_SET, Cap_Thd,
                       Entry, 
                       Stack,
                       Param);
@@ -711,7 +711,7 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 rvm_ret_t RVM_Thd_Hyp_Set(rvm_cid_t Cap_Thd, rvm_ptr_t Kaddr)
 {
-    return RVM_CAP_OP(RME_SVC_THD_HYP_SET, 0,
+    return RVM_CAP_OP(RVM_SVC_THD_HYP_SET, 0,
                       Cap_Thd,
                       Kaddr,
                       0);
@@ -745,32 +745,12 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 rvm_ret_t RVM_Thd_Sched_Bind(rvm_cid_t Cap_Thd, rvm_cid_t Cap_Thd_Sched, rvm_cid_t Cap_Sig, rvm_tid_t TID, rvm_ptr_t Prio)
 {
-    return RVM_CAP_OP(RME_SVC_THD_SCHED_BIND, Cap_Thd,
+    return RVM_CAP_OP(RVM_SVC_THD_SCHED_BIND, Cap_Thd,
                       RVM_PARAM_D1(Cap_Thd_Sched)|RVM_PARAM_D0(Cap_Sig),
                       TID, 
                       Prio);
 }
 /* End Function:RVM_Thd_Sched_Bind *******************************************/
-
-/* Begin Function:RVM_Thd_Sched_Rcv *******************************************
-Description : Try to receive a notification from the scheduler queue. This
-              can only be called from the same core the thread is on.
-Input       : rvm_cid_t Cap_Thd - The capability to the scheduler thread. We are going
-                                  to get timeout notifications for the threads that
-                                  it is responsible for scheduling. This capability must
-                                  point to the calling thread itself, or the receiving
-                                  is simply not allowed. 2-Level.
-Output      : None.
-Return      : rvm_ret_t - If successful, the thread ID; or an error code.
-******************************************************************************/
-rvm_ret_t RVM_Thd_Sched_Rcv(rvm_cid_t Cap_Thd)
-{
-    return RVM_CAP_OP(RME_SVC_THD_SCHED_RCV, 0,
-                      Cap_Thd,
-                      0, 
-                      0);
-}
-/* End Function:RVM_Thd_Sched_Rcv ********************************************/
 
 /* Begin Function:RVM_Thd_Sched_Prio ******************************************
 Description : Change a thread's priority level. This can only be called from the
@@ -784,7 +764,7 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 rvm_ret_t RVM_Thd_Sched_Prio(rvm_cid_t Cap_Thd, rvm_ptr_t Prio)
 {
-    return RVM_CAP_OP(RME_SVC_THD_SCHED_PRIO, 0,
+    return RVM_CAP_OP(RVM_SVC_THD_SCHED_PRIO, 0,
                       Cap_Thd,
                       Prio, 
                       0);
@@ -801,7 +781,7 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 rvm_ret_t RVM_Thd_Sched_Free(rvm_cid_t Cap_Thd)
 {
-    return RVM_CAP_OP(RME_SVC_THD_SCHED_FREE, 0,
+    return RVM_CAP_OP(RVM_SVC_THD_SCHED_FREE, 0,
                       Cap_Thd,
                       0, 
                       0);
@@ -830,7 +810,7 @@ Return      : rvm_ret_t - If successful, the destination time amount; or an erro
 ******************************************************************************/
 rvm_ret_t RVM_Thd_Time_Xfer(rvm_cid_t Cap_Thd_Dst, rvm_cid_t Cap_Thd_Src, rvm_ptr_t Time)
 {
-    return RVM_CAP_OP(RME_SVC_THD_TIME_XFER, 0,
+    return RVM_CAP_OP(RVM_SVC_THD_TIME_XFER, 0,
                       Cap_Thd_Dst,
                       Cap_Thd_Src, 
                       Time);
@@ -842,7 +822,7 @@ Description : Switch to another thread. The thread to switch to must have the sa
               preemptive priority as this thread, and have time, and not blocked.
               If trying to switch to a higher priority thread, this is impossible
               because whenever a thread with higher priority exists in the system,
-              the kernel wiull let it preempt the current thread. 
+              the kernel will let it preempt the current thread. 
               If trying to switch to a lower priority thread, this is impossible
               because the current thread just preempts it after the thread switch.
 Input       : rvm_cid_t Cap_Thd - The capability to the thread. 2-Level. If this is
@@ -856,7 +836,7 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 rvm_ret_t RVM_Thd_Swt(rvm_cid_t Cap_Thd, rvm_ptr_t Full_Yield)
 {
-    return RVM_CAP_OP(RME_SVC_THD_SWT, 0,
+    return RVM_CAP_OP(RVM_SVC_THD_SWT, 0,
                       Cap_Thd,
                       Full_Yield, 
                       0);
@@ -877,7 +857,7 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 rvm_ret_t RVM_Sig_Crt(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Kmem, rvm_cid_t Cap_Sig, rvm_ptr_t Raddr)
 {
-    return RVM_CAP_OP(RME_SVC_SIG_CRT, Cap_Captbl,
+    return RVM_CAP_OP(RVM_SVC_SIG_CRT, Cap_Captbl,
                       Cap_Kmem,
                       Cap_Sig, 
                       Raddr);
@@ -894,7 +874,7 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 rvm_ret_t RVM_Sig_Del(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Sig)
 {
-    return RVM_CAP_OP(RME_SVC_SIG_DEL, Cap_Captbl,
+    return RVM_CAP_OP(RVM_SVC_SIG_DEL, Cap_Captbl,
                       Cap_Sig,
                       0, 
                       0);
@@ -910,7 +890,7 @@ Return      : rvm_ret_t - If successful, 0, or an error code.
 ******************************************************************************/
 rvm_ret_t RVM_Sig_Snd(rvm_cid_t Cap_Sig)
 {
-    return RVM_CAP_OP(RME_SVC_SIG_SND, 0,
+    return RVM_CAP_OP(RVM_SVC_SIG_SND, 0,
                       Cap_Sig,
                       0, 
                       0);
@@ -934,7 +914,7 @@ Return      : rvm_ret_t - If successful, a non-negative number containing the nu
 ******************************************************************************/
 rvm_ret_t RVM_Sig_Rcv(rvm_cid_t Cap_Sig, rvm_ptr_t Option)
 {
-    return RVM_CAP_OP(RME_SVC_SIG_RCV, 0,
+    return RVM_CAP_OP(RVM_SVC_SIG_RCV, 0,
                       Cap_Sig,
                       Option, 
                       0);
@@ -956,7 +936,7 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 rvm_ret_t RVM_Inv_Crt(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Kmem, 
                       rvm_cid_t Cap_Inv, rvm_cid_t Cap_Proc, rvm_ptr_t Raddr)
 {
-    return RVM_CAP_OP(RME_SVC_INV_CRT, Cap_Captbl,
+    return RVM_CAP_OP(RVM_SVC_INV_CRT, Cap_Captbl,
                       RVM_PARAM_D1(Cap_Kmem)|RVM_PARAM_D0(Cap_Inv),
                       Cap_Proc, 
                       Raddr);
@@ -973,7 +953,7 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 rvm_ret_t RVM_Inv_Del(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Inv)
 {
-    return RVM_CAP_OP(RME_SVC_INV_DEL, Cap_Captbl,
+    return RVM_CAP_OP(RVM_SVC_INV_DEL, Cap_Captbl,
                       Cap_Inv,
                       0, 
                       0);
@@ -994,7 +974,7 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 rvm_ret_t RVM_Inv_Set(rvm_cid_t Cap_Inv, rvm_ptr_t Entry, rvm_ptr_t Stack, rvm_ptr_t Fault_Ret_Flag)
 {
-    return RVM_CAP_OP(RME_SVC_INV_SET, 0,
+    return RVM_CAP_OP(RVM_SVC_INV_SET, 0,
                       RVM_PARAM_D1(Fault_Ret_Flag)|RVM_PARAM_D0(Cap_Inv),
                       Entry, 
                       Stack);

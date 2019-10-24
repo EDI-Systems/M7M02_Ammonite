@@ -8,79 +8,67 @@ Description: The configuration file for STM32F767IG. The values listed here shou
 ******************************************************************************/
 
 /* Defines *******************************************************************/
-/* The HAL library */
-#include "stm32f7xx.h"
-#include "core_cm7.h"
+/* The generator must be enabled to use this */
 /* Kernel configurations - keep the same with the kernel *********************/
 /* The virtual memory start address for the kernel objects */
-#define RVM_KMEM_VA_START            0x20003000
+#define RVM_KMEM_VA_START                               (0x20003000)
 /* The size of the kernel object virtual memory */
-#define RVM_KMEM_SIZE                0xD000
+#define RVM_KMEM_SIZE                                   (0xD000)
 /* The granularity of kernel memory allocation, order of 2 in bytes */
-#define RVM_KMEM_SLOT_ORDER          4
+#define RVM_KMEM_SLOT_ORDER                             (4)
 /* The maximum number of preemption priority levels in the system.
  * This parameter must be divisible by the word length - 32 is usually sufficient */
-#define RVM_MAX_PREEMPT_PRIO         32
+#define RVM_MAX_PREEMPT_PRIO                            (32)
+/* Number of virtual priorities in the system */
+#define RVM_MAX_PREEMPT_VPRIO                           (32)
+/* Number of events */
+#define RVM_EVT_NUM                                     (10)
+/* Number of mappings */
+#define RVM_MAP_NUM                                     (128)
 
-/* Initial kernel object frontier limit */
-#define RVM_A7M_KMEM_BOOT_FRONTIER   0x400
+/* Initial kernel object capability limit */
+#define RVM_A7M_CAP_BOOT_FRONTIER                       (9)
+/* Initial kernel object memory limit */
+#define RVM_A7M_KMEM_BOOT_FRONTIER                      (0x400)
 /* Number of MPU regions available */
-#define RVM_A7M_MPU_REGIONS          8
+#define RVM_A7M_MPU_REGIONS                             (8)
 /* Init process's first thread's entry point address */
-#define RVM_A7M_INIT_ENTRY           (0x08004000|0x01)
+#define RVM_A7M_INIT_ENTRY                              (0x08004000|0x01)
 /* Init process's first thread's stack address */
-#define RVM_A7M_INIT_STACK           0x2001FFF0
+#define RVM_A7M_INIT_STACK                              (0x2001FFF0)
 /* What is the FPU type? */
-#define RVM_A7M_FPU_TYPE             RVM_A7M_FPV5_DP
+#define RVM_A7M_FPU_TYPE                                (RVM_A7M_FPV5_DP)
+/* Interrupt flag address */
+#define RVM_A7M_VECT_FLAG_ADDR                          (0x2000FC00)
+/* Shared interrupt flag region address - always 512B memory for ARMv7-M */
+#define RVM_A7M_EVT_FLAG_ADDR                           (0x2000FE00)
 /* Syslib configurations *****************************************************/
-/* The priority levels (assuming that the kernel have 32 levels):
- * 31      : Guard daemon - fixed
- * 30 - 5  : Handler threads
- * 4       : Timer daemon (adjustable from 29 to 4)
- *           Virtual machine monitor daemon
- *           Interrupt daemon
- * 3       : Active virtual machine - interrupt thread
- * 2       : Active virtual machine - user thread
- * 1       : Init daemon
- * 0       : Inactive virtual machine
- */
-#define RVM_VMD_PRIO                 4
-/* The user image header starting position */
-#define RVM_IMAGE_HEADER_START       0x08020000
-
-/* The stack size of the guard daemon process, in bytes */
-#define RVM_GUARD_STACK_SIZE         2048
-/* The stack size of the timer daemon process, in bytes */
-#define RVM_TIMD_STACK_SIZE          2048
-/* The stack size of the virtual machine monitor daemon process, in bytes */
-#define RVM_VMMD_STACK_SIZE          2048
-/* The stack size of the interrupt daemon process, in bytes */
-#define RVM_INTD_STACK_SIZE          2048
-
-/* Config settings - modifications not needed for most cases */
-/* How many VMs are allowed? */
-#define RVM_MAX_VM_NUM               16
-/* How many different virtual machine priorities are allowed? */
-#define RVM_MAX_PREEMPT_VPRIO        32
-
-/* Shared interrupt flag region address - this will only appear on MPU-based systems */
-#define RVM_INT_FLAG_ADDR            0x20010000
-/* How many interrupts are there in the hardware */
-#define RVM_INT_VECT_NUM             110
-/* The maximum of interrupt mappings in the system */
-#define RVM_INT_MAP_NUM              1024
-/* The maximum number of event mappings in the system */
-#define RVM_EVT_MAP_NUM              1024
-
-/* Maximum time allowed to set as period */
-#define RVM_MAX_PERIOD               10000
-/* Minimum time allowed to set as period */
-#define RVM_MIN_PERIOD               1
-/* The default value for timer interrupt frequency for a VM */
-#define RVM_DEF_PERIOD               1
+/* Stack redundancy */
+#define RVM_STACK_SAFE_RDCY                             (0x10)
+/* Daemon process stack address and size, in bytes */
+#define RVM_SFTD_STACK_BASE                             (0x20000000)
+#define RVM_SFTD_STACK_SIZE                             (1024)
+#define RVM_TIMD_STACK_BASE                             (0x20000000)
+#define RVM_TIMD_STACK_SIZE                             (1024)
+#define RVM_VMMD_STACK_BASE                             (0x20000000)
+#define RVM_VMMD_STACK_SIZE                             (1024)
+#define RVM_VCTD_STACK_BASE                             (0x20000000)
+#define RVM_VCTD_STACK_SIZE                             (1024)
 
 /* Is debugging output enabled? */
-#define RVM_DEBUG_LOG                RVM_TRUE
+#define RVM_DEBUG_LOG                                   RVM_TRUE
+
+#define RVM_A7M_USART1_TDR                              RVM_A7M_REG(0x40011000+0x28)
+#define RVM_A7M_USART1_ISR                              RVM_A7M_REG(0x40011000+0x1C)
+
+/* Print characters to console */
+#define RVM_A7M_PUTCHAR(CHAR) \
+do \
+{ \
+    RVM_A7M_USART1_TDR=(CHAR); \
+    while((RVM_A7M_USART1_ISR&0x40)==0); \
+} \
+while(0)
 /* End Defines ***************************************************************/
 
 /* End Of File ***************************************************************/

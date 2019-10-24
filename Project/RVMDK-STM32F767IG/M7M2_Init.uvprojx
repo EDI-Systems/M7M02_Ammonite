@@ -16,8 +16,8 @@
         <TargetCommonOption>
           <Device>STM32F767IGTx</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32F7xx_DFP.2.11.0</PackID>
-          <PackURL>http://www.keil.com/pack</PackURL>
+          <PackID>Keil.STM32F7xx_DFP.2.12.0</PackID>
+          <PackURL>https://www.keil.com/pack/</PackURL>
           <Cpu>IRAM(0x20020000,0x60000) IRAM2(0x20000000,0x20000) IROM(0x08000000,0x100000) IROM2(0x00200000,0x100000) CPUTYPE("Cortex-M7") FPU3(DFPU) CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
           <StartupFile></StartupFile>
@@ -89,7 +89,7 @@
             <nStopA1X>0</nStopA1X>
             <nStopA2X>0</nStopA2X>
           </AfterMake>
-          <SelectedForBatchBuild>0</SelectedForBatchBuild>
+          <SelectedForBatchBuild>1</SelectedForBatchBuild>
           <SVCSIdString></SVCSIdString>
         </TargetCommonOption>
         <CommonProperty>
@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\MAmmonite\Include;..\..\..\M7M1_MuEukaron\MEukaron\Include;..\..\..\M0P0_Library\STM32Cube_FW_F7_V1.11.0\Drivers\CMSIS\Include;..\..\..\M0P0_Library\STM32Cube_FW_F7_V1.11.0\Drivers\STM32F7xx_HAL_Driver\Inc;..\..\..\M0P0_Library\STM32Cube_FW_F7_V1.11.0\Drivers\CMSIS\Device\ST\STM32F7xx\Include</IncludePath>
+              <IncludePath>..\..\MAmmonite\Include</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>

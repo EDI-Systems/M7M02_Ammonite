@@ -94,6 +94,7 @@ do \
     } \
 } \
 while(0)
+
 /* Word size settings */
 #define RVM_WORD_SIZE                       (((rvm_ptr_t)1)<<RVM_WORD_ORDER)
 #define RVM_WORD_MASK                       (~(((rvm_ptr_t)(-1))<<(RVM_WORD_ORDER-1)))
@@ -111,7 +112,7 @@ while(0)
 #define RVM_POW2(POW)                       (((rvm_ptr_t)1)<<(POW))
 
 /* System service stub */
-#define RVM_CAP_OP(OP,CAPID,ARG1,ARG2,ARG3) RVM_Svc(((OP)<<(sizeof(rvm_ptr_t)*4)|(CAPID)),ARG1,ARG2,ARG3)
+#define RVM_CAP_OP(OP,CAPID,ARG1,ARG2,ARG3) RVM_Svc(((OP)<<(sizeof(rvm_ptr_t)*4))|(CAPID),ARG1,ARG2,ARG3)
 #define RVM_PARAM_D_MASK                    ((RVM_ALLBITS)>>(sizeof(rvm_ptr_t)*4))
 #define RVM_PARAM_Q_MASK                    ((RVM_ALLBITS)>>(sizeof(rvm_ptr_t)*6))
 #define RVM_PARAM_O_MASK                    ((RVM_ALLBITS)>>(sizeof(rvm_ptr_t)*7))
@@ -169,7 +170,7 @@ while(0)
 /* Process */
 #define RVM_PROC_WORD_SIZE                   3
 /* Thread */
-#define RVM_THD_WORD_SIZE                    46
+#define RVM_THD_WORD_SIZE                    47
 /* Signal */
 #define RVM_SIG_WORD_SIZE                    3
 /* Invocation */
@@ -191,6 +192,9 @@ while(0)
 #define RVM_SIG_SIZE                         RVM_ROUNDED(RVM_SIG_WORD_SIZE)
 /* Invocation */
 #define RVM_INV_SIZE                         RVM_ROUNDED(RVM_INV_WORD_SIZE)
+
+/* Round the kernel object size to the entry slot size */
+#define RVM_KOTBL_ROUND(X)                   RVM_ROUND_UP(X,RVM_KMEM_SLOT_ORDER)
 
 /* The TLS masks */ 
 #define RVM_TLS_MASK_128B                    RVM_ROUND_DOWN(RVM_ALLBITS,7)
@@ -220,23 +224,7 @@ while(0)
 /* The initial timer endpoint */
 #define RVM_BOOT_INIT_TIMER                  6
 /* The initial interrupt endpoint */
-#define RVM_BOOT_INIT_INT                    7
-/* This is the capability table containing all the VM process/capability table capabilities */
-#define RVM_VIRT_TBL_CAPPROC                 8
-/* This is the capability table containing all the VM thread/endpoing capabilities */
-#define RVM_VIRT_TBL_THDSIG                  9
-/* This is the capability table for virtual machine page tables */
-#define RVM_VIRT_TBL_PGTBL                   10
-/* These are the capabilities for the guard thread - guard thread does not have an endpoint */
-#define RVM_VMM_GUARD_THD                    11
-#define RVM_VMM_GUARD_SIG                    12
-/* These are the capabilities for the timer thread - timer thread does not have an endpoint */
-#define RVM_VMM_TIMD_THD                     13
-/* These are the capabilities for the real-time daemon */
-#define RVM_VMM_VMMD_THD                     14
-#define RVM_VMM_VMMD_SIG                     15
-/* These are the capabilities for the interrupt daemon */
-#define RVM_VMM_INTD_THD                     16
+#define RVM_BOOT_INIT_VECT                   7
 
 /* Helper capability definitions */
 /* The capability to its capability table */
@@ -349,7 +337,7 @@ __EXTERN__ rvm_ret_t RVM_Captbl_Rem(rvm_cid_t Cap_Captbl_Rem, rvm_cid_t Cap_Rem)
 __EXTERN__ rvm_ret_t RVM_Kern_Act(rvm_cid_t Cap_Kern, rvm_ptr_t Func_ID, rvm_ptr_t Sub_ID, rvm_ptr_t Param1, rvm_ptr_t Param2);
 /* Page table operations */
 __EXTERN__ rvm_ret_t RVM_Pgtbl_Crt(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Kmem, rvm_cid_t Cap_Pgtbl, 
-                                   rvm_ptr_t Raddr, rvm_ptr_t Start_Addr, rvm_ptr_t Top_Flag,
+                                   rvm_ptr_t Raddr, rvm_ptr_t Base_Addr, rvm_ptr_t Top_Flag,
                                    rvm_ptr_t Size_Order, rvm_ptr_t Num_Order);
 __EXTERN__ rvm_ret_t RVM_Pgtbl_Del(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Pgtbl);
 __EXTERN__ rvm_ret_t RVM_Pgtbl_Add(rvm_cid_t Cap_Pgtbl_Dst, rvm_ptr_t Pos_Dst, rvm_ptr_t Flags_Dst,
@@ -371,7 +359,6 @@ __EXTERN__ rvm_ret_t RVM_Thd_Exec_Set(rvm_cid_t Cap_Thd, rvm_ptr_t Entry, rvm_pt
 __EXTERN__ rvm_ret_t RVM_Thd_Hyp_Set(rvm_cid_t Cap_Thd, rvm_ptr_t Kaddr);
 __EXTERN__ rvm_ret_t RVM_Thd_Sched_Bind(rvm_cid_t Cap_Thd, rvm_cid_t Cap_Thd_Sched,
                                         rvm_cid_t Cap_Sig, rvm_tid_t TID, rvm_ptr_t Prio);
-__EXTERN__ rvm_ret_t RVM_Thd_Sched_Rcv(rvm_cid_t Cap_Thd);
 __EXTERN__ rvm_ret_t RVM_Thd_Sched_Prio(rvm_cid_t Cap_Thd, rvm_ptr_t Prio);
 __EXTERN__ rvm_ret_t RVM_Thd_Sched_Free(rvm_cid_t Cap_Thd);
 __EXTERN__ rvm_ret_t RVM_Thd_Time_Xfer(rvm_cid_t Cap_Thd_Dst, rvm_cid_t Cap_Thd_Src, rvm_ptr_t Time);
