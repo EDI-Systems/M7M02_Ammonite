@@ -392,6 +392,78 @@ rvm_ret_t RVM_Hyp_Del_Vect(rvm_ptr_t Vect_Num)
 #endif
 /* End Function:RVM_Hyp_Del_Vect *********************************************/
 
+/* Begin Function:RVM_Hyp_Add_Evt *********************************************
+Description : Add a event source's send capability to virtual machine.
+Input       : rvm_ptr_t Evt_Num - The event souce to register.
+Output      : None.
+Return      : rvm_ret_t - If successful, 0; else an error code.
+******************************************************************************/
+#if(RVM_MAX_PREEMPT_VPRIO!=0)
+rvm_ret_t RVM_Hyp_Add_Evt(rvm_ptr_t Evt_Num)
+{
+    rvm_ptr_t* Slot;
+    rvm_ptr_t Value;
+    
+    /* See if both numbers are overrange */
+    if(Evt_Num>=RVM_EVT_NUM)
+        return RVM_ERR_RANGE;
+
+    /* See if we have locked ourselves down */
+    if((RVM_Cur_Virt->Sched.State&RVM_VM_LOCKVECT)!=0)
+        return RVM_ERR_STATE;
+    
+    /* Is this virtual machine already registered on this? */
+    Slot=&(RVM_Cur_Virt->Evt_Cap[Evt_Num>>RVM_WORD_ORDER]);
+    Value=RVM_POW2(Evt_Num&RVM_MASK_END(RVM_WORD_ORDER-1));
+    
+    /* We have registered, no need to register again */
+    if((Slot[0]&Value)!=0)
+        return RVM_ERR_EVT;
+    
+    /* Register this */
+    Slot[0]|=Value;
+    
+    return 0;
+}
+#endif
+/* End Function:RVM_Hyp_Add_Evt **********************************************/
+
+/* Begin Function:RVM_Hyp_Del_Evt *********************************************
+Description : Delete a event source's send capability from virtual machine.
+Input       : rvm_ptr_t Evt_Num - The event souce to deregister.
+Output      : None.
+Return      : rvm_ret_t - If successful, 0; else an error code.
+******************************************************************************/
+#if(RVM_MAX_PREEMPT_VPRIO!=0)
+rvm_ret_t RVM_Hyp_Del_Evt(rvm_ptr_t Evt_Num)
+{
+    rvm_ptr_t* Slot;
+    rvm_ptr_t Value;
+    
+    /* See if both numbers are overrange */
+    if(Evt_Num>=RVM_EVT_NUM)
+        return RVM_ERR_RANGE;
+
+    /* See if we have locked ourselves down */
+    if((RVM_Cur_Virt->Sched.State&RVM_VM_LOCKVECT)!=0)
+        return RVM_ERR_STATE;
+
+    /* Is this virtual machine already registered on this? */
+    Slot=&(RVM_Cur_Virt->Evt_Cap[Evt_Num>>RVM_WORD_ORDER]);
+    Value=RVM_POW2(Evt_Num&RVM_MASK_END(RVM_WORD_ORDER-1));
+    
+    /* We have deregistered, no need to deregister again */
+    if((Slot[0]&Value)==0)
+        return RVM_ERR_EVT;
+    
+    /* Deregister this */
+    Slot[0]&=~Value;
+    
+    return 0;
+}
+#endif
+/* End Function:RVM_Hyp_Del_Evt **********************************************/
+
 /* Begin Function:RVM_Hyp_Lock_Vect *******************************************
 Description : Lockdown the vector mapping of an virtual machine.
 Input       : rvm_ptr_t Vect_Num - The virtual vector to deregister.
@@ -412,35 +484,6 @@ rvm_ret_t RVM_Hyp_Lock_Vect(void)
 }
 #endif
 /* End Function:RVM_Hyp_Lock_Vect ********************************************/
-
-/* Begin Function:RVM_Hyp_Wait_Vect *******************************************
-Description : Set the virtual machine to sleep until a vector comes in.
-Input       : None.
-Output      : None.
-Return      : rvm_ret_t - If successful, 0; else an error code.
-******************************************************************************/
-#if(RVM_MAX_PREEMPT_VPRIO!=0)
-rvm_ret_t RVM_Hyp_Wait_Vect(void)
-{
-    struct RVM_Virt* Next;
-    
-    /* See if it have interrupt disabled */
-    if((RVM_Cur_Virt->Sched.State&RVM_VM_INTENA)==0)
-        return RVM_ERR_STATE;
-
-    /* Now suspend the virtual machine and switch to somebody else */
-    RVM_VM_STATE_SET(RVM_Cur_Virt->Sched.State,RVM_VM_WAITING);
-    _RVM_Clr_Rdy(RVM_Cur_Virt);
-    
-    /* The next could be zero, which means that there are no VM running now */
-    Next=_RVM_Get_High_Rdy();
-    _RVM_Virt_Switch(RVM_Cur_Virt, Next);
-    RVM_Cur_Virt=Next;
-    
-    return 0;
-}
-#endif
-/* End Function:RVM_Hyp_Wait_Vect ********************************************/
 
 /* Begin Function:_RVM_Send_Virt_Vects ****************************************
 Description : Send to all virtual machine vectors registered on this physical 
@@ -476,7 +519,7 @@ void _RVM_Send_Virt_Vects(struct RVM_List* Array, rvm_ptr_t Num)
         Trav=Trav->Next;
     }
 
-    /* We do not reschedule here because we will reschedule at last */
+    /* We do not reschedule here because we will reschedule when all are sent */
 }
 #endif
 /* End Function:_RVM_Send_Virt_Vects *****************************************/
@@ -489,17 +532,68 @@ Return      : rvm_ret_t - If successful, 0; else an error code.
 ******************************************************************************/
 #if(RVM_MAX_PREEMPT_VPRIO!=0)
 rvm_ret_t RVM_Hyp_Send_Evt(rvm_ptr_t Evt_Num)
-{   
+{
+    rvm_ptr_t* Slot;
+    rvm_ptr_t Value;
+    struct RVM_Virt* Virt;
+    
     /* See if the number is overrange */
     if(Evt_Num>=RVM_EVT_NUM)
         return RVM_ERR_RANGE;
     
+    /* Are we allowed to send to this at all? */
+    Slot=&(RVM_Cur_Virt->Evt_Cap[Evt_Num>>RVM_WORD_ORDER]);
+    Value=RVM_POW2(Evt_Num&RVM_MASK_END(RVM_WORD_ORDER-1));
+    
+    /* We are not allowed to send to this at all */
+    if((Slot[0]&Value)==0)
+        return RVM_ERR_EVT;
+    
+    /* Send to that event */
     _RVM_Send_Virt_Vects(RVM_Evt, Evt_Num);
+    
+    /* Only when we have something of a higher priority do we need to reschedule */
+    Virt=_RVM_Get_High_Rdy();
+    RVM_ASSERT(Virt!=0);
+    if(Virt->Map->Prio>RVM_Cur_Virt->Map->Prio)
+    {
+        _RVM_Virt_Switch(RVM_Cur_Virt, Virt);
+        RVM_Cur_Virt=Virt;
+    }
     
     return 0;
 }
 #endif
 /* End Function:RVM_Hyp_Send_Evt *********************************************/
+
+/* Begin Function:RVM_Hyp_Wait_Vect *******************************************
+Description : Set the virtual machine to sleep until a vector comes in.
+Input       : None.
+Output      : None.
+Return      : rvm_ret_t - If successful, 0; else an error code.
+******************************************************************************/
+#if(RVM_MAX_PREEMPT_VPRIO!=0)
+rvm_ret_t RVM_Hyp_Wait_Vect(void)
+{
+    struct RVM_Virt* Next;
+    
+    /* See if it have interrupt disabled */
+    if((RVM_Cur_Virt->Sched.State&RVM_VM_INTENA)==0)
+        return RVM_ERR_STATE;
+
+    /* Now suspend the virtual machine and switch to somebody else */
+    RVM_VM_STATE_SET(RVM_Cur_Virt->Sched.State,RVM_VM_WAITING);
+    _RVM_Clr_Rdy(RVM_Cur_Virt);
+    
+    /* The next could be zero, which means that there are no VM running now */
+    Next=_RVM_Get_High_Rdy();
+    _RVM_Virt_Switch(RVM_Cur_Virt, Next);
+    RVM_Cur_Virt=Next;
+    
+    return 0;
+}
+#endif
+/* End Function:RVM_Hyp_Wait_Vect ********************************************/
 
 /* Begin Function:RVM_Hyp_Feed_Wdog *******************************************
 Description : Start and feed the watchdog for the current virtual machine.
@@ -578,8 +672,7 @@ void _RVM_Timer_Send(struct RVM_Virt* Virt)
     if((Virt->Sched.State&RVM_VM_INTENA)!=0)
         RVM_ASSERT(RVM_Sig_Snd(Virt->Map->Vect_Sig_Cap)==0);
     
-    /* We do not reschedule here because we will reschedule at the place where all
-     * timer interrupts are sent */
+    /* No reschedule here because we will reschedule when all timer interrupts are sent */
 }
 #endif
 /* End Function:_RVM_Timer_Send **********************************************/
@@ -595,6 +688,7 @@ void _RVM_Recover_Cur_Virt(void)
 {
     struct RVM_Map_Struct* Map;
     rvm_ptr_t Init_Stack_Addr;
+    rvm_ptr_t Vect_Size;
     
     /* Unbind the threads from the core then rebind in case they are still blocked. 
      * This can break the assumption that the vector thread shall run first */
@@ -616,6 +710,13 @@ void _RVM_Recover_Cur_Virt(void)
     /* Delegate infinite time to both threads */
     RVM_ASSERT(RVM_Thd_Time_Xfer(RVM_Cur_Virt->Map->Vect_Thd_Cap, RVM_BOOT_INIT_THD, RVM_THD_INF_TIME)==RVM_THD_INF_TIME);
     RVM_ASSERT(RVM_Thd_Time_Xfer(RVM_Cur_Virt->Map->User_Thd_Cap, RVM_BOOT_INIT_THD, RVM_THD_INF_TIME)==RVM_THD_INF_TIME);
+    
+    /* Clear all its interrupt flags */
+    Vect_Size=sizeof(struct RVM_Vect_Flag)+sizeof(rvm_ptr_t)*((RVM_Cur_Virt->Map->Vect_Num>>RVM_WORD_ORDER)-1);
+    RVM_Clear((void*)(RVM_Cur_Virt->Map->Vctf_Base), Vect_Size);
+    
+    /* Clear all event capabilities */
+    RVM_Clear((void*)(RVM_Cur_Virt->Evt_Cap), RVM_EVTCAP_BITMAP*sizeof(rvm_ptr_t));
 
     /* Set the state to running, interrupt disabled, vector unlocked, and watchdog disabled */
     RVM_Cur_Virt->Sched.State=RVM_VM_RUNNING;
@@ -907,19 +1008,29 @@ void RVM_Vmmd(void)
                 Param[0]=RVM_Hyp_Del_Vect(Param[0] /* rvm_ptr_t Vect_Num */);
                 break;
             }
+            case RVM_HYP_ADDEVT:
+            {
+                Param[0]=RVM_Hyp_Add_Evt(Param[0] /* rvm_ptr_t Evt_Num */);
+                break;
+            }
+            case RVM_HYP_DELEVT:
+            {
+                Param[0]=RVM_Hyp_Del_Evt(Param[0] /* rvm_ptr_t Evt_Num */);
+                break;
+            }
             case RVM_HYP_LOCKVECT:
             {
                 Param[0]=RVM_Hyp_Lock_Vect();
                 break;
             }
-            case RVM_HYP_WAITVECT:
-            {
-                Param[0]=RVM_Hyp_Wait_Vect();
-                break;
-            }
             case RVM_HYP_SENDEVT:
             {
                 Param[0]=RVM_Hyp_Send_Evt(Param[0] /* rvm_ptr_t Evt_Num */);
+                break;
+            }
+            case RVM_HYP_WAITVECT:
+            {
+                Param[0]=RVM_Hyp_Wait_Vect();
                 break;
             }
             case RVM_HYP_FEEDWDOG:
@@ -1036,6 +1147,7 @@ void RVM_Vctd(void)
         
         /* Only when we have something of a higher priority do we need to reschedule */
         Virt=_RVM_Get_High_Rdy();
+        RVM_ASSERT(Virt!=0);
         if(Virt->Map->Prio>RVM_Cur_Virt->Map->Prio)
         {
             _RVM_Virt_Switch(RVM_Cur_Virt, Virt);
@@ -1121,6 +1233,9 @@ void RVM_Virt_Crt(struct RVM_Virt* Virt_DB, struct RVM_Virt_Map* Virt_Map, rvm_p
         Vect_Size=sizeof(struct RVM_Vect_Flag)+sizeof(rvm_ptr_t)*((Virt_Map[Count].Vect_Num>>RVM_WORD_ORDER)-1);
         RVM_Clear((void*)(Virt_Map[Count].Vctf_Base), Vect_Size);
         
+        /* Clean up all event send capabilities for this virtual machine */
+        RVM_Clear((void*)(Virt_DB[Count].Evt_Cap), RVM_EVTCAP_BITMAP*sizeof(rvm_ptr_t));
+
         /* Print log */
         RVM_LOG_S("Vmmd: Created VM ");
         RVM_LOG_S(Virt_Map[Count].Name);

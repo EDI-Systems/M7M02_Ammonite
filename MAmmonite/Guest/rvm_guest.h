@@ -228,7 +228,8 @@ while(0)
 #define RVM_PARAM                                   ((volatile struct RVM_Param_Area*)RVM_VIRT_PARAM_BASE)
 /* Vector space */
 #define RVM_VECT_FLAG                               ((volatile struct RVM_Vect_Flag*)RVM_VIRT_VCTF_BASE)
-#define RVM_VIRT_VCTF_WORDS                         (RVM_ROUND_UP(RVM_VIRT_VECT_NUM,RVM_WORD_ORDER)>>RVM_WORD_ORDER)
+/* Vector bitmap size */
+#define RVM_VIRT_VCTF_BITMAP                        ((RVM_VIRT_VECT_NUM-1)/RVM_WORD_SIZE+1)
 
 /* Virtualization signal endpoints */
 /* Vector signal endpoint */
@@ -245,16 +246,20 @@ while(0)
 #define RVM_HYP_REGPHYS                             (2)
 /* Register a event */
 #define RVM_HYP_REGEVT                              (3)
-/* Delete a event */
+/* Delete a virtual vector mapping */
 #define RVM_HYP_DELVECT                             (4)
-/* Delete a event */
-#define RVM_HYP_LOCKVECT                            (5)
-/* Wait for an virtual vector to come */
-#define RVM_HYP_WAITVECT                            (6)
+/* Add a event source send capability */
+#define RVM_HYP_ADDEVT                              (5)
+/* Delete a event source send capability */
+#define RVM_HYP_DELEVT                              (6)
+/* Lockdown current virtual vector mapping */
+#define RVM_HYP_LOCKVECT                            (7)
 /* Send to an event */
-#define RVM_HYP_SENDEVT                             (7)
+#define RVM_HYP_SENDEVT                             (8)
+/* Wait for an virtual vector to come */
+#define RVM_HYP_WAITVECT                            (9)
 /* Start and feed watchdog */
-#define RVM_HYP_FEEDWDOG                            (8)
+#define RVM_HYP_FEEDWDOG                            (10)
 #endif
 /* End Defines ***************************************************************/
 
@@ -419,8 +424,11 @@ EXTERN void RVM_Hyp_Dis_Int(void);
 EXTERN rvm_ret_t RVM_Hyp_Reg_Phys(rvm_ptr_t Phys_Num, rvm_ptr_t Vect_Num);
 EXTERN rvm_ret_t RVM_Hyp_Reg_Evt(rvm_ptr_t Evt_Num, rvm_ptr_t Vect_Num);
 EXTERN rvm_ret_t RVM_Hyp_Del_Vect(rvm_ptr_t Vect_Num);
-EXTERN rvm_ret_t RVM_Hyp_Wait_Vect(void);
+EXTERN rvm_ret_t RVM_Hyp_Add_Evt(rvm_ptr_t Evt_Num);
+EXTERN rvm_ret_t RVM_Hyp_Del_Evt(rvm_ptr_t Evt_Num);
+EXTERN rvm_ret_t RVM_Hyp_Lock_Vect(void);
 EXTERN rvm_ret_t RVM_Hyp_Send_Evt(rvm_ptr_t Evt_Num);
+EXTERN rvm_ret_t RVM_Hyp_Wait_Vect(void);
 EXTERN rvm_ret_t RVM_Hyp_Feed_Wdog(void);
 
 /* Interrupt processing related - not used in normal processes */

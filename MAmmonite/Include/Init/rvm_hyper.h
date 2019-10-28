@@ -22,14 +22,18 @@ Description : The header of microcontroller user-level library.
 #define RVM_HYP_REGEVT              (3)
 /* Delete a virtual vector mapping */
 #define RVM_HYP_DELVECT             (4)
+/* Add a event source send capability */
+#define RVM_HYP_ADDEVT              (5)
+/* Delete a event source send capability */
+#define RVM_HYP_DELEVT              (6)
 /* Lockdown current virtual vector mapping */
-#define RVM_HYP_LOCKVECT            (5)
-/* Wait for an virtual vector to come */
-#define RVM_HYP_WAITVECT            (6)
+#define RVM_HYP_LOCKVECT            (7)
 /* Send to an event */
-#define RVM_HYP_SENDEVT             (7)
+#define RVM_HYP_SENDEVT             (8)
+/* Wait for an virtual vector to come */
+#define RVM_HYP_WAITVECT            (9)
 /* Start and feed watchdog */
-#define RVM_HYP_FEEDWDOG            (8)
+#define RVM_HYP_FEEDWDOG            (10)
 
 /* Error codes */
 /* The state is wrong */
@@ -49,6 +53,7 @@ Description : The header of microcontroller user-level library.
 
 /* Size of bitmap */
 #define RVM_PRIO_BITMAP             ((RVM_MAX_PREEMPT_VPRIO-1)/RVM_WORD_SIZE+1)
+#define RVM_EVTCAP_BITMAP           ((RVM_EVT_NUM-1)/RVM_WORD_SIZE+1)
 
 /* States of virtual machines */
 #define RVM_VM_STATE(X)             ((X)&0xFF)
@@ -152,6 +157,8 @@ struct RVM_Virt
     struct RVM_List Vect_Head;
     /* ROM database */
     struct RVM_Virt_Map* Map;
+    /* Event source send capability table */
+    rvm_ptr_t Evt_Cap[RVM_EVTCAP_BITMAP];
 };
 
 /* Static virtual machine database */
@@ -254,8 +261,11 @@ static rvm_ret_t RVM_Hyp_Dis_Int(void);
 static rvm_ret_t RVM_Hyp_Reg_Phys(rvm_ptr_t Phys_Num, rvm_ptr_t Vect_Num);
 static rvm_ret_t RVM_Hyp_Reg_Evt(rvm_ptr_t Evt_Num, rvm_ptr_t Vect_Num);
 static rvm_ret_t RVM_Hyp_Del_Vect(rvm_ptr_t Vect_Num);
-static rvm_ret_t RVM_Hyp_Wait_Vect(void);
+static rvm_ret_t RVM_Hyp_Add_Evt(rvm_ptr_t Evt_Num);
+static rvm_ret_t RVM_Hyp_Del_Evt(rvm_ptr_t Evt_Num);
+static rvm_ret_t RVM_Hyp_Lock_Vect(void);
 static rvm_ret_t RVM_Hyp_Send_Evt(rvm_ptr_t Evt_Num);
+static rvm_ret_t RVM_Hyp_Wait_Vect(void);
 static rvm_ret_t RVM_Hyp_Feed_Wdog(void);
 #endif
 /*****************************************************************************/

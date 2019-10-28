@@ -416,7 +416,7 @@ Input       : rvm_cid_t Cap_Kern - The capability to the kernel capability. 2-Le
               rvm_ptr_t Param2 - The second parameter
 Output      : None.
 Return      : rvm_ret_t - If the call is successful, it will return whatever the 
-                          function returned(It is expected that these functions shall
+                          function returned (It is expected that these functions shall
                           never return an negative value); else error code. If the 
                           kernel function ever causes a context switch, it is responsible
                           for setting the return value. On failure, a context switch 
@@ -1008,7 +1008,7 @@ void RVM_Virt_Init(void)
     RVM_Vect_Active=0;
 
     /* Clean up all global variables */
-    RVM_Clear((void*)RVM_VIRT_VCTF_BASE, (RVM_VIRT_VCTF_WORDS+2)*sizeof(rvm_ptr_t));
+    RVM_Clear((void*)RVM_VIRT_VCTF_BASE, (RVM_VIRT_VCTF_BITMAP+2)*sizeof(rvm_ptr_t));
     RVM_Clear(&RVM_Vect, sizeof(struct RVM_Vect_Handler));
 }
 #endif
@@ -1240,6 +1240,34 @@ rvm_ret_t RVM_Hyp_Del_Vect(rvm_ptr_t Vect_Num)
 #endif
 /* End Function:RVM_Hyp_Del_Vect *********************************************/
 
+/* Begin Function:RVM_Hyp_Add_Evt *********************************************
+Description : Add a event source's send capability to virtual machine.
+Input       : rvm_ptr_t Evt_Num - The event souce to register.
+Output      : None.
+Return      : rvm_ret_t - If successful, 0; else an error code.
+******************************************************************************/
+#if(RVM_MAX_PREEMPT_VPRIO!=0)
+rvm_ret_t RVM_Hyp_Add_Evt(rvm_ptr_t Evt_Num)
+{
+    return RVM_Hyp(RVM_HYP_ADDEVT,Evt_Num,0,0,0);
+}
+#endif
+/* End Function:RVM_Hyp_Add_Evt **********************************************/
+
+/* Begin Function:RVM_Hyp_Del_Evt *********************************************
+Description : Delete a event source's send capability from virtual machine.
+Input       : rvm_ptr_t Evt_Num - The event souce to deregister.
+Output      : None.
+Return      : rvm_ret_t - If successful, 0; else an error code.
+******************************************************************************/
+#if(RVM_MAX_PREEMPT_VPRIO!=0)
+rvm_ret_t RVM_Hyp_Del_Evt(rvm_ptr_t Evt_Num)
+{
+    return RVM_Hyp(RVM_HYP_DELEVT,Evt_Num,0,0,0);
+}
+#endif
+/* End Function:RVM_Hyp_Del_Evt **********************************************/
+
 /* Begin Function:RVM_Hyp_Lock_Vect *******************************************
 Description : Lockdown the vector mappings in the virtual machine so that it cannot
               be edited in the future.
@@ -1255,20 +1283,6 @@ rvm_ret_t RVM_Hyp_Lock_Vect(void)
 #endif
 /* End Function:RVM_Hyp_Lock_Vect ********************************************/
 
-/* Begin Function:RVM_Hyp_Wait_Vect *******************************************
-Description : Set the virtual machine to sleep until a vector comes in.
-Input       : None.
-Output      : None.
-Return      : rvm_ret_t - If successful, 0; else an error code.
-******************************************************************************/
-#ifdef RVM_VIRT_VECT_NUM
-rvm_ret_t RVM_Hyp_Wait_Vect(void)
-{
-    return RVM_Hyp(RVM_HYP_WAITVECT,0,0,0,0);
-}
-#endif
-/* End Function:RVM_Hyp_Wait_Vect ********************************************/
-
 /* Begin Function:RVM_Hyp_Send_Evt ********************************************
 Description : Send an event to the event channel.
 Input       : rvm_ptr_t Evt_Num - The event channel ID.
@@ -1282,6 +1296,20 @@ rvm_ret_t RVM_Hyp_Send_Evt(rvm_ptr_t Evt_Num)
 }
 #endif
 /* End Function:RVM_Hyp_Send_Evt *********************************************/
+
+/* Begin Function:RVM_Hyp_Wait_Vect *******************************************
+Description : Set the virtual machine to sleep until a vector comes in.
+Input       : None.
+Output      : None.
+Return      : rvm_ret_t - If successful, 0; else an error code.
+******************************************************************************/
+#ifdef RVM_VIRT_VECT_NUM
+rvm_ret_t RVM_Hyp_Wait_Vect(void)
+{
+    return RVM_Hyp(RVM_HYP_WAITVECT,0,0,0,0);
+}
+#endif
+/* End Function:RVM_Hyp_Wait_Vect ********************************************/
 
 /* Begin Function:RVM_Hyp_Feed_Wdog *******************************************
 Description : Start and feed the watchdog.
@@ -1316,7 +1344,7 @@ rvm_ret_t RVM_Get_Vect(void)
     
     /* See which one is ready, and pick it */
     Pos=-1;
-    for(Count=RVM_VIRT_VCTF_WORDS-1;Count>=0;Count--)
+    for(Count=RVM_VIRT_VCTF_BITMAP-1;Count>=0;Count--)
     {
         if(RVM_VECT_FLAG->Vect[Count]==0)
             continue;
