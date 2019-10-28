@@ -553,18 +553,19 @@ rvm_ret_t RVM_Pgtbl_Con(rvm_cid_t Cap_Pgtbl_Parent, rvm_ptr_t Pos, rvm_cid_t Cap
 /* Begin Function:RVM_Pgtbl_Des ***********************************************
 Description : Unmap a child page table from the parent page table. Basically, we 
               are doing the destruction of a page table.
-Input       : rvm_cid_t Cap_Pgtbl - The capability to the page table. 2-Level.
+Input       : rvm_cid_t Cap_Pgtbl_Parent - The capability to the parent page table. 2-Level.
               rvm_ptr_t Pos - The virtual address to position unmap the child page
-                              table from.
+                              table from. The child page table must be there.
+              rvm_cid_t Cap_Pgtbl_Child - The capability to the child page table. 2-Level.
 Output      : None.
 Return      : rvm_ret_t - If the mapping is successful, it will return 0; else error code.
 ******************************************************************************/
-rvm_ret_t RVM_Pgtbl_Des(rvm_cid_t Cap_Pgtbl, rvm_ptr_t Pos)
+rvm_ret_t RVM_Pgtbl_Des(rvm_cid_t Cap_Pgtbl_Parent, rvm_ptr_t Pos, rvm_cid_t Cap_Pgtbl_Child)
 {
     return RVM_CAP_OP(RVM_SVC_PGTBL_DES, 0,
-                      Cap_Pgtbl,
+                      Cap_Pgtbl_Parent,
                       Pos,
-                      0);
+                      Cap_Pgtbl_Child);
 }
 /* End Function:RVM_Pgtbl_Des ************************************************/
 
@@ -573,24 +574,22 @@ Description : Create a process. A process is in fact a protection domain associa
               with a set of capabilities.
 Input       : rvm_cid_t Cap_Captbl_Crt - The capability to the capability table to put
                                          this process capability in. 2-Level.
-              rvm_cid_t Cap_Kmem - The kernel memory capability. 2-Level.
               rvm_cid_t Cap_Proc - The capability slot that you want this newly created
                                    process capability to be in. 1-Level.
               rvm_cid_t Cap_Captbl - The capability to the capability table to use for
                                      this process. 2-Level.
               rvm_cid_t Cap_Pgtbl - The capability to the page table to use for this process.
                                     2-Level.
-              rvm_ptr_t Raddr - The relative virtual address to store the process kernel object.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-rvm_ret_t RVM_Proc_Crt(rvm_cid_t Cap_Captbl_Crt, rvm_cid_t Cap_Kmem, rvm_cid_t Cap_Proc,
-                       rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Pgtbl, rvm_ptr_t Raddr)
+rvm_ret_t RVM_Proc_Crt(rvm_cid_t Cap_Captbl_Crt, rvm_cid_t Cap_Proc,
+                       rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Pgtbl)
 {
     return RVM_CAP_OP(RVM_SVC_PROC_CRT, Cap_Captbl_Crt,
-                      RVM_PARAM_D1(Cap_Kmem)|RVM_PARAM_D0(Cap_Proc),
-                      RVM_PARAM_D1(Cap_Captbl)|RVM_PARAM_D0(Cap_Pgtbl),
-                      Raddr);
+                      Cap_Proc,
+                      Cap_Captbl,
+                      Cap_Pgtbl);
 }
 /* End Function:RVM_Proc_Crt *************************************************/
 
@@ -851,20 +850,17 @@ rvm_ret_t RVM_Thd_Swt(rvm_cid_t Cap_Thd, rvm_ptr_t Full_Yield)
 Description : Create a signal capability.
 Input       : rvm_cid_t Cap_Captbl - The capability to the capability table to use
                                      for this signal. 2-Level.
-              rvm_cid_t Cap_Kmem - The kernel memory capability. 2-Level.
-              rvm_cid_t Cap_Inv - The capability slot that you want this newly
+              rvm_cid_t Cap_Sig - The capability slot that you want this newly
                                   created signal capability to be in. 1-Level.
-              rvm_ptr_t Raddr - The relative virtual address to store the signal
-                                endpoint kernel object.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-rvm_ret_t RVM_Sig_Crt(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Kmem, rvm_cid_t Cap_Sig, rvm_ptr_t Raddr)
+rvm_ret_t RVM_Sig_Crt(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Sig)
 {
     return RVM_CAP_OP(RVM_SVC_SIG_CRT, Cap_Captbl,
-                      Cap_Kmem,
                       Cap_Sig, 
-                      Raddr);
+                      0,
+                      0);
 }
 /* End Function:RVM_Sig_Crt **************************************************/
 
@@ -1012,7 +1008,7 @@ void RVM_Virt_Init(void)
     RVM_Vect_Active=0;
 
     /* Clean up all global variables */
-    RVM_Clear((void*)RVM_VIRT_VCTF_BASE, RVM_VIRT_VCTF_SIZE);
+    RVM_Clear((void*)RVM_VIRT_VCTF_BASE, (RVM_VIRT_VCTF_WORDS+2)*sizeof(rvm_ptr_t));
     RVM_Clear(&RVM_Vect, sizeof(struct RVM_Vect_Handler));
 }
 #endif
@@ -1030,7 +1026,7 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 rvm_ret_t RVM_Virt_Reg_Vect(rvm_ptr_t Vect_Num, void* Vect)
 {
     if(Vect_Num>=RVM_VIRT_VECT_NUM)
-        return -1;
+        return RVM_ERR_RANGE;
     
     RVM_Vect.Vect[Vect_Num]=Vect;
     return 0;
@@ -1042,13 +1038,12 @@ rvm_ret_t RVM_Virt_Reg_Vect(rvm_ptr_t Vect_Num, void* Vect)
 Description : Register special timer interrupt handler.
 Input       : None
 Output      : None.
-Return      : rvm_ret_t - If successful, 0; or an error code.
+Return      : None.
 ******************************************************************************/
 #ifdef RVM_VIRT_VECT_NUM
-rvm_ret_t RVM_Virt_Reg_Timer(void* Timer)
+void RVM_Virt_Reg_Timer(void* Timer)
 {
     RVM_Vect.Timer=Timer;
-    return 0;
 }
 #endif
 /* End Function:RVM_Virt_Reg_Timer *******************************************/
@@ -1057,13 +1052,12 @@ rvm_ret_t RVM_Virt_Reg_Timer(void* Timer)
 Description : Register special context switch interrupt handler.
 Input       : None
 Output      : None.
-Return      : rvm_ret_t - If successful, 0; or an error code.
+Return      : None.
 ******************************************************************************/
 #ifdef RVM_VIRT_VECT_NUM
-rvm_ret_t RVM_Virt_Reg_Ctxsw(void* Ctxsw)
+void RVM_Virt_Reg_Ctxsw(void* Ctxsw)
 {
     RVM_Vect.Ctxsw=Ctxsw;
-    return 0;
 }
 #endif
 /* End Function:RVM_Virt_Reg_Ctxsw *******************************************/
@@ -1246,6 +1240,21 @@ rvm_ret_t RVM_Hyp_Del_Vect(rvm_ptr_t Vect_Num)
 #endif
 /* End Function:RVM_Hyp_Del_Vect *********************************************/
 
+/* Begin Function:RVM_Hyp_Lock_Vect *******************************************
+Description : Lockdown the vector mappings in the virtual machine so that it cannot
+              be edited in the future.
+Input       : None.
+Output      : None.
+Return      : rvm_ret_t - If successful, 0; else an error code.
+******************************************************************************/
+#ifdef RVM_VIRT_VECT_NUM
+rvm_ret_t RVM_Hyp_Lock_Vect(void)
+{
+    return RVM_Hyp(RVM_HYP_LOCKVECT,0,0,0,0);
+}
+#endif
+/* End Function:RVM_Hyp_Lock_Vect ********************************************/
+
 /* Begin Function:RVM_Hyp_Wait_Vect *******************************************
 Description : Set the virtual machine to sleep until a vector comes in.
 Input       : None.
@@ -1273,6 +1282,20 @@ rvm_ret_t RVM_Hyp_Send_Evt(rvm_ptr_t Evt_Num)
 }
 #endif
 /* End Function:RVM_Hyp_Send_Evt *********************************************/
+
+/* Begin Function:RVM_Hyp_Feed_Wdog *******************************************
+Description : Start and feed the watchdog.
+Input       : None.
+Output      : None.
+Return      : rvm_ret_t - If successful, 0; else an error code.
+******************************************************************************/
+#ifdef RVM_VIRT_VECT_NUM
+rvm_ret_t RVM_Hyp_Feed_Wdog(void)
+{
+    return RVM_Hyp(RVM_HYP_FEEDWDOG,0,0,0,0);
+}
+#endif
+/* End Function:RVM_Hyp_Feed_Wdog ********************************************/
 
 /* Begin Function:RVM_Get_Vect ************************************************
 Description : Get the interrupt number to handle. After returning the vector, clean

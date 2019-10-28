@@ -13,60 +13,68 @@ Description : The header of microcontroller user-level library.
 /*****************************************************************************/
 /* Hypercalls */
 /* Enable interrupts */
-#define RVM_HYP_ENAINT           0
+#define RVM_HYP_ENAINT              (0)
 /* Disable interrupts */
-#define RVM_HYP_DISINT           1
+#define RVM_HYP_DISINT              (1)
 /* Register a physical vector */
-#define RVM_HYP_REGPHYS          2
+#define RVM_HYP_REGPHYS             (2)
 /* Register a event */
-#define RVM_HYP_REGEVT           3
-/* Delete a event */
-#define RVM_HYP_DELVECT          4
+#define RVM_HYP_REGEVT              (3)
+/* Delete a virtual vector mapping */
+#define RVM_HYP_DELVECT             (4)
+/* Lockdown current virtual vector mapping */
+#define RVM_HYP_LOCKVECT            (5)
 /* Wait for an virtual vector to come */
-#define RVM_HYP_WAITVECT         5
+#define RVM_HYP_WAITVECT            (6)
 /* Send to an event */
-#define RVM_HYP_SENDEVT          6
+#define RVM_HYP_SENDEVT             (7)
+/* Start and feed watchdog */
+#define RVM_HYP_FEEDWDOG            (8)
 
 /* Error codes */
 /* The state is wrong */
-#define RVM_ERR_STATE            (-1)
+#define RVM_ERR_STATE               (-1)
 /* The number is overrange */
-#define RVM_ERR_RANGE            (-2)
+#define RVM_ERR_RANGE               (-2)
 /* The error is address related */
-#define RVM_ERR_ADDR             (-3)
+#define RVM_ERR_ADDR                (-3)
 /* The error is physical vector related */
-#define RVM_ERR_PHYS             (-4)
+#define RVM_ERR_PHYS                (-4)
 /* The error is virtual vector related */
-#define RVM_ERR_VIRT             (-5)
+#define RVM_ERR_VIRT                (-5)
 /* The error is event related */
-#define RVM_ERR_EVT              (-6)
+#define RVM_ERR_EVT                 (-6)
 /* The error is mapping block related */
-#define RVM_ERR_MAP              (-7)
+#define RVM_ERR_MAP                 (-7)
 
 /* Size of bitmap */
-#define RVM_PRIO_BITMAP          ((RVM_MAX_PREEMPT_VPRIO-1)/RVM_WORD_SIZE+1)
+#define RVM_PRIO_BITMAP             ((RVM_MAX_PREEMPT_VPRIO-1)/RVM_WORD_SIZE+1)
 
 /* States of virtual machines */
-#define RVM_VM_STATE(X)          ((X)&0xFF)
-#define RVM_VM_FLAG(X)           ((X)&~0xFF)
-#define RVM_VM_STATE_SET(X,S)    ((X)=(RVM_VM_FLAG(X)|(S)))
+#define RVM_VM_STATE(X)             ((X)&0xFF)
+#define RVM_VM_FLAG(X)              ((X)&~0xFF)
+#define RVM_VM_STATE_SET(X,S)       ((X)=(RVM_VM_FLAG(X)|(S)))
 
 /* The virtual machine is running */
-#define RVM_VM_RUNNING           (0)
+#define RVM_VM_RUNNING              (0)
 /* The virtual machine is temporarily suspended and is waiting for an interrupt */
-#define RVM_VM_WAITING           (1)
+#define RVM_VM_WAITING              (1)
 /* The virtual machine have its interrupt enabled */
-#define RVM_VM_INTENA            (1<<(sizeof(rvm_ptr_t)<<2))
+#define RVM_VM_INTENA               (1<<(sizeof(rvm_ptr_t)*4))
 /* The virtual machine have finished its booting */
-#define RVM_VM_BOOTDONE          (RVM_VM_INTENA<<1)
+#define RVM_VM_BOOTDONE             (RVM_VM_INTENA<<1)
+/* The virtual machine have its virtual vector mappings locked down */
+#define RVM_VM_LOCKVECT             (RVM_VM_BOOTDONE<<1)
+/* The watchdog for this virtual machine is enabled */
+#define RVM_VM_WDOGENA              (RVM_VM_LOCKVECT<<1)
     
 /* The timer wheel size */
-#define RVM_WHEEL_SIZE           32
-#define RVM_DST2MAP(X)           ((struct RVM_Map_Struct*)(((rvm_ptr_t)(X))-sizeof(struct RVM_List)))
-#define RVM_DLY2VM(X)            ((struct RVM_Virt*)(((rvm_ptr_t)(X))-sizeof(struct RVM_List)))
-    
+#define RVM_WHEEL_SIZE              (32)
+#define RVM_DST2MAP(X)              ((struct RVM_Map_Struct*)(((rvm_ptr_t)(X))-sizeof(struct RVM_List)))
+#define RVM_DLY2VM(X)               ((struct RVM_Virt*)(((rvm_ptr_t)(X))-sizeof(struct RVM_List)))
+
 /* Virtual machine thread ID identification */
-#define RVM_VIRT_THDID_MARKER   RVM_POW2(16)
+#define RVM_VIRT_THDID_MARKER       RVM_POW2(16)
 /*****************************************************************************/
 /* __RVM_HYPER_H_DEFS__ */
 #endif
@@ -123,10 +131,12 @@ struct RVM_Sched
 {
     /* The state of the virtual machine */
     rvm_ptr_t State;
-    /* The current number of timeslices */
+    /* The current number of timeslices left for context switch */
     rvm_ptr_t Slices_Left;
-    /* The timeout time value */
-    rvm_ptr_t Timeout;
+    /* The current number of timeslices left until watchdog timeout */
+    rvm_ptr_t Watchdog_Left;
+    /* The timer interrupt period timeout time value */
+    rvm_ptr_t Period_Timeout;
 };
 
 /* The virtual machine structure */
@@ -156,6 +166,8 @@ struct RVM_Virt_Map
     rvm_ptr_t Slices;
     /* The timer interrupt period, in hypervisor ticks */
     rvm_ptr_t Period;
+    /* The watchdog timeout time, in hypervisor ticks */
+    rvm_ptr_t Watchdog;
     /* The number of virtual vectors */
     rvm_ptr_t Vect_Num;
 
@@ -232,6 +244,9 @@ static void _RVM_Virt_Switch(struct RVM_Virt* From, struct RVM_Virt* To);
 static rvm_ret_t _RVM_Check_Vect_Pend(struct RVM_Virt* Virt);
 static void _RVM_Set_Vect_Flag(struct RVM_Virt* Virt, rvm_ptr_t Vect_Num);
 static void _RVM_Send_Virt_Vects(struct RVM_List* Array, rvm_ptr_t Num);
+static void _RVM_Wheel_Ins(struct RVM_Virt* Virt, rvm_ptr_t Period);
+static void _RVM_Timer_Send(struct RVM_Virt* Virt);
+static void _RVM_Recover_Cur_Virt(void);
 static rvm_ptr_t _RVM_Flagset_Get(struct RVM_Flag_Set* Set);
 
 static rvm_ret_t RVM_Hyp_Ena_Int(void);
@@ -241,6 +256,7 @@ static rvm_ret_t RVM_Hyp_Reg_Evt(rvm_ptr_t Evt_Num, rvm_ptr_t Vect_Num);
 static rvm_ret_t RVM_Hyp_Del_Vect(rvm_ptr_t Vect_Num);
 static rvm_ret_t RVM_Hyp_Wait_Vect(void);
 static rvm_ret_t RVM_Hyp_Send_Evt(rvm_ptr_t Evt_Num);
+static rvm_ret_t RVM_Hyp_Feed_Wdog(void);
 #endif
 /*****************************************************************************/
 #define __EXTERN__

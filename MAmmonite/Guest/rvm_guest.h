@@ -11,19 +11,19 @@ Description : The header of guest user level low-level library.
 #define __RVM_GUEST__
 /*****************************************************************************/
 /* Generic definitions */
-#define RVM_TRUE                                1
-#define RVM_FALSE                               0
-#define RVM_NULL                                0
-#define RVM_EXIST                               1
-#define RVM_EMPTY                               0
+#define RVM_TRUE                                    (1)
+#define RVM_FALSE                                   (0)
+#define RVM_NULL                                    (0)
+#define RVM_EXIST                                   (1)
+#define RVM_EMPTY                                   (0)
 
 /* Debug string length */
-#define RVM_USER_DEBUG_MAX_STR                  128
+#define RVM_USER_DEBUG_MAX_STR                      (128)
 
 /* Assertion */
-#define RVM_PRINTU_I(INT)                       RVM_Print_Int((INT))
-#define RVM_PRINTU_U(UINT)                      RVM_Print_Uint((UINT))
-#define RVM_PRINTU_S(STR)                       RVM_Print_String((rvm_s8_t*)(STR))
+#define RVM_PRINTU_I(INT)                           RVM_Print_Int((INT))
+#define RVM_PRINTU_U(UINT)                          RVM_Print_Uint((UINT))
+#define RVM_PRINTU_S(STR)                           RVM_Print_String((rvm_s8_t*)(STR))
 
 #define RVM_PRINTU_SIS(STR1,INT,STR2) \
 do \
@@ -55,19 +55,19 @@ do \
 while(0)
     
 #if(RVM_DEBUG_LOG==RVM_TRUE)
-#define RVM_LOG_I(INT)                          RVM_PRINTU_I(INT)
-#define RVM_LOG_U(UINT)                         RVM_PRINTU_U(UINT)
-#define RVM_LOG_S(STR)                          RVM_PRINTU_S(STR)
-#define RVM_LOG_SIS(STR1,INT,STR2)              RVM_PRINTU_SIS(STR1,INT,STR2)
-#define RVM_LOG_SUS(STR1,UINT,STR2)             RVM_PRINTU_SUS(STR1,UINT,STR2)
-#define RVM_LOG_SISUS(STR1,INT,STR2,UINT,STR3)  RVM_PRINTU_SISUS(STR1,INT,STR2,UINT,STR3)
+#define RVM_LOG_I(INT)                              RVM_PRINTU_I(INT)
+#define RVM_LOG_U(UINT)                             RVM_PRINTU_U(UINT)
+#define RVM_LOG_S(STR)                              RVM_PRINTU_S(STR)
+#define RVM_LOG_SIS(STR1,INT,STR2)                  RVM_PRINTU_SIS(STR1,INT,STR2)
+#define RVM_LOG_SUS(STR1,UINT,STR2)                 RVM_PRINTU_SUS(STR1,UINT,STR2)
+#define RVM_LOG_SISUS(STR1,INT,STR2,UINT,STR3)      RVM_PRINTU_SISUS(STR1,INT,STR2,UINT,STR3)
 #else
-#define RVM_LOG_I(INT)                          while(0)
-#define RVM_LOG_U(UINT)                         while(0)
-#define RVM_LOG_S(STR)                          while(0)
-#define RVM_LOG_SIS(STR1,INT,STR2)              while(0)
-#define RVM_LOG_SUS(STR1,UINT,STR2)             while(0)
-#define RVM_LOG_SISUS(STR1,INT,STR2,UINT,STR3)  while(0)
+#define RVM_LOG_I(INT)                              while(0)
+#define RVM_LOG_U(UINT)                             while(0)
+#define RVM_LOG_S(STR)                              while(0)
+#define RVM_LOG_SIS(STR1,INT,STR2)                  while(0)
+#define RVM_LOG_SUS(STR1,UINT,STR2)                 while(0)
+#define RVM_LOG_SISUS(STR1,INT,STR2,UINT,STR3)      while(0)
 #endif
 
 /* Assert macro */
@@ -91,154 +91,170 @@ do \
 while(0)
 
 /* Word size settings */
-#define RVM_WORD_SIZE                           (((rvm_ptr_t)1)<<RVM_WORD_ORDER)
-#define RVM_WORD_MASK                           (~(((rvm_ptr_t)(-1))<<(RVM_WORD_ORDER-1)))
+#define RVM_WORD_SIZE                               RVM_POW2(RVM_WORD_ORDER)
+#define RVM_WORD_MASK                               (~(RVM_ALLBITS<<(RVM_WORD_ORDER-1)))
 /* Bit mask/address operations */
-#define RVM_ALLBITS                             ((rvm_ptr_t)(-1))
+#define RVM_ALLBITS                                 ((rvm_ptr_t)(-1))
 /* Apply this mask to keep START to MSB bits */
-#define RVM_MASK_START(START)                   ((RVM_ALLBITS)<<(START))
+#define RVM_MASK_START(START)                       ((RVM_ALLBITS)<<(START))
 /* Apply this mask to keep LSB to END bits */
-#define RVM_MASK_END(END)                       ((RVM_ALLBITS)>>(RVM_WORD_SIZE-1-(END)))
+#define RVM_MASK_END(END)                           ((RVM_ALLBITS)>>(RVM_WORD_SIZE-1-(END)))
 /* Apply this mask to keep START to END bits, START < END */
-#define RVM_MASK(START,END)                     ((RVM_MASK_START(START))&(RVM_MASK_END(END)))
+#define RVM_MASK(START,END)                         ((RVM_MASK_START(START))&(RVM_MASK_END(END)))
 /* Round the number down & up to a power of 2, or get the power of 2 */
-#define RVM_ROUND_DOWN(NUM,POW)                 ((NUM)&(RVM_MASK_START(POW)))
-#define RVM_ROUND_UP(NUM,POW)                   RVM_ROUND_DOWN((NUM)+RVM_MASK_END(POW-1),POW)
-#define RVM_POW2(POW)                           (((rvm_ptr_t)1)<<(POW))
+#define RVM_ROUND_DOWN(NUM,POW)                     ((NUM)&(RVM_MASK_START(POW)))
+#define RVM_ROUND_UP(NUM,POW)                       RVM_ROUND_DOWN((NUM)+RVM_MASK_END(POW-1),POW)
+#define RVM_POW2(POW)                               (((rvm_ptr_t)1)<<(POW))
 
 /* System service stub */
-#define RVM_CAP_OP(OP,CAPID,ARG1,ARG2,ARG3)     RVM_Svc(((OP)<<(sizeof(rvm_ptr_t)*4)|(CAPID)),ARG1,ARG2,ARG3)
-#define RVM_PARAM_D_MASK                        ((RVM_ALLBITS)>>(sizeof(rvm_ptr_t)*4))
-#define RVM_PARAM_Q_MASK                        ((RVM_ALLBITS)>>(sizeof(rvm_ptr_t)*6))
-#define RVM_PARAM_O_MASK                        ((RVM_ALLBITS)>>(sizeof(rvm_ptr_t)*7))
+#define RVM_CAP_OP(OP,CAPID,ARG1,ARG2,ARG3)         RVM_Svc(((OP)<<(sizeof(rvm_ptr_t)*4)|(CAPID)),ARG1,ARG2,ARG3)
+#define RVM_PARAM_D_MASK                            ((RVM_ALLBITS)>>(sizeof(rvm_ptr_t)*4))
+#define RVM_PARAM_Q_MASK                            ((RVM_ALLBITS)>>(sizeof(rvm_ptr_t)*6))
+#define RVM_PARAM_O_MASK                            ((RVM_ALLBITS)>>(sizeof(rvm_ptr_t)*7))
 /* The parameter passing - not to be confused with kernel macros. These macros just place the parameters */
-#define RVM_PARAM_D1(X)                         (((X)&RVM_PARAM_D_MASK)<<(sizeof(rvm_ptr_t)*4))
-#define RVM_PARAM_D0(X)                         ((X)&RVM_PARAM_D_MASK)
+#define RVM_PARAM_D1(X)                             (((X)&RVM_PARAM_D_MASK)<<(sizeof(rvm_ptr_t)*4))
+#define RVM_PARAM_D0(X)                             ((X)&RVM_PARAM_D_MASK)
 
-#define RVM_PARAM_Q3(X)                         (((X)&RVM_PARAM_Q_MASK)<<(sizeof(rvm_ptr_t)*6))
-#define RVM_PARAM_Q2(X)                         (((X)&RVM_PARAM_Q_MASK)<<(sizeof(rvm_ptr_t)*4))
-#define RVM_PARAM_Q1(X)                         (((X)&RVM_PARAM_Q_MASK)<<(sizeof(rvm_ptr_t)*2))
-#define RVM_PARAM_Q0(X)                         ((X)&RVM_PARAM_Q_MASK)
+#define RVM_PARAM_Q3(X)                             (((X)&RVM_PARAM_Q_MASK)<<(sizeof(rvm_ptr_t)*6))
+#define RVM_PARAM_Q2(X)                             (((X)&RVM_PARAM_Q_MASK)<<(sizeof(rvm_ptr_t)*4))
+#define RVM_PARAM_Q1(X)                             (((X)&RVM_PARAM_Q_MASK)<<(sizeof(rvm_ptr_t)*2))
+#define RVM_PARAM_Q0(X)                             ((X)&RVM_PARAM_Q_MASK)
 
-#define RVM_PARAM_O7(X)                         (((X)&RVM_PARAM_O_MASK)<<(sizeof(rvm_ptr_t)*7))
-#define RVM_PARAM_O6(X)                         (((X)&RVM_PARAM_O_MASK)<<(sizeof(rvm_ptr_t)*6))
-#define RVM_PARAM_O5(X)                         (((X)&RVM_PARAM_O_MASK)<<(sizeof(rvm_ptr_t)*5))
-#define RVM_PARAM_O4(X)                         (((X)&RVM_PARAM_O_MASK)<<(sizeof(rvm_ptr_t)*4))
-#define RVM_PARAM_O3(X)                         (((X)&RVM_PARAM_O_MASK)<<(sizeof(rvm_ptr_t)*3))
-#define RVM_PARAM_O2(X)                         (((X)&RVM_PARAM_O_MASK)<<(sizeof(rvm_ptr_t)*2))
-#define RVM_PARAM_O1(X)                         (((X)&RVM_PARAM_O_MASK)<<(sizeof(rvm_ptr_t)*1))
-#define RVM_PARAM_O0(X)                         ((X)&RVM_PARAM_O_MASK)
+#define RVM_PARAM_O7(X)                             (((X)&RVM_PARAM_O_MASK)<<(sizeof(rvm_ptr_t)*7))
+#define RVM_PARAM_O6(X)                             (((X)&RVM_PARAM_O_MASK)<<(sizeof(rvm_ptr_t)*6))
+#define RVM_PARAM_O5(X)                             (((X)&RVM_PARAM_O_MASK)<<(sizeof(rvm_ptr_t)*5))
+#define RVM_PARAM_O4(X)                             (((X)&RVM_PARAM_O_MASK)<<(sizeof(rvm_ptr_t)*4))
+#define RVM_PARAM_O3(X)                             (((X)&RVM_PARAM_O_MASK)<<(sizeof(rvm_ptr_t)*3))
+#define RVM_PARAM_O2(X)                             (((X)&RVM_PARAM_O_MASK)<<(sizeof(rvm_ptr_t)*2))
+#define RVM_PARAM_O1(X)                             (((X)&RVM_PARAM_O_MASK)<<(sizeof(rvm_ptr_t)*1))
+#define RVM_PARAM_O0(X)                             ((X)&RVM_PARAM_O_MASK)
 
 /* CID synthesis */
-#define RME_CAPID_NULL                          (((rvm_cid_t)1)<<(sizeof(rvm_ptr_t)*4-1))
-#define RVM_CAPID_2L                            (((rvm_cid_t)1)<<(sizeof(rvm_ptr_t)*2-1))
-#define RVM_CAPID(X,Y)                          (((X)<<(sizeof(rvm_ptr_t)*2))|(Y)|RVM_CAPID_2L)
+#define RME_CAPID_NULL                              (1<<(sizeof(rvm_ptr_t)*4-1))
+#define RVM_CAPID_2L                                (1<<(sizeof(rvm_ptr_t)*2-1))
+#define RVM_CAPID(X,Y)                              (((X)<<(sizeof(rvm_ptr_t)*2))|(Y)|RVM_CAPID_2L)
 
 /* Flag synthesis */
 /* Kernel function */
-#define RVM_KERN_FLAG(HIGH,LOW)                 (((HIGH)<<(sizeof(rvm_ptr_t)*4))|(LOW))
+#define RVM_KERN_FLAG(HIGH,LOW)                     (((HIGH)<<(sizeof(rvm_ptr_t)*4))|(LOW))
 /* Kernel memory */
-#define RVM_KMEM_FLAG(HIGH,LOW)                 ((((HIGH)>>(sizeof(rvm_ptr_t)*4))<<(sizeof(rvm_ptr_t)*4))| \
-                                                ((LOW)>>(sizeof(rvm_ptr_t)*4)))
-#define RVM_KMEM_SVC(HIGH,SVC)                  (((((HIGH)>>6)<<(sizeof(rvm_ptr_t)*4+6))>>(sizeof(rvm_ptr_t)*4))|(SVC))
-#define RVM_KMEM_CAPID(LOW,FLAGS)               (((((LOW)>>6)<<(sizeof(rvm_ptr_t)*4+6))>>(sizeof(rvm_ptr_t)*4))|(FLAGS))
+#define RVM_KMEM_FLAG(HIGH,LOW)                     ((((HIGH)>>(sizeof(rvm_ptr_t)*4))<<(sizeof(rvm_ptr_t)*4))| \
+                                                    ((LOW)>>(sizeof(rvm_ptr_t)*4)))
+#define RVM_KMEM_SVC(HIGH,SVC)                      (((((HIGH)>>6)<<(sizeof(rvm_ptr_t)*4+6))>>(sizeof(rvm_ptr_t)*4))|(SVC))
+#define RVM_KMEM_CAPID(LOW,FLAGS)                   (((((LOW)>>6)<<(sizeof(rvm_ptr_t)*4+6))>>(sizeof(rvm_ptr_t)*4))|(FLAGS))
 /* Page table */
-#define RVM_PGTBL_SVC(NUM_ORDER,SVC)            (((NUM_ORDER)<<(sizeof(rvm_ptr_t)<<1))|(SVC))
-#define RVM_PGTBL_FLAG(HIGH,LOW,FLAGS)          (((HIGH)<<(sizeof(rvm_ptr_t)*4+4))|((LOW)<<8)|(FLAGS))
+#define RVM_PGTBL_SVC(NUM_ORDER,SVC)                (((NUM_ORDER)<<(sizeof(rvm_ptr_t)<<1))|(SVC))
+#define RVM_PGTBL_FLAG(HIGH,LOW,FLAGS)              (((HIGH)<<(sizeof(rvm_ptr_t)*4+4))|((LOW)<<8)|(FLAGS))
 /* Page table size and number order */
-#define RVM_PGTBL(SIZE,NUM)                     (((SIZE)<<(sizeof(rvm_ptr_t)<<2))|(NUM))
-#define RVM_PGTBL_SIZE(X)                       ((X)>>(sizeof(rvm_ptr_t)<<2))
-#define RVM_PGTBL_NUM(X)                        ((X)&(RVM_ALLBITS>>(sizeof(rvm_ptr_t)<<2)))
+#define RVM_PGTBL(SIZE,NUM)                         (((SIZE)<<(sizeof(rvm_ptr_t)<<2))|(NUM))
+#define RVM_PGTBL_SIZE(X)                           ((X)>>(sizeof(rvm_ptr_t)<<2))
+#define RVM_PGTBL_NUM(X)                            ((X)&(RVM_ALLBITS>>(sizeof(rvm_ptr_t)<<2)))
 /* Thread time delegation */
 /* Init thread infinite time marker */
-#define RVM_THD_INIT_TIME                       (RVM_ALLBITS>>1)
+#define RVM_THD_INIT_TIME                           (RVM_ALLBITS>>1)
 /* Other thread infinite time marker */
-#define RVM_THD_INF_TIME                        (RVM_THD_INIT_TIME-1)
+#define RVM_THD_INF_TIME                            (RVM_THD_INIT_TIME-1)
 /* Thread time upper limit - always ths infinite time */
-#define RVM_THD_MAX_TIME                        (RVM_THD_INF_TIME)
+#define RVM_THD_MAX_TIME                            (RVM_THD_INF_TIME)
 /* Sched rcv return value's fault flag */
-#define RVM_THD_FAULT_FLAG                      (((rvm_ptr_t)1)<<(sizeof(rvm_ptr_t)*8-2))
+#define RVM_THD_FAULT_FLAG                          RVM_POW2(sizeof(rvm_ptr_t)*8-2)
     
 /* Size of kernel objects that are architecture agnostic */
 /* Capability table */
-#define RVM_CAPTBL_WORD_SIZE(NUM)               (((rvm_ptr_t)(NUM))<<3)
-/* Process */
-#define RVM_PROC_WORD_SIZE                      3
-/* Signal */
-#define RVM_SIG_WORD_SIZE                       3
+#define RVM_CAPTBL_WORD_SIZE(NUM)                   (((rvm_ptr_t)(NUM))<<3)
 /* Invocation */
-#define RVM_INV_WORD_SIZE                       9
+#define RVM_INV_WORD_SIZE                           (9)
 
 /* Rounded size of each object */
-#define RVM_ROUNDED(X)                          RVM_ROUND_UP(((rvm_ptr_t)(X))*sizeof(rvm_ptr_t),RVM_KMEM_SLOT_ORDER)
+#define RVM_ROUNDED(X)                              RVM_ROUND_UP(((rvm_ptr_t)(X))*sizeof(rvm_ptr_t),RVM_KMEM_SLOT_ORDER)
 /* Capability table */
-#define RVM_CAPTBL_SIZE(NUM)                    RVM_ROUNDED(RVM_CAPTBL_WORD_SIZE(NUM))
+#define RVM_CAPTBL_SIZE(NUM)                        RVM_ROUNDED(RVM_CAPTBL_WORD_SIZE(NUM))
 /* Normal page directory */
-#define RVM_PGTBL_SIZE_NOM(NUM_ORDER)           RVM_ROUNDED(RVM_PGTBL_WORD_SIZE_NOM(NUM_ORDER))
+#define RVM_PGTBL_SIZE_NOM(NUM_ORDER)               RVM_ROUNDED(RVM_PGTBL_WORD_SIZE_NOM(NUM_ORDER))
 /* Top-level page directory */
-#define RVM_PGTBL_SIZE_TOP(NUM_ORDER)           RVM_ROUNDED(RVM_PGTBL_WORD_SIZE_TOP(NUM_ORDER))
+#define RVM_PGTBL_SIZE_TOP(NUM_ORDER)               RVM_ROUNDED(RVM_PGTBL_WORD_SIZE_TOP(NUM_ORDER))
 /* Process */
-#define RVM_PROC_SIZE                           RVM_ROUNDED(RVM_PROC_WORD_SIZE)
+#define RVM_PROC_SIZE                               RVM_ROUNDED(RVM_PROC_WORD_SIZE)
 /* Thread */
-#define RVM_THD_SIZE                            RVM_ROUNDED(RVM_THD_WORD_SIZE)
+#define RVM_THD_SIZE                                RVM_ROUNDED(RVM_THD_WORD_SIZE)
 /* Signal */                           
-#define RVM_SIG_SIZE                            RVM_ROUNDED(RVM_SIG_WORD_SIZE)
+#define RVM_SIG_SIZE                                RVM_ROUNDED(RVM_SIG_WORD_SIZE)
 /* Invocation */
-#define RVM_INV_SIZE                            RVM_ROUNDED(RVM_INV_WORD_SIZE)
+#define RVM_INV_SIZE                                RVM_ROUNDED(RVM_INV_WORD_SIZE)
 
 /* Round the kernel object size to the entry slot size */
-#define RVM_KOTBL_ROUND(X)                      RVM_ROUND_UP(X,RVM_KMEM_SLOT_ORDER)
+#define RVM_KOTBL_ROUND(X)                          RVM_ROUND_UP(X,RVM_KMEM_SLOT_ORDER)
 
 /* Initial capability layout - same across all architectures */
 /* The capability table of the init process */
-#define RVM_BOOT_CAPTBL                         0
+#define RVM_BOOT_CAPTBL                             (0)
 /* The top-level page table of the init process - always full memory access */
-#define RVM_BOOT_PGTBL                          1
+#define RVM_BOOT_PGTBL                              (1)
 /* The init process */
-#define RVM_BOOT_INIT_PROC                      2
+#define RVM_BOOT_INIT_PROC                          (2)
 /* The init thread */
-#define RVM_BOOT_INIT_THD                       3
+#define RVM_BOOT_INIT_THD                           (3)
 /* The initial kernel function capability */
-#define RVM_BOOT_INIT_KERN                      4
+#define RVM_BOOT_INIT_KERN                          (4)
 /* The initial kernel memory capability */
-#define RVM_BOOT_INIT_KMEM                      5
+#define RVM_BOOT_INIT_KMEM                          (5)
 /* The initial timer endpoint */
-#define RVM_BOOT_INIT_TIMER                     6
+#define RVM_BOOT_INIT_TIMER                         (6)
 /* The initial interrupt endpoint */
-#define RVM_BOOT_INIT_VECT                      7
+#define RVM_BOOT_INIT_VECT                          (7)
+
+/* Error codes */
+/* The state is wrong */
+#define RVM_ERR_STATE                               (-1)
+/* The number is overrange */
+#define RVM_ERR_RANGE                               (-2)
+/* The error is address related */
+#define RVM_ERR_ADDR                                (-3)
+/* The error is physical vector related */
+#define RVM_ERR_PHYS                                (-4)
+/* The error is virtual vector related */
+#define RVM_ERR_VIRT                                (-5)
+/* The error is event related */
+#define RVM_ERR_EVT                                 (-6)
+/* The error is mapping block related */
+#define RVM_ERR_MAP                                 (-7)
 /*****************************************************************************/
 #include "rvm_guest_conf.h"
 
 #ifdef RVM_VIRT_VECT_NUM
 /* Register space */
-#define RVM_REGS                                ((volatile struct RVM_Regs*)RVM_VIRT_REG_BASE)
+#define RVM_REGS                                    ((volatile struct RVM_Regs*)RVM_VIRT_REG_BASE)
 /* Parameter space */
-#define RVM_PARAM                               ((volatile struct RVM_Param_Area*)RVM_VIRT_PARAM_BASE)
+#define RVM_PARAM                                   ((volatile struct RVM_Param_Area*)RVM_VIRT_PARAM_BASE)
 /* Vector space */
-#define RVM_VECT_FLAG                           ((volatile struct RVM_Vect_Flag*)RVM_VIRT_VCTF_BASE)
-#define RVM_VIRT_VCTF_WORDS                     (RVM_VIRT_VCTF_SIZE>>RVM_WORD_ORDER)
+#define RVM_VECT_FLAG                               ((volatile struct RVM_Vect_Flag*)RVM_VIRT_VCTF_BASE)
+#define RVM_VIRT_VCTF_WORDS                         (RVM_ROUND_UP(RVM_VIRT_VECT_NUM,RVM_WORD_ORDER)>>RVM_WORD_ORDER)
 
 /* Virtualization signal endpoints */
 /* Vector signal endpoint */
-#define RVM_SIG_VECT                            (1)
+#define RVM_SIG_VECT                                (1)
 /* Hypervisor signal endpoint */
-#define RVM_SIG_HYP                             (0)
+#define RVM_SIG_HYP                                 (0)
 
 /* Hypercalls */
 /* Enable interrupts */
-#define RVM_HYP_ENAINT                          0
+#define RVM_HYP_ENAINT                              (0)
 /* Disable interrupts */
-#define RVM_HYP_DISINT                          1
+#define RVM_HYP_DISINT                              (1)
 /* Register a physical vector */
-#define RVM_HYP_REGPHYS                         2
+#define RVM_HYP_REGPHYS                             (2)
 /* Register a event */
-#define RVM_HYP_REGEVT                          3
+#define RVM_HYP_REGEVT                              (3)
 /* Delete a event */
-#define RVM_HYP_DELVECT                         4
+#define RVM_HYP_DELVECT                             (4)
+/* Delete a event */
+#define RVM_HYP_LOCKVECT                            (5)
 /* Wait for an virtual vector to come */
-#define RVM_HYP_WAITVECT                        5
+#define RVM_HYP_WAITVECT                            (6)
 /* Send to an event */
-#define RVM_HYP_SENDEVT                         6
+#define RVM_HYP_SENDEVT                             (7)
+/* Start and feed watchdog */
+#define RVM_HYP_FEEDWDOG                            (8)
 #endif
 /* End Defines ***************************************************************/
 
@@ -348,10 +364,10 @@ EXTERN rvm_ret_t RVM_Pgtbl_Add(rvm_cid_t Cap_Pgtbl_Dst, rvm_ptr_t Pos_Dst, rvm_p
                                rvm_cid_t Cap_Pgtbl_Src, rvm_ptr_t Pos_Src, rvm_ptr_t Index);
 EXTERN rvm_ret_t RVM_Pgtbl_Rem(rvm_cid_t Cap_Pgtbl, rvm_ptr_t Pos);
 EXTERN rvm_ret_t RVM_Pgtbl_Con(rvm_cid_t Cap_Pgtbl_Parent, rvm_ptr_t Pos, rvm_cid_t Cap_Pgtbl_Child, rvm_ptr_t Flags_Child);
-EXTERN rvm_ret_t RVM_Pgtbl_Des(rvm_cid_t Cap_Pgtbl, rvm_ptr_t Pos);
+EXTERN rvm_ret_t RVM_Pgtbl_Des(rvm_cid_t Cap_Pgtbl_Parent, rvm_ptr_t Pos, rvm_cid_t Cap_Pgtbl_Child);
 /* Process operations */
-EXTERN rvm_ret_t RVM_Proc_Crt(rvm_cid_t Cap_Captbl_Crt, rvm_cid_t Cap_Kmem, rvm_cid_t Cap_Proc,
-                              rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Pgtbl, rvm_ptr_t Raddr);
+EXTERN rvm_ret_t RVM_Proc_Crt(rvm_cid_t Cap_Captbl_Crt, rvm_cid_t Cap_Proc,
+                              rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Pgtbl);
 EXTERN rvm_ret_t RVM_Proc_Del(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Proc);
 EXTERN rvm_ret_t RVM_Proc_Cpt(rvm_cid_t Cap_Proc, rvm_cid_t Cap_Captbl);
 EXTERN rvm_ret_t RVM_Proc_Pgt(rvm_cid_t Cap_Proc, rvm_cid_t Cap_Pgtbl);
@@ -368,7 +384,7 @@ EXTERN rvm_ret_t RVM_Thd_Sched_Free(rvm_cid_t Cap_Thd);
 EXTERN rvm_ret_t RVM_Thd_Time_Xfer(rvm_cid_t Cap_Thd_Dst, rvm_cid_t Cap_Thd_Src, rvm_ptr_t Time);
 EXTERN rvm_ret_t RVM_Thd_Swt(rvm_cid_t Cap_Thd, rvm_ptr_t Full_Yield);
 /* Signal operations */
-EXTERN rvm_ret_t RVM_Sig_Crt(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Kmem, rvm_cid_t Cap_Sig, rvm_ptr_t Raddr);
+EXTERN rvm_ret_t RVM_Sig_Crt(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Sig);
 EXTERN rvm_ret_t RVM_Sig_Del(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Sig);
 EXTERN rvm_ret_t RVM_Sig_Snd(rvm_cid_t Cap_Sig);
 EXTERN rvm_ret_t RVM_Sig_Rcv(rvm_cid_t Cap_Sig, rvm_ptr_t Option);
@@ -390,8 +406,8 @@ EXTERN rvm_ret_t RVM_Proc_Send_Evt(rvm_ptr_t Evt_Num);
 #ifdef RVM_VIRT_VECT_NUM
 EXTERN void RVM_Virt_Init(void);
 EXTERN rvm_ret_t RVM_Virt_Reg_Vect(rvm_ptr_t Vect_Num, void* Vect);
-EXTERN rvm_ret_t RVM_Virt_Reg_Timer(void* Timer);
-EXTERN rvm_ret_t RVM_Virt_Reg_Ctxsw(void* Ctxsw);
+EXTERN void RVM_Virt_Reg_Timer(void* Timer);
+EXTERN void RVM_Virt_Reg_Ctxsw(void* Ctxsw);
 EXTERN void RVM_Virt_Mask_Int(void);
 EXTERN void RVM_Virt_Unmask_Int(void);
 EXTERN void RVM_Virt_Yield(void);
@@ -405,6 +421,7 @@ EXTERN rvm_ret_t RVM_Hyp_Reg_Evt(rvm_ptr_t Evt_Num, rvm_ptr_t Vect_Num);
 EXTERN rvm_ret_t RVM_Hyp_Del_Vect(rvm_ptr_t Vect_Num);
 EXTERN rvm_ret_t RVM_Hyp_Wait_Vect(void);
 EXTERN rvm_ret_t RVM_Hyp_Send_Evt(rvm_ptr_t Evt_Num);
+EXTERN rvm_ret_t RVM_Hyp_Feed_Wdog(void);
 
 /* Interrupt processing related - not used in normal processes */
 EXTERN rvm_ret_t RVM_Get_Vect(void);

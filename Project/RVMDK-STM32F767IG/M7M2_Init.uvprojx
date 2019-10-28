@@ -372,7 +372,7 @@
             <ScatterFile>..\..\MAmmonite\Include\Platform\A7M\Chips\STM32F767IG\rvm_platform_STM32F767IG.sct</ScatterFile>
             <IncludeLibs></IncludeLibs>
             <IncludeLibsPath></IncludeLibsPath>
-            <Misc>--keep=rvm_platform_cmx_asm.o</Misc>
+            <Misc>--keep=rvm_platform_a7m_asm.o</Misc>
             <LinkerInputFile></LinkerInputFile>
             <DisabledWarnings></DisabledWarnings>
           </LDads>

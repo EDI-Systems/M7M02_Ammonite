@@ -3,8 +3,8 @@ Filename    : RVM.h
 Author      : pry
 Date        : 01/04/2017
 Licence     : The Unlicense; see LICENSE for details.
-Description : The header of the RVM RTOS. This header defines the error codes,
-              operation flags and system call numbers in a generic way.
+Description : The header of the RVM user-level library. This header defines the
+              error codes, operation flags and system call numbers in a generic way.
 ******************************************************************************/
 
 #ifndef __RVM_H__
@@ -32,9 +32,11 @@ Description : The header of the RVM RTOS. This header defines the error codes,
 #define RVM_ERR_CAP_QUIE                ((-8)+RVM_ERR_CAP)
 /* Something involved is frozen */
 #define RVM_ERR_CAP_FROZEN              ((-9)+RVM_ERR_CAP)
+/* The capability is a root one and therefore cannot use removal */
+#define RVM_ERR_CAP_ROOT                ((-10)+RVM_ERR_CAP)
 
 /* The base of page table errors */
-#define RVM_ERR_PGT                     (-10)
+#define RVM_ERR_PGT                     (-100)
 /* Incorrect address */
 #define RVM_ERR_PGT_ADDR                ((-1)+RVM_ERR_PGT)
 /* Mapping failure */
@@ -45,7 +47,7 @@ Description : The header of the RVM RTOS. This header defines the error codes,
 #define RVM_ERR_PGT_PERM                ((-4)+RVM_ERR_PGT)
 
 /* The base of process/thread errors */
-#define RVM_ERR_PTH                     (-20)
+#define RVM_ERR_PTH                     (-200)
 /* Incorrect address */
 #define RVM_ERR_PTH_PGTBL               ((-1)+RVM_ERR_PTH)
 /* Conflicting operations happening at the same time */
@@ -66,7 +68,7 @@ Description : The header of the RVM RTOS. This header defines the error codes,
 #define RVM_ERR_PTH_FAULT               ((-9)+RVM_ERR_PTH)
 
 /* The base of signal/invocation errors */
-#define RVM_ERR_SIV                     (-30)
+#define RVM_ERR_SIV                     (-300)
 /* This invocation capability/signal endpoint is already active, or wrong option on receive */
 #define RVM_ERR_SIV_ACT                 ((-1)+RVM_ERR_SIV)
 /* This invocation succeeded, but a fault happened in the thread, and we forced a invocation return */
@@ -105,23 +107,6 @@ Description : The header of the RVM RTOS. This header defines the error codes,
 #define RVM_CAPTBL_FLAG_ALL             (RVM_CAPTBL_FLAG_CRT|RVM_CAPTBL_FLAG_DEL|RVM_CAPTBL_FLAG_FRZ| \
                                          RVM_CAPTBL_FLAG_ADD_SRC|RVM_CAPTBL_FLAG_ADD_DST|RVM_CAPTBL_FLAG_REM| \
                                          RVM_CAPTBL_FLAG_PROC_CRT|RVM_CAPTBL_FLAG_PROC_CPT)
-    
-/* Kernel memory */
-/* This cap to kernel memory allows creation of captbl */
-#define RVM_KMEM_FLAG_CAPTBL            (1<<0)
-/* This cap to kernel memory allows creation of pgtbl */
-#define RVM_KMEM_FLAG_PGTBL             (1<<1)
-/* This cap to kernel memory allows creation of process */
-#define RVM_KMEM_FLAG_PROC              (1<<2)
-/* This cap to kernel memory allows creation of thread */
-#define RVM_KMEM_FLAG_THD               (1<<3)
-/* This cap to kernel memory allows creation of signals */
-#define RVM_KMEM_FLAG_SIG               (1<<4)
-/* This cap to kernel memory allows creation of invocation */
-#define RVM_KMEM_FLAG_INV               (1<<5)
-/* This cap to kernel memory allows all operations */
-#define RVM_KMEM_FLAG_ALL               (RVM_KMEM_FLAG_CAPTBL|RVM_KMEM_FLAG_PGTBL|RVM_KMEM_FLAG_PROC| \
-                                         RVM_KMEM_FLAG_THD|RVM_KMEM_FLAG_SIG|RVM_KMEM_FLAG_INV)
 
 /* Page table */
 /* This cap to pgtbl allows delegating pages in it */
@@ -130,20 +115,34 @@ Description : The header of the RVM RTOS. This header defines the error codes,
 #define RVM_PGTBL_FLAG_ADD_DST          (1<<1)
 /* This cap to pgtbl allows removal of pages in it */
 #define RVM_PGTBL_FLAG_REM              (1<<2) 
-/* This cap to pgtbl allows to be mapped into other page tables */
-#define RVM_PGTBL_FLAG_CON_CHILD        (1<<3)
+/* This cap to pgtbl allows to be mapped into other page tables as a child
+ * or destructed from other page tables as a child */
+#define RVM_PGTBL_FLAG_CHILD            (1<<3)
 /* This cap to pgtbl allows accepting lower page table mappings */
 #define RVM_PGTBL_FLAG_CON_PARENT       (1<<4)
 /* This cap to pgtbl allows its lower level page table mappings to be destructed */
-#define RVM_PGTBL_FLAG_DES              (1<<5)
+#define RVM_PGTBL_FLAG_DES_PARENT       (1<<5)
 /* This cap to pgtbl allows itself to be used in process creation */
 #define RVM_PGTBL_FLAG_PROC_CRT         (1<<6)
 /* This cap to pgtbl allows itself to be used in process page table replacement */
 #define RVM_PGTBL_FLAG_PROC_PGT         (1<<7)
 /* This cap to pgtbl allows all operations */
 #define RVM_PGTBL_FLAG_ALL              (RVM_PGTBL_FLAG_ADD_SRC|RVM_PGTBL_FLAG_ADD_DST|RVM_PGTBL_FLAG_REM| \
-                                         RVM_PGTBL_FLAG_CON_CHILD|RVM_PGTBL_FLAG_CON_PARENT|RVM_PGTBL_FLAG_DES| \
+                                         RVM_PGTBL_FLAG_CHILD|RVM_PGTBL_FLAG_CON_PARENT|RVM_PGTBL_FLAG_DES_PARENT| \
                                          RVM_PGTBL_FLAG_PROC_CRT|RVM_PGTBL_FLAG_PROC_PGT)
+
+/* Kernel memory */
+/* This cap to kernel memory allows creation of captbl */
+#define RVM_KMEM_FLAG_CAPTBL            (1<<0)
+/* This cap to kernel memory allows creation of pgtbl */
+#define RVM_KMEM_FLAG_PGTBL             (1<<1)
+/* This cap to kernel memory allows creation of thread */
+#define RVM_KMEM_FLAG_THD               (1<<2)
+/* This cap to kernel memory allows creation of invocation */
+#define RVM_KMEM_FLAG_INV               (1<<3)
+/* This cap to kernel memory allows all operations */
+#define RVM_KMEM_FLAG_ALL               (RVM_KMEM_FLAG_CAPTBL|RVM_KMEM_FLAG_PGTBL| \
+                                         RVM_KMEM_FLAG_THD|RVM_KMEM_FLAG_INV)
 
 /* Process */
 /* This cap to process allows creating invocation stubs in it */
@@ -183,16 +182,6 @@ Description : The header of the RVM RTOS. This header defines the error codes,
 #define RVM_THD_FLAG_ALL                (RVM_THD_FLAG_EXEC_SET|RVM_THD_FLAG_HYP_SET|RVM_THD_FLAG_SCHED_CHILD| \
                                          RVM_THD_FLAG_SCHED_PARENT|RVM_THD_FLAG_SCHED_PRIO|RVM_THD_FLAG_SCHED_FREE| \
                                          RVM_THD_FLAG_SCHED_RCV|RVM_THD_FLAG_XFER_SRC|RVM_THD_FLAG_XFER_DST|RVM_THD_FLAG_SWT)
-
-/* Invocation */
-/* This cap to invocation allows setting parameters for it */
-#define RVM_INV_FLAG_SET                (1<<0)
-/* This cap to invocation allows activating it */
-#define RVM_INV_FLAG_ACT                (1<<1)
-/* The return operation does not need a flag, nor does it need a capability */
-/* This cap to invocation allows all operations */
-#define RVM_INV_FLAG_ALL                (RVM_INV_FLAG_SET|RVM_INV_FLAG_ACT)
-
 /* Signal */
 /* This cap to signal endpoint allows sending to it */
 #define RVM_SIG_FLAG_SND                (1<<0)
@@ -211,6 +200,15 @@ Description : The header of the RVM RTOS. This header defines the error codes,
 #define RVM_SIG_FLAG_SCHED              (1<<5)
 /* This cap to signal endpoint allows all operations */
 #define RVM_SIG_FLAG_ALL                (RVM_SIG_FLAG_SND|RVM_SIG_FLAG_RCV|RVM_SIG_FLAG_SCHED)
+
+/* Invocation */
+/* This cap to invocation allows setting parameters for it */
+#define RVM_INV_FLAG_SET                (1<<0)
+/* This cap to invocation allows activating it */
+#define RVM_INV_FLAG_ACT                (1<<1)
+/* The return operation does not need a flag, nor does it need a capability */
+/* This cap to invocation allows all operations */
+#define RVM_INV_FLAG_ALL                (RVM_INV_FLAG_SET|RVM_INV_FLAG_ACT)
 /* End Operation Flags *******************************************************/
 
 /* Special Definitions *******************************************************/
@@ -538,4 +536,3 @@ Description : The header of the RVM RTOS. This header defines the error codes,
 /* End Of File ***************************************************************/
 
 /* Copyright (C) Evo-Devo Instrum. All rights reserved ***********************/
-

@@ -311,20 +311,6 @@ struct RVM_Phys_Flags
     struct RVM_Flag_Set Set0;
     struct RVM_Flag_Set Set1;
 };
-
-/* The page table layout is statically decided, the first one being the top-level */
-struct RVM_Hdr_Pgtbl
-{
-    /* Its parent's position */
-    rvm_ptr_t Parent;
-    /* The start address of the mapping */
-    rvm_ptr_t Addr;
-    /* The size order and number order, combined into one word */
-    rvm_ptr_t Order;
-    /* The initially mapped pages' data. The only thing stored here
-     * is the RVM standard flags */
-    rvm_u8_t Flags[8];
-};
 /*****************************************************************************/
 /* __RVM_PLATFORM_A7M_H_STRUCTS__ */
 #endif

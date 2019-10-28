@@ -102,9 +102,8 @@ rvm_ptr_t RVM_Daemon_Init(rvm_ptr_t Cap_Front, rvm_ptr_t Kmem_Front)
     
     /* Safety daemon initialization - highest priority as always */
     RVM_Sftd_Sig_Cap=Cap_Front++;
-    RVM_ASSERT(RVM_Sig_Crt(RVM_BOOT_CAPTBL, RVM_BOOT_INIT_KMEM, RVM_Sftd_Sig_Cap, Kmem_Front)==0);
-    RVM_LOG_SISUS("Init:Created safety daemon fault endpoint CID ",RVM_Sftd_Sig_Cap," @ address 0x",Kmem_Front,".\r\n");
-    Kmem_Front+=RVM_SIG_SIZE;
+    RVM_ASSERT(RVM_Sig_Crt(RVM_BOOT_CAPTBL, RVM_Sftd_Sig_Cap)==0);
+    RVM_LOG_SIS("Init:Created safety daemon fault endpoint CID ",RVM_Sftd_Sig_Cap,".\r\n");
     
     RVM_Sftd_Thd_Cap=Cap_Front++;
     RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_CAPTBL, RVM_BOOT_INIT_KMEM, RVM_Sftd_Thd_Cap,
@@ -135,9 +134,8 @@ rvm_ptr_t RVM_Daemon_Init(rvm_ptr_t Cap_Front, rvm_ptr_t Kmem_Front)
 
     /* VMM daemon initialization - main priority */
     RVM_Vmmd_Sig_Cap=Cap_Front++;
-    RVM_ASSERT(RVM_Sig_Crt(RVM_BOOT_CAPTBL, RVM_BOOT_INIT_KMEM, RVM_Vmmd_Sig_Cap, Kmem_Front)==0);
-    RVM_LOG_SISUS("Init:Created virtual machine monitor endpoint CID ",RVM_Vmmd_Sig_Cap," @ address 0x",Kmem_Front,".\r\n");
-    Kmem_Front+=RVM_SIG_SIZE;
+    RVM_ASSERT(RVM_Sig_Crt(RVM_BOOT_CAPTBL, RVM_Vmmd_Sig_Cap)==0);
+    RVM_LOG_SIS("Init:Created virtual machine monitor endpoint CID ",RVM_Vmmd_Sig_Cap,".\r\n");
     
     RVM_Vmmd_Thd_Cap=Cap_Front++;
     RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_CAPTBL, RVM_BOOT_INIT_KMEM, RVM_Vmmd_Thd_Cap,
