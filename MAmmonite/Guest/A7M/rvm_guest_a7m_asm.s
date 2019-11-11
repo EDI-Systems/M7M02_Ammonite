@@ -154,7 +154,7 @@ RVM_Svc
 ;Description : Trigger a system call. This is ARMv7-M specific, and does not expand
 ;              to other architectures, and is only used for kernel functions.
 ;              This specially crafted system call allows up to 8 parameters to
-;              be passed and returned.
+;              be passed and returned. This number may be different in your system.
 ;Input       : R0 - rvm_ptr_t Num - The system call number/other information.
 ;              R1 - rvm_ptr_t ID - The func ID and sub ID of the kernel function call.
 ;              R2 - rvm_ptr_t Args[6] - Array of 6 arguments.

@@ -436,20 +436,16 @@ Description : The header of the RVM user-level library. This header defines the
 /* Trigger a local event */
 #define RVM_KERN_EVT_LOCAL_TRIG         (0xF103)
 /* Cache operations **********************************************************/
-/* Enable cache */
-#define RVM_KERN_CACHE_ENABLE           (0xF200)
-/* Disable cache */
-#define RVM_KERN_CACHE_DISABLE          (0xF201)
+/* Modify cache state */
+#define RVM_KERN_CACHE_MOD              (0xF200)
 /* Configure cache */
-#define RVM_KERN_CACHE_CONFIG           (0xF202)
+#define RVM_KERN_CACHE_CONFIG           (0xF201)
 /* Invalidate cache */
-#define RVM_KERN_CACHE_INVALIDATE       (0xF203)
+#define RVM_KERN_CACHE_MAINT            (0xF202)
 /* Lock cache */
-#define RVM_KERN_CACHE_LOCK             (0xF204)
-/* Enable prefetching */
-#define RVM_KERN_PRFTH_ENABLE           (0xF205)
-/* Disable prefetching */
-#define RVM_KERN_PRFTH_DISABLE          (0xF206)
+#define RVM_KERN_CACHE_LOCK             (0xF203)
+/* Modify prefetcher state */
+#define RVM_KERN_PRFTH_MOD              (0xF204)
 /* Hot plug and pull operations **********************************************/
 /* Modify physical CPU configuration */
 #define RVM_KERN_HPNP_PCPU_MOD          (0xF300)
@@ -457,17 +453,21 @@ Description : The header of the RVM user-level library. This header defines the
 #define RVM_KERN_HPNP_LCPU_MOD          (0xF301)
 /* Modify physical memory configuration */
 #define RVM_KERN_HPNP_PMEM_MOD          (0xF302)
-/* Hot plug and pull operations **********************************************/
+/* Power and frequency adjustment operations *********************************/
 /* Put CPU into idle sleep mode */
 #define RVM_KERN_IDLE_SLEEP             (0xF400)
+/* Reboot the whole system */
+#define RVM_KERN_SYS_REBOOT             (0xF401)
+/* Shutdown the whole system */
+#define RVM_KERN_SYS_SHUTDOWN           (0xF402)
 /* Modify voltage configuration */
-#define RVM_KERN_VOLTAGE_MOD            (0xF401)
+#define RVM_KERN_VOLT_MOD               (0xF403)
 /* Modify frequency configuration */
-#define RVM_KERN_FREQ_MOD               (0xF402)
+#define RVM_KERN_FREQ_MOD               (0xF404)
 /* Modify power state */
-#define RVM_KERN_POWER_MOD              (0xF403)
+#define RVM_KERN_PMOD_MOD               (0xF405)
 /* Modify safety lock state */
-#define RVM_KERN_SAFETY_MOD             (0xF404)
+#define RVM_KERN_SAFETY_MOD             (0xF406)
 /* Performance monitoring operations *****************************************/
 /* Query or modify CPU function configuration */
 #define RVM_KERN_PERF_CPU_FUNC          (0xF500)

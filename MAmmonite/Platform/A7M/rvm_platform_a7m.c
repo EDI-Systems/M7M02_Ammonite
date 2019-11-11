@@ -167,76 +167,76 @@ rvm_ret_t RVM_Thd_Print_Regs(rvm_cid_t Cap_Thd)
     struct RVM_A7M_Ret_Stack* Stack;
     
     /* Print all registers that we can see */
-    Params[0]=RVM_KERN_DEBUG_REG_MOD_R4_READ;
+    Params[0]=RVM_A7M_KERN_DEBUG_REG_MOD_R4_GET;
     RVM_ASSERT(RVM_A7M_Kern_Act(RVM_BOOT_INIT_KERN, 
                                 RVM_KERN_DEBUG_REG_MOD,
                                 Cap_Thd,
                                 Params)==0);
     RVM_LOG_SUS("Sftd:R4:0x",Params[0],"\r\n");
     
-    Params[0]=RVM_KERN_DEBUG_REG_MOD_R5_READ;
+    Params[0]=RVM_A7M_KERN_DEBUG_REG_MOD_R5_GET;
     RVM_ASSERT(RVM_A7M_Kern_Act(RVM_BOOT_INIT_KERN, 
                                 RVM_KERN_DEBUG_REG_MOD,
                                 Cap_Thd,
                                 Params)==0);
     RVM_LOG_SUS("Sftd:R5:0x",Params[0],"\r\n");
     
-    Params[0]=RVM_KERN_DEBUG_REG_MOD_R6_READ;
+    Params[0]=RVM_A7M_KERN_DEBUG_REG_MOD_R6_GET;
     RVM_ASSERT(RVM_A7M_Kern_Act(RVM_BOOT_INIT_KERN, 
                                 RVM_KERN_DEBUG_REG_MOD,
                                 Cap_Thd,
                                 Params)==0);
     RVM_LOG_SUS("Sftd:R6:0x",Params[0],"\r\n");
     
-    Params[0]=RVM_KERN_DEBUG_REG_MOD_R7_READ;
+    Params[0]=RVM_A7M_KERN_DEBUG_REG_MOD_R7_GET;
     RVM_ASSERT(RVM_A7M_Kern_Act(RVM_BOOT_INIT_KERN, 
                                 RVM_KERN_DEBUG_REG_MOD,
                                 Cap_Thd,
                                 Params)==0);
     RVM_LOG_SUS("Sftd:R7:0x",Params[0],"\r\n");
     
-    Params[0]=RVM_KERN_DEBUG_REG_MOD_R8_READ;
+    Params[0]=RVM_A7M_KERN_DEBUG_REG_MOD_R8_GET;
     RVM_ASSERT(RVM_A7M_Kern_Act(RVM_BOOT_INIT_KERN, 
                                 RVM_KERN_DEBUG_REG_MOD,
                                 Cap_Thd,
                                 Params)==0);
     RVM_LOG_SUS("Sftd:R8:0x",Params[0],"\r\n");
     
-    Params[0]=RVM_KERN_DEBUG_REG_MOD_R9_READ;
+    Params[0]=RVM_A7M_KERN_DEBUG_REG_MOD_R9_GET;
     RVM_ASSERT(RVM_A7M_Kern_Act(RVM_BOOT_INIT_KERN, 
                                 RVM_KERN_DEBUG_REG_MOD,
                                 Cap_Thd,
                                 Params)==0);
     RVM_LOG_SUS("Sftd:R9:0x",Params[0],"\r\n");
     
-    Params[0]=RVM_KERN_DEBUG_REG_MOD_R10_READ;
+    Params[0]=RVM_A7M_KERN_DEBUG_REG_MOD_R10_GET;
     RVM_ASSERT(RVM_A7M_Kern_Act(RVM_BOOT_INIT_KERN, 
                                 RVM_KERN_DEBUG_REG_MOD,
                                 Cap_Thd,
                                 Params)==0);
     RVM_LOG_SUS("Sftd:R10:0x",Params[0],"\r\n");
     
-    Params[0]=RVM_KERN_DEBUG_REG_MOD_R11_READ;
+    Params[0]=RVM_A7M_KERN_DEBUG_REG_MOD_R11_GET;
     RVM_ASSERT(RVM_A7M_Kern_Act(RVM_BOOT_INIT_KERN, 
                                 RVM_KERN_DEBUG_REG_MOD,
                                 Cap_Thd,
                                 Params)==0);
     RVM_LOG_SUS("Sftd:R11:0x",Params[0],"\r\n");
     
-    Params[0]=RVM_KERN_DEBUG_REG_MOD_LR_READ;
-    RVM_ASSERT(RVM_A7M_Kern_Act(RVM_BOOT_INIT_KERN, 
-                                RVM_KERN_DEBUG_REG_MOD,
-                                Cap_Thd,
-                                Params)==0);
-    RVM_LOG_SUS("Sftd:LR:0x",Params[0],"\r\n");
-    
-    Params[0]=RVM_KERN_DEBUG_REG_MOD_SP_READ;
+    Params[0]=RVM_A7M_KERN_DEBUG_REG_MOD_SP_GET;
     RVM_ASSERT(RVM_A7M_Kern_Act(RVM_BOOT_INIT_KERN, 
                                 RVM_KERN_DEBUG_REG_MOD,
                                 Cap_Thd,
                                 Params)==0);
     RVM_LOG_SUS("Sftd:SP:0x",Params[0],"\r\n");
     
+    Params[0]=RVM_A7M_KERN_DEBUG_REG_MOD_LR_GET;
+    RVM_ASSERT(RVM_A7M_Kern_Act(RVM_BOOT_INIT_KERN, 
+                                RVM_KERN_DEBUG_REG_MOD,
+                                Cap_Thd,
+                                Params)==0);
+    RVM_LOG_SUS("Sftd:LR:0x",Params[0],"\r\n");
+
     /* We know where SP is, but we are not sure whether accessing SP in RVM
      * will cause issues. We assume that the user program will not fiddle
      * with SP maliciously (especially during the debugging phase) and we 

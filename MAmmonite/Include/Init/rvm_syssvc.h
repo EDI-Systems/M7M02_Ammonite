@@ -90,6 +90,7 @@ do \
         RVM_PRINTU_S(", "); \
         RVM_PRINTU_S(__TIME__); \
         RVM_PRINTU_S("\r\n"); \
+        RVM_Kern_Act(RVM_BOOT_INIT_KERN,RVM_KERN_SYS_REBOOT,0,0,0); \
         while(1); \
     } \
 } \

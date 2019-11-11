@@ -42,6 +42,11 @@ Description: The configuration file for STM32F767IG. The values listed here shou
 #define RVM_A7M_VECT_FLAG_ADDR                          (0x2000FC00)
 /* Shared interrupt flag region address - always 512B memory for ARMv7-M */
 #define RVM_A7M_EVT_FLAG_ADDR                           (0x2000FE00)
+
+/* Fixed info ****************************************************************/
+/* What is the vector number excluding system vectors? */
+#define RVM_A7M_VECT_NUM                                (110)
+
 /* Syslib configurations *****************************************************/
 /* Stack redundancy */
 #define RVM_STACK_SAFE_RDCY                             (0x10)
@@ -58,8 +63,8 @@ Description: The configuration file for STM32F767IG. The values listed here shou
 /* Is debugging output enabled? */
 #define RVM_DEBUG_LOG                                   RVM_TRUE
 
-#define RVM_A7M_USART1_TDR                              RVM_A7M_REG(0x40011000+0x28)
-#define RVM_A7M_USART1_ISR                              RVM_A7M_REG(0x40011000+0x1C)
+#define RVM_A7M_USART1_ISR                              RVM_A7M_REG(0x4001101C)
+#define RVM_A7M_USART1_TDR                              RVM_A7M_REG(0x40011028)
 
 /* Print characters to console */
 #define RVM_A7M_PUTCHAR(CHAR) \

@@ -85,6 +85,7 @@ do \
         RVM_PRINTU_S(", "); \
         RVM_PRINTU_S(__TIME__); \
         RVM_PRINTU_S("\r\n"); \
+        *((volatile rvm_ptr_t*)0)=0; \
         while(1); \
     } \
 } \
@@ -309,18 +310,18 @@ struct RVM_Vect_Handler
 #undef EXTERN
 #define EXTERN
 /*****************************************************************************/
-
-/*****************************************************************************/
-/* End Private Global Variables **********************************************/
-
-/* Private C Function Prototypes *********************************************/ 
-/*****************************************************************************/
 #ifdef RVM_VIRT_VECT_NUM
 static struct RVM_Vect_Handler RVM_Vect;
 static rvm_ptr_t RVM_Int_Enable;
 static rvm_ptr_t RVM_Vect_Pend;
 static rvm_ptr_t RVM_Vect_Active;
 #endif
+/*****************************************************************************/
+/* End Private Global Variables **********************************************/
+
+/* Private C Function Prototypes *********************************************/ 
+/*****************************************************************************/
+
 /*****************************************************************************/
 #endif /* __HDR_PRIVATE_MEMBERS__ */
 /* End Private C Function Prototypes *****************************************/
