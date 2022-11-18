@@ -1,0 +1,119 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html><head>
+<title>Static Call Graph - [.\Objects\Proc1.axf]</title></head>
+<body><HR>
+<H1>Static Call Graph for image .\Objects\Proc1.axf</H1><HR>
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6180002: Last Updated: Tue Oct 25 14:42:34 2022
+<BR><P>
+<H3>Maximum Stack Usage =          8 bytes + Unknown(Functions without stacksize, Untraceable Function Pointers)</H3><H3>
+Call chain for Maximum Stack Depth:</H3>
+main
+<P>
+<H3>
+Functions with no stack information
+</H3><UL>
+ <LI><a href="#[2]">_RVM_Jmp_Stub</a>
+ <LI><a href="#[3]">RVM_Entry</a>
+ <LI><a href="#[11]">RVM_Inv_Act</a>
+ <LI><a href="#[12]">RVM_Inv_Ret</a>
+ <LI><a href="#[13]">RVM_Thd_Sched_Rcv</a>
+ <LI><a href="#[9]">RVM_Svc</a>
+ <LI><a href="#[14]">RVM_A7M_Svc_Kern</a>
+ <LI><a href="#[15]">_RVM_MSB_Get</a>
+ <LI><a href="#[16]">RVM_Fetch_And</a>
+</UL>
+</UL>
+<P>
+<H3>
+Function Pointers
+</H3><UL>
+ <LI><a href="#[1]">Thd_Thd1</a> from proc_proc1.o(.text.Thd_Thd1) referenced 2 times from proc_proc1.o(.text.main)
+ <LI><a href="#[0]">main</a> from proc_proc1.o(.text.main) referenced from entry9a.o(.ARM.Collect$$$$0000000B)
+</UL>
+<P>
+<H3>
+Global Symbols
+</H3>
+<P><STRONG><a name="[2]"></a>_RVM_Jmp_Stub</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rvm_proc_asm.o(ARCH), UNUSED, KEPT)
+
+<P><STRONG><a name="[3]"></a>RVM_Entry</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rvm_proc_asm.o(ARCH))
+<BR><BR>[Called By]<UL><LI><a href="#[0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+</UL>
+
+<P><STRONG><a name="[4]"></a>__main</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry.o(.ARM.Collect$$$$00000000))
+
+<P><STRONG><a name="[a]"></a>_main_stk</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry2.o(.ARM.Collect$$$$00000001))
+
+<P><STRONG><a name="[5]"></a>_main_scatterload</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry5.o(.ARM.Collect$$$$00000004))
+<BR><BR>[Calls]<UL><LI><a href="#[6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__scatterload
+</UL>
+
+<P><STRONG><a name="[7]"></a>__main_after_scatterload</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry5.o(.ARM.Collect$$$$00000004))
+<BR><BR>[Called By]<UL><LI><a href="#[6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__scatterload
+</UL>
+
+<P><STRONG><a name="[b]"></a>_main_clock</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry7b.o(.ARM.Collect$$$$00000008))
+
+<P><STRONG><a name="[c]"></a>_main_cpp_init</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry8b.o(.ARM.Collect$$$$0000000A))
+
+<P><STRONG><a name="[d]"></a>_main_init</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry9a.o(.ARM.Collect$$$$0000000B))
+
+<P><STRONG><a name="[e]"></a>__rt_final_cpp</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry10a.o(.ARM.Collect$$$$0000000D))
+
+<P><STRONG><a name="[f]"></a>__rt_final_exit</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry11a.o(.ARM.Collect$$$$0000000F))
+
+<P><STRONG><a name="[6]"></a>__scatterload</STRONG> (Thumb, 28 bytes, Stack size 0 bytes, init.o(.text))
+<BR><BR>[Calls]<UL><LI><a href="#[7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__main_after_scatterload
+</UL>
+<BR>[Called By]<UL><LI><a href="#[5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_main_scatterload
+</UL>
+
+<P><STRONG><a name="[10]"></a>__scatterload_rt2</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, init.o(.text), UNUSED)
+
+<P><STRONG><a name="[8]"></a>RVM_Sig_Rcv</STRONG> (Thumb, 14 bytes, Stack size 0 bytes, rvm_guest.o(.text.RVM_Sig_Rcv))
+<BR><BR>[Calls]<UL><LI><a href="#[9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RVM_Svc
+</UL>
+<BR>[Called By]<UL><LI><a href="#[1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Thd_Thd1
+</UL>
+
+<P><STRONG><a name="[1]"></a>Thd_Thd1</STRONG> (Thumb, 10 bytes, Stack size 0 bytes, proc_proc1.o(.text.Thd_Thd1))
+<BR><BR>[Calls]<UL><LI><a href="#[8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RVM_Sig_Rcv
+</UL>
+<BR>[Address Reference Count : 1]<UL><LI> proc_proc1.o(.text.main)
+</UL>
+<P><STRONG><a name="[0]"></a>main</STRONG> (Thumb, 34 bytes, Stack size 8 bytes, proc_proc1.o(.text.main))
+<BR><BR>[Stack]<UL><LI>Max Depth = 8 + Unknown Stack Size
+<LI>Call Chain = main
+</UL>
+<BR>[Calls]<UL><LI><a href="#[3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RVM_Entry
+</UL>
+<BR>[Address Reference Count : 1]<UL><LI> entry9a.o(.ARM.Collect$$$$0000000B)
+</UL>
+<P><STRONG><a name="[11]"></a>RVM_Inv_Act</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rvm_guest_a7m_asm.o(RESET), UNUSED)
+
+<P><STRONG><a name="[12]"></a>RVM_Inv_Ret</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rvm_guest_a7m_asm.o(RESET), UNUSED)
+
+<P><STRONG><a name="[13]"></a>RVM_Thd_Sched_Rcv</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rvm_guest_a7m_asm.o(RESET), UNUSED)
+
+<P><STRONG><a name="[9]"></a>RVM_Svc</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rvm_guest_a7m_asm.o(RESET))
+<BR><BR>[Called By]<UL><LI><a href="#[8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RVM_Sig_Rcv
+</UL>
+
+<P><STRONG><a name="[14]"></a>RVM_A7M_Svc_Kern</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rvm_guest_a7m_asm.o(RESET), UNUSED)
+
+<P><STRONG><a name="[15]"></a>_RVM_MSB_Get</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rvm_guest_a7m_asm.o(RESET), UNUSED)
+
+<P><STRONG><a name="[16]"></a>RVM_Fetch_And</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rvm_guest_a7m_asm.o(RESET), UNUSED)
+
+<P><STRONG><a name="[17]"></a>__scatterload_copy</STRONG> (Thumb, 14 bytes, Stack size unknown bytes, handlers.o(i.__scatterload_copy), UNUSED)
+
+<P><STRONG><a name="[18]"></a>__scatterload_null</STRONG> (Thumb, 2 bytes, Stack size unknown bytes, handlers.o(i.__scatterload_null), UNUSED)
+
+<P><STRONG><a name="[19]"></a>__scatterload_zeroinit</STRONG> (Thumb, 14 bytes, Stack size unknown bytes, handlers.o(i.__scatterload_zeroinit), UNUSED)
+<P>
+<H3>
+Local Symbols
+</H3><P>
+<H3>
+Undefined Global Symbols
+</H3><HR></body></html>

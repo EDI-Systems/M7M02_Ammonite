@@ -1,0 +1,37 @@
+;******************************************************************************
+;Filename    : proc_virt1.sct
+;Author      : The RME project generator.
+;Date        : 10/11/2019
+;Licence     : LGPL v3+; see COPYING for details.
+;Description : The scatter file for the process.
+;******************************************************************************
+
+; Begin Segment:PROC **********************************************************
+; Description : The process segment, where the current process is located at.
+; *****************************************************************************
+PROC 0x8030000 0x8000
+{
+    ; The code segment of the process
+    PROC_CODE 0x8030000 0x8000
+    {
+        ; The entry will be the first instruction
+        rvm_proc_asm.o         (ARCH, +First)
+        ; The lib code copying code
+        *                      (InRoot$$Sections)
+        ; The init code section
+        .ANY                   (+RO)
+    }
+
+    ; The data section of the process
+    PROC_DATA 0x20004000 0x1400
+    {
+        .ANY                   (+RW +ZI)
+    }
+}
+; End Segment:PROC ************************************************************
+
+; End Of File *****************************************************************
+
+; Copyright (C) Evo-Devo Instrum. All rights reserved *************************
+
+

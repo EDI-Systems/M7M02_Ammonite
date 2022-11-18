@@ -1,0 +1,170 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         ;/******************************************************
+                       ***********************
+    2 00000000         ;Filename    : rvm_proc_asm.s
+    3 00000000         ;Author      : The RME project generator.
+    4 00000000         ;Date        : 10/11/2019
+    5 00000000         ;Licence     : LGPL v3+; see COPYING for details.
+    6 00000000         ;Description : The assembly stub file for the process.
+    7 00000000         ;*******************************************************
+                       **********************/
+    8 00000000         
+    9 00000000         ;/* Begin Header ***************************************
+                       **********************/
+   10 00000000         ;The align is "(2^3)/8=1(Byte)." In fact it does not tak
+                       e effect.
+   11 00000000                 AREA             ARCH,CODE,READONLY,ALIGN=3
+   12 00000000                 THUMB
+   13 00000000                 REQUIRE8
+   14 00000000                 PRESERVE8
+   15 00000000         ;/* End Header *****************************************
+                       **********************/
+   16 00000000         
+   17 00000000         ;/* Begin Imports **************************************
+                       **********************/
+   18 00000000                 IMPORT           __main
+   19 00000000         ;Threads
+   20 00000000                 IMPORT           Thd_Thd1
+   21 00000000         ;Invocations
+   22 00000000         ;/* End Imports ****************************************
+                       **********************/
+   23 00000000         
+   24 00000000         ;/* Begin Exports **************************************
+                       **********************/
+   25 00000000                 EXPORT           _RVM_Jmp_Stub
+   26 00000000                 EXPORT           RVM_Entry
+   27 00000000         ;/* End Exports ****************************************
+                       **********************/
+   28 00000000         
+   29 00000000         ;/* Begin Entry List ***********************************
+                       **********************/
+   30 00000000 F7FF BFFE       B                __main
+   31 00000004 00 00 00 
+              00 00 00 
+              00 00 00 
+              00 00 00 
+              00 00 00 
+              00 00 00 
+              00 00 00 
+              00 00 00 
+              00 00 00 
+              00               SPACE            28
+   32 00000020         ;/* End Entry List *************************************
+                       **********************/
+   33 00000020         
+   34 00000020         ;/* Begin Function:_RVM_Jmp_Stub ***********************
+                       ***********************
+   35 00000020         ;Description : The user level stub for thread creation.
+   36 00000020         ;Input       : R4 - rvm_ptr_t Entry - The entry address.
+                       
+   37 00000020         ;              R5 - rvm_ptr_t Stack - The stack address 
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+                       that we are using now.
+   38 00000020         ;Output      : None.
+   39 00000020         ;Return      : None.
+   40 00000020         ;*******************************************************
+                       **********************/
+   41 00000020         _RVM_Jmp_Stub
+   42 00000020 B090            SUB              SP,#0x40    ; In order not to d
+                                                            estroy the stack
+   43 00000022 4628            MOV              R0,R5
+   44 00000024 47A0            BLX              R4          ; Branch to the act
+                                                            ual entry address.
+   45 00000026         ;/* End Function:_RVM_Jmp_Stub *************************
+                       **********************/
+   46 00000026         
+   47 00000026         ;/* Begin Function:RVM_Entry ***************************
+                       ***********************
+   48 00000026         ;Description : The jump to a desired position to start i
+                       nitialization of the system,
+   49 00000026         ;              using a certain stack address.
+   50 00000026         ;Input       : rvm_ptr_t R0 - The entry.
+   51 00000026         ;              rvm_ptr_t R1 - The stack base.
+   52 00000026         ;              rvm_ptr_t R2 - The stack length.
+   53 00000026         ;              rvm_ptr_r R3 - The parameter.
+   54 00000026         ;Output      : None.
+   55 00000026         ;Return      : None.
+   56 00000026         ;*******************************************************
+                       **********************/
+   57 00000026         RVM_Entry
+   58 00000026 4411            ADD              R1,R1,R2
+   59 00000028 F5A1 7180       SUB              R1,#0x100
+   60 0000002C 468D            MOV              SP,R1
+   61 0000002E 4604            MOV              R4,R0
+   62 00000030 4618            MOV              R0,R3
+   63 00000032 4720            BX               R4
+   64 00000034         ;/* End Function:RVM_Entry *****************************
+                       **********************/
+   65 00000034                 END
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp --apcs=int
+erwork --depend=.\objects\rvm_proc_asm.d -o.\objects\rvm_proc_asm.o -I../Source
+ -I../Include -I. -I.\RTE\_Proc1 -ID:\Program_Files_x86\Keil_v5\Packs\Keil\STM3
+2F4xx_DFP\2.14.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include -ID:\Program_Files_x
+86\Keil_v5\ARM\CMSIS\Include --predefine="__MICROLIB SETA 1" --predefine="__UVI
+SION_VERSION SETA 528" --predefine="STM32F405xx SETA 1" --list=.\listings\rvm_p
+roc_asm.lst ../Source/rvm_proc_asm.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+ARCH 00000000
+
+Symbol: ARCH
+   Definitions
+      At line 11 in file ../Source/rvm_proc_asm.s
+   Uses
+      None
+Comment: ARCH unused
+RVM_Entry 00000026
+
+Symbol: RVM_Entry
+   Definitions
+      At line 57 in file ../Source/rvm_proc_asm.s
+   Uses
+      At line 26 in file ../Source/rvm_proc_asm.s
+Comment: RVM_Entry used once
+_RVM_Jmp_Stub 00000020
+
+Symbol: _RVM_Jmp_Stub
+   Definitions
+      At line 41 in file ../Source/rvm_proc_asm.s
+   Uses
+      At line 25 in file ../Source/rvm_proc_asm.s
+Comment: _RVM_Jmp_Stub used once
+3 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+External symbols
+
+Thd_Thd1 00000000
+
+Symbol: Thd_Thd1
+   Definitions
+      At line 20 in file ../Source/rvm_proc_asm.s
+   Uses
+      None
+Comment: Thd_Thd1 unused
+__main 00000000
+
+Symbol: __main
+   Definitions
+      At line 18 in file ../Source/rvm_proc_asm.s
+   Uses
+      At line 30 in file ../Source/rvm_proc_asm.s
+Comment: __main used once
+2 symbols
+339 symbols in table

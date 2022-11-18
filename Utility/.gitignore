@@ -1,0 +1,77 @@
+﻿# Prerequisites
+*.d
+
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Linker output
+*.ilk
+*.map
+*.exp
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Kernel Module Compile Results
+*.mod*
+*.cmd
+.tmp_versions/
+modules.order
+Module.symvers
+Mkfile.old
+dkms.conf
+
+# Unneeded history and documents
+Documents/*
+!Documents/CN_G7S2_MCU-Compiler-User-Manual.pdf
+
+# Keil/eclipse specific
+Project/**/Debug/*
+!Project/ECLIPSE-GCC-X64/RME/Debug/*
+!Project/ECLIPSE-GCC-STM32F767IGT6/RME/Debug/*
+*.tmp
+*.uvgui*
+*.uvopt*
+*.dep
+*.TMP
+RME.asm
+
+# CCS specific
+Project/**/.jxbrowser-data/**
+Project/**/.metadata/**
+Project/**/.tempFiles/**
+Project/**/.jxbrowser-data/**
+
+# MSVC specific
+Example/Project/*
+

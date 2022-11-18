@@ -1,0 +1,97 @@
+###############################################################################
+Project Test_Proj [A7M, STM32F405RG, STM32F405RGT6]
+-------------------------------------------------------------------------------
+Main capability table                                                 22/54/128
+Total kernel objects                                                         31
+Auxiliary capability tables                                                   8
+Processes                                                3 (1 Virtual machines)
+Capability tables                                                             3
+Page tables                                                                  16
+Threads                                                                       4
+Invocations                                                                   1
+Endpoints                                                                     3
+-------------------------------------------------------------------------------
+RME code memory                                                         0x10000
+RME data memory                                                           0xB40
+RVM code memory                                                         0x10000
+RVM data memory                                                          0x1800
+Kernel memory                                                     0x1890/0x18C0
+Processes                                                                  0x60
+Capability tables                                                          0x60
+Page tables                                                               0x560
+Threads                                                                   0x380
+Invocations                                                                0x50
+Endpoints                                                                  0x60
+-------------------------------------------------------------------------------
+Private code memory                                                     0x18000
+Private data memory                                                      0xB000
+Private device memory                                                   0x10000
+Shared code memory                                                          0x0
+Shared data memory                                                       0x1000
+Shared device memory                                                        0x0
+-------------------------------------------------------------------------------
+Code memory usage                                     0x38000/0x100000 (21.88%)
+Data memory usage                                      0x13000/0x30000 (39.58%)
+Device memory usage                                 0x34000/0x40000000 (------)
+###############################################################################
+Process Proc1 [Native]                                           RVM_PROC_PROC1
+- Stats -----------------------------------------------------------------------
+Capability table                                                       4/14/128
+Code memory                                                              0x8000
+Data memory                                                              0x6000
+Device memory                                                           0x10000
+- Memory Map ------------------------------------------------------------------
+Main_Code                                Private, R-XBCS, 0x8020000 - 0x8027FFF
+Extra_Data                             Private, RW-BCS, 0x10007000 - 0x10007FFF
+Shared1                                 Shared, RW-BCS, 0x10008000 - 0x10008FFF
+Main_Data                              Private, RWXBCS, 0x20000000 - 0x20003FFF
+Main_Device                            Private, RW---S, 0xF0000000 - 0xF000FFFF
+- Threads ---------------------------------------------------------------------
+Thd1                           RVM_PROC_PROC1_THD_THD1, 0x20003E00 - 0x20003FFF
+- Receive endpoints -----------------------------------------------------------
+Recv1                                     RECV_RECV1, RVM_PROC_PROC1_RECV_RECV1
+- Kernel functions ------------------------------------------------------------
+Kfunc1                                                 KERN_KFUNC1, 0x60 - 0x90
+###############################################################################
+Process Proc2 [Native]                                           RVM_PROC_PROC2
+- Stats -----------------------------------------------------------------------
+Capability table                                                        5/6/128
+Code memory                                                              0x8000
+Data memory                                                              0x5000
+Device memory                                                               0x0
+- Memory Map ------------------------------------------------------------------
+(Anonymous)                              Private, R-XBCS, 0x8028000 - 0x802FFFF
+Shared1                                 Shared, RW-BCS, 0x10008000 - 0x10008FFF
+Main_Data                              Private, RWXBCS, 0x20006000 - 0x20009FFF
+- Threads ---------------------------------------------------------------------
+Thd1                           RVM_PROC_PROC2_THD_THD1, 0x20009E00 - 0x20009FFF
+- Invocations -----------------------------------------------------------------
+Inv1                           RVM_PROC_PROC2_INV_INV1, 0x20009C00 - 0x20009DFF
+- Receive endpoints -----------------------------------------------------------
+Recv1                                     RECV_RECV1, RVM_PROC_PROC2_RECV_RECV1
+- Send endpoints --------------------------------------------------------------
+Recv1, Proc1                              SEND_RECV1, RVM_PROC_PROC1_RECV_RECV1
+- Vector endpoints ------------------------------------------------------------
+TIM2 (28)                                         VECT_TIM2, RVM_BOOT_VECT_TIM2
+- Kernel functions ------------------------------------------------------------
+Kfunc1                                               KERN_KFUNC1, 0x125 - 0x126
+###############################################################################
+Process Virt1 [Virtual]                                          RVM_PROC_VIRT1
+- Stats -----------------------------------------------------------------------
+Capability table                                                        4/6/128
+Code memory                                                              0x8000
+Data memory                                                              0x3000
+Device memory                                                               0x0
+- Memory Map ------------------------------------------------------------------
+Main_Code                                Private, R-XBCS, 0x8030000 - 0x8037FFF
+Shared1                                 Shared, RW-BCS, 0x10008000 - 0x10008FFF
+Main_Data                              Private, RWXBCS, 0x20004000 - 0x20005FFF
+- Threads ---------------------------------------------------------------------
+Vect                           RVM_PROC_VIRT1_THD_VECT, 0x20005C00 - 0x20005FFF
+User                           RVM_PROC_VIRT1_THD_USER, 0x20005800 - 0x20005BFF
+- Send endpoints --------------------------------------------------------------
+Recv1, Proc1                              SEND_RECV1, RVM_PROC_PROC1_RECV_RECV1
+- Kernel functions ------------------------------------------------------------
+Kfunc1                                               KERN_KFUNC1, 0x100 - 0x200
+###############################################################################
+

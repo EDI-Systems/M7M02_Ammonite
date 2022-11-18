@@ -1,1 +1,0 @@
-copy syslib_cmx_conf.h ..\..\..\Lib\Include\Platform\CortexM\syslib_cmx_conf.h
