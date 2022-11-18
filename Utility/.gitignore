@@ -75,3 +75,4 @@ Project/**/.jxbrowser-data/**
 # MSVC specific
 Example/Project/*
 
+/.metadata/
