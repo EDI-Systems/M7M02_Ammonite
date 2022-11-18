@@ -1,0 +1,175 @@
+/******************************************************************************
+Filename    : chip_info.cpp
+Author      : pry
+Date        : 2022/11/19
+Licence     : LGPL v3+; see COPYING for details.
+Description : The chip information class.
+******************************************************************************/
+
+/* Includes ******************************************************************/
+#include "string"
+#include "memory"
+#include "vector"
+#include "stdexcept"
+
+extern "C"
+{
+#include "xml.h"
+}
+
+#define __HDR_DEFS__
+#include "proj_gen.hpp"
+#include "Chip_Info/chip_info.hpp"
+#undef __HDR_DEFS__
+
+#define __HDR_CLASSES__
+#include "Chip_Info/chip_info.hpp"
+#include "Raw_Info/raw_info.hpp"
+#undef __HDR_CLASSES__
+/* End Includes **************************************************************/
+namespace RVM_GEN
+{
+/* Begin Function:Chip_Info::Chip_Info ****************************************
+Description : Constructor for Chip class.
+Input       : xml_node_t* Node - The node containing the chip information.
+Output      : None.
+Return      : None.
+******************************************************************************/
+/* void */ Chip_Info::Chip_Info(xml_node_t* Node)
+{
+    xml_node_t* Temp;
+    xml_node_t* Trunk;
+    xml_node_t* Mem_Type;
+    std::unique_ptr<std::string> Str;
+
+    try
+    {
+        /* Parse the XML content */
+        if((Node->XML_Tag_Len!=4)||(strncmp(Node->XML_Tag,"Chip",4)!=0))
+            throw std::invalid_argument("D0001: Chip XML is malformed.");
+
+        /* Class */
+        if((XML_Child(Node,"Class",&Temp)<0)||(Temp==0))
+            throw std::invalid_argument("D0002: Class section is missing.");
+        if(Temp->XML_Val_Len==0)
+            throw std::invalid_argument("D0003: Class section is empty.");
+        this->Chip_Class=std::make_unique<std::string>(Temp->XML_Val,(int)Temp->XML_Val_Len);
+
+        /* Compatible */
+        if((XML_Child(Node,"Compatible",&Temp)<0)||(Temp==0))
+            throw std::invalid_argument("D0004: Compatible variant section is missing.");
+        if(Temp->XML_Val_Len==0)
+            throw std::invalid_argument("D0005: Compatible variant section is empty.");
+        this->Chip_Compat=std::make_unique<std::string>(Temp->XML_Val,(int)Temp->XML_Val_Len);
+
+        /* Vendor */
+        if((XML_Child(Node,"Vendor",&Temp)<0)||(Temp==0))
+            throw std::invalid_argument("D0006: Vendor section is missing.");
+        if(Temp->XML_Val_Len==0)
+            throw std::invalid_argument("D0007: Vendor section is empty.");
+        this->Vendor=std::make_unique<std::string>(Temp->XML_Val,(int)Temp->XML_Val_Len);
+
+        /* Platform */
+        if((XML_Child(Node,"Platform",&Temp)<0)||(Temp==0))
+            throw std::invalid_argument("D0008: Platform section is missing.");
+        if(Temp->XML_Val_Len==0)
+            throw std::invalid_argument("D0009: Platform section is empty.");
+        this->Plat=std::make_unique<std::string>(Temp->XML_Val,(int)Temp->XML_Val_Len);
+
+        /* Cores */
+        if((XML_Child(Node,"Cores",&Temp)<0)||(Temp==0))
+            throw std::invalid_argument("D0010: Cores section is missing.");
+        if(XML_Get_Uint(Temp,&(this->Cores))<0)
+            throw std::invalid_argument("D0011: Cores is not an unsigned integer.");
+
+        /* Regions */
+        if((XML_Child(Node,"Regions",&Temp)<0)||(Temp==0))
+            throw std::invalid_argument("D0012: Regions section is missing.");
+        if(XML_Get_Uint(Temp,&(this->Regions))<0)
+            throw std::invalid_argument("D0013: Regions is not an unsigned integer.");
+    
+        /* Attribute */
+        if((XML_Child(Node,"Attribute",&Temp)<0)||(Temp==0))
+            throw std::invalid_argument("D0014: Attribute section missing.");
+        if(XML_Child(Temp,0,&Trunk)<0)
+            throw std::invalid_argument("D0015: Attribute section parsing internal error.");
+        while(Trunk!=0)
+        {
+            this->Attr.push_back(std::make_unique<class Raw>(Trunk));
+
+            if(XML_Child(Temp,"",&Trunk)<0)
+                throw std::invalid_argument("D0015: Attribute section parsing internal error.");
+        }
+
+        /* Memory */
+        if((XML_Child(Node,"Memory",&Temp)<0)||(Temp==0))
+            throw std::invalid_argument("D0016: Memory section is missing.");
+        if(XML_Child(Temp,0,&Trunk)<0)
+            throw std::invalid_argument("D0017: Memory section parsing internal error.");
+        if(Trunk==0)
+            throw std::invalid_argument("D0018: Memory section is empty.");
+        while(Trunk!=0)
+        {
+            if((XML_Child(Trunk,"Type",&Mem_Type)<0)||(Mem_Type==0))
+                throw std::invalid_argument("D0019: Memory type section is missing.");
+            if(Mem_Type->XML_Val_Len==0)
+                throw std::invalid_argument("D0020: Memory type section is empty.");
+            
+            Str=std::make_unique<std::string>(Mem_Type->XML_Val,(int)Mem_Type->XML_Val_Len);
+
+            if(*Str=="Code")
+                this->Code.push_back(std::make_unique<class Mem>(Trunk));
+            else if(*Str=="Data")
+                this->Data.push_back(std::make_unique<class Mem>(Trunk));
+            else if(*Str=="Device")
+                this->Device.push_back(std::make_unique<class Mem>(Trunk));
+            else
+                throw std::invalid_argument("D0021: Memory type is malformed.");
+
+            if(XML_Child(Temp,"",&Trunk)<0)
+                throw std::invalid_argument("D0017: Memory section parsing internal error.");
+        }
+
+        if(this->Code.size()==0)
+            throw std::invalid_argument("D0022: No code section exists.");
+        if(this->Data.size()==0)
+            throw std::invalid_argument("D0023: No data section exists.");
+        if(this->Device.size()==0)
+            throw std::invalid_argument("D0024: No device section exists.");
+
+        /* Option */
+        if((XML_Child(Node,"Option",&Temp)<0)||(Temp==0))
+            throw std::invalid_argument("D0025: Option section is missing.");
+        if(XML_Child(Temp,0,&Trunk)<0)
+            throw std::invalid_argument("D0026: Option section parsing internal error.");
+        while(Trunk!=0)
+        {
+            this->Option.push_back(std::make_unique<class Option>(Trunk));
+
+            if(XML_Child(Temp,"",&Trunk)<0)
+                throw std::invalid_argument("D0026: Option section parsing internal error.");
+        }
+
+        /* Vector */
+        if((XML_Child(Node,"Vector",&Temp)<0)||(Temp==0))
+            throw std::invalid_argument("D0027: Vector section missing.");
+        if(XML_Child(Temp,0,&Trunk)<0)
+            throw std::invalid_argument("D0028: Vector section parsing internal error.");
+        while(Trunk!=0)
+        {
+            this->Vect.push_back(std::make_unique<class Vect>(Trunk));
+            
+            if(XML_Child(Temp,"",&Trunk)<0)
+                throw std::invalid_argument("D0028: Vector section parsing internal error.");
+        }
+    }
+    catch(std::exception& Exc)
+    {
+        throw std::runtime_error(std::string("Chip: ")+"\n"+Exc.what());
+    }
+}
+/* End Function:Chip::Chip ***************************************************/
+}
+/* End Of File ***************************************************************/
+
+/* Copyright (C) Evo-Devo Instrum. All rights reserved ***********************/
