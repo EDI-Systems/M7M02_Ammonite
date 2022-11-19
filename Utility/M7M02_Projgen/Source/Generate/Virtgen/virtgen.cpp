@@ -4,7 +4,7 @@ Author      : pry
 Date        : 16/07/2019
 Licence     : LGPL v3+; see COPYING for details.
 Description : The rvm folder generation class.
-			  This generates the rvm-related, platform-agnostic files.
+              This generates the rvm-related, platform-agnostic files.
 ******************************************************************************/
 
 /* Includes ******************************************************************/
@@ -76,7 +76,7 @@ extern "C"
 #include "Gen/rme_genrvm.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 /* Begin Function:RVM_Gen::Include ********************************************
 Description : Generate the RVM-related include section.

@@ -55,7 +55,7 @@ extern "C"
 #include "Kobj/rme_proc.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 /* Begin Function:RME::RME ****************************************************
 Description : Constructor for RME class.

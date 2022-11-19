@@ -7,7 +7,7 @@ Description : The header for the thread class.
 ******************************************************************************/
 
 /* Defines *******************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 #ifdef __HDR_DEFS__
 #ifndef __RME_THD_HPP_DEFS__
@@ -45,11 +45,11 @@ class Thd:public Kobj
 {
 public:
     /* The stack size of the thread */
-	ptr_t Stack_Size;
+    ptr_t Stack_Size;
     /* The parameter passed to the thread */
-	ptr_t Param;
+    ptr_t Param;
     /* The priority of the thread */
-	ptr_t Prio;
+    ptr_t Prio;
     /* Memory map */
     std::unique_ptr<class Thd_Memmap> Map;
  

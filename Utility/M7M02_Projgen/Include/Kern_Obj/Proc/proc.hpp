@@ -7,7 +7,7 @@ Description : The header for the process.
 ******************************************************************************/
 
 /* Defines *******************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 #ifdef __HDR_DEFS__
 #ifndef __RME_PROC_HPP_DEFS__
@@ -86,29 +86,29 @@ class RME
 {
 public:
     /* RME code section start address */
-	ptr_t Code_Base;
+    ptr_t Code_Base;
     /* RME code section size */
-	ptr_t Code_Size;
+    ptr_t Code_Size;
     /* RME data section start address */
-	ptr_t Data_Base;
+    ptr_t Data_Base;
     /* RME data section size */
-	ptr_t Data_Size;
+    ptr_t Data_Size;
     /* RME kernel stack size */
-	ptr_t Stack_Size;
+    ptr_t Stack_Size;
     /* Extra amount of kernel memory */
-	ptr_t Extra_Kmem;
+    ptr_t Extra_Kmem;
     /* Slot order of kernel memory */
-	ptr_t Kmem_Order;
+    ptr_t Kmem_Order;
     /* Priorities supported */
-	ptr_t Kern_Prios;
+    ptr_t Kern_Prios;
 
     /* Compiler information */
     std::unique_ptr<class Comp> Comp;
 
     /* Raw information about platform, to be deal with by the platform-specific generator */
-	std::vector<std::unique_ptr<class Raw>> Plat;
+    std::vector<std::unique_ptr<class Raw>> Plat;
     /* Raw information about chip, to be deal with by the platform-specific generator */
-	std::vector<std::unique_ptr<class Raw>> Chip;
+    std::vector<std::unique_ptr<class Raw>> Chip;
 
     /* Final memory map information */
     std::unique_ptr<class RME_Memmap> Map;
@@ -196,9 +196,9 @@ public:
     /* Size of the data section. This always immediately follow the data section of RME. */
     ptr_t Data_Size;
     /* RVM service threads stack size */
-	ptr_t Stack_Size;
+    ptr_t Stack_Size;
     /* The extra amount in the main capability table */
-	ptr_t Extra_Captbl;
+    ptr_t Extra_Captbl;
 
     /* Virtual machine priorities */
     ptr_t Virt_Prios;

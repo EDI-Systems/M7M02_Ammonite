@@ -7,7 +7,7 @@ Description : The header for the project reader.
 ******************************************************************************/
 
 /* Defines *******************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 #ifdef __HDR_DEFS__
 #ifndef __RME_PROJ_HPP_DEFS__
@@ -59,20 +59,20 @@ class Proj
 {
 public:
     /* The name of the project */
-	std::unique_ptr<std::string> Name;
+    std::unique_ptr<std::string> Name;
     /* The platform used */
     std::unique_ptr<std::string> Plat_Name;
     /* The all-lower-case of the platform used */
     std::unique_ptr<std::string> Plat_Lower;
     /* The chip class used */
-	std::unique_ptr<std::string> Chip_Class;
+    std::unique_ptr<std::string> Chip_Class;
     /* The full name of the exact chip used */
     std::unique_ptr<std::string> Chip_Full;
     
     /* The RME kernel information */
-	std::unique_ptr<class RME> RME;
+    std::unique_ptr<class RME> RME;
     /* The RVM user-library information */
-	std::unique_ptr<class RVM> RVM;
+    std::unique_ptr<class RVM> RVM;
     /* The extra memory information */
     std::vector<std::unique_ptr<class Mem>> Extmem_Code;
     std::vector<std::unique_ptr<class Mem>> Extmem_Data;
@@ -82,7 +82,7 @@ public:
     std::vector<std::unique_ptr<class Mem>> Shmem_Data;
     std::vector<std::unique_ptr<class Mem>> Shmem_Device;
     /* The process information */
-	std::vector<std::unique_ptr<class Proc>> Proc;
+    std::vector<std::unique_ptr<class Proc>> Proc;
     /* The virtual machine information - some processes are VMs */
     std::vector<class Virt*> Virt;
 

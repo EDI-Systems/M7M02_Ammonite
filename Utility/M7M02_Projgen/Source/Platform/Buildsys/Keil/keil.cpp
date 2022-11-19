@@ -85,7 +85,7 @@ extern "C"
 #include "Guest/rme_guest.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 /* Begin Function:A7M_IDE_Keil::Proj ******************************************
 Description : Generate the keil project for ARMv7-M.

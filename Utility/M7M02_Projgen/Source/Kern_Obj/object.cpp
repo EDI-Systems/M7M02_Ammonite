@@ -44,7 +44,7 @@ extern "C"
 #include "Kobj/rme_proc.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 /* Begin Function:Kobj::~Kobj *************************************************
 Description : Pure virtual destructor for Kobj class (cannot be omitted).

@@ -7,7 +7,7 @@ Description : The header for the whole project generation class.
 ******************************************************************************/
 
 /* Defines *******************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 #ifdef __HDR_DEFS__
 #ifndef __RME_GENPROJ_HPP_DEFS__

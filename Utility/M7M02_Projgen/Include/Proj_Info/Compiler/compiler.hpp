@@ -7,7 +7,7 @@ Description : The header for the compiler option class.
 ******************************************************************************/
 
 /* Defines *******************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 #ifdef __HDR_DEFS__
 #ifndef __RME_COMP_HPP_DEFS__

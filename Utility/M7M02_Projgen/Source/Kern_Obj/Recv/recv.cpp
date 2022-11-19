@@ -29,7 +29,7 @@ extern "C"
 #include "Kobj/rme_recv.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 /* Begin Function:Recv::Recv **************************************************
 Description : Constructor for Recv class.

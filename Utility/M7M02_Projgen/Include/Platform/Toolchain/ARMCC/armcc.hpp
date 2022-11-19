@@ -7,7 +7,7 @@ Description : The header for the ARMv7-M port's ARMCC 5 toolchain port.
 ******************************************************************************/
 
 /* Defines *******************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 #ifdef __HDR_DEFS__
 #ifndef __RME_A7M_TC_ARMC5_HPP_DEFS__

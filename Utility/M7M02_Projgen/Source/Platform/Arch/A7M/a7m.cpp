@@ -66,7 +66,7 @@ extern "C"
 #include "A7M/rme_a7m.hpp"
 #undef __HDR_STRUCTS__
 /* End Includes **************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 /* Begin Function:A7M::A7M ****************************************************
 Description : Select the ARMv7-M platform.

@@ -88,7 +88,7 @@ extern "C"
 #include "Guest/rme_guest_rmp.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 /* Begin Function:Guest_RMP::Generate *****************************************
 Description : Generate guest operating system RMP.

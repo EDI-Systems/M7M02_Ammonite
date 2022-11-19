@@ -81,7 +81,7 @@ extern "C"
 #include "A7M/rme_a7m.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 /* Begin Function:A7M_TC_Gcc::RME_Lds *****************************************
 Description : Generate the RME linker script for A7M port.
@@ -91,13 +91,13 @@ Return      : None.
 ******************************************************************************/
 void A7M_TC_Gcc::RME_Lds(class Main* Main)
 {
-		
+        
 }
 /* End Function:A7M_TC_Gcc::RME_Lds ******************************************/
 
 /* Begin Function:A7M_TC_Gcc::RME_Asm *****************************************
 Description : Generate the RME files for keil uvision.
-				This includes the platform-specific assembly file and the scatter.
+                This includes the platform-specific assembly file and the scatter.
 Input       : class Main* Main - The main class.
 Output      : None.
 Return      : None.
@@ -122,7 +122,7 @@ void A7M_TC_Gcc::RVM_Lds(class Main* Main)
 
 /* Begin Function:A7M_TC_Gcc::RVM_Asm *****************************************
 Description : Generate the RVM files for keil uvision.
-			  This includes the platform-specific assembly file and the scatter.
+              This includes the platform-specific assembly file and the scatter.
 Input       : class Main* Main - The main class.
 Output      : None.
 Return      : None.
@@ -136,7 +136,7 @@ void A7M_TC_Gcc::RVM_Asm(class Main* Main)
 /* Begin Function:A7M_TC_Gcc::Proc_Lds ****************************************
 Description : Generate the RVM linker script for A7M port.
 Input       : class Main* Main - The main class.
-				class Proc* Proc - The process we are generating for.
+                class Proc* Proc - The process we are generating for.
 Output      : None.
 Return      : None.
 ******************************************************************************/
@@ -148,9 +148,9 @@ void A7M_TC_Gcc::Proc_Lds(class Main* Main, class Proc* Proc)
 
 /* Begin Function:A7M_TC_Gcc::Proc_Asm **************************************
 Description : Generate the RVM files for keil uvision.
-			  This includes the platform-specific assembly file and the scatter.
+              This includes the platform-specific assembly file and the scatter.
 Input       : class Main* Main - The main class.
-			  class Proc* Proc - The process we are generating for.
+              class Proc* Proc - The process we are generating for.
 Output      : None.
 Return      : None.
 ******************************************************************************/

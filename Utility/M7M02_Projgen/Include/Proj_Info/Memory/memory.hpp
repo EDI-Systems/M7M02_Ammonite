@@ -7,7 +7,7 @@ Description : The header for the memory class.
 ******************************************************************************/
 
 /* Defines *******************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 #ifdef __HDR_DEFS__
 #ifndef __RME_MEM_HPP_DEFS__
@@ -41,13 +41,13 @@ class Mem
 {
 public:
     /* The name of the memory trunk */
-	std::unique_ptr<std::string> Name;
+    std::unique_ptr<std::string> Name;
     /* The memory base */
-	ptr_t Base;
+    ptr_t Base;
     /* The size */
-	ptr_t Size;
+    ptr_t Size;
     /* The attributes - read, write, execute, cacheable, bufferable, static */
-	ptr_t Attr;
+    ptr_t Attr;
     /* The alignment granularity */
     ptr_t Align;
     /* Is this a shared memory? this is only used when generating macros for it */
@@ -63,9 +63,9 @@ class Shmem
 {
 public:
     /* The name of the memory trunk */
-	std::unique_ptr<std::string> Name;
+    std::unique_ptr<std::string> Name;
     /* The attributes - read, write, execute, cacheable, bufferable, static */
-	ptr_t Attr;
+    ptr_t Attr;
 
     Shmem(xml_node_t* Node);
 };

@@ -7,7 +7,7 @@ Description : The header of the mcu tool.
 ******************************************************************************/
 
 /* Defines *******************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 #ifdef __HDR_DEFS__
 #ifndef __RME_A7M_HPP_DEFS__
@@ -79,9 +79,9 @@ private:
 
 public:
     /* The NVIC grouping */
-	ptr_t NVIC_Grouping;
+    ptr_t NVIC_Grouping;
     /* The systick value */
-	ptr_t Systick_Val;
+    ptr_t Systick_Val;
     /* The CPU type */
     ptr_t CPU_Type;
     /* The FPU type */

@@ -81,7 +81,7 @@ extern "C"
 #include "A7M/rme_a7m.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 /* Begin Function:A7M_IDE_Makefile::RME_Proj **********************************
 Description : Generate the RME keil project for ARMv7-M.

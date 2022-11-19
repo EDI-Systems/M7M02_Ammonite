@@ -29,7 +29,7 @@ extern "C"
 #include "Kobj/rme_thd.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 /* Begin Function:Thd::Thd ****************************************************
 Description : Constructor for Thd class.

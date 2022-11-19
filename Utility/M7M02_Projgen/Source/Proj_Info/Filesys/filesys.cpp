@@ -61,7 +61,7 @@ Return      : void* - If successful, the address; else 0.
 ******************************************************************************/
 extern "C" void* Malloc(ptr_t Size)
 {
-	return malloc((size_t)Size);
+    return malloc((size_t)Size);
 }
 /* End Function:Malloc *******************************************************/
 
@@ -73,7 +73,7 @@ Return      : None.
 ******************************************************************************/
 extern "C" void Free(void* Addr)
 {
-	free(Addr);
+    free(Addr);
 }
 /* End Function:Free *********************************************************/
 
@@ -116,7 +116,7 @@ extern "C" ptr_t Strlen(s8_t* Str)
     return strlen(Str);
 }
 /* End Function:Strlen *******************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 /* Begin Function:Dstfs::Dstfs ***********************************************
 Description : The constructor for the Dstfs class.

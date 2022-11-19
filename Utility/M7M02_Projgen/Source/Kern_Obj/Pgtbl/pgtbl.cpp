@@ -24,7 +24,7 @@ Description : The page table class.
 #include "Kobj/rme_pgtbl.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 /* Begin Function:Pgtbl::Pgtbl ************************************************
 Description : Constructor for Pgtbl class.

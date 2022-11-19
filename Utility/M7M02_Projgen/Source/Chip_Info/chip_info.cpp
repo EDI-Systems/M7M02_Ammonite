@@ -3,7 +3,8 @@ Filename    : chip_info.cpp
 Author      : pry
 Date        : 2022/11/19
 Licence     : LGPL v3+; see COPYING for details.
-Description : The chip information class.
+Description : The chip information class. This class is responsible for reading
+              chip parameters.
 ******************************************************************************/
 
 /* Includes ******************************************************************/
@@ -18,7 +19,7 @@ extern "C"
 }
 
 #define __HDR_DEFS__
-#include "proj_gen.hpp"
+#include "rvm_gen.hpp"
 #include "Chip_Info/chip_info.hpp"
 #undef __HDR_DEFS__
 

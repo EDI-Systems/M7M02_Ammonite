@@ -7,7 +7,7 @@ Description : The header for the chip class.
 ******************************************************************************/
 
 /* Defines *******************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 #ifdef __HDR_DEFS__
 #ifndef __RME_CHIP_HPP_DEFS__
@@ -49,15 +49,15 @@ class Chip
 {
 public:
     /* The name of the chip class */
-	std::unique_ptr<std::string> Chip_Class;
+    std::unique_ptr<std::string> Chip_Class;
     /* Compatible chip list */
-	std::unique_ptr<std::string> Chip_Compat;
+    std::unique_ptr<std::string> Chip_Compat;
     /* The vendor */
     std::unique_ptr<std::string> Vendor;
     /* The platform */
-	std::unique_ptr<std::string> Plat;
+    std::unique_ptr<std::string> Plat;
     /* The number of CPU cores */
-	ptr_t Cores;
+    ptr_t Cores;
     /* The number of MPU regions */
     ptr_t Regions;
 
@@ -68,9 +68,9 @@ public:
     std::vector<std::unique_ptr<class Mem>> Data;
     std::vector<std::unique_ptr<class Mem>> Device;
     /* Raw option information */
-	std::vector<std::unique_ptr<class Option>> Option;
+    std::vector<std::unique_ptr<class Option>> Option;
     /* Interrupt vector information */
-	std::vector<std::unique_ptr<class Vect>> Vect;
+    std::vector<std::unique_ptr<class Vector>> Vect;
 
     Chip(xml_node_t* Node);
 };

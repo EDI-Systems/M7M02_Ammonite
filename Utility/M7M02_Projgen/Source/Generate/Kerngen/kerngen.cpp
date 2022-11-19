@@ -75,7 +75,7 @@ extern "C"
 #include "Gen/rme_genrme.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 /* Begin Function:RME_Gen::Include ********************************************
 Description : Insert the include files into the paragraph. 

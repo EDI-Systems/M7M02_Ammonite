@@ -5,7 +5,7 @@ Date        : 20/04/2019
 Licence     : LGPL v3+; see COPYING for details.
 Description : The configuration generator for the MCU ports. This does not
               apply to the desktop or mainframe port; it uses its own generator.
-			  This generator includes 12 big steps, and is considerably complex.
+              This generator includes 12 big steps, and is considerably complex.
                1. Process the command line arguments and figure out where the source
                   are located at.
                2. Read the project-level configuration XMLs and device-level 
@@ -68,7 +68,7 @@ extern "C"
 #include "algorithm"
 
 #define __HDR_DEFS__
-#include "Main/rme_mcu.hpp"
+#include "rvm_gen.hpp"
 #include "Main/rme_fsys.hpp"
 #include "Main/rme_chip.hpp"
 #include "Main/rme_comp.hpp"
@@ -127,8 +127,30 @@ extern "C"
 
 #include "A7M/rme_a7m_mcu.hpp"
 /* End Includes **************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
+/* Begin Function:Main::XML_Get_String ****************************************
+Description : Get strings from the XML entry.
+Input       : xml_node_t* Root - The pointer to the root node.
+              const char* Name - The entry to look for.
+              const char* Errno0 - The error number 0.
+              const char* Errno1 - The error number 1.
+Output      : None.
+Return      : std::string - The string extracted.
+******************************************************************************/
+static std::string XML_Get_String(xml_node_t* Root, const char* Name,
+                                  const char* Errno0, const char* Errno1)
+{
+    xml_node_t* Temp;
+
+    if((XML_Child(Root,(xml_s8_t*)Name,&Temp)<0)||(Temp==0))
+        Main::Error(std::string(Errno0)+": '"+Name+"' section is missing.");
+    if(Temp->XML_Val_Len==0)
+        Main::Error(std::string(Errno1)+": '"+Name+"' section is empty.");
+    return std::string(Temp->XML_Val,(int)Temp->XML_Val_Len);
+}
+/* End Function:Main::XML_Get_String ****************************************/
+
 /* Begin Function:Main::Main *************************************************
 Description : Preprocess the input parameters, and generate a preprocessed
               instruction listing with all the comments stripped.
@@ -136,7 +158,7 @@ Input       : int argc - The number of arguments.
               char* argv[] - The arguments.
 Output      : s8_t** Input_File - The input project file path.
               s8_t** Output_File - The output folder path, must be empty.
-			  s8_t** Format - The output format.
+              s8_t** Format - The output format.
 Return      : None.
 ******************************************************************************/
 /* void */ Main::Main(int argc, char* argv[])
@@ -155,9 +177,9 @@ Return      : None.
                                  "           eclipse: Eclipse IDE.\n"
                                  "           makefile: Makefile project.\n");
 
-	    this->Input=nullptr;
-	    this->Output=nullptr;
-	    this->Format=nullptr;
+        this->Input=nullptr;
+        this->Output=nullptr;
+        this->Format=nullptr;
 
         Count=1;
         /* Read the command line one by one */
@@ -1429,6 +1451,100 @@ void Main::Gen_Report(void)
 }
 /* End Function:Main::Gen_Report *********************************************/
 
+/* Begin Function:Main::Idtfr_Check *******************************************
+Description : Check if the identifier supplied is valid. Valid identifiers must
+              contain. If not, we throw an error.
+Input       : const std::string& Idtfr - The identifier.
+              const char* Name - The section name.
+              const char* Errno0 - The first error number.
+              const char* Errno1 - The second error number.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Idtfr_Check(const std::string& Idtfr, const char* Name,
+                       const char* Errno0, const char* Errno1)
+{
+    /* This can't be empty, we should have checked this field before in XML_Get_String */
+    ASSERT(Idtfr.length()!=0);
+    if((Idtfr[0]>='0')&&(Idtfr[0]<='9'))
+        Main::Error(std::string(Errno0)+": '"+Name+"' section begins with a number.");
+    for(const char& Char:Idtfr)
+    {
+        if(((Char<'a')||(Char>'z'))&&
+           ((Char<'A')||(Char>'Z'))&&
+           ((Char<'0')||(Char>'9'))&&
+           (Char!='_'))
+        Main::Error(std::string(Errno1)+": '"+Name+"' section contains an invalid character.");
+    }
+}
+/* End Function:Main::Idtfr_Check ********************************************/
+
+/* Begin Function:Main::Info **************************************************
+Description : Output information about the compile/assemble/link process in verbose mode.
+Input       : const char* Format - The printf format.
+              ... - Additional printf arguments.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Info(const char* Format, ...)
+{
+    va_list Arg;
+    va_start(Arg, Format);
+    if(Main::Verbose!=0)
+    {
+        printf("Info: ");
+        vprintf(Format, Arg);
+        printf("\n");
+    }
+    va_end(Arg);
+}
+/* End Function:Main::Info ***************************************************/
+
+/* Begin Function:Main::Info **************************************************
+Description : Output information about the compile/assemble/link process in verbose mode.
+Input       : const std::string& String - The string.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Info(const std::string& Format)
+{
+    if(Main::Verbose!=0)
+        printf("Info: %s\n", Format.c_str());
+}
+/* End Function:Main::Info ***************************************************/
+
+/* Begin Function:Main::Error *************************************************
+Description : Throw an error.
+Input       : const std::string& Format - The string.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Error[[noreturn]](const std::string& Format)
+{
+    throw std::runtime_error(Format);
+}
+/* End Function:Main::Error **************************************************/
+
+/* Begin Function:Main::Error *************************************************
+Description : Throw an error.
+Input       : const char* Format - The printf format.
+              ... - Additional printf arguments.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Error[[noreturn]](const char* Format, ...)
+{
+    char Temp[512];
+    va_list Arg;
+    va_start(Arg, Format);
+
+    vsprintf(Temp,Format, Arg);
+    Main::Error(std::string(Temp));
+
+    va_end(Arg);
+}
+/* End Function:Main::Error **************************************************/
+
 /* Begin Function:Stats::Kobj_Stats *******************************************
 Description : Gather statistics about kernel objects.
 Input       : class Main* Main - The main application instance.
@@ -1704,7 +1820,7 @@ Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-using namespace rme_mcu;
+using namespace RVM_GEN;
 int main(int argc, char* argv[])
 {
     try

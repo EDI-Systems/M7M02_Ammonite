@@ -29,7 +29,7 @@ extern "C"
 #include "Kobj/rme_send.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 /* Begin Function:Send::Send **************************************************
 Description : Constructor for Send class.

@@ -26,7 +26,7 @@ extern "C"
 #include "Main/rme_raw.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 /* Begin Function:Raw::Raw ****************************************************
 Description : Constructor for Raw class.

@@ -59,7 +59,7 @@ extern "C"
 #include "Main/rme_proj.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 /* Begin Function:Plat::Plat **************************************************
 Description : Constructor for Plat class.

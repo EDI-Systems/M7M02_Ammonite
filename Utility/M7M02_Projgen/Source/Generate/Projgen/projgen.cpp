@@ -75,7 +75,7 @@ extern "C"
 #include "Gen/rme_genproj.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 /* Begin Function:Proj_Gen::Folder ********************************************
 Description : Setup the generic folder contents for the project. This at least

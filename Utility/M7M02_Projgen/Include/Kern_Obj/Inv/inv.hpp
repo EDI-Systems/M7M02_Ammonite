@@ -7,7 +7,7 @@ Description : The header for the invocation class.
 ******************************************************************************/
 
 /* Defines *******************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 #ifdef __HDR_DEFS__
 #ifndef __RME_INV_HPP_DEFS__
@@ -43,7 +43,7 @@ class Inv:public Kobj
 {
 public:
     /* The stack size of the invocation */
-	ptr_t Stack_Size;
+    ptr_t Stack_Size;
     /* Memory map */
     std::unique_ptr<class Inv_Memmap> Map;
  

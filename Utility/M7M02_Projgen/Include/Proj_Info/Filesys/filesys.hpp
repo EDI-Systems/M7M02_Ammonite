@@ -7,7 +7,7 @@ Description : The header for the file system access class.
 ******************************************************************************/
 
 /* Defines *******************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 #ifdef __HDR_DEFS__
 #ifndef __RME_FSYS_HPP_DEFS__

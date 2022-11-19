@@ -7,7 +7,7 @@ Description : The header for the RME user-modifiable file class.
 ******************************************************************************/
 
 /* Defines *******************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 #ifdef __HDR_DEFS__
 #ifndef __RME_A7M_GENRME_HPP_DEFS__

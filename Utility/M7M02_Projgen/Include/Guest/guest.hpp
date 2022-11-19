@@ -7,7 +7,7 @@ Description : The header for the guest class.
 ******************************************************************************/
 
 /* Defines *******************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 #ifdef __HDR_DEFS__
 #ifndef __RME_GUEST_HPP_DEFS__

@@ -7,7 +7,7 @@ Description : The header for the kernel object class.
 ******************************************************************************/
 
 /* Defines *******************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 #ifdef __HDR_DEFS__
 #ifndef __RME_KOBJ_HPP_DEFS__

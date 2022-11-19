@@ -31,7 +31,7 @@ extern "C"
 #include "Kobj/rme_kobj.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 /* Begin Function:Mem::Mem ****************************************************
 Description : Constructor for Mem class.

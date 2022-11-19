@@ -20,6 +20,8 @@ typedef unsigned short                      u16_t;
 typedef unsigned int                        u32_t;
 typedef unsigned long long                  u64_t;
 /* Make things compatible in 32-bit or 64-bit environments */
+typedef s32_t                               pos_t;
+typedef s32_t                               cnt_t;
 typedef s64_t                               ret_t;
 typedef u64_t                               ptr_t;
 /*****************************************************************************/
@@ -28,12 +30,21 @@ typedef u64_t                               ptr_t;
 /* __HDR_DEFS__ */
 #endif
 
-namespace rme_mcu
+namespace RVM_GEN
 {
 #ifdef __HDR_DEFS__
 #ifndef __RME_MCU_HPP_DEFS__
 #define __RME_MCU_HPP_DEFS__
 /*****************************************************************************/
+/* Error asserts */
+#define ASSERT(X) \
+do \
+{ \
+    if((X)==0) \
+        Main::Error(std::string("M9999: Internal failure: ")+__DATE__+", "+std::to_string(__LINE__)+"."); \
+} \
+while(0)
+
 /* Power of 2 macros */
 #define POW2(POW)                           (((ptr_t)1)<<(POW))
 #define ROUND_DOWN(X,POW)                   (((X)>>(POW))<<(POW))
@@ -99,6 +110,9 @@ public:
     
     Main(int argc, char* argv[]);
 
+    static std::string XML_Get_String(xml_node_t* Root, const char* Name,
+                                      const char* Errno0, const char* Errno1);
+
     void Parse(void);
     void Check_Chip(void);
 
@@ -113,6 +127,14 @@ public:
     void Gen_Proj(void);
 
     void Gen_Report(void);
+
+    static void Idtfr_Check(const std::string& Idtfr, const char* Name,
+                            const char* Errno0, const char* Errno1);
+
+    static void Info(const char* Format, ...);
+    static void Info(const std::string& Format);
+    static void Error[[noreturn]](const char* Format, ...);
+    static void Error[[noreturn]](const std::string& Format);
 };
 
 class Kobj_Stats
@@ -197,6 +219,73 @@ public:
     void Plat_Stats(class Main* Main);
     void Proc_Stats(class Proc* Proc);
 };
+
+/* XML trunk parsing */
+template <typename CONT, typename ELEM>
+void Parse_Trunk(xml_node_t* Root, const std::string& Section,
+                 std::vector<std::unique_ptr<CONT>>& Vect,
+                 const std::string& Errno0, const std::string& Errno1)
+{
+    xml_node_t* Trunk;
+    xml_node_t* Temp;
+
+    if((XML_Child(Root,(xml_s8_t*)Section.c_str(),&Trunk)<0)||(Trunk==0))
+        Main::Error(std::string(Errno0)+": '"+Section+"' section is missing.");
+    if(XML_Child(Trunk,0,&Temp)<0)
+        Main::Error(std::string(Errno1)+": '"+Section+"' section parsing internal error.");
+    while(Temp!=nullptr)
+    {
+        Vect.push_back(std::make_unique<ELEM>(Temp));
+        if(XML_Child(Trunk,(xml_s8_t*)"",&Temp)<0)
+            Main::Error(std::string(Errno1)+": '"+Section+"' section parsing internal error.");
+    }
+}
+/* XML trunk parsing with one parameter */
+template <typename CONT, typename ELEM, typename PARAM>
+void Parse_Trunk_Param(xml_node_t* Root, const std::string& Section,
+                       std::vector<std::unique_ptr<CONT>>& Vect, PARAM Param,
+                       const std::string& Errno0, const std::string& Errno1)
+{
+    xml_node_t* Trunk;
+    xml_node_t* Temp;
+
+    if((XML_Child(Root,(xml_s8_t*)Section.c_str(),&Trunk)<0)||(Trunk==0))
+        Main::Error(std::string(Errno0)+": '"+Section+"' section is missing.");
+    if(XML_Child(Trunk,0,&Temp)<0)
+        Main::Error(std::string(Errno1)+": '"+Section+"' section parsing internal error.");
+    while(Temp!=nullptr)
+    {
+        Vect.push_back(std::make_unique<ELEM>(Temp,Param));
+        if(XML_Child(Trunk,(char*)"",&Temp)<0)
+            Main::Error(std::string(Errno1)+": '"+Section+"' section parsing internal error.");
+    }
+}
+/* Duplicate name checking */
+template <typename T>
+void Check_Duplicate_Name(const std::string& Section, std::vector<std::unique_ptr<T>>& Vect,
+                          std::map<std::string, T*>& Map, const std::string& Errno)
+{
+    for(std::unique_ptr<T>& Var:Vect)
+    {
+        if(Map.find(Var->Name)==Map.end())
+            Map.insert(std::pair<std::string,T*>(Var->Name,Var.get()));
+        else
+            Main::Error(std::string(Errno)+": Duplicate name '"+Var->Name+"' found in '"+Section+"' section.");
+    }
+}
+/* Duplicate refdes checking */
+template <typename T>
+void Check_Duplicate_Refdes(const std::string& Section, std::vector<std::unique_ptr<T>>& Vect,
+                            std::map<std::string, T*>& Map, const std::string& Errno)
+{
+    for(std::unique_ptr<T>& Var:Vect)
+    {
+        if(Map.find(Var->Refdes)==Map.end())
+            Map.insert(std::make_pair(Var->Refdes,Var.get()));
+        else
+            Main::Error(std::string(Errno)+": Duplicate refdes '"+Var->Refdes+"' found in '"+Section+"' section.");
+    }
+}
 /*****************************************************************************/
 /* __RME_MCU_HPP_CLASSES__ */
 #endif

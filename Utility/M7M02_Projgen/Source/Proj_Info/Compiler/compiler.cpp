@@ -25,7 +25,7 @@ extern "C"
 #include "Main/rme_comp.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 /* Begin Function:Comp::Comp **************************************************
 Description : Constructor for compiler class.

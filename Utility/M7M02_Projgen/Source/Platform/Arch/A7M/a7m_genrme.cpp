@@ -91,7 +91,7 @@ extern "C"
 #include "A7M/rme_a7m.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 /* Begin Function:A7M_RME_Gen::Chip_Hdr ***************************************
 Description : Generate the chip header for RME. This is toolchain agnostic.

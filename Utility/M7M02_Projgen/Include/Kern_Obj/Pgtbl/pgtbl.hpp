@@ -7,7 +7,7 @@ Description : The header for the page table class.
 ******************************************************************************/
 
 /* Defines *******************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 #ifdef __HDR_DEFS__
 #ifndef __RME_PGTBL_HPP_DEFS__

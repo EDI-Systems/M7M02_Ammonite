@@ -7,7 +7,7 @@ Description : The header for the whole project generation class of ARMv7-M.
 ******************************************************************************/
 
 /* Defines *******************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 #ifdef __HDR_DEFS__
 #ifndef __RME_A7M_GENPROJ_HPP_DEFS__
