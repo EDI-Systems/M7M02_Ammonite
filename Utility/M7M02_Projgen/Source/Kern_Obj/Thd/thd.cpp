@@ -33,11 +33,11 @@ namespace RVM_GEN
 {
 /* Begin Function:Thd::Thd ****************************************************
 Description : Constructor for Thd class.
-Input       : xml_node_t* Node - The node containing the thread.
+Input       : xml_node_t* Root - The node containing the thread.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Thd::Thd(xml_node_t* Node)
+/* void */ Thd::Thd(xml_node_t* Root)
 {
     xml_node_t* Temp;
 

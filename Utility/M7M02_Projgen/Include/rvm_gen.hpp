@@ -112,6 +112,12 @@ public:
 
     static std::string XML_Get_String(xml_node_t* Root, const char* Name,
                                       const char* Errno0, const char* Errno1);
+    static void XML_Get_CSV(xml_node_t* Root, const char* Name,
+                            std::vector<std::string>& Vector,
+                            const char* Errno0, const char* Errno1);
+    static void Main::XML_Get_KVP(xml_node_t* Root, const char* Name,
+                                  std::map<std::string,std::string>& Map,
+                                  const std::string& Errno0, const std::string& Errno1)
 
     void Parse(void);
     void Check_Chip(void);
@@ -284,6 +290,7 @@ void Check_Duplicate_Refdes(const std::string& Section, std::vector<std::unique_
             Map.insert(std::make_pair(Var->Refdes,Var.get()));
         else
             Main::Error(std::string(Errno)+": Duplicate refdes '"+Var->Refdes+"' found in '"+Section+"' section.");
+
     }
 }
 /*****************************************************************************/

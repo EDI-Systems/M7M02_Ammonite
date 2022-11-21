@@ -33,11 +33,11 @@ namespace RVM_GEN
 {
 /* Begin Function:Port::Port **************************************************
 Description : Constructor for Port class.
-Input       : xml_node_t* Node - The node containing the port.
+Input       : xml_node_t* Root - The node containing the port.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Port::Port(xml_node_t* Node)
+/* void */ Port::Port(xml_node_t* Root)
 {
     xml_node_t* Temp;
 

@@ -1,5 +1,5 @@
 /******************************************************************************
-Filename    : rme_mem.hpp
+Filename    : mem_info.hpp
 Author      : pry
 Date        : 16/07/2019
 Licence     : LGPL v3+; see COPYING for details.
@@ -10,8 +10,8 @@ Description : The header for the memory class.
 namespace RVM_GEN
 {
 #ifdef __HDR_DEFS__
-#ifndef __RME_MEM_HPP_DEFS__
-#define __RME_MEM_HPP_DEFS__
+#ifndef __MEM_INFO_HPP_DEFS__
+#define __MEM_INFO_HPP_DEFS__
 /*****************************************************************************/
 /* Memory access permissions */
 #define MEM_READ            POW2(0)
@@ -25,7 +25,7 @@ namespace RVM_GEN
 /* Memmap granularity */
 #define MAP_ALIGN           (32)
 /*****************************************************************************/
-/* __RME_MEM_HPP_DEFS__ */
+/* __MEM_INFO_HPP_DEFS__ */
 #endif
 /* __HDR_DEFS__ */
 #endif
@@ -33,19 +33,21 @@ namespace RVM_GEN
 
 /* Classes *******************************************************************/
 #ifdef __HDR_CLASSES__
-#ifndef __RME_MEM_HPP_CLASSES__
-#define __RME_MEM_HPP_CLASSES__
+#ifndef __MEM_INFO_HPP_CLASSES__
+#define __MEM_INFO_HPP_CLASSES__
 /*****************************************************************************/
 /* Memory trunk information */
-class Mem
+class Mem_Info
 {
 public:
     /* The name of the memory trunk */
-    std::unique_ptr<std::string> Name;
+    std::string Name;
     /* The memory base */
     ptr_t Base;
     /* The size */
     ptr_t Size;
+    /* Memory type */
+    std::string Type;
     /* The attributes - read, write, execute, cacheable, bufferable, static */
     ptr_t Attr;
     /* The alignment granularity */
@@ -53,40 +55,12 @@ public:
     /* Is this a shared memory? this is only used when generating macros for it */
     ptr_t Is_Shared;
 
-    Mem(xml_node_t* Node);
-    Mem(class Mem* Block);
-    Mem(ptr_t Base, ptr_t Size, ptr_t Attr, ptr_t Align);
-};
-
-/* Process shared memory trunk information */
-class Shmem
-{
-public:
-    /* The name of the memory trunk */
-    std::unique_ptr<std::string> Name;
-    /* The attributes - read, write, execute, cacheable, bufferable, static */
-    ptr_t Attr;
-
-    Shmem(xml_node_t* Node);
-};
-
-class Memmap
-{
-public:
-    class Mem* Mem;
-    std::vector<bool> Map;
-
-    Memmap(std::unique_ptr<class Mem>& Mem);
-
-    static ret_t Try(std::unique_ptr<class Memmap>& Map, ptr_t Base, ptr_t Size);
-    static ret_t Mark(std::unique_ptr<class Memmap>& Map, ptr_t Base, ptr_t Size);
-    static ret_t Fit_Static(std::vector<std::unique_ptr<class Memmap>>& Map,
-                            ptr_t Base, ptr_t Size, ptr_t Attr);
-    static ret_t Fit_Auto(std::vector<std::unique_ptr<class Memmap>>& Map,
-                          ptr_t* Base, ptr_t Size, ptr_t Align, ptr_t Attr);
+    /* void */ Mem_Info(xml_node_t* Root);
+    /* void */ Mem_Info(class Mem_Info* Block);
+    /* void */ Mem_Info(ptr_t Base, ptr_t Size, std::string& Type, ptr_t Attr, ptr_t Align);
 };
 /*****************************************************************************/
-/* __RME_MEM_HPP_CLASSES__ */
+/* __MEM_INFO_HPP_CLASSES__ */
 #endif
 /* __HDR_CLASSES__ */
 #endif

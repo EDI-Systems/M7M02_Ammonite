@@ -47,7 +47,7 @@ public:
     /* Memory map */
     std::unique_ptr<class Inv_Memmap> Map;
  
-    Inv(xml_node_t* Node);
+    Inv(xml_node_t* Root);
 };
 /*****************************************************************************/
 /* __RME_INV_HPP_CLASSES__ */

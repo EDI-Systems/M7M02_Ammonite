@@ -14,7 +14,6 @@ Description : The guest operating system configuring steps for RMP.
 extern "C"
 {
 #include "xml.h"
-#include "pbfs.h"
 }
 
 #include "list"

@@ -53,7 +53,7 @@ public:
     /* Memory map */
     std::unique_ptr<class Thd_Memmap> Map;
  
-    Thd(xml_node_t* Node);
+    Thd(xml_node_t* Root);
     Thd(void){};
 };
 /*****************************************************************************/

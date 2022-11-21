@@ -33,11 +33,11 @@ namespace RVM_GEN
 {
 /* Begin Function:Kern::Kern **************************************************
 Description : Constructor for Kern class.
-Input       : xml_node_t* Node - The node containing the kernel function.
+Input       : xml_node_t* Root - The node containing the kernel function.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Kern::Kern(xml_node_t* Node)
+/* void */ Kern::Kern(xml_node_t* Root)
 {
     xml_node_t* Temp;
 

@@ -31,24 +31,23 @@ extern "C"
 namespace RVM_GEN
 {
 /* Begin Function:Vector::Vector **********************************************
-Description : Parse the option section of a particular chip.
-Input       : xml_node_t* Node - The option section's XML node.
+Description : Parse the vector section of a particular chip.
+Input       : xml_node_t* Root - The option section's XML node.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Vector::Vector(xml_node_t* Node)
+/* void */ Vector::Vector(xml_node_t* Root)
 {
     std::string Temp;
 
     try
     {
         /* Name */
-        this->Name=Main::XML_Get_String(Node,"Name","DXXXX","DXXXX");
+        this->Name=Main::XML_Get_String(Root,"Name","DXXXX","DXXXX");
         Main::Idtfr_Check(this->Name,"Name","DXXXX","DXXXX");
 
         /* Number */
-        Temp=Main::XML_Get_String(Node,"Number","DXXXX","DXXXX");
-
+        this->Number=std::stoul(Main::XML_Get_String(Root,"Number","DXXXX","DXXXX");
     }
     catch(std::exception& Exc)
     {

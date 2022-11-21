@@ -32,7 +32,7 @@ class Send:public Kobj
 public:
     std::unique_ptr<std::string> Proc_Name;
 
-    Send(xml_node_t* Node);
+    Send(xml_node_t* Root);
 };
 /*****************************************************************************/
 /* __RME_SEND_HPP_CLASSES__ */

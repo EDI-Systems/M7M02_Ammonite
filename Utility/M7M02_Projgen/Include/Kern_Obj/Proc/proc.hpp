@@ -113,7 +113,7 @@ public:
     /* Final memory map information */
     std::unique_ptr<class RME_Memmap> Map;
 
-    RME(xml_node_t* Node);
+    RME(xml_node_t* Root);
     
     void Alloc_Kmem(ptr_t Kmem_Front, ptr_t Kmem_Order);
 };
@@ -222,7 +222,7 @@ public:
     /* Final memory map information */
     std::unique_ptr<class RVM_Memmap> Map;
 
-    RVM(xml_node_t* Node);
+    RVM(xml_node_t* Root);
 
     void Alloc_Mem(ptr_t Code_Start, ptr_t Data_Start, ptr_t Kmem_Order);
 };
@@ -280,7 +280,7 @@ public:
     /* Memory map for itself */
     std::unique_ptr<class Proc_Memmap> Map;
 
-    Proc(xml_node_t* Node);
+    Proc(xml_node_t* Root);
     Proc(void){};
     
     void Check_Kobj(void);
@@ -325,7 +325,7 @@ public:
 
     std::unique_ptr<class Virt_Memmap> Virt_Map;
 
-    Virt(xml_node_t* Node);
+    Virt(xml_node_t* Root);
 };
 /*****************************************************************************/
 /* __RME_PROC_HPP_CLASSES__ */

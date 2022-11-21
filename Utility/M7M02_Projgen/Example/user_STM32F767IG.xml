@@ -1,47 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <Project>
     <Name>Test_Proj</Name>
-    <Platform>A7M</Platform>
-    <Chip_Class>STM32F767IG</Chip_Class>
-    <Chip_Full>STM32F767IGT6</Chip_Full>
-    <RME>
-        <Code_Base>0x08000000</Code_Base>
-        <Code_Size>0x10000</Code_Size>
-        <Data_Base>0x20000000</Data_Base>
-        <Data_Size>0x10000</Data_Size>
-        <Stack_Size>0x1000</Stack_Size>
-        <Extra_Kmem>0x1000</Extra_Kmem>
-        <Kmem_Order>4</Kmem_Order>
-        <Kern_Prios>32</Kern_Prios>
-        <Compiler>
-            <Optimization>O2</Optimization>
-            <Prioritization>Time</Prioritization>
-        </Compiler>
-        <Platform>
+    <Version>1.0</Version>
+    <Chip>
+        <Platform>A7M</Platform>
+        <Class>STM32F767IG</Class>
+        <Name>STM32F767IGT6</Name>
+        <Config>
             <NVIC_Grouping>2-6</NVIC_Grouping>
             <Systick_Value>21600</Systick_Value>
-        </Platform>
-        <Chip>
             <XTAL>25</XTAL>
             <PLLM>25</PLLM>
             <PLLN>432</PLLN>
             <PLLP>2</PLLP>
             <PLLQ>9</PLLQ>
-        </Chip>
-    </RME>
-    <RVM>
-        <Code_Size>0x10000</Code_Size>
-        <Data_Size>0x10000</Data_Size>
-        <Stack_Size>0x1000</Stack_Size>
-        <Extra_Captbl>32</Extra_Captbl>
-        <Compiler>
-            <Optimization>O2</Optimization>
-            <Prioritization>Time</Prioritization>
-        </Compiler>
-        <Virt_Prios>32</Virt_Prios>
-        <Virt_Evts>32</Virt_Evts>
-        <Virt_Maps>128</Virt_Maps>
-    </RVM>
+        </Config>
+    <Chip>
     <Extmem>
         <E0>
             <Base>0xC0000000</Base>
@@ -59,14 +33,32 @@
             <Attribute>RWXBCS</Attribute>
         </S0>
     </Shmem>
+    <Kernel>
+        <Code_Base>0x08000000</Code_Base>
+        <Code_Size>0x10000</Code_Size>
+        <Data_Base>0x20000000</Data_Base>
+        <Data_Size>0x10000</Data_Size>
+        <Stack_Size>0x1000</Stack_Size>
+        <Extra_Kmem>0x1000</Extra_Kmem>
+        <Kmem_Order>4</Kmem_Order>
+        <Kern_Prios>32</Kern_Prios>
+        <Optimization>O2</Optimization>
+    </Kernel>
+    <Monitor>
+        <Code_Size>0x10000</Code_Size>
+        <Data_Size>0x10000</Data_Size>
+        <Stack_Size>0x1000</Stack_Size>
+        <Extra_Captbl>32</Extra_Captbl>
+        <Optimization>O2</Optimization>
+        <Virt_Prios>32</Virt_Prios>
+        <Virt_Evts>32</Virt_Evts>
+        <Virt_Maps>128</Virt_Maps>
+    </Monitor>
     <Process>
         <P0>
             <Name>Proc1</Name>
             <Extra_Captbl>9</Extra_Captbl>
-            <Compiler>
-                <Optimization>O2</Optimization>
-                <Prioritization>Time</Prioritization>
-            </Compiler>
+            <Optimization>O2</Optimization>
             <Memory>
                 <M0>
                     <Name>Main_Code</Name>
@@ -129,21 +121,18 @@
             </Send>
             <Vector>
             </Vector>
-            <Kernel>
+            <Kfunc>
                 <K0>
                     <Name>Kfunc1</Name>
                     <Start>0x60</Start>
                     <End>0x90</End>
                 </K0>
-            </Kernel>
+            </Kfunc>
         </P0>
         <P1>
             <Name>Proc2</Name>
             <Extra_Captbl>0</Extra_Captbl>
-            <Compiler>
-                <Optimization>O3</Optimization>
-                <Prioritization>Size</Prioritization>
-            </Compiler>
+            <Optimization>O3</Optimization>
             <Memory>
                 <M0>
                     <Base>Auto</Base>
@@ -199,13 +188,13 @@
                     <Number>28</Number>
                 </V0>
             </Vector>
-            <Kernel>
+            <Kfunc>
                 <K0>
                     <Name>Kfunc1</Name>
                     <Start>0x125</Start>
                     <End>0x126</End>
                 </K0>
-            </Kernel>
+            </Kfunc>
         </P1>
     </Process>
     <Virtual>
@@ -219,10 +208,7 @@
             <Period>100</Period>
             <Watchdog>0</Watchdog>
             <Vect_Num>100</Vect_Num>
-            <Compiler>
-                <Optimization>O2</Optimization>
-                <Prioritization>Time</Prioritization>
-            </Compiler>
+            <Optimization>O2</Optimization>
             <Memory>
                 <M0>
                     <Name>Main_Code</Name>
@@ -252,13 +238,13 @@
                     <Process>Proc1</Process>
                 </S0>
             </Send>
-            <Kernel>
+            <Kfunc>
                 <K0>
                     <Name>Kfunc1</Name>
                     <Start>0x100</Start>
                     <End>0x200</End>
                 </K0>
-            </Kernel>
+            </Kfunc>
         </V0>
     </Virtual>
 </Project>

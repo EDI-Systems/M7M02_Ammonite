@@ -35,7 +35,7 @@ public:
     /* The ending number of this kernel function */
     ptr_t End;
 
-    Kern(xml_node_t* Node);
+    Kern(xml_node_t* Root);
 };
 /*****************************************************************************/
 /* __RME_KERN_HPP_CLASSES__ */

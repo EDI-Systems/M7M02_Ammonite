@@ -33,11 +33,11 @@ namespace RVM_GEN
 {
 /* Begin Function:Recv::Recv **************************************************
 Description : Constructor for Recv class.
-Input       : xml_node_t* Node - The node containing the receive endpoint.
+Input       : xml_node_t* Root - The node containing the receive endpoint.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Recv::Recv(xml_node_t* Node)
+/* void */ Recv::Recv(xml_node_t* Root)
 {
     xml_node_t* Temp;
 

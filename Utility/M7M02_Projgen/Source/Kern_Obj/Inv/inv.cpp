@@ -33,11 +33,11 @@ namespace RVM_GEN
 {
 /* Begin Function:Inv::Inv ****************************************************
 Description : Constructor for Inv class.
-Input       : xml_node_t* Node - The node containing the invocation.
+Input       : xml_node_t* Root - The node containing the invocation.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Inv::Inv(xml_node_t* Node)
+/* void */ Inv::Inv(xml_node_t* Root)
 {
     xml_node_t* Temp;
 

@@ -32,7 +32,7 @@ class Vect:public Kobj
 public:
     ptr_t Num;
 
-    Vect(xml_node_t* Node);
+    Vect(xml_node_t* Root);
 
     static std::string* Vect::Check_Vect(std::unique_ptr<class Proj>& Proj);
 };

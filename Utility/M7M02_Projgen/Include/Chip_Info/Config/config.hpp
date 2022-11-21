@@ -41,7 +41,7 @@ public:
     /* Range of the option */
     std::vector<std::string> Range;
 
-    /* void */ Config(xml_node_t* Node);
+    /* void */ Config(xml_node_t* Root);
 };
 /*****************************************************************************/
 /* __CONFIG_HPP_CLASSES__ */

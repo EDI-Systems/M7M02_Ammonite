@@ -32,23 +32,22 @@ namespace RVM_GEN
 {
 /* Begin Function:Config::Config **********************************************
 Description : Parse the option section of a particular chip.
-Input       : xml_node_t* Node - The option section's XML node.
+Input       : xml_node_t* Root - The config section's XML node.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Config::Config(xml_node_t* Node)
+/* void */ Config::Config(xml_node_t* Root)
 {
-    cnt_t Pivot;
     std::string Temp;
 
     try
     {
         /* Name */
-        this->Name=Main::XML_Get_String(Node,"Name","DXXXX","DXXXX");
+        this->Name=Main::XML_Get_String(Root,"Name","DXXXX","DXXXX");
         Main::Idtfr_Check(this->Name,"Name","DXXXX","DXXXX");
 
         /* Type */
-        Temp=Main::XML_Get_String(Node,"Type","DXXXX","DXXXX");
+        Temp=Main::XML_Get_String(Root,"Type","DXXXX","DXXXX");
         if(Temp=="Range")
             this->Type=CONFIG_RANGE;
         else if(Temp=="Select")
@@ -57,24 +56,11 @@ Return      : None.
             Main::Error("D0104: Type is malformed.");
 
         /* Macro */
-        this->Macro=Main::XML_Get_String(Node,"Macro","DXXXX","DXXXX");
+        this->Macro=Main::XML_Get_String(Root,"Macro","DXXXX","DXXXX");
         Main::Idtfr_Check(this->Macro,"Name","DXXXX","DXXXX");
 
         /* Range */
-        Temp=Main::XML_Get_String(Node,"Range","DXXXX","DXXXX");
-        do
-        {
-            Pivot=Temp.find_first_of(",");
-            if(Pivot<0)
-                this->Range.push_back(Temp);
-            else
-            {
-                this->Range.push_back(Temp.substr(0,Pivot));
-                Temp=Temp.substr(Pivot+1);
-            }
-        }
-        while(Pivot>=0);
-
+        Main::XML_Get_CSV(Root,"Range",this->Range,"DXXXX","DXXXX");
         /* Check range validity */
         if(this->Type==CONFIG_RANGE)
         {

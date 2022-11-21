@@ -16,33 +16,6 @@
             <PLLQ>7</PLLQ>
         </Config>
     </Chip>
-    <Kernel>
-        <Code_Base>0x08000000</Code_Base>
-        <Code_Size>0x10000</Code_Size>
-        <Data_Base>0x10000000</Data_Base>
-        <Data_Size>0x3000</Data_Size>
-        <Stack_Size>0x800</Stack_Size>
-        <Extra_Kmem>0x0</Extra_Kmem>
-        <Kmem_Order>4</Kmem_Order>
-        <Kern_Prios>32</Kern_Prios>
-        <Compiler>
-            <Optimization>O2</Optimization>
-            <Prioritization>Time</Prioritization>
-        </Compiler>
-    </Kernel>
-    <Monitor>
-        <Code_Size>0x10000</Code_Size>
-        <Data_Size>0x4000</Data_Size>
-        <Stack_Size>0x800</Stack_Size>
-        <Extra_Captbl>32</Extra_Captbl>
-        <Compiler>
-            <Optimization>O2</Optimization>
-            <Prioritization>Time</Prioritization>
-        </Compiler>
-        <Virt_Prios>32</Virt_Prios>
-        <Virt_Evts>32</Virt_Evts>
-        <Virt_Maps>32</Virt_Maps>
-    </Monitor>
     <Extmem>
     </Extmem>
     <Shmem>
@@ -54,14 +27,32 @@
             <Attribute>RWBCS</Attribute>
         </S0>
     </Shmem>
+    <Kernel>
+        <Code_Base>0x08000000</Code_Base>
+        <Code_Size>0x10000</Code_Size>
+        <Data_Base>0x10000000</Data_Base>
+        <Data_Size>0x3000</Data_Size>
+        <Stack_Size>0x800</Stack_Size>
+        <Extra_Kmem>0x0</Extra_Kmem>
+        <Kmem_Order>4</Kmem_Order>
+        <Kern_Prios>32</Kern_Prios>
+        <Optimization>O2</Optimization>
+    </Kernel>
+    <Monitor>
+        <Code_Size>0x10000</Code_Size>
+        <Data_Size>0x4000</Data_Size>
+        <Stack_Size>0x800</Stack_Size>
+        <Extra_Captbl>32</Extra_Captbl>
+        <Optimization>O2</Optimization>
+        <Virt_Prios>32</Virt_Prios>
+        <Virt_Evts>32</Virt_Evts>
+        <Virt_Maps>32</Virt_Maps>
+    </Monitor>
     <Process>
         <P0>
             <Name>Proc1</Name>
             <Extra_Captbl>9</Extra_Captbl>
-            <Compiler>
-                <Optimization>O2</Optimization>
-                <Prioritization>Time</Prioritization>
-            </Compiler>
+            <Optimization>O2</Optimization>
             <Memory>
                 <M0>
                     <Name>Main_Code</Name>
@@ -135,10 +126,7 @@
         <P1>
             <Name>Proc2</Name>
             <Extra_Captbl>0</Extra_Captbl>
-            <Compiler>
-                <Optimization>O3</Optimization>
-                <Prioritization>Size</Prioritization>
-            </Compiler>
+            <Optimization>O3</Optimization>
             <Memory>
                 <M0>
                     <Base>Auto</Base>
@@ -214,10 +202,7 @@
             <Period>100</Period>
             <Watchdog>0</Watchdog>
             <Vect_Num>100</Vect_Num>
-            <Compiler>
-                <Optimization>O2</Optimization>
-                <Prioritization>Time</Prioritization>
-            </Compiler>
+            <Optimization>O2</Optimization>
             <Memory>
                 <M0>
                     <Name>Main_Code</Name>

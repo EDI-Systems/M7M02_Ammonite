@@ -33,11 +33,11 @@ namespace RVM_GEN
 {
 /* Begin Function:Send::Send **************************************************
 Description : Constructor for Send class.
-Input       : xml_node_t* Node - The node containing the receive endpoint.
+Input       : xml_node_t* Root - The node containing the receive endpoint.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Send::Send(xml_node_t* Node)
+/* void */ Send::Send(xml_node_t* Root)
 {
     xml_node_t* Temp;
 

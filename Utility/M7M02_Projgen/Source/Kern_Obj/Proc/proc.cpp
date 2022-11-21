@@ -59,11 +59,11 @@ namespace RVM_GEN
 {
 /* Begin Function:RME::RME ****************************************************
 Description : Constructor for RME class.
-Input       : xml_node_t* Node - The node containing the whole project.
+Input       : xml_node_t* Root - The node containing the whole project.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ RME::RME(xml_node_t* Node)
+/* void */ RME::RME(xml_node_t* Root)
 {
     xml_node_t* Temp;
     xml_node_t* Trunk;
@@ -233,11 +233,11 @@ Return      : None.
 
 /* Begin Function:RVM::RVM ****************************************************
 Description : Constructor for RVM class.
-Input       : xml_node_t* Node - The node containing the whole project.
+Input       : xml_node_t* Root - The node containing the whole project.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ RVM::RVM(xml_node_t* Node)
+/* void */ RVM::RVM(xml_node_t* Root)
 {
     xml_node_t* Temp;
     std::unique_ptr<std::string> Str;
@@ -370,11 +370,11 @@ void RVM::Alloc_Mem(ptr_t Code_Start, ptr_t Data_Start, ptr_t Kmem_Order)
 
 /* Begin Function:Proc::Proc **************************************************
 Description : Constructor for Proc class.
-Input       : xml_node_t* Node - The node containing the process information.
+Input       : xml_node_t* Root - The node containing the process information.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Proc::Proc(xml_node_t* Node)
+/* void */ Proc::Proc(xml_node_t* Root)
 {
     xml_node_t* Temp;
     xml_node_t* Trunk;
@@ -974,11 +974,11 @@ void Proc::Alloc_Mem(ptr_t Word_Bits, ptr_t Kmem_Order)
 /* Begin Function:Virt::Virt **************************************************
 Description : Constructor for virtual machine class. The virtual machine is a special
               type of process, in which we populate the kernel objects autonomously.
-Input       : xml_node_t* Node - The node containing the virtual machine description.
+Input       : xml_node_t* Root - The node containing the virtual machine description.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Virt::Virt(xml_node_t* Node)
+/* void */ Virt::Virt(xml_node_t* Root)
 {
     xml_node_t* Temp;
     xml_node_t* Trunk;

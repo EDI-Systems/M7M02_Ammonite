@@ -52,11 +52,11 @@ namespace RVM_GEN
 {
 /* Begin Function:Vect::Vect **************************************************
 Description : Constructor for Vect class.
-Input       : xml_node_t* Node - The node containing the receive endpoint.
+Input       : xml_node_t* Root - The node containing the receive endpoint.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Vect::Vect(xml_node_t* Node)
+/* void */ Vect::Vect(xml_node_t* Root)
 {
     xml_node_t* Temp;
 

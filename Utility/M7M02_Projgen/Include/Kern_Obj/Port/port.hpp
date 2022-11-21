@@ -32,7 +32,7 @@ class Port:public Kobj
 public:
     std::unique_ptr<std::string> Proc_Name;
 
-    Port(xml_node_t* Node);
+    Port(xml_node_t* Root);
 };
 /*****************************************************************************/
 /* __RME_PORT_HPP_CLASSES__ */

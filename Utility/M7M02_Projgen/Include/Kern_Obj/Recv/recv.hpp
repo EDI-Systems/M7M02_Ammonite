@@ -30,7 +30,7 @@ namespace RVM_GEN
 class Recv:public Kobj
 {
 public:
-    Recv(xml_node_t* Node);
+    Recv(xml_node_t* Root);
 };
 /*****************************************************************************/
 /* __RME_RECV_HPP_CLASSES__ */

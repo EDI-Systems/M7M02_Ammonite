@@ -37,7 +37,7 @@ public:
     /* Vector number */
     ptr_t Number;
 
-    /* void */ Vector(xml_node_t* Node);
+    /* void */ Vector(xml_node_t* Root);
 };
 /*****************************************************************************/
 /* __VECTOR_HPP_CLASSES__ */

@@ -55,7 +55,6 @@ Description : The configuration generator for the MCU ports. This does not
 extern "C"
 {
 #include "xml.h"
-#include "pbfs.h"
 }
 
 #include "list"
@@ -138,8 +137,8 @@ Input       : xml_node_t* Root - The pointer to the root node.
 Output      : None.
 Return      : std::string - The string extracted.
 ******************************************************************************/
-static std::string XML_Get_String(xml_node_t* Root, const char* Name,
-                                  const char* Errno0, const char* Errno1)
+static std::string Main::XML_Get_String(xml_node_t* Root, const char* Name,
+                                        const char* Errno0, const char* Errno1)
 {
     xml_node_t* Temp;
 
@@ -149,7 +148,80 @@ static std::string XML_Get_String(xml_node_t* Root, const char* Name,
         Main::Error(std::string(Errno1)+": '"+Name+"' section is empty.");
     return std::string(Temp->XML_Val,(int)Temp->XML_Val_Len);
 }
-/* End Function:Main::XML_Get_String ****************************************/
+/* End Function:Main::XML_Get_String *****************************************/
+
+/* Begin Function:Main::XML_Get_CSV *******************************************
+Description : Get comma-separated values from the XML entry.
+Input       : xml_node_t* Root - The pointer to the root node.
+              const char* Name - The entry to look for.
+              const char* Errno0 - The error number 0.
+              const char* Errno1 - The error number 1.
+Output      : std::vector<std::string>& Vector - The CSV extracted.
+Return      : None.
+******************************************************************************/
+static void Main::XML_Get_CSV(xml_node_t* Root, const char* Name,
+                              std::vector<std::string>& Vector,
+                              const char* Errno0, const char* Errno1)
+{
+    cnt_t Pivot;
+    cnt_t Begin;
+    cnt_t End;
+    std::string Temp;
+    std::string Push;
+
+    Temp=Main::XML_Get_String(Root,Name,Errno0,Errno1);
+    do
+    {
+        /* Split the element */
+        Pivot=Temp.find_first_of(",");
+        if(Pivot<0)
+            Push=Temp;
+        else
+        {
+            Push=Temp.substr(0,Pivot);
+            Temp=Temp.substr(Pivot+1);
+        }
+        /* Strip the whitespaces */
+        Begin=Push.find_first_not_of(" \t\v");
+        if(Begin!=std::string::npos)
+        {
+            End=Push.find_last_not_of(" \t\v");
+            Vector.push_back(Push.substr(Begin,End-Begin+1));
+        }
+    }
+    while(Pivot>=0);
+}
+/* End Function:Main::XML_Get_CSV ********************************************/
+
+/* Begin Function:Main::XML_Get_KVP *******************************************
+Description : Get key-value pairs from the XML entry.
+Input       : xml_node_t* Root - The pointer to the root node.
+              const char* Name - The entry to look for.
+              const char* Errno0 - The error number 0.
+              const char* Errno1 - The error number 1.
+Output      : std::map<std::string,std::string>& Map - The key-value pairs.
+Return      : None.
+******************************************************************************/
+void Main::XML_Get_KVP(xml_node_t* Root, const std::string& Section,
+                       std::map<std::string,std::string>& Map,
+                       const std::string& Errno0, const std::string& Errno1)
+{
+    xml_node_t* Trunk;
+    xml_node_t* Temp;
+
+    if((XML_Child(Root,(xml_s8_t*)Section.c_str(),&Trunk)<0)||(Trunk==0))
+        Main::Error(std::string(Errno0)+": '"+Section+"' section is missing.");
+    if(XML_Child(Trunk,0,&Temp)<0)
+        Main::Error(std::string(Errno1)+": '"+Section+"' section parsing internal error.");
+    while(Temp!=nullptr)
+    {
+        Map.insert(std::string(Temp->XML_Tag,(int)Temp->XML_Tag_Len),
+                   std::string(Temp->XML_Val,(int)Temp->XML_Val_Len));
+        if(XML_Child(Trunk,(xml_s8_t*)"",&Temp)<0)
+            Main::Error(std::string(Errno1)+": '"+Section+"' section parsing internal error.");
+    }
+}
+/* End Function:Main::XML_Get_KVP *******************************************/
 
 /* Begin Function:Main::Main *************************************************
 Description : Preprocess the input parameters, and generate a preprocessed
@@ -1860,6 +1932,527 @@ int main(int argc, char* argv[])
     return 0;
 }
 /* End Function:main *********************************************************/
+
+/* Process shared memory trunk information */
+class Shmem
+{
+public:
+    /* The name of the memory trunk */
+    std::unique_ptr<std::string> Name;
+    /* The attributes - read, write, execute, cacheable, bufferable, static */
+    ptr_t Attr;
+
+    Shmem(xml_node_t* Root);
+};
+
+class Memmap
+{
+public:
+    class Mem* Mem;
+    std::vector<bool> Map;
+
+    Memmap(std::unique_ptr<class Mem>& Mem);
+
+    static ret_t Try(std::unique_ptr<class Memmap>& Map, ptr_t Base, ptr_t Size);
+    static ret_t Mark(std::unique_ptr<class Memmap>& Map, ptr_t Base, ptr_t Size);
+    static ret_t Fit_Static(std::vector<std::unique_ptr<class Memmap>>& Map,
+                            ptr_t Base, ptr_t Size, ptr_t Attr);
+    static ret_t Fit_Auto(std::vector<std::unique_ptr<class Memmap>>& Map,
+                          ptr_t* Base, ptr_t Size, ptr_t Align, ptr_t Attr);
+};
+
+/* Begin Function:Shmem::Shmem ************************************************
+Description : Constructor for Shmem class.
+Input       : xml_node_t* Root - The node containing the memory block information.
+Output      : None.
+Return      : None.
+******************************************************************************/
+/* void */ Shmem::Shmem(xml_node_t* Root)
+{
+    xml_node_t* Temp;
+    std::unique_ptr<std::string> Str;
+
+    try
+    {
+        /* Name */
+        if((XML_Child(Node,"Name",&Temp)<0)||(Temp==0))
+            throw std::invalid_argument("P0600: Name section is missing.");
+        if(Temp->XML_Val_Len==0)
+            throw std::invalid_argument("P0601: Name section is empty.");
+        this->Name=std::make_unique<std::string>(Temp->XML_Val,(int)Temp->XML_Val_Len);
+
+        /* Attribute */
+        if((XML_Child(Node,"Attribute",&Temp)<0)||(Temp==0))
+            throw std::invalid_argument("P0602: Attribute section is missing.");
+        if(Temp->XML_Val_Len==0)
+            throw std::invalid_argument("P0603: Attribute section is empty.");
+        Str=std::make_unique<std::string>(Temp->XML_Val,(int)Temp->XML_Val_Len);
+        this->Attr=0;
+
+        if(Str->rfind('R')!=std::string::npos)
+            this->Attr|=MEM_READ;
+        if(Str->rfind('W')!=std::string::npos)
+            this->Attr|=MEM_WRITE;
+        if(Str->rfind('X')!=std::string::npos)
+            this->Attr|=MEM_EXECUTE;
+
+        if(this->Attr==0)
+            throw std::invalid_argument("P0604: Attribute does not allow any access and is malformed.");
+
+        if(Str->rfind('B')!=std::string::npos)
+            this->Attr|=MEM_BUFFERABLE;
+        if(Str->rfind('C')!=std::string::npos)
+            this->Attr|=MEM_CACHEABLE;
+        if(Str->rfind('S')!=std::string::npos)
+            this->Attr|=MEM_STATIC;
+    }
+    catch(std::exception& Exc)
+    {
+        throw std::runtime_error(std::string("Shared memory:\n")+Exc.what());
+    }
+}
+/* End Function:Shmem::Shmem *************************************************/
+
+/* Begin Function:Memmap::Memmap **********************************************
+Description : Constructor for Memmap class.
+Input       : std::unique_ptr<class Mem>& Mem - The memory trunk.
+Output      : None.
+Return      : None.
+******************************************************************************/
+/* void */ Memmap::Memmap(std::unique_ptr<class Mem>& Mem)
+{
+    /* This pointer does not assume ownership */
+    this->Mem=Mem.get();
+    this->Map.resize((unsigned int)(Mem->Size/MAP_ALIGN+1));
+    std::fill(this->Map.begin(), this->Map.end(), false);
+}
+/* End Function:Memmap::Memmap ***********************************************/
+
+/* Begin Function:Memmap::Try *************************************************
+Description : See if this bitmap segment is already covered.
+Input       : std::unique_ptr<class Memmap>& Map - The bitmap.
+              ptr_t Base - The starting address.
+              ptr_t Size - The size to allocate.
+Output      : None.
+Return      : ret_t - If can be marked, 0; else -1.
+******************************************************************************/
+ret_t Memmap::Try(std::unique_ptr<class Memmap>& Map, ptr_t Base, ptr_t Size)
+{
+    ptr_t Count;
+    ptr_t Bit_Base;
+    ptr_t Bit_Size;
+
+    /* See if we can fit there */
+    if((Base<Map->Mem->Base)&&(Base>=(Map->Mem->Base+Map->Mem->Size)))
+        return -1;
+    if((Map->Mem->Base+Map->Mem->Size)<(Base+Size))
+        return -1;
+
+    Bit_Base=(Base-Map->Mem->Base)/MAP_ALIGN;
+    Bit_Size=Size/MAP_ALIGN;
+
+    for(Count=Bit_Base;Count<Bit_Base+Bit_Size;Count++)
+    {
+        if(Map->Map[(unsigned int)Count]!=false)
+            return -1;
+    }
+    return 0;
+}
+/* End Function:Memmap::Try **************************************************/
+
+/* Begin Function:Memmap::Mark ************************************************
+Description : Actually mark this bitmap segment. Each bit is always 4 bytes.
+Input       : std::unique_ptr<class Memmap>& Map - The bitmap.
+              ptr_t Base - The starting address.
+              ptr_t Size - The size to allocate.
+Output      : std::unique_ptr<class Memmap>& Map - The updated bitmap.
+Return      : None.
+******************************************************************************/
+ret_t Memmap::Mark(std::unique_ptr<class Memmap>& Map, ptr_t Base, ptr_t Size)
+{
+    ptr_t Count;
+    ptr_t Bit_Base;
+    ptr_t Bit_Size;
+
+    /* See if we can fit there */
+    if((Base<Map->Mem->Base)&&(Base>=(Map->Mem->Base+Map->Mem->Size)))
+        return -1;
+    if((Map->Mem->Base+Map->Mem->Size)<(Base+Size))
+        return -1;
+
+    Bit_Base=(Base-Map->Mem->Base)/MAP_ALIGN;
+    Bit_Size=Size/MAP_ALIGN;
+
+    for(Count=Bit_Base;Count<Bit_Base+Bit_Size;Count++)
+        Map->Map[(unsigned int)Count]=true;
+
+    return 0;
+}
+/* End Function:Memmap::Mark *************************************************/
+
+/* Begin Function:Memmap::Fit_Static ******************************************
+Description : Populate the memory data structure with this memory segment.
+              This operation will be conducted with no respect to whether this
+              portion have been populated with someone else.
+Input       : std::vector<std::unique_ptr<class Memmap>>& Map - The memory map.
+              ptr_t Base - The start address of the memory.
+              ptr_t Size - The size of the memory.
+              ptr_t Attr - The attributes of the memory.
+Output      : std::vector<std::unique_ptr<class Memmap>>& Map - The updated memory map.
+Return      : ret_t - If successful, 0; else -1.
+******************************************************************************/
+ret_t Memmap::Fit_Static(std::vector<std::unique_ptr<class Memmap>>& Map,
+                         ptr_t Base, ptr_t Size, ptr_t Attr)
+{
+    class Mem* Mem;
+
+    /* See if we can even find a segment that accomodates this */
+    for(std::unique_ptr<class Memmap>& Info:Map)
+    {
+        Mem=Info->Mem;
+        if((Base>=Mem->Base)&&(Base<(Mem->Base+Mem->Size)))
+        {
+            /* See if we can fit there */
+            if((Mem->Base+Mem->Size)<(Base+Size))
+                return -1;
+
+            /* Is the attributes correct? */
+            if((Mem->Attr&Attr)!=Attr)
+                return -1;
+
+            /* It is clear that we can fit now. Mark all the bits. We do not check it it
+             * is already marked, because we allow overlapping. */
+            return Mark(Info, Base, Size);
+        }
+    }
+
+    return -1;
+}
+/* End Function:Memmap::Fit_Static *******************************************/
+
+/* Begin Function:Memmap::Fit_Auto ********************************************
+Description : Fit the auto-placed memory segments to a fixed location.
+Input       : std::vector<std::unique_ptr<class Memmap>>& Map - The memory map.
+              ptr_t Base - The start address of the memory.
+              ptr_t Size - The size of the memory.
+              ptr_t Attr - The attributes of the memory.
+              ptr_t Align - The alignment granularity of the memory.
+Output      : std::vector<std::unique_ptr<class Memmap>>& Map - The updated memory map.
+              ptr_t* Start - The start address of the memory.
+Return      : ret_t - If successful, 0; else -1.
+******************************************************************************/
+ret_t Memmap::Fit_Auto(std::vector<std::unique_ptr<class Memmap>>& Map,
+                       ptr_t* Base, ptr_t Size, ptr_t Align, ptr_t Attr)
+{
+    ptr_t Fit_Start;
+    ptr_t Fit_End;
+    ptr_t Fit_Try;
+    class Mem* Fit;
+
+    /* Find somewhere to fit this memory trunk, and if found, we will populate it */
+    for(std::unique_ptr<class Memmap>& Info:Map)
+    {
+        Fit=Info->Mem;
+
+        /* Is the size possibly sufficient? */
+        if(Size>Fit->Size)
+            continue;
+
+        /* Is the attribute a superset of what we require? */
+        if((Fit->Attr&Attr)!=Attr)
+            continue;
+
+        /* Round start address up, round end address down, to alignment */
+        Fit_Start=((Fit->Base+Align-1)/Align)*Align;
+        Fit_End=((Fit->Base+Fit->Size)/Align)*Align;
+
+        if(Size>(Fit_End-Fit_Start))
+            continue;
+
+        for(Fit_Try=Fit_Start;Fit_Try<Fit_End;Fit_Try+=Align)
+        {
+            if(Try(Info,Fit_Try,Size)==0)
+            {
+                /* Found a fit */
+                Mark(Info,Fit_Try,Size);
+                *Base=Fit_Try;
+                return 0;
+            }
+        }
+    }
+
+    /* Can't find any fit */
+    return -1;
+}
+/* End Function:Memmap::Fit_Auto *********************************************/
+
+class Plat
+{
+public:
+    ptr_t Kmem_Order;
+    ptr_t Word_Bits;
+    ptr_t Capacity;
+    ptr_t Init_Num_Ord;
+    ptr_t Raw_Thd_Size;
+    ptr_t Raw_Inv_Size;
+
+    Plat(ptr_t Word_Bits, ptr_t Init_Num_Ord, ptr_t Thd_Size, ptr_t Inv_Size);
+
+    /* Kernel object sizes */
+    virtual ptr_t Captbl_Size(ptr_t Entry) final;
+    virtual ptr_t Captbl_Num(ptr_t Entry) final;
+    virtual ptr_t Captbl_Total(ptr_t Entry) final;
+    virtual ptr_t Pgtbl_Size(ptr_t Num_Order, ptr_t Is_Top) final;
+    virtual ptr_t Thd_Size(void) final;
+    virtual ptr_t Inv_Size(void) final;
+
+    /* Raw page table size */
+    virtual ptr_t Raw_Pgtbl_Size(ptr_t Num_Order, ptr_t Is_Top)=0;
+    /* Align memory */
+    virtual void Align_Mem(std::unique_ptr<class Proj>& Proj)=0;
+    /* Allocate page table */
+    virtual void Alloc_Pgtbl(std::unique_ptr<class Proj>& Proj, std::unique_ptr<class Chip>& Chip)=0;
+};
+
+/* Begin Function:Plat::Plat **************************************************
+Description : Constructor for Plat class.
+Input       : ptr_t Word_Bits - The number of bits in a processor word.
+              ptr_t Init_Num_Ord - The initial number order of the page table.
+              ptr_t Thd_Size - The raw thread size.
+              ptr_t Inv_Size - The raw invocation size.
+Output      : None.
+Return      : None.
+******************************************************************************/
+/* void */ Plat::Plat(ptr_t Word_Bits, ptr_t Init_Num_Ord, ptr_t Thd_Size, ptr_t Inv_Size)
+{
+    this->Word_Bits=Word_Bits;
+    this->Capacity=POW2(Word_Bits/4-1);
+    this->Init_Num_Ord=Init_Num_Ord;
+    this->Raw_Thd_Size=Thd_Size;
+    this->Raw_Inv_Size=Inv_Size;
+}
+/* End Function:Plat::Plat ***************************************************/
+
+/* Begin Function:Plat::Captbl_Size *******************************************
+Description : Calculate the platform's capability table size.
+Input       : ptr_t Entry - The number of entries for the capability table.
+Output      : None.
+Return      : ptr_t - The size of the capability table, in bytes.
+******************************************************************************/
+ptr_t Plat::Captbl_Size(ptr_t Entry)
+{
+    return ROUND_UP(RAW_CAPTBL_SIZE(this->Word_Bits,Entry), this->Kmem_Order);
+}
+/* End Function:Plat::Captbl_Size ********************************************/
+
+/* Begin Function:Plat::Captbl_Num ********************************************
+Description : Calculate the number of capability tables needed given the number
+              of capabilities.
+Input       : ptr_t Entry - The total number of entries for the capability tables.
+Output      : None.
+Return      : ptr_t - The number of capability tables needed.
+******************************************************************************/
+ptr_t Plat::Captbl_Num(ptr_t Entry)
+{
+    return (Entry+this->Capacity-1)/this->Capacity;
+}
+/* End Function:Plat::Captbl_Num *********************************************/
+
+/* Begin Function:Plat::Captbl_Total ******************************************
+Description : Calculate the total size of capability tables needed given the number
+              of capabilities.
+Input       : ptr_t Entry - The number of entries for the capability tables.
+Output      : None.
+Return      : ptr_t - The total size size of the capability tables, in bytes.
+******************************************************************************/
+ptr_t Plat::Captbl_Total(ptr_t Entry)
+{
+    ptr_t Size;
+
+    Size=ROUND_UP(RAW_CAPTBL_SIZE(this->Word_Bits,this->Capacity), this->Kmem_Order);
+    Size*=Entry/this->Capacity;
+    Size+=ROUND_UP(RAW_CAPTBL_SIZE(this->Word_Bits,Entry%this->Capacity), this->Kmem_Order);
+
+    return Size;
+}
+/* End Function:Plat::Captbl_Total *******************************************/
+
+/* Begin Function:Plat::Pgtbl_Size ********************************************
+Description : Calculate the platform's page table size.
+Input       : ptr_t Num_Order - The number order.
+              ptr_t Is_Top - Whether this is a top-level.
+Output      : None.
+Return      : ptr_t - The size of the page table, in bytes.
+******************************************************************************/
+ptr_t Plat::Pgtbl_Size(ptr_t Num_Order, ptr_t Is_Top)
+{
+    return ROUND_UP(this->Raw_Pgtbl_Size(Num_Order, Is_Top), this->Kmem_Order);
+}
+/* End Function:Plat::Pgtbl_Size *********************************************/
+
+/* Begin Function:Plat::Thd_Size **********************************************
+Description : Calculate the platform's thread size.
+Input       : None.
+Output      : None.
+Return      : ptr_t - The size of the thread, in bytes.
+******************************************************************************/
+ptr_t Plat::Thd_Size(void)
+{
+    return ROUND_UP(this->Raw_Thd_Size, this->Kmem_Order);
+}
+/* End Function:Plat::Thd_Size ***********************************************/
+
+/* Begin Function:Plat::Inv_Size **********************************************
+Description : Calculate the platform's invocation size.
+Input       : None.
+Output      : None.
+Return      : ptr_t - The size of the thread, in bytes.
+******************************************************************************/
+ptr_t Plat::Inv_Size(void)
+{
+    return ROUND_UP(this->Raw_Inv_Size, this->Kmem_Order);
+}
+/* End Function:Plat::Inv_Size ***********************************************/
+
+/* Begin Function:Proj::Kobj_Alloc ********************************************
+Description : Get the size of the kernel memory, and generate the initial states
+              for kernel object creation.
+Input       : std::unique_ptr<class Plat>& Plat - The platform structure.
+              ptr_t Init_Captbl_Size - The initial capability table's size;
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Proj::Kobj_Alloc(std::unique_ptr<class Plat>& Plat, ptr_t Init_Capsz)
+{
+    ptr_t Cap_Front;
+    ptr_t Kmem_Front;
+
+    /* Compute initial state when creating the vectors */
+    Cap_Front=0;
+    Kmem_Front=0;
+    /* Initial capability table */
+    Cap_Front++;
+    Kmem_Front+=Plat->Captbl_Size(Init_Capsz);
+    /* Initial page table */
+    Cap_Front++;
+    Kmem_Front+=Plat->Pgtbl_Size(Plat->Init_Num_Ord,1);
+    /* Initial RVM process */
+    Cap_Front++;
+    /* Initial kcap and kmem */
+    Cap_Front+=2;
+    /* Initial tick timer/interrupt endpoint */
+    Cap_Front+=2;
+    /* Initial thread */
+    Cap_Front++;
+    Kmem_Front+=Plat->Thd_Size();
+
+    /* Create vectors */
+    this->RME->Map->Vect_Cap_Front=Cap_Front;
+    this->RME->Map->Vect_Kmem_Front=Kmem_Front;
+    /* Capability tables for containing vector endpoints */
+    Cap_Front+=Plat->Captbl_Num(this->RVM->Vect.size());
+    Kmem_Front+=Plat->Captbl_Total(this->RVM->Vect.size());
+
+    /* Create RVM */
+    this->RVM->Map->Before_Cap_Front=Cap_Front;
+    this->RVM->Map->Before_Kmem_Front=Kmem_Front;
+    /* When there are virtual machines, generate everything */
+    if(this->Virt.size()!=0)
+    {
+        /* Four threads and two endpoints for RVM */
+        Cap_Front+=6;
+        Kmem_Front+=4*Plat->Thd_Size();
+
+        /* Create virtual machine endpoints. These endpoints does not have names.
+         * Each virtual machine have two endpoints, but only one is dedicated to
+         * it, so we only need to create one for each VM. */
+        this->RVM->Map->Virtep_Cap_Front=Cap_Front;
+        this->RVM->Map->Virtep_Kmem_Front=Kmem_Front;
+        Cap_Front+=Plat->Captbl_Num(this->Virt.size());
+        Kmem_Front+=Plat->Captbl_Total(this->Virt.size());
+    }
+    /* When there are no virtual machines at all, just generate one endpoint and one thread */
+    else
+    {
+        Cap_Front+=2;
+        Kmem_Front+=Plat->Thd_Size();
+
+        /* No virtual machine endpoints to create at all */
+        this->RVM->Map->Virtep_Cap_Front=Cap_Front;
+        this->RVM->Map->Virtep_Kmem_Front=Kmem_Front;
+    }
+
+    /* Create capability tables */
+    this->RVM->Map->Captbl_Cap_Front=Cap_Front;
+    this->RVM->Map->Captbl_Kmem_Front=Kmem_Front;
+    /* Capability tables for containing capability tables */
+    Cap_Front+=Plat->Captbl_Num(this->RVM->Captbl.size());
+    Kmem_Front+=Plat->Captbl_Total(this->RVM->Captbl.size());
+    /* Capability tables themselves */
+    for(std::unique_ptr<class Cap> const& Info:this->RVM->Captbl)
+        Kmem_Front+=Plat->Captbl_Size(static_cast<class Captbl*>(Info->Kobj)->Size);
+
+    /* Create page tables */
+    this->RVM->Map->Pgtbl_Cap_Front=Cap_Front;
+    this->RVM->Map->Pgtbl_Kmem_Front=Kmem_Front;
+    /* Capability tables for containing page tables */
+    Cap_Front+=Plat->Captbl_Num(this->RVM->Pgtbl.size());
+    Kmem_Front+=Plat->Captbl_Total(this->RVM->Pgtbl.size());
+    /* Page table themselves */
+    for(std::unique_ptr<class Cap> const& Info:this->RVM->Pgtbl)
+    {
+        Kmem_Front+=Plat->Pgtbl_Size(static_cast<class Pgtbl*>(Info->Kobj)->Num_Order,
+                                     static_cast<class Pgtbl*>(Info->Kobj)->Is_Top);
+    }
+
+    /* Create processes */
+    this->RVM->Map->Proc_Cap_Front=Cap_Front;
+    this->RVM->Map->Proc_Kmem_Front=Kmem_Front;
+    /* Capability tables for containing processes */
+    Cap_Front+=Plat->Captbl_Num(this->RVM->Proc.size());
+    Kmem_Front+=Plat->Captbl_Total(this->RVM->Proc.size());
+    /* Processes themselves - they do not use extra memory */
+
+    /* Create threads */
+    this->RVM->Map->Thd_Cap_Front=Cap_Front;
+    this->RVM->Map->Thd_Kmem_Front=Kmem_Front;
+    /* Capability tables for containing threads */
+    Cap_Front+=Plat->Captbl_Num(this->RVM->Thd.size());
+    Kmem_Front+=Plat->Captbl_Total(this->RVM->Thd.size());
+    /* Threads themselves */
+    Kmem_Front+=this->RVM->Thd.size()*Plat->Thd_Size();
+
+    /* Create invocations */
+    this->RVM->Map->Inv_Cap_Front=Cap_Front;
+    this->RVM->Map->Inv_Kmem_Front=Kmem_Front;
+    /* Capability tables for containing invocations */
+    Cap_Front+=Plat->Captbl_Num(this->RVM->Inv.size());
+    Kmem_Front+=Plat->Captbl_Total(this->RVM->Inv.size());
+    /* Invocations themselves */
+    Kmem_Front+=this->RVM->Inv.size()*Plat->Inv_Size();
+
+    /* Create receive endpoints */
+    this->RVM->Map->Recv_Cap_Front=Cap_Front;
+    this->RVM->Map->Recv_Kmem_Front=Kmem_Front;
+    /* Capability tables for containing receive endpoints */
+    Cap_Front+=Plat->Captbl_Num(this->RVM->Recv.size());
+    Kmem_Front+=Plat->Captbl_Total(this->RVM->Recv.size());
+    /* Receive endpoints themselves - they do not use memory */
+
+    /* Final pointer positions */
+    this->RVM->Map->After_Cap_Front=Cap_Front;
+    this->RVM->Map->After_Kmem_Front=Kmem_Front;
+
+    /* Check if we are out of table space */
+    this->RVM->Map->Captbl_Size=this->RVM->Extra_Captbl+this->RVM->Map->After_Cap_Front;
+    if(this->RVM->Map->After_Cap_Front>Plat->Capacity)
+        throw std::runtime_error("M2000: RVM capability table size exceeded the architectural limit.");
+}
+/* End Function:Get_Kmem_Size ************************************************/
+
+
+
+void Kobj_Alloc(std::unique_ptr<class Plat>& Plat, ptr_t Init_Capsz);
 
 /* End Of File ***************************************************************/
 
