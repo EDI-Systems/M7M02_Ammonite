@@ -58,7 +58,7 @@ public:
     /* The virtual machine information - some processes are VMs */
     std::vector<class Virtual*> Virtual;
 
-    /* void */ Proj(xml_node_t* Root);
+    /* void */ Proj_Info(xml_node_t* Root);
 };
 /*****************************************************************************/
 /* __PROJ_INFO_HPP_CLASSES__ */

@@ -22,11 +22,14 @@ extern "C"
 #define __HDR_DEFS__
 #include "rvm_gen.hpp"
 #include "Chip_Info/chip_info.hpp"
+#include "Mem_Info/mem_info.hpp"
 #undef __HDR_DEFS__
 
 #define __HDR_CLASSES__
 #include "rvm_gen.hpp"
 #include "Chip_Info/chip_info.hpp"
+#include "Chip_Info/Config/config.hpp"
+#include "Vect_Info/vect_info.hpp"
 #include "Mem_Info/mem_info.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/
@@ -40,11 +43,6 @@ Return      : None.
 ******************************************************************************/
 /* void */ Chip_Info::Chip_Info(xml_node_t* Root)
 {
-    xml_node_t* Temp;
-    xml_node_t* Trunk;
-    xml_node_t* Mem_Type;
-    std::unique_ptr<std::string> Str;
-
     try
     {
         /* Platform */
@@ -58,15 +56,15 @@ Return      : None.
         /* Vendor */
         this->Vendor=Main::XML_Get_String(Root,"Class","DXXXX","DXXXX");
         /* Region */
-        this->Region=std::stoul(Main::XML_Get_String(Root,"Region","DXXXX","DXXXX"));
+        this->Region=Main::XML_Get_Number(Root,"Region","DXXXX","DXXXX");
         /* Attribute */
         Main::XML_Get_KVP(Root,"Attribute",this->Attribute,"DXXXX","DXXXX");
         /* Memory */
-        Parse_Trunk<class Mem_Info,class Mem_Info>(Root,"Memory",this->Memory,"DXXXX","DXXXX");
+        Parse_Trunk_Param<class Mem_Info,class Mem_Info,ptr_t>(Root,"Memory",this->Memory,MEM_DECL,"DXXXX","DXXXX");
         /* Config */
         Parse_Trunk<class Config,class Config>(Root,"Config",this->Config,"DXXXX","DXXXX");
         /* Vector */
-        Parse_Trunk<class Vector,class Vector>(Root,"Vector",this->Vector,"DXXXX","DXXXX");
+        Parse_Trunk<class Vect_Info,class Vect_Info>(Root,"Vector",this->Vector,"DXXXX","DXXXX");
     }
     catch(std::exception& Exc)
     {

@@ -1,9 +1,10 @@
 /******************************************************************************
-Filename    : chip.cpp
+Filename    : vect_info.cpp
 Author      : pry
-Date        : 16/07/2019
+Date        : 2022/11/19
 Licence     : LGPL v3+; see COPYING for details.
-Description : The chip class.
+Description : The configuration vector info class. This class is responsible for
+                 keeping vectors of particular chips.
 ******************************************************************************/
 
 /* Includes ******************************************************************/
@@ -20,44 +21,44 @@ extern "C"
 
 #define __HDR_DEFS__
 #include "rvm_gen.hpp"
-#include "Proj_Info/Chip/chip.hpp"
+#include "Vect_Info/vect_info.hpp"
 #undef __HDR_DEFS__
 
 #define __HDR_CLASSES__
 #include "rvm_gen.hpp"
-#include "Proj_Info/Chip/chip.hpp"
+#include "Vect_Info/vect_info.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/
 namespace RVM_GEN
 {
-/* Begin Function:Chip::Chip **************************************************
-Description : Constructor for chip class.
-Input       : xml_node_t* Root - The node containing the chip information.
+/* Begin Function:Vect_Info::Vect_Info ****************************************
+Description : Parse the vector section of a particular chip.
+Input       : xml_node_t* Root - The option section's XML node.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Chip::Chip(xml_node_t* Root)
+/* void */ Vect_Info::Vect_Info(xml_node_t* Root)
 {
+    std::string Temp;
+
     try
     {
-        /* Platform */
-        this->Platform=Main::XML_Get_String(Root,"Platform","DXXXX","DXXXX");
-        /* Class */
-        this->Class=Main::XML_Get_String(Root,"Class","DXXXX","DXXXX");
         /* Name */
         this->Name=Main::XML_Get_String(Root,"Name","DXXXX","DXXXX");
-        /* Config */
-        Main::XML_Get_KVP(Root,"Config",this->Config,"DXXXX","DXXXX");
+        Main::Idtfr_Check(this->Name,"Name","DXXXX","DXXXX");
+
+        /* Number */
+        this->Number=Main::XML_Get_Number(Root,"Number","DXXXX","DXXXX");
     }
     catch(std::exception& Exc)
     {
         if(this->Name!="")
-            Main::Error(std::string("Chip: ")+this->Name+"\n"+Exc.what());
+            Main::Error(std::string("Vector: ")+this->Name+"\n"+Exc.what());
         else
-            Main::Error(std::string("Chip: ")+"Unknown"+"\n"+Exc.what());
+            Main::Error(std::string("Vector: ")+"Unknown"+"\n"+Exc.what());
     }
 }
-/* End Function:Chip::Chip ***************************************************/
+/* End Function:Vect_Info::Vect_Info *****************************************/
 }
 /* End Of File ***************************************************************/
 

@@ -68,6 +68,9 @@ while(0)
 
 /* Priority limit for threads */
 #define PROC_THD_PRIO_MIN                   (5)
+
+/* Maximum file length allowed */
+#define MAX_FILE_SIZE                       (16*1024*1024)
 /*****************************************************************************/
 /* __RME_MCU_HPP_DEFS__ */
 #endif
@@ -83,56 +86,34 @@ while(0)
 /* The application instance class */
 class Main
 {
-private:
-    void Add_Extmem(void);
-    void Alloc_Code(void);
-    void Alloc_Data(void);
-    void Add_Shmem(void);
-    void Check_Addrspace(void);
-    void Check_Code(void);
-    void Check_Device(void);
-
 public:
-    std::unique_ptr<std::string> Input;
-    std::unique_ptr<std::string> Output;
-    std::unique_ptr<std::string> Format;
+    char* Buffer;
+    std::string Time;
 
-    std::unique_ptr<class Srcfs> Srcfs;
-    std::unique_ptr<class Dstfs> Dstfs;
-    std::unique_ptr<class Proj> Proj;
-    std::unique_ptr<class Chip> Chip;
-    std::unique_ptr<class Plat> Plat;
+    std::string Input;
+    static ptr_t Verbose;
 
-    std::unique_ptr<class RME_Gen> RME_Gen;
-    std::unique_ptr<class RVM_Gen> RVM_Gen;
-    std::unique_ptr<class Proc_Gen> Proc_Gen;
-    std::unique_ptr<class Proj_Gen> Proj_Gen;
-    
+    std::unique_ptr<class Proj_Info> Proj;
+    std::unique_ptr<class Chip_Info> Chip;
+    //std::unique_ptr<class Platform> Plat;
+
     Main(int argc, char* argv[]);
+
+    void Parse(void);
+    void Proj_Parse(void);
 
     static std::string XML_Get_String(xml_node_t* Root, const char* Name,
                                       const char* Errno0, const char* Errno1);
+    static ptr_t XML_Get_Number(xml_node_t* Root, const char* Name,
+                                const char* Errno0, const char* Errno1);
+    static ptr_t XML_Get_Yesno(xml_node_t* Root, const char* Name,
+                               const char* Errno0, const char* Errno1);
     static void XML_Get_CSV(xml_node_t* Root, const char* Name,
                             std::vector<std::string>& Vector,
                             const char* Errno0, const char* Errno1);
-    static void Main::XML_Get_KVP(xml_node_t* Root, const char* Name,
-                                  std::map<std::string,std::string>& Map,
-                                  const std::string& Errno0, const std::string& Errno1)
-
-    void Parse(void);
-    void Check_Chip(void);
-
-    void Alloc_Mem(void);
-    void Alloc_Cap(void);
-    void Link_Cap(void);
-    void Alloc_Obj(void);
-
-    void Gen_RME(void);
-    void Gen_RVM(void);
-    void Gen_Proc(void);
-    void Gen_Proj(void);
-
-    void Gen_Report(void);
+    static void XML_Get_KVP(xml_node_t* Root, const char* Name,
+                            std::map<std::string,std::string>& Map,
+                            const char* Errno0, const char* Errno1);
 
     static void Idtfr_Check(const std::string& Idtfr, const char* Name,
                             const char* Errno0, const char* Errno1);
@@ -143,88 +124,6 @@ public:
     static void Error[[noreturn]](const std::string& Format);
 };
 
-class Kobj_Stats
-{
-public:
-    ptr_t Main_Capability_Table_Usage;
-    ptr_t Main_Capability_Table_Total;
-    ptr_t Main_Capability_Table_Limit;
-    ptr_t Total_Kernel_Objects;
-    ptr_t Auxiliary_Capability_Tables;
-    ptr_t Processes;
-    ptr_t Virtual_Machines;
-    ptr_t Capability_Tables;
-    ptr_t Page_Tables;
-    ptr_t Threads;
-    ptr_t Invocations;
-    ptr_t Endpoints;
-};
-
-class Kmem_Stats
-{
-public:
-    ptr_t RME_Code_Memory;
-    ptr_t RME_Data_Memory;
-    ptr_t RVM_Code_Memory;
-    ptr_t RVM_Data_Memory;
-    ptr_t Kernel_Memory_Usage;
-    ptr_t Kernel_Memory_Total;
-    ptr_t Processes;
-    ptr_t Capability_Tables;
-    ptr_t Page_Tables;
-    ptr_t Threads;
-    ptr_t Invocations;
-    ptr_t Endpoints;
-};
-
-class User_Stats
-{
-public:
-    ptr_t Private_Code_Memory;
-    ptr_t Private_Data_Memory;
-    ptr_t Private_Device_Memory;
-    ptr_t Shared_Code_Memory;
-    ptr_t Shared_Data_Memory;
-    ptr_t Shared_Device_Memory;
-};
-
-class Plat_Stats
-{
-public:
-    ptr_t Used_Code_Memory;
-    ptr_t Used_Data_Memory;
-    ptr_t Used_Device_Memory;
-    ptr_t Platform_Code_Memory;
-    ptr_t Platform_Data_Memory;
-    ptr_t Platform_Device_Memory;
-};
-
-class Proc_Stats
-{
-public:
-    ptr_t Capability_Table_Usage;
-    ptr_t Capability_Table_Total;
-    ptr_t Capability_Table_Limit;
-    ptr_t Code_Memory;
-    ptr_t Data_Memory;
-    ptr_t Device_Memory;
-};
-
-class Stats
-{
-public:
-    class Kobj_Stats Kobj;
-    class Kmem_Stats Kmem;
-    class User_Stats User;
-    class Plat_Stats Plat;
-    class Proc_Stats Proc;
-    
-    void Kobj_Stats(class Main* Main);
-    void Kmem_Stats(class Main* Main);
-    void User_Stats(class Main* Main);
-    void Plat_Stats(class Main* Main);
-    void Proc_Stats(class Proc* Proc);
-};
 
 /* XML trunk parsing */
 template <typename CONT, typename ELEM>
@@ -277,20 +176,6 @@ void Check_Duplicate_Name(const std::string& Section, std::vector<std::unique_pt
             Map.insert(std::pair<std::string,T*>(Var->Name,Var.get()));
         else
             Main::Error(std::string(Errno)+": Duplicate name '"+Var->Name+"' found in '"+Section+"' section.");
-    }
-}
-/* Duplicate refdes checking */
-template <typename T>
-void Check_Duplicate_Refdes(const std::string& Section, std::vector<std::unique_ptr<T>>& Vect,
-                            std::map<std::string, T*>& Map, const std::string& Errno)
-{
-    for(std::unique_ptr<T>& Var:Vect)
-    {
-        if(Map.find(Var->Refdes)==Map.end())
-            Map.insert(std::make_pair(Var->Refdes,Var.get()));
-        else
-            Main::Error(std::string(Errno)+": Duplicate refdes '"+Var->Refdes+"' found in '"+Section+"' section.");
-
     }
 }
 /*****************************************************************************/

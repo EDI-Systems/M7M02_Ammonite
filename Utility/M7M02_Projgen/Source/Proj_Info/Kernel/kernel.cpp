@@ -7,6 +7,7 @@ Description : The kernel configuration class.
 ******************************************************************************/
 
 /* Includes ******************************************************************/
+#include "map"
 #include "string"
 #include "memory"
 #include "vector"
@@ -32,101 +33,63 @@ namespace RVM_GEN
 {
 /* Begin Function:Kernel::Kernel **********************************************
 Description : Constructor for RME class.
-Input       : xml_node_t* Node - The node containing the whole project.
+Input       : xml_node_t* Root - The node containing the kernel section.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Kernel::Kernel(xml_node_t* Node)
+/* void */ Kernel::Kernel(xml_node_t* Root)
 {
-    xml_node_t* Temp;
-    xml_node_t* Trunk;
-
     try
     {
         /* Code base */
-        if((XML_Child(Node,"Code_Base",&Temp)<0)||(Temp==0))
-            throw std::invalid_argument("P0100: Code base section is missing.");
-        if(XML_Get_Hex(Temp,&(this->Code_Base))<0)
-            throw std::invalid_argument("P0101: Code base is not a valid hex integer.");
-
+        this->Code_Base=Main::XML_Get_Number(Root,"Code_Base","DXXXX","DXXXX");
         /* Code size */
-        if((XML_Child(Node,"Code_Size",&Temp)<0)||(Temp==0))
-            throw std::invalid_argument("P0102: Code size section is missing.");
-        if(XML_Get_Hex(Temp,&(this->Code_Size))<0)
-            throw std::invalid_argument("P0103: Code size is not a valid hex integer.");
-
+        this->Code_Size=Main::XML_Get_Number(Root,"Code_Size","DXXXX","DXXXX");
         /* Data base */
-        if((XML_Child(Node,"Data_Base",&Temp)<0)||(Temp==0))
-            throw std::invalid_argument("P0104: Data base section is missing.");
-        if(XML_Get_Hex(Temp,&(this->Data_Base))<0)
-            throw std::invalid_argument("P0105: Data base is not a valid hex integer.");
-
+        this->Data_Base=Main::XML_Get_Number(Root,"Data_Base","DXXXX","DXXXX");
         /* Data size */
-        if((XML_Child(Node,"Data_Size",&Temp)<0)||(Temp==0))
-            throw std::invalid_argument("P0106: Data size section is missing.");
-        if(XML_Get_Hex(Temp,&(this->Data_Size))<0)
-            throw std::invalid_argument("P0107: Data size is not a valid hex integer.");
-
+        this->Data_Size=Main::XML_Get_Number(Root,"Data_Size","DXXXX","DXXXX");
         /* Stack size */
-        if((XML_Child(Node,"Stack_Size",&Temp)<0)||(Temp==0))
-            throw std::invalid_argument("P0108: Stack size section is missing.");
-        if(XML_Get_Hex(Temp,&(this->Stack_Size))<0)
-            throw std::invalid_argument("P0109: Stack size is not a valid hex integer.");
-
+        this->Stack_Size=Main::XML_Get_Number(Root,"Stack_Size","DXXXX","DXXXX");
         /* Extra kernel memory */
-        if((XML_Child(Node,"Extra_Kmem",&Temp)<0)||(Temp==0))
-            throw std::invalid_argument("P0110: Extra kernel memory section is missing.");
-        if(XML_Get_Hex(Temp,&(this->Extra_Kmem))<0)
-            throw std::invalid_argument("P0111: Extra kernel memory is not a valid hex integer.");
-
+        this->Extra_Kmem=Main::XML_Get_Number(Root,"Extra_Kmem","DXXXX","DXXXX");
         /* Kmem_Order */
-        if((XML_Child(Node,"Kmem_Order",&Temp)<0)||(Temp==0))
-            throw std::invalid_argument("P0112: Kernel memory order section is missing.");
-        if(XML_Get_Uint(Temp,&(this->Kmem_Order))<0)
-            throw std::invalid_argument("P0113: Kernel memory order is not a valid unsigned integer.");
+        this->Kmem_Order=Main::XML_Get_Number(Root,"Kmem_Order","DXXXX","DXXXX");
+        /* Kern_Prio */
+        this->Kern_Prio=Main::XML_Get_Number(Root,"Kern_Prio","DXXXX","DXXXX");
 
-        /* Priorities */
-        if((XML_Child(Node,"Kern_Prios",&Temp)<0)||(Temp==0))
-            throw std::invalid_argument("P0114: Priority number section is missing.");
-        if(XML_Get_Uint(Temp,&(this->Kern_Prios))<0)
-            throw std::invalid_argument("P0115: Priority number is not a valid unsigned integer.");
-
-        /* Compiler */
-        if((XML_Child(Node,"Compiler",&Temp)<0)||(Temp==0))
-            throw std::invalid_argument("P0116: Compiler option section is missing.");
-        this->Comp=std::make_unique<class Comp>(Temp);
-
-        /* Platform */
-        if((XML_Child(Node,"Platform",&Temp)<0)||(Temp==0))
-            throw std::invalid_argument("P0117: Platform option section is missing.");
-        if(XML_Child(Temp,0,&Trunk)<0)
-            throw std::invalid_argument("P0118: Platform option section parsing internal error.");
-        while(Trunk!=0)
-        {
-            this->Plat.push_back(std::make_unique<class Raw>(Trunk));
-
-            if(XML_Child(Temp,"",&Trunk)<0)
-                throw std::invalid_argument("P0118: Platform option section parsing internal error.");
-        }
-
-        /* Chip */
-        if((XML_Child(Node,"Chip",&Temp)<0)||(Temp==0))
-            throw std::invalid_argument("P0119: Chip option section is missing.");
-        if(XML_Child(Temp,0,&Trunk)<0)
-            throw std::invalid_argument("P0120: Chip option section parsing internal error.");
-        while(Trunk!=0)
-        {
-            this->Chip.push_back(std::make_unique<class Raw>(Trunk));
-
-            if(XML_Child(Temp,"",&Trunk)<0)
-                throw std::invalid_argument("P0120: Chip option section parsing internal error.");
-        }
-
-        this->Map=std::make_unique<class RME_Memmap>();
+        /* Build */
+        this->Build=Main::XML_Get_String(Root,"Build","DXXXX","DXXXX");
+        /* Toolchain */
+        this->Toolchain=Main::XML_Get_String(Root,"Toolchain","DXXXX","DXXXX");
+        /* Optimization */
+        this->Optimization=Main::XML_Get_String(Root,"Optimization","DXXXX","DXXXX");
+        /* Kernel_Root */
+        this->Kernel_Root=Main::XML_Get_String(Root,"Kernel_Root","DXXXX","DXXXX");
+        /* Project_Output */
+        this->Project_Output=Main::XML_Get_String(Root,"Project_Output","DXXXX","DXXXX");
+        /* Project_Overwrite */
+        this->Project_Overwrite=Main::XML_Get_Yesno(Root,"Project_Overwrite","DXXXX","DXXXX");
+        /* Linker_Output */
+        this->Linker_Output=Main::XML_Get_String(Root,"Linker_Output","DXXXX","DXXXX");
+        /* Config_Header_Output */
+        this->Config_Header_Output=Main::XML_Get_String(Root,"Config_Header_Output","DXXXX","DXXXX");
+        /* Boot_Header_Output */
+        this->Boot_Header_Output=Main::XML_Get_String(Root,"Boot_Header_Output","DXXXX","DXXXX");
+        /* Boot_Source_Output */
+        this->Boot_Source_Output=Main::XML_Get_String(Root,"Boot_Source_Output","DXXXX","DXXXX");
+        /* Init_Source_Output */
+        this->Init_Source_Output=Main::XML_Get_String(Root,"Init_Source_Output","DXXXX","DXXXX");
+        /* Init_Source_Output */
+        this->Init_Source_Overwrite=Main::XML_Get_Yesno(Root,"Init_Source_Overwrite","DXXXX","DXXXX");
+        /* Handler_Source_Output */
+        this->Handler_Source_Output=Main::XML_Get_String(Root,"Handler_Source_Output","DXXXX","DXXXX");
+        /* Handler_Source_Overwrite */
+        this->Handler_Source_Overwrite=Main::XML_Get_Yesno(Root,"Handler_Source_Overwrite","DXXXX","DXXXX");
     }
     catch(std::exception& Exc)
     {
-        throw std::runtime_error(std::string("RME:\n")+Exc.what());
+        Main::Error(std::string("Kernel:\n")+Exc.what());
     }
 }
 /* End Function:Kernel::Kernel ***********************************************/

@@ -7,6 +7,7 @@ Description : The virtual machine monitor class.
 ******************************************************************************/
 
 /* Includes ******************************************************************/
+#include "map"
 #include "string"
 #include "memory"
 #include "vector"
@@ -28,73 +29,59 @@ extern "C"
 #include "Proj_Info/Monitor/monitor.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/
-namespace rme_mcu
+namespace RVM_GEN
 {
 /* Begin Function:Monitor::Monitor ********************************************
 Description : Constructor for RVM class.
-Input       : xml_node_t* Node - The node containing the whole project.
+Input       : xml_node_t* Root - The node containing the whole project.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Monitor::Monitor(xml_node_t* Node)
+/* void */ Monitor::Monitor(xml_node_t* Root)
 {
-    xml_node_t* Temp;
-    std::unique_ptr<std::string> Str;
-
     try
     {
         /* Code size */
-        if((XML_Child(Node,"Code_Size",&Temp)<0)||(Temp==0))
-            throw std::invalid_argument("P0200: Code size section is missing.");
-        if(XML_Get_Hex(Temp,&(this->Code_Size))<0)
-            throw std::invalid_argument("P0201: Code size is not a valid hex integer.");
-
+        this->Code_Size=Main::XML_Get_Number(Root,"Code_Size","DXXXX","DXXXX");
         /* Data size */
-        if((XML_Child(Node,"Data_Size",&Temp)<0)||(Temp==0))
-            throw std::invalid_argument("P0202: Data size section is missing.");
-        if(XML_Get_Hex(Temp,&(this->Data_Size))<0)
-            throw std::invalid_argument("P0203: Data size is not a valid hex integer.");
-
+        this->Data_Size=Main::XML_Get_Number(Root,"Data_Size","DXXXX","DXXXX");
         /* Stack size */
-        if((XML_Child(Node,"Stack_Size",&Temp)<0)||(Temp==0))
-            throw std::invalid_argument("P0204: Stack size section is missing.");
-        if(XML_Get_Hex(Temp,&(this->Stack_Size))<0)
-            throw std::invalid_argument("P0205: Stack size is not a valid hex integer.");
+        this->Stack_Size=Main::XML_Get_Number(Root,"Stack_Size","DXXXX","DXXXX");
+        /* Virtual machine priorities */
+        this->Virt_Prio=Main::XML_Get_Number(Root,"Virt_Prio","DXXXX","DXXXX");
+        /* Virtual machine events */
+        this->Virt_Evt=Main::XML_Get_Number(Root,"Virt_Evt","DXXXX","DXXXX");
+        /* Virtual machine mappings */
+        this->Virt_Map=Main::XML_Get_Number(Root,"Virt_Map","DXXXX","DXXXX");
 
-        /* Extra Captbl */
-        if((XML_Child(Node,"Extra_Captbl",&Temp)<0)||(Temp==0))
-            throw std::invalid_argument("P0206: Extra capability table size section is missing.");
-        if(XML_Get_Uint(Temp,&(this->Extra_Captbl))<0)
-            throw std::invalid_argument("P0207: Extra capability table size is not a valid unsigned integer.");
-
-        /* Compiler */
-        if((XML_Child(Node,"Compiler",&Temp)<0)||(Temp==0))
-            throw std::invalid_argument("P0208: Compiler section is missing.");
-        this->Comp=std::make_unique<class Comp>(Temp);
-
-        /* Number of virtual machine priorities */
-        if((XML_Child(Node,"Virt_Prios",&Temp)<0)||(Temp==0))
-            throw std::invalid_argument("P0209: Virtual machine priorities section is missing.");
-        if(XML_Get_Uint(Temp,&(this->Virt_Prios))<0)
-            throw std::invalid_argument("P0210: Virtual machine priorities is not a valid unsigned integer.");
-
-        /* Number of virtual machine events from native processes */
-        if((XML_Child(Node,"Virt_Evts",&Temp)<0)||(Temp==0))
-            throw std::invalid_argument("P0211: Virtual machine event number section is missing.");
-        if(XML_Get_Uint(Temp,&(this->Virt_Evts))<0)
-            throw std::invalid_argument("P0212: Virtual machine event number is not a valid unsigned integer.");
-
-        /* Number of virtual machine events from native processes */
-        if((XML_Child(Node,"Virt_Maps",&Temp)<0)||(Temp==0))
-            throw std::invalid_argument("P0213: Virtual machine mapping total number section is missing.");
-        if(XML_Get_Uint(Temp,&(this->Virt_Maps))<0)
-            throw std::invalid_argument("P0214: Virtual machine mapping total number is not a valid unsigned integer.");
-
-        this->Map=std::make_unique<class RVM_Memmap>();
+        /* Build */
+        this->Build=Main::XML_Get_String(Root,"Build","DXXXX","DXXXX");
+        /* Toolchain */
+        this->Toolchain=Main::XML_Get_String(Root,"Toolchain","DXXXX","DXXXX");
+        /* Optimization */
+        this->Optimization=Main::XML_Get_String(Root,"Optimization","DXXXX","DXXXX");
+        /* Monitor_Root */
+        this->Monitor_Root=Main::XML_Get_String(Root,"Monitor_Root","DXXXX","DXXXX");
+        /* Project_Output */
+        this->Project_Output=Main::XML_Get_String(Root,"Project_Output","DXXXX","DXXXX");
+        /* Project_Overwrite */
+        this->Project_Overwrite=Main::XML_Get_Yesno(Root,"Project_Overwrite","DXXXX","DXXXX");
+        /* Linker_Output */
+        this->Linker_Output=Main::XML_Get_String(Root,"Linker_Output","DXXXX","DXXXX");
+        /* Config_Header_Output */
+        this->Config_Header_Output=Main::XML_Get_String(Root,"Config_Header_Output","DXXXX","DXXXX");
+        /* Boot_Header_Output */
+        this->Boot_Header_Output=Main::XML_Get_String(Root,"Boot_Header_Output","DXXXX","DXXXX");
+        /* Boot_Source_Output */
+        this->Boot_Source_Output=Main::XML_Get_String(Root,"Boot_Source_Output","DXXXX","DXXXX");
+        /* Init_Source_Output */
+        this->Init_Source_Output=Main::XML_Get_String(Root,"Init_Source_Output","DXXXX","DXXXX");
+        /* Init_Source_Output */
+        this->Init_Source_Overwrite=Main::XML_Get_Yesno(Root,"Init_Source_Overwrite","DXXXX","DXXXX");
     }
     catch(std::exception& Exc)
     {
-        throw std::runtime_error(std::string("RVM:\n")+Exc.what());
+        Main::Error(std::string("Monitor:\n")+Exc.what());
     }
 }
 /* End Function:Monitor::Monitor *********************************************/

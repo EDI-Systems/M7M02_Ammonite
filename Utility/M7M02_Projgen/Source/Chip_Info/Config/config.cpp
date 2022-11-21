@@ -8,6 +8,7 @@ Description : The configuration option info class. This class is responsible for
 ******************************************************************************/
 
 /* Includes ******************************************************************/
+#include "map"
 #include "string"
 #include "memory"
 #include "vector"

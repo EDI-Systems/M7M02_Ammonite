@@ -13,6 +13,10 @@ namespace RVM_GEN
 #ifndef __MEM_INFO_HPP_DEFS__
 #define __MEM_INFO_HPP_DEFS__
 /*****************************************************************************/
+/* Reference or concrete */
+#define MEM_DECL            0
+#define MEM_REF             1
+
 /* Memory access permissions */
 #define MEM_READ            POW2(0)
 #define MEM_WRITE           POW2(1)
@@ -55,7 +59,7 @@ public:
     /* Is this a shared memory? this is only used when generating macros for it */
     ptr_t Is_Shared;
 
-    /* void */ Mem_Info(xml_node_t* Root);
+    /* void */ Mem_Info(xml_node_t* Root, ptr_t Ref);
     /* void */ Mem_Info(class Mem_Info* Block);
     /* void */ Mem_Info(ptr_t Base, ptr_t Size, std::string& Type, ptr_t Attr, ptr_t Align);
 };

@@ -57,7 +57,7 @@ public:
     /* Chip-specific configuration information */
     std::vector<std::unique_ptr<class Config>> Config;
     /* Interrupt vector information */
-    std::vector<std::unique_ptr<class Vector>> Vector;
+    std::vector<std::unique_ptr<class Vect_Info>> Vector;
 
     /* void */ Chip_Info(xml_node_t* Root);
 };

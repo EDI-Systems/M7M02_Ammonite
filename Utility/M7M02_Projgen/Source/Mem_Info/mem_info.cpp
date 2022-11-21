@@ -7,6 +7,7 @@ Description : The memory block class. This contains the memory block information
 ******************************************************************************/
 
 /* Includes ******************************************************************/
+#include "map"
 #include "string"
 #include "memory"
 #include "vector"
@@ -33,10 +34,12 @@ namespace RVM_GEN
 /* Begin Function:Mem_Info::Mem_Info ******************************************
 Description : Constructor for memory information class.
 Input       : xml_node_t* Root - The node containing the memory block information.
+              ptr_t Ref - Whether this is a shared memory reference, that does not
+                          have a base and a size.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Mem_Info::Mem_Info(xml_node_t* Root)
+/* void */ Mem_Info::Mem_Info(xml_node_t* Root, ptr_t Ref)
 {
     std::string Temp;
     std::unique_ptr<std::string> Str;
@@ -54,22 +57,25 @@ Return      : None.
             this->Name="";
         }
 
-        /* Base */
-        Temp=Main::XML_Get_String(Root,"Base","DXXXX","DXXXX");
-        if(Temp=="Auto")
-            this->Base=MEM_AUTO;
-        else
-            this->Base=std::stoul(Temp);
+        if(Ref==0)
+        {
+            /* Base */
+            Temp=Main::XML_Get_String(Root,"Base","DXXXX","DXXXX");
+            if(Temp=="Auto")
+                this->Base=MEM_AUTO;
+            else
+                this->Base=std::stoul(Temp);
 
-        /* Size */
-        this->Size=std::stoul(Main::XML_Get_String(Root,"Size","DXXXX","DXXXX"));
+            /* Size */
+            this->Size=Main::XML_Get_Number(Root,"Size","DXXXX","DXXXX");
+        }
 
         /* Type */
         this->Type=Main::XML_Get_String(Root,"Type","DXXXX","DXXXX");
 
         /* Attribute */
         this->Attr=0;
-        Temp=Main::XML_Get_String(Root,"Type","DXXXX","DXXXX");
+        Temp=Main::XML_Get_String(Root,"Attribute","DXXXX","DXXXX");
         if(Temp.rfind('R')!=std::string::npos)
             this->Attr|=MEM_READ;
         if(Temp.rfind('W')!=std::string::npos)

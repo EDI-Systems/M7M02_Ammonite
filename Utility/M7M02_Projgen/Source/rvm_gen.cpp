@@ -55,8 +55,16 @@ Description : The configuration generator for the MCU ports. This does not
 extern "C"
 {
 #include "xml.h"
+
+#include "stdio.h"
+#include "memory.h"
+#include "stdlib.h"
+#include "stdarg.h"
+#include "string.h"
+#include "time.h"
 }
 
+#include "map"
 #include "list"
 #include "string"
 #include "memory"
@@ -68,66 +76,173 @@ extern "C"
 
 #define __HDR_DEFS__
 #include "rvm_gen.hpp"
-#include "Main/rme_fsys.hpp"
-#include "Main/rme_chip.hpp"
-#include "Main/rme_comp.hpp"
-#include "Main/rme_raw.hpp"
-#include "Main/rme_mem.hpp"
-
-#include "Kobj/rme_kobj.hpp"
-#include "Kobj/rme_captbl.hpp"
-#include "Kobj/rme_pgtbl.hpp"
-#include "Kobj/rme_thd.hpp"
-#include "Kobj/rme_inv.hpp"
-#include "Kobj/rme_port.hpp"
-#include "Kobj/rme_recv.hpp"
-#include "Kobj/rme_send.hpp"
-#include "Kobj/rme_vect.hpp"
-#include "Kobj/rme_kern.hpp"
-#include "Kobj/rme_proc.hpp"
-
-#include "Main/rme_proj.hpp"
-
-#include "Gen/rme_doc.hpp"
-#include "Gen/rme_genrme.hpp"
-#include "Gen/rme_genrvm.hpp"
-#include "Gen/rme_genproc.hpp"
-#include "Gen/rme_genproj.hpp"
+#include "Proj_Info/proj_info.hpp"
+#include "Chip_Info/chip_info.hpp"
 #undef __HDR_DEFS__
 
 #define __HDR_CLASSES__
-#include "Main/rme_fsys.hpp"
-#include "Main/rme_chip.hpp"
-#include "Main/rme_comp.hpp"
-#include "Main/rme_raw.hpp"
-#include "Main/rme_mem.hpp"
-
-#include "Kobj/rme_kobj.hpp"
-#include "Kobj/rme_captbl.hpp"
-#include "Kobj/rme_pgtbl.hpp"
-#include "Kobj/rme_thd.hpp"
-#include "Kobj/rme_inv.hpp"
-#include "Kobj/rme_port.hpp"
-#include "Kobj/rme_recv.hpp"
-#include "Kobj/rme_send.hpp"
-#include "Kobj/rme_vect.hpp"
-#include "Kobj/rme_kern.hpp"
-#include "Kobj/rme_proc.hpp"
-
-#include "Main/rme_proj.hpp"
-#include "Main/rme_mcu.hpp"
-
-#include "Gen/rme_doc.hpp"
-#include "Gen/rme_genrme.hpp"
-#include "Gen/rme_genrvm.hpp"
-#include "Gen/rme_genproc.hpp"
-#include "Gen/rme_genproj.hpp"
+#include "rvm_gen.hpp"
+#include "Proj_Info/proj_info.hpp"
+#include "Proj_Info/Chip/chip.hpp"
+#include "Proj_Info/Kernel/kernel.hpp"
+#include "Proj_Info/Monitor/monitor.hpp"
+#include "Proj_Info/Process/process.hpp"
+#include "Proj_Info/Process/Thread/thread.hpp"
+#include "Proj_Info/Process/Invocation/invocation.hpp"
+#include "Proj_Info/Process/Port/port.hpp"
+#include "Proj_Info/Process/Receive/receive.hpp"
+#include "Proj_Info/Process/Send/send.hpp"
+#include "Proj_Info/Process/Kfunc/kfunc.hpp"
+#include "Chip_Info/chip_info.hpp"
+#include "Chip_Info/Config/config.hpp"
+#include "Vect_Info/vect_info.hpp"
+#include "Mem_Info/mem_info.hpp"
 #undef __HDR_CLASSES__
-
-#include "A7M/rme_a7m_mcu.hpp"
 /* End Includes **************************************************************/
 namespace RVM_GEN
 {
+/* Global Variables **********************************************************/
+ptr_t Main::Verbose=0;
+/* End Global Variables ******************************************************/
+
+/* Begin Function:Main::Proj_Parse ********************************************
+Description : Parse the main project.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Proj_Parse(void)
+{
+    FILE* File;
+    xml_node_t* Root;
+
+    File=nullptr;
+    Root=nullptr;
+    try
+    {
+        /* Read in the whole schematic file */
+        File=fopen(this->Input.c_str(),"r");
+        if(File==nullptr)
+            Main::Error(std::string("T1001: '")+this->Input+"': No such sheet file or cannot be opened.");
+        this->Buffer[fread(this->Buffer,1,MAX_FILE_SIZE,File)]='\0';
+        if(strlen(this->Buffer)==0)
+        {
+            File=nullptr;
+            Main::Error(std::string("T1002: '")+this->Input+"': Project file is empty.");
+        }
+        fclose(File);
+        File=nullptr;
+
+        /* Parse and then release the parsing tree */
+        if(XML_Parse(&Root,(xml_s8_t*)(this->Buffer))!=0)
+        {
+            Root=nullptr;
+            Main::Error(std::string("T1003: Sheet file parsing internal error."));
+        }
+        this->Proj=std::make_unique<class Proj_Info>(Root);
+        /* We have done parsing, release the parsing tree */
+        if(XML_Del(Root)!=0)
+        {
+            Root=nullptr;
+            Main::Error(std::string("T1003: Sheet file parsing internal error."));
+        }
+    }
+    catch(std::exception& Exc)
+    {
+        if(File!=nullptr)
+            fclose(File);
+        if(Root!=nullptr)
+            XML_Del(Root);
+        Main::Error(Exc.what());
+    }
+}
+/* End Function:Main::Proj_Parse *********************************************/
+
+/* Begin Function:Main::Parse *************************************************
+Description : Parse the files.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Parse(void)
+{
+    try
+    {
+        this->Proj_Parse();
+    }
+    catch(std::exception& Exc)
+    {
+        throw std::runtime_error(std::string("Parse:\n")+Exc.what());
+    }
+}
+/* End Function:Main::Parse **************************************************/
+
+/* Begin Function:Main::Main *************************************************
+Description : Preprocess the input parameters, and generate a preprocessed
+              instruction listing with all the comments stripped.
+Input       : int argc - The number of arguments.
+              char* argv[] - The arguments.
+Output      : s8_t** Input_File - The input project file path.
+              s8_t** Output_File - The output folder path, must be empty.
+              s8_t** Format - The output format.
+Return      : None.
+******************************************************************************/
+/* void */ Main::Main(int argc, char* argv[])
+{
+    cnt_t Count;
+    s8_t Date[64];
+    time_t Time_Value;
+    struct tm* Time_Struct;
+
+    try
+    {
+        Count=1;
+        /* Read the command line one by one */
+        while(Count<argc)
+        {
+            /* Input project file */
+            if(strcmp(argv[Count],"-i")==0)
+            {
+                if(this->Input!="")
+                    Main::Error("C0001: More than one input file specified.");
+                this->Input=argv[Count+1];
+                Count+=2;
+            }
+            /* Verbose mode */
+            else if(strcmp(argv[Count],"-v")==0)
+            {
+                Main::Verbose=1;
+                Main::Info("Verbose output mode enabled.");
+                Count+=1;
+            }
+            else
+                Main::Error("C0004: Unrecognized command line argument.");
+        }
+
+        if(this->Input=="")
+            Main::Error("C0005: No input file specified.");
+
+        this->Buffer=(char*)malloc(MAX_FILE_SIZE);
+        if(this->Buffer==nullptr)
+            Main::Error(std::string("T0000: File buffer allocation failure."));
+
+        /* Read current time */
+        time(&Time_Value);
+        Time_Struct=localtime(&Time_Value);
+        sprintf(Date,"%02d/%02d/%d %02d:%02d:%02d",
+                     Time_Struct->tm_mday, Time_Struct->tm_mon+1, Time_Struct->tm_year+1900,
+                     Time_Struct->tm_hour, Time_Struct->tm_min, Time_Struct->tm_sec);
+        this->Time=Date;
+    }
+    catch(std::exception& Exc)
+    {
+        Main::Error(std::string("Command line parsing:\n")+Exc.what()+"\n"+
+                                "Usage: -i input.rvp\n"
+                                "       -i: Project description file.\n");
+    }
+}
+/* End Function:Main::Main ***************************************************/
+
 /* Begin Function:Main::XML_Get_String ****************************************
 Description : Get strings from the XML entry.
 Input       : xml_node_t* Root - The pointer to the root node.
@@ -137,8 +252,8 @@ Input       : xml_node_t* Root - The pointer to the root node.
 Output      : None.
 Return      : std::string - The string extracted.
 ******************************************************************************/
-static std::string Main::XML_Get_String(xml_node_t* Root, const char* Name,
-                                        const char* Errno0, const char* Errno1)
+std::string Main::XML_Get_String(xml_node_t* Root, const char* Name,
+                                 const char* Errno0, const char* Errno1)
 {
     xml_node_t* Temp;
 
@@ -147,6 +262,41 @@ static std::string Main::XML_Get_String(xml_node_t* Root, const char* Name,
     if(Temp->XML_Val_Len==0)
         Main::Error(std::string(Errno1)+": '"+Name+"' section is empty.");
     return std::string(Temp->XML_Val,(int)Temp->XML_Val_Len);
+}
+/* End Function:Main::XML_Get_String *****************************************/
+
+/* Begin Function:Main::XML_Get_Number ****************************************
+Description : Get numbers from the XML entry.
+Input       : xml_node_t* Root - The pointer to the root node.
+              const char* Name - The entry to look for.
+              const char* Errno0 - The error number 0.
+              const char* Errno1 - The error number 1.
+Output      : None.
+Return      : ptr_t - The number extracted.
+******************************************************************************/
+ptr_t Main::XML_Get_Number(xml_node_t* Root, const char* Name,
+                           const char* Errno0, const char* Errno1)
+{
+    return std::stoul(Main::XML_Get_String(Root,Name,Errno0,Errno1));
+}
+/* End Function:Main::XML_Get_Number *****************************************/
+
+/* Begin Function:Main::XML_Get_Yesno ****************************************
+Description : Get strings from the XML entry.
+Input       : xml_node_t* Root - The pointer to the root node.
+              const char* Name - The entry to look for.
+              const char* Errno0 - The error number 0.
+              const char* Errno1 - The error number 1.
+Output      : None.
+Return      : std::string - The string extracted.
+******************************************************************************/
+ptr_t Main::XML_Get_Yesno(xml_node_t* Root, const char* Name,
+                          const char* Errno0, const char* Errno1)
+{
+    if(Main::XML_Get_String(Root,Name,Errno0,Errno1)=="Yes")
+        return 1;
+
+    return 0;
 }
 /* End Function:Main::XML_Get_String *****************************************/
 
@@ -159,13 +309,13 @@ Input       : xml_node_t* Root - The pointer to the root node.
 Output      : std::vector<std::string>& Vector - The CSV extracted.
 Return      : None.
 ******************************************************************************/
-static void Main::XML_Get_CSV(xml_node_t* Root, const char* Name,
-                              std::vector<std::string>& Vector,
-                              const char* Errno0, const char* Errno1)
+void Main::XML_Get_CSV(xml_node_t* Root, const char* Name,
+                       std::vector<std::string>& Vector,
+                       const char* Errno0, const char* Errno1)
 {
     cnt_t Pivot;
-    cnt_t Begin;
-    cnt_t End;
+    ptr_t Begin;
+    ptr_t End;
     std::string Temp;
     std::string Push;
 
@@ -202,1326 +352,26 @@ Input       : xml_node_t* Root - The pointer to the root node.
 Output      : std::map<std::string,std::string>& Map - The key-value pairs.
 Return      : None.
 ******************************************************************************/
-void Main::XML_Get_KVP(xml_node_t* Root, const std::string& Section,
+void Main::XML_Get_KVP(xml_node_t* Root, const char* Name,
                        std::map<std::string,std::string>& Map,
-                       const std::string& Errno0, const std::string& Errno1)
+                       const char* Errno0, const char* Errno1)
 {
     xml_node_t* Trunk;
     xml_node_t* Temp;
 
-    if((XML_Child(Root,(xml_s8_t*)Section.c_str(),&Trunk)<0)||(Trunk==0))
-        Main::Error(std::string(Errno0)+": '"+Section+"' section is missing.");
+    if((XML_Child(Root,(xml_s8_t*)Name,&Trunk)<0)||(Trunk==0))
+        Main::Error(std::string(Errno0)+": '"+Name+"' section is missing.");
     if(XML_Child(Trunk,0,&Temp)<0)
-        Main::Error(std::string(Errno1)+": '"+Section+"' section parsing internal error.");
+        Main::Error(std::string(Errno1)+": '"+Name+"' section parsing internal error.");
     while(Temp!=nullptr)
     {
-        Map.insert(std::string(Temp->XML_Tag,(int)Temp->XML_Tag_Len),
-                   std::string(Temp->XML_Val,(int)Temp->XML_Val_Len));
+        Map.insert(std::make_pair(std::string(Temp->XML_Tag,(int)Temp->XML_Tag_Len),
+                                  std::string(Temp->XML_Val,(int)Temp->XML_Val_Len)));
         if(XML_Child(Trunk,(xml_s8_t*)"",&Temp)<0)
-            Main::Error(std::string(Errno1)+": '"+Section+"' section parsing internal error.");
+            Main::Error(std::string(Errno1)+": '"+Name+"' section parsing internal error.");
     }
 }
 /* End Function:Main::XML_Get_KVP *******************************************/
-
-/* Begin Function:Main::Main *************************************************
-Description : Preprocess the input parameters, and generate a preprocessed
-              instruction listing with all the comments stripped.
-Input       : int argc - The number of arguments.
-              char* argv[] - The arguments.
-Output      : s8_t** Input_File - The input project file path.
-              s8_t** Output_File - The output folder path, must be empty.
-              s8_t** Format - The output format.
-Return      : None.
-******************************************************************************/
-/* void */ Main::Main(int argc, char* argv[])
-{
-    ptr_t Count;
-
-    try
-    {
-        if(argc!=7)
-        throw std::runtime_error("C0000: Too many or too few input parameters.\n"
-                                 "Usage: -i input.xml -o output_path -f format.\n"
-                                 "       -i: Project description file.\n"
-                                 "       -o: Output folder, must be empty.\n"
-                                 "       -f: Output file format.\n"
-                                 "           keil: Keil uVision IDE.\n"
-                                 "           eclipse: Eclipse IDE.\n"
-                                 "           makefile: Makefile project.\n");
-
-        this->Input=nullptr;
-        this->Output=nullptr;
-        this->Format=nullptr;
-
-        Count=1;
-        /* Read the command line one by one */
-        while(Count<(ptr_t)argc)
-        {
-            /* We need to open some input file */
-            if(strcmp(argv[Count],"-i")==0)
-            {
-                if(this->Input!=nullptr)
-                    throw std::invalid_argument("C0001: More than one input file.");
-
-                this->Input=std::make_unique<std::string>(argv[Count+1]);
-                Count+=2;
-            }
-            /* We need to check some output path. We no longer care if it is empty */
-            else if(strcmp(argv[Count],"-o")==0)
-            {
-                if(this->Output!=nullptr)
-                    throw std::invalid_argument("C0002: More than one output path.");
-
-                this->Output=std::make_unique<std::string>(argv[Count+1]);
-                Count+=2;
-            }
-            /* We need to set the format of the output project */
-            else if(strcmp(argv[Count],"-f")==0)
-            {
-                if(this->Format!=nullptr)
-                    throw std::invalid_argument("C0003: More than one output format.");
-            
-                this->Format=std::make_unique<std::string>(argv[Count+1]);
-                Count+=2;
-            }
-            else
-                throw std::invalid_argument("C0004: Unrecognized command line argument.");
-        }
-
-        if(this->Input==nullptr)
-            throw std::invalid_argument("C0005: No input file specified.");
-        if(this->Output==nullptr)
-            throw std::invalid_argument("C0006: No output path specified.");
-        if(this->Format==nullptr)
-            throw std::invalid_argument("C0007: No output project format specified.");
-    }
-    catch(std::exception& Exc)
-    {
-        throw std::runtime_error(std::string("Command line parsing:\n")+Exc.what());
-    }
-}
-/* End Function:Main::Main ***************************************************/
-
-/* Begin Function:Main::Parse *************************************************
-Description : Parse the files.
-Input       : None.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Main::Parse(void)
-{
-    std::unique_ptr<std::string> Str;
-    xml_node_t* Node;
-
-    try
-    {
-        this->Dstfs=std::make_unique<class Dstfs>(std::make_unique<std::string>(this->Output->c_str()));
-
-        this->Srcfs=std::make_unique<class Sysfs>(std::make_unique<std::string>("F:/Code_Library/MCU/Mutatus"),
-                                                  std::make_unique<std::string>(this->Output->c_str()));
-        /* Read project */
-        Str=this->Dstfs->Read_Proj(this->Input);
-        if(XML_Parse(&Node,(xml_s8_t*)(Str->c_str()))<0)
-            throw std::runtime_error("P0000: Project XML parsing failed.");
-        this->Proj=std::make_unique<class Proj>(Node);
-        if(XML_Del(Node)<0)
-            throw std::runtime_error("P0000: Project XML parsing failed.");
-
-        /* Read chip */
-        Str=std::make_unique<std::string>("M7M1_MuEukaron/MEukaron/Include/Platform/");
-        *Str+=*(this->Proj->Plat_Name)+"/Chips/"+*(this->Proj->Chip_Class)+"/rme_platform_"+*(this->Proj->Chip_Class)+".xml";
-        Str=this->Srcfs->Read_Chip(Str);
-        if(XML_Parse(&Node,(xml_s8_t*)(Str->c_str()))<0)
-            throw std::runtime_error("D0000: Chip XML parsing failed.");
-        this->Chip=std::make_unique<class Chip>(Node);
-        if(XML_Del(Node)<0)
-            throw std::runtime_error("D0000: Chip XML parsing failed.");
-
-        /* Select platform */
-        if(*(this->Chip->Plat)!=*(this->Proj->Plat_Name))
-            throw std::runtime_error("P0025: Project XML and chip XML platform does not match.");
-        if(*(this->Chip->Chip_Class)!=*(this->Proj->Chip_Class))
-            throw std::runtime_error("P0026: Project XML and chip XML chip class does not match.");
-        if((*(this->Chip->Chip_Compat)).find(*(this->Proj->Chip_Full),0)==std::string::npos)
-            throw std::runtime_error("P0027: The specific chip designated in project XML not found in chip XML.");
-
-        if(*(this->Chip->Plat)=="A7M")
-        {
-            this->Plat=std::make_unique<class A7M>(this->Proj,this->Chip);
-            this->RME_Gen=std::make_unique<class A7M_RME_Gen>();
-            this->RVM_Gen=std::make_unique<class A7M_RVM_Gen>();
-            this->Proc_Gen=std::make_unique<class A7M_Proc_Gen>();
-            this->Proj_Gen=std::make_unique<class A7M_Proj_Gen>();
-        }
-        else
-            throw std::runtime_error("P0028: The specific platform is currently not supported.");
-
-        this->Plat->Kmem_Order=this->Proj->RME->Kmem_Order;
-
-        /* Generator objects */
-        this->RME_Gen->Main=this;
-        this->RVM_Gen->Main=this;
-        this->Proc_Gen->Main=this;
-        this->Proj_Gen->Main=this;
-    }
-    catch(std::exception& Exc)
-    {
-        throw std::runtime_error(std::string("Parse:\n")+Exc.what());
-    }
-}
-/* End Function:Main::Parse **************************************************/
-
-/* Begin Function:Main::Check_Chip ********************************************
-Description : Check whether the option for that chip is valid.
-Input       : None.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Main::Check_Chip(void)
-{
-    std::unique_ptr<std::string>* Value;
-    ptr_t Lower;
-    ptr_t Upper;
-    ptr_t Number;
-
-    /* The number of options in the project description file should be the same
-     * as the specific chip description file */
-    if(this->Chip->Option.size()!=this->Proj->RME->Chip.size())
-        throw std::runtime_error("P0121: Chip option mismatch in project option list.");
-
-    /* Traverse them one by one and see if there are unsupported ones */
-    for(std::unique_ptr<class Option>& Option:this->Chip->Option)
-    {
-        try
-        {
-            Value=Raw::Match(this->Proj->RME->Chip, Option->Name);
-            if(Value==nullptr)
-                throw std::runtime_error("P0121: Chip option mismatch in project option list.");
-
-            /* We have found it - what is the type */
-            if(Option->Type==OPTION_RANGE)
-            {
-                /* See if the value is a number and is within range */
-                try
-                {
-                    Number=std::stoull(**Value,0,0);
-                    Lower=std::stoull(*(Option->Range[0]),0,0);
-                    Upper=std::stoull(*(Option->Range[1]),0,0);
-                }
-                catch(std::exception& Exc)
-                {
-                    throw std::runtime_error(std::string("P0122: Value conversion failure.\n")+Exc.what());
-                }
-
-                if(Number>Upper)
-                    throw std::runtime_error("P0123: Value overflow.");
-
-                if(Number<Lower)
-                    throw std::runtime_error("P0124: Value underflow.");
-            }
-            else
-            {
-                /* See if we can find the value in the selection */
-                Number=0;
-                for(std::unique_ptr<std::string>& Opt:Option->Range)
-                {
-                    if(*Opt==**Value)
-                    {
-                        Number=1;
-                        break;
-                    }
-                }
-                if(Number==0)
-                    throw std::runtime_error("P0125: Value not found.");
-            }
-        }
-        catch(std::exception& Exc)
-        {
-            throw std::runtime_error(std::string("Option ")+*(Option->Name)+":\n"+Exc.what());
-        }
-    }
-}
-/* End Function:Main::Check_Chip *********************************************/
-
-/* Begin Function:Main::Add_Extmem ********************************************
-Description : Add external memory sections into the system memory map so that 
-              allocations can be performed on them. Also checks whether there
-              are overlapping memory segments.
-Input       : None.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Main::Add_Extmem(void)
-{
-    class Mem* Prev;
-    class Mem* Next;
-    std::vector<class Mem*> Allmem;
-    std::vector<class Mem*>::iterator Iter;
-
-    /* Replicate all extra memories into the chip's memory map */
-    for(std::unique_ptr<class Mem>& Mem:this->Proj->Extmem_Code)
-        this->Chip->Code.push_back(std::make_unique<class Mem>(Mem.get()));
-    for(std::unique_ptr<class Mem>& Mem:this->Proj->Extmem_Data)
-        this->Chip->Data.push_back(std::make_unique<class Mem>(Mem.get()));
-    for(std::unique_ptr<class Mem>& Mem:this->Proj->Extmem_Device)
-        this->Chip->Device.push_back(std::make_unique<class Mem>(Mem.get()));
-
-    /* Place all memory map together to see if two segments ever overlap. If yes, we reject this memory map */
-    for(std::unique_ptr<class Mem>& Mem:this->Chip->Code)
-        Allmem.push_back(Mem.get());
-    for(std::unique_ptr<class Mem>& Mem:this->Chip->Data)
-        Allmem.push_back(Mem.get());
-    for(std::unique_ptr<class Mem>& Mem:this->Chip->Device)
-        Allmem.push_back(Mem.get());
-
-    std::sort(Allmem.begin(),Allmem.end(),
-    [](class Mem* Left, class Mem* Right)
-    {
-            return Left->Base<Right->Base;
-    });
-
-    /* Check if adjacent memories will overlap */
-    for(Iter=Allmem.begin();Iter!=Allmem.end();Iter++)
-    {
-        /* If we still have something after us, check for overlap */
-        Prev=*Iter;
-        if(std::next(Iter)!=Allmem.end())
-        {
-            Next=*std::next(Iter);
-            if((Prev->Base+Prev->Size)>Next->Base)
-                throw std::runtime_error("M0000: Chip internal and/or extra memory section overlapped.");
-        }
-    }
-}
-/* End Function:Main::Add_Extmem *********************************************/
-
-/* Begin Function:Main::Alloc_Code ********************************************
-Description : Allocate the code section of all processes.
-Input       : None.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Main::Alloc_Code(void)
-{
-    std::vector<std::unique_ptr<class Memmap>> Map;
-    std::vector<class Mem*> Auto;
-    ptr_t Attr;
-
-    for(std::unique_ptr<class Mem>& Mem:this->Chip->Code)
-        Map.push_back(std::make_unique<class Memmap>(Mem));
-
-    std::sort(Map.begin(),Map.end(),
-    [](std::unique_ptr<class Memmap> const& Left, std::unique_ptr<class Memmap> const& Right)
-    {
-            return Left->Mem->Base<Right->Mem->Base;
-    });
-
-    /* Now populate the RME & RVM sections - must be continuous */
-    Attr=MEM_READ|MEM_EXECUTE|MEM_STATIC;
-    if(Memmap::Fit_Static(Map,this->Proj->RME->Code_Base,this->Proj->RME->Code_Size,Attr)!=0)
-        throw std::runtime_error("M0001: RME code section is invalid, either wrong range or wrong attribute.");
-    if(Memmap::Fit_Static(Map,this->Proj->RME->Code_Base+this->Proj->RME->Code_Size,this->Proj->RVM->Code_Size,Attr)!=0)
-        throw std::runtime_error("M0002: RVM code section is invalid, either wrong range or wrong attribute.");
-
-    /* Insert AUTO process memories into that list */
-    for(std::unique_ptr<class Proc>& Proc:this->Proj->Proc)
-    {
-        try
-        {
-            for(std::unique_ptr<class Mem>& Mem:Proc->Code)
-            {
-                /* If this memory is not auto memory, we wait to deal with it */
-                if(Mem->Base!=MEM_AUTO)
-                {
-                    if(Memmap::Fit_Static(Map, Mem->Base, Mem->Size, Mem->Attr)!=0)
-                        throw std::runtime_error("M0003: Code section is invalid, either wrong range or wrong attribute.");
-                }
-                else
-                    Auto.push_back(Mem.get());
-            }
-        }
-        catch(std::exception& Exc)
-        {
-            throw std::runtime_error(std::string("Process: ")+*(Proc->Name)+"\n"+Exc.what());
-        }
-    }
-
-    /* Insert AUTO shared memories into that list */
-    try
-    {
-        for(std::unique_ptr<class Mem>& Mem:this->Proj->Shmem_Code)
-        {
-            /* If this memory is not auto memory, we wait to deal with it */
-            if(Mem->Base!=MEM_AUTO)
-            {
-                if(Memmap::Fit_Static(Map, Mem->Base, Mem->Size, Mem->Attr)!=0)
-                    throw std::runtime_error("M0003: Code section is invalid, either wrong range or wrong attribute.");
-            }
-            else
-                Auto.push_back(Mem.get());
-        }
-    }
-    catch(std::exception& Exc)
-    {
-        throw std::runtime_error(std::string("Shared memory: ")+Exc.what());
-    }
-    
-    /* Sort all memories then populate from large to small */
-    std::sort(Auto.begin(),Auto.end(),
-    [](class Mem* const& Left, class Mem* const& Right)
-    {
-            return Left->Size<Right->Size;
-    });
-
-    /* Fit whatever that does not have a fixed address */
-    for(class Mem*& Mem:Auto)
-    {
-        if(Memmap::Fit_Auto(Map, &(Mem->Base), Mem->Size, Mem->Align, Mem->Attr)!=0)
-            throw std::runtime_error("M0004: Code memory fitter failed.");
-    }
-}
-/* End Function:Main::Alloc_Code *********************************************/
-
-/* Begin Function:Main::Alloc_Data ********************************************
-Description : Allocate the data section of all processes and shared memories.
-Input       : None.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Main::Alloc_Data(void)
-{
-    std::vector<std::unique_ptr<class Memmap>> Map;
-    std::vector<class Mem*> Auto;
-    ptr_t Attr;
-
-    for(std::unique_ptr<class Mem>& Mem:this->Chip->Data)
-        Map.push_back(std::make_unique<class Memmap>(Mem));
-
-    std::sort(Map.begin(),Map.end(),
-    [](std::unique_ptr<class Memmap> const& Left, std::unique_ptr<class Memmap> const& Right)
-    {
-            return Left->Mem->Base<Right->Mem->Base;
-    });
-
-    /* Now populate the RME & RVM sections - must be continuous */
-    Attr=MEM_READ|MEM_WRITE|MEM_STATIC;
-    if(Memmap::Fit_Static(Map,this->Proj->RME->Data_Base,this->Proj->RME->Data_Size,Attr)!=0)
-        throw std::runtime_error("M0005: RME data section is invalid, either wrong range or wrong attribute.");
-    if(Memmap::Fit_Static(Map,this->Proj->RME->Data_Base+this->Proj->RME->Data_Size,this->Proj->RVM->Data_Size,Attr)!=0)
-        throw std::runtime_error("M0006: RVM data section is invalid, either wrong range or wrong attribute.");
-    
-    /* Insert AUTO process memories into that list */
-    for(std::unique_ptr<class Proc>& Proc:Proj->Proc)
-    {
-        try
-        {
-            for(std::unique_ptr<class Mem>& Mem:Proc->Data)
-            {
-                /* If this memory is not auto memory, we wait to deal with it */
-                if(Mem->Base!=MEM_AUTO)
-                {
-                    if(Memmap::Fit_Static(Map, Mem->Base, Mem->Size, Mem->Attr)!=0)
-                        throw std::runtime_error("M0007: Data section is invalid, either wrong range or wrong attribute.");
-                }
-                else
-                    Auto.push_back(Mem.get());
-            }
-        }
-        catch(std::exception& Exc)
-        {
-            throw std::runtime_error(std::string("Process: ")+*(Proc->Name)+"\n"+Exc.what());
-        }
-    }
-    
-    /* Insert AUTO shared memories into that list */
-    try
-    {
-        for(std::unique_ptr<class Mem>& Mem:this->Proj->Shmem_Data)
-        {
-            /* If this memory is not auto memory, we wait to deal with it */
-            if(Mem->Base!=MEM_AUTO)
-            {
-                if(Memmap::Fit_Static(Map, Mem->Base, Mem->Size, Mem->Attr)!=0)
-                    throw std::runtime_error("M0007: Data section is invalid, either wrong range or wrong attribute.");
-            }
-            else
-                Auto.push_back(Mem.get());
-        }
-    }
-    catch(std::exception& Exc)
-    {
-        throw std::runtime_error(std::string("Shared memory: ")+Exc.what());
-    }
-    
-    /* Sort all memories then populate from large to small */
-    std::sort(Auto.begin(),Auto.end(),
-    [](const class Mem* const& Left, const class Mem* const& Right)
-    {
-        return Left->Size<Right->Size;
-    });
-
-    /* Fit whatever that does not have a fixed address */
-    for(class Mem*& Mem:Auto)
-    {
-        if(Memmap::Fit_Auto(Map, &(Mem->Base), Mem->Size, Mem->Align, Mem->Attr)!=0)
-            throw std::runtime_error("M0008: Data memory fitter failed.");
-    }
-}
-/* End Function:Main::Alloc_Data *********************************************/
-
-/* Begin Function:Main::Add_Shmem *********************************************
-Description : Add shared memories into their respective processes. We also check
-              if the attributes override the attributes in the shared memory.
-              In the future, consider giving an warning that some shared memory
-              declared is not used.
-Input       : None.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Main::Add_Shmem(void)
-{
-    class Mem* Found;
-    std::string* Errmsg;
-
-    /* Check shared memory name validity */
-    Errmsg=Kobj::Check_Kobj<class Mem>(this->Proj->Shmem_Code);
-    if(Errmsg!=0)
-        throw std::invalid_argument(std::string("Global shared code memory: ")+*Errmsg+"\nM0009: Name is duplicate or invalid.");
-    Errmsg=Kobj::Check_Kobj<class Mem>(this->Proj->Shmem_Data);
-    if(Errmsg!=0)
-        throw std::invalid_argument(std::string("Global shared data memory: ")+*Errmsg+"\nM0009: Name is duplicate or invalid.");
-    Errmsg=Kobj::Check_Kobj<class Mem>(this->Proj->Shmem_Device);
-    if(Errmsg!=0)
-        throw std::invalid_argument(std::string("lobal shared device memory: ")+*Errmsg+"\nM0009: Name is duplicate or invalid.");
-
-    /* Link the shared memory blocks with references in processes */
-    for(std::unique_ptr<class Proc>& Proc:this->Proj->Proc)
-    {
-        try
-        {
-            Errmsg=Kobj::Check_Kobj<class Shmem>(Proc->Shmem_Code);
-            if(Errmsg!=0)
-                throw std::invalid_argument(std::string("Shared code memory: ")+*Errmsg+"\nM0009: Name is duplicate or invalid.");
-            Errmsg=Kobj::Check_Kobj<class Shmem>(Proc->Shmem_Data);
-            if(Errmsg!=0)
-                throw std::invalid_argument(std::string("Shared data memory: ")+*Errmsg+"\nM0009: Name is duplicate or invalid.");
-            Errmsg=Kobj::Check_Kobj<class Shmem>(Proc->Shmem_Device);
-            if(Errmsg!=0)
-                throw std::invalid_argument(std::string("Shared device memory: ")+*Errmsg+"\nM0009: Name is duplicate or invalid.");
-
-            /* Populate all shared code memory */
-            for(std::unique_ptr<class Shmem>& Shmem:Proc->Shmem_Code)
-            {
-                Found=nullptr;
-                /* Find the shared memory block declared in the project */
-                for(std::unique_ptr<class Mem>& Mem:this->Proj->Shmem_Code)
-                {
-                    if(*(Mem->Name)==*(Shmem->Name))
-                    {
-                        Found=Mem.get();
-                        break;
-                    }
-                }
-                if(Found==nullptr)
-                    throw std::invalid_argument(std::string("Shared code memory: ")+*(Shmem->Name)+"\nM0010: Entry not found in global database.");
-
-                /* Check attributes then populate */
-                if((Found->Attr&Shmem->Attr)!=Shmem->Attr)
-                    throw std::invalid_argument(std::string("Shared code memory: ")+*(Shmem->Name)+"\nM0011: Attributes not satisfied by global entry.");
-                Proc->Code.push_back(std::make_unique<class Mem>(Found));
-            }
-
-            /* Populate all shared data memory */
-            for(std::unique_ptr<class Shmem>& Shmem:Proc->Shmem_Data)
-            {
-                Found=nullptr;
-                /* Find the shared memory block declared in the project */
-                for(std::unique_ptr<class Mem>& Mem:this->Proj->Shmem_Data)
-                {
-                    if(*(Mem->Name)==*(Shmem->Name))
-                    {
-                        Found=Mem.get();
-                        break;
-                    }
-                }
-                if(Found==nullptr)
-                    throw std::invalid_argument(std::string("Shared data memory: ")+*(Shmem->Name)+"\nM0010: Entry not found in global database.");
-
-                /* Check attributes then populate */
-                if((Found->Attr&Shmem->Attr)!=Shmem->Attr)
-                    throw std::invalid_argument(std::string("Shared data memory: ")+*(Shmem->Name)+"\nM0011: Attributes not satisfied by global entry.");
-                Proc->Data.push_back(std::make_unique<class Mem>(Found));
-            }
-
-            /* Populate all shared device memory */
-            for(std::unique_ptr<class Shmem>& Shmem:Proc->Shmem_Device)
-            {
-                Found=nullptr;
-                /* Find the shared memory block declared in the project */
-                for(std::unique_ptr<class Mem>& Mem:this->Proj->Shmem_Device)
-                {
-                    if(*(Mem->Name)==*(Shmem->Name))
-                    {
-                        Found=Mem.get();
-                        break;
-                    }
-                }
-                if(Found==nullptr)
-                    throw std::invalid_argument(std::string("Shared device memory: ")+*(Shmem->Name)+"\nM0010: Entry not found in global database.");
-
-                /* Check attributes then populate */
-                if((Found->Attr&Shmem->Attr)!=Shmem->Attr)
-                    throw std::invalid_argument(std::string("Shared device memory: ")+*(Shmem->Name)+"\nM0011: Attributes not satisfied by global entry.");
-                Proc->Device.push_back(std::make_unique<class Mem>(Found));
-            }
-        }
-        catch(std::exception& Exc)
-        {
-            throw std::runtime_error(std::string("Process: ")+*(Proc->Name)+"\n"+Exc.what());
-        }
-    }
-}
-/* End Function:Main::Add_Shmem **********************************************/
-
-/* Begin Function:Main::Check_Addrspace ***************************************
-Description : Check the address space of every process to make sure that in each
-               process different memory segments never overlap with each other.
-Input       : None.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Main::Check_Addrspace(void)
-{
-    class Mem* Prev;
-    class Mem* Next;
-    std::vector<class Mem*> Allmem;
-    std::vector<class Mem*>::iterator Iter;
-
-    for(std::unique_ptr<class Proc>& Proc:this->Proj->Proc)
-    {
-        try
-        {
-            Allmem.clear();
-
-            /* List all memories together then sort it out */
-            for(std::unique_ptr<class Mem>& Mem:Proc->Code)
-                Allmem.push_back(Mem.get());
-            for(std::unique_ptr<class Mem>& Mem:Proc->Data)
-                Allmem.push_back(Mem.get());
-            for(std::unique_ptr<class Mem>& Mem:Proc->Device)
-                Allmem.push_back(Mem.get());
-
-            std::sort(Allmem.begin(),Allmem.end(),
-            [](class Mem* Left, class Mem* Right)
-            {
-                    return Left->Base<Right->Base;
-            });
-
-            /* Check if adjacent memories will overlap */
-            for(Iter=Allmem.begin();Iter!=Allmem.end();Iter++)
-            {
-                /* If we still have something after us, check for overlap */
-                Prev=*Iter;
-                if(std::next(Iter)!=Allmem.end())
-                {
-                    Next=*std::next(Iter);
-                    if((Prev->Base+Prev->Size)>Next->Base)
-                        throw std::runtime_error("M0012: Private and/or shared memory section overlapped.");
-                }
-            }
-        }
-        catch(std::exception& Exc)
-        {
-            throw std::runtime_error(std::string("Process: ")+*(Proc->Name)+"\n"+Exc.what());
-        }
-    }
-}
-/* End Function:Main::Check_Addrspace ****************************************/
-
-/* Begin Function:Main::Check_Code ********************************************
-Description : Check if the code layout is valid.
-Input       : None.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Main::Check_Code(void)
-{
-    std::vector<class Mem*> Prim;
-    std::vector<class Mem*>::iterator Iter;
-    std::unique_ptr<class Mem> Sys;
-    class Mem* Prev;
-    class Mem* Next;
-
-    /* Create and insert system memory into that list */
-    Sys=std::make_unique<class Mem>(this->Proj->RME->Code_Base,this->Proj->RME->Code_Size+this->Proj->RVM->Code_Size,0,0);
-    Prim.push_back(Sys.get());
-
-    /* Insert all primary code sections into that list */
-    for(std::unique_ptr<class Proc>& Proc:this->Proj->Proc)
-        Prim.push_back(Proc->Code[0].get());
-
-    std::sort(Prim.begin(),Prim.end(),
-    [](const class Mem* Left, const class Mem* Right)
-    {
-            return Left->Base<Right->Base;
-    });
-
-    /* Check if adjacent memories will overlap */
-    for(Iter=Prim.begin();Iter!=Prim.end();Iter++)
-    {
-        /* If we still have something after us, check for overlap */
-        Prev=*Iter;
-        if(std::next(Iter)!=Prim.end())
-        {
-            Next=*std::next(Iter);
-            if((Prev->Base+Prev->Size)>Next->Base)
-                throw std::runtime_error("M0013: Process primary code section overlapped.");
-        }
-    }
-}
-/* End Function:Main::Check_Code *********************************************/
-
-/* Begin Function:Main::Check_Device ******************************************
-Description : Check the device memory to make sure that all of them falls into range.
-              There are faster algorithms; but we don't do such optimization now.
-Input       : None.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Main::Check_Device(void)
-{
-    ptr_t Found;
-
-    /* Is it true that the device memory is in device memory range? */
-    for(std::unique_ptr<class Proc>& Proc:this->Proj->Proc)
-    {
-        for(std::unique_ptr<class Mem>& Proc_Mem:Proc->Device)
-        {
-            Found=0;
-
-            for(std::unique_ptr<class Mem>& Chip_Mem:this->Chip->Device)
-            {
-                if(Proc_Mem->Base>=Chip_Mem->Base)
-                {
-                    if((Proc_Mem->Base+Proc_Mem->Size)<=(Chip_Mem->Base+Chip_Mem->Size))
-                    {
-                        if((Chip_Mem->Attr&Proc_Mem->Attr)!=Proc_Mem->Attr)
-                            throw std::runtime_error(std::string("Process: ")+*(Proc->Name)+"\nM0014: Device memory have wrong attributes.");
-                        Found=1;
-                        break;
-                    }
-                }
-            }
-
-            if(Found==0)
-                throw std::runtime_error(std::string("Process: ")+*(Proc->Name)+"\nM0015: Device memory segment is out of bound.");
-        }
-    }
-}
-/* End Function:Main::Check_Device *******************************************/
-
-/* Begin Function:Main::Alloc_Mem *********************************************
-Description : Allocate memoro trunks to their respective positions.
-Input       : None.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Main::Alloc_Mem(void)
-{
-    try
-    {
-        /* Add all extra memory segments into the system and check overlap */
-        Add_Extmem();
-        /* Allocate code sections */
-        Alloc_Code();
-        /* Allocate data sections */
-        Alloc_Data();
-        /* Add shared memory into processes */
-        Add_Shmem();
-        /* Check process memory map validity */
-        Check_Addrspace();
-        /* Check allocation successful */
-        Check_Code();
-        /* Check if device section is successfully allocated */
-        Check_Device();
-    }
-    catch(std::exception& Exc)
-    {
-        throw std::runtime_error(std::string("Memory allocator:\n")+Exc.what());
-    }
-}
-/* End Function:Main::Alloc_Mem **********************************************/
-
-/* Begin Function:Main::Link_Cap **********************************************
-Description : Back propagate the global ID to all the ports and send endpoints,
-              which are derived from kernel objects. Also detects if all the port
-              and send endpoint names in the system are valid. If any of them includes
-              dangling references to invocations and receive endpoints, abort.
-              These comparisons use strcmp because we require that the process name
-              cases match.
-Input       : None.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Main::Link_Cap(void)
-{
-    class Proc* Proc_Dst;
-    class Inv* Inv_Dst;
-    class Recv* Recv_Dst;
-    class Vect* Vect_Dst;
-
-    for(std::unique_ptr<class Proc>& Proc:this->Proj->Proc)
-    {
-        /* For every port, there must be a invocation somewhere */
-        for(std::unique_ptr<class Port>& Port:Proc->Port)
-        {
-            Proc_Dst=0;
-            for(std::unique_ptr<class Proc>& Proc_Temp:this->Proj->Proc)
-            {
-                if(*(Proc_Temp->Name)==*(Port->Proc_Name))
-                {
-                    Proc_Dst=Proc_Temp.get();
-                    break;
-                }
-            }
-            if(Proc_Dst==0)
-                throw std::runtime_error(std::string("Port:")+*(Port->Name)+"\nM1400: Invalid process name.");
-
-            Inv_Dst=0;
-            for(std::unique_ptr<class Inv>& Inv:Proc_Dst->Inv)
-            {
-                if(*(Inv->Name)==*(Port->Name))
-                {
-                    Inv_Dst=Inv.get();
-                    break;
-                }
-            }
-            if(Inv_Dst==0)
-                throw std::runtime_error(std::string("Port:")+*(Port->Name)+"\nM1401: Invalid invocation name.");
-
-            Port->RVM_Capid=Inv_Dst->RVM_Capid;
-            Port->RVM_Macro=std::make_unique<std::string>(*(Inv_Dst->RVM_Macro));
-        }
-
-        /* For every send endpoint, there must be a receive endpoint somewhere */
-        for(std::unique_ptr<class Send>& Send:Proc->Send)
-        {
-            Proc_Dst=0;
-            for(std::unique_ptr<class Proc>& Proc_Temp:this->Proj->Proc)
-            {
-                if(*(Proc_Temp->Name)==*(Send->Proc_Name))
-                {
-                    Proc_Dst=Proc_Temp.get();
-                    break;
-                }
-            }
-            if(Proc_Dst==0)
-                throw std::runtime_error(std::string("Send endpoint:")+*(Send->Name)+"\nM1400: Invalid process name.");
-
-            Recv_Dst=0;
-            for(std::unique_ptr<class Recv>& Recv:Proc_Dst->Recv)
-            {
-                if(*(Recv->Name)==*(Send->Name))
-                {
-                    Recv_Dst=Recv.get();
-                    break;
-                }
-            }
-            if(Recv_Dst==0)
-                throw std::runtime_error(std::string("Send endpoint:")+*(Send->Name)+"\nM1402: Invalid receive endpoint name.");
-
-            Send->RVM_Capid=Recv_Dst->RVM_Capid;
-            Send->RVM_Macro=std::make_unique<std::string>(*(Recv_Dst->RVM_Macro));
-        }
-
-        /* For every vector, there must be a corresponding chip interrupt vector somewhere */
-        for(std::unique_ptr<class Vect>& Vect:Proc->Vect)
-        {
-            Vect_Dst=0;
-            for(std::unique_ptr<class Vect>& Vect_Chip:Chip->Vect)
-            {
-                if(*(Vect_Chip->Name)==*(Vect->Name))
-                {
-                    if(Vect_Chip->Num!=Vect->Num)
-                        throw std::runtime_error(std::string("Vector endpoint:")+*(Vect->Name)+"\nM1403: Invalid vector number.");
-
-                    Vect_Dst=Vect_Chip.get();
-                    break;
-                }
-            }
-            if(Vect_Dst==0)
-                throw std::runtime_error(std::string("Vector endpoint:")+*(Vect->Name)+"\nM1404: Invalid vector name.");
-
-            Vect->Num=Vect_Dst->Num;
-        }
-    }
-}
-/* End Function:Main::Link_Cap ***********************************************/
-
-/* Begin Function:Main::Alloc_Cap *********************************************
-Description : Allocate the capability ID and macros. Both the local one and
-              the global one will be allocated.
-              All parameters are either checked at the XML parsing time or checked
-              here (for the portion that cannot be locally checked, we check them here).
-Input       : None.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Main::Alloc_Cap(void)
-{    
-    try
-    {
-        std::string* Errmsg;
-        class Virt* Virt;
-
-        /* Check if the kernel priorities are a multiple of word size */
-        if((this->Proj->RME->Kern_Prios%this->Plat->Word_Bits)!=0)
-            throw std::runtime_error("M1000: Total number of kernel priorities must be a multiple of word size.");
-
-        /* Check if the kernel memory granularity order is within range - we allow 2^3=8 bytes to 2^5=32 bytes */
-        if(this->Proj->RME->Kmem_Order<3)
-            throw std::runtime_error("M1001: Kernel memory allocation granularity order must be no less than 2^3=8 bytes.");
-        if(this->Proj->RME->Kmem_Order>5)
-            throw std::runtime_error("M1002: Kernel memory allocation granularity order must be no more than 2^5=32 bytes.");
-
-        /* If there are neither processes nor virtual machines, system is not that useful */
-        if(this->Proj->Proc.size()==0)
-            throw std::runtime_error("M1003: There are neither virtual machines nor processes in the system.");
-
-        /* Set all virtual machine related portion to zero because these options do not make sense anymore */
-        if(this->Proj->Virt.size()==0)
-        {
-            this->Proj->RVM->Virt_Prios=0;
-            this->Proj->RVM->Virt_Evts=0;
-            this->Proj->RVM->Virt_Maps=0;
-        }
-        else
-        {
-            if(this->Proj->RVM->Virt_Prios==0)
-                throw std::runtime_error("M1004: Virtual machine exists but the total number of virtual machine priorities is set to 0.");
-            if((this->Proj->RVM->Virt_Prios%this->Plat->Word_Bits)!=0)
-                throw std::runtime_error("M1005: Total number of virtual machine priorities must be a multiple of word size.");
-            if(this->Proj->RVM->Virt_Evts==0)
-                throw std::runtime_error("M1006: Virtual machine exists but the total number of virtual event sources is set to 0.");
-            if((this->Proj->RVM->Virt_Evts%this->Plat->Word_Bits)!=0)
-                throw std::runtime_error("M1007: Total number of virtual event sources must be a multiple of word size.");
-            if(this->Proj->RVM->Virt_Evts>1024)
-                throw std::runtime_error("M1008: Total number of virtual event sources cannot exceed 1024.");
-            if(this->Proj->RVM->Virt_Maps<this->Proj->RVM->Virt_Evts)
-                throw std::runtime_error("M1009: Total number of virtual event to interrupt mappings cannot be smaller than the virtual event source number.");
-        }
-
-        /* Check all threads' priority in non-virtual machine processes */
-        for(std::unique_ptr<class Proc>& Proc:this->Proj->Proc)
-        {
-            try
-            {
-                if(Proc->Type==PROC_TYPE_NATIVE)
-                {
-                    for(std::unique_ptr<class Thd>& Thd:Proc->Thd)
-                    {
-                        if(Thd->Prio<PROC_THD_PRIO_MIN)
-                            throw std::invalid_argument(std::string("Thread: ")+*(Thd->Name.get())+"\nM1010: Priority must be bigger than service daemons' priority (4).");
-                        else if(Thd->Prio>(this->Proj->RME->Kern_Prios-2))
-                            throw std::invalid_argument(std::string("Thread: ")+*(Thd->Name.get())+"\nM1011: Priority must be smaller than safety daemon's priority (Kern_Prios-1).");
-                    }
-                }
-                else
-                {
-                    /* Check virtual machine priorities */
-                    Virt=static_cast<class Virt*>(Proc.get());
-                    if(Virt->Prio>=this->Proj->RVM->Virt_Prios)
-                        throw std::invalid_argument(std::string("M1012: Priority must be smaller than total number of virtual machine priorities."));
-                }
-
-                /* Check extra capability table sizes */
-                if(Proc->Captbl->Extra>this->Plat->Capacity)
-                    throw std::invalid_argument(std::string("M1013: Extra capacity cannot be larger than the architectural limit."));
-
-                /* Check kernel function ranges */
-                for(std::unique_ptr<class Kern>& Kern:Proc->Kern)
-                {
-                    if(Kern->End>=POW2(this->Plat->Word_Bits/2))
-                        throw std::invalid_argument(std::string("Kernel function: ")+*(Kern->Name.get())+"\nM1014 Kernel function number range exceeded the architectural limit.");
-                }
-            }
-            catch(std::exception& Exc)
-            {
-                throw std::runtime_error(std::string("Process: ")+*(Proc->Name.get())+"\n"+Exc.what());
-            }
-        }
-
-        /* Check processes */
-        Errmsg=Kobj::Check_Kobj<class Proc>(this->Proj->Proc);
-        if(Errmsg!=0)
-            throw std::invalid_argument(std::string("Process: ")+*Errmsg+"\nM1015: Name is duplicate or invalid.");
-
-        /* Check other kernel objects */
-        for(std::unique_ptr<class Proc>& Proc:this->Proj->Proc)
-            Proc->Check_Kobj();
-    
-        /* Check for duplicate vectors */
-        Errmsg=Vect::Check_Vect(this->Proj);
-        if(Errmsg!=0)
-            throw std::invalid_argument(std::string("Vector endpoint: ")+*Errmsg+"\nM1017: Name/number is duplicate or invalid.");
-
-        for(std::unique_ptr<class Proc>& Proc:this->Proj->Proc)
-            Proc->Alloc_Loc(this->Plat->Capacity);
-
-        for(std::unique_ptr<class Proc>& Proc:this->Proj->Proc)
-            Proc->Alloc_RVM(this->Proj->RVM);
-
-        for(std::unique_ptr<class Proc>& Proc:this->Proj->Proc)
-            Proc->Alloc_Macro();
-
-        Link_Cap();
-    }
-    catch(std::exception& Exc)
-    {
-        throw std::runtime_error(std::string("Capability allocator:\n")+Exc.what());
-    }
-}
-/* End Function:Main::Alloc_Cap ********************************************/
-
-/* Begin Function:Main::Alloc_Obj *********************************************
-Description : Allocate the kernel objects and memory.
-Input       : struct Proj_Info* Proj - The project structure.
-Output      : struct Proj_Info* Proj - The updated project structure.
-Return      : None.
-******************************************************************************/
-void Main::Alloc_Obj(void)
-{
-    try
-    {
-        /* Compute the kernel memory needed, disregarding the initial
-         * capability table size because we don't know its size yet */
-        this->Proj->Kobj_Alloc(this->Plat,0);
-        /* Now recompute to get the real usage */
-        this->Proj->Kobj_Alloc(this->Plat,this->Proj->RVM->Map->Captbl_Size);
-
-        /* Populate RME information */
-        this->Proj->RME->Alloc_Kmem(this->Proj->RVM->Map->After_Kmem_Front, this->Plat->Kmem_Order);
-
-        /* Populate RVM information */
-        this->Proj->RVM->Alloc_Mem(this->Proj->RME->Code_Base+this->Proj->RME->Code_Size,
-                                   this->Proj->RME->Data_Base+this->Proj->RME->Data_Size,
-                                   this->Plat->Kmem_Order);
-    
-        /* Populate Process information */
-        for(std::unique_ptr<class Proc>& Proc:this->Proj->Proc)
-        {
-            try
-            {
-                Proc->Alloc_Mem(this->Plat->Word_Bits, this->Plat->Kmem_Order);
-            }
-            catch(std::exception& Exc)
-            {
-                throw std::runtime_error(std::string("Process: ")+*(Proc->Name)+"\n"+Exc.what());
-            }
-        }
-    }
-    catch(std::exception& Exc)
-    {
-        throw std::runtime_error(std::string("Object allocator:\n")+Exc.what());
-    }
-}
-/* End Function:Main::Alloc_Obj **********************************************/
-
-/* Begin Function:Main::Gen_RME ***********************************************
-Description : Generate the RME project.
-Input       : None.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Main::Gen_RME(void)
-{
-    this->RME_Gen->Folder();
-    this->RME_Gen->Conf_Hdr();
-    this->RME_Gen->Boot_Hdr();
-    this->RME_Gen->Boot_Src();
-    this->RME_Gen->User_Src();
-    this->RME_Gen->Plat_Gen();
-}
-/* End Function:Main::Gen_RME ************************************************/
-
-/* Begin Function:Main::Gen_RVM ***********************************************
-Description : Generate the RVM project.
-Input       : None.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Main::Gen_RVM(void)
-{
-    this->RVM_Gen->Folder();
-    this->RVM_Gen->Conf_Hdr();
-    this->RVM_Gen->Boot_Hdr();
-    this->RVM_Gen->Boot_Src();
-    this->RVM_Gen->User_Src();
-    this->RVM_Gen->Plat_Gen();
-}
-/* End Function:Main::Gen_RVM ************************************************/
-
-/* Begin Function:Main::Gen_Proc **********************************************
-Description : Generate the process projects.
-Input       : None.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Main::Gen_Proc(void)
-{
-    for(std::unique_ptr<class Proc>& Proc:this->Proj->Proc)
-    {
-        this->Proc_Gen->Folder(Proc.get());
-        this->Proc_Gen->Proc_Hdr(Proc.get());
-        this->Proc_Gen->Proc_Src(Proc.get());
-        this->Proc_Gen->Plat_Gen(Proc.get());
-    }
-}
-/* End Function:Main::Gen_Proc ***********************************************/
-
-/* Begin Function:Main::Gen_Proj **********************************************
-Description : Generate the workspace projects.
-Input       : None.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Main::Gen_Proj(void)
-{
-    this->Proj_Gen->Folder();
-    this->Proj_Gen->Plat_Gen();
-}
-/* End Function:Main::Gen_Proj ***********************************************/
-
-/* Begin Function:Main::Gen_Report ********************************************
-Description : Generate the report.
-Input       : None.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Main::Gen_Report(void)
-{
-    FILE* File;
-    std::unique_ptr<class Doc> Doc;
-    std::unique_ptr<class Para> Para;
-    std::unique_ptr<class Stats> Stats;
-    std::unique_ptr<std::string> Left;
-    std::unique_ptr<std::string> Right;
-    std::unique_ptr<std::string> Date;
-    std::vector<class Mem*> Allmem;
-
-    Stats=std::make_unique<class Stats>();
-
-    /* Generate generate statistics */
-    Stats->Kobj_Stats(this);
-    Stats->Kmem_Stats(this);
-    Stats->User_Stats(this);
-    Stats->Plat_Stats(this);
-
-    /* Print general statistics */
-    Doc=std::make_unique<class Doc>();
-    Date=Doc::Date();
-    Para=std::make_unique<class Para>("Doc:Project statistics");
-    Para->Add("###############################################################################");
-    Left=std::make_unique<std::string>("Project ");
-    *Left+=*(this->Proj->Name)+" ["+*(this->Proj->Plat_Name)+", "+*(this->Proj->Chip_Class)+", "+*(this->Proj->Chip_Full)+"]";
-    Para->Add(Left->c_str(), Date->c_str());
-    Para->Add("-------------------------------------------------------------------------------");
-    Left=std::make_unique<std::string>("Main capability table");
-    Para->Add(Left,"%lld/%lld/%lld", Stats->Kobj.Main_Capability_Table_Usage, 
-                                     Stats->Kobj.Main_Capability_Table_Total,
-                                     Stats->Kobj.Main_Capability_Table_Limit);
-    Left=std::make_unique<std::string>("Total kernel objects");
-    Para->Add(Left,"%lld", Stats->Kobj.Total_Kernel_Objects);
-    Left=std::make_unique<std::string>("Auxiliary capability tables");
-    Para->Add(Left, "%lld", Stats->Kobj.Auxiliary_Capability_Tables);
-    Left=std::make_unique<std::string>("Processes");
-    Para->Add(Left, "%lld (%lld Virtual machines)", Stats->Kobj.Processes, Stats->Kobj.Virtual_Machines);
-    Left=std::make_unique<std::string>("Capability tables");
-    Para->Add(Left, "%lld", Stats->Kobj.Capability_Tables);
-    Left=std::make_unique<std::string>("Page tables");
-    Para->Add(Left, "%lld", Stats->Kobj.Page_Tables);
-    Left=std::make_unique<std::string>("Threads");
-    Para->Add(Left, "%lld", Stats->Kobj.Threads);
-    Left=std::make_unique<std::string>("Invocations");
-    Para->Add(Left, "%lld", Stats->Kobj.Invocations);
-    Left=std::make_unique<std::string>("Endpoints");
-    Para->Add(Left, "%lld", Stats->Kobj.Endpoints);
-    Para->Add("-------------------------------------------------------------------------------");
-    Left=std::make_unique<std::string>("RME code memory");
-    Para->Add(Left, "0x%llX", Stats->Kmem.RME_Code_Memory);
-    Left=std::make_unique<std::string>("RME data memory");
-    Para->Add(Left, "0x%llX", Stats->Kmem.RME_Data_Memory);
-    Left=std::make_unique<std::string>("RVM code memory");
-    Para->Add(Left, "0x%llX", Stats->Kmem.RVM_Code_Memory);
-    Left=std::make_unique<std::string>("RVM data memory");
-    Para->Add(Left, "0x%llX", Stats->Kmem.RVM_Data_Memory);
-    Left=std::make_unique<std::string>("Kernel memory");
-    Para->Add(Left, "0x%llX/0x%llX", Stats->Kmem.Kernel_Memory_Usage, Stats->Kmem.Kernel_Memory_Total);
-    Left=std::make_unique<std::string>("Processes");
-    Para->Add(Left, "0x%llX", Stats->Kmem.Processes);
-    Left=std::make_unique<std::string>("Capability tables");
-    Para->Add(Left, "0x%llX", Stats->Kmem.Capability_Tables);
-    Left=std::make_unique<std::string>("Page tables");
-    Para->Add(Left, "0x%llX", Stats->Kmem.Page_Tables);
-    Left=std::make_unique<std::string>("Threads");
-    Para->Add(Left, "0x%llX", Stats->Kmem.Threads);
-    Left=std::make_unique<std::string>("Invocations");
-    Para->Add(Left, "0x%llX", Stats->Kmem.Invocations);
-    Left=std::make_unique<std::string>("Endpoints");
-    Para->Add(Left, "0x%llX", Stats->Kmem.Endpoints);
-    Para->Add("-------------------------------------------------------------------------------");
-    Left=std::make_unique<std::string>("Private code memory");
-    Para->Add(Left, "0x%llX", Stats->User.Private_Code_Memory);
-    Left=std::make_unique<std::string>("Private data memory");
-    Para->Add(Left, "0x%llX", Stats->User.Private_Data_Memory);
-    Left=std::make_unique<std::string>("Private device memory");
-    Para->Add(Left, "0x%llX", Stats->User.Private_Device_Memory);
-    Left=std::make_unique<std::string>("Shared code memory");
-    Para->Add(Left, "0x%llX", Stats->User.Shared_Code_Memory);
-    Left=std::make_unique<std::string>("Shared data memory");
-    Para->Add(Left, "0x%llX", Stats->User.Shared_Data_Memory);
-    Left=std::make_unique<std::string>("Shared device memory");
-    Para->Add(Left, "0x%llX", Stats->User.Shared_Device_Memory);
-    Para->Add("-------------------------------------------------------------------------------");
-    Left=std::make_unique<std::string>("Code memory usage");
-    Para->Add(Left, "0x%llX/0x%llX (%05.2f%%)", Stats->Plat.Used_Code_Memory, 
-                                                Stats->Plat.Platform_Code_Memory,
-                                                (float)(Stats->Plat.Used_Code_Memory)/(float)(Stats->Plat.Platform_Code_Memory)*100.0f);
-    Left=std::make_unique<std::string>("Data memory usage");
-    Para->Add(Left, "0x%llX/0x%llX (%05.2f%%)", Stats->Plat.Used_Data_Memory, 
-                                                Stats->Plat.Platform_Data_Memory,
-                                                (float)(Stats->Plat.Used_Data_Memory)/(float)(Stats->Plat.Platform_Data_Memory)*100.0f);
-    Left=std::make_unique<std::string>("Device memory usage");
-    Para->Add(Left, "0x%llX/0x%llX (------)", Stats->Plat.Used_Device_Memory, Stats->Plat.Platform_Device_Memory);
-    Para->Add("###############################################################################");
-
-    /* Generate and print statistics of each process */
-    for(std::unique_ptr<class Proc>& Proc:this->Proj->Proc)
-    {
-        Stats->Proc_Stats(Proc.get());
-        /* Print statistics about every single process */
-        Left=std::make_unique<std::string>("Process ");
-        *Left+=*(Proc->Name)+" ";
-        /* Is this a native process or a virtual machine? */
-        if(Proc->Type==PROC_TYPE_NATIVE)
-            *Left+="[Native]";
-        else
-            *Left+="[Virtual]";
-        Para->Add(Left, "%s", Proc->RVM_Macro->c_str());
-        Para->Add("- Stats -----------------------------------------------------------------------");
-        Left=std::make_unique<std::string>("Capability table");
-        Para->Add(Left, "%lld/%lld/%lld", Stats->Proc.Capability_Table_Usage,
-                                          Stats->Proc.Capability_Table_Total,
-                                          Stats->Proc.Capability_Table_Limit);
-        Left=std::make_unique<std::string>("Code memory");
-        Para->Add(Left, "0x%llX", Stats->Proc.Code_Memory);
-        Left=std::make_unique<std::string>("Data memory");
-        Para->Add(Left, "0x%llX", Stats->Proc.Data_Memory);
-        Left=std::make_unique<std::string>("Device memory");
-        Para->Add(Left, "0x%llX", Stats->Proc.Device_Memory);
-        Para->Add("- Memory Map ------------------------------------------------------------------");
-        /* Add all memory into queue */
-        Allmem.clear();
-        for(std::unique_ptr<class Mem>& Mem:Proc->Code)
-            Allmem.push_back(Mem.get());
-        for(std::unique_ptr<class Mem>& Mem:Proc->Data)
-            Allmem.push_back(Mem.get());
-        for(std::unique_ptr<class Mem>& Mem:Proc->Device)
-            Allmem.push_back(Mem.get());
-        /* Sort them from small end to large end */
-        std::sort(Allmem.begin(),Allmem.end(),
-        [](class Mem* Left, class Mem* Right)
-        {
-            return Left->Base<Right->Base;
-        });
-        /* Print them one by one */
-        for(class Mem* Mem:Allmem)
-        {
-            if(Mem->Name==nullptr)
-                Left=std::make_unique<std::string>("(Anonymous)");
-            else
-                Left=std::make_unique<std::string>(Mem->Name->c_str());
-
-            if(Mem->Is_Shared!=0)
-                Right=std::make_unique<std::string>("Shared, ");
-            else
-                Right=std::make_unique<std::string>("Private, ");
-
-            ((Mem->Attr&MEM_READ)!=0)?*Right+="R":*Right+="-";
-            ((Mem->Attr&MEM_WRITE)!=0)?*Right+="W":*Right+="-";
-            ((Mem->Attr&MEM_EXECUTE)!=0)?*Right+="X":*Right+="-";
-            ((Mem->Attr&MEM_BUFFERABLE)!=0)?*Right+="B":*Right+="-";
-            ((Mem->Attr&MEM_CACHEABLE)!=0)?*Right+="C":*Right+="-";
-            ((Mem->Attr&MEM_STATIC)!=0)?*Right+="S":*Right+="-";
-
-            Para->Add(Left, "%s, 0x%llX - 0x%llX", Right->c_str(), Mem->Base, Mem->Base+Mem->Size-1);
-        }
-        if(Proc->Thd.size()!=0)
-        {
-            Para->Add("- Threads ---------------------------------------------------------------------");
-            for(std::unique_ptr<class Thd>& Thd:Proc->Thd)
-            {
-                Para->Add(Thd->Name, "%s, 0x%llX - 0x%llX", Thd->RVM_Macro->c_str(), 
-                                                            Thd->Map->Stack_Base, 
-                                                            Thd->Map->Stack_Base+Thd->Map->Stack_Size-1);
-            }
-        }
-        if(Proc->Inv.size()!=0)
-        {
-            Para->Add("- Invocations -----------------------------------------------------------------");
-            for(std::unique_ptr<class Inv>& Inv:Proc->Inv)
-            {
-                Para->Add(Inv->Name, "%s, 0x%llX - 0x%llX", Inv->RVM_Macro->c_str(), 
-                                                            Inv->Map->Stack_Base, 
-                                                            Inv->Map->Stack_Base+Inv->Map->Stack_Size-1);
-            }
-        }
-        if(Proc->Recv.size()!=0)
-        {
-            Para->Add("- Receive endpoints -----------------------------------------------------------");
-            for(std::unique_ptr<class Recv>& Recv:Proc->Recv)
-                Para->Add(Recv->Name, "%s, %s", Recv->Loc_Macro->c_str(), Recv->RVM_Macro->c_str());
-        }
-        if(Proc->Send.size()!=0)
-        {
-            Para->Add("- Send endpoints --------------------------------------------------------------");
-            for(std::unique_ptr<class Send>& Send:Proc->Send)
-            {
-                Left=std::make_unique<std::string>(Send->Name->c_str());
-                *Left+=", ";
-                *Left+=*(Send->Proc_Name);
-                Para->Add(Left, "%s, %s", Send->Loc_Macro->c_str(), Send->RVM_Macro->c_str());
-            }
-        }
-        if(Proc->Vect.size()!=0)
-        {
-            Para->Add("- Vector endpoints ------------------------------------------------------------");
-            for(std::unique_ptr<class Vect>& Vect:Proc->Vect)
-            {
-                Left=std::make_unique<std::string>(Vect->Name->c_str());
-                *Left+=" (";
-                *Left+=std::to_string(Vect->Num)+")";
-                Para->Add(Left, "%s, %s", Vect->Loc_Macro->c_str(), Vect->RVM_Macro->c_str());
-            }
-        }
-        if(Proc->Kern.size()!=0)
-        {
-            Para->Add("- Kernel functions ------------------------------------------------------------");
-            for(std::unique_ptr<class Kern>& Kern:Proc->Kern)
-                Para->Add(Kern->Name, "%s, 0x%llX - 0x%llX", Kern->Loc_Macro->c_str(), 
-                                                             Kern->Start, Kern->End);
-        }
-
-        Para->Add("###############################################################################");
-    }
-    Doc->Add(std::move(Para));
-
-    /* Generate rvm_boot.c */
-    File=this->Dstfs->Open_File("Workspace/report.txt");
-    Doc->Write(File);
-    fclose(File);
-}
-/* End Function:Main::Gen_Report *********************************************/
 
 /* Begin Function:Main::Idtfr_Check *******************************************
 Description : Check if the identifier supplied is valid. Valid identifiers must
@@ -1573,7 +423,7 @@ void Main::Info(const char* Format, ...)
 /* End Function:Main::Info ***************************************************/
 
 /* Begin Function:Main::Info **************************************************
-Description : Output information about the compile/assemble/link process in verbose mode.
+Description : Output information about the generation process in verbose mode.
 Input       : const std::string& String - The string.
 Output      : None.
 Return      : None.
@@ -1616,276 +466,71 @@ void Main::Error[[noreturn]](const char* Format, ...)
     va_end(Arg);
 }
 /* End Function:Main::Error **************************************************/
+}
+/* Begin Function:Malloc ******************************************************
+Description : Allocate some memory and register it with the system.
+Input       : ptr_t Size - The size to allocate, in bytes.
+Output      : None.
+Return      : void* - If successful, the address; else 0.
+******************************************************************************/
+extern "C" void* Malloc(ptr_t Size)
+{
+    return malloc((size_t)Size);
+}
+/* End Function:Malloc *******************************************************/
 
-/* Begin Function:Stats::Kobj_Stats *******************************************
-Description : Gather statistics about kernel objects.
-Input       : class Main* Main - The main application instance.
+/* Begin Function:Free ********************************************************
+Description : Deallocate the memory and deregister it.
+Input       : void* Addr - The address to free.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Stats::Kobj_Stats(class Main* Main)
+extern "C" void Free(void* Addr)
 {
-    std::unique_ptr<class RME>& RME=Main->Proj->RME;
-    std::unique_ptr<class RVM>& RVM=Main->Proj->RVM;
-
-    this->Kobj.Main_Capability_Table_Usage=RVM->Map->After_Cap_Front;
-    this->Kobj.Main_Capability_Table_Total=RVM->Map->Captbl_Size;
-    this->Kobj.Main_Capability_Table_Limit=Main->Plat->Capacity;
-
-    this->Kobj.Auxiliary_Capability_Tables=RVM->Map->Before_Cap_Front-RME->Map->Vect_Cap_Front;
-    this->Kobj.Auxiliary_Capability_Tables+=RVM->Map->After_Cap_Front-RVM->Map->Virtep_Cap_Front;
-
-    this->Kobj.Processes=Main->Proj->Proc.size();
-    this->Kobj.Virtual_Machines=Main->Proj->Virt.size();
-    this->Kobj.Capability_Tables=RVM->Captbl.size();
-    this->Kobj.Page_Tables=RVM->Pgtbl.size();
-    this->Kobj.Threads=RVM->Thd.size();
-    this->Kobj.Invocations=RVM->Inv.size();
-    this->Kobj.Endpoints=RVM->Recv.size()+RVM->Vect.size();
-
-    this->Kobj.Total_Kernel_Objects=this->Kobj.Processes+
-                                    this->Kobj.Virtual_Machines+
-                                    this->Kobj.Capability_Tables+
-                                    this->Kobj.Page_Tables+
-                                    this->Kobj.Threads+
-                                    this->Kobj.Invocations+
-                                    this->Kobj.Endpoints;
+    free(Addr);
 }
-/* End Function:Stats::Kobj_Stats ********************************************/
+/* End Function:Free *********************************************************/
 
-/* Begin Function:Stats::Kmem_Stats *******************************************
-Description : Gather statistics about kernel memory.
-Input       : class Main* Main - The main application instance.
-Output      : None.
-Return      : None.
+/* Begin Function:Memcpy ******************************************************
+Description : Memcpy wrapper for 64-bit XML library.
+Input       : void* Src - The source string.
+              xml_ptr_t Num - The number to copy.
+Output      : void* Dst - The destination string.
+Return      : void* - The destination is returned.
 ******************************************************************************/
-void Stats::Kmem_Stats(class Main* Main)
+extern "C" void* Memcpy(void* Dst, void* Src, xml_ptr_t Num)
 {
-    class Kmem_Stats* Kmem=&(this->Kmem);
-    std::unique_ptr<class RME>& RME=Main->Proj->RME;
-    std::unique_ptr<class RVM>& RVM=Main->Proj->RVM;
-
-    this->Kmem.RME_Code_Memory=RME->Map->Code_Size;
-    this->Kmem.RME_Data_Memory=RME->Map->Data_Size;
-    this->Kmem.RVM_Code_Memory=RVM->Map->Code_Size;
-    this->Kmem.RVM_Data_Memory=RVM->Map->Data_Size;
-
-    this->Kmem.Kernel_Memory_Usage=RVM->Map->After_Kmem_Front;
-    this->Kmem.Kernel_Memory_Total=RME->Map->Kmem_Size;
-
-    this->Kmem.Processes=RVM->Map->Thd_Kmem_Front-RVM->Map->Proc_Kmem_Front;
-    this->Kmem.Capability_Tables=RVM->Map->Thd_Kmem_Front-RVM->Map->Proc_Kmem_Front;
-    this->Kmem.Page_Tables=RVM->Map->Proc_Kmem_Front-RVM->Map->Pgtbl_Kmem_Front;
-    this->Kmem.Threads=RVM->Map->Inv_Kmem_Front-RVM->Map->Thd_Kmem_Front;
-    this->Kmem.Invocations=RVM->Map->Recv_Kmem_Front-RVM->Map->Inv_Kmem_Front;
-    this->Kmem.Endpoints=RVM->Map->Before_Kmem_Front-RME->Map->Vect_Kmem_Front;
-    this->Kmem.Endpoints+=RVM->Map->After_Kmem_Front-RVM->Map->Recv_Kmem_Front;
+    return memcpy(Dst, Src, (size_t)Num);
 }
-/* End Function:Stats::Kmem_Stats ********************************************/
+/* End Function:Memcpy *******************************************************/
 
-/* Begin Function:Stats::User_Stats *******************************************
-Description : Gather statistics about user memory. 
-Input       : class Main* Main - The main application instance.
+/* Begin Function:Strncmp *****************************************************
+Description : Strncmp wrapper for 64-bit XML library.
+Input       : s8_t* Str1 - The first string.
+              s8_t* Str2 - The second string.
+              ptr_t Num - The number of characters to compare.
 Output      : None.
-Return      : None.
+Return      : ret_t - If Str1 is bigger, positive; if equal, 0; if Str2 is bigger,
+                      negative.
 ******************************************************************************/
-void Stats::User_Stats(class Main* Main)
+extern "C" ret_t Strncmp(s8_t* Str1, s8_t* Str2, ptr_t Num)
 {
-    this->User.Private_Code_Memory=0;
-    this->User.Private_Data_Memory=0;
-    this->User.Private_Device_Memory=0;
-    
-    for(std::unique_ptr<class Proc>& Proc:Main->Proj->Proc)
-    {
-        for(std::unique_ptr<class Mem>& Mem:Proc->Code)
-        {
-            if(Mem->Is_Shared==0)
-                this->User.Private_Code_Memory+=Mem->Size;
-        }
-        for(std::unique_ptr<class Mem>& Mem:Proc->Data)
-        {
-            if(Mem->Is_Shared==0)
-                this->User.Private_Data_Memory+=Mem->Size;
-        }
-        for(std::unique_ptr<class Mem>& Mem:Proc->Device)
-        {
-            if(Mem->Is_Shared==0)
-                this->User.Private_Device_Memory+=Mem->Size;
-        }
-    }
-
-    this->User.Shared_Code_Memory=0;
-    this->User.Shared_Data_Memory=0;
-    this->User.Shared_Device_Memory=0;
-
-    for(std::unique_ptr<class Mem>& Mem:Main->Proj->Shmem_Code)
-        this->User.Shared_Code_Memory+=Mem->Size;
-    for(std::unique_ptr<class Mem>& Mem:Main->Proj->Shmem_Data)
-        this->User.Shared_Data_Memory+=Mem->Size;
-    for(std::unique_ptr<class Mem>& Mem:Main->Proj->Shmem_Device)
-        this->User.Shared_Device_Memory+=Mem->Size;
+    return strncmp((const char*)Str1,(const char*)Str2,(size_t)Num);
 }
-/* End Function:Stats::User_Stats ********************************************/
+/* End Function:Strncmp ******************************************************/
 
-/* Begin Function:Stats::Plat_Stats *******************************************
-Description : Gather statistics about the platform. 
-Input       : class Main* Main - The main application instance.
+/* Begin Function:Strlen ******************************************************
+Description : Strlen wrapper for 64-bit XML library.
+Input       : s8_t* Str - The Input string.
 Output      : None.
-Return      : None.
+Return      : ptr_t - The length of the string.
 ******************************************************************************/
-void Stats::Plat_Stats(class Main* Main)
+extern "C" ptr_t Strlen(s8_t* Str)
 {
-    std::vector<class Mem*> Allmem;
-    ptr_t Cur_Start;
-    ptr_t Cur_End;
-    
-    this->Plat.Platform_Code_Memory=0;
-    this->Plat.Platform_Data_Memory=0;
-    this->Plat.Platform_Device_Memory=0;
-
-    for(std::unique_ptr<class Mem>& Mem:Main->Chip->Code)
-        this->Plat.Platform_Code_Memory+=Mem->Size;
-    for(std::unique_ptr<class Mem>& Mem:Main->Chip->Data)
-        this->Plat.Platform_Data_Memory+=Mem->Size;
-    for(std::unique_ptr<class Mem>& Mem:Main->Chip->Device)
-        this->Plat.Platform_Device_Memory+=Mem->Size;
-
-    this->Plat.Used_Code_Memory=0;
-    this->Plat.Used_Data_Memory=0;
-    this->Plat.Used_Device_Memory=0;
-
-    /* Add all memory to queue, sort, then start to see the different factors */
-    for(std::unique_ptr<class Proc>& Proc:Main->Proj->Proc)
-    {
-        for(std::unique_ptr<class Mem>& Mem:Proc->Code)
-            Allmem.push_back(Mem.get());
-    }
-    std::sort(Allmem.begin(),Allmem.end(),
-    [](class Mem* Left, class Mem* Right)
-    {
-        return Left->Base<Right->Base;
-    });
-    Cur_Start=Main->Proj->RME->Code_Base;
-    Cur_End=Cur_Start+Main->Proj->RME->Code_Size+Main->Proj->RVM->Code_Size;
-    for(class Mem* Mem:Allmem)
-    {
-        if(Mem->Base>Cur_End)
-        {
-            /* Time to accumulate the old segment and start counting for the new one */
-            this->Plat.Used_Code_Memory+=Cur_End-Cur_Start;
-            Cur_Start=Mem->Base;
-            Cur_End=Cur_Start+Mem->Size;
-        }
-        else
-        {
-            /* Accumulate this segment to the old one */
-            if((Mem->Base+Mem->Size)>Cur_End)
-                Cur_End=Mem->Base+Mem->Size;
-        }
-    }
-    /* Accumulate the last segment */
-    this->Plat.Used_Code_Memory+=Cur_End-Cur_Start;
-    
-    /* Add all memory to queue, sort, then start to see the different factors */
-    for(std::unique_ptr<class Proc>& Proc:Main->Proj->Proc)
-    {
-        for(std::unique_ptr<class Mem>& Mem:Proc->Data)
-            Allmem.push_back(Mem.get());
-    }
-    std::sort(Allmem.begin(),Allmem.end(),
-    [](class Mem* Left, class Mem* Right)
-    {
-            return Left->Base<Right->Base;
-    });
-    Cur_Start=Main->Proj->RME->Data_Base;
-    Cur_End=Cur_Start+Main->Proj->RME->Data_Size+Main->Proj->RVM->Data_Size;
-    for(class Mem* Mem:Allmem)
-    {
-        if(Mem->Base>Cur_End)
-        {
-            /* Time to accumulate the old segment and start counting for the new one */
-            this->Plat.Used_Data_Memory+=Cur_End-Cur_Start;
-            Cur_Start=Mem->Base;
-            Cur_End=Cur_Start+Mem->Size;
-        }
-        else
-        {
-            /* Accumulate this segment to the old one */
-            if((Mem->Base+Mem->Size)>Cur_End)
-                Cur_End=Mem->Base+Mem->Size;
-        }
-    }
-    /* Accumulate the last segment */
-    this->Plat.Used_Data_Memory+=Cur_End-Cur_Start;
-
-    /* Add all memory to queue, sort, then start to see the different factors */
-    for(std::unique_ptr<class Proc>& Proc:Main->Proj->Proc)
-    {
-        for(std::unique_ptr<class Mem>& Mem:Proc->Device)
-            Allmem.push_back(Mem.get());
-    }
-    std::sort(Allmem.begin(),Allmem.end(),
-    [](class Mem* Left, class Mem* Right)
-    {
-        return Left->Base<Right->Base;
-    });
-    if(Allmem.size()==0)
-    {
-        Cur_Start=0;
-        Cur_End=0;
-    }
-    else
-    {
-        Cur_Start=Allmem[0]->Base;
-        Cur_End=Cur_Start+Allmem[0]->Size;
-
-        for(class Mem* Mem:Allmem)
-        {
-            if(Mem->Base>Cur_End)
-            {
-                /* Time to accumulate the old segment and start counting for the new one */
-                this->Plat.Used_Device_Memory+=Cur_End-Cur_Start;
-                Cur_Start=Mem->Base;
-                Cur_End=Cur_Start+Mem->Size;
-            }
-            else
-            {
-                /* Accumulate this segment to the old one */
-                if((Mem->Base+Mem->Size)>Cur_End)
-                    Cur_End=Mem->Base+Mem->Size;
-            }
-        }
-        /* Accumulate the last segment */
-        this->Plat.Used_Device_Memory+=Cur_End-Cur_Start;
-    }
+    return strlen((const char*)Str);
 }
-/* End Function:Stats::Plat_Stats ********************************************/
+/* End Function:Strlen *******************************************************/
 
-/* Begin Function:Stats::Proc_Stats *******************************************
-Description : Gather statistics about the process. 
-Input       : class Proc* Proc - The process application instance.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Stats::Proc_Stats(class Proc* Proc)
-{
-    this->Proc.Capability_Table_Usage=Proc->Captbl->Front;
-    this->Proc.Capability_Table_Total=Proc->Captbl->Size;
-    this->Proc.Capability_Table_Limit=this->Kobj.Main_Capability_Table_Limit;
-
-    this->Proc.Code_Memory=0;
-    this->Proc.Data_Memory=0;
-    this->Proc.Device_Memory=0;
-
-    for(std::unique_ptr<class Mem>& Mem:Proc->Code)
-        this->Proc.Code_Memory+=Mem->Size;
-    for(std::unique_ptr<class Mem>& Mem:Proc->Data)
-        this->Proc.Data_Memory+=Mem->Size;
-    for(std::unique_ptr<class Mem>& Mem:Proc->Device)
-        this->Proc.Device_Memory+=Mem->Size;
-}
-/* End Function:Stats::Proc_Stats ********************************************/
-}
 /* Begin Function:main ********************************************************
 Description : The entry of the tool.
 Input       : None.
@@ -1898,31 +543,31 @@ int main(int argc, char* argv[])
     try
     {
         std::unique_ptr<class Main> Main;
-
 /* Phase 1: Process command line and do parsing ******************************/
         Main=std::make_unique<class Main>(argc, argv);
+        Main::Info("Reading project.");
         Main->Parse();
-        Main->Check_Chip();
+        //Main->Check();
 
 /* Phase 2: Allocate page tables *********************************************/
-        Main->Plat->Align_Mem(Main->Proj);
-        Main->Alloc_Mem();
-        Main->Plat->Alloc_Pgtbl(Main->Proj,Main->Chip);
+        //Main->Plat->Align_Mem(Main->Proj);
+        //Main->Alloc_Mem();
+        //Main->Plat->Alloc_Pgtbl(Main->Proj,Main->Chip);
 
 /* Phase 3: Allocate kernel object ID & macros *******************************/
-        Main->Alloc_Cap();
+        //Main->Alloc_Cap();
 
 /* Phase 4: Allocate object memory *******************************************/
-        Main->Alloc_Obj();
+        //Main->Alloc_Obj();
 
 /* Phase 5: Produce output ***************************************************/
-        Main->Gen_RME();
-        Main->Gen_RVM();
-        Main->Gen_Proc();
-        Main->Gen_Proj();
+        //Main->Gen_RME();
+        //Main->Gen_RVM();
+        //Main->Gen_Proc();
+        //Main->Gen_Proj();
 
 /* Phase 6: Generate report **************************************************/
-        Main->Gen_Report();
+        //Main->Gen_Report();
     }
     catch(std::exception& Exc)
     {
@@ -1932,527 +577,6 @@ int main(int argc, char* argv[])
     return 0;
 }
 /* End Function:main *********************************************************/
-
-/* Process shared memory trunk information */
-class Shmem
-{
-public:
-    /* The name of the memory trunk */
-    std::unique_ptr<std::string> Name;
-    /* The attributes - read, write, execute, cacheable, bufferable, static */
-    ptr_t Attr;
-
-    Shmem(xml_node_t* Root);
-};
-
-class Memmap
-{
-public:
-    class Mem* Mem;
-    std::vector<bool> Map;
-
-    Memmap(std::unique_ptr<class Mem>& Mem);
-
-    static ret_t Try(std::unique_ptr<class Memmap>& Map, ptr_t Base, ptr_t Size);
-    static ret_t Mark(std::unique_ptr<class Memmap>& Map, ptr_t Base, ptr_t Size);
-    static ret_t Fit_Static(std::vector<std::unique_ptr<class Memmap>>& Map,
-                            ptr_t Base, ptr_t Size, ptr_t Attr);
-    static ret_t Fit_Auto(std::vector<std::unique_ptr<class Memmap>>& Map,
-                          ptr_t* Base, ptr_t Size, ptr_t Align, ptr_t Attr);
-};
-
-/* Begin Function:Shmem::Shmem ************************************************
-Description : Constructor for Shmem class.
-Input       : xml_node_t* Root - The node containing the memory block information.
-Output      : None.
-Return      : None.
-******************************************************************************/
-/* void */ Shmem::Shmem(xml_node_t* Root)
-{
-    xml_node_t* Temp;
-    std::unique_ptr<std::string> Str;
-
-    try
-    {
-        /* Name */
-        if((XML_Child(Node,"Name",&Temp)<0)||(Temp==0))
-            throw std::invalid_argument("P0600: Name section is missing.");
-        if(Temp->XML_Val_Len==0)
-            throw std::invalid_argument("P0601: Name section is empty.");
-        this->Name=std::make_unique<std::string>(Temp->XML_Val,(int)Temp->XML_Val_Len);
-
-        /* Attribute */
-        if((XML_Child(Node,"Attribute",&Temp)<0)||(Temp==0))
-            throw std::invalid_argument("P0602: Attribute section is missing.");
-        if(Temp->XML_Val_Len==0)
-            throw std::invalid_argument("P0603: Attribute section is empty.");
-        Str=std::make_unique<std::string>(Temp->XML_Val,(int)Temp->XML_Val_Len);
-        this->Attr=0;
-
-        if(Str->rfind('R')!=std::string::npos)
-            this->Attr|=MEM_READ;
-        if(Str->rfind('W')!=std::string::npos)
-            this->Attr|=MEM_WRITE;
-        if(Str->rfind('X')!=std::string::npos)
-            this->Attr|=MEM_EXECUTE;
-
-        if(this->Attr==0)
-            throw std::invalid_argument("P0604: Attribute does not allow any access and is malformed.");
-
-        if(Str->rfind('B')!=std::string::npos)
-            this->Attr|=MEM_BUFFERABLE;
-        if(Str->rfind('C')!=std::string::npos)
-            this->Attr|=MEM_CACHEABLE;
-        if(Str->rfind('S')!=std::string::npos)
-            this->Attr|=MEM_STATIC;
-    }
-    catch(std::exception& Exc)
-    {
-        throw std::runtime_error(std::string("Shared memory:\n")+Exc.what());
-    }
-}
-/* End Function:Shmem::Shmem *************************************************/
-
-/* Begin Function:Memmap::Memmap **********************************************
-Description : Constructor for Memmap class.
-Input       : std::unique_ptr<class Mem>& Mem - The memory trunk.
-Output      : None.
-Return      : None.
-******************************************************************************/
-/* void */ Memmap::Memmap(std::unique_ptr<class Mem>& Mem)
-{
-    /* This pointer does not assume ownership */
-    this->Mem=Mem.get();
-    this->Map.resize((unsigned int)(Mem->Size/MAP_ALIGN+1));
-    std::fill(this->Map.begin(), this->Map.end(), false);
-}
-/* End Function:Memmap::Memmap ***********************************************/
-
-/* Begin Function:Memmap::Try *************************************************
-Description : See if this bitmap segment is already covered.
-Input       : std::unique_ptr<class Memmap>& Map - The bitmap.
-              ptr_t Base - The starting address.
-              ptr_t Size - The size to allocate.
-Output      : None.
-Return      : ret_t - If can be marked, 0; else -1.
-******************************************************************************/
-ret_t Memmap::Try(std::unique_ptr<class Memmap>& Map, ptr_t Base, ptr_t Size)
-{
-    ptr_t Count;
-    ptr_t Bit_Base;
-    ptr_t Bit_Size;
-
-    /* See if we can fit there */
-    if((Base<Map->Mem->Base)&&(Base>=(Map->Mem->Base+Map->Mem->Size)))
-        return -1;
-    if((Map->Mem->Base+Map->Mem->Size)<(Base+Size))
-        return -1;
-
-    Bit_Base=(Base-Map->Mem->Base)/MAP_ALIGN;
-    Bit_Size=Size/MAP_ALIGN;
-
-    for(Count=Bit_Base;Count<Bit_Base+Bit_Size;Count++)
-    {
-        if(Map->Map[(unsigned int)Count]!=false)
-            return -1;
-    }
-    return 0;
-}
-/* End Function:Memmap::Try **************************************************/
-
-/* Begin Function:Memmap::Mark ************************************************
-Description : Actually mark this bitmap segment. Each bit is always 4 bytes.
-Input       : std::unique_ptr<class Memmap>& Map - The bitmap.
-              ptr_t Base - The starting address.
-              ptr_t Size - The size to allocate.
-Output      : std::unique_ptr<class Memmap>& Map - The updated bitmap.
-Return      : None.
-******************************************************************************/
-ret_t Memmap::Mark(std::unique_ptr<class Memmap>& Map, ptr_t Base, ptr_t Size)
-{
-    ptr_t Count;
-    ptr_t Bit_Base;
-    ptr_t Bit_Size;
-
-    /* See if we can fit there */
-    if((Base<Map->Mem->Base)&&(Base>=(Map->Mem->Base+Map->Mem->Size)))
-        return -1;
-    if((Map->Mem->Base+Map->Mem->Size)<(Base+Size))
-        return -1;
-
-    Bit_Base=(Base-Map->Mem->Base)/MAP_ALIGN;
-    Bit_Size=Size/MAP_ALIGN;
-
-    for(Count=Bit_Base;Count<Bit_Base+Bit_Size;Count++)
-        Map->Map[(unsigned int)Count]=true;
-
-    return 0;
-}
-/* End Function:Memmap::Mark *************************************************/
-
-/* Begin Function:Memmap::Fit_Static ******************************************
-Description : Populate the memory data structure with this memory segment.
-              This operation will be conducted with no respect to whether this
-              portion have been populated with someone else.
-Input       : std::vector<std::unique_ptr<class Memmap>>& Map - The memory map.
-              ptr_t Base - The start address of the memory.
-              ptr_t Size - The size of the memory.
-              ptr_t Attr - The attributes of the memory.
-Output      : std::vector<std::unique_ptr<class Memmap>>& Map - The updated memory map.
-Return      : ret_t - If successful, 0; else -1.
-******************************************************************************/
-ret_t Memmap::Fit_Static(std::vector<std::unique_ptr<class Memmap>>& Map,
-                         ptr_t Base, ptr_t Size, ptr_t Attr)
-{
-    class Mem* Mem;
-
-    /* See if we can even find a segment that accomodates this */
-    for(std::unique_ptr<class Memmap>& Info:Map)
-    {
-        Mem=Info->Mem;
-        if((Base>=Mem->Base)&&(Base<(Mem->Base+Mem->Size)))
-        {
-            /* See if we can fit there */
-            if((Mem->Base+Mem->Size)<(Base+Size))
-                return -1;
-
-            /* Is the attributes correct? */
-            if((Mem->Attr&Attr)!=Attr)
-                return -1;
-
-            /* It is clear that we can fit now. Mark all the bits. We do not check it it
-             * is already marked, because we allow overlapping. */
-            return Mark(Info, Base, Size);
-        }
-    }
-
-    return -1;
-}
-/* End Function:Memmap::Fit_Static *******************************************/
-
-/* Begin Function:Memmap::Fit_Auto ********************************************
-Description : Fit the auto-placed memory segments to a fixed location.
-Input       : std::vector<std::unique_ptr<class Memmap>>& Map - The memory map.
-              ptr_t Base - The start address of the memory.
-              ptr_t Size - The size of the memory.
-              ptr_t Attr - The attributes of the memory.
-              ptr_t Align - The alignment granularity of the memory.
-Output      : std::vector<std::unique_ptr<class Memmap>>& Map - The updated memory map.
-              ptr_t* Start - The start address of the memory.
-Return      : ret_t - If successful, 0; else -1.
-******************************************************************************/
-ret_t Memmap::Fit_Auto(std::vector<std::unique_ptr<class Memmap>>& Map,
-                       ptr_t* Base, ptr_t Size, ptr_t Align, ptr_t Attr)
-{
-    ptr_t Fit_Start;
-    ptr_t Fit_End;
-    ptr_t Fit_Try;
-    class Mem* Fit;
-
-    /* Find somewhere to fit this memory trunk, and if found, we will populate it */
-    for(std::unique_ptr<class Memmap>& Info:Map)
-    {
-        Fit=Info->Mem;
-
-        /* Is the size possibly sufficient? */
-        if(Size>Fit->Size)
-            continue;
-
-        /* Is the attribute a superset of what we require? */
-        if((Fit->Attr&Attr)!=Attr)
-            continue;
-
-        /* Round start address up, round end address down, to alignment */
-        Fit_Start=((Fit->Base+Align-1)/Align)*Align;
-        Fit_End=((Fit->Base+Fit->Size)/Align)*Align;
-
-        if(Size>(Fit_End-Fit_Start))
-            continue;
-
-        for(Fit_Try=Fit_Start;Fit_Try<Fit_End;Fit_Try+=Align)
-        {
-            if(Try(Info,Fit_Try,Size)==0)
-            {
-                /* Found a fit */
-                Mark(Info,Fit_Try,Size);
-                *Base=Fit_Try;
-                return 0;
-            }
-        }
-    }
-
-    /* Can't find any fit */
-    return -1;
-}
-/* End Function:Memmap::Fit_Auto *********************************************/
-
-class Plat
-{
-public:
-    ptr_t Kmem_Order;
-    ptr_t Word_Bits;
-    ptr_t Capacity;
-    ptr_t Init_Num_Ord;
-    ptr_t Raw_Thd_Size;
-    ptr_t Raw_Inv_Size;
-
-    Plat(ptr_t Word_Bits, ptr_t Init_Num_Ord, ptr_t Thd_Size, ptr_t Inv_Size);
-
-    /* Kernel object sizes */
-    virtual ptr_t Captbl_Size(ptr_t Entry) final;
-    virtual ptr_t Captbl_Num(ptr_t Entry) final;
-    virtual ptr_t Captbl_Total(ptr_t Entry) final;
-    virtual ptr_t Pgtbl_Size(ptr_t Num_Order, ptr_t Is_Top) final;
-    virtual ptr_t Thd_Size(void) final;
-    virtual ptr_t Inv_Size(void) final;
-
-    /* Raw page table size */
-    virtual ptr_t Raw_Pgtbl_Size(ptr_t Num_Order, ptr_t Is_Top)=0;
-    /* Align memory */
-    virtual void Align_Mem(std::unique_ptr<class Proj>& Proj)=0;
-    /* Allocate page table */
-    virtual void Alloc_Pgtbl(std::unique_ptr<class Proj>& Proj, std::unique_ptr<class Chip>& Chip)=0;
-};
-
-/* Begin Function:Plat::Plat **************************************************
-Description : Constructor for Plat class.
-Input       : ptr_t Word_Bits - The number of bits in a processor word.
-              ptr_t Init_Num_Ord - The initial number order of the page table.
-              ptr_t Thd_Size - The raw thread size.
-              ptr_t Inv_Size - The raw invocation size.
-Output      : None.
-Return      : None.
-******************************************************************************/
-/* void */ Plat::Plat(ptr_t Word_Bits, ptr_t Init_Num_Ord, ptr_t Thd_Size, ptr_t Inv_Size)
-{
-    this->Word_Bits=Word_Bits;
-    this->Capacity=POW2(Word_Bits/4-1);
-    this->Init_Num_Ord=Init_Num_Ord;
-    this->Raw_Thd_Size=Thd_Size;
-    this->Raw_Inv_Size=Inv_Size;
-}
-/* End Function:Plat::Plat ***************************************************/
-
-/* Begin Function:Plat::Captbl_Size *******************************************
-Description : Calculate the platform's capability table size.
-Input       : ptr_t Entry - The number of entries for the capability table.
-Output      : None.
-Return      : ptr_t - The size of the capability table, in bytes.
-******************************************************************************/
-ptr_t Plat::Captbl_Size(ptr_t Entry)
-{
-    return ROUND_UP(RAW_CAPTBL_SIZE(this->Word_Bits,Entry), this->Kmem_Order);
-}
-/* End Function:Plat::Captbl_Size ********************************************/
-
-/* Begin Function:Plat::Captbl_Num ********************************************
-Description : Calculate the number of capability tables needed given the number
-              of capabilities.
-Input       : ptr_t Entry - The total number of entries for the capability tables.
-Output      : None.
-Return      : ptr_t - The number of capability tables needed.
-******************************************************************************/
-ptr_t Plat::Captbl_Num(ptr_t Entry)
-{
-    return (Entry+this->Capacity-1)/this->Capacity;
-}
-/* End Function:Plat::Captbl_Num *********************************************/
-
-/* Begin Function:Plat::Captbl_Total ******************************************
-Description : Calculate the total size of capability tables needed given the number
-              of capabilities.
-Input       : ptr_t Entry - The number of entries for the capability tables.
-Output      : None.
-Return      : ptr_t - The total size size of the capability tables, in bytes.
-******************************************************************************/
-ptr_t Plat::Captbl_Total(ptr_t Entry)
-{
-    ptr_t Size;
-
-    Size=ROUND_UP(RAW_CAPTBL_SIZE(this->Word_Bits,this->Capacity), this->Kmem_Order);
-    Size*=Entry/this->Capacity;
-    Size+=ROUND_UP(RAW_CAPTBL_SIZE(this->Word_Bits,Entry%this->Capacity), this->Kmem_Order);
-
-    return Size;
-}
-/* End Function:Plat::Captbl_Total *******************************************/
-
-/* Begin Function:Plat::Pgtbl_Size ********************************************
-Description : Calculate the platform's page table size.
-Input       : ptr_t Num_Order - The number order.
-              ptr_t Is_Top - Whether this is a top-level.
-Output      : None.
-Return      : ptr_t - The size of the page table, in bytes.
-******************************************************************************/
-ptr_t Plat::Pgtbl_Size(ptr_t Num_Order, ptr_t Is_Top)
-{
-    return ROUND_UP(this->Raw_Pgtbl_Size(Num_Order, Is_Top), this->Kmem_Order);
-}
-/* End Function:Plat::Pgtbl_Size *********************************************/
-
-/* Begin Function:Plat::Thd_Size **********************************************
-Description : Calculate the platform's thread size.
-Input       : None.
-Output      : None.
-Return      : ptr_t - The size of the thread, in bytes.
-******************************************************************************/
-ptr_t Plat::Thd_Size(void)
-{
-    return ROUND_UP(this->Raw_Thd_Size, this->Kmem_Order);
-}
-/* End Function:Plat::Thd_Size ***********************************************/
-
-/* Begin Function:Plat::Inv_Size **********************************************
-Description : Calculate the platform's invocation size.
-Input       : None.
-Output      : None.
-Return      : ptr_t - The size of the thread, in bytes.
-******************************************************************************/
-ptr_t Plat::Inv_Size(void)
-{
-    return ROUND_UP(this->Raw_Inv_Size, this->Kmem_Order);
-}
-/* End Function:Plat::Inv_Size ***********************************************/
-
-/* Begin Function:Proj::Kobj_Alloc ********************************************
-Description : Get the size of the kernel memory, and generate the initial states
-              for kernel object creation.
-Input       : std::unique_ptr<class Plat>& Plat - The platform structure.
-              ptr_t Init_Captbl_Size - The initial capability table's size;
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Proj::Kobj_Alloc(std::unique_ptr<class Plat>& Plat, ptr_t Init_Capsz)
-{
-    ptr_t Cap_Front;
-    ptr_t Kmem_Front;
-
-    /* Compute initial state when creating the vectors */
-    Cap_Front=0;
-    Kmem_Front=0;
-    /* Initial capability table */
-    Cap_Front++;
-    Kmem_Front+=Plat->Captbl_Size(Init_Capsz);
-    /* Initial page table */
-    Cap_Front++;
-    Kmem_Front+=Plat->Pgtbl_Size(Plat->Init_Num_Ord,1);
-    /* Initial RVM process */
-    Cap_Front++;
-    /* Initial kcap and kmem */
-    Cap_Front+=2;
-    /* Initial tick timer/interrupt endpoint */
-    Cap_Front+=2;
-    /* Initial thread */
-    Cap_Front++;
-    Kmem_Front+=Plat->Thd_Size();
-
-    /* Create vectors */
-    this->RME->Map->Vect_Cap_Front=Cap_Front;
-    this->RME->Map->Vect_Kmem_Front=Kmem_Front;
-    /* Capability tables for containing vector endpoints */
-    Cap_Front+=Plat->Captbl_Num(this->RVM->Vect.size());
-    Kmem_Front+=Plat->Captbl_Total(this->RVM->Vect.size());
-
-    /* Create RVM */
-    this->RVM->Map->Before_Cap_Front=Cap_Front;
-    this->RVM->Map->Before_Kmem_Front=Kmem_Front;
-    /* When there are virtual machines, generate everything */
-    if(this->Virt.size()!=0)
-    {
-        /* Four threads and two endpoints for RVM */
-        Cap_Front+=6;
-        Kmem_Front+=4*Plat->Thd_Size();
-
-        /* Create virtual machine endpoints. These endpoints does not have names.
-         * Each virtual machine have two endpoints, but only one is dedicated to
-         * it, so we only need to create one for each VM. */
-        this->RVM->Map->Virtep_Cap_Front=Cap_Front;
-        this->RVM->Map->Virtep_Kmem_Front=Kmem_Front;
-        Cap_Front+=Plat->Captbl_Num(this->Virt.size());
-        Kmem_Front+=Plat->Captbl_Total(this->Virt.size());
-    }
-    /* When there are no virtual machines at all, just generate one endpoint and one thread */
-    else
-    {
-        Cap_Front+=2;
-        Kmem_Front+=Plat->Thd_Size();
-
-        /* No virtual machine endpoints to create at all */
-        this->RVM->Map->Virtep_Cap_Front=Cap_Front;
-        this->RVM->Map->Virtep_Kmem_Front=Kmem_Front;
-    }
-
-    /* Create capability tables */
-    this->RVM->Map->Captbl_Cap_Front=Cap_Front;
-    this->RVM->Map->Captbl_Kmem_Front=Kmem_Front;
-    /* Capability tables for containing capability tables */
-    Cap_Front+=Plat->Captbl_Num(this->RVM->Captbl.size());
-    Kmem_Front+=Plat->Captbl_Total(this->RVM->Captbl.size());
-    /* Capability tables themselves */
-    for(std::unique_ptr<class Cap> const& Info:this->RVM->Captbl)
-        Kmem_Front+=Plat->Captbl_Size(static_cast<class Captbl*>(Info->Kobj)->Size);
-
-    /* Create page tables */
-    this->RVM->Map->Pgtbl_Cap_Front=Cap_Front;
-    this->RVM->Map->Pgtbl_Kmem_Front=Kmem_Front;
-    /* Capability tables for containing page tables */
-    Cap_Front+=Plat->Captbl_Num(this->RVM->Pgtbl.size());
-    Kmem_Front+=Plat->Captbl_Total(this->RVM->Pgtbl.size());
-    /* Page table themselves */
-    for(std::unique_ptr<class Cap> const& Info:this->RVM->Pgtbl)
-    {
-        Kmem_Front+=Plat->Pgtbl_Size(static_cast<class Pgtbl*>(Info->Kobj)->Num_Order,
-                                     static_cast<class Pgtbl*>(Info->Kobj)->Is_Top);
-    }
-
-    /* Create processes */
-    this->RVM->Map->Proc_Cap_Front=Cap_Front;
-    this->RVM->Map->Proc_Kmem_Front=Kmem_Front;
-    /* Capability tables for containing processes */
-    Cap_Front+=Plat->Captbl_Num(this->RVM->Proc.size());
-    Kmem_Front+=Plat->Captbl_Total(this->RVM->Proc.size());
-    /* Processes themselves - they do not use extra memory */
-
-    /* Create threads */
-    this->RVM->Map->Thd_Cap_Front=Cap_Front;
-    this->RVM->Map->Thd_Kmem_Front=Kmem_Front;
-    /* Capability tables for containing threads */
-    Cap_Front+=Plat->Captbl_Num(this->RVM->Thd.size());
-    Kmem_Front+=Plat->Captbl_Total(this->RVM->Thd.size());
-    /* Threads themselves */
-    Kmem_Front+=this->RVM->Thd.size()*Plat->Thd_Size();
-
-    /* Create invocations */
-    this->RVM->Map->Inv_Cap_Front=Cap_Front;
-    this->RVM->Map->Inv_Kmem_Front=Kmem_Front;
-    /* Capability tables for containing invocations */
-    Cap_Front+=Plat->Captbl_Num(this->RVM->Inv.size());
-    Kmem_Front+=Plat->Captbl_Total(this->RVM->Inv.size());
-    /* Invocations themselves */
-    Kmem_Front+=this->RVM->Inv.size()*Plat->Inv_Size();
-
-    /* Create receive endpoints */
-    this->RVM->Map->Recv_Cap_Front=Cap_Front;
-    this->RVM->Map->Recv_Kmem_Front=Kmem_Front;
-    /* Capability tables for containing receive endpoints */
-    Cap_Front+=Plat->Captbl_Num(this->RVM->Recv.size());
-    Kmem_Front+=Plat->Captbl_Total(this->RVM->Recv.size());
-    /* Receive endpoints themselves - they do not use memory */
-
-    /* Final pointer positions */
-    this->RVM->Map->After_Cap_Front=Cap_Front;
-    this->RVM->Map->After_Kmem_Front=Kmem_Front;
-
-    /* Check if we are out of table space */
-    this->RVM->Map->Captbl_Size=this->RVM->Extra_Captbl+this->RVM->Map->After_Cap_Front;
-    if(this->RVM->Map->After_Cap_Front>Plat->Capacity)
-        throw std::runtime_error("M2000: RVM capability table size exceeded the architectural limit.");
-}
-/* End Function:Get_Kmem_Size ************************************************/
-
-
-
-void Kobj_Alloc(std::unique_ptr<class Plat>& Plat, ptr_t Init_Capsz);
 
 /* End Of File ***************************************************************/
 
