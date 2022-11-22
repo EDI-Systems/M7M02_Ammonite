@@ -37,24 +37,28 @@ public:
     /* Chip information */
     std::unique_ptr<class Chip> Chip;
 
-    /* Externally mounted memory (EMIF) */
+    /* Externally mounted memory (EMIF) declarations */
     std::vector<std::unique_ptr<class Mem_Info>> Extmem;
-    std::vector<class Mem_Info*> Extmem_Code;
-    std::vector<class Mem_Info*> Extmem_Data;
-    std::vector<class Mem_Info*> Extmem_Device;
+
+    /* All memory trunk combined (Chip + EMIF) */
+    std::vector<class Mem_Info*> Memory_Code;
+    std::vector<class Mem_Info*> Memory_Data;
+    std::vector<class Mem_Info*> Memory_Device;
 
     /* Shared memory declarations */
     std::vector<std::unique_ptr<class Mem_Info>> Shmem;
+    std::map<std::string,class Mem_Info*> Shmem_Map;
     std::vector<class Mem_Info*> Shmem_Code;
     std::vector<class Mem_Info*> Shmem_Data;
     std::vector<class Mem_Info*> Shmem_Device;
-    
+
     /* The RME kernel information */
     std::unique_ptr<class Kernel> Kernel;
     /* The RVM user-library information */
     std::unique_ptr<class Monitor> Monitor;
     /* The process information */
     std::vector<std::unique_ptr<class Process>> Process;
+    std::map<std::string,class Process*> Process_Map;
     /* The virtual machine information - some processes are VMs */
     std::vector<class Virtual*> Virtual;
 

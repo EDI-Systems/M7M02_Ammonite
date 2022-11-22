@@ -56,26 +56,43 @@ public:
 
     /* Memory trunk information */
     std::vector<std::unique_ptr<class Mem_Info>> Memory;
-    std::vector<class Mem_Info*> Code;
-    std::vector<class Mem_Info*> Data;
-    std::vector<class Mem_Info*> Device;
+    std::vector<class Mem_Info*> Memory_Code;
+    std::vector<class Mem_Info*> Memory_Data;
+    std::vector<class Mem_Info*> Memory_Device;
 
     /* Shared memory trunk information */
     std::vector<std::unique_ptr<class Mem_Info>> Shmem;
+    std::map<std::string,class Mem_Info*> Shmem_Map;
     std::vector<class Mem_Info*> Shmem_Code;
     std::vector<class Mem_Info*> Shmem_Data;
     std::vector<class Mem_Info*> Shmem_Device;
 
     /* Kernel object information */
     std::vector<std::unique_ptr<class Thread>> Thread;
+    std::map<std::string,class Thread*> Thread_Map;
+
     std::vector<std::unique_ptr<class Invocation>> Invocation;
+    std::map<std::string,class Invocation*> Invocation_Map;
+
     std::vector<std::unique_ptr<class Port>> Port;
+    std::map<std::string,class Port*> Port_Map;
+
     std::vector<std::unique_ptr<class Receive>> Receive;
+    std::map<std::string,class Receive*> Receive_Map;
+
     std::vector<std::unique_ptr<class Send>> Send;
+    std::map<std::string,class Send*> Send_Map;
+
     std::vector<std::unique_ptr<class Vect_Info>> Vector;
+    std::map<std::string,class Vect_Info*> Vector_Map;
+    std::map<ptr_t,class Vect_Info*> Vector_Number_Map;
+
     std::vector<std::unique_ptr<class Kfunc>> Kfunc;
+    std::map<std::string,class Kfunc*> Kfunc_Map;
 
     /* void */ Process(xml_node_t* Root, ptr_t Type);
+
+    void Check(void);
 };
 /*****************************************************************************/
 /* __PROCESS_HPP_CLASSES__ */

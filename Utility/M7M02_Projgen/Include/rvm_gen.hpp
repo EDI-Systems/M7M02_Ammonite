@@ -130,7 +130,7 @@ public:
 
 /* XML trunk parsing */
 template <typename CONT, typename ELEM>
-void Parse_Trunk(xml_node_t* Root, const std::string& Section,
+void Trunk_Parse(xml_node_t* Root, const std::string& Section,
                  std::vector<std::unique_ptr<CONT>>& Vect,
                  const std::string& Errno0, const std::string& Errno1)
 {
@@ -150,7 +150,7 @@ void Parse_Trunk(xml_node_t* Root, const std::string& Section,
 }
 /* XML trunk parsing with one parameter */
 template <typename CONT, typename ELEM, typename PARAM>
-void Parse_Trunk_Param(xml_node_t* Root, const std::string& Section,
+void Trunk_Parse_Param(xml_node_t* Root, const std::string& Section,
                        std::vector<std::unique_ptr<CONT>>& Vect, PARAM Param,
                        const std::string& Errno0, const std::string& Errno1)
 {
@@ -168,17 +168,36 @@ void Parse_Trunk_Param(xml_node_t* Root, const std::string& Section,
             Main::Error(std::string(Errno1)+": '"+Section+"' section parsing internal error.");
     }
 }
-/* Duplicate name checking */
-template <typename T>
-void Check_Duplicate_Name(const std::string& Section, std::vector<std::unique_ptr<T>>& Vect,
-                          std::map<std::string, T*>& Map, const std::string& Errno)
+
+/* Duplicate field checking */
+template<typename T>
+std::string inline To_String(const T& t)
 {
-    for(std::unique_ptr<T>& Var:Vect)
+    return std::to_string(t);
+}
+
+std::string inline To_String(const char* t) {
+    return t;
+}
+
+std::string inline To_String(const std::string& t) {
+    return t;
+}
+
+template <typename ELEM, typename FIELD>
+void Duplicate_Check(std::vector<std::unique_ptr<ELEM>>& Vect,
+                     std::map<FIELD, ELEM*>& Map, FIELD (*Func)(std::unique_ptr<ELEM>& Elem),
+                     const std::string& Errno, const std::string& Field, const std::string& Section)
+{
+    FIELD Key;
+
+    for(std::unique_ptr<ELEM>& Var:Vect)
     {
-        if(Map.find(Var->Name)==Map.end())
-            Map.insert(std::pair<std::string,T*>(Var->Name,Var.get()));
+        Key=Func(Var);
+        if(Map.find(Key)==Map.end())
+            Map.insert(std::pair<FIELD,ELEM*>(Key,Var.get()));
         else
-            Main::Error(std::string(Errno)+": Duplicate name '"+Var->Name+"' found in '"+Section+"' section.");
+            Main::Error(std::string(Errno)+": Duplicate "+Field+" '"+To_String(Key)+"' found in '"+Section+"' section.");
     }
 }
 /*****************************************************************************/

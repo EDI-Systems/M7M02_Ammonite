@@ -38,6 +38,8 @@ public:
     ptr_t Number;
 
     /* void */ Vect_Info(xml_node_t* Root);
+
+    void Check(void);
 };
 /*****************************************************************************/
 /* __VECT_INFO_HPP_CLASSES__ */

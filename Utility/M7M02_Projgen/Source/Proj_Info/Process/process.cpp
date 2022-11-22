@@ -76,26 +76,26 @@ Return      : None.
         this->Init_Source_Overwrite=Main::XML_Get_Yesno(Root,"Init_Source_Overwrite","DXXXX","DXXXX");
 
         /* Memory */
-        Parse_Trunk_Param<class Mem_Info,class Mem_Info,ptr_t>(Root,"Memory",this->Memory,MEM_DECL,"DXXXX","DXXXX");
+        Trunk_Parse_Param<class Mem_Info,class Mem_Info,ptr_t>(Root,"Memory",this->Memory,MEM_DECL,"DXXXX","DXXXX");
         /* Shmem */
-        Parse_Trunk_Param<class Mem_Info,class Mem_Info,ptr_t>(Root,"Shmem",this->Shmem,MEM_REF,"DXXXX","DXXXX");
+        Trunk_Parse_Param<class Mem_Info,class Mem_Info,ptr_t>(Root,"Shmem",this->Shmem,MEM_REF,"DXXXX","DXXXX");
         /* Send */
-        Parse_Trunk<class Send,class Send>(Root,"Send",this->Send,"DXXXX","DXXXX");
+        Trunk_Parse<class Send,class Send>(Root,"Send",this->Send,"DXXXX","DXXXX");
         /* These are present only if the process is native */
         if(Type==PROC_NATIVE)
         {
             /* Thread */
-            Parse_Trunk<class Thread,class Thread>(Root,"Thread",this->Thread,"DXXXX","DXXXX");
+            Trunk_Parse<class Thread,class Thread>(Root,"Thread",this->Thread,"DXXXX","DXXXX");
             /* Invocation */
-            Parse_Trunk<class Invocation,class Invocation>(Root,"Invocation",this->Invocation,"DXXXX","DXXXX");
+            Trunk_Parse<class Invocation,class Invocation>(Root,"Invocation",this->Invocation,"DXXXX","DXXXX");
             /* Port */
-            Parse_Trunk<class Port,class Port>(Root,"Port",this->Port,"DXXXX","DXXXX");
+            Trunk_Parse<class Port,class Port>(Root,"Port",this->Port,"DXXXX","DXXXX");
             /* Receive */
-            Parse_Trunk<class Receive,class Receive>(Root,"Receive",this->Receive,"DXXXX","DXXXX");
+            Trunk_Parse<class Receive,class Receive>(Root,"Receive",this->Receive,"DXXXX","DXXXX");
             /* Vector */
-            Parse_Trunk<class Vect_Info,class Vect_Info>(Root,"Vector",this->Vector,"DXXXX","DXXXX");
+            Trunk_Parse<class Vect_Info,class Vect_Info>(Root,"Vector",this->Vector,"DXXXX","DXXXX");
             /* Kfunc */
-            Parse_Trunk<class Kfunc,class Kfunc>(Root,"Kfunc",this->Kfunc,"DXXXX","DXXXX");
+            Trunk_Parse<class Kfunc,class Kfunc>(Root,"Kfunc",this->Kfunc,"DXXXX","DXXXX");
         }
     }
     catch(std::exception& Exc)
@@ -107,6 +107,112 @@ Return      : None.
     }
 }
 /* End Function:Process::Process *********************************************/
+
+/* Begin Function:Process::Check **********************************************
+Description : Check whether the process configuration makes sense.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Process::Check(void)
+{
+    try
+    {
+        /* Check memory layout */
+        if(this->Memory.empty())
+            Main::Error("PXXXX: The process contains no memory segments.");
+
+        /* Classify memory - regular memory does not have name duplication requirements */
+        for(std::unique_ptr<class Mem_Info>& Mem:this->Memory)
+        {
+            Mem->Check();
+            switch(Mem->Type)
+            {
+                case MEM_CODE:this->Memory_Code.push_back(Mem.get());break;
+                case MEM_DATA:this->Memory_Data.push_back(Mem.get());break;
+                case MEM_DEVICE:this->Memory_Device.push_back(Mem.get());break;
+                default:ASSERT(0);
+            }
+        }
+
+        /* Every process must have at least one code and data segment, and they must be static.
+         * The primary code segment allow RXS, the primary data segment must allow RWS */
+        if(this->Memory_Code.empty())
+            Main::Error("P0331: No primary code section exists.");
+        if(this->Memory_Data.empty())
+            Main::Error("P0332: No primary data section exists.");
+        if((this->Memory_Code[0]->Attr&MEM_CODE_DEFAULT)!=MEM_CODE_DEFAULT)
+            Main::Error("P0333: Primary code section does not have RXS attribute.");
+        if((this->Memory_Data[0]->Attr&MEM_DATA_DEFAULT)!=MEM_DATA_DEFAULT)
+            Main::Error("P0334: Primary data section does not have RWS attribute.");
+
+        /* Make sure process memory declarations do not overlap */
+        Mem_Info::Overlap_Check(this->Memory_Code,this->Memory_Data,this->Memory_Device);
+
+        /* Classify shared memory references */
+        for(std::unique_ptr<class Mem_Info>& Mem:this->Shmem)
+        {
+            if(Mem->Name=="")
+                Main::Error("Shared memory reference must contain a name.");
+            Mem->Check();
+            switch(Mem->Type)
+            {
+                case MEM_CODE:this->Shmem_Code.push_back(Mem.get());break;
+                case MEM_DATA:this->Shmem_Data.push_back(Mem.get());break;
+                case MEM_DEVICE:this->Shmem_Device.push_back(Mem.get());break;
+                default:ASSERT(0);
+            }
+        }
+        Duplicate_Check<class Mem_Info,std::string>(this->Shmem,this->Shmem_Map,
+                                                    [](std::unique_ptr<class Mem_Info>& Mem)->std::string{return Mem->Name;},
+                                                    "PXXXX","name","Shmem");
+
+        /* All normal processes shall have at least one thread */
+        if((this->Type==PROC_NATIVE)&&(this->Thread.empty()))
+            Main::Error("P0335: No thread exists in native process.");
+
+        /* Check threads */
+        Duplicate_Check<class Thread,std::string>(this->Thread,this->Thread_Map,
+                                                  [](std::unique_ptr<class Thread>& Thd)->std::string{return Thd->Name;},
+                                                  "PXXXX","name","Thread");
+
+        /* Check invocations */
+        Duplicate_Check<class Invocation,std::string>(this->Invocation,this->Invocation_Map,
+                                                      [](std::unique_ptr<class Invocation>& Inv)->std::string{return Inv->Name;},
+                                                      "PXXXX","name","Invocation");
+
+        /* Check ports - both process and name must be the same for duplication */
+        Duplicate_Check<class Port,std::string>(this->Port,this->Port_Map,
+                                                [](std::unique_ptr<class Port>& Port)->std::string{return Port->Process+"_"+Port->Name;},
+                                                "PXXXX","process/name pair","Port");
+
+        /* Check receive endpoints */
+        Duplicate_Check<class Receive,std::string>(this->Receive,this->Receive_Map,
+                                                   [](std::unique_ptr<class Receive>& Recv)->std::string{return Recv->Name;},
+                                                   "PXXXX","name","Receive");
+
+        /* Check send endpoints - both process and name must be the same for duplication */
+        Duplicate_Check<class Send,std::string>(this->Send,this->Send_Map,
+                                                [](std::unique_ptr<class Send>& Send)->std::string{return Send->Process+"_"+Send->Name;},
+                                                "PXXXX","process/name pair","Send");
+
+        /* Check vectors - neither the name nor the number can be the same */
+        Duplicate_Check<class Vect_Info,std::string>(this->Vector,this->Vector_Map,
+                                                     [](std::unique_ptr<class Vect_Info>& Vect)->std::string{return Vect->Name;},
+                                                     "PXXXX","name","Vector");
+        Duplicate_Check<class Vect_Info,ptr_t>(this->Vector,this->Vector_Number_Map,
+                                               [](std::unique_ptr<class Vect_Info>& Vect)->ptr_t{return Vect->Number;},
+                                               "PXXXX","number","Vector");
+    }
+    catch(std::exception& Exc)
+    {
+        if(this->Name!="")
+            Main::Error(std::string("Process: ")+this->Name+"\n"+Exc.what());
+        else
+            Main::Error(std::string("Process: ")+"Unknown"+"\n"+Exc.what());
+    }
+}
+/* End Function:Process::Check *********************************************/
 }
 /* End Of File ***************************************************************/
 

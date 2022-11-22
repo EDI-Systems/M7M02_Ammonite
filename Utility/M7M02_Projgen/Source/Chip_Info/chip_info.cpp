@@ -64,11 +64,11 @@ Return      : None.
         /* Attribute */
         Main::XML_Get_KVP(Root,"Attribute",this->Attribute,"DXXXX","DXXXX");
         /* Memory */
-        Parse_Trunk_Param<class Mem_Info,class Mem_Info,ptr_t>(Root,"Memory",this->Memory,MEM_DECL,"DXXXX","DXXXX");
+        Trunk_Parse_Param<class Mem_Info,class Mem_Info,ptr_t>(Root,"Memory",this->Memory,MEM_DECL,"DXXXX","DXXXX");
         /* Config */
-        Parse_Trunk<class Config,class Config>(Root,"Config",this->Config,"DXXXX","DXXXX");
+        Trunk_Parse<class Config,class Config>(Root,"Config",this->Config,"DXXXX","DXXXX");
         /* Vector */
-        Parse_Trunk<class Vect_Info,class Vect_Info>(Root,"Vector",this->Vector,"DXXXX","DXXXX");
+        Trunk_Parse<class Vect_Info,class Vect_Info>(Root,"Vector",this->Vector,"DXXXX","DXXXX");
     }
     catch(std::exception& Exc)
     {
@@ -78,7 +78,55 @@ Return      : None.
             Main::Error(std::string("Chip: ")+"Unknown"+"\n"+Exc.what());
     }
 }
-/* End Function:Chip::Chip ***************************************************/
+/* End Function:Chip_Info::Chip_Info *****************************************/
+
+/* Begin Function:Chip_Info::Check ********************************************
+Description : Check whether the project configuration makes sense.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Chip_Info::Check(void)
+{
+    try
+    {
+        /* Check chip memory */
+        for(std::unique_ptr<class Mem_Info>& Mem:this->Memory)
+        {
+            Mem->Check();
+            if(Mem->Base==MEM_AUTO)
+                Main::Error("PXXXX: On-chip memory must have a concrete base address.");
+        }
+
+        /* Check configs - neither the name nor the macro can be the same */
+        for(std::unique_ptr<class Config>& Conf:this->Config)
+            Conf->Check();
+        Duplicate_Check<class Config,std::string>(this->Config,this->Config_Map,
+                                                  [](std::unique_ptr<class Config>& Conf)->std::string{return Conf->Name;},
+                                                  "PXXXX","name","Config");
+        Duplicate_Check<class Config,std::string>(this->Config,this->Config_Macro_Map,
+                                                  [](std::unique_ptr<class Config>& Conf)->std::string{return Conf->Macro;},
+                                                  "PXXXX","macro","Config");
+
+        /* Check vectors - neither the name nor the number can be the same */
+        for(std::unique_ptr<class Vect_Info>& Vect:this->Vector)
+            Vect->Check();
+        Duplicate_Check<class Vect_Info,std::string>(this->Vector,this->Vector_Map,
+                                                     [](std::unique_ptr<class Vect_Info>& Vect)->std::string{return Vect->Name;},
+                                                     "PXXXX","name","Vector");
+        Duplicate_Check<class Vect_Info,ptr_t>(this->Vector,this->Vector_Number_Map,
+                                               [](std::unique_ptr<class Vect_Info>& Vect)->ptr_t{return Vect->Number;},
+                                               "PXXXX","number","Vector");
+    }
+    catch(std::exception& Exc)
+    {
+        if(this->Class!="")
+            Main::Error(std::string("Chip: ")+this->Class+"\n"+Exc.what());
+        else
+            Main::Error(std::string("Chip: ")+"Unknown"+"\n"+Exc.what());
+    }
+}
+/* End Function:Chip_Info::Check *********************************************/
 }
 /* End Of File ***************************************************************/
 

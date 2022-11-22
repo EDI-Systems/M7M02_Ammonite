@@ -69,9 +69,9 @@ Return      : None.
         this->Chip=std::make_unique<class Chip>(Temp);
 
         /* Extra memory segments - not necessarily exist */
-        Parse_Trunk_Param<class Mem_Info,class Mem_Info,ptr_t>(Root,"Extmem",this->Extmem,MEM_DECL,"DXXXX","DXXXX");
+        Trunk_Parse_Param<class Mem_Info,class Mem_Info,ptr_t>(Root,"Extmem",this->Extmem,MEM_DECL,"DXXXX","DXXXX");
         /* Shared memory segments - not necessarily exist */
-        Parse_Trunk_Param<class Mem_Info,class Mem_Info,ptr_t>(Root,"Shmem",this->Shmem,MEM_DECL,"DXXXX","DXXXX");
+        Trunk_Parse_Param<class Mem_Info,class Mem_Info,ptr_t>(Root,"Shmem",this->Shmem,MEM_DECL,"DXXXX","DXXXX");
 
         /* Kernel-related info */
         if((XML_Child(Root,(xml_s8_t*)"Kernel",&Temp)<0)||(Temp==0))
@@ -84,8 +84,8 @@ Return      : None.
         this->Monitor=std::make_unique<class Monitor>(Temp);
 
         /* Processes & VMs */
-        Parse_Trunk_Param<class Process,class Process,ptr_t>(Root,"Process",this->Process,PROC_NATIVE,"DXXXX","DXXXX");
-        Parse_Trunk<class Process,class Virtual>(Root,"Virtual",this->Process,"DXXXX","DXXXX");
+        Trunk_Parse_Param<class Process,class Process,ptr_t>(Root,"Process",this->Process,PROC_NATIVE,"DXXXX","DXXXX");
+        Trunk_Parse<class Process,class Virtual>(Root,"Virtual",this->Process,"DXXXX","DXXXX");
     }
     catch(std::exception& Exc)
     {
@@ -107,7 +107,46 @@ void Proj_Info::Check(void)
 {
     try
     {
-        /* Project
+        /* External memory must have start addresses allocated */
+        for(std::unique_ptr<class Mem_Info>& Mem:this->Extmem)
+        {
+            if(Mem->Base==MEM_AUTO)
+                Main::Error("PXXXX: Externally mounted memory must have a concrete base address.");
+        }
+
+        /* Shared memory must have names, and they cannot be the same */
+        for(std::unique_ptr<class Mem_Info>& Mem:this->Shmem)
+        {
+            if(Mem->Name=="")
+                Main::Error("PXXXX: Shared memory declaration must contain a name.");
+            Mem->Check();
+            switch(Mem->Type)
+            {
+                case MEM_CODE:this->Shmem_Code.push_back(Mem.get());break;
+                case MEM_DATA:this->Shmem_Data.push_back(Mem.get());break;
+                case MEM_DEVICE:this->Shmem_Device.push_back(Mem.get());break;
+                default:ASSERT(0);
+            }
+        }
+        Duplicate_Check<class Mem_Info,std::string>(this->Shmem,this->Shmem_Map,
+                                                    [](std::unique_ptr<class Mem_Info>& Mem)->std::string{return Mem->Name;},
+                                                    "PXXXX","name","Shmem");
+
+        /* Make sure shared memory declarations do not overlap */
+        Mem_Info::Overlap_Check(this->Shmem_Code,this->Shmem_Data,this->Shmem_Device);
+
+        /* Must at least have one process; then check each process */
+        if(this->Process.empty())
+            Main::Error("PXXXX: The project contains no process.");
+
+        /* Check for duplicate process names */
+        Duplicate_Check<class Process,std::string>(this->Process,this->Process_Map,
+                                                   [](std::unique_ptr<class Process>& Proc)->std::string{return Proc->Name;},
+                                                   "PXXXX","name","Process");
+
+        /* Check individual projects */
+        for(std::unique_ptr<class Process>& Proc:this->Process)
+            Proc->Check();
     }
     catch(std::exception& Exc)
     {

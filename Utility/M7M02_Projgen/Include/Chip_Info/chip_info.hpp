@@ -51,15 +51,18 @@ public:
     std::map<std::string,std::string> Attribute;
     /* Memory information */
     std::vector<std::unique_ptr<class Mem_Info>> Memory;
-    std::vector<class Mem_Info*> Code;
-    std::vector<class Mem_Info*> Data;
-    std::vector<class Mem_Info*> Device;
     /* Chip-specific configuration information */
     std::vector<std::unique_ptr<class Config>> Config;
+    std::map<std::string,class Config*> Config_Map;
+    std::map<std::string,class Config*> Config_Macro_Map;
     /* Interrupt vector information */
     std::vector<std::unique_ptr<class Vect_Info>> Vector;
+    std::map<std::string,class Vect_Info*> Vector_Map;
+    std::map<ptr_t,class Vect_Info*> Vector_Number_Map;
 
     /* void */ Chip_Info(xml_node_t* Root);
+
+    void Check(void);
 };
 /*****************************************************************************/
 /* __CHIP_INFO_HPP_CLASSES__ */

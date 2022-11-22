@@ -42,6 +42,8 @@ public:
     std::vector<std::string> Range;
 
     /* void */ Config(xml_node_t* Root);
+
+    void Check(void);
 };
 /*****************************************************************************/
 /* __CONFIG_HPP_CLASSES__ */

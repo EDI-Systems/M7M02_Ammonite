@@ -59,6 +59,28 @@ Return      : None.
     }
 }
 /* End Function:Vect_Info::Vect_Info *****************************************/
+
+/* Begin Function:Vect_Info::Check ********************************************
+Description : Check whether the chip description vector list makes sense.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Vect_Info::Check(void)
+{
+    try
+    {
+        /* Do nothing */
+    }
+    catch(std::exception& Exc)
+    {
+        if(this->Name!="")
+            Main::Error(std::string("Vector: ")+this->Name+"\n"+Exc.what());
+        else
+            Main::Error(std::string("Vector: ")+"Unknown"+"\n"+Exc.what());
+    }
+}
+/* End Function:Vect_Info::Check *********************************************/
 }
 /* End Of File ***************************************************************/
 

@@ -83,6 +83,7 @@ extern "C"
 #include "rvm_gen.hpp"
 #include "Proj_Info/proj_info.hpp"
 #include "Chip_Info/chip_info.hpp"
+#include "Mem_Info/mem_info.hpp"
 #undef __HDR_DEFS__
 
 #define __HDR_CLASSES__
@@ -256,10 +257,45 @@ Return      : None.
 ******************************************************************************/
 void Main::Check(void)
 {
-    char Buffer[1024];
     try
     {
+        /* Check each configuration file individually */
         this->Proj->Check();
+        this->Chip->Check();
+
+        /* Check project options */
+
+        /* Merge memory from chip and EMIF */
+        for(std::unique_ptr<class Mem_Info>& Mem:this->Chip->Memory)
+        {
+            switch(Mem->Type)
+            {
+                case MEM_CODE:this->Proj->Memory_Code.push_back(Mem.get());break;
+                case MEM_DATA:this->Proj->Memory_Data.push_back(Mem.get());break;
+                case MEM_DEVICE:this->Proj->Memory_Device.push_back(Mem.get());break;
+                default:ASSERT(0);
+            }
+        }
+        for(std::unique_ptr<class Mem_Info>& Mem:this->Proj->Extmem)
+        {
+            switch(Mem->Type)
+            {
+                case MEM_CODE:this->Proj->Memory_Code.push_back(Mem.get());break;
+                case MEM_DATA:this->Proj->Memory_Data.push_back(Mem.get());break;
+                case MEM_DEVICE:this->Proj->Memory_Device.push_back(Mem.get());break;
+                default:ASSERT(0);
+            }
+        }
+        /* Make sure all mounted memory do not overlap */
+        Mem_Info::Overlap_Check(this->Proj->Memory_Code,this->Proj->Memory_Data,this->Proj->Memory_Device);
+
+        /* Check shared memory references */
+
+        /* Check port references */
+
+        /* Check vector references */
+
+        /* Check send references */
     }
     catch(std::exception& Exc)
     {
@@ -368,7 +404,7 @@ Return      : ptr_t - The number extracted.
 ptr_t Main::XML_Get_Number(xml_node_t* Root, const char* Name,
                            const char* Errno0, const char* Errno1)
 {
-    return std::stoul(Main::XML_Get_String(Root,Name,Errno0,Errno1));
+    return std::stoull(Main::XML_Get_String(Root,Name,Errno0,Errno1),0,0);
 }
 /* End Function:Main::XML_Get_Number *****************************************/
 
@@ -638,7 +674,7 @@ int main(int argc, char* argv[])
         Main=std::make_unique<class Main>(argc, argv);
         Main::Info("Reading project.");
         Main->Parse();
-        //Main->Check();
+        Main->Check();
 
 /* Phase 2: Allocate page tables *********************************************/
         //Main->Plat->Align_Mem(Main->Proj);

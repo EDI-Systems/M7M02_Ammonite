@@ -62,6 +62,27 @@ Return      : None.
 
         /* Range */
         Main::XML_Get_CSV(Root,"Range",this->Range,"DXXXX","DXXXX");
+    }
+    catch(std::exception& Exc)
+    {
+        if(this->Name!="")
+            Main::Error(std::string("Config: ")+this->Name+"\n"+Exc.what());
+        else
+            Main::Error(std::string("Config: ")+"Unknown"+"\n"+Exc.what());
+    }
+}
+/* End Function:Config::Config ***********************************************/
+
+/* Begin Function:Config::Check ***********************************************
+Description : Check whether the chip description configuration makes sense.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Config::Check(void)
+{
+    try
+    {
         /* Check range validity */
         if(this->Type==CONFIG_RANGE)
         {
@@ -69,7 +90,7 @@ Return      : None.
                 throw std::invalid_argument("D0110: Range typed option cannot have more or less than two ends specified.");
             try
             {
-                if(std::stoull(this->Range[0])>=std::stoull(this->Range[1]))
+                if(std::stoull(this->Range[0],0,0)>=std::stoull(this->Range[1],0,0))
                     throw std::runtime_error("D0112: No room for value.");
             }
             catch(std::exception& Exc)
@@ -86,7 +107,7 @@ Return      : None.
             Main::Error(std::string("Config: ")+"Unknown"+"\n"+Exc.what());
     }
 }
-/* End Function:Chip::Chip ***************************************************/
+/* End Function:Config::Check ************************************************/
 }
 /* End Of File ***************************************************************/
 
