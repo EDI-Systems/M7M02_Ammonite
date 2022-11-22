@@ -57,6 +57,10 @@ Return      : None.
         this->Vendor=Main::XML_Get_String(Root,"Class","DXXXX","DXXXX");
         /* Region */
         this->Region=Main::XML_Get_Number(Root,"Region","DXXXX","DXXXX");
+        /* Iregion */
+        this->Iregion=Main::XML_Get_Number(Root,"Iregion","DXXXX","DXXXX");
+        /* Dregion */
+        this->Dregion=Main::XML_Get_Number(Root,"Dregion","DXXXX","DXXXX");
         /* Attribute */
         Main::XML_Get_KVP(Root,"Attribute",this->Attribute,"DXXXX","DXXXX");
         /* Memory */

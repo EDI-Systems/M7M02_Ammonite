@@ -59,6 +59,8 @@ public:
     std::vector<class Virtual*> Virtual;
 
     /* void */ Proj_Info(xml_node_t* Root);
+
+    void Check(void);
 };
 /*****************************************************************************/
 /* __PROJ_INFO_HPP_CLASSES__ */

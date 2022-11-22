@@ -101,6 +101,9 @@ public:
 
     void Parse(void);
     void Proj_Parse(void);
+    void Chip_Parse(void);
+
+    void Check(void);
 
     static std::string XML_Get_String(xml_node_t* Root, const char* Name,
                                       const char* Errno0, const char* Errno1);

@@ -62,6 +62,11 @@ extern "C"
 #include "stdarg.h"
 #include "string.h"
 #include "time.h"
+#ifdef _MSC_VER
+#include "direct.h"
+#else
+#include "unistd.h"
+#endif
 }
 
 #include "map"
@@ -120,10 +125,10 @@ void Main::Proj_Parse(void)
     Root=nullptr;
     try
     {
-        /* Read in the whole schematic file */
+        /* Read in the whole project file */
         File=fopen(this->Input.c_str(),"r");
         if(File==nullptr)
-            Main::Error(std::string("T1001: '")+this->Input+"': No such sheet file or cannot be opened.");
+            Main::Error(std::string("T1001: '")+this->Input+"': No such project file or cannot be opened.");
         this->Buffer[fread(this->Buffer,1,MAX_FILE_SIZE,File)]='\0';
         if(strlen(this->Buffer)==0)
         {
@@ -137,14 +142,14 @@ void Main::Proj_Parse(void)
         if(XML_Parse(&Root,(xml_s8_t*)(this->Buffer))!=0)
         {
             Root=nullptr;
-            Main::Error(std::string("T1003: Sheet file parsing internal error."));
+            Main::Error(std::string("T1003: Project file parsing internal error."));
         }
         this->Proj=std::make_unique<class Proj_Info>(Root);
         /* We have done parsing, release the parsing tree */
         if(XML_Del(Root)!=0)
         {
             Root=nullptr;
-            Main::Error(std::string("T1003: Sheet file parsing internal error."));
+            Main::Error(std::string("T1003: Project file parsing internal error."));
         }
     }
     catch(std::exception& Exc)
@@ -158,6 +163,65 @@ void Main::Proj_Parse(void)
 }
 /* End Function:Main::Proj_Parse *********************************************/
 
+/* Begin Function:Main::Chip_Parse ********************************************
+Description : Parse the chip configuration file.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Chip_Parse(void)
+{
+    FILE* File;
+    xml_node_t* Root;
+    std::string Path;
+
+    File=nullptr;
+    Root=nullptr;
+    try
+    {
+        /* Try to find the correct chip description file */
+        Path=this->Proj->Monitor->Monitor_Root+"/Include/Platform/"+
+             this->Proj->Chip->Platform+"/Chip/"+
+             this->Proj->Chip->Class+"/"+
+             "rvm_platform_"+this->Proj->Chip->Class+".rvc";
+        /* Read in the whole chip description file */
+        File=fopen(Path.c_str(),"r");
+        if(File==nullptr)
+            Main::Error(std::string("T1001: '")+Path+"': No such chip description file or cannot be opened.");
+        this->Buffer[fread(this->Buffer,1,MAX_FILE_SIZE,File)]='\0';
+        if(strlen(this->Buffer)==0)
+        {
+            File=nullptr;
+            Main::Error(std::string("T1002: '")+Path+"': Chip description file is empty.");
+        }
+        fclose(File);
+        File=nullptr;
+
+        /* Parse and then release the parsing tree */
+        if(XML_Parse(&Root,(xml_s8_t*)(this->Buffer))!=0)
+        {
+            Root=nullptr;
+            Main::Error(std::string("T1003: Chip description file parsing internal error."));
+        }
+        this->Chip=std::make_unique<class Chip_Info>(Root);
+        /* We have done parsing, release the parsing tree */
+        if(XML_Del(Root)!=0)
+        {
+            Root=nullptr;
+            Main::Error(std::string("T1003: Chip description file parsing internal error."));
+        }
+    }
+    catch(std::exception& Exc)
+    {
+        if(File!=nullptr)
+            fclose(File);
+        if(Root!=nullptr)
+            XML_Del(Root);
+        Main::Error(Exc.what());
+    }
+}
+/* End Function:Main::Chip_Parse *********************************************/
+
 /* Begin Function:Main::Parse *************************************************
 Description : Parse the files.
 Input       : None.
@@ -166,9 +230,16 @@ Return      : None.
 ******************************************************************************/
 void Main::Parse(void)
 {
+    char Buffer[1024];
     try
     {
+        /* Parse project file */
         this->Proj_Parse();
+        /* Change current path - everything is now relative to the project */
+        Buffer[0]=chdir(this->Input.substr(0,this->Input.find_last_of("/\\")+1).c_str());
+        getcwd(Buffer,1024);
+        /* Parse chip description file */
+        this->Chip_Parse();
     }
     catch(std::exception& Exc)
     {
@@ -177,7 +248,27 @@ void Main::Parse(void)
 }
 /* End Function:Main::Parse **************************************************/
 
-/* Begin Function:Main::Main *************************************************
+/* Begin Function:Main::Check *************************************************
+Description : Check whether the configurations make sense.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Check(void)
+{
+    char Buffer[1024];
+    try
+    {
+        this->Proj->Check();
+    }
+    catch(std::exception& Exc)
+    {
+        throw std::runtime_error(std::string("Check:\n")+Exc.what());
+    }
+}
+/* End Function:Main::Check **************************************************/
+
+/* Begin Function:Main::Main **************************************************
 Description : Preprocess the input parameters, and generate a preprocessed
               instruction listing with all the comments stripped.
 Input       : int argc - The number of arguments.

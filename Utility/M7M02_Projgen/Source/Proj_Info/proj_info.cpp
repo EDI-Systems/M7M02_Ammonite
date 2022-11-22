@@ -96,6 +96,28 @@ Return      : None.
     }
 }
 /* End Function:Proj_Info::Proj_Info *****************************************/
+
+/* Begin Function:Proj_Info::Check ********************************************
+Description : Check whether the project configuration makes sense.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Proj_Info::Check(void)
+{
+    try
+    {
+        /* Project
+    }
+    catch(std::exception& Exc)
+    {
+        if(this->Name!="")
+            Main::Error(std::string("Project: ")+this->Name+"\n"+Exc.what());
+        else
+            Main::Error(std::string("Project: ")+"Unknown"+"\n"+Exc.what());
+    }
+}
+/* End Function:Proj_Info::Check *********************************************/
 }
 /* End Of File ***************************************************************/
 

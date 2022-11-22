@@ -1,9 +1,9 @@
 /******************************************************************************
-Filename    : rme_genrvm.cpp
+Filename    : rme_genrme.cpp
 Author      : pry
 Date        : 16/07/2019
 Licence     : LGPL v3+; see COPYING for details.
-Description : The rvm folder generation class for ARMv7-M.
+Description : The rme folder generation class for ARMv7-M.
 ******************************************************************************/
 
 /* Includes ******************************************************************/
@@ -46,14 +46,14 @@ extern "C"
 #include "Main/rme_proj.hpp"
 
 #include "Gen/rme_doc.hpp"
-#include "Gen/rme_genrvm.hpp"
+#include "Gen/rme_genrme.hpp"
 
 #include "A7M/rme_a7m_tc_gcc.hpp"
 #include "A7M/rme_a7m_tc_armc5.hpp"
 #include "A7M/rme_a7m_ide_keil.hpp"
 #include "A7M/rme_a7m_ide_eclipse.hpp"
 #include "A7M/rme_a7m_ide_makefile.hpp"
-#include "A7M/rme_a7m_genrvm.hpp"
+#include "Generate/Platform/A7M/rme_a7m_genrme.hpp"
 #include "A7M/rme_a7m.hpp"
 #undef __HDR_DEFS__
 
@@ -80,146 +80,159 @@ extern "C"
 #include "Main/rme_proj.hpp"
 
 #include "Gen/rme_doc.hpp"
-#include "Gen/rme_genrvm.hpp"
+#include "Gen/rme_genrme.hpp"
 
 #include "A7M/rme_a7m_tc_gcc.hpp"
 #include "A7M/rme_a7m_tc_armc5.hpp"
 #include "A7M/rme_a7m_ide_keil.hpp"
 #include "A7M/rme_a7m_ide_eclipse.hpp"
 #include "A7M/rme_a7m_ide_makefile.hpp"
-#include "A7M/rme_a7m_genrvm.hpp"
+#include "Generate/Platform/A7M/rme_a7m_genrme.hpp"
 #include "A7M/rme_a7m.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/
 namespace RVM_GEN
 {
-/* Begin Function:A7M_RVM_Gen::Chip_Hdr ***************************************
-Description : Generate the chip header for RVM. This is toolchain agnostic.
+/* Begin Function:A7M_RME_Gen::Chip_Hdr ***************************************
+Description : Generate the chip header for RME. This is toolchain agnostic.
 Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void A7M_RVM_Gen::Chip_Hdr(void)
+void A7M_RME_Gen::Chip_Hdr(void)
 {
     FILE* File;
     class A7M* A7M;
     class Para* Para;
+    std::unique_ptr<std::string>* Value;
     std::unique_ptr<class Doc> Doc;
     std::unique_ptr<std::list<std::unique_ptr<std::string>>> Content;
 
     /* Read the header file */
-    Content=this->Main->Srcfs->Read_File("M7M2_MuAmmonite/MAmmonite/Include/Platform/%s/Chips/%s/rvm_platform_%s.h",
+    Content=this->Main->Srcfs->Read_File("M7M1_MuEukaron/MEukaron/Include/Platform/%s/Chips/%s/rme_platform_%s.h",
                                          this->Main->Proj->Plat_Name->c_str(),
                                          this->Main->Chip->Chip_Class->c_str(),
                                          this->Main->Chip->Chip_Class->c_str());
     Doc=std::make_unique<class Doc>(std::move(Content),DOCTYPE_CHDR);
     Para=Doc->Para.front().get();
 
+    /* Generator */
+    Para->Cdef("RME_GEN_ENABLE","RME_TRUE");
     /* General settings */
+    /* The initial capability table size */
+    Para->Cdef("RME_A7M_BOOT_CAPTBL_SIZE",(ret_t)(this->Main->Proj->RVM->Map->Captbl_Size));
     /* The virtual memory start address for the kernel objects */
-    Para->Cdef("RVM_KMEM_VA_START",this->Main->Proj->RME->Map->Kmem_Base);
+    Para->Cdef("RME_KMEM_VA_START",this->Main->Proj->RME->Map->Kmem_Base);
     /* The size of the kernel object virtual memory */
-    Para->Cdef("RVM_KMEM_SIZE",this->Main->Proj->RME->Map->Kmem_Size);
+    Para->Cdef("RME_KMEM_SIZE",this->Main->Proj->RME->Map->Kmem_Size);
+    /* The virtual memory start address for the virtual machines - If no virtual machines is used, set to 0 */
+    Para->Cdef("RME_HYP_VA_START",0x20000000ULL);
+    /* The size of the hypervisor reserved virtual memory */
+    Para->Cdef("RME_HYP_SIZE",0xD0000000ULL);
+    /* Kernel stack address */
+    Para->Cdef("RME_KMEM_STACK_ADDR",this->Main->Proj->RME->Map->Stack_Base+this->Main->Proj->RME->Map->Stack_Size-16);
     /* The maximum number of preemption priority levels in the system.
      * This parameter must be divisible by the word length - 32 is usually sufficient */
-    Para->Cdef("RVM_MAX_PREEMPT_PRIO",(ret_t)(this->Main->Proj->RME->Kern_Prios));
+    Para->Cdef("RME_MAX_PREEMPT_PRIO",(ret_t)(this->Main->Proj->RME->Kern_Prios));
     /* The granularity of kernel memory allocation, in bytes */
-    Para->Cdef("RVM_KMEM_SLOT_ORDER",(ret_t)(this->Main->Proj->RME->Kmem_Order));
-    /* Stack safety redundancy, in bytes - fixed to 16 words */
-    Para->Cdef("RVM_STACK_SAFE_RDCY", (ret_t)16);
-    /* Number of virtual priorities in the system */
-    Para->Cdef("RVM_MAX_PREEMPT_VPRIO",(ret_t)(this->Main->Proj->RVM->Virt_Prios));
-    /* Number of events */
-    Para->Cdef("RVM_EVT_NUM",(ret_t)(this->Main->Proj->RVM->Virt_Evts));
-    /* Number of mappings */
-    Para->Cdef("RVM_MAP_NUM",(ret_t)(this->Main->Proj->RVM->Virt_Maps));
-
-    /* Stack base and size of the daemon threads, in bytes */
-    Para->Cdef("RVM_SFTD_STACK_BASE", this->Main->Proj->RVM->Map->Sftd_Stack_Base);
-    Para->Cdef("RVM_SFTD_STACK_SIZE", this->Main->Proj->RVM->Map->Sftd_Stack_Size);
-    Para->Cdef("RVM_TIMD_STACK_BASE", this->Main->Proj->RVM->Map->Timd_Stack_Base);
-    Para->Cdef("RVM_TIMD_STACK_SIZE", this->Main->Proj->RVM->Map->Timd_Stack_Size);
-    Para->Cdef("RVM_VMMD_STACK_BASE", this->Main->Proj->RVM->Map->Vmmd_Stack_Base);
-    Para->Cdef("RVM_VMMD_STACK_SIZE", this->Main->Proj->RVM->Map->Vmmd_Stack_Size);
-    Para->Cdef("RVM_VCTD_STACK_BASE", this->Main->Proj->RVM->Map->Vctd_Stack_Base);
-    Para->Cdef("RVM_VCTD_STACK_SIZE", this->Main->Proj->RVM->Map->Vctd_Stack_Size);
+    Para->Cdef("RME_KMEM_SLOT_ORDER",(ret_t)(this->Main->Proj->RME->Kmem_Order));
 
     /* Cortex-M related settings */
     /* Shared vector flag region address */
-    Para->Cdef("RVM_A7M_VECT_FLAG_ADDR",this->Main->Proj->RME->Map->Vctf_Base);
+    Para->Cdef("RME_A7M_VECT_FLAG_ADDR",this->Main->Proj->RME->Map->Vctf_Base);
     /* Shared event flag region address */
-    Para->Cdef("RVM_A7M_EVT_FLAG_ADDR",this->Main->Proj->RME->Map->Evtf_Base);
-    /* Initial capability frontier limit */
-    Para->Cdef("RVM_A7M_CAP_BOOT_FRONTIER",(ret_t)(this->Main->Proj->RVM->Map->Before_Cap_Front));
-    /* Initial kernel memory frontier limit */
-    Para->Cdef("RVM_A7M_KMEM_BOOT_FRONTIER",this->Main->Proj->RVM->Map->Before_Kmem_Front);
+    Para->Cdef("RME_A7M_EVT_FLAG_ADDR",this->Main->Proj->RME->Map->Evtf_Base);
+    /* Initial kernel object frontier limit */
+    Para->Cdef("RME_A7M_KMEM_BOOT_FRONTIER",this->Main->Proj->RME->Map->Kmem_Base+this->Main->Proj->RVM->Map->Before_Kmem_Front);
     /* Init process's first thread's entry point address */
-    Para->Cdef("RVM_A7M_INIT_ENTRY",this->Main->Proj->RVM->Map->Code_Base|0x01);
+    Para->Cdef("RME_A7M_INIT_ENTRY",this->Main->Proj->RVM->Map->Code_Base|0x01);
     /* Init process's first thread's stack address */
-    Para->Cdef("RVM_A7M_INIT_STACK",
+    Para->Cdef("RME_A7M_INIT_STACK",
                (this->Main->Proj->RVM->Map->Init_Stack_Base+this->Main->Proj->RVM->Map->Init_Stack_Size-16)&0xFFFFFFF0ULL);
+    /* What is the NVIC priority grouping? */
+    A7M=static_cast<class A7M*>(this->Main->Plat.get());
+    switch(A7M->NVIC_Grouping)
+    {
+        case A7M_NVIC_P0S8:Para->Cdef("RME_A7M_NVIC_GROUPING","RME_A7M_NVIC_GROUPING_P0S8");break;
+        case A7M_NVIC_P1S7:Para->Cdef("RME_A7M_NVIC_GROUPING","RME_A7M_NVIC_GROUPING_P1S7");break;
+        case A7M_NVIC_P2S6:Para->Cdef("RME_A7M_NVIC_GROUPING","RME_A7M_NVIC_GROUPING_P2S6");break;
+        case A7M_NVIC_P3S5:Para->Cdef("RME_A7M_NVIC_GROUPING","RME_A7M_NVIC_GROUPING_P3S5");break;
+        case A7M_NVIC_P4S4:Para->Cdef("RME_A7M_NVIC_GROUPING","RME_A7M_NVIC_GROUPING_P4S4");break;
+        case A7M_NVIC_P5S3:Para->Cdef("RME_A7M_NVIC_GROUPING","RME_A7M_NVIC_GROUPING_P5S3");break;
+        case A7M_NVIC_P6S2:Para->Cdef("RME_A7M_NVIC_GROUPING","RME_A7M_NVIC_GROUPING_P6S2");break;
+        case A7M_NVIC_P7S1:Para->Cdef("RME_A7M_NVIC_GROUPING","RME_A7M_NVIC_GROUPING_P7S1");break;
+        default:throw std::runtime_error("A7M:\nA0300: Internal NVIC grouping error.");break;
+    }
+    /* What is the Systick value? - 10ms per tick*/
+    Para->Cdef("RME_A7M_SYSTICK_VAL",(ret_t)(A7M->Systick_Val));
 
     /* Fixed settings - we will refill these with database values */
     /* Number of MPU regions available */
-    Para->Cdef("RVM_A7M_MPU_REGIONS",(ret_t)(this->Main->Chip->Regions));
+    Para->Cdef("RME_A7M_MPU_REGIONS",(ret_t)(this->Main->Chip->Regions));
     /* What is the FPU type? */
-    A7M=static_cast<class A7M*>(this->Main->Plat.get());
     switch(A7M->FPU_Type)
     {
-        case A7M_FPU_NONE:Para->Cdef("RVM_A7M_FPU_TYPE","RVM_A7M_FPU_NONE");break;
-        case A7M_FPU_FPV4:Para->Cdef("RVM_A7M_FPU_TYPE","RVM_A7M_FPU_FPV4");break;
-        case A7M_FPU_FPV5_SP:Para->Cdef("RVM_A7M_FPU_TYPE","RVM_A7M_FPU_FPV5_SP");break;
-        case A7M_FPU_FPV5_DP:Para->Cdef("RVM_A7M_FPU_TYPE","RVM_A7M_FPU_FPV5_DP");break;
-        default:throw std::runtime_error("A7M:\nA0400: Internal FPU type error.");break;
+        case A7M_FPU_NONE:Para->Cdef("RME_A7M_FPU_TYPE","RME_A7M_FPU_NONE");break;
+        case A7M_FPU_FPV4:Para->Cdef("RME_A7M_FPU_TYPE","RME_A7M_FPU_FPV4");break;
+        case A7M_FPU_FPV5_SP:Para->Cdef("RME_A7M_FPU_TYPE","RME_A7M_FPU_FPV5_SP");break;
+        case A7M_FPU_FPV5_DP:Para->Cdef("RME_A7M_FPU_TYPE","RME_A7M_FPU_FPV5_DP");break;
+        default:throw std::runtime_error("A7M:\nA0301: Internal FPU type error.");break;
+    }
+
+    /* Chip specific settings - we must be able to find it because we checked before */
+    for(std::unique_ptr<class Option>& Option:this->Main->Chip->Option)
+    {
+        Value=Raw::Match(this->Main->Proj->RME->Chip, Option->Name);
+        Para->Cdef((s8_t*)(Option->Macro->c_str()),(s8_t*)((*Value)->c_str()));
     }
     
     /* After we finish all these, we go back and populate the re-read file functionality */
-    File=this->Main->Dstfs->Open_File("M7M2_MuAmmonite/MAmmonite/Include/Platform/%s/Chips/%s/rvm_platform_%s.h",
+    File=this->Main->Dstfs->Open_File("M7M1_MuEukaron/MEukaron/Include/Platform/%s/Chips/%s/rme_platform_%s.h",
                                       this->Main->Proj->Plat_Name->c_str(),
                                       this->Main->Chip->Chip_Class->c_str(),
                                       this->Main->Chip->Chip_Class->c_str());
     Doc->Write(File);
     fclose(File);
 }
-/* End Function:A7M_RVM_Gen::Chip_Hdr ****************************************/
+/* End Function:A7M_RME_Gen::Chip_Hdr ****************************************/
 
-/* Begin Function:A7M_RVM_Gen::Asm ********************************************
+/* Begin Function:A7M_RME_Gen::Asm ********************************************
 Description : Generate the assembly file for RME. This is toolchain-dependent.
 Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void A7M_RVM_Gen::Asm(void)
+void A7M_RME_Gen::Asm(void)
 {
     if(*(this->Main->Format)=="keil")
-        A7M_TC_Armc5::RVM_Asm(this->Main);
+        A7M_TC_Armc5::RME_Asm(this->Main);
     else if(*(this->Main->Format)=="eclipse")
-        A7M_TC_Gcc::RVM_Asm(this->Main);
+        A7M_TC_Gcc::RME_Asm(this->Main);
     else if(*(this->Main->Format)=="makefile")
-        A7M_TC_Gcc::RVM_Asm(this->Main);
+        A7M_TC_Gcc::RME_Asm(this->Main);
     else
-        throw std::runtime_error("A7M:\nA0401: This output format is not supported.");
+        throw std::runtime_error("A7M:\nA0302: This output format is not supported.");
 }
-/* End Function:A7M_RVM_Gen::Asm *********************************************/
+/* End Function:A7M_RME_Gen::Asm *********************************************/
 
-/* Begin Function:A7M_RVM_Gen::Lds ********************************************
+/* Begin Function:A7M_RME_Gen::Lds ********************************************
 Description : Generate the linker script for RME. This is toolchain-dependent.
 Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void A7M_RVM_Gen::Lds(void)
+void A7M_RME_Gen::Lds(void)
 {
     if(*(this->Main->Format)=="keil")
-        A7M_TC_Armc5::RVM_Lds(this->Main);
+        A7M_TC_Armc5::RME_Lds(this->Main);
     else if(*(this->Main->Format)=="eclipse")
-        A7M_TC_Gcc::RVM_Lds(this->Main);
+        A7M_TC_Gcc::RME_Lds(this->Main);
     else if(*(this->Main->Format)=="makefile")
-        A7M_TC_Gcc::RVM_Lds(this->Main);
+        A7M_TC_Gcc::RME_Lds(this->Main);
     else
-        throw std::runtime_error("A7M:\nA0401: This output format is not supported.");
+        throw std::runtime_error("A7M:\nA0302: This output format is not supported.");
 }
-/* End Function:A7M_RVM_Gen::Lds *********************************************/
+/* End Function:A7M_RME_Gen::Lds *********************************************/
 
 /* Begin Function:A7M_RME_Gen::Proj *******************************************
 Description : Generate the chip header for RME. This is toolchain-dependent.
@@ -227,20 +240,20 @@ Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void A7M_RVM_Gen::Proj(void)
+void A7M_RME_Gen::Proj(void)
 {
     if(*(this->Main->Format)=="keil")
-        A7M_IDE_Keil::RVM_Proj(this->Main);
+        A7M_IDE_Keil::RME_Proj(this->Main);
     else if(*(this->Main->Format)=="eclipse")
-        A7M_IDE_Eclipse::RVM_Proj(this->Main);
+        A7M_IDE_Eclipse::RME_Proj(this->Main);
     else if(*(this->Main->Format)=="makefile")
-        A7M_IDE_Makefile::RVM_Proj(this->Main);
+        A7M_IDE_Makefile::RME_Proj(this->Main);
     else
-        throw std::runtime_error("A7M:\nA0401: This output format is not supported.");
+        throw std::runtime_error("A7M:\nA0302: This output format is not supported.");
 }
-/* End Function:A7M_RVM_Gen::Proj ********************************************/
+/* End Function:A7M_RME_Gen::Proj ********************************************/
 
-/* Begin Function:A7M_RVM_Gen::Plat_Gen ***************************************
+/* Begin Function:A7M_RME_Gen::Plat_Gen ***************************************
 Description : Generate platform-related portion of the RME project.
               This includes the chip's header itself, the linker script,
               and the organization of the project.
@@ -248,14 +261,14 @@ Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void A7M_RVM_Gen::Plat_Gen(void)
+void A7M_RME_Gen::Plat_Gen(void)
 {
     Chip_Hdr();
     Asm();
     Lds();
     Proj();
 }
-/* End Function:A7M_RVM_Gen::Plat_Gen ****************************************/
+/* End Function:A7M_RME_Gen::Plat_Gen ****************************************/
 }
 /* End Of File ***************************************************************/
 

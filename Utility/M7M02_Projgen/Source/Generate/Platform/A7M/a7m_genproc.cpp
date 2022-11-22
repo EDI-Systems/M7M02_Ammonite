@@ -54,7 +54,7 @@ extern "C"
 #include "A7M/rme_a7m_ide_keil.hpp"
 #include "A7M/rme_a7m_ide_eclipse.hpp"
 #include "A7M/rme_a7m_ide_makefile.hpp"
-#include "A7M/rme_a7m_genproc.hpp"
+#include "Generate/Platform/A7M/rme_a7m_genproc.hpp"
 #include "A7M/rme_a7m.hpp"
 #undef __HDR_DEFS__
 
@@ -88,7 +88,7 @@ extern "C"
 #include "A7M/rme_a7m_ide_keil.hpp"
 #include "A7M/rme_a7m_ide_eclipse.hpp"
 #include "A7M/rme_a7m_ide_makefile.hpp"
-#include "A7M/rme_a7m_genproc.hpp"
+#include "Generate/Platform/A7M/rme_a7m_genproc.hpp"
 #include "A7M/rme_a7m.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/

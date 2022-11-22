@@ -42,7 +42,7 @@
 		<Build>Keil</Build>
 		<Toolchain>ARMCC</Toolchain>
 		<Optimization>O2</Optimization>
-		<Kernel_Root>../../M7M01_Eukaron</Kernel_Root>
+		<Kernel_Root>../../../../M7M01_Eukaron</Kernel_Root>
 		<Project_Output>./Kernel/Project</Project_Output>
 		<Project_Overwrite>No</Project_Overwrite>
 		<Linker_Output>./Kernel/Project</Linker_Output>
@@ -65,7 +65,7 @@
 		<Build>Keil</Build>
 		<Toolchain>ARMCC</Toolchain>
         <Optimization>O2</Optimization>
-		<Monitor_Root>../../M7M02_Ammonite</Monitor_Root>
+		<Monitor_Root>../../../../M7M02_Ammonite</Monitor_Root>
 		<Project_Output>./Monitor/Project</Project_Output>
 		<Project_Overwrite>No</Project_Overwrite>
 		<Linker_Output>./Monitor/Project</Linker_Output>
