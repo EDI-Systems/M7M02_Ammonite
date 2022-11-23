@@ -28,7 +28,7 @@ extern "C"
 #define __HDR_CLASSES__
 #include "rvm_gen.hpp"
 #include "Chip_Info/chip_info.hpp"
-#include "Chip_Info/Config/config.hpp"
+#include "Conf_Info/conf_info.hpp"
 #include "Vect_Info/vect_info.hpp"
 #include "Mem_Info/mem_info.hpp"
 #undef __HDR_CLASSES__
@@ -66,7 +66,7 @@ Return      : None.
         /* Memory */
         Trunk_Parse_Param<class Mem_Info,class Mem_Info,ptr_t>(Root,"Memory",this->Memory,MEM_DECL,"DXXXX","DXXXX");
         /* Config */
-        Trunk_Parse<class Config,class Config>(Root,"Config",this->Config,"DXXXX","DXXXX");
+        Trunk_Parse<class Conf_Info,class Conf_Info>(Root,"Config",this->Config,"DXXXX","DXXXX");
         /* Vector */
         Trunk_Parse<class Vect_Info,class Vect_Info>(Root,"Vector",this->Vector,"DXXXX","DXXXX");
     }
@@ -90,6 +90,10 @@ void Chip_Info::Check(void)
 {
     try
     {
+        /* Check chip regions */
+        if((this->Region==0)&&((this->Iregion==0)||(this->Dregion==0)))
+            Main::Error("PXXXX: Chip must have more than one MPU region for instruction and data.");
+
         /* Check chip memory */
         for(std::unique_ptr<class Mem_Info>& Mem:this->Memory)
         {
@@ -99,14 +103,14 @@ void Chip_Info::Check(void)
         }
 
         /* Check configs - neither the name nor the macro can be the same */
-        for(std::unique_ptr<class Config>& Conf:this->Config)
+        for(std::unique_ptr<class Conf_Info>& Conf:this->Config)
             Conf->Check();
-        Duplicate_Check<class Config,std::string>(this->Config,this->Config_Map,
-                                                  [](std::unique_ptr<class Config>& Conf)->std::string{return Conf->Name;},
-                                                  "PXXXX","name","Config");
-        Duplicate_Check<class Config,std::string>(this->Config,this->Config_Macro_Map,
-                                                  [](std::unique_ptr<class Config>& Conf)->std::string{return Conf->Macro;},
-                                                  "PXXXX","macro","Config");
+        Duplicate_Check<class Conf_Info,std::string>(this->Config,this->Config_Map,
+                                                     [](std::unique_ptr<class Conf_Info>& Conf)->std::string{return Conf->Name;},
+                                                     "PXXXX","name","Config");
+        Duplicate_Check<class Conf_Info,std::string>(this->Config,this->Config_Macro_Map,
+                                                     [](std::unique_ptr<class Conf_Info>& Conf)->std::string{return Conf->Macro;},
+                                                     "PXXXX","macro","Config");
 
         /* Check vectors - neither the name nor the number can be the same */
         for(std::unique_ptr<class Vect_Info>& Vect:this->Vector)
@@ -127,6 +131,32 @@ void Chip_Info::Check(void)
     }
 }
 /* End Function:Chip_Info::Check *********************************************/
+
+/* Begin Function:Chip_Info::Project_Config_Mark_Check ************************
+Description : Check whether all configs have been set.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Chip_Info::Project_Config_Mark_Check(void)
+{
+    try
+    {
+        for(std::unique_ptr<class Conf_Info>& Conf:this->Config)
+        {
+            if(Conf->Is_Configured==0)
+                Main::Error("PXXXX: Config '"+Conf->Name+"' in project is not configured.");
+        }
+    }
+    catch(std::exception& Exc)
+    {
+        if(this->Class!="")
+            Main::Error(std::string("Chip: ")+this->Class+"\n"+Exc.what());
+        else
+            Main::Error(std::string("Chip: ")+"Unknown"+"\n"+Exc.what());
+    }
+}
+/* End Function:Chip_Info::Project_Config_Mark_Check *************************/
 }
 /* End Of File ***************************************************************/
 

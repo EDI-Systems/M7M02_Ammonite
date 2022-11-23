@@ -83,6 +83,8 @@ extern "C"
 #include "rvm_gen.hpp"
 #include "Proj_Info/proj_info.hpp"
 #include "Chip_Info/chip_info.hpp"
+#include "Plat_Info/plat_info.hpp"
+#include "Conf_Info/conf_info.hpp"
 #include "Mem_Info/mem_info.hpp"
 #undef __HDR_DEFS__
 
@@ -100,7 +102,8 @@ extern "C"
 #include "Proj_Info/Process/Send/send.hpp"
 #include "Proj_Info/Process/Kfunc/kfunc.hpp"
 #include "Chip_Info/chip_info.hpp"
-#include "Chip_Info/Config/config.hpp"
+#include "Plat_Info/plat_info.hpp"
+#include "Conf_Info/conf_info.hpp"
 #include "Vect_Info/vect_info.hpp"
 #include "Mem_Info/mem_info.hpp"
 #undef __HDR_CLASSES__
@@ -223,6 +226,64 @@ void Main::Chip_Parse(void)
 }
 /* End Function:Main::Chip_Parse *********************************************/
 
+/* Begin Function:Main::Plat_Parse ********************************************
+Description : Parse the platform configuration file.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Plat_Parse(void)
+{
+    FILE* File;
+    xml_node_t* Root;
+    std::string Path;
+
+    File=nullptr;
+    Root=nullptr;
+    try
+    {
+        /* Try to find the correct chip description file */
+        Path=this->Proj->Monitor->Monitor_Root+"/Include/Platform/"+
+             this->Proj->Chip->Platform+"/"
+             "rvm_platform_"+this->Proj->Chip->Platform+".rva";
+        /* Read in the whole chip description file */
+        File=fopen(Path.c_str(),"r");
+        if(File==nullptr)
+            Main::Error(std::string("T1001: '")+Path+"': No such platform description file or cannot be opened.");
+        this->Buffer[fread(this->Buffer,1,MAX_FILE_SIZE,File)]='\0';
+        if(strlen(this->Buffer)==0)
+        {
+            File=nullptr;
+            Main::Error(std::string("T1002: '")+Path+"': Platform description file is empty.");
+        }
+        fclose(File);
+        File=nullptr;
+
+        /* Parse and then release the parsing tree */
+        if(XML_Parse(&Root,(xml_s8_t*)(this->Buffer))!=0)
+        {
+            Root=nullptr;
+            Main::Error(std::string("T1003: Platform description file parsing internal error."));
+        }
+        this->Plat=std::make_unique<class Plat_Info>(Root);
+        /* We have done parsing, release the parsing tree */
+        if(XML_Del(Root)!=0)
+        {
+            Root=nullptr;
+            Main::Error(std::string("T1003: Platform description file parsing internal error."));
+        }
+    }
+    catch(std::exception& Exc)
+    {
+        if(File!=nullptr)
+            fclose(File);
+        if(Root!=nullptr)
+            XML_Del(Root);
+        Main::Error(Exc.what());
+    }
+}
+/* End Function:Main::Plat_Parse *********************************************/
+
 /* Begin Function:Main::Parse *************************************************
 Description : Parse the files.
 Input       : None.
@@ -239,33 +300,117 @@ void Main::Parse(void)
         /* Change current path - everything is now relative to the project */
         Buffer[0]=chdir(this->Input.substr(0,this->Input.find_last_of("/\\")+1).c_str());
         getcwd(Buffer,1024);
+        /* Parse platform description file */
+        this->Plat_Parse();
         /* Parse chip description file */
         this->Chip_Parse();
     }
     catch(std::exception& Exc)
     {
-        throw std::runtime_error(std::string("Parse:\n")+Exc.what());
+        Main::Error(std::string("Parse:\n")+Exc.what());
     }
 }
 /* End Function:Main::Parse **************************************************/
 
-/* Begin Function:Main::Check *************************************************
-Description : Check whether the configurations make sense.
+/* Begin Function:Main::Standalone_Check **************************************
+Description : Check the config files individually for early errors.
 Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Main::Check(void)
+void Main::Standalone_Check(void)
 {
     try
     {
         /* Check each configuration file individually */
         this->Proj->Check();
+        this->Plat->Check();
         this->Chip->Check();
+    }
+    catch(std::exception& Exc)
+    {
+        throw std::runtime_error(std::string("Check:\n")+Exc.what());
+    }
+}
+/* End Function:Main::Standalone_Check ***************************************/
 
-        /* Check project options */
+/* Begin Function:Main::Compatible_Check **************************************
+Description : Check whether the description files are mutually compatible.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Compatible_Check(void)
+{
+    try
+    {
+        /* Check project/platform/chip compatibility */
+        if((this->Proj->Chip->Platform!=this->Chip->Platform)||(this->Plat->Name!=this->Chip->Platform))
+            Main::Error("PXXXX: The project platform and the chip platform is different.");
+        if(this->Proj->Chip->Class!=this->Chip->Class)
+            Main::Error("PXXXX: The project class and the chip class is different.");
+        if(std::find(this->Chip->Compatible.begin(),
+                     this->Chip->Compatible.end(),
+                     this->Proj->Chip->Name)==this->Chip->Compatible.end())
+            Main::Error("PXXXX: The project chip is not compatible with the chip description file.");
 
-        /* Merge memory from chip and EMIF */
+        /* Make sure the generation is supported by the buildsystem and toolchain of choice */
+    }
+    catch(std::exception& Exc)
+    {
+        throw std::runtime_error(std::string("Check:\n")+Exc.what());
+    }
+}
+/* End Function:Main::Compatible_Check ***************************************/
+
+/* Begin Function:Main::Config_Check ******************************************
+Description : Check whether the config are correctly configured - no more, no less.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Config_Check(void)
+{
+    std::map<std::string,class Conf_Info*>::iterator Iter;
+
+    try
+    {
+        /* Check if all configs are correctly configured: no more, no less */
+        for(const std::pair<std::string,std::string>& Conf:this->Proj->Chip->Config)
+        {
+            Iter=this->Chip->Config_Map.find(Conf.first);
+            if(Iter==this->Chip->Config_Map.end())
+            {
+                Iter=this->Plat->Config_Map.find(Conf.first);
+                if(Iter==this->Plat->Config_Map.end())
+                    Main::Error("PXXXX: Cannot find config '"+Conf.first+"' in platform or chip description file.");
+            }
+            /* See if the config value falls into the range, and mark it */
+            Iter->second->Project_Config_Mark(Conf.first,Conf.second);
+        }
+        this->Plat->Project_Config_Mark_Check();
+        this->Chip->Project_Config_Mark_Check();
+    }
+    catch(std::exception& Exc)
+    {
+        throw std::runtime_error(std::string("Check:\n")+Exc.what());
+    }
+}
+/* End Function:Main::Config_Check *******************************************/
+
+/* Begin Function:Main::Physical_Check ****************************************
+Description : Check whether the physical memory will overlap with each other.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Physical_Check(void)
+{
+    std::map<std::string,class Conf_Info*>::iterator Iter;
+
+    try
+    {
+        /* Merge all physical memory from chip and EMIF */
         for(std::unique_ptr<class Mem_Info>& Mem:this->Chip->Memory)
         {
             switch(Mem->Type)
@@ -286,16 +431,146 @@ void Main::Check(void)
                 default:ASSERT(0);
             }
         }
-        /* Make sure all mounted memory do not overlap */
-        Mem_Info::Overlap_Check(this->Proj->Memory_Code,this->Proj->Memory_Data,this->Proj->Memory_Device);
 
-        /* Check shared memory references */
+        /* Make sure all mounted physical memory do not overlap */
+        Mem_Info::Overlap_Check(this->Proj->Memory_Code,this->Proj->Memory_Data,this->Proj->Memory_Device,"Physical memory");
+    }
+    catch(std::exception& Exc)
+    {
+        throw std::runtime_error(std::string("Check:\n")+Exc.what());
+    }
+}
+/* End Function:Main::Physical_Check *****************************************/
 
-        /* Check port references */
+/* Begin Function:Main::Static_Check ******************************************
+Description : Check whether the statically allocated memory will overlap with each other.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Static_Check(void)
+{
+    std::vector<class Mem_Info*> Code;
+    std::vector<class Mem_Info*> Data;
+    std::vector<class Mem_Info*> Device;
 
-        /* Check vector references */
+    try
+    {
+        /* Shared memory */
+        Code=this->Proj->Shmem_Code;
+        Data=this->Proj->Shmem_Data;
+        Device=this->Proj->Shmem_Device;
 
-        /* Check send references */
+        /* Kernel and monitor memory */
+        Code.push_back(this->Proj->Kernel->Code.get());
+        Data.push_back(this->Proj->Kernel->Data.get());
+        Code.push_back(this->Proj->Monitor->Code.get());
+        Data.push_back(this->Proj->Monitor->Data.get());
+
+        /* Process memory */
+        for(std::unique_ptr<class Process>& Proc:this->Proj->Process)
+        {
+            Code.insert(Code.end(), Proc->Memory_Code.begin(), Proc->Memory_Code.end());
+            Data.insert(Data.end(), Proc->Memory_Data.begin(), Proc->Memory_Data.end());
+            Device.insert(Device.end(), Proc->Memory_Device.begin(), Proc->Memory_Device.end());
+        }
+
+        /* Make sure the statically allocated memory do not overlap */
+        Mem_Info::Overlap_Check(Code,Data,Device,"Statically allocated memory");
+    }
+    catch(std::exception& Exc)
+    {
+        throw std::runtime_error(std::string("Check:\n")+Exc.what());
+    }
+}
+/* End Function:Main::Static_Check *******************************************/
+
+/* Begin Function:Main::Reference_Check ***************************************
+Description : Check whether the shared memory or kernel object references are valid.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Reference_Check(void)
+{
+    std::map<std::string,class Mem_Info*>::iterator Shmem_Iter;
+    std::map<std::string,class Process*>::iterator Proc_Iter;
+    std::map<std::string,class Vect_Info*>::iterator Vect_Iter;
+
+    try
+    {
+        for(std::unique_ptr<class Process>& Proc:this->Proj->Process)
+        {
+            /* Check shared memory references */
+            for(std::unique_ptr<class Mem_Info>& Shmem:Proc->Shmem)
+            {
+                /* Check existence */
+                Shmem_Iter=this->Proj->Shmem_Map.find(Shmem->Name);
+                if(Shmem_Iter==this->Proj->Shmem_Map.end())
+                    Main::Error("PXXXX: Shared memory '"+Shmem->Name+"' in process '"+Proc->Name+"' does not exist.");
+                /* Check access permissions */
+                if((Shmem_Iter->second->Attr&Shmem->Attr)!=Shmem->Attr)
+                    Main::Error("PXXXX: Shared memory '"+Shmem->Name+"' in process '"+Proc->Name+"' contains wrong attributes.");
+            }
+
+            /* Check port references */
+            for(std::unique_ptr<class Port>& Port:Proc->Port)
+            {
+                /* Check process existence */
+                Proc_Iter=this->Proj->Process_Map.find(Port->Process);
+                if(Proc_Iter==this->Proj->Process_Map.end())
+                    Main::Error("PXXXX: Port '"+Port->Process+"."+Port->Name+"' in process '"+Proc->Name+"' refers to a nonexistent process.");
+                /* Check invocation existence */
+                if(Proc_Iter->second->Invocation_Map.find(Port->Name)==Proc_Iter->second->Invocation_Map.end())
+                    Main::Error("PXXXX: Port '"+Port->Process+"."+Port->Name+"' in process '"+Proc->Name+"' refers to a nonexistent invocation socket.");
+            }
+
+            /* Check send references */
+            for(std::unique_ptr<class Send>& Send:Proc->Send)
+            {
+                /* Check process existence */
+                Proc_Iter=this->Proj->Process_Map.find(Send->Process);
+                if(Proc_Iter==this->Proj->Process_Map.end())
+                    Main::Error("PXXXX: Port '"+Send->Process+"."+Send->Name+"' in process '"+Proc->Name+"' refers to a nonexistent process.");
+                /* Check receive endpoint existence */
+                if(Proc_Iter->second->Receive_Map.find(Send->Name)==Proc_Iter->second->Receive_Map.end())
+                    Main::Error("PXXXX: Port '"+Send->Process+"."+Send->Name+"' in process '"+Proc->Name+"' refers to a nonexistent receive endpoint.");
+            }
+
+            /* Check vector references */
+            for(std::unique_ptr<class Vect_Info>& Vect:Proc->Vector)
+            {
+                Vect_Iter=this->Chip->Vector_Map.find(Vect->Name);
+                if(Vect_Iter==this->Chip->Vector_Map.end())
+                    Main::Error("PXXXX: Vector '"+Vect->Name+"' in process '"+Proc->Name+"' refers to a nonexistent vector.");
+                if(Vect_Iter->second->Number!=Vect->Number)
+                    Main::Error("PXXXX: Vector '"+Vect->Name+"' in process '"+Proc->Name+"' contains a wrong vector number.");
+            }
+        }
+    }
+    catch(std::exception& Exc)
+    {
+        throw std::runtime_error(std::string("Check:\n")+Exc.what());
+    }
+}
+/* End Function:Main::Reference_Check ****************************************/
+
+/* Begin Function:Main::Check *************************************************
+Description : Check whether the configurations make sense.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Check(void)
+{
+    try
+    {
+        this->Standalone_Check();
+        this->Compatible_Check();
+        this->Config_Check();
+        this->Physical_Check();
+        this->Static_Check();
+        this->Reference_Check();
     }
     catch(std::exception& Exc)
     {
@@ -303,6 +578,25 @@ void Main::Check(void)
     }
 }
 /* End Function:Main::Check **************************************************/
+
+/* Begin Function:Main::Setup *************************************************
+Description : Set up the generator and check generator settings/validity.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Setup(void)
+{
+    try
+    {
+
+    }
+    catch(std::exception& Exc)
+    {
+        Main::Error(std::string("Setup:\n")+Exc.what());
+    }
+}
+/* End Function:Main::Setup **************************************************/
 
 /* Begin Function:Main::Main **************************************************
 Description : Preprocess the input parameters, and generate a preprocessed
@@ -675,26 +969,19 @@ int main(int argc, char* argv[])
         Main::Info("Reading project.");
         Main->Parse();
         Main->Check();
+        Main->Setup();
 
 /* Phase 2: Allocate page tables *********************************************/
-        //Main->Plat->Align_Mem(Main->Proj);
-        //Main->Alloc_Mem();
-        //Main->Plat->Alloc_Pgtbl(Main->Proj,Main->Chip);
+        //Main->Mem_Align();
+        //Main->Mem_Alloc();
+        //Main->Pgtbl_Alloc();
 
-/* Phase 3: Allocate kernel object ID & macros *******************************/
-        //Main->Alloc_Cap();
+/* Phase 3: Allocate kernel object IDs & macros & kernel objects *************/
+        //Main->Cap_Alloc();
+        //Main->Obj_Alloc();
 
-/* Phase 4: Allocate object memory *******************************************/
-        //Main->Alloc_Obj();
-
-/* Phase 5: Produce output ***************************************************/
-        //Main->Gen_RME();
-        //Main->Gen_RVM();
-        //Main->Gen_Proc();
-        //Main->Gen_Proj();
-
-/* Phase 6: Generate report **************************************************/
-        //Main->Gen_Report();
+/* Phase 4: Produce output ***************************************************/
+        //Main->Generate();
     }
     catch(std::exception& Exc)
     {

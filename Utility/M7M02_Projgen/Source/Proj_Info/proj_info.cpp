@@ -81,7 +81,9 @@ Return      : None.
         /* VMM-related info */
         if((XML_Child(Root,(xml_s8_t*)"Monitor",&Temp)<0)||(Temp==0))
             Main::Error("T1600: 'Monitor' section is missing.");
-        this->Monitor=std::make_unique<class Monitor>(Temp);
+        this->Monitor=std::make_unique<class Monitor>(Temp,
+                                                      this->Kernel->Code_Base+this->Kernel->Code_Size,
+                                                      this->Kernel->Data_Base+this->Kernel->Data_Size);
 
         /* Processes & VMs */
         Trunk_Parse_Param<class Process,class Process,ptr_t>(Root,"Process",this->Process,PROC_NATIVE,"DXXXX","DXXXX");
@@ -133,7 +135,7 @@ void Proj_Info::Check(void)
                                                     "PXXXX","name","Shmem");
 
         /* Make sure shared memory declarations do not overlap */
-        Mem_Info::Overlap_Check(this->Shmem_Code,this->Shmem_Data,this->Shmem_Device);
+        Mem_Info::Overlap_Check(this->Shmem_Code,this->Shmem_Data,this->Shmem_Device,"Shared memory");
 
         /* Must at least have one process; then check each process */
         if(this->Process.empty())

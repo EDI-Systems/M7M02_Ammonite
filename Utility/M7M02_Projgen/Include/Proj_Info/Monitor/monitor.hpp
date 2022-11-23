@@ -30,10 +30,14 @@ namespace RVM_GEN
 class Monitor
 {
 public:
-    /* RVM code section size */
+    /* RVM code section base/size */
+    ptr_t Code_Base;
     ptr_t Code_Size;
-    /* RVM data section size */
+    std::unique_ptr<class Mem_Info> Code;
+    /* RVM data section base/size */
+    ptr_t Data_Base;
     ptr_t Data_Size;
+    std::unique_ptr<class Mem_Info> Data;
     /* RVM stack size */
     ptr_t Stack_Size;
     /* Virtual machine priorities */
@@ -44,7 +48,7 @@ public:
     ptr_t Virt_Map;
 
     /* Build system to use */
-    std::string Build;
+    std::string Buildsystem;
     /* Toolchain to use for that build system */
     std::string Toolchain;
     /* Compiler optimization level */
@@ -65,7 +69,7 @@ public:
     std::string Init_Source_Output;
     ptr_t Init_Source_Overwrite;
 
-    /* void */ Monitor(xml_node_t* Root);
+    /* void */ Monitor(xml_node_t* Root, ptr_t Code_Base, ptr_t Code_Size);
 };
 /*****************************************************************************/
 /* __MONITOR_HPP_CLASSES__ */

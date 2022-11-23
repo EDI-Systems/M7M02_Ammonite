@@ -30,14 +30,14 @@ namespace RVM_GEN
 class Kernel
 {
 public:
-    /* RME code section start address */
+    /* RME code section base/size */
     ptr_t Code_Base;
-    /* RME code section size */
     ptr_t Code_Size;
-    /* RME data section start address */
+    std::unique_ptr<class Mem_Info> Code;
+    /* RME data section base/size */
     ptr_t Data_Base;
-    /* RME data section size */
     ptr_t Data_Size;
+    std::unique_ptr<class Mem_Info> Data;
     /* RME kernel stack size */
     ptr_t Stack_Size;
     /* Extra amount of kernel memory */
@@ -48,7 +48,7 @@ public:
     ptr_t Kern_Prio;
 
     /* Build system to use */
-    std::string Build;
+    std::string Buildsystem;
     /* Toolchain to use for that build system */
     std::string Toolchain;
     /* Compiler optimization level */

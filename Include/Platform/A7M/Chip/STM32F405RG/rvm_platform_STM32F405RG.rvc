@@ -48,38 +48,38 @@
     <Config>
         <C0>
             <Name>XTAL</Name>
-            <Display>#STM32F4_XTAL</Display>
             <Type>Range</Type>
             <Macro>RME_A7M_STM32F405RG_XTAL</Macro>
             <Range>4,26</Range>
+            <Display>#STM32F4_XTAL</Display>
         </C0>
         <C1>
             <Name>PLLM</Name>
-            <Display>#STM32F4_PLLM</Display>
             <Type>Range</Type>
             <Macro>RME_A7M_STM32F405RG_PLLM</Macro>
             <Range>2,63</Range>
+            <Display>#STM32F4_PLLM</Display>
         </C1>
         <C2>
             <Name>PLLN</Name>
-            <Display>#STM32F4_PLLN</Display>
             <Type>Range</Type>
             <Macro>RME_A7M_STM32F405RG_PLLN</Macro>
             <Range>50,432</Range>
+            <Display>#STM32F4_PLLN</Display>
         </C2>
         <C3>
             <Name>PLLP</Name>
-            <Display>#STM32F4_PLLP</Display>
-            <Type>Select</Type>
+            <Type>Choice</Type>
             <Macro>RME_A7M_STM32F405RG_PLLP</Macro>
             <Range>2,4,6,8</Range>
+            <Display>#STM32F4_PLLP</Display>
         </C3>
         <C4>
             <Name>PLLQ</Name>
-            <Display>#STM32F4_PLLQ</Display>
             <Type>Range</Type>
             <Macro>RME_A7M_STM32F405RG_PLLQ</Macro>
             <Range>2,15</Range>
+            <Display>#STM32F4_PLLQ</Display>
         </C4>
     </Config>
     <Vector>

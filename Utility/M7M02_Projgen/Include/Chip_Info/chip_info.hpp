@@ -52,9 +52,9 @@ public:
     /* Memory information */
     std::vector<std::unique_ptr<class Mem_Info>> Memory;
     /* Chip-specific configuration information */
-    std::vector<std::unique_ptr<class Config>> Config;
-    std::map<std::string,class Config*> Config_Map;
-    std::map<std::string,class Config*> Config_Macro_Map;
+    std::vector<std::unique_ptr<class Conf_Info>> Config;
+    std::map<std::string,class Conf_Info*> Config_Map;
+    std::map<std::string,class Conf_Info*> Config_Macro_Map;
     /* Interrupt vector information */
     std::vector<std::unique_ptr<class Vect_Info>> Vector;
     std::map<std::string,class Vect_Info*> Vector_Map;
@@ -63,6 +63,8 @@ public:
     /* void */ Chip_Info(xml_node_t* Root);
 
     void Check(void);
+
+    void Project_Config_Mark_Check(void);
 };
 /*****************************************************************************/
 /* __CHIP_INFO_HPP_CLASSES__ */

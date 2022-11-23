@@ -40,7 +40,7 @@ public:
     ptr_t Extra_Captbl;
 
     /* Build system to use */
-    std::string Build;
+    std::string Buildsystem;
     /* Toolchain to use for that build system */
     std::string Toolchain;
     /* Compiler optimization level */

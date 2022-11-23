@@ -26,11 +26,15 @@ namespace RVM_GEN
 #define MEM_READ            POW2(0)
 #define MEM_WRITE           POW2(1)
 #define MEM_EXECUTE         POW2(2)
-#define MEM_BUFFERABLE      POW2(3)
-#define MEM_CACHEABLE       POW2(4)
+#define MEM_BUFFER          POW2(3)
+#define MEM_CACHE           POW2(4)
 #define MEM_STATIC          POW2(5)
-#define MEM_CODE_DEFAULT    (MEM_READ|MEM_EXECUTE|MEM_STATIC)
-#define MEM_DATA_DEFAULT    (MEM_READ|MEM_WRITE|MEM_STATIC)
+#define MEM_CODE_KERNEL     (MEM_READ|MEM_EXECUTE|MEM_BUFFER|MEM_CACHE|MEM_STATIC)
+#define MEM_DATA_KERNEL     (MEM_READ|MEM_WRITE|MEM_BUFFER|MEM_CACHE|MEM_STATIC)
+#define MEM_CODE_MONITOR    (MEM_READ|MEM_EXECUTE|MEM_BUFFER|MEM_CACHE|MEM_STATIC)
+#define MEM_DATA_MONITOR    (MEM_READ|MEM_WRITE|MEM_BUFFER|MEM_CACHE|MEM_STATIC)
+#define MEM_CODE_USER_LEAST (MEM_READ|MEM_EXECUTE|MEM_STATIC)
+#define MEM_DATA_USER_LEAST (MEM_READ|MEM_WRITE|MEM_STATIC)
 /* Memory placement */
 #define MEM_AUTO            ((ptr_t)(-1LL))
 /* Memmap granularity */
@@ -63,18 +67,17 @@ public:
     ptr_t Type;
     /* The attributes - read, write, execute, cacheable, bufferable, static */
     ptr_t Attr;
-    /* The alignment granularity */
-    ptr_t Align;
 
     /* void */ Mem_Info(xml_node_t* Root, ptr_t Ref);
     /* void */ Mem_Info(class Mem_Info* Block);
-    /* void */ Mem_Info(ptr_t Base, ptr_t Size, ptr_t Type, ptr_t Attr, ptr_t Align);
+    /* void */ Mem_Info(const std::string& Name, ptr_t Base, ptr_t Size, ptr_t Type, ptr_t Attr);
 
     void Check(void);
 
-    static void Overlap_Check(std::vector<class Mem_Info*>& Code,
-                              std::vector<class Mem_Info*>& Data,
-                              std::vector<class Mem_Info*>& Device);
+    static void Overlap_Check(const std::vector<class Mem_Info*>& Code,
+                              const std::vector<class Mem_Info*>& Data,
+                              const std::vector<class Mem_Info*>& Device,
+                              const std::string& Type);
 };
 /*****************************************************************************/
 /* __MEM_INFO_HPP_CLASSES__ */

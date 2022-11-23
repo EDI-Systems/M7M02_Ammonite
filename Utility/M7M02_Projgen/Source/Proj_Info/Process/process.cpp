@@ -59,7 +59,7 @@ Return      : None.
         this->Extra_Captbl=Main::XML_Get_Number(Root,"Extra_Captbl","DXXXX","DXXXX");
 
         /* Build */
-        this->Build=Main::XML_Get_String(Root,"Build","DXXXX","DXXXX");
+        this->Buildsystem=Main::XML_Get_String(Root,"Buildsystem","DXXXX","DXXXX");
         /* Toolchain */
         this->Toolchain=Main::XML_Get_String(Root,"Toolchain","DXXXX","DXXXX");
         /* Optimization */
@@ -141,13 +141,13 @@ void Process::Check(void)
             Main::Error("P0331: No primary code section exists.");
         if(this->Memory_Data.empty())
             Main::Error("P0332: No primary data section exists.");
-        if((this->Memory_Code[0]->Attr&MEM_CODE_DEFAULT)!=MEM_CODE_DEFAULT)
+        if((this->Memory_Code[0]->Attr&MEM_CODE_USER_LEAST)!=MEM_CODE_USER_LEAST)
             Main::Error("P0333: Primary code section does not have RXS attribute.");
-        if((this->Memory_Data[0]->Attr&MEM_DATA_DEFAULT)!=MEM_DATA_DEFAULT)
+        if((this->Memory_Data[0]->Attr&MEM_DATA_USER_LEAST)!=MEM_DATA_USER_LEAST)
             Main::Error("P0334: Primary data section does not have RWS attribute.");
 
         /* Make sure process memory declarations do not overlap */
-        Mem_Info::Overlap_Check(this->Memory_Code,this->Memory_Data,this->Memory_Device);
+        Mem_Info::Overlap_Check(this->Memory_Code,this->Memory_Data,this->Memory_Device,"Process memory");
 
         /* Classify shared memory references */
         for(std::unique_ptr<class Mem_Info>& Mem:this->Shmem)

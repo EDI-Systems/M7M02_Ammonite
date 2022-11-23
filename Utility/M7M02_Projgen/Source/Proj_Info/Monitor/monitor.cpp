@@ -22,29 +22,37 @@ extern "C"
 #define __HDR_DEFS__
 #include "rvm_gen.hpp"
 #include "Proj_Info/Monitor/monitor.hpp"
+#include "Mem_Info/mem_info.hpp"
 #undef __HDR_DEFS__
 
 #define __HDR_CLASSES__
 #include "rvm_gen.hpp"
 #include "Proj_Info/Monitor/monitor.hpp"
+#include "Mem_Info/mem_info.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/
 namespace RVM_GEN
 {
 /* Begin Function:Monitor::Monitor ********************************************
-Description : Constructor for RVM class.
+Description : Constructor for virtual machine monitor class.
 Input       : xml_node_t* Root - The node containing the whole project.
+              ptr_t Code_Base - The monitor code base.
+              ptr_t Data_Base - The monitor data base.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Monitor::Monitor(xml_node_t* Root)
+/* void */ Monitor::Monitor(xml_node_t* Root, ptr_t Code_Base, ptr_t Data_Base)
 {
     try
     {
-        /* Code size */
+        /* Code base/size */
+        this->Code_Base=Code_Base;
         this->Code_Size=Main::XML_Get_Number(Root,"Code_Size","DXXXX","DXXXX");
-        /* Data size */
+        this->Code=std::make_unique<class Mem_Info>("Monitor_Code",this->Code_Base,this->Code_Size,MEM_CODE,MEM_CODE_MONITOR);
+        /* Data base/size */
+        this->Data_Base=Data_Base;
         this->Data_Size=Main::XML_Get_Number(Root,"Data_Size","DXXXX","DXXXX");
+        this->Data=std::make_unique<class Mem_Info>("Monitor_Data",this->Data_Base,this->Data_Size,MEM_DATA,MEM_DATA_MONITOR);
         /* Stack size */
         this->Stack_Size=Main::XML_Get_Number(Root,"Stack_Size","DXXXX","DXXXX");
         /* Virtual machine priorities */
@@ -54,8 +62,8 @@ Return      : None.
         /* Virtual machine mappings */
         this->Virt_Map=Main::XML_Get_Number(Root,"Virt_Map","DXXXX","DXXXX");
 
-        /* Build */
-        this->Build=Main::XML_Get_String(Root,"Build","DXXXX","DXXXX");
+        /* Buildsystem */
+        this->Buildsystem=Main::XML_Get_String(Root,"Buildsystem","DXXXX","DXXXX");
         /* Toolchain */
         this->Toolchain=Main::XML_Get_String(Root,"Toolchain","DXXXX","DXXXX");
         /* Optimization */

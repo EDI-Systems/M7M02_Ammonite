@@ -11,8 +11,8 @@ Description : The memory block class. This contains the memory block information
 #include "string"
 #include "memory"
 #include "vector"
-#include "bitset"
 #include "stdexcept"
+#include "algorithm"
 
 extern "C"
 {
@@ -65,7 +65,7 @@ Return      : None.
             if(Temp=="Auto")
                 this->Base=MEM_AUTO;
             else
-                this->Base=std::stoul(Temp);
+                this->Base=std::stoull(Temp,0,0);
 
             /* Size */
             this->Size=Main::XML_Get_Number(Root,"Size","DXXXX","DXXXX");
@@ -94,9 +94,9 @@ Return      : None.
         if(this->Attr==0)
             Main::Error("P0510: Attribute does not allow any access and is malformed.");
         if(Temp.rfind('B')!=std::string::npos)
-            this->Attr|=MEM_BUFFERABLE;
+            this->Attr|=MEM_BUFFER;
         if(Temp.rfind('C')!=std::string::npos)
-            this->Attr|=MEM_CACHEABLE;
+            this->Attr|=MEM_CACHE;
         if(Temp.rfind('S')!=std::string::npos)
             this->Attr|=MEM_STATIC;
     }
@@ -125,28 +125,27 @@ Return      : None.
     this->Size=Block->Size;
     this->Type=Block->Type;
     this->Attr=Block->Attr;
-    this->Align=Block->Align;
 }
 /* End Function:Mem_Info::Mem_Info *******************************************/
 
 /* Begin Function:Mem_Info::Mem_Info ******************************************
 Description : Constructor for memory class.
-Input       : ptr_t Base - The start address.
+Input       : const std::string& Name - The optional memory trunk name.
+              ptr_t Base - The start address.
               ptr_t Size - The memory trunk size.
               ptr_t Type - The memory type.
               ptr_t Attr - The attributes of this memory block.
-              ptr_t Align - The alignment size.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Mem_Info::Mem_Info(ptr_t Base, ptr_t Size, ptr_t Type, ptr_t Attr, ptr_t Align)
+/* void */ Mem_Info::Mem_Info(const std::string& Name, ptr_t Base, ptr_t Size, ptr_t Type, ptr_t Attr)
 {
     this->Reference=MEM_DECL;
+    this->Name=Name;
     this->Base=Base;
     this->Size=Size;
     this->Type=Type;
     this->Attr=Attr;
-    this->Align=Align;
 }
 /* End Function:Mem_Info::Mem_Info *******************************************/
 
@@ -183,18 +182,61 @@ void Mem_Info::Check(void)
 
 /* Begin Function:Mem_Info::Overlap_Check *************************************
 Description : Check whether the memory blocks declared will overlap.
-Input       : std::vector<class Mem_Info*>& Code - Code memory segments.
-              std::vector<class Mem_Info*>& Data - Data memory segments.
-              std::vector<class Mem_Info*>& Device - Device memory segments.
+Input       : const std::vector<class Mem_Info*>& Code - Code memory segments.
+              const std::vector<class Mem_Info*>& Data - Data memory segments.
+              const std::vector<class Mem_Info*>& Device - Device memory segments.
+              const std::string& Type - The descriptive type of the memory being checked.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Mem_Info::Overlap_Check(std::vector<class Mem_Info*>& Code,
-                             std::vector<class Mem_Info*>& Data,
-                             std::vector<class Mem_Info*>& Device)
+void Mem_Info::Overlap_Check(const std::vector<class Mem_Info*>& Code,
+                             const std::vector<class Mem_Info*>& Data,
+                             const std::vector<class Mem_Info*>& Device,
+                             const std::string& Type)
 {
+    std::vector<class Mem_Info*> All;
+    ptr_t Count;
 
+    /* Gather all memory that is not automatically allocated */
+    for(class Mem_Info* Mem:Code)
+    {
+        if(Mem->Base==MEM_AUTO)
+            continue;
+        All.push_back(Mem);
+    }
+    for(class Mem_Info* Mem:Data)
+    {
+        if(Mem->Base==MEM_AUTO)
+            continue;
+        All.push_back(Mem);
+    }
+    for(class Mem_Info* Mem:Device)
+    {
+        if(Mem->Base==MEM_AUTO)
+            continue;
+        All.push_back(Mem);
+    }
 
+    if(All.size()>1)
+    {
+        /* Sort memory according to base address */
+        std::sort(All.begin(),All.end(),
+        [](const class Mem_Info* Oper1, const class Mem_Info* Oper2)->bool
+        {
+            return Oper1->Base<Oper2->Base;
+        });
+
+        /* Check if adjacent ones overlap */
+        for(Count=0;Count<All.size()-1;Count++)
+        {
+            if((All[Count]->Base+All[Count]->Size)>All[Count+1]->Base)
+            {
+                Main::Error("PXXXX: %s '%s' base 0x%llX size 0x%llX overlapped with '%s' base 0x%llX size 0x%llX.",
+                            Type.c_str(),All[Count]->Name.c_str(),All[Count]->Base,All[Count]->Size,
+                            All[Count+1]->Name.c_str(),All[Count+1]->Base,All[Count+1]->Size);
+            }
+        }
+    }
 }
 /* End Function:Mem_Info::Overlap_Check **************************************/
 }

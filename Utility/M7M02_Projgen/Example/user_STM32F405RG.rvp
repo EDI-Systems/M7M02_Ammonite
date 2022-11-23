@@ -39,7 +39,7 @@
         <Extra_Kmem>0x0</Extra_Kmem>
         <Kmem_Order>4</Kmem_Order>
         <Kern_Prio>32</Kern_Prio>
-		<Build>Keil</Build>
+		<Buildsystem>Keil</Buildsystem>
 		<Toolchain>ARMCC</Toolchain>
 		<Optimization>O2</Optimization>
 		<Kernel_Root>../../../../M7M01_Eukaron</Kernel_Root>
@@ -62,7 +62,7 @@
         <Virt_Prio>32</Virt_Prio>
         <Virt_Evt>32</Virt_Evt>
         <Virt_Map>32</Virt_Map>
-		<Build>Keil</Build>
+		<Buildsystem>Keil</Buildsystem>
 		<Toolchain>ARMCC</Toolchain>
         <Optimization>O2</Optimization>
 		<Monitor_Root>../../../../M7M02_Ammonite</Monitor_Root>
@@ -79,7 +79,7 @@
         <P0>
             <Name>Proc1</Name>
             <Extra_Captbl>9</Extra_Captbl>
-			<Build>Keil</Build>
+			<Buildsystem>Keil</Buildsystem>
 			<Toolchain>ARMCC</Toolchain>
             <Optimization>O2</Optimization>
 			<Project_Output>./Proc1/Project</Project_Output>
@@ -160,7 +160,7 @@
         <P1>
             <Name>Proc2</Name>
             <Extra_Captbl>0</Extra_Captbl>
-			<Build>Keil</Build>
+			<Buildsystem>Keil</Buildsystem>
 			<Toolchain>ARMCC</Toolchain>
 			<Optimization>O3</Optimization>
 			<Project_Output>./Proc2/Project</Project_Output>
@@ -245,7 +245,7 @@
             <Vect_Num>100</Vect_Num>
 			<Guest_Type>RMP</Guest_Type>
 			<Guest_Root>../../M5P01_Prokaron</Guest_Root>
-			<Build>Keil</Build>
+			<Buildsystem>Keil</Buildsystem>
 			<Toolchain>ARMCC</Toolchain>
 			<Optimization>O2</Optimization>
 			<Project_Output>./Virt1/Project</Project_Output>

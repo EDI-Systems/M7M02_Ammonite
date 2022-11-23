@@ -95,15 +95,24 @@ public:
 
     std::unique_ptr<class Proj_Info> Proj;
     std::unique_ptr<class Chip_Info> Chip;
-    //std::unique_ptr<class Platform> Plat;
+    std::unique_ptr<class Plat_Info> Plat;
 
     Main(int argc, char* argv[]);
 
-    void Parse(void);
     void Proj_Parse(void);
+    void Plat_Parse(void);
     void Chip_Parse(void);
+    void Parse(void);
 
+    void Standalone_Check(void);
+    void Compatible_Check(void);
+    void Config_Check(void);
+    void Physical_Check(void);
+    void Static_Check(void);
+    void Reference_Check(void);
     void Check(void);
+
+    void Setup(void);
 
     static std::string XML_Get_String(xml_node_t* Root, const char* Name,
                                       const char* Errno0, const char* Errno1);

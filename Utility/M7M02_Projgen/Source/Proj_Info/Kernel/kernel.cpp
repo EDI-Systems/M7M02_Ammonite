@@ -22,11 +22,13 @@ extern "C"
 #define __HDR_DEFS__
 #include "rvm_gen.hpp"
 #include "Proj_Info/Kernel/kernel.hpp"
+#include "Mem_Info/mem_info.hpp"
 #undef __HDR_DEFS__
 
 #define __HDR_CLASSES__
 #include "rvm_gen.hpp"
 #include "Proj_Info/Kernel/kernel.hpp"
+#include "Mem_Info/mem_info.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/
 namespace RVM_GEN
@@ -41,14 +43,14 @@ Return      : None.
 {
     try
     {
-        /* Code base */
+        /* Code base/size */
         this->Code_Base=Main::XML_Get_Number(Root,"Code_Base","DXXXX","DXXXX");
-        /* Code size */
         this->Code_Size=Main::XML_Get_Number(Root,"Code_Size","DXXXX","DXXXX");
-        /* Data base */
+        this->Code=std::make_unique<class Mem_Info>("Kernel_Code",this->Code_Base,this->Code_Size,MEM_CODE,MEM_CODE_KERNEL);
+        /* Data base/size */
         this->Data_Base=Main::XML_Get_Number(Root,"Data_Base","DXXXX","DXXXX");
-        /* Data size */
         this->Data_Size=Main::XML_Get_Number(Root,"Data_Size","DXXXX","DXXXX");
+        this->Data=std::make_unique<class Mem_Info>("Kernel_Data",this->Data_Base,this->Data_Size,MEM_DATA,MEM_DATA_KERNEL);
         /* Stack size */
         this->Stack_Size=Main::XML_Get_Number(Root,"Stack_Size","DXXXX","DXXXX");
         /* Extra kernel memory */
@@ -58,8 +60,8 @@ Return      : None.
         /* Kern_Prio */
         this->Kern_Prio=Main::XML_Get_Number(Root,"Kern_Prio","DXXXX","DXXXX");
 
-        /* Build */
-        this->Build=Main::XML_Get_String(Root,"Build","DXXXX","DXXXX");
+        /* Buildsystem */
+        this->Buildsystem=Main::XML_Get_String(Root,"Buildsystem","DXXXX","DXXXX");
         /* Toolchain */
         this->Toolchain=Main::XML_Get_String(Root,"Toolchain","DXXXX","DXXXX");
         /* Optimization */
