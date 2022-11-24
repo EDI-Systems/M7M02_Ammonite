@@ -68,6 +68,9 @@ public:
     /* The attributes - read, write, execute, cacheable, bufferable, static */
     ptr_t Attr;
 
+    /* Alignment - to be decided by the architecture - related generator, in real granularity */
+    ptr_t Align;
+
     /* void */ Mem_Info(xml_node_t* Root, ptr_t Ref);
     /* void */ Mem_Info(class Mem_Info* Block);
     /* void */ Mem_Info(const std::string& Name, ptr_t Base, ptr_t Size, ptr_t Type, ptr_t Attr);

@@ -86,6 +86,7 @@ extern "C"
 #include "Plat_Info/plat_info.hpp"
 #include "Conf_Info/conf_info.hpp"
 #include "Mem_Info/mem_info.hpp"
+#include "Gen_Tool/gen_tool.hpp"
 #undef __HDR_DEFS__
 
 #define __HDR_CLASSES__
@@ -101,11 +102,17 @@ extern "C"
 #include "Proj_Info/Process/Receive/receive.hpp"
 #include "Proj_Info/Process/Send/send.hpp"
 #include "Proj_Info/Process/Kfunc/kfunc.hpp"
+#include "Proj_Info/Process/Virtual/virtual.hpp"
 #include "Chip_Info/chip_info.hpp"
 #include "Plat_Info/plat_info.hpp"
 #include "Conf_Info/conf_info.hpp"
 #include "Vect_Info/vect_info.hpp"
 #include "Mem_Info/mem_info.hpp"
+#include "Gen_Tool/gen_tool.hpp"
+#include "Gen_Tool/Plat_Gen/plat_gen.hpp"
+#include "Gen_Tool/Build_Gen/build_gen.hpp"
+#include "Gen_Tool/Tool_Gen/tool_gen.hpp"
+#include "Gen_Tool/Guest_Gen/guest_gen.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/
 namespace RVM_GEN
@@ -329,7 +336,7 @@ void Main::Standalone_Check(void)
     }
     catch(std::exception& Exc)
     {
-        throw std::runtime_error(std::string("Check:\n")+Exc.what());
+        Main::Error(std::string("Check:\n")+Exc.what());
     }
 }
 /* End Function:Main::Standalone_Check ***************************************/
@@ -358,7 +365,7 @@ void Main::Compatible_Check(void)
     }
     catch(std::exception& Exc)
     {
-        throw std::runtime_error(std::string("Check:\n")+Exc.what());
+        Main::Error(std::string("Check:\n")+Exc.what());
     }
 }
 /* End Function:Main::Compatible_Check ***************************************/
@@ -393,7 +400,7 @@ void Main::Config_Check(void)
     }
     catch(std::exception& Exc)
     {
-        throw std::runtime_error(std::string("Check:\n")+Exc.what());
+        Main::Error(std::string("Check:\n")+Exc.what());
     }
 }
 /* End Function:Main::Config_Check *******************************************/
@@ -437,7 +444,7 @@ void Main::Physical_Check(void)
     }
     catch(std::exception& Exc)
     {
-        throw std::runtime_error(std::string("Check:\n")+Exc.what());
+        Main::Error(std::string("Check:\n")+Exc.what());
     }
 }
 /* End Function:Main::Physical_Check *****************************************/
@@ -480,7 +487,7 @@ void Main::Static_Check(void)
     }
     catch(std::exception& Exc)
     {
-        throw std::runtime_error(std::string("Check:\n")+Exc.what());
+        Main::Error(std::string("Check:\n")+Exc.what());
     }
 }
 /* End Function:Main::Static_Check *******************************************/
@@ -550,7 +557,7 @@ void Main::Reference_Check(void)
     }
     catch(std::exception& Exc)
     {
-        throw std::runtime_error(std::string("Check:\n")+Exc.what());
+        Main::Error(std::string("Check:\n")+Exc.what());
     }
 }
 /* End Function:Main::Reference_Check ****************************************/
@@ -574,13 +581,13 @@ void Main::Check(void)
     }
     catch(std::exception& Exc)
     {
-        throw std::runtime_error(std::string("Check:\n")+Exc.what());
+        Main::Error(std::string("Check:\n")+Exc.what());
     }
 }
 /* End Function:Main::Check **************************************************/
 
 /* Begin Function:Main::Setup *************************************************
-Description : Set up the generator and check generator settings/validity.
+Description : Load toolset used for generation.
 Input       : None.
 Output      : None.
 Return      : None.
@@ -589,14 +596,79 @@ void Main::Setup(void)
 {
     try
     {
+        /* Load platform toolset */
+        this->Gen=std::make_unique<class Gen_Tool>(this->Plat->Name);
+
+        /* Load buildsystem toolset */
+        this->Gen->Build_Load(this->Proj->Kernel->Buildsystem);
+        this->Gen->Build_Load(this->Proj->Monitor->Buildsystem);
+        for(std::unique_ptr<class Process>& Proc:this->Proj->Process)
+            this->Gen->Build_Load(Proc->Buildsystem);
+
+        /* Load toolchain toolset */
+        this->Gen->Tool_Load(this->Proj->Kernel->Toolchain);
+        this->Gen->Tool_Load(this->Proj->Monitor->Toolchain);
+        for(std::unique_ptr<class Process>& Proc:this->Proj->Process)
+            this->Gen->Tool_Load(Proc->Toolchain);
+
+        /* Load guest OS toolset */
+        for(class Virtual* Virt:this->Proj->Virtual)
+            this->Gen->Guest_Load(Virt->Guest_Type);
+    }
+    catch(std::exception& Exc)
+    {
+        Main::Error(std::string("Check:\n")+Exc.what());
+    }
+}
+/* End Function:Main::Setup **************************************************/
+
+/* Begin Function:Main::Mem_Align *********************************************
+Description : Align all memories that does not have a fixed start address, and
+              check all memories that have an address is aligned.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Mem_Align(void)
+{
+    try
+    {
+        /* Align all shared memory */
+        for(std::unique_ptr<class Mem_Info>& Mem:this->Proj->Shmem)
+            this->Gen->Plat->Mem_Align(Mem.get());
+
+        /* Align all private memory for each process */
+        for(std::unique_ptr<class Process>& Proc:this->Proj->Process)
+        {
+            for(std::unique_ptr<class Mem_Info>& Mem:Proc->Memory)
+                this->Gen->Plat->Mem_Align(Mem.get());
+        }
+    }
+    catch(std::exception& Exc)
+    {
+        throw std::runtime_error(std::string("Memory alignment:\n")+Exc.what());
+    }
+}
+/* End Function:Main::Mem_Align **********************************************/
+
+/* Begin Function:Main::Mem_Alloc *********************************************
+Description : Allocate memory to each one that still does not have a valid address.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Mem_Alloc(void)
+{
+    try
+    {
 
     }
     catch(std::exception& Exc)
     {
-        Main::Error(std::string("Setup:\n")+Exc.what());
+        throw std::runtime_error(std::string("Memory allocation:\n")+Exc.what());
     }
 }
-/* End Function:Main::Setup **************************************************/
+/* End Function:Main::Mem_Alloc **********************************************/
 
 /* Begin Function:Main::Main **************************************************
 Description : Preprocess the input parameters, and generate a preprocessed
@@ -969,11 +1041,10 @@ int main(int argc, char* argv[])
         Main::Info("Reading project.");
         Main->Parse();
         Main->Check();
-        Main->Setup();
 
 /* Phase 2: Allocate page tables *********************************************/
-        //Main->Mem_Align();
-        //Main->Mem_Alloc();
+        Main->Mem_Align();
+        Main->Mem_Alloc();
         //Main->Pgtbl_Alloc();
 
 /* Phase 3: Allocate kernel object IDs & macros & kernel objects *************/

@@ -77,7 +77,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="Source/language.cpp|Source/App_Sizer/Folder_Notebook|except.app|Source/Proj_Info/Filesys|Source/Platform|Source/App_Sizer/Body_Sizer/Main_Sizer|Source/Sch_Info|Mem_Info|Source/Guest|Source/App_Sizer/Main_Sizer|src|Source/Remote_Dialog|Source/App_Sizer/Body_Sizer/Workarea_Sizer/Draw_Sizer/Output_Notebook|Source/statusbar.cpp|Source/Generate|Source/App_Sizer/Debug_Tool_Sizer|History|images|Source/App_Sizer/Build_Tool_Sizer|Source/App_Sizer/tool_bar.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="Source/language.cpp|Source/App_Sizer/Folder_Notebook|except.app|Source/Proj_Info/Filesys|Source/Platform|Source/App_Sizer/Body_Sizer/Main_Sizer|Source/Generate/Guest|Source/Sch_Info|Mem_Info|Source/Generate/Buildsys|Source/Guest|Source/App_Sizer/Main_Sizer|src|Source/Remote_Dialog|Source/App_Sizer/Body_Sizer/Workarea_Sizer/Draw_Sizer/Output_Notebook|Source/statusbar.cpp|Source/App_Sizer/Debug_Tool_Sizer|History|images|Source/App_Sizer/Build_Tool_Sizer|Source/App_Sizer/tool_bar.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="images"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 					</sourceEntries>

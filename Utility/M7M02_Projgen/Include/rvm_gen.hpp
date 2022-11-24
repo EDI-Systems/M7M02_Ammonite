@@ -96,6 +96,7 @@ public:
     std::unique_ptr<class Proj_Info> Proj;
     std::unique_ptr<class Chip_Info> Chip;
     std::unique_ptr<class Plat_Info> Plat;
+    std::unique_ptr<class Gen_Tool> Gen;
 
     Main(int argc, char* argv[]);
 
@@ -113,6 +114,9 @@ public:
     void Check(void);
 
     void Setup(void);
+
+    void Mem_Align(void);
+    void Mem_Alloc(void);
 
     static std::string XML_Get_String(xml_node_t* Root, const char* Name,
                                       const char* Errno0, const char* Errno1);

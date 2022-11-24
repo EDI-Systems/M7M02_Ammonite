@@ -99,6 +99,9 @@ Return      : None.
             this->Attr|=MEM_CACHE;
         if(Temp.rfind('S')!=std::string::npos)
             this->Attr|=MEM_STATIC;
+
+        /* Alignment */
+        this->Align=0;
     }
     catch(std::exception& Exc)
     {
@@ -125,6 +128,7 @@ Return      : None.
     this->Size=Block->Size;
     this->Type=Block->Type;
     this->Attr=Block->Attr;
+    this->Align=Block->Align;
 }
 /* End Function:Mem_Info::Mem_Info *******************************************/
 
@@ -146,6 +150,7 @@ Return      : None.
     this->Size=Size;
     this->Type=Type;
     this->Attr=Attr;
+    this->Align=0;
 }
 /* End Function:Mem_Info::Mem_Info *******************************************/
 
