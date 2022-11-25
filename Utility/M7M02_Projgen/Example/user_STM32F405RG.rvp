@@ -2,9 +2,9 @@
 <Project>
     <Name>Test_Proj</Name>
     <Version>1.0</Version>
-	<Workspace_Build>Keil</Workspace_Build>
+	<Buildsystem>Keil</Buildsystem>
 	<Workspace_Output>./</Workspace_Output>
-	<Workspace_Output>No</Workspace_Output>
+	<Workspace_Overwrite>No</Workspace_Overwrite>
     <Chip>
         <Platform>A7M</Platform>
         <Class>STM32F405RG</Class>
@@ -60,7 +60,7 @@
         <Stack_Size>0x800</Stack_Size>
         <Extra_Captbl>32</Extra_Captbl>
         <Virt_Prio>32</Virt_Prio>
-        <Virt_Evt>32</Virt_Evt>
+        <Virt_Event>32</Virt_Event>
         <Virt_Map>32</Virt_Map>
 		<Buildsystem>Keil</Buildsystem>
 		<Toolchain>ARMCC</Toolchain>
@@ -120,7 +120,6 @@
             <Shmem>
                 <S0>
                     <Name>Shared1</Name>
-                    <Type>Data</Type>
                     <Attribute>RBCS</Attribute>
                 </S0>
             </Shmem>
@@ -187,7 +186,6 @@
             <Shmem>
                 <S0>
                     <Name>Shared1</Name>
-                    <Type>Data</Type>
                     <Attribute>RWBCS</Attribute>
                 </S0>
             </Shmem>
@@ -273,7 +271,6 @@
             <Shmem>
                 <S0>
                     <Name>Shared1</Name>
-                    <Type>Data</Type>
                     <Attribute>RWBCS</Attribute>
                 </S0>
             </Shmem>
