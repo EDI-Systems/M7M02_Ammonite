@@ -69,18 +69,18 @@ Return      : None.
 
             /* Size */
             this->Size=Main::XML_Get_Number(Root,"Size","DXXXX","DXXXX");
-        }
 
-        /* Type */
-        Temp=Main::XML_Get_String(Root,"Type","DXXXX","DXXXX");
-        if(Temp=="Code")
-            this->Type=MEM_CODE;
-        else if(Temp=="Data")
-            this->Type=MEM_DATA;
-        else if(Temp=="Device")
-            this->Type=MEM_DEVICE;
-        else
-            Main::Error("P0510: Type is malformed.");
+            /* Type */
+            Temp=Main::XML_Get_String(Root,"Type","DXXXX","DXXXX");
+            if(Temp=="Code")
+                this->Type=MEM_CODE;
+            else if(Temp=="Data")
+                this->Type=MEM_DATA;
+            else if(Temp=="Device")
+                this->Type=MEM_DEVICE;
+            else
+                Main::Error("P0510: Type is malformed.");
+        }
 
         /* Attribute */
         this->Attr=0;
@@ -244,6 +244,140 @@ void Mem_Info::Overlap_Check(const std::vector<class Mem_Info*>& Code,
     }
 }
 /* End Function:Mem_Info::Overlap_Check **************************************/
+
+/* Begin Function:Mem_Info::Memmap_Init ***************************************
+Description : Initialize memory map for the memory trunk.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Mem_Info::Memmap_Init(void)
+{
+    this->Map.resize((this->Size/MAP_ALIGN)+1);
+    std::fill(this->Map.begin(), this->Map.end(), false);
+}
+/* End Function:Mem_Info::Memmap_Init ****************************************/
+
+/* Begin Function:Mem_Info::Memmap_Mark ***************************************
+Description : Try or perform allocation of this memory trunk.
+Input       : ptr_t Base - The base address.
+              ptr_t Size - The memory size.
+              ptr_t Mark - Whether this is an attempt or an allocation
+Output      : None.
+Return      : ret_t - If successful, 0; else -1.
+******************************************************************************/
+ret_t Mem_Info::Memmap_Mark(ptr_t Base, ptr_t Size, ptr_t Mark)
+{
+    ptr_t Count;
+    ptr_t Bit_Base;
+    ptr_t Bit_Size;
+
+    /* See if we can possibly fit there */
+    if((Base>=this->Base)&&((this->Base+this->Size)>=(Base+Size)))
+    {
+
+        Bit_Base=(Base-this->Base)/MAP_ALIGN;
+        Bit_Size=Size/MAP_ALIGN;
+
+        /* Test whether we can mark it */
+        if(Mark==MEM_TRY)
+        {
+            for(Count=Bit_Base;Count<Bit_Base+Bit_Size;Count++)
+            {
+                if(this->Map[Count]!=false)
+                    return -1;
+            }
+        }
+        else
+        {
+            for(Count=Bit_Base;Count<Bit_Base+Bit_Size;Count++)
+            {
+                ASSERT(this->Map[Count]==false);
+                this->Map[Count]=true;
+            }
+        }
+
+        return 0;
+    }
+
+    return -1;
+}
+/* End Function:Mem_Info::Memmap_Mark ****************************************/
+
+/* Begin Function:Mem_Info::Static_Fit ****************************************
+Description : Fit a memory trunk statically.
+Input       : std::vector<class Mem_Info*>& Map - The collection of memory maps to fit in.
+Output      : None.
+Return      : ret_t - If successful, 0; else -1.
+******************************************************************************/
+ret_t Mem_Info::Static_Fit(std::vector<class Mem_Info*>& Map)
+{
+    /* See if we can even find a segment that accomodates this */
+    for(class Mem_Info* Phys:Map)
+    {
+        /* Is the attribute a superset of what we require? */
+        if((Phys->Attr&this->Attr)!=this->Attr)
+            continue;
+
+        /* See if we can fit */
+        if(Phys->Memmap_Mark(this->Base,this->Size,MEM_TRY)==0)
+        {
+            Phys->Memmap_Mark(this->Base,this->Size,MEM_MARK);
+            return 0;
+        }
+    }
+
+    /* Can't find a fit */
+    return -1;
+}
+/* End Function:Mem_Info::Static_Fit *****************************************/
+
+/* Begin Function:Mem_Info::Auto_Fit ******************************************
+Description : Fit a memory trunk automatically.
+Input       : std::vector<class Mem_Info*>& Map - The collection of memory maps to fit in.
+Output      : None.
+Return      : ret_t - If successful, 0; else -1.
+******************************************************************************/
+ret_t Mem_Info::Auto_Fit(std::vector<class Mem_Info*>& Map)
+{
+    ptr_t Phys_Start;
+    ptr_t Phys_End;
+    ptr_t Phys_Try;
+
+    /* Find somewhere to fit this memory trunk, and if found, we will populate it */
+    for(class Mem_Info* Phys:Map)
+    {
+        /* Is the size possibly sufficient? */
+        if(this->Size>Phys->Size)
+            continue;
+        /* Is the attribute a superset of what we require? */
+        if((Phys->Attr&this->Attr)!=this->Attr)
+            continue;
+
+        /* Round start address up, round end address down, to alignment */
+        Phys_Start=ROUND_UP(Phys->Base,this->Align);
+        Phys_End=ROUND_DOWN(Phys->Base+Phys->Size,this->Align);
+
+        /* Is the effective size still possibly sufficient? */
+        if(this->Size>(Phys_End-Phys_Start))
+            continue;
+
+        /* Keep trying until we find a fit - optimize this loop later */
+        for(Phys_Try=Phys_Start;Phys_Try<Phys_End;Phys_Try+=this->Align)
+        {
+            if(Phys->Memmap_Mark(Phys_Try,this->Size,MEM_TRY)==0)
+            {
+                Phys->Memmap_Mark(Phys_Try,this->Size,MEM_MARK);
+                this->Base=Phys_Try;
+                return 0;
+            }
+        }
+    }
+
+    /* Can't find any fit */
+    return -1;
+}
+/* End Function:Mem_Info::Auto_Fit *******************************************/
 }
 /* End Of File ***************************************************************/
 

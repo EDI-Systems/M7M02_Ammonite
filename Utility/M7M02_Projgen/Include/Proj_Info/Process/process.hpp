@@ -63,9 +63,6 @@ public:
     /* Shared memory trunk information */
     std::vector<std::unique_ptr<class Mem_Info>> Shmem;
     std::map<std::string,class Mem_Info*> Shmem_Map;
-    std::vector<class Mem_Info*> Shmem_Code;
-    std::vector<class Mem_Info*> Shmem_Data;
-    std::vector<class Mem_Info*> Shmem_Device;
 
     /* Kernel object information */
     std::vector<std::unique_ptr<class Thread>> Thread;

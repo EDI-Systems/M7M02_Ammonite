@@ -36,7 +36,7 @@ namespace RVM_GEN
 #define A7M_END_LITTLE                          (0)
 #define A7M_END_BIG                             (1)
 
-/* Alignment requirements for A7M */
+/* Minimum alignment requirements for A7M */
 #define A7M_MEM_ALIGN                           (0x20)
 
 #define A7M_WORD_BITS                           (32)
@@ -66,7 +66,7 @@ public:
 
     /* void */ A7M_Gen(void);
 
-    virtual void Mem_Align(class Mem_Info* Mem) final override;
+    virtual ptr_t Mem_Align(ptr_t Base, ptr_t Size) final override;
 };
 /*****************************************************************************/
 /* __A7M_GEN_HPP_CLASSES__ */

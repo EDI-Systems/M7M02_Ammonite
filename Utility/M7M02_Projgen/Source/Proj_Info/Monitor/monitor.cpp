@@ -58,7 +58,7 @@ Return      : None.
         /* Virtual machine priorities */
         this->Virt_Prio=Main::XML_Get_Number(Root,"Virt_Prio","DXXXX","DXXXX");
         /* Virtual machine events */
-        this->Virt_Evt=Main::XML_Get_Number(Root,"Virt_Evt","DXXXX","DXXXX");
+        this->Virt_Event=Main::XML_Get_Number(Root,"Virt_Event","DXXXX","DXXXX");
         /* Virtual machine mappings */
         this->Virt_Map=Main::XML_Get_Number(Root,"Virt_Map","DXXXX","DXXXX");
 

@@ -300,8 +300,11 @@ Return      : None.
 void Main::Parse(void)
 {
     char Buffer[1024];
+
     try
     {
+        Main::Info("Parsing project.");
+
         /* Parse project file */
         this->Proj_Parse();
         /* Change current path - everything is now relative to the project */
@@ -633,23 +636,305 @@ void Main::Mem_Align(void)
 {
     try
     {
+        Main::Info("Aligning memory.");
+
+        /* Align system memory */
+        try
+        {
+            this->Gen->Plat->Mem_Align(this->Proj->Kernel->Code_Base,this->Proj->Kernel->Code_Size);
+            this->Gen->Plat->Mem_Align(this->Proj->Kernel->Data_Base,this->Proj->Kernel->Data_Size);
+            this->Gen->Plat->Mem_Align(MEM_AUTO,this->Proj->Kernel->Stack_Size);
+            this->Gen->Plat->Mem_Align(this->Proj->Monitor->Code_Base,this->Proj->Monitor->Code_Size);
+            this->Gen->Plat->Mem_Align(this->Proj->Monitor->Data_Base,this->Proj->Monitor->Data_Size);
+            this->Gen->Plat->Mem_Align(MEM_AUTO,this->Proj->Monitor->Stack_Size);
+        }
+        catch(std::exception& Exc)
+        {
+            Main::Error(std::string("System memory:\n")+Exc.what());
+        }
+
         /* Align all shared memory */
-        for(std::unique_ptr<class Mem_Info>& Mem:this->Proj->Shmem)
-            this->Gen->Plat->Mem_Align(Mem.get());
+        try
+        {
+            for(std::unique_ptr<class Mem_Info>& Mem:this->Proj->Shmem)
+                Mem->Align=this->Gen->Plat->Mem_Align(Mem->Base,Mem->Size);
+        }
+        catch(std::exception& Exc)
+        {
+            Main::Error(std::string("Shared memory:\n")+Exc.what());
+        }
 
         /* Align all private memory for each process */
         for(std::unique_ptr<class Process>& Proc:this->Proj->Process)
         {
-            for(std::unique_ptr<class Mem_Info>& Mem:Proc->Memory)
-                this->Gen->Plat->Mem_Align(Mem.get());
+            try
+            {
+                for(std::unique_ptr<class Mem_Info>& Mem:Proc->Memory)
+                    Mem->Align=this->Gen->Plat->Mem_Align(Mem->Base,Mem->Size);
+            }
+            catch(std::exception& Exc)
+            {
+                Main::Error(std::string("Process: '")+Proc->Name+"'\n"+"Private memory:n"+Exc.what());
+            }
         }
     }
     catch(std::exception& Exc)
     {
-        throw std::runtime_error(std::string("Memory alignment:\n")+Exc.what());
+        Main::Error(std::string("Memory alignment:\n")+Exc.what());
     }
 }
 /* End Function:Main::Mem_Align **********************************************/
+
+/* Begin Function:Main::Code_Alloc ********************************************
+Description : Allocate code memory.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Code_Alloc(void)
+{
+    std::vector<class Mem_Info*> Auto;
+
+    try
+    {
+        /* Initialize memory allocator map for physical memory trunks */
+        for(class Mem_Info* Mem:this->Proj->Memory_Code)
+            Mem->Memmap_Init();
+
+        /* Sort memory according to base address */
+        std::sort(this->Proj->Memory_Code.begin(),this->Proj->Memory_Code.end(),
+        [](const class Mem_Info* Oper1, const class Mem_Info* Oper2)->bool
+        {
+            return Oper1->Base<Oper2->Base;
+        });
+
+        /* Now populate the system sections - must be continuous */
+        if(this->Proj->Kernel->Code->Static_Fit(this->Proj->Memory_Code)!=0)
+            throw std::runtime_error("M0001: Kernel code section is invalid, either wrong range or wrong attribute.");
+        if(this->Proj->Monitor->Code->Static_Fit(this->Proj->Memory_Code)!=0)
+            throw std::runtime_error("M0002: Monitor code section is invalid, either wrong range or wrong attribute.");
+
+        /* Fit all static shared memory regions, and leave the automatic ones for later */
+        try
+        {
+            for(class Mem_Info* Mem:this->Proj->Shmem_Code)
+            {
+                /* If this memory is not auto memory, we wait to deal with it */
+                if(Mem->Base!=MEM_AUTO)
+                {
+                    if(Mem->Static_Fit(this->Proj->Memory_Code)!=0)
+                        Main::Error(std::string("M0003: Code memory '")+Mem->Name+"' is invalid, either wrong range or wrong attribute.");
+                }
+                else
+                    Auto.push_back(Mem);
+            }
+        }
+        catch(std::exception& Exc)
+        {
+            Main::Error(std::string("Shared memory:\n")+Exc.what());
+        }
+
+        /* Fit all static private memory regions, and leave the automatic ones for later */
+        for(std::unique_ptr<class Process>& Proc:this->Proj->Process)
+        {
+            try
+            {
+                for(class Mem_Info* Mem:Proc->Memory_Code)
+                {
+                    /* If this memory is not auto memory, we wait to deal with it */
+                    if(Mem->Base!=MEM_AUTO)
+                    {
+                        if(Mem->Static_Fit(this->Proj->Memory_Code)!=0)
+                            Main::Error(std::string("M0003: Code memory '")+Mem->Name+"' is invalid, either wrong range or wrong attribute.");
+                    }
+                    else
+                        Auto.push_back(Mem);
+                }
+            }
+            catch(std::exception& Exc)
+            {
+                Main::Error(std::string("Process: ")+Proc->Name+"\n"+Exc.what());
+            }
+        }
+
+        /* Sort all memories from large to small */
+        std::sort(Auto.begin(),Auto.end(),
+        [](const class Mem_Info* Oper1, const class Mem_Info* Oper2)
+        {
+                return Oper1->Size>Oper2->Size;
+        });
+
+        /* Fit whatever that does not have a fixed address */
+        for(class Mem_Info* Mem:Auto)
+        {
+            if(Mem->Auto_Fit(this->Proj->Memory_Code)!=0)
+                Main::Error(std::string("M0004: Code memory fitter failed for automatic memory '")+Mem->Name+"'.");
+            Main::Info("> Allocated code memory '%s' size 0x%0llX to base address 0x%0llX.",Mem->Name.c_str(),Mem->Size,Mem->Base);
+        }
+    }
+    catch(std::exception& Exc)
+    {
+        Main::Error(std::string("Code memory allocation:\n")+Exc.what());
+    }
+}
+/* End Function:Main::Code_Alloc *********************************************/
+
+/* Begin Function:Main::Data_Alloc ********************************************
+Description : Allocate data memory.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Data_Alloc(void)
+{
+    std::vector<class Mem_Info*> Auto;
+
+    try
+    {
+        /* Initialize memory allocator map for physical memory trunks */
+        for(class Mem_Info* Mem:this->Proj->Memory_Data)
+            Mem->Memmap_Init();
+
+        /* Sort memory according to base address */
+        std::sort(this->Proj->Memory_Data.begin(),this->Proj->Memory_Data.end(),
+        [](const class Mem_Info* Oper1, const class Mem_Info* Oper2)->bool
+        {
+            return Oper1->Base<Oper2->Base;
+        });
+
+        /* Now populate the system sections - must be continuous */
+        if(this->Proj->Kernel->Data->Static_Fit(this->Proj->Memory_Data)!=0)
+            Main::Error("M0001: Kernel data section is invalid, either wrong range or wrong attribute.");
+        if(this->Proj->Monitor->Data->Static_Fit(this->Proj->Memory_Data)!=0)
+            Main::Error("M0002: Monitor data section is invalid, either wrong range or wrong attribute.");
+
+        /* Fit all static shared memory regions, and leave the automatic ones for later */
+        try
+        {
+            for(class Mem_Info* Mem:this->Proj->Shmem_Data)
+            {
+                /* If this memory is not auto memory, we wait to deal with it */
+                if(Mem->Base!=MEM_AUTO)
+                {
+                    if(Mem->Static_Fit(this->Proj->Memory_Data)!=0)
+                        Main::Error(std::string("M0003: Data memory '")+Mem->Name+"' is invalid, either wrong range or wrong attribute.");
+                }
+                else
+                    Auto.push_back(Mem);
+            }
+        }
+        catch(std::exception& Exc)
+        {
+            Main::Error(std::string("Shared memory:\n")+Exc.what());
+        }
+
+        /* Fit all static private memory regions, and leave the automatic ones for later */
+        for(std::unique_ptr<class Process>& Proc:this->Proj->Process)
+        {
+            try
+            {
+                for(class Mem_Info* Mem:Proc->Memory_Data)
+                {
+                    /* If this memory is not auto memory, we wait to deal with it */
+                    if(Mem->Base!=MEM_AUTO)
+                    {
+                        if(Mem->Static_Fit(this->Proj->Memory_Data)!=0)
+                            Main::Error(std::string("M0003: Data memory '")+Mem->Name+"' is invalid, either wrong range or wrong attribute.");
+                    }
+                    else
+                        Auto.push_back(Mem);
+                }
+            }
+            catch(std::exception& Exc)
+            {
+                Main::Error(std::string("Process: ")+Proc->Name+"\n"+Exc.what());
+            }
+        }
+
+        /* Sort all memories from large to small */
+        std::sort(Auto.begin(),Auto.end(),
+        [](const class Mem_Info* Oper1, const class Mem_Info* Oper2)
+        {
+                return Oper1->Size>Oper2->Size;
+        });
+
+        /* Fit whatever that does not have a fixed address */
+        for(class Mem_Info* Mem:Auto)
+        {
+            if(Mem->Auto_Fit(this->Proj->Memory_Data)!=0)
+                Main::Error(std::string("M0004: Data memory fitter failed for automatic memory '")+Mem->Name+"'.");
+            Main::Info("> Allocated data memory '%s' size 0x%0llX to base address 0x%0llX.",Mem->Name.c_str(),Mem->Size,Mem->Base);
+        }
+    }
+    catch(std::exception& Exc)
+    {
+        Main::Error(std::string("Data allocation:\n")+Exc.what());
+    }
+}
+/* End Function:Main::Data_Alloc *********************************************/
+
+/* Begin Function:Main::Device_Alloc ******************************************
+Description : Allocate data memory.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Device_Alloc(void)
+{
+    try
+    {
+        /* Initialize memory allocator map for physical memory trunks */
+        for(class Mem_Info* Mem:this->Proj->Memory_Device)
+            Mem->Memmap_Init();
+
+        /* Sort memory according to base address */
+        std::sort(this->Proj->Memory_Device.begin(),this->Proj->Memory_Device.end(),
+        [](const class Mem_Info* Oper1, const class Mem_Info* Oper2)->bool
+        {
+            return Oper1->Base<Oper2->Base;
+        });
+
+        /* Fit all static shared memory regions, and leave the automatic ones for later */
+        try
+        {
+            for(class Mem_Info* Mem:this->Proj->Shmem_Device)
+            {
+                /* Device memory can't be auto */
+                ASSERT(Mem->Base!=MEM_AUTO);
+                if(Mem->Static_Fit(this->Proj->Memory_Device)!=0)
+                    Main::Error(std::string("M0003: Device memory '")+Mem->Name+"' is invalid, either wrong range or wrong attribute.");
+            }
+        }
+        catch(std::exception& Exc)
+        {
+            Main::Error(std::string("Shared memory:\n")+Exc.what());
+        }
+
+        /* Fit all static private memory regions, and leave the automatic ones for later */
+        for(std::unique_ptr<class Process>& Proc:this->Proj->Process)
+        {
+            try
+            {
+                for(class Mem_Info* Mem:Proc->Memory_Device)
+                {
+                    /* Device memory can't be auto */
+                    ASSERT(Mem->Base!=MEM_AUTO);
+                    if(Mem->Static_Fit(this->Proj->Memory_Device)!=0)
+                        Main::Error(std::string("M0003: Device memory '")+Mem->Name+"' is invalid, either wrong range or wrong attribute.");
+                }
+            }
+            catch(std::exception& Exc)
+            {
+                Main::Error(std::string("Process: ")+Proc->Name+"\n"+Exc.what());
+            }
+        }
+    }
+    catch(std::exception& Exc)
+    {
+        Main::Error(std::string("Device allocation:\n")+Exc.what());
+    }
+}
+/* End Function:Main::Device_Alloc *******************************************/
 
 /* Begin Function:Main::Mem_Alloc *********************************************
 Description : Allocate memory to each one that still does not have a valid address.
@@ -661,7 +946,11 @@ void Main::Mem_Alloc(void)
 {
     try
     {
+        Main::Info("Allocating memory.");
 
+        this->Code_Alloc();
+        this->Data_Alloc();
+        this->Device_Alloc();
     }
     catch(std::exception& Exc)
     {
@@ -1038,9 +1327,10 @@ int main(int argc, char* argv[])
         std::unique_ptr<class Main> Main;
 /* Phase 1: Process command line and do parsing ******************************/
         Main=std::make_unique<class Main>(argc, argv);
-        Main::Info("Reading project.");
+        Main::Info("Running generator.");
         Main->Parse();
         Main->Check();
+        Main->Setup();
 
 /* Phase 2: Allocate page tables *********************************************/
         Main->Mem_Align();

@@ -43,7 +43,7 @@ public:
     /* Virtual machine priorities */
     ptr_t Virt_Prio;
     /* Virtual machine events */
-    ptr_t Virt_Evt;
+    ptr_t Virt_Event;
     /* Virtual machine mappings */
     ptr_t Virt_Map;
 

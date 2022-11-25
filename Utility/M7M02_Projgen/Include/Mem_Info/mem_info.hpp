@@ -29,16 +29,29 @@ namespace RVM_GEN
 #define MEM_BUFFER          POW2(3)
 #define MEM_CACHE           POW2(4)
 #define MEM_STATIC          POW2(5)
-#define MEM_CODE_KERNEL     (MEM_READ|MEM_EXECUTE|MEM_BUFFER|MEM_CACHE|MEM_STATIC)
-#define MEM_DATA_KERNEL     (MEM_READ|MEM_WRITE|MEM_BUFFER|MEM_CACHE|MEM_STATIC)
-#define MEM_CODE_MONITOR    (MEM_READ|MEM_EXECUTE|MEM_BUFFER|MEM_CACHE|MEM_STATIC)
-#define MEM_DATA_MONITOR    (MEM_READ|MEM_WRITE|MEM_BUFFER|MEM_CACHE|MEM_STATIC)
-#define MEM_CODE_USER_LEAST (MEM_READ|MEM_EXECUTE|MEM_STATIC)
-#define MEM_DATA_USER_LEAST (MEM_READ|MEM_WRITE|MEM_STATIC)
+
+/* Kernel/monitor default basic permissions */
+#define MEM_CODE_KERNEL     (MEM_READ|MEM_EXECUTE|MEM_STATIC)
+#define MEM_DATA_KERNEL     (MEM_READ|MEM_WRITE|MEM_STATIC)
+#define MEM_CODE_MONITOR    (MEM_READ|MEM_EXECUTE|MEM_STATIC)
+#define MEM_DATA_MONITOR    (MEM_READ|MEM_WRITE|MEM_STATIC)
+
+/* Basic process memory permissions */
+#define MEM_CODE_LEAST      (MEM_READ|MEM_EXECUTE)
+#define MEM_DATA_LEAST      (MEM_READ|MEM_WRITE)
+
+/* Prime process memory permissions */
+#define MEM_CODE_PRIME      (MEM_READ|MEM_EXECUTE|MEM_STATIC)
+#define MEM_DATA_PRIME      (MEM_READ|MEM_WRITE|MEM_STATIC)
+
 /* Memory placement */
 #define MEM_AUTO            ((ptr_t)(-1LL))
-/* Memmap granularity */
-#define MAP_ALIGN           (32)
+/* Memmap granularity - always allocate in units of 16 bytes */
+#define MAP_ALIGN           (16)
+
+/* Try or mark */
+#define MEM_TRY             (0)
+#define MEM_MARK            (1)
 /*****************************************************************************/
 /* __MEM_INFO_HPP_DEFS__ */
 #endif
@@ -70,6 +83,9 @@ public:
 
     /* Alignment - to be decided by the architecture - related generator, in real granularity */
     ptr_t Align;
+    /* Memory map - to be used by the memory allocator */
+    std::vector<bool> Map;
+
 
     /* void */ Mem_Info(xml_node_t* Root, ptr_t Ref);
     /* void */ Mem_Info(class Mem_Info* Block);
@@ -81,6 +97,14 @@ public:
                               const std::vector<class Mem_Info*>& Data,
                               const std::vector<class Mem_Info*>& Device,
                               const std::string& Type);
+
+    /* Memory map operations - only called on physical memory declarations */
+    void Memmap_Init(void);
+    ret_t Memmap_Mark(ptr_t Base, ptr_t Size, ptr_t Mark);
+
+    /* Memory fitting - called on shared/private declarations */
+    ret_t Static_Fit(std::vector<class Mem_Info*>& Map);
+    ret_t Auto_Fit(std::vector<class Mem_Info*>& Map);
 };
 /*****************************************************************************/
 /* __MEM_INFO_HPP_CLASSES__ */

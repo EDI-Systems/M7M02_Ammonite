@@ -141,27 +141,20 @@ void Process::Check(void)
             Main::Error("P0331: No primary code section exists.");
         if(this->Memory_Data.empty())
             Main::Error("P0332: No primary data section exists.");
-        if((this->Memory_Code[0]->Attr&MEM_CODE_USER_LEAST)!=MEM_CODE_USER_LEAST)
+        if((this->Memory_Code[0]->Attr&MEM_CODE_PRIME)!=MEM_CODE_PRIME)
             Main::Error("P0333: Primary code section does not have RXS attribute.");
-        if((this->Memory_Data[0]->Attr&MEM_DATA_USER_LEAST)!=MEM_DATA_USER_LEAST)
+        if((this->Memory_Data[0]->Attr&MEM_DATA_PRIME)!=MEM_DATA_PRIME)
             Main::Error("P0334: Primary data section does not have RWS attribute.");
 
         /* Make sure process memory declarations do not overlap */
         Mem_Info::Overlap_Check(this->Memory_Code,this->Memory_Data,this->Memory_Device,"Process memory");
 
-        /* Classify shared memory references */
+        /* Check shared memory references */
         for(std::unique_ptr<class Mem_Info>& Mem:this->Shmem)
         {
             if(Mem->Name=="")
                 Main::Error("Shared memory reference must contain a name.");
             Mem->Check();
-            switch(Mem->Type)
-            {
-                case MEM_CODE:this->Shmem_Code.push_back(Mem.get());break;
-                case MEM_DATA:this->Shmem_Data.push_back(Mem.get());break;
-                case MEM_DEVICE:this->Shmem_Device.push_back(Mem.get());break;
-                default:ASSERT(0);
-            }
         }
         Duplicate_Check<class Mem_Info,std::string>(this->Shmem,this->Shmem_Map,
                                                     [](std::unique_ptr<class Mem_Info>& Mem)->std::string{return Mem->Name;},

@@ -41,14 +41,18 @@ namespace RVM_GEN
 do \
 { \
     if((X)==0) \
-        Main::Error(std::string("M9999: Internal failure: ")+__DATE__+", "+std::to_string(__LINE__)+"."); \
+        Main::Error(std::string("M9999: Internal failure: ")+__DATE__+", "+std::string(__FILE__)+", "+std::to_string(__LINE__)+"."); \
 } \
 while(0)
 
+/* Rounding macros */
+#define ROUND_DOWN(X,R)                     ((X)/(R)*(R))
+#define ROUND_UP(X,R)                       ROUND_DOWN((X)+(R)-1,R)
+
 /* Power of 2 macros */
 #define POW2(POW)                           (((ptr_t)1)<<(POW))
-#define ROUND_DOWN(X,POW)                   (((X)>>(POW))<<(POW))
-#define ROUND_UP(X,POW)                     ROUND_DOWN((X)+POW2(POW)-1,POW)
+#define ROUND_DOWN_POW(X,POW)               (((X)>>(POW))<<(POW))
+#define ROUND_UP_POW(X,POW)                 ROUND_DOWN_POW((X)+POW2(POW)-1,POW)
 
 /* The code generator author name */
 #define CODE_AUTHOR                         "The RME project generator."
@@ -116,6 +120,10 @@ public:
     void Setup(void);
 
     void Mem_Align(void);
+
+    void Code_Alloc(void);
+    void Data_Alloc(void);
+    void Device_Alloc(void);
     void Mem_Alloc(void);
 
     static std::string XML_Get_String(xml_node_t* Root, const char* Name,

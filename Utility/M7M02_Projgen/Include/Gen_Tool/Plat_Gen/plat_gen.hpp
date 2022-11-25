@@ -36,7 +36,7 @@ public:
     /* void */ Plat_Gen(const std::string& Name);
     virtual /* void */ ~Plat_Gen(void){};
 
-    virtual void Mem_Align(class Mem_Info* Mem)=0;
+    virtual ptr_t Mem_Align(ptr_t Base, ptr_t Size)=0;
 };
 /*****************************************************************************/
 /* __PLAT_GEN_HPP_CLASSES__ */
