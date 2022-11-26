@@ -116,18 +116,23 @@ Return      : None.
 /* Begin Function:Mem_Info::Mem_Info ******************************************
 Description : Constructor for Mem class.
 Input       : class Mem* Block - The block to copy from.
+              ptr_t Attr_New - The new attributes.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Mem_Info::Mem_Info(class Mem_Info* Block)
+/* void */ Mem_Info::Mem_Info(class Mem_Info* Block, ptr_t Attr_New)
 {
+    /* Attributes must be compatible */
+    ASSERT(Attr_New!=0);
+    ASSERT((Block->Attr&Attr_New)==Attr_New);
+
     /* Copy everything of that source block */
     this->Reference=Block->Reference;
     this->Name=Block->Name;
     this->Base=Block->Base;
     this->Size=Block->Size;
     this->Type=Block->Type;
-    this->Attr=Block->Attr;
+    this->Attr=Attr_New;
     this->Align=Block->Align;
 }
 /* End Function:Mem_Info::Mem_Info *******************************************/
@@ -226,9 +231,9 @@ void Mem_Info::Overlap_Check(const std::vector<class Mem_Info*>& Code,
     {
         /* Sort memory according to base address */
         std::sort(All.begin(),All.end(),
-        [](const class Mem_Info* Oper1, const class Mem_Info* Oper2)->bool
+        [](const class Mem_Info* Left, const class Mem_Info* Right)->bool
         {
-            return Oper1->Base<Oper2->Base;
+            return Left->Base<Right->Base;
         });
 
         /* Check if adjacent ones overlap */

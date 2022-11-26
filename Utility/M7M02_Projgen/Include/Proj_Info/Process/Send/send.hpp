@@ -27,7 +27,7 @@ namespace RVM_GEN
 #define __SEND_HPP_CLASSES__
 /*****************************************************************************/
 /* Send endpoint information */
-class Send
+class Send:public Kobj
 {
 public:
     /* Receive endpoint name */

@@ -25,6 +25,7 @@ extern "C"
 
 #define __HDR_CLASSES__
 #include "rvm_gen.hpp"
+#include "Proj_Info/Kobj/kobj.hpp"
 #include "Proj_Info/Process/Receive/receive.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/

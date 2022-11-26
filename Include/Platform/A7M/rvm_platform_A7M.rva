@@ -2,6 +2,7 @@
 <Platform>
     <Name>A7M</Name>
     <Version>1.0</Version>
+    <Wordlength>32</Wordlength>
     <Guest>RMP</Guest>
     <Buildsystem>Keil,Makefile</Buildsystem>
     <Toolchain>ARMCC,GCC</Toolchain>

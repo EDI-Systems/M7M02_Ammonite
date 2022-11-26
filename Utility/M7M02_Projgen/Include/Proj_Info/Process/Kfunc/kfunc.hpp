@@ -27,7 +27,7 @@ namespace RVM_GEN
 #define __KFUNC_HPP_CLASSES__
 /*****************************************************************************/
 /* Kernel function information */
-class Kfunc
+class Kfunc:public Kobj
 {
 public:
     /* Name */

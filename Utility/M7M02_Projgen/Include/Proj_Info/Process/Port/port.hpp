@@ -27,7 +27,7 @@ namespace RVM_GEN
 #define __PORT_HPP_CLASSES__
 /*****************************************************************************/
 /* Port information */
-class Port
+class Port:public Kobj
 {
 public:
     /* Port name */

@@ -27,7 +27,7 @@ namespace RVM_GEN
 #define __RECEIVE_HPP_CLASSES__
 /*****************************************************************************/
 /* Receive endpoint information */
-class Receive
+class Receive:public Kobj
 {
 public:
     /* Receive endpoint name */

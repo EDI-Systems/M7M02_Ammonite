@@ -27,7 +27,10 @@ extern "C"
 
 #define __HDR_CLASSES__
 #include "rvm_gen.hpp"
+#include "Proj_Info/Kobj/kobj.hpp"
 #include "Proj_Info/Process/process.hpp"
+#include "Proj_Info/Process/Captbl/captbl.hpp"
+#include "Proj_Info/Process/Pgtbl/pgtbl.hpp"
 #include "Proj_Info/Process/Thread/thread.hpp"
 #include "Proj_Info/Process/Invocation/invocation.hpp"
 #include "Proj_Info/Process/Port/port.hpp"

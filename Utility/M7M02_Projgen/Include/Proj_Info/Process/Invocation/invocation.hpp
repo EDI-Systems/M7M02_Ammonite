@@ -27,7 +27,7 @@ namespace RVM_GEN
 #define __INVOCATION_HPP_CLASSES__
 /*****************************************************************************/
 /* Invocation information */
-class Invocation
+class Invocation:public Kobj
 {
 public:
     /* Name */

@@ -27,7 +27,7 @@ namespace RVM_GEN
 #define __THREAD_HPP_CLASSES__
 /*****************************************************************************/
 /* Thread information */
-class Thread
+class Thread:public Kobj
 {
 public:
     /* Name */

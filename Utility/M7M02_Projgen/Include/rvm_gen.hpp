@@ -1,5 +1,5 @@
 /******************************************************************************
-Filename    : rme_mcu.hpp
+Filename    : rvm_gen.hpp
 Author      : pry
 Date        : 08/04/2017
 Licence     : LGPL v3+; see COPYING for details.
@@ -8,8 +8,8 @@ Description : The header of the mcu tool.
 
 /* Defines *******************************************************************/
 #ifdef __HDR_DEFS__
-#ifndef __RME_MCU_HPP_TYPES__
-#define __RME_MCU_HPP_TYPES__
+#ifndef __RVM_GEN_HPP_TYPES__
+#define __RVM_GEN_HPP_TYPES__
 /*****************************************************************************/
 typedef char                                s8_t;
 typedef short                               s16_t;
@@ -25,7 +25,7 @@ typedef s32_t                               cnt_t;
 typedef s64_t                               ret_t;
 typedef u64_t                               ptr_t;
 /*****************************************************************************/
-/* __RME_MCU_HPP_TYPES__ */
+/* __RVM_GEN_HPP_TYPES__ */
 #endif
 /* __HDR_DEFS__ */
 #endif
@@ -33,8 +33,8 @@ typedef u64_t                               ptr_t;
 namespace RVM_GEN
 {
 #ifdef __HDR_DEFS__
-#ifndef __RME_MCU_HPP_DEFS__
-#define __RME_MCU_HPP_DEFS__
+#ifndef __RVM_GEN_HPP_DEFS__
+#define __RVM_GEN_HPP_DEFS__
 /*****************************************************************************/
 /* Error asserts */
 #define ASSERT(X) \
@@ -51,8 +51,8 @@ while(0)
 
 /* Power of 2 macros */
 #define POW2(POW)                           (((ptr_t)1)<<(POW))
-#define ROUND_DOWN_POW(X,POW)               (((X)>>(POW))<<(POW))
-#define ROUND_UP_POW(X,POW)                 ROUND_DOWN_POW((X)+POW2(POW)-1,POW)
+#define ROUND_DOWN_POW2(X,POW)              (((X)>>(POW))<<(POW))
+#define ROUND_UP_POW2(X,POW)                ROUND_DOWN_POW((X)+POW2(POW)-1,POW)
 
 /* The code generator author name */
 #define CODE_AUTHOR                         "The RME project generator."
@@ -70,13 +70,16 @@ while(0)
 /* Entry point slot size (in words), fixed across all architectures */
 #define ENTRY_SLOT_SIZE                     (8)
 
+/* Maximum number of virtual events */
+#define VIRT_EVENT_NUM                      (1024)
+
 /* Priority limit for threads */
 #define PROC_THD_PRIO_MIN                   (5)
 
 /* Maximum file length allowed */
 #define MAX_FILE_SIZE                       (16*1024*1024)
 /*****************************************************************************/
-/* __RME_MCU_HPP_DEFS__ */
+/* __RVM_GEN_HPP_DEFS__ */
 #endif
 /* __HDR_DEFS__ */
 #endif
@@ -84,8 +87,8 @@ while(0)
 
 /* Classes *******************************************************************/
 #ifdef __HDR_CLASSES__
-#ifndef __RME_MCU_HPP_CLASSES__
-#define __RME_MCU_HPP_CLASSES__
+#ifndef __RVM_GEN_HPP_CLASSES__
+#define __RVM_GEN_HPP_CLASSES__
 /*****************************************************************************/
 /* The application instance class */
 class Main
@@ -97,6 +100,7 @@ public:
     std::string Input;
     static ptr_t Verbose;
 
+    /* XML database */
     std::unique_ptr<class Proj_Info> Proj;
     std::unique_ptr<class Chip_Info> Chip;
     std::unique_ptr<class Plat_Info> Plat;
@@ -126,6 +130,13 @@ public:
     void Device_Alloc(void);
     void Mem_Alloc(void);
 
+    void Kobj_Init(void);
+    void Shmem_Add(void);
+    void Pgtbl_Alloc(void);
+
+    void Cap_Alloc(void);
+    void Obj_Alloc(void);
+
     static std::string XML_Get_String(xml_node_t* Root, const char* Name,
                                       const char* Errno0, const char* Errno1);
     static ptr_t XML_Get_Number(xml_node_t* Root, const char* Name,
@@ -144,6 +155,8 @@ public:
 
     static void Info(const char* Format, ...);
     static void Info(const std::string& Format);
+    static void Warning(const char* Format, ...);
+    static void Warning(const std::string& Format);
     static void Error[[noreturn]](const char* Format, ...);
     static void Error[[noreturn]](const std::string& Format);
 };
@@ -222,7 +235,7 @@ void Duplicate_Check(std::vector<std::unique_ptr<ELEM>>& Vect,
     }
 }
 /*****************************************************************************/
-/* __RME_MCU_HPP_CLASSES__ */
+/* __RVM_GEN_HPP_CLASSES__ */
 #endif
 /* __HDR_CLASSES__ */
 #endif

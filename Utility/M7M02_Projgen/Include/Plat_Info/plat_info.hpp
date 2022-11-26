@@ -34,6 +34,8 @@ public:
     std::string Name;
     /* Version info */
     std::string Version;
+    /* Processor word length */
+    ptr_t Wordlength;
     /* Compatible guest list */
     std::vector<std::string> Guest;
     /* Compatible buildsystem list */

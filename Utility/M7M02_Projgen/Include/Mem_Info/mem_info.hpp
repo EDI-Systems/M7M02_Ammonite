@@ -30,6 +30,9 @@ namespace RVM_GEN
 #define MEM_CACHE           POW2(4)
 #define MEM_STATIC          POW2(5)
 
+/* Full permission */
+#define MEM_FULL            (MEM_READ|MEM_WRITE|MEM_EXECUTE|MEM_BUFFER|MEM_CACHE|MEM_STATIC)
+
 /* Kernel/monitor default basic permissions */
 #define MEM_CODE_KERNEL     (MEM_READ|MEM_EXECUTE|MEM_STATIC)
 #define MEM_DATA_KERNEL     (MEM_READ|MEM_WRITE|MEM_STATIC)
@@ -88,7 +91,7 @@ public:
 
 
     /* void */ Mem_Info(xml_node_t* Root, ptr_t Ref);
-    /* void */ Mem_Info(class Mem_Info* Block);
+    /* void */ Mem_Info(class Mem_Info* Block, ptr_t Attr_New);
     /* void */ Mem_Info(const std::string& Name, ptr_t Base, ptr_t Size, ptr_t Type, ptr_t Attr);
 
     void Check(void);

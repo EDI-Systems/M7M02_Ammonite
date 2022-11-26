@@ -33,7 +33,7 @@ extern "C"
 namespace RVM_GEN
 {
 /* Begin Function:Plat_Info::Plat_Info ****************************************
-Description : Constructor for chip class.
+Description : Constructor for platform description class.
 Input       : xml_node_t* Root - The node containing the chip information.
 Output      : None.
 Return      : None.
@@ -44,6 +44,8 @@ Return      : None.
     {
         /* Platform */
         this->Name=Main::XML_Get_String(Root,"Name","DXXXX","DXXXX");
+        /* Wordlength */
+        this->Wordlength=Main::XML_Get_Number(Root,"Wordlength","DXXXX","DXXXX");
         /* Version */
         this->Version=Main::XML_Get_String(Root,"Version","DXXXX","DXXXX");
         /* Guest */
