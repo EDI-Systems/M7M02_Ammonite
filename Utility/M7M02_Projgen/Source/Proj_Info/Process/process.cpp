@@ -50,7 +50,8 @@ Input       : xml_node_t* Root - The node containing the process information.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Process::Process(xml_node_t* Root, ptr_t Type)
+/* void */ Process::Process(xml_node_t* Root, ptr_t Type):
+Kobj(this)
 {
     try
     {
@@ -83,22 +84,22 @@ Return      : None.
         /* Shmem */
         Trunk_Parse_Param<class Mem_Info,class Mem_Info,ptr_t>(Root,"Shmem",this->Shmem,MEM_REF,"DXXXX","DXXXX");
         /* Send */
-        Trunk_Parse<class Send,class Send>(Root,"Send",this->Send,"DXXXX","DXXXX");
+        Trunk_Parse_Param<class Send,class Send>(Root,"Send",this->Send,this,"DXXXX","DXXXX");
         /* These are present only if the process is native */
         if(Type==PROC_NATIVE)
         {
             /* Thread */
-            Trunk_Parse<class Thread,class Thread>(Root,"Thread",this->Thread,"DXXXX","DXXXX");
+            Trunk_Parse_Param<class Thread,class Thread>(Root,"Thread",this->Thread,this,"DXXXX","DXXXX");
             /* Invocation */
-            Trunk_Parse<class Invocation,class Invocation>(Root,"Invocation",this->Invocation,"DXXXX","DXXXX");
+            Trunk_Parse_Param<class Invocation,class Invocation>(Root,"Invocation",this->Invocation,this,"DXXXX","DXXXX");
             /* Port */
-            Trunk_Parse<class Port,class Port>(Root,"Port",this->Port,"DXXXX","DXXXX");
+            Trunk_Parse_Param<class Port,class Port>(Root,"Port",this->Port,this,"DXXXX","DXXXX");
             /* Receive */
-            Trunk_Parse<class Receive,class Receive>(Root,"Receive",this->Receive,"DXXXX","DXXXX");
+            Trunk_Parse_Param<class Receive,class Receive>(Root,"Receive",this->Receive,this,"DXXXX","DXXXX");
             /* Vector */
-            Trunk_Parse<class Vect_Info,class Vect_Info>(Root,"Vector",this->Vector,"DXXXX","DXXXX");
+            Trunk_Parse_Param<class Vect_Info,class Vect_Info>(Root,"Vector",this->Vector,this,"DXXXX","DXXXX");
             /* Kfunc */
-            Trunk_Parse<class Kfunc,class Kfunc>(Root,"Kfunc",this->Kfunc,"DXXXX","DXXXX");
+            Trunk_Parse_Param<class Kfunc,class Kfunc>(Root,"Kfunc",this->Kfunc,this,"DXXXX","DXXXX");
         }
     }
     catch(std::exception& Exc)
@@ -208,7 +209,252 @@ void Process::Check(void)
             Main::Error(std::string("Process: ")+"Unknown"+"\n"+Exc.what());
     }
 }
-/* End Function:Process::Check *********************************************/
+/* End Function:Process::Check ***********************************************/
+
+/* Begin Function:Process::Local_Alloc ****************************************
+Description : Allocate local capability table. If this is a virtual machine,
+              allocation always starts with 2 because the first two slots are
+              reserved for other purposes. The local and global macros are:
+-------------------------------------------------------------------------------
+Type            Local                           Global
+-------------------------------------------------------------------------------
+Process         -                               RVM_PROC_<PROC>
+-------------------------------------------------------------------------------
+Pgtbl           -                               RVM_PGTBL_<PROC>_#
+-------------------------------------------------------------------------------
+Captbl          -                               RVM_CAPTBL_<PROC>
+-------------------------------------------------------------------------------
+Thread          -                               RVM_THD_<THD>_PROC_<PROC>
+-------------------------------------------------------------------------------
+Invocation      -                               RVM_INV_<INV>_PROC_<PROC>
+-------------------------------------------------------------------------------
+Port            PORT_<PORT>_PROC_<PROC>         (Inherit invocation name)
+-------------------------------------------------------------------------------
+Receive         RECV_<RECV>                     RVM_RECV_<RECV>_PROC_<PROC>
+-------------------------------------------------------------------------------
+Send            SEND_<SEND>_PROC_<PROC>         (Inherit receive endpoint name)
+-------------------------------------------------------------------------------
+Vector          VECT_<VECT>                     RVM_BOOT_VECT_<VECT> (RVM)
+                                                RME_BOOT_VECT_<VECT> (RME)
+-------------------------------------------------------------------------------
+Kfunc           KFUNC_<KFUNC>                     -
+-------------------------------------------------------------------------------
+Input       : ptr_t Max - The maximum capacity of the capability table.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Process::Local_Alloc(ptr_t Max)
+{
+    ptr_t Capid;
+
+    try
+    {
+        if(this->Type==PROC_NATIVE)
+            Capid=PROC_CAPTBL_BASE;
+        else
+            Capid=VIRT_CAPTBL_BASE;
+
+        for(std::unique_ptr<class Port>& Port:this->Port)
+        {
+            Port->Capid_Local=Capid++;
+            Port->Macro_Local=std::string("PORT_")+Port->Name+"_PROC_"+Port->Process;
+            Kobj::Upper(Port->Macro_Local);
+            Main::Info("> Port %s allocated local capid %lld.",Port->Macro_Local.c_str(),Port->Capid_Local);
+        }
+
+        for(std::unique_ptr<class Receive>& Recv:this->Receive)
+        {
+            Recv->Capid_Local=Capid++;
+            Recv->Macro_Local=std::string("RECV_")+Recv->Name;
+            Kobj::Upper(Recv->Macro_Local);
+            Main::Info("> Receive endpoint %s allocated local capid %lld.",Recv->Macro_Local.c_str(),Recv->Capid_Local);
+        }
+
+        for(std::unique_ptr<class Send>& Send:this->Send)
+        {
+            Send->Capid_Local=Capid++;
+            Send->Macro_Local=std::string("SEND_")+Send->Name+"_PROC_"+Send->Process;
+            Kobj::Upper(Send->Macro_Local);
+            Main::Info("> Send endpoint %s allocated local capid %lld.",Send->Macro_Local.c_str(),Send->Capid_Local);
+        }
+
+        for(std::unique_ptr<class Vect_Info>& Vect:this->Vector)
+        {
+            Vect->Capid_Local=Capid++;
+            Vect->Macro_Local=std::string("VECT_")+Vect->Name;
+            Kobj::Upper(Vect->Macro_Local);
+            Main::Info("> Vector endpoint %s allocated local capid %lld.",Vect->Macro_Local.c_str(),Vect->Capid_Local);
+        }
+
+        for(std::unique_ptr<class Kfunc>& Kfunc:this->Kfunc)
+        {
+            Kfunc->Capid_Local=Capid++;
+            Kfunc->Macro_Local=std::string("KFUNC_")+Kfunc->Name;
+            Kobj::Upper(Kfunc->Macro_Local);
+            Main::Info("> Kernel function %s allocated local capid %lld.",Kfunc->Macro_Local.c_str(),Kfunc->Capid_Local);
+        }
+
+        /* Check extra capability table sizes */
+        this->Captbl=std::make_unique<class Captbl>(Capid,Capid+this->Extra_Captbl,this);
+        if(this->Captbl->Size>Max)
+            Main::Error("M1013: Total captbl capacity %lld cannot be larger than the platform limit %lld.",this->Captbl->Size,Max);
+    }
+    catch(std::exception& Exc)
+    {
+        Main::Error(std::string("Process: ")+this->Name+"\n"+Exc.what());
+    }
+}
+/* End Function:Process::Local_Alloc *****************************************/
+
+/* Begin Function:Process::Global_Alloc_Captbl ********************************
+Description : Allocate global capid for capability table.
+Input       : std::vector<class Captbl*>& Global - The global array.
+Output      : std::vector<class Captbl*>& Global - The updated global array.
+Return      : None.
+******************************************************************************/
+void Process::Global_Alloc_Captbl(std::vector<class Captbl*>& Global)
+{
+    this->Captbl->Capid_Global=Global.size();
+    this->Captbl->Macro_Global=std::string("RVM_CAPTBL_")+this->Name;
+    Kobj::Upper(this->Captbl->Macro_Global);
+    Global.push_back(this->Captbl.get());
+    Main::Info("> Captbl %s allocated global capid %lld.",
+               this->Captbl->Macro_Global.c_str(),this->Captbl->Capid_Global);
+}
+/* End Function:Process::Global_Alloc_Captbl *********************************/
+
+/* Begin Function:Process::Global_Alloc_Pgtbl *********************************
+Description : Allocate global capid for page tables.
+Input       : std::vector<class Pgtbl*>& Global - The global array.
+              std::unique_ptr<class Pgtbl>& Pgtbl - The page table to allocate.
+Output      : std::vector<class Pgtbl*>& Global - The updated global array.
+Return      : None.
+******************************************************************************/
+void Process::Global_Alloc_Pgtbl(std::vector<class Pgtbl*>& Global,
+                                 std::unique_ptr<class Pgtbl>& Pgtbl)
+{
+    static ptr_t Serial=0;
+    ptr_t Count;
+
+    /* For top-level page table, we reset serial to 0 */
+    Serial++;
+    if(Pgtbl->Is_Top!=0)
+        Serial=0;
+
+    Pgtbl->Capid_Global=Global.size();
+    Pgtbl->Macro_Global=std::string("RVM_PGTBL_")+this->Name+"_"+std::to_string(Serial);
+    Kobj::Upper(Pgtbl->Macro_Global);
+    Global.push_back(Pgtbl.get());
+    Main::Info("> Pgtbl %s allocated global capid %lld.",
+               Pgtbl->Macro_Global.c_str(),Pgtbl->Capid_Global);
+
+    /* Recursively do allocation */
+    for(Count=0;Count<Pgtbl->Pgdir.size();Count++)
+    {
+        if(Pgtbl->Pgdir[Count]!=nullptr)
+            this->Global_Alloc_Pgtbl(Global,Pgtbl->Pgdir[Count]);
+    }
+}
+/* End Function:Process::Global_Alloc_Pgtbl **********************************/
+
+/* Begin Function:Process::Global_Alloc_Process *******************************
+Description : Allocate global capid for process.
+Input       : std::vector<class Process*>& Global - The global array.
+Output      : std::vector<class Process*>& Global - The updated global array.
+Return      : None.
+******************************************************************************/
+void Process::Global_Alloc_Process(std::vector<class Process*>& Global)
+{
+    this->Capid_Global=Global.size();
+    this->Macro_Global=std::string("RVM_PROC_")+this->Name;
+    Kobj::Upper(this->Macro_Global);
+    Global.push_back(this);
+    Main::Info("> Process %s allocated global capid %lld.",
+               this->Macro_Global.c_str(),this->Capid_Global);
+}
+/* End Function:Process::Global_Alloc_Process ********************************/
+
+/* Begin Function:Process::Global_Alloc_Thread ********************************
+Description : Allocate global capid for threads.
+Input       : std::vector<class Thread*>& Global - The global array.
+Output      : std::vector<class Thread*>& Global - The updated global array.
+Return      : None.
+******************************************************************************/
+void Process::Global_Alloc_Thread(std::vector<class Thread*>& Global)
+{
+    for(std::unique_ptr<class Thread>& Thd:this->Thread)
+    {
+        Thd->Capid_Global=Global.size();
+        Thd->Macro_Global=std::string("RVM_THD_")+Thd->Name+"_PROC_"+this->Name;
+        Kobj::Upper(Thd->Macro_Global);
+        Global.push_back(Thd.get());
+        Main::Info("> Thread %s allocated global capid %lld.",
+                   Thd->Macro_Global.c_str(),Thd->Capid_Global);
+    }
+}
+/* End Function:Process::Global_Alloc_Thread *********************************/
+
+/* Begin Function:Process::Global_Alloc_Invocation ****************************
+Description : Allocate global capid for invocations.
+Input       : std::vector<class Invocation*>& Global - The global array.
+Output      : std::vector<class Invocation*>& Global - The updated global array.
+Return      : None.
+******************************************************************************/
+void Process::Global_Alloc_Invocation(std::vector<class Invocation*>& Global)
+{
+    for(std::unique_ptr<class Invocation>& Inv:this->Invocation)
+    {
+        Inv->Capid_Global=Global.size();
+        Inv->Macro_Global=std::string("RVM_INV_")+Inv->Name+"_PROC_"+this->Name;
+        Kobj::Upper(Inv->Macro_Global);
+        Global.push_back(Inv.get());
+        Main::Info("> Invocation %s allocated global capid %lld.",
+                   Inv->Macro_Global.c_str(),Inv->Capid_Global);
+    }
+}
+/* End Function:Process::Global_Alloc_Invocation *****************************/
+
+/* Begin Function:Process::Global_Alloc_Receive *******************************
+Description : Allocate global capid for receive endpoints.
+Input       : std::vector<class Receive*>& Global - The global array.
+Output      : std::vector<class Receive*>& Global - The updated global array.
+Return      : None.
+******************************************************************************/
+void Process::Global_Alloc_Receive(std::vector<class Receive*>& Global)
+{
+    for(std::unique_ptr<class Receive>& Recv:this->Receive)
+    {
+        Recv->Capid_Global=Global.size();
+        Recv->Macro_Global=std::string("RVM_RECV_")+Recv->Name+"_PROC_"+this->Name;
+        Kobj::Upper(Recv->Macro_Global);
+        Global.push_back(Recv.get());
+        Main::Info("> Receive endpoint %s allocated global capid %lld.",
+                   Recv->Macro_Global.c_str(),Recv->Capid_Global);
+    }
+}
+/* End Function:Process::Global_Alloc_Receive ********************************/
+
+/* Begin Function:Process::Global_Alloc_Vector ********************************
+Description : Allocate global capid for receive endpoints.
+Input       : std::vector<class Vect_Info*>& Global - The global array.
+Output      : std::vector<class Vect_Info*>& Global - The updated global array.
+Return      : None.
+******************************************************************************/
+void Process::Global_Alloc_Vector(std::vector<class Vect_Info*>& Global)
+{
+    for(std::unique_ptr<class Vect_Info>& Vect:this->Vector)
+    {
+        Vect->Capid_Global=Global.size();
+        Vect->Macro_Global=std::string("RVM_VECT_")+Vect->Name+"_BOOT";
+        Kobj::Upper(Vect->Macro_Global);
+        Vect->Macro_Kernel=std::string("RME_VECT_")+Vect->Name+"_BOOT";
+        Kobj::Upper(Vect->Macro_Kernel);
+        Global.push_back(Vect.get());
+        Main::Info("> Vector endpoint %s (%s) allocated global capid %lld.",
+                   Vect->Macro_Global.c_str(),Vect->Macro_Kernel.c_str(),Vect->Capid_Global);
+    }
+}
+/* End Function:Process::Global_Alloc_Vector *********************************/
 }
 /* End Of File ***************************************************************/
 

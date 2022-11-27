@@ -34,10 +34,12 @@ namespace RVM_GEN
 /* Begin Function:Invocation::Invocation **************************************
 Description : Constructor for invocation class.
 Input       : xml_node_t* Root - The node containing the invocation.
+              class Process* Owner - The owner process of this kernel object.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Invocation::Invocation(xml_node_t* Root)
+/* void */ Invocation::Invocation(xml_node_t* Root, class Process* Owner):
+Kobj(Owner)
 {
     try
     {

@@ -36,6 +36,10 @@ public:
     std::string Version;
     /* Processor word length */
     ptr_t Wordlength;
+    /* Capability table maximum capacity (for a single layer) */
+    ptr_t Captbl_Max;
+    /* Kernel function maximum number (last one not included) */
+    ptr_t Kfunc_Max;
     /* Compatible guest list */
     std::vector<std::string> Guest;
     /* Compatible buildsystem list */

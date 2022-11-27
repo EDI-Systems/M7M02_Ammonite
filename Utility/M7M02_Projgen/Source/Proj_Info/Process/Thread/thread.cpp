@@ -34,10 +34,12 @@ namespace RVM_GEN
 /* Begin Function:Thread::Thread **********************************************
 Description : Constructor for thread class.
 Input       : xml_node_t* Root - The node containing the thread.
+              class Process* Owner - The owner process of this kernel object.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Thread::Thread(xml_node_t* Root)
+/* void */ Thread::Thread(xml_node_t* Root, class Process* Owner):
+Kobj(Owner)
 {
     try
     {

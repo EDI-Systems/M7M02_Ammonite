@@ -135,6 +135,7 @@ public:
     void Pgtbl_Alloc(void);
 
     void Cap_Alloc(void);
+    void Cap_Link(void);
     void Obj_Alloc(void);
 
     static std::string XML_Get_String(xml_node_t* Root, const char* Name,

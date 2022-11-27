@@ -30,12 +30,10 @@ namespace RVM_GEN
 class Port:public Kobj
 {
 public:
-    /* Port name */
-    std::string Name;
     /* Port process */
     std::string Process;
 
-    /* void */ Port(xml_node_t* Root);
+    /* void */ Port(xml_node_t* Root, class Process* Owner);
 };
 /*****************************************************************************/
 /* __PORT_HPP_CLASSES__ */

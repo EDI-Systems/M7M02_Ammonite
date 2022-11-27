@@ -26,6 +26,7 @@ extern "C"
 
 #define __HDR_CLASSES__
 #include "rvm_gen.hpp"
+#include "Proj_Info/Kobj/kobj.hpp"
 #include "Vect_Info/vect_info.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/
@@ -34,10 +35,12 @@ namespace RVM_GEN
 /* Begin Function:Vect_Info::Vect_Info ****************************************
 Description : Parse the vector section of a particular chip.
 Input       : xml_node_t* Root - The option section's XML node.
+              class Process* Owner - The owner process of this kernel object.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Vect_Info::Vect_Info(xml_node_t* Root)
+/* void */ Vect_Info::Vect_Info(xml_node_t* Root, class Process* Owner):
+Kobj(Owner)
 {
     std::string Temp;
 

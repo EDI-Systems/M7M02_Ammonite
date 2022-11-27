@@ -1,21 +1,21 @@
 /******************************************************************************
-Filename    : plat_gen.hpp
+Filename    : kobj.hpp
 Author      : pry
-Date        : 08/04/2017
+Date        : 16/07/2019
 Licence     : LGPL v3+; see COPYING for details.
-Description : The header of the platform generator.
+Description : The header for the kernel object class.
 ******************************************************************************/
 
 /* Defines *******************************************************************/
 namespace RVM_GEN
 {
 #ifdef __HDR_DEFS__
-#ifndef __PLAT_GEN_HPP_DEFS__
-#define __PLAT_GEN_HPP_DEFS__
+#ifndef __KOBJ_HPP_DEFS__
+#define __KOBJ_HPP_DEFS__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __PLAT_GEN_HPP_DEFS__ */
+/* __KOBJ_HPP_DEFS__ */
 #endif
 /* __HDR_DEFS__ */
 #endif
@@ -23,26 +23,37 @@ namespace RVM_GEN
 
 /* Classes *******************************************************************/
 #ifdef __HDR_CLASSES__
-#ifndef __PLAT_GEN_HPP_CLASSES__
-#define __PLAT_GEN_HPP_CLASSES__
+#ifndef __KOBJ_HPP_CLASSES__
+#define __KOBJ_HPP_CLASSES__
 /*****************************************************************************/
-/* Platform generator */
-class Plat_Gen
+/* Kernel object information */
+class Kobj
 {
 public:
-    /* Platform name */
+    /* Name of the kernel object */
     std::string Name;
+    /* The process that it belongs to */
+    class Process* Owner;
+    /* The local capid of the port */
+    ptr_t Capid_Local;
+    /* The global linear capid of the endpoint */
+    ptr_t Capid_Global;
+    /* The macro denoting the global capid */
+    std::string Macro_Local;
+    /* The macro denoting the global capid */
+    std::string Macro_Global;
+    /* The macro denoting the global capid - for RME */
+    std::string Macro_Kernel;
 
-    /* void */ Plat_Gen(const std::string& Name);
-    virtual /* void */ ~Plat_Gen(void){};
+    /* void */ Kobj(class Process* Owner);
+    virtual /* void */ ~Kobj(void)=0;
 
-    virtual void Compatible_Get(std::vector<std::tuple<std::string,std::string,std::string>>& List)=0;
-    virtual ptr_t Mem_Align(ptr_t Base, ptr_t Size)=0;
-    virtual std::unique_ptr<class Pgtbl> Pgtbl_Gen(std::vector<std::unique_ptr<class Mem_Info>>& List,
-                                                   class Process* Owner, ptr_t Total_Max, ptr_t& Total_Static)=0;
+    static void Upper(std::string& Str);
+    static void Lower(std::string& Str);
+    static ret_t Strcicmp(const std::string& Str1, const std::string& Str2);
 };
 /*****************************************************************************/
-/* __PLAT_GEN_HPP_CLASSES__ */
+/* __KOBJ_HPP_CLASSES__ */
 #endif
 /* __HDR_CLASSES__ */
 #endif

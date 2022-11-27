@@ -16,6 +16,15 @@ namespace RVM_GEN
 /* Process type */
 #define PROC_NATIVE         (0)
 #define PROC_VIRTUAL        (1)
+
+/* Every processes have the some capability slots at the front preserved.
+ * For processes,
+ * [0] is the potential event send kernel capability,
+ * For virtual machines,
+ * [0] is the Vmmd hypercall endpoint,
+ * [1] is the Vctd vector endpoint. */
+#define PROC_CAPTBL_BASE    (1)
+#define VIRT_CAPTBL_BASE    (2)
 /*****************************************************************************/
 /* __PROCESS_HPP_DEFS__ */
 #endif
@@ -32,8 +41,6 @@ namespace RVM_GEN
 class Process:public Kobj
 {
 public:
-    /* Process name */
-    std::string Name;
     /* Process type */
     ptr_t Type;
     /* Extra capability table size */
@@ -103,6 +110,16 @@ public:
     /* void */ Process(xml_node_t* Root, ptr_t Type);
 
     void Check(void);
+
+    void Local_Alloc(ptr_t Max);
+    void Global_Alloc_Captbl(std::vector<class Captbl*>& Global);
+    void Global_Alloc_Pgtbl(std::vector<class Pgtbl*>& Global,
+                            std::unique_ptr<class Pgtbl>& Pgtbl);
+    void Global_Alloc_Process(std::vector<class Process*>& Global);
+    void Global_Alloc_Thread(std::vector<class Thread*>& Global);
+    void Global_Alloc_Invocation(std::vector<class Invocation*>& Global);
+    void Global_Alloc_Receive(std::vector<class Receive*>& Global);
+    void Global_Alloc_Vector(std::vector<class Vect_Info*>& Global);
 };
 /*****************************************************************************/
 /* __PROCESS_HPP_CLASSES__ */

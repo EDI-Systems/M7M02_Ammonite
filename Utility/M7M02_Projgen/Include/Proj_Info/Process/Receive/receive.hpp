@@ -30,10 +30,8 @@ namespace RVM_GEN
 class Receive:public Kobj
 {
 public:
-    /* Receive endpoint name */
-    std::string Name;
 
-    /* void */  Receive(xml_node_t* Root);
+    /* void */  Receive(xml_node_t* Root, class Process* Owner);
 };
 /*****************************************************************************/
 /* __RECEIVE_HPP_CLASSES__ */

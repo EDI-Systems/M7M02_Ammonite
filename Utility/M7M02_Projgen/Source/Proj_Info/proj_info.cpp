@@ -91,6 +91,11 @@ Return      : None.
         /* Processes & VMs */
         Trunk_Parse_Param<class Process,class Process,ptr_t>(Root,"Process",this->Process,PROC_NATIVE,"DXXXX","DXXXX");
         Trunk_Parse<class Process,class Virtual>(Root,"Virtual",this->Process,"DXXXX","DXXXX");
+        for(std::unique_ptr<class Process>& Proc:this->Process)
+        {
+            if(Proc->Type==PROC_VIRTUAL)
+                this->Virtual.push_back(static_cast<class Virtual*>(Proc.get()));
+        }
     }
     catch(std::exception& Exc)
     {

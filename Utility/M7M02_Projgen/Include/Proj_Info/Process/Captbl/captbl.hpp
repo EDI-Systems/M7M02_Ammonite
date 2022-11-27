@@ -1,21 +1,21 @@
 /******************************************************************************
-Filename    : plat_gen.hpp
+Filename    : captbl.hpp
 Author      : pry
-Date        : 08/04/2017
+Date        : 16/07/2019
 Licence     : LGPL v3+; see COPYING for details.
-Description : The header of the platform generator.
+Description : The header for the capability table class.
 ******************************************************************************/
 
 /* Defines *******************************************************************/
 namespace RVM_GEN
 {
 #ifdef __HDR_DEFS__
-#ifndef __PLAT_GEN_HPP_DEFS__
-#define __PLAT_GEN_HPP_DEFS__
+#ifndef __CAPTBL_HPP_DEFS__
+#define __CAPTBL_HPP_DEFS__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __PLAT_GEN_HPP_DEFS__ */
+/* __CAPTBL_HPP_DEFS__ */
 #endif
 /* __HDR_DEFS__ */
 #endif
@@ -23,26 +23,22 @@ namespace RVM_GEN
 
 /* Classes *******************************************************************/
 #ifdef __HDR_CLASSES__
-#ifndef __PLAT_GEN_HPP_CLASSES__
-#define __PLAT_GEN_HPP_CLASSES__
+#ifndef __CAPTBL_HPP_CLASSES__
+#define __CAPTBL_HPP_CLASSES__
 /*****************************************************************************/
-/* Platform generator */
-class Plat_Gen
+/* Capability table information */
+class Captbl:public Kobj
 {
 public:
-    /* Platform name */
-    std::string Name;
+    /* The frontier */
+    ptr_t Front;
+    /* The ultimate size */
+    ptr_t Size;
 
-    /* void */ Plat_Gen(const std::string& Name);
-    virtual /* void */ ~Plat_Gen(void){};
-
-    virtual void Compatible_Get(std::vector<std::tuple<std::string,std::string,std::string>>& List)=0;
-    virtual ptr_t Mem_Align(ptr_t Base, ptr_t Size)=0;
-    virtual std::unique_ptr<class Pgtbl> Pgtbl_Gen(std::vector<std::unique_ptr<class Mem_Info>>& List,
-                                                   class Process* Owner, ptr_t Total_Max, ptr_t& Total_Static)=0;
+    /* void */ Captbl(ptr_t Front, ptr_t Size, class Process* Owner);
 };
 /*****************************************************************************/
-/* __PLAT_GEN_HPP_CLASSES__ */
+/* __CAPTBL_HPP_CLASSES__ */
 #endif
 /* __HDR_CLASSES__ */
 #endif

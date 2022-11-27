@@ -30,12 +30,10 @@ namespace RVM_GEN
 class Send:public Kobj
 {
 public:
-    /* Receive endpoint name */
-    std::string Name;
-    /* Receive endpoing process */
+    /* Target receive endpoint process */
     std::string Process;
 
-    Send(xml_node_t* Root);
+    /* void */ Send(xml_node_t* Root, class Process* Owner);
 };
 /*****************************************************************************/
 /* __SEND_HPP_CLASSES__ */

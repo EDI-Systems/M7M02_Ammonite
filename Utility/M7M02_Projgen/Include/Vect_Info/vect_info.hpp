@@ -29,7 +29,7 @@ namespace RVM_GEN
 #define __VECT_INFO_HPP_CLASSES__
 /*****************************************************************************/
 /* The vector information */
-class Vect_Info
+class Vect_Info:public Kobj
 {
 public:
     /* Name*/
@@ -37,7 +37,7 @@ public:
     /* Vector number */
     ptr_t Number;
 
-    /* void */ Vect_Info(xml_node_t* Root);
+    /* void */ Vect_Info(xml_node_t* Root, class Process* Owner);
 
     void Check(void);
 };

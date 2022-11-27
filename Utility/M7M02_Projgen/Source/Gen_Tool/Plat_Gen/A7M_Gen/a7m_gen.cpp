@@ -350,13 +350,14 @@ void A7M_Gen::Page_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
 /* Begin Function:A7M_Gen::Pgdir_Map ******************************************
 Description : Map page directories into the page table.
 Input       : std::vector<std::unique_ptr<class Mem>>& List - The memory block list.
+              class Process* Owner - The owner process of this kernel object.
               std::unique_ptr<class Pgtbl>& Pgtbl - The current page table.
 Output      : std::unique_ptr<class Pgtbl>& Pgtbl - The updated current page table.
               ptr_t& Total_Static - The total number of static regions used.
 Return      : None.
 ******************************************************************************/
 void A7M_Gen::Pgdir_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
-                        std::unique_ptr<class Pgtbl>& Pgtbl, ptr_t& Total_Static)
+                        class Process* Owner, std::unique_ptr<class Pgtbl>& Pgtbl, ptr_t& Total_Static)
 {
     ptr_t Base;
     ptr_t Size;
@@ -399,7 +400,7 @@ void A7M_Gen::Pgdir_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
             /* Map in the child list if there are any at all */
             if(!Child_List.empty())
             {
-                Pgtbl->Pgdir[Page_Cnt]=this->Pgtbl_Gen(Child_List,Pgtbl->Size_Order,Total_Static);
+                Pgtbl->Pgdir[Page_Cnt]=this->Pgtbl_Gen(Child_List,Owner,Pgtbl->Size_Order,Total_Static);
                 /* Clean up what we have allocated */
                 Child_List.clear();
             }
@@ -413,6 +414,7 @@ Description : Recursively construct the page table for the ARMv7-M port.
 Input       : std::vector<std::unique_ptr<class Mem_Info>>& - The list containing
                                                               memory segments to fit
                                                               into this level (and below).
+              class Process* Owner - The owner process of this kernel object.
               ptr_t Total_Max - The maximum total order of the page table, cannot
                                 be exceeded when deciding the total order of the
                                 page table.
@@ -423,7 +425,7 @@ Return      : std::unique_ptr<class Pgtbl> - The page table structure returned. 
                                              error out.
 ******************************************************************************/
 std::unique_ptr<class Pgtbl> A7M_Gen::Pgtbl_Gen(std::vector<std::unique_ptr<class Mem_Info>>& List,
-                                                ptr_t Total_Max, ptr_t& Total_Static)
+                                                class Process* Owner, ptr_t Total_Max, ptr_t& Total_Static)
 {
     ptr_t Base;
     ptr_t Num_Order;
@@ -443,12 +445,12 @@ std::unique_ptr<class Pgtbl> A7M_Gen::Pgtbl_Gen(std::vector<std::unique_ptr<clas
     Size_Order=Total_Order-Num_Order;
 
     /* Page table attributes are in fact not used in A7M, we always set to full attributes */
-    Pgtbl=std::make_unique<class Pgtbl>(Base, Size_Order, Num_Order, MEM_FULL);
+    Pgtbl=std::make_unique<class Pgtbl>(Base, Size_Order, Num_Order, MEM_FULL, Owner);
     Main::Info("> Creating pgdir base 0x%llX size order %lld num order %lld.",Base,Size_Order,Num_Order);
     /* Map in all pages */
     this->Page_Map(List, Pgtbl);
     /* Map in all page directories - recursive */
-    this->Pgdir_Map(List, Pgtbl, Total_Static);
+    this->Pgdir_Map(List, Owner, Pgtbl, Total_Static);
 
     /* If a single page is static, we now have a static MPU region */
     for(ptr_t Page:Pgtbl->Page)

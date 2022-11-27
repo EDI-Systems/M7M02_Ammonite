@@ -69,6 +69,18 @@ public:
     std::string Init_Source_Output;
     ptr_t Init_Source_Overwrite;
 
+    /* Global captbl containing all sorts of kernel objects */
+    std::vector<class Captbl*> Captbl;
+    std::vector<class Pgtbl*> Pgtbl;
+    std::vector<class Process*> Process;
+    std::vector<class Thread*> Thread;
+    std::vector<class Invocation*> Invocation;
+    std::vector<class Port*> Port;
+    std::vector<class Receive*> Receive;
+    std::vector<class Send*> Send;
+    std::vector<class Vect_Info*> Vector;
+    std::vector<class Kfunc*> Kfunc;
+
     /* void */ Monitor(xml_node_t* Root, ptr_t Code_Base, ptr_t Code_Size);
 };
 /*****************************************************************************/

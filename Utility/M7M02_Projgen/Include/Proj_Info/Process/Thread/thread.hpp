@@ -30,8 +30,6 @@ namespace RVM_GEN
 class Thread:public Kobj
 {
 public:
-    /* Name */
-    std::string Name;
     /* The stack size of the thread */
     ptr_t Stack_Size;
     /* The parameter passed to the thread */
@@ -39,7 +37,7 @@ public:
     /* The priority of the thread */
     ptr_t Priority;
 
-    /* void */ Thread(xml_node_t* Root);
+    /* void */ Thread(xml_node_t* Root, class Process* Owner);
 };
 /*****************************************************************************/
 /* __THREAD_HPP_CLASSES__ */

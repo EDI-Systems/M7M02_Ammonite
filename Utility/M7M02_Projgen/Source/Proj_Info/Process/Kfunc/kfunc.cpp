@@ -34,10 +34,12 @@ namespace RVM_GEN
 /* Begin Function:Kfunc::Kfunc ************************************************
 Description : Constructor for kernel function class.
 Input       : xml_node_t* Root - The node containing the kernel function.
+              class Process* Owner - The owner process of this kernel object.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Kfunc::Kfunc(xml_node_t* Root)
+/* void */ Kfunc::Kfunc(xml_node_t* Root, class Process* Owner):
+Kobj(Owner)
 {
     try
     {

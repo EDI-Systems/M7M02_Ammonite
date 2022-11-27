@@ -336,7 +336,7 @@ void Main::Standalone_Check(void)
     }
     catch(std::exception& Exc)
     {
-        Main::Error(std::string("Check:\n")+Exc.what());
+        Main::Error(std::string("Standalone file:\n")+Exc.what());
     }
 }
 /* End Function:Main::Standalone_Check ***************************************/
@@ -372,7 +372,7 @@ void Main::Compatible_Check(void)
             Main::Error("M1002: Kernel memory allocation granularity order must be no more than 2^5=32 bytes.");
 
         /* Check VMM configs */
-        if(this->Proj->Virtual.size()!=0)
+        if(this->Proj->Virtual.empty()==false)
         {
             if(this->Proj->Monitor->Virt_Prio==0)
                 Main::Error("M1004: Virtual machine exists but the total number of virtual machine priorities is set to 0.");
@@ -398,7 +398,7 @@ void Main::Compatible_Check(void)
     }
     catch(std::exception& Exc)
     {
-        Main::Error(std::string("Check:\n")+Exc.what());
+        Main::Error(std::string("Compatibility:\n")+Exc.what());
     }
 }
 /* End Function:Main::Compatible_Check ***************************************/
@@ -433,7 +433,7 @@ void Main::Config_Check(void)
     }
     catch(std::exception& Exc)
     {
-        Main::Error(std::string("Check:\n")+Exc.what());
+        Main::Error(std::string("Config:\n")+Exc.what());
     }
 }
 /* End Function:Main::Config_Check *******************************************/
@@ -477,7 +477,7 @@ void Main::Physical_Check(void)
     }
     catch(std::exception& Exc)
     {
-        Main::Error(std::string("Check:\n")+Exc.what());
+        Main::Error(std::string("Physical memory:\n")+Exc.what());
     }
 }
 /* End Function:Main::Physical_Check *****************************************/
@@ -520,7 +520,7 @@ void Main::Static_Check(void)
     }
     catch(std::exception& Exc)
     {
-        Main::Error(std::string("Check:\n")+Exc.what());
+        Main::Error(std::string("Static memory:\n")+Exc.what());
     }
 }
 /* End Function:Main::Static_Check *******************************************/
@@ -533,6 +533,7 @@ Return      : None.
 ******************************************************************************/
 void Main::Reference_Check(void)
 {
+    class Virtual* Virt;
     std::map<std::string,class Mem_Info*>::iterator Shmem_Iter;
     std::map<std::string,class Process*>::iterator Proc_Iter;
     std::map<std::string,class Vect_Info*>::iterator Vect_Iter;
@@ -543,6 +544,19 @@ void Main::Reference_Check(void)
         {
             try
             {
+                /* Check extra capability table sizes */
+                if(Proc->Extra_Captbl>this->Plat->Captbl_Max)
+                    Main::Error("M1013: Extra captbl capacity cannot be larger than the platform limit %lld.",this->Plat->Captbl_Max);
+
+                /* Check virtual machine priorities */
+                if(Proc->Type==PROC_VIRTUAL)
+                {
+                    Virt=static_cast<class Virtual*>(Proc.get());
+                    if(Virt->Priority>=this->Proj->Monitor->Virt_Prio)
+                        Main::Error("M1012: Virtual machine priority %lld must be smaller than total number of virtual machine priorities %lld.",
+                                    Virt->Priority, this->Proj->Monitor->Virt_Prio);
+                }
+
                 /* Check shared memory references */
                 for(std::unique_ptr<class Mem_Info>& Shmem:Proc->Shmem)
                 {
@@ -553,6 +567,15 @@ void Main::Reference_Check(void)
                     /* Check access permissions */
                     if((Shmem_Iter->second->Attr&Shmem->Attr)!=Shmem->Attr)
                         Main::Error("PXXXX: Shared memory '"+Shmem->Name+"' contains wrong attributes.");
+                }
+
+                /* Check thread parameters */
+                for(std::unique_ptr<class Thread>& Thd:Proc->Thread)
+                {
+                    if(Thd->Priority<PROC_THD_PRIO_MIN)
+                        Main::Error("M1010: Thread '"+Thd->Name+"' priority must be bigger than service daemons' priority (4).");
+                    else if(Thd->Priority>(this->Proj->Kernel->Kern_Prio-2))
+                        Main::Error("M1011: Thread '"+Thd->Name+"' priority must be smaller than safety daemon's priority (Kern_Prio-1).");
                 }
 
                 /* Check port references */
@@ -588,16 +611,24 @@ void Main::Reference_Check(void)
                     if(Vect_Iter->second->Number!=Vect->Number)
                         Main::Error("PXXXX: Vector '"+Vect->Name+"' contains a wrong vector number.");
                 }
+
+                /* Check kernel function ranges */
+                for(std::unique_ptr<class Kfunc>& Kfunc:Proc->Kfunc)
+                {
+                    if(Kfunc->End>=this->Plat->Kfunc_Max)
+                        Main::Error("PXXXX: Kernel function '%s' number range exceeded the platform limit %lld.",
+                                    Kfunc->Name.c_str(),this->Plat->Kfunc_Max);
+                }
             }
             catch(std::exception& Exc)
             {
-                Main::Error(std::string("Process:\n")+Exc.what());
+                Main::Error(std::string("Process: ")+Proc->Name+"\n"+Exc.what());
             }
         }
     }
     catch(std::exception& Exc)
     {
-        Main::Error(std::string("Check:\n")+Exc.what());
+        Main::Error(std::string("Kernel object reference:\n")+Exc.what());
     }
 }
 /* End Function:Main::Reference_Check ****************************************/
@@ -1184,7 +1215,7 @@ void Main::Pgtbl_Alloc(void)
                  *   2.1 If there are no less than 2 DYNAMIC regions, replace one of them.
                  *   2.2 If there are less than 2 DYNAMIC regions, replace a STATIC region. */
                 Total_Static=0;
-                Proc->Pgtbl=this->Gen->Plat->Pgtbl_Gen(Proc->Memory_All, this->Plat->Wordlength, Total_Static);
+                Proc->Pgtbl=this->Gen->Plat->Pgtbl_Gen(Proc->Memory_All, Proc.get(), this->Plat->Wordlength, Total_Static);
                 Proc->Pgtbl->Is_Top=1;
                 if(Total_Static>(this->Chip->Region-2))
                 {
@@ -1206,95 +1237,142 @@ void Main::Pgtbl_Alloc(void)
 /* End Function:Main::Pgtbl_Alloc ********************************************/
 
 /* Begin Function:Main::Cap_Alloc *********************************************
-Description : Allocate capabilities for kernel objects.
+Description : Allocate capabilities for kernel objects. This includes both local and
+              global capids, and also their macros.
+              Each global object will reside in its own capability table.
+              This facilitates management, and circumvents the capability size
+              limit that may present on 32-bit systems.
+              How many distinct kernel objects are there? We just need to add up
+              the following: All captbls (each process have one), all processes,
+              all threads, all invocations, all receive endpoints. The ports and
+              send endpoints do not have a distinct kernel object; the vector
+              endpoints are created by the kernel at boot-time, while the pgtbls
+              are decided by architecture-specific code.
 Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
 void Main::Cap_Alloc(void)
 {
-//    std::string* Errmsg;
-//    class Virt* Virt;
-//
-//    try
-//    {
-//        Main::Info("Allocating capabilities.");
-//
-//        /* Check all threads' priority in non-virtual machine processes */
-//        for(std::unique_ptr<class Proc>& Proc:this->Proj->Proc)
-//        {
-//            try
-//            {
-//                if(Proc->Type==PROC_TYPE_NATIVE)
-//                {
-//                    for(std::unique_ptr<class Thd>& Thd:Proc->Thd)
-//                    {
-//                        if(Thd->Prio<PROC_THD_PRIO_MIN)
-//                            throw std::invalid_argument(std::string("Thread: ")+*(Thd->Name.get())+"\nM1010: Priority must be bigger than service daemons' priority (4).");
-//                        else if(Thd->Prio>(this->Proj->RME->Kern_Prios-2))
-//                            throw std::invalid_argument(std::string("Thread: ")+*(Thd->Name.get())+"\nM1011: Priority must be smaller than safety daemon's priority (Kern_Prios-1).");
-//                    }
-//                }
-//                else
-//                {
-//                    /* Check virtual machine priorities */
-//                    Virt=static_cast<class Virt*>(Proc.get());
-//                    if(Virt->Prio>=this->Proj->RVM->Virt_Prios)
-//                        throw std::invalid_argument(std::string("M1012: Priority must be smaller than total number of virtual machine priorities."));
-//                }
-////                /* Check kernel function ranges */
-    //                for(std::unique_ptr<class Kern>& Kern:Proc->Kern)
-    //                {
-    //                    if(Kern->End>=POW2(this->Plat->Word_Bits/2))
-    //                        throw std::invalid_argument(std::string("Kernel function: ")+*(Kern->Name.get())+"\nM1014 Kernel function number range exceeded the architectural limit.");
-    //                }
+    try
+    {
+        /* Local capid/macro allocation */
+        for(std::unique_ptr<class Process>& Proc:this->Proj->Process)
+        {
+            Main::Info(std::string("Allocating local caps for process '")+Proc->Name+"'.");
+            Proc->Local_Alloc(this->Plat->Captbl_Max);
+        }
 
-//                /* Check extra capability table sizes */
-//                if(Proc->Captbl->Extra>this->Plat->Capacity)
-//                    throw std::invalid_argument(std::string("M1013: Extra capacity cannot be larger than the architectural limit."));
-//
-
-//            }
-//            catch(std::exception& Exc)
-//            {
-//                throw std::runtime_error(std::string("Process: ")+*(Proc->Name.get())+"\n"+Exc.what());
-//            }
-//        }
-//
-//        /* Check processes */
-//        Errmsg=Kobj::Check_Kobj<class Proc>(this->Proj->Proc);
-//        if(Errmsg!=0)
-//            throw std::invalid_argument(std::string("Process: ")+*Errmsg+"\nM1015: Name is duplicate or invalid.");
-//
-//        /* Check other kernel objects */
-//        for(std::unique_ptr<class Proc>& Proc:this->Proj->Proc)
-//            Proc->Check_Kobj();
-//
-//        /* Check for duplicate vectors */
-//        Errmsg=Vect::Check_Vect(this->Proj);
-//        if(Errmsg!=0)
-//            throw std::invalid_argument(std::string("Vector endpoint: ")+*Errmsg+"\nM1017: Name/number is duplicate or invalid.");
-//
-//        for(std::unique_ptr<class Proc>& Proc:this->Proj->Proc)
-//            Proc->Alloc_Loc(this->Plat->Capacity);
-//
-//        for(std::unique_ptr<class Proc>& Proc:this->Proj->Proc)
-//            Proc->Alloc_RVM(this->Proj->RVM);
-//
-//        for(std::unique_ptr<class Proc>& Proc:this->Proj->Proc)
-//            Proc->Alloc_Macro();
-//
-//        Link_Cap();
-//    }
-//    catch(std::exception& Exc)
-//    {
-//        Main::Error(std::string("Capability allocation:\n")+Exc.what());
-//    }
+        /* Global (monitor) capid/macro allocation */
+        for(std::unique_ptr<class Process>& Proc:this->Proj->Process)
+        {
+            Main::Info(std::string("Allocating global caps for process '")+Proc->Name+"'.");
+            Proc->Global_Alloc_Captbl(this->Proj->Monitor->Captbl);
+            Proc->Global_Alloc_Pgtbl(this->Proj->Monitor->Pgtbl,Proc->Pgtbl);
+            Proc->Global_Alloc_Process(this->Proj->Monitor->Process);
+            Proc->Global_Alloc_Thread(this->Proj->Monitor->Thread);
+            Proc->Global_Alloc_Invocation(this->Proj->Monitor->Invocation);
+            Proc->Global_Alloc_Receive(this->Proj->Monitor->Receive);
+            Proc->Global_Alloc_Vector(this->Proj->Monitor->Vector);
+        }
+    }
+    catch(std::exception& Exc)
+    {
+        Main::Error(std::string("Capability allocation:\n")+Exc.what());
+    }
 }
 /* End Function:Main::Cap_Alloc **********************************************/
 
+/* Begin Function:Main::Cap_Link **********************************************
+Description : Link relevant capabilities for kernel objects.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Cap_Link(void)
+{
+    try
+    {
+        Main::Info("Linking capabilities.");
+        class Proc* Proc_Dst;
+        class Inv* Inv_Dst;
+        class Recv* Recv_Dst;
+        class Vect* Vect_Dst;
+
+     for(std::unique_ptr<class Proc>& Proc:this->Proj->Proc)
+     {
+         /* For every port, there must be a invocation somewhere */
+         for(std::unique_ptr<class Port>& Port:Proc->Port)
+         {
+             Proc_Dst=0;
+             for(std::unique_ptr<class Proc>& Proc_Temp:this->Proj->Proc)
+             {
+                 if(*(Proc_Temp->Name)==*(Port->Proc_Name))
+                 {
+                     Proc_Dst=Proc_Temp.get();
+                     break;
+                 }
+             }
+             if(Proc_Dst==0)
+                 throw std::runtime_error(std::string("Port:")+*(Port->Name)+"\nM1400: Invalid process name.");
+
+             Inv_Dst=0;
+             for(std::unique_ptr<class Inv>& Inv:Proc_Dst->Inv)
+             {
+                 if(*(Inv->Name)==*(Port->Name))
+                 {
+                     Inv_Dst=Inv.get();
+                     break;
+                 }
+             }
+             if(Inv_Dst==0)
+                 throw std::runtime_error(std::string("Port:")+*(Port->Name)+"\nM1401: Invalid invocation name.");
+
+             Port->RVM_Capid=Inv_Dst->RVM_Capid;
+             Port->RVM_Macro=std::make_unique<std::string>(*(Inv_Dst->RVM_Macro));
+         }
+
+         /* For every send endpoint, there must be a receive endpoint somewhere */
+         for(std::unique_ptr<class Send>& Send:Proc->Send)
+         {
+             Proc_Dst=0;
+             for(std::unique_ptr<class Proc>& Proc_Temp:this->Proj->Proc)
+             {
+                 if(*(Proc_Temp->Name)==*(Send->Proc_Name))
+                 {
+                     Proc_Dst=Proc_Temp.get();
+                     break;
+                 }
+             }
+             if(Proc_Dst==0)
+                 throw std::runtime_error(std::string("Send endpoint:")+*(Send->Name)+"\nM1400: Invalid process name.");
+
+             Recv_Dst=0;
+             for(std::unique_ptr<class Recv>& Recv:Proc_Dst->Recv)
+             {
+                 if(*(Recv->Name)==*(Send->Name))
+                 {
+                     Recv_Dst=Recv.get();
+                     break;
+                 }
+             }
+             if(Recv_Dst==0)
+                 throw std::runtime_error(std::string("Send endpoint:")+*(Send->Name)+"\nM1402: Invalid receive endpoint name.");
+
+             Send->RVM_Capid=Recv_Dst->RVM_Capid;
+             Send->RVM_Macro=std::make_unique<std::string>(*(Recv_Dst->RVM_Macro));
+         }
+     }
+    }
+    catch(std::exception& Exc)
+    {
+        Main::Error(std::string("Capability linking:\n")+Exc.what());
+    }
+}
+/* End Function:Main::Cap_Link ***********************************************/
+
 /* Begin Function:Main::Obj_Alloc *********************************************
-Description : Allocate objects for kernel objects.
+Description : Allocate kernel objects.
 Input       : None.
 Output      : None.
 Return      : None.
@@ -1728,6 +1806,7 @@ int main(int argc, char* argv[])
 
 /* Phase 3: Allocate kernel object IDs & macros & kernel objects *************/
         Main->Cap_Alloc();
+        Main->Cap_Link();
         Main->Obj_Alloc();
 
 /* Phase 4: Produce output ***************************************************/

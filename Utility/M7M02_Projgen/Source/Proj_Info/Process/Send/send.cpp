@@ -34,10 +34,12 @@ namespace RVM_GEN
 /* Begin Function:Send::Send **************************************************
 Description : Constructor for Send class.
 Input       : xml_node_t* Root - The node containing the receive endpoint.
+              class Process* Owner - The owner process of this kernel object.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Send::Send(xml_node_t* Root)
+/* void */ Send::Send(xml_node_t* Root, class Process* Owner):
+Kobj(Owner)
 {
     try
     {

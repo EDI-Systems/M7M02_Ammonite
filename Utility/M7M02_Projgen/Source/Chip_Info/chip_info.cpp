@@ -29,6 +29,7 @@ extern "C"
 #include "rvm_gen.hpp"
 #include "Chip_Info/chip_info.hpp"
 #include "Conf_Info/conf_info.hpp"
+#include "Proj_Info/Kobj/kobj.hpp"
 #include "Vect_Info/vect_info.hpp"
 #include "Mem_Info/mem_info.hpp"
 #undef __HDR_CLASSES__
@@ -68,7 +69,7 @@ Return      : None.
         /* Config */
         Trunk_Parse<class Conf_Info,class Conf_Info>(Root,"Config",this->Config,"DXXXX","DXXXX");
         /* Vector */
-        Trunk_Parse<class Vect_Info,class Vect_Info>(Root,"Vector",this->Vector,"DXXXX","DXXXX");
+        Trunk_Parse_Param<class Vect_Info,class Vect_Info>(Root,"Vector",this->Vector,nullptr,"DXXXX","DXXXX");
     }
     catch(std::exception& Exc)
     {

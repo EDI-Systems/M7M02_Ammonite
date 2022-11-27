@@ -1,0 +1,140 @@
+Info: Verbose output mode enabled.
+Info: Running generator.
+Info: Parsing project.
+Info: Aligning memory.
+Info: Allocating memory.
+Info: > Allocated code memory '' size 0x8000 to base address 0x8028000.
+Info: > Allocated code memory 'Main_Code' size 0x8000 to base address 0x8030000.
+Info: > Allocated data memory 'Main_Data' size 0x4000 to base address 0x2000C000.
+Info: > Allocated data memory 'Main_Data' size 0x2000 to base address 0x2000A000.
+Info: > Allocated data memory 'Shared1' size 0x1000 to base address 0x10007000.
+Info: > Allocated data memory 'Extra_Data' size 0x1000 to base address 0x10008000.
+Info: Instantiating shared memory.
+Info: Allocating page tables for process 'Proc1'.
+Info: > Creating pgdir base 0x0 size order 29 num order 3.
+Info: > Mapping pages into pgdir base 0x0 size order 29 num order 3.
+Info: > Mapping pgdirs into pgdir base 0x0 size order 29 num order 3.
+Info: > > Residual memory base 0x8020000 size 0x8000 into slot 0.
+Info: > > Residual memory base 0x10007000 size 0x1000 into slot 0.
+Info: > > Residual memory base 0x10008000 size 0x1000 into slot 0.
+Info: > Creating pgdir base 0x0 size order 26 num order 3.
+Info: > Mapping pages into pgdir base 0x0 size order 26 num order 3.
+Info: > Mapping pgdirs into pgdir base 0x0 size order 26 num order 3.
+Info: > > Residual memory base 0x8020000 size 0x8000 into slot 2.
+Info: > Creating pgdir base 0x8020000 size order 15 num order 0.
+Info: > Mapping pages into pgdir base 0x8020000 size order 15 num order 0.
+Info: > > Memory page base 0x8020000 size 0x8000 mapped with attr 0x3D.
+Info: > Mapping pgdirs into pgdir base 0x8020000 size order 15 num order 0.
+Info: > > Residual memory base 0x10007000 size 0x1000 into slot 4.
+Info: > > Residual memory base 0x10008000 size 0x1000 into slot 4.
+Info: > Creating pgdir base 0x10000000 size order 13 num order 3.
+Info: > Mapping pages into pgdir base 0x10000000 size order 13 num order 3.
+Info: > Mapping pgdirs into pgdir base 0x10000000 size order 13 num order 3.
+Info: > > Residual memory base 0x10007000 size 0x1000 into slot 3.
+Info: > Creating pgdir base 0x10007000 size order 12 num order 0.
+Info: > Mapping pages into pgdir base 0x10007000 size order 12 num order 0.
+Info: > > Memory page base 0x10007000 size 0x1000 mapped with attr 0x39.
+Info: > Mapping pgdirs into pgdir base 0x10007000 size order 12 num order 0.
+Info: > > Residual memory base 0x10008000 size 0x1000 into slot 4.
+Info: > Creating pgdir base 0x10008000 size order 12 num order 0.
+Info: > Mapping pages into pgdir base 0x10008000 size order 12 num order 0.
+Info: > > Memory page base 0x10008000 size 0x1000 mapped with attr 0x3B.
+Info: > Mapping pgdirs into pgdir base 0x10008000 size order 12 num order 0.
+Info: > > Residual memory base 0x20000000 size 0x9000 into slot 1.
+Info: > Creating pgdir base 0x20000000 size order 15 num order 1.
+Info: > Mapping pages into pgdir base 0x20000000 size order 15 num order 1.
+Info: > > Memory page base 0x20000000 size 0x8000 mapped with attr 0x3F.
+Info: > Mapping pgdirs into pgdir base 0x20000000 size order 15 num order 1.
+Info: > > Residual memory base 0x20008000 size 0x1000 into slot 1.
+Info: > Creating pgdir base 0x20008000 size order 12 num order 0.
+Info: > Mapping pages into pgdir base 0x20008000 size order 12 num order 0.
+Info: > > Memory page base 0x20008000 size 0x1000 mapped with attr 0x3F.
+Info: > Mapping pgdirs into pgdir base 0x20008000 size order 12 num order 0.
+Info: > > Residual memory base 0xF0000000 size 0x10000 into slot 7.
+Info: > Creating pgdir base 0xF0000000 size order 16 num order 0.
+Info: > Mapping pages into pgdir base 0xF0000000 size order 16 num order 0.
+Info: > > Memory page base 0xF0000000 size 0x10000 mapped with attr 0x23.
+Info: > Mapping pgdirs into pgdir base 0xF0000000 size order 16 num order 0.
+Info: Allocating page tables for process 'Proc2'.
+Info: > Creating pgdir base 0x0 size order 27 num order 3.
+Info: > Mapping pages into pgdir base 0x0 size order 27 num order 3.
+Info: > Mapping pgdirs into pgdir base 0x0 size order 27 num order 3.
+Info: > > Residual memory base 0x8028000 size 0x8000 into slot 1.
+Info: > Creating pgdir base 0x8028000 size order 15 num order 0.
+Info: > Mapping pages into pgdir base 0x8028000 size order 15 num order 0.
+Info: > > Memory page base 0x8028000 size 0x8000 mapped with attr 0x3D.
+Info: > Mapping pgdirs into pgdir base 0x8028000 size order 15 num order 0.
+Info: > > Residual memory base 0x10007000 size 0x1000 into slot 2.
+Info: > Creating pgdir base 0x10007000 size order 12 num order 0.
+Info: > Mapping pages into pgdir base 0x10007000 size order 12 num order 0.
+Info: > > Memory page base 0x10007000 size 0x1000 mapped with attr 0x3B.
+Info: > Mapping pgdirs into pgdir base 0x10007000 size order 12 num order 0.
+Info: > > Residual memory base 0x2000C000 size 0x4000 into slot 4.
+Info: > Creating pgdir base 0x2000C000 size order 14 num order 0.
+Info: > Mapping pages into pgdir base 0x2000C000 size order 14 num order 0.
+Info: > > Memory page base 0x2000C000 size 0x4000 mapped with attr 0x3F.
+Info: > Mapping pgdirs into pgdir base 0x2000C000 size order 14 num order 0.
+Info: Allocating page tables for process 'Virt1'.
+Info: > Creating pgdir base 0x0 size order 27 num order 3.
+Info: > Mapping pages into pgdir base 0x0 size order 27 num order 3.
+Info: > Mapping pgdirs into pgdir base 0x0 size order 27 num order 3.
+Info: > > Residual memory base 0x8030000 size 0x8000 into slot 1.
+Info: > Creating pgdir base 0x8030000 size order 15 num order 0.
+Info: > Mapping pages into pgdir base 0x8030000 size order 15 num order 0.
+Info: > > Memory page base 0x8030000 size 0x8000 mapped with attr 0x3D.
+Info: > Mapping pgdirs into pgdir base 0x8030000 size order 15 num order 0.
+Info: > > Residual memory base 0x10007000 size 0x1000 into slot 2.
+Info: > Creating pgdir base 0x10007000 size order 12 num order 0.
+Info: > Mapping pages into pgdir base 0x10007000 size order 12 num order 0.
+Info: > > Memory page base 0x10007000 size 0x1000 mapped with attr 0x3B.
+Info: > Mapping pgdirs into pgdir base 0x10007000 size order 12 num order 0.
+Info: > > Residual memory base 0x2000A000 size 0x2000 into slot 4.
+Info: > Creating pgdir base 0x2000A000 size order 13 num order 0.
+Info: > Mapping pages into pgdir base 0x2000A000 size order 13 num order 0.
+Info: > > Memory page base 0x2000A000 size 0x2000 mapped with attr 0x3F.
+Info: > Mapping pgdirs into pgdir base 0x2000A000 size order 13 num order 0.
+Info: Allocating local caps for process 'Proc1'.
+Info: > Port PORT_INV1_PROC_PROC2 allocated local capid 1.
+Info: > Receive endpoint RECV_RECV1 allocated local capid 2.
+Info: > Kernel function KFUNC_KFUNC1 allocated local capid 3.
+Info: Allocating local caps for process 'Proc2'.
+Info: > Receive endpoint RECV_RECV1 allocated local capid 1.
+Info: > Send endpoint SEND_RECV1_PROC_PROC1 allocated local capid 2.
+Info: > Vector endpoint VECT_TIM2 allocated local capid 3.
+Info: > Kernel function KFUNC_KFUNC1 allocated local capid 4.
+Info: Allocating local caps for process 'Virt1'.
+Info: > Send endpoint SEND_RECV1_PROC_PROC1 allocated local capid 2.
+Info: Allocating global caps for process 'Proc1'.
+Info: > Captbl RVM_CAPTBL_PROC1 allocated global capid 0.
+Info: > Pgtbl RVM_PGTBL_PROC1_0 allocated global capid 0.
+Info: > Pgtbl RVM_PGTBL_PROC1_1 allocated global capid 1.
+Info: > Pgtbl RVM_PGTBL_PROC1_2 allocated global capid 2.
+Info: > Pgtbl RVM_PGTBL_PROC1_3 allocated global capid 3.
+Info: > Pgtbl RVM_PGTBL_PROC1_4 allocated global capid 4.
+Info: > Pgtbl RVM_PGTBL_PROC1_5 allocated global capid 5.
+Info: > Pgtbl RVM_PGTBL_PROC1_6 allocated global capid 6.
+Info: > Pgtbl RVM_PGTBL_PROC1_7 allocated global capid 7.
+Info: > Pgtbl RVM_PGTBL_PROC1_8 allocated global capid 8.
+Info: > Process RVM_PROC_PROC1 allocated global capid 0.
+Info: > Thread RVM_THD_THD1_PROC_PROC1 allocated global capid 0.
+Info: > Receive endpoint RVM_RECV_RECV1_PROC_PROC1 allocated global capid 0.
+Info: Allocating global caps for process 'Proc2'.
+Info: > Captbl RVM_CAPTBL_PROC2 allocated global capid 1.
+Info: > Pgtbl RVM_PGTBL_PROC2_0 allocated global capid 9.
+Info: > Pgtbl RVM_PGTBL_PROC2_1 allocated global capid 10.
+Info: > Pgtbl RVM_PGTBL_PROC2_2 allocated global capid 11.
+Info: > Pgtbl RVM_PGTBL_PROC2_3 allocated global capid 12.
+Info: > Process RVM_PROC_PROC2 allocated global capid 1.
+Info: > Thread RVM_THD_THD1_PROC_PROC2 allocated global capid 1.
+Info: > Invocation RVM_INV_INV1_PROC_PROC2 allocated global capid 0.
+Info: > Receive endpoint RVM_RECV_RECV1_PROC_PROC2 allocated global capid 1.
+Info: > Vector endpoint RVM_VECT_TIM2_BOOT (RME_VECT_TIM2_BOOT) allocated global capid 0.
+Info: Allocating global caps for process 'Virt1'.
+Info: > Captbl RVM_CAPTBL_VIRT1 allocated global capid 2.
+Info: > Pgtbl RVM_PGTBL_VIRT1_0 allocated global capid 13.
+Info: > Pgtbl RVM_PGTBL_VIRT1_1 allocated global capid 14.
+Info: > Pgtbl RVM_PGTBL_VIRT1_2 allocated global capid 15.
+Info: > Pgtbl RVM_PGTBL_VIRT1_3 allocated global capid 16.
+Info: > Process RVM_PROC_VIRT1 allocated global capid 2.
+Info: Linking capabilities.
+Info: Allocating objects.

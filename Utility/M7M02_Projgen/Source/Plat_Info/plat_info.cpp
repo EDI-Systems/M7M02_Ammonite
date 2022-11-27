@@ -46,6 +46,10 @@ Return      : None.
         this->Name=Main::XML_Get_String(Root,"Name","DXXXX","DXXXX");
         /* Wordlength */
         this->Wordlength=Main::XML_Get_Number(Root,"Wordlength","DXXXX","DXXXX");
+        /* Captbl_Max */
+        this->Captbl_Max=POW2((this->Wordlength>>2)-1);
+        /* Kfunc_Max */
+        this->Kfunc_Max=POW2(this->Wordlength>>1);
         /* Version */
         this->Version=Main::XML_Get_String(Root,"Version","DXXXX","DXXXX");
         /* Guest */

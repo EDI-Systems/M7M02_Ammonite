@@ -34,10 +34,12 @@ namespace RVM_GEN
 /* Begin Function:Receive::Receive ********************************************
 Description : Constructor for receive class.
 Input       : xml_node_t* Root - The node containing the receive endpoint.
+              class Process* Owner - The owner process of this kernel object.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Receive::Receive(xml_node_t* Root)
+/* void */ Receive::Receive(xml_node_t* Root, class Process* Owner):
+Kobj(Owner)
 {
     try
     {

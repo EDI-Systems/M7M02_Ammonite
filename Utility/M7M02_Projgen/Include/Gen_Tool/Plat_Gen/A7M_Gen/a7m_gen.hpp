@@ -65,8 +65,10 @@ class A7M_Gen:public Plat_Gen
 private:
     ptr_t Pgtbl_Total_Order(std::vector<std::unique_ptr<class Mem_Info>>& List, ptr_t* Base);
     ptr_t Pgtbl_Num_Order(std::vector<std::unique_ptr<class Mem_Info>>& List, ptr_t Total_Order, ptr_t Base);
-    void Page_Map(std::vector<std::unique_ptr<class Mem_Info>>& List, std::unique_ptr<class Pgtbl>& Pgtbl);
-    void Pgdir_Map(std::vector<std::unique_ptr<class Mem_Info>>& List, std::unique_ptr<class Pgtbl>& Pgtbl, ptr_t& Total_Static);
+    void Page_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
+                  std::unique_ptr<class Pgtbl>& Pgtbl);
+    void Pgdir_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
+                   class Process* Owner, std::unique_ptr<class Pgtbl>& Pgtbl, ptr_t& Total_Static);
 
 public:
     /* void */ A7M_Gen(void);
@@ -74,7 +76,7 @@ public:
     virtual void Compatible_Get(std::vector<std::tuple<std::string,std::string,std::string>>& List) final override;
     virtual ptr_t Mem_Align(ptr_t Base, ptr_t Size) final override;
     virtual std::unique_ptr<class Pgtbl> Pgtbl_Gen(std::vector<std::unique_ptr<class Mem_Info>>& List,
-                                                   ptr_t Total_Max, ptr_t& Total_Static) final override;
+                                                   class Process* Owner, ptr_t Total_Max, ptr_t& Total_Static) final override;
 };
 /*****************************************************************************/
 /* __A7M_GEN_HPP_CLASSES__ */

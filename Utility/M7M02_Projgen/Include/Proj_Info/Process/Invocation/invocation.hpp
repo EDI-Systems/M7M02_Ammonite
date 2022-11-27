@@ -30,12 +30,10 @@ namespace RVM_GEN
 class Invocation:public Kobj
 {
 public:
-    /* Name */
-    std::string Name;
     /* The stack size of the invocation */
     ptr_t Stack_Size;
  
-    /* void */ Invocation(xml_node_t* Root);
+    /* void */ Invocation(xml_node_t* Root, class Process* Owner);
 };
 /*****************************************************************************/
 /* __INVOCATION_HPP_CLASSES__ */
