@@ -250,6 +250,7 @@
 			<Project_Overwrite>No</Project_Overwrite>
 			<Linker_Output>./Virt1/Project</Linker_Output>
 			<Config_Header_Output>./Virt1/Include</Config_Header_Output>
+			<Config_Header_Overwrite>No</Config_Header_Overwrite>
 			<Init_Source_Output>./Virt1/Source</Init_Source_Output>
 			<Init_Source_Overwrite>No</Init_Source_Overwrite>
             <Memory>
