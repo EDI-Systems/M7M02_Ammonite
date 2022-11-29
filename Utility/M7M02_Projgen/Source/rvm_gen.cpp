@@ -71,6 +71,7 @@ extern "C"
 #include "iterator"
 #include "stdexcept"
 #include "algorithm"
+#include "filesystem"
 
 #define __HDR_DEFS__
 #include "rvm_gen.hpp"
@@ -296,8 +297,6 @@ Return      : None.
 ******************************************************************************/
 void Main::Parse(void)
 {
-    char Buffer[1024];
-
     try
     {
         Main::Info("Parsing project.");
@@ -305,8 +304,7 @@ void Main::Parse(void)
         /* Parse project file */
         this->Proj_Parse();
         /* Change current path - everything is now relative to the project */
-        Buffer[0]=chdir(this->Input.substr(0,this->Input.find_last_of("/\\")+1).c_str());
-        getcwd(Buffer,1024);
+        std::filesystem::current_path(this->Input.substr(0,this->Input.find_last_of("/\\")+1));
         /* Parse platform description file */
         this->Plat_Parse();
         /* Parse chip description file */
@@ -416,7 +414,7 @@ void Main::Config_Check(void)
     try
     {
         /* Check if all configs are correctly configured: no more, no less */
-        for(const std::pair<std::string,std::string>& Conf:this->Proj->Chip->Config)
+        for(const std::pair<const std::string, std::string>& Conf:this->Proj->Chip->Config)
         {
             Iter=this->Chip->Config_Map.find(Conf.first);
             if(Iter==this->Chip->Config_Map.end())
@@ -874,7 +872,7 @@ void Main::Code_Alloc(void)
         std::sort(Auto.begin(),Auto.end(),
         [](const class Mem_Info* Left, const class Mem_Info* Right)
         {
-                return Left->Size>Right->Size;
+            return Left->Size>Right->Size;
         });
 
         /* Fit whatever that does not have a fixed address */
@@ -882,7 +880,10 @@ void Main::Code_Alloc(void)
         {
             if(Mem->Auto_Fit(this->Proj->Memory_Code)!=0)
                 Main::Error(std::string("M0004: Code memory fitter failed for automatic memory '")+Mem->Name+"'.");
-            Main::Info("> Allocated code memory '%s' size 0x%0llX to base address 0x%0llX.",Mem->Name.c_str(),Mem->Size,Mem->Base);
+            if(Mem->Name=="")
+                Main::Info("> Allocated code memory size 0x%0llX to base address 0x%0llX.",Mem->Size,Mem->Base);
+            else
+                Main::Info("> Allocated code memory '%s' size 0x%0llX to base address 0x%0llX.",Mem->Name.c_str(),Mem->Size,Mem->Base);
         }
     }
     catch(std::exception& Exc)
@@ -1291,78 +1292,36 @@ Return      : None.
 ******************************************************************************/
 void Main::Cap_Link(void)
 {
+    class Invocation* Inv_Dst;
+    class Receive* Recv_Dst;
+
     try
     {
-        Main::Info("Linking capabilities.");
-        class Proc* Proc_Dst;
-        class Inv* Inv_Dst;
-        class Recv* Recv_Dst;
-        class Vect* Vect_Dst;
+        /* Guaranteed to find stuff, or there'll be an internal error */
+        for(std::unique_ptr<class Process>& Proc:this->Proj->Process)
+        {
+            Main::Info(std::string("Linking caps for process '")+Proc->Name+"'.");
 
-     for(std::unique_ptr<class Proc>& Proc:this->Proj->Proc)
-     {
-         /* For every port, there must be a invocation somewhere */
-         for(std::unique_ptr<class Port>& Port:Proc->Port)
-         {
-             Proc_Dst=0;
-             for(std::unique_ptr<class Proc>& Proc_Temp:this->Proj->Proc)
-             {
-                 if(*(Proc_Temp->Name)==*(Port->Proc_Name))
-                 {
-                     Proc_Dst=Proc_Temp.get();
-                     break;
-                 }
+            /* For every port, there must be a invocation somewhere */
+            for(std::unique_ptr<class Port>& Port:Proc->Port)
+            {
+                Inv_Dst=this->Proj->Process_Map[Port->Process]->Invocation_Map[Port->Name];
+                Port->Capid_Global=Inv_Dst->Capid_Global;
+                Port->Macro_Global=Inv_Dst->Macro_Global;
+                Main::Info("> Port %s co-allocated global capid %lld with invocation %s.",
+                           Port->Macro_Local.c_str(),Port->Capid_Global,Port->Macro_Global.c_str());
+            }
+
+            /* For every send endpoint, there must be a receive endpoint somewhere */
+            for(std::unique_ptr<class Send>& Send:Proc->Send)
+            {
+                Recv_Dst=this->Proj->Process_Map[Send->Process]->Receive_Map[Send->Name];
+                Send->Capid_Global=Recv_Dst->Capid_Global;
+                Send->Macro_Global=Recv_Dst->Macro_Global;
+                Main::Info("> Send endpoint %s co-allocated global capid %lld with invocation %s.",
+                           Send->Macro_Local.c_str(),Send->Capid_Global,Send->Macro_Global.c_str());
              }
-             if(Proc_Dst==0)
-                 throw std::runtime_error(std::string("Port:")+*(Port->Name)+"\nM1400: Invalid process name.");
-
-             Inv_Dst=0;
-             for(std::unique_ptr<class Inv>& Inv:Proc_Dst->Inv)
-             {
-                 if(*(Inv->Name)==*(Port->Name))
-                 {
-                     Inv_Dst=Inv.get();
-                     break;
-                 }
-             }
-             if(Inv_Dst==0)
-                 throw std::runtime_error(std::string("Port:")+*(Port->Name)+"\nM1401: Invalid invocation name.");
-
-             Port->RVM_Capid=Inv_Dst->RVM_Capid;
-             Port->RVM_Macro=std::make_unique<std::string>(*(Inv_Dst->RVM_Macro));
-         }
-
-         /* For every send endpoint, there must be a receive endpoint somewhere */
-         for(std::unique_ptr<class Send>& Send:Proc->Send)
-         {
-             Proc_Dst=0;
-             for(std::unique_ptr<class Proc>& Proc_Temp:this->Proj->Proc)
-             {
-                 if(*(Proc_Temp->Name)==*(Send->Proc_Name))
-                 {
-                     Proc_Dst=Proc_Temp.get();
-                     break;
-                 }
-             }
-             if(Proc_Dst==0)
-                 throw std::runtime_error(std::string("Send endpoint:")+*(Send->Name)+"\nM1400: Invalid process name.");
-
-             Recv_Dst=0;
-             for(std::unique_ptr<class Recv>& Recv:Proc_Dst->Recv)
-             {
-                 if(*(Recv->Name)==*(Send->Name))
-                 {
-                     Recv_Dst=Recv.get();
-                     break;
-                 }
-             }
-             if(Recv_Dst==0)
-                 throw std::runtime_error(std::string("Send endpoint:")+*(Send->Name)+"\nM1402: Invalid receive endpoint name.");
-
-             Send->RVM_Capid=Recv_Dst->RVM_Capid;
-             Send->RVM_Macro=std::make_unique<std::string>(*(Recv_Dst->RVM_Macro));
-         }
-     }
+        }
     }
     catch(std::exception& Exc)
     {
@@ -1382,7 +1341,32 @@ void Main::Obj_Alloc(void)
     try
     {
         Main::Info("Allocating objects.");
-
+//        /* Compute the kernel memory needed, disregarding the initial
+//         * capability table size because we don't know its size yet */
+//        this->Proj->Kobj_Alloc(this->Plat,0);
+//        /* Now recompute to get the real usage */
+//        this->Proj->Kobj_Alloc(this->Plat,this->Proj->RVM->Map->Captbl_Size);
+//
+//        /* Populate RME information */
+//        this->Proj->RME->Alloc_Kmem(this->Proj->RVM->Map->After_Kmem_Front, this->Plat->Kmem_Order);
+//
+//        /* Populate RVM information */
+//        this->Proj->RVM->Alloc_Mem(this->Proj->RME->Code_Base+this->Proj->RME->Code_Size,
+//                                   this->Proj->RME->Data_Base+this->Proj->RME->Data_Size,
+//                                   this->Plat->Kmem_Order);
+//
+//        /* Populate Process information */
+//        for(std::unique_ptr<class Proc>& Proc:this->Proj->Proc)
+//        {
+//            try
+//            {
+//                Proc->Alloc_Mem(this->Plat->Word_Bits, this->Plat->Kmem_Order);
+//            }
+//            catch(std::exception& Exc)
+//            {
+//                throw std::runtime_error(std::string("Process: ")+*(Proc->Name)+"\n"+Exc.what());
+//            }
+//        }
     }
     catch(std::exception& Exc)
     {
