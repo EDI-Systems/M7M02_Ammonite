@@ -31,7 +31,7 @@ class Keil_Gen:public Build_Gen
 {
 public:
 
-    /* void */ Keil_Gen(void);
+    /* void */ Keil_Gen(class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip);
 };
 /*****************************************************************************/
 /* __KEIL_GEN_HPP_CLASSES__ */

@@ -40,6 +40,8 @@ public:
     std::unique_ptr<class Mem_Info> Data;
     /* RVM stack size */
     ptr_t Stack_Size;
+    /* Extra capability table size */
+    ptr_t Extra_Captbl;
     /* Virtual machine priorities */
     ptr_t Virt_Prio;
     /* Virtual machine events */
@@ -81,7 +83,54 @@ public:
     std::vector<class Vect_Info*> Vector;
     std::vector<class Kfunc*> Kfunc;
 
+    /* The ultimate capability table size */
+    ptr_t Captbl_Size;
+    /* Init daemon stack */
+    ptr_t Init_Stack_Base;
+    ptr_t Init_Stack_Size;
+    /* Safety daemon stack */
+    ptr_t Sftd_Stack_Base;
+    ptr_t Sftd_Stack_Size;
+    /* VMM daemon stack - currently unused */
+    ptr_t Vmmd_Stack_Base;
+    ptr_t Vmmd_Stack_Size;
+    /* Vector daemon stack - currently unused */
+    ptr_t Vctd_Stack_Base;
+    ptr_t Vctd_Stack_Size;
+    /* Timer daemon stack - currently unused */
+    ptr_t Timd_Stack_Base;
+    ptr_t Timd_Stack_Size;
+    /* Initial state for RVM setup */
+    ptr_t Before_Cap_Front;
+    ptr_t Before_Kmem_Front;
+    /* When we begin creating virtual machine endpoints */
+    ptr_t Virt_Cap_Front;
+    ptr_t Virt_Kmem_Front;
+    /* When we begin creating capability tables */
+    ptr_t Captbl_Cap_Front;
+    ptr_t Captbl_Kmem_Front;
+    /* When we begin creating page tables */
+    ptr_t Pgtbl_Cap_Front;
+    ptr_t Pgtbl_Kmem_Front;
+    /* When we begin creating processes */
+    ptr_t Proc_Cap_Front;
+    ptr_t Proc_Kmem_Front;
+    /* When we begin creating threads */
+    ptr_t Thd_Cap_Front;
+    ptr_t Thd_Kmem_Front;
+    /* When we begin creating invocations */
+    ptr_t Inv_Cap_Front;
+    ptr_t Inv_Kmem_Front;
+    /* When we begin creating receive endpoints */
+    ptr_t Recv_Cap_Front;
+    ptr_t Recv_Kmem_Front;
+    /* After the booting all finishes */
+    ptr_t After_Cap_Front;
+    ptr_t After_Kmem_Front;
+
     /* void */ Monitor(xml_node_t* Root, ptr_t Code_Base, ptr_t Code_Size);
+
+    void Mem_Alloc(ptr_t Kmem_Order);
 };
 /*****************************************************************************/
 /* __MONITOR_HPP_CLASSES__ */

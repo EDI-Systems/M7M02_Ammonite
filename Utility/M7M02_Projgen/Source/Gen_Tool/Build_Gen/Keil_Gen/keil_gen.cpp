@@ -35,12 +35,14 @@ namespace RVM_GEN
 {
 /* Begin Function:Keil_Gen::Keil_Gen ******************************************
 Description : Generator for the Keil uVision.
-Input       : None.
+Input       : class Proj_Info* Proj - The project information.
+              class Plat_Info* Plat - The platform information.
+              class Chip_Info* Chip - The chip information.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Keil_Gen::Keil_Gen(void):
-Build_Gen("Keil")
+/* void */ Keil_Gen::Keil_Gen(class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip):
+Build_Gen("Keil", Proj, Plat, Chip)
 {
     try
     {

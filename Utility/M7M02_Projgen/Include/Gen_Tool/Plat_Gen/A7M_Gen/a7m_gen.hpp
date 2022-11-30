@@ -43,10 +43,14 @@ namespace RVM_GEN
 #define A7M_INIT_NUM_ORD                        (0)
 
 /* A7M kernel object size */
-#define A7M_RAW_THD_SIZE                        (0xBC)
-#define A7M_RAW_INV_SIZE                        (0x24)
 #define A7M_RAW_PGTBL_SIZE_TOP_NOREGIONS(ORDER) (0x14+0x04+POW2(ORDER)*4)
 #define A7M_RAW_PGTBL_SIZE_NOM(ORDER)           (0x14+POW2(ORDER)*4)
+#define A7M_RAW_THD_SIZE                        (0x7C)
+#define A7M_RAW_THD_FPU_SIZE                    (0xBC)
+#define A7M_RAW_INV_SIZE                        (0x24)
+#define A7M_RAW_REG_SIZE                        (0x28)
+#define A7M_RAW_REG_FPU_SIZE                    (0x68)
+#define A7M_RAW_PARAM_SIZE                      (0x2C)
 /*****************************************************************************/
 /* __A7M_GEN_HPP_DEFS__ */
 #endif
@@ -71,12 +75,18 @@ private:
                    class Process* Owner, std::unique_ptr<class Pgtbl>& Pgtbl, ptr_t& Total_Static);
 
 public:
-    /* void */ A7M_Gen(void);
+    /* void */ A7M_Gen(class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip);
 
     virtual void Compatible_Get(std::vector<std::tuple<std::string,std::string,std::string>>& List) final override;
     virtual ptr_t Mem_Align(ptr_t Base, ptr_t Size) final override;
     virtual std::unique_ptr<class Pgtbl> Pgtbl_Gen(std::vector<std::unique_ptr<class Mem_Info>>& List,
                                                    class Process* Owner, ptr_t Total_Max, ptr_t& Total_Static) final override;
+
+    virtual ptr_t Raw_Pgtbl(ptr_t Size_Order, ptr_t Is_Top) final override;
+    virtual ptr_t Raw_Thread(void) final override;
+    virtual ptr_t Raw_Invocation(void) final override;
+    virtual ptr_t Raw_Register(void) final override;
+    virtual ptr_t Raw_Parameter(void) final override;
 };
 /*****************************************************************************/
 /* __A7M_GEN_HPP_CLASSES__ */

@@ -48,11 +48,14 @@ while(0)
 /* Rounding macros */
 #define ROUND_DOWN(X,R)                     ((X)/(R)*(R))
 #define ROUND_UP(X,R)                       ROUND_DOWN((X)+(R)-1,R)
+#define ROUND_DIV(X,R)                      (((X)+(R)-1)/(R))
 
 /* Power of 2 macros */
 #define POW2(POW)                           (((ptr_t)1)<<(POW))
 #define ROUND_DOWN_POW2(X,POW)              (((X)>>(POW))<<(POW))
-#define ROUND_UP_POW2(X,POW)                ROUND_DOWN_POW((X)+POW2(POW)-1,POW)
+#define ROUND_UP_POW2(X,POW)                ROUND_DOWN_POW2((X)+POW2(POW)-1,POW)
+
+#define ROUND_KOBJ(X)                       ROUND_UP_POW2(X,this->Proj->Kernel->Kmem_Order)
 
 /* The code generator author name */
 #define CODE_AUTHOR                         "The RME project generator."
@@ -63,10 +66,6 @@ while(0)
 /* Buffer size for all temporary buffers */
 #define BUF_SIZE                            (1024)
 
-/* Vector flag area size (in bytes), fixed across all architectures */
-#define KERNEL_VCTF_SIZE                    (512)
-/* Event flag area size (in bytes), fixed across all architectures */
-#define KERNEL_EVTF_SIZE                    (512)
 /* Entry point slot size (in words), fixed across all architectures */
 #define ENTRY_SLOT_SIZE                     (8)
 
@@ -136,6 +135,8 @@ public:
 
     void Cap_Alloc(void);
     void Cap_Link(void);
+
+    void Kmem_Alloc(ptr_t Init_Capsz);
     void Obj_Alloc(void);
 
     static std::string XML_Get_String(xml_node_t* Root, const char* Name,

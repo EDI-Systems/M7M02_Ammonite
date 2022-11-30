@@ -594,10 +594,10 @@ void Main::Reference_Check(void)
                     /* Check process existence */
                     Proc_Iter=this->Proj->Process_Map.find(Send->Process);
                     if(Proc_Iter==this->Proj->Process_Map.end())
-                        Main::Error("PXXXX: Port '"+Send->Process+"."+Send->Name+"' refers to a nonexistent process.");
+                        Main::Error("PXXXX: Send endpoint '"+Send->Process+"."+Send->Name+"' refers to a nonexistent process.");
                     /* Check receive endpoint existence */
                     if(Proc_Iter->second->Receive_Map.find(Send->Name)==Proc_Iter->second->Receive_Map.end())
-                        Main::Error("PXXXX: Port '"+Send->Process+"."+Send->Name+"' refers to a nonexistent receive endpoint.");
+                        Main::Error("PXXXX: Send endpoint '"+Send->Process+"."+Send->Name+"' refers to a nonexistent receive endpoint.");
                 }
 
                 /* Check vector references */
@@ -656,7 +656,8 @@ void Main::Check(void)
 /* End Function:Main::Check **************************************************/
 
 /* Begin Function:Main::Setup *************************************************
-Description : Load toolset used for generation.
+Description : Load toolset used for generation. This also passes in all data
+              structures they'll ever need to generate everything.
 Input       : None.
 Output      : None.
 Return      : None.
@@ -668,7 +669,8 @@ void Main::Setup(void)
     try
     {
         /* Load platform toolset */
-        this->Gen=std::make_unique<class Gen_Tool>(this->Plat->Name);
+        this->Gen=std::make_unique<class Gen_Tool>(this->Plat->Name,
+                                                   this->Proj.get(),this->Plat.get(),this->Chip.get());
 
         /* Load buildsystem toolset */
         this->Gen->Build_Load(this->Proj->Kernel->Buildsystem);
@@ -1330,6 +1332,151 @@ void Main::Cap_Link(void)
 }
 /* End Function:Main::Cap_Link ***********************************************/
 
+/* Begin Function:Main::Kmem_Alloc ********************************************
+Description : Get the size of the kernel memory, and generate the initial states
+              for kernel object creation.
+Input       : ptr_t Init_Capsz - The initial capability table's size;
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Kmem_Alloc(ptr_t Init_Capsz)
+{
+    ptr_t Cap_Front;
+    ptr_t Kmem_Front;
+
+    /* Compute initial state when creating the vectors */
+    Cap_Front=0;
+    Kmem_Front=0;
+    /* Initial capability table */
+    Cap_Front++;
+    Kmem_Front+=this->Gen->Plat->Size_Captbl(Init_Capsz);
+    /* Initial page table - always order 0, containing all address space */
+    Cap_Front++;
+    Kmem_Front+=this->Gen->Plat->Size_Pgtbl(0,1);
+    /* Initial RVM process */
+    Cap_Front++;
+    /* Initial kcap and kmem */
+    Cap_Front+=2;
+    /* Initial tick timer/interrupt endpoint */
+    Cap_Front+=2;
+    /* Initial thread */
+    Cap_Front++;
+    Kmem_Front+=this->Gen->Plat->Size_Thread();
+
+    /* Create vectors */
+    Main::Info("> Kernel vector cap front %lld kmem front 0x%llX.", Cap_Front, Kmem_Front);
+    this->Proj->Kernel->Vect_Cap_Front=Cap_Front;
+    this->Proj->Kernel->Vect_Kmem_Front=Kmem_Front;
+    /* Capability tables for containing vector endpoints */
+    Cap_Front+=ROUND_DIV(this->Proj->Monitor->Vector.size(),this->Plat->Captbl_Max);
+    Kmem_Front+=this->Gen->Plat->Size_Captbl(this->Proj->Monitor->Vector.size());
+
+    /* Create RVM */
+    Main::Info("> Monitor before cap front %lld kmem front 0x%llX.", Cap_Front, Kmem_Front);
+    this->Proj->Monitor->Before_Cap_Front=Cap_Front;
+    this->Proj->Monitor->Before_Kmem_Front=Kmem_Front;
+    /* When there are virtual machines, generate everything */
+    if(this->Proj->Virtual.size()!=0)
+    {
+        /* Four threads and two endpoints for RVM */
+        Cap_Front+=6;
+        Kmem_Front+=4*this->Gen->Plat->Size_Thread();
+
+        /* Create virtual machine endpoints. These endpoints does not have names.
+         * Each virtual machine have two endpoints, but only one is dedicated to
+         * it, so we only need to create one for each VM. */
+        Main::Info("> Monitor VM endpoint cap front %lld kmem front 0x%llX.", Cap_Front, Kmem_Front);
+        this->Proj->Monitor->Virt_Cap_Front=Cap_Front;
+        this->Proj->Monitor->Virt_Kmem_Front=Kmem_Front;
+        Cap_Front+=ROUND_DIV(this->Proj->Virtual.size(),this->Plat->Captbl_Max);
+        Kmem_Front+=this->Gen->Plat->Size_Captbl(this->Proj->Virtual.size());
+    }
+    /* When there are no virtual machines at all, just generate one endpoint and one thread */
+    else
+    {
+        Cap_Front+=2;
+        Kmem_Front+=this->Gen->Plat->Size_Thread();
+
+        /* No virtual machine endpoints to create at all */
+        this->Proj->Monitor->Virt_Cap_Front=Cap_Front;
+        this->Proj->Monitor->Virt_Kmem_Front=Kmem_Front;
+    }
+
+    /* Create capability tables */
+    Main::Info("> Monitor captbl cap front %lld kmem front 0x%llX.", Cap_Front, Kmem_Front);
+    this->Proj->Monitor->Captbl_Cap_Front=Cap_Front;
+    this->Proj->Monitor->Captbl_Kmem_Front=Kmem_Front;
+    /* Capability tables for containing capability tables */
+    Cap_Front+=ROUND_DIV(this->Proj->Monitor->Captbl.size(),this->Plat->Captbl_Max);
+    Kmem_Front+=this->Gen->Plat->Size_Captbl(this->Proj->Monitor->Captbl.size());
+    /* Capability tables themselves */
+    for(class Captbl* Captbl:this->Proj->Monitor->Captbl)
+        Kmem_Front+=this->Gen->Plat->Size_Captbl(Captbl->Size);
+
+    /* Create page tables */
+    Main::Info("> Monitor pgtbl cap front %lld kmem front 0x%llX.", Cap_Front, Kmem_Front);
+    this->Proj->Monitor->Pgtbl_Cap_Front=Cap_Front;
+    this->Proj->Monitor->Pgtbl_Kmem_Front=Kmem_Front;
+    /* Capability tables for containing page tables */
+    Cap_Front+=ROUND_DIV(this->Proj->Monitor->Pgtbl.size(),this->Plat->Captbl_Max);
+    Kmem_Front+=this->Gen->Plat->Size_Captbl(this->Proj->Monitor->Pgtbl.size());
+    /* Page table themselves */
+    for(class Pgtbl* Pgtbl:this->Proj->Monitor->Pgtbl)
+        Kmem_Front+=this->Gen->Plat->Size_Pgtbl(Pgtbl->Num_Order,Pgtbl->Is_Top);
+
+    /* Create processes */
+    Main::Info("> Monitor process cap front %lld kmem front 0x%llX.", Cap_Front, Kmem_Front);
+    this->Proj->Monitor->Proc_Cap_Front=Cap_Front;
+    this->Proj->Monitor->Proc_Kmem_Front=Kmem_Front;
+    /* Capability tables for containing processes */
+    Cap_Front+=ROUND_DIV(this->Proj->Monitor->Process.size(),this->Plat->Captbl_Max);
+    Kmem_Front+=this->Gen->Plat->Size_Captbl(this->Proj->Monitor->Process.size());
+    /* Processes themselves - they do not use extra memory */
+
+    /* Create threads */
+    Main::Info("> Monitor thread cap front %lld kmem front 0x%llX.", Cap_Front, Kmem_Front);
+    this->Proj->Monitor->Thd_Cap_Front=Cap_Front;
+    this->Proj->Monitor->Thd_Kmem_Front=Kmem_Front;
+    /* Capability tables for containing threads */
+    Cap_Front+=ROUND_DIV(this->Proj->Monitor->Thread.size(),this->Plat->Captbl_Max);
+    Kmem_Front+=this->Gen->Plat->Size_Captbl(this->Proj->Monitor->Thread.size());
+    /* Threads themselves */
+    Kmem_Front+=this->Proj->Monitor->Thread.size()*this->Gen->Plat->Size_Thread();
+
+    /* Create invocations */
+    Main::Info("> Monitor invocation cap front %lld kmem front 0x%llX.", Cap_Front, Kmem_Front);
+    this->Proj->Monitor->Inv_Cap_Front=Cap_Front;
+    this->Proj->Monitor->Inv_Kmem_Front=Kmem_Front;
+    /* Capability tables for containing invocations */
+    Cap_Front+=ROUND_DIV(this->Proj->Monitor->Invocation.size(),this->Plat->Captbl_Max);
+    Kmem_Front+=this->Gen->Plat->Size_Captbl(this->Proj->Monitor->Invocation.size());
+    /* Invocations themselves */
+    Kmem_Front+=this->Proj->Monitor->Invocation.size()*this->Gen->Plat->Size_Invocation();
+
+    /* Create receive endpoints */
+    Main::Info("> Monitor recv cap front %lld kmem front 0x%llX.", Cap_Front, Kmem_Front);
+    this->Proj->Monitor->Recv_Cap_Front=Cap_Front;
+    this->Proj->Monitor->Recv_Kmem_Front=Kmem_Front;
+    /* Capability tables for containing receive endpoints */
+    Cap_Front+=ROUND_DIV(this->Proj->Monitor->Receive.size(),this->Plat->Captbl_Max);
+    Kmem_Front+=this->Gen->Plat->Size_Captbl(this->Proj->Monitor->Receive.size());
+    /* Receive endpoints themselves - they do not use memory */
+
+    /* Final pointer positions */
+    Main::Info("> Monitor after cap front %lld kmem front 0x%llX.", Cap_Front, Kmem_Front);
+    this->Proj->Monitor->After_Cap_Front=Cap_Front;
+    this->Proj->Monitor->After_Kmem_Front=Kmem_Front;
+
+    /* Check if we are out of table space */
+    this->Proj->Monitor->Captbl_Size=this->Proj->Monitor->Extra_Captbl+this->Proj->Monitor->After_Cap_Front;
+    if(this->Proj->Monitor->Captbl_Size>this->Plat->Captbl_Max)
+    {
+        Main::Error("M2000: Monitor capability table size %lld exceeded the architectural limit %lld.",
+                    this->Proj->Monitor->Captbl_Size,this->Plat->Captbl_Max);
+    }
+}
+/* End Function:Main::Kmem_Alloc *********************************************/
+
 /* Begin Function:Main::Obj_Alloc *********************************************
 Description : Allocate kernel objects.
 Input       : None.
@@ -1340,33 +1487,41 @@ void Main::Obj_Alloc(void)
 {
     try
     {
-        Main::Info("Allocating objects.");
-//        /* Compute the kernel memory needed, disregarding the initial
-//         * capability table size because we don't know its size yet */
-//        this->Proj->Kobj_Alloc(this->Plat,0);
-//        /* Now recompute to get the real usage */
-//        this->Proj->Kobj_Alloc(this->Plat,this->Proj->RVM->Map->Captbl_Size);
-//
-//        /* Populate RME information */
-//        this->Proj->RME->Alloc_Kmem(this->Proj->RVM->Map->After_Kmem_Front, this->Plat->Kmem_Order);
-//
-//        /* Populate RVM information */
-//        this->Proj->RVM->Alloc_Mem(this->Proj->RME->Code_Base+this->Proj->RME->Code_Size,
-//                                   this->Proj->RME->Data_Base+this->Proj->RME->Data_Size,
-//                                   this->Plat->Kmem_Order);
-//
-//        /* Populate Process information */
-//        for(std::unique_ptr<class Proc>& Proc:this->Proj->Proc)
-//        {
-//            try
-//            {
-//                Proc->Alloc_Mem(this->Plat->Word_Bits, this->Plat->Kmem_Order);
-//            }
-//            catch(std::exception& Exc)
-//            {
-//                throw std::runtime_error(std::string("Process: ")+*(Proc->Name)+"\n"+Exc.what());
-//            }
-//        }
+        /* Compute the kernel memory needed, disregarding the initial
+         * capability table size because we don't know its size yet */
+        Main::Info("Allocating kernel objects (first pass).");
+        this->Kmem_Alloc(0);
+        /* Now recompute to get the real usage */
+        Main::Info("Allocating kernel objects (second pass).");
+        this->Kmem_Alloc(this->Proj->Monitor->Captbl_Size);
+
+        /* Populate RME information */
+        Main::Info("Allocating kernel memory.");
+        this->Proj->Kernel->Mem_Alloc(this->Proj->Monitor->After_Kmem_Front,
+                                      this->Chip->Vector.size(),
+                                      this->Proj->Monitor->Virt_Event,
+                                      this->Plat->Wordlength);
+
+        /* Populate RVM information */
+        Main::Info("Allocating monitor memory.");
+        this->Proj->Monitor->Mem_Alloc(this->Proj->Kernel->Kmem_Order);
+
+        /* Populate Process information */
+        for(std::unique_ptr<class Process>& Proc:this->Proj->Process)
+        {
+            try
+            {
+                Main::Info("Allocating memory for process '%s'.",Proc->Name.c_str());
+                Proc->Mem_Alloc(this->Plat->Wordlength,
+                                this->Gen->Plat->Size_Register(),
+                                this->Gen->Plat->Size_Parameter(),
+                                this->Proj->Kernel->Kmem_Order);
+            }
+            catch(std::exception& Exc)
+            {
+                Main::Error(std::string("Process: ")+Proc->Name+"\n"+Exc.what());
+            }
+        }
     }
     catch(std::exception& Exc)
     {

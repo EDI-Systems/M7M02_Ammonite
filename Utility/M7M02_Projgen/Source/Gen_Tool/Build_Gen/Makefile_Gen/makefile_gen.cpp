@@ -33,14 +33,17 @@ extern "C"
 /* End Includes **************************************************************/
 namespace RVM_GEN
 {
-/* Begin Function:Makefile_Gen::Makefile_Gen ******************************************
+/* Begin Function:Makefile_Gen::Makefile_Gen **********************************
 Description : Generator for the makefiles.
+Input       : class Proj_Info* Proj - The project information.
+              class Plat_Info* Plat - The platform information.
+              class Chip_Info* Chip - The chip information.
 Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Makefile_Gen::Makefile_Gen(void):
-Build_Gen("Makefile")
+/* void */ Makefile_Gen::Makefile_Gen(class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip):
+Build_Gen("Makefile", Proj, Plat, Chip)
 {
     try
     {

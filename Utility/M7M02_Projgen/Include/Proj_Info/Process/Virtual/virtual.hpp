@@ -49,6 +49,16 @@ public:
     /* The maximum number of virtual interrupt vectors */
     ptr_t Vect_Num;
 
+    /* Register set memory */
+    ptr_t Reg_Base;
+    ptr_t Reg_Size;
+    /* Parameter memory */
+    ptr_t Param_Base;
+    ptr_t Param_Size;
+    /* Vector flag memory */
+    ptr_t Vctf_Base;
+    ptr_t Vctf_Size;
+
     /* void */ Virtual(xml_node_t* Root);
 };
 /*****************************************************************************/

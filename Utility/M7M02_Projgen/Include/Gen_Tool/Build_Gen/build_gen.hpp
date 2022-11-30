@@ -32,8 +32,13 @@ class Build_Gen
 public:
     /* Name */
     std::string Name;
+    /* All info */
+    class Proj_Info* Proj;
+    class Plat_Info* Plat;
+    class Chip_Info* Chip;
 
-    /* void */ Build_Gen(const std::string& Name);
+    /* void */ Build_Gen(const std::string& Name,
+                         class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip);
     virtual /* void */ ~Build_Gen(void){};
 };
 /*****************************************************************************/

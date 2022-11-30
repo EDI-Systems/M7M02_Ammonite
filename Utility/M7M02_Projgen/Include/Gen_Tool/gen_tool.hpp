@@ -45,7 +45,8 @@ public:
     std::vector<std::unique_ptr<class Guest_Gen>> Guest;
     std::map<std::string,class Guest_Gen*> Guest_Map;
 
-    /* void */ Gen_Tool(const std::string& Name);
+    /* void */ Gen_Tool(const std::string& Name,
+                        class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip);
 
     void Build_Load(const std::string& Name);
     void Tool_Load(const std::string& Name);

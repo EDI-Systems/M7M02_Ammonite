@@ -31,7 +31,7 @@ class Makefile_Gen:public Build_Gen
 {
 public:
 
-    /* void */ Makefile_Gen(void);
+    /* void */ Makefile_Gen(class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip);
 };
 /*****************************************************************************/
 /* __MAKEFILE_GEN_HPP_CLASSES__ */

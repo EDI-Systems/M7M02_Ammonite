@@ -27,6 +27,7 @@ extern "C"
 
 #define __HDR_CLASSES__
 #include "rvm_gen.hpp"
+#include "Proj_Info/proj_info.hpp"
 #include "Proj_Info/Kernel/kernel.hpp"
 #include "Mem_Info/mem_info.hpp"
 #undef __HDR_CLASSES__
@@ -95,6 +96,53 @@ Return      : None.
     }
 }
 /* End Function:Kernel::Kernel ***********************************************/
+
+/* Begin Function:Kernel::Mem_Alloc *******************************************
+Description : Allocate the memory for kernel itself.
+Input       : ptr_t Kmem_Front - The current kernel memory frontier.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Kernel::Mem_Alloc(ptr_t Kmem_Front, ptr_t Vector_Num, ptr_t Event_Num, ptr_t Wordlength)
+{
+    /* Vector flag section - cut out from the data section */
+    this->Vctf_Size=Proj_Info::Flag_Alloc(Vector_Num,Wordlength,this->Kmem_Order);
+    this->Vctf_Base=this->Data_Base+this->Data_Size-this->Vctf_Size;
+    Main::Info("> Vector flag base 0x%llX size 0x%llX.", this->Vctf_Base, this->Vctf_Size);
+    if(this->Vctf_Base<=this->Data_Base)
+        Main::Error("M2100: Kernel data section is not big enough, unable to allocate vector flags.");
+    this->Data_Size=this->Vctf_Base-this->Data_Base;
+
+    /* Event flag section - cut out from the data section */
+    this->Evtf_Size=Proj_Info::Flag_Alloc(Event_Num,Wordlength,this->Kmem_Order);
+    this->Evtf_Base=this->Data_Base+this->Data_Size-this->Evtf_Size;
+    Main::Info("> Event flag base 0x%llX size 0x%llX.", this->Evtf_Base, this->Evtf_Size);
+    if(this->Evtf_Base<=this->Data_Base)
+        Main::Error("M2101: Kernel data section is not big enough, unable to allocate event flags.");
+    this->Data_Size=this->Evtf_Base-this->Data_Base;
+
+    /* Stack section - cut out from the data section */
+    this->Stack_Size=ROUND_UP_POW2(this->Stack_Size,Kmem_Order);
+    this->Stack_Base=this->Data_Base+this->Data_Size-this->Stack_Size;
+    Main::Info("> Stack base 0x%llX size 0x%llX.", this->Stack_Base, this->Stack_Size);
+    if(this->Stack_Base<=this->Data_Base)
+        Main::Error("M2102: Kernel data section is not big enough, unable to allocate kernel stack.");
+    this->Data_Size=this->Stack_Base-this->Data_Base;
+
+    /* Kernel memory section - cut out from the data section */
+    this->Kmem_Size=Kmem_Front+this->Extra_Kmem;
+    this->Kmem_Size=ROUND_UP_POW2(this->Kmem_Size,this->Kmem_Order);
+    this->Kmem_Base=this->Data_Base+this->Data_Size-this->Kmem_Size;
+    this->Kmem_Base=ROUND_DOWN_POW2(this->Kmem_Base,this->Kmem_Order);
+    Main::Info("> Kmem base 0x%llX size 0x%llX.", this->Kmem_Base, this->Kmem_Size);
+    if(this->Kmem_Base<=this->Data_Base)
+        Main::Error("M2103: Kernel data section is not big enough, unable to allocate kernel object memory.");
+
+    /* Kernel data section - whatever is left */
+    this->Data_Size=this->Kmem_Base-this->Data_Base;
+    Main::Info("> Data base 0x%llX size 0x%llX.", this->Data_Base, this->Data_Size);
+}
+/* End Function:Kernel::Mem_Alloc ********************************************/
 }
 /* End Of File ***************************************************************/
 

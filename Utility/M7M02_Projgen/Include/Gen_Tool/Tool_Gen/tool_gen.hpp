@@ -32,8 +32,13 @@ class Tool_Gen
 public:
     /* Name */
     std::string Name;
+    /* All info */
+    class Proj_Info* Proj;
+    class Plat_Info* Plat;
+    class Chip_Info* Chip;
 
-    /* void */ Tool_Gen(const std::string& Name);
+    /* void */ Tool_Gen(const std::string& Name,
+                        class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip);
     virtual /* void */ ~Tool_Gen(void){};
 };
 /*****************************************************************************/

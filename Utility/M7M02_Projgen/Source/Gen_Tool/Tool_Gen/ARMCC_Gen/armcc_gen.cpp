@@ -35,12 +35,14 @@ namespace RVM_GEN
 {
 /* Begin Function:ARMCC_Gen::ARMCC_Gen ****************************************
 Description : Generator for the ARMv7-M platform.
-Input       : None.
+Input       : class Proj_Info* Proj - The project information.
+              class Plat_Info* Plat - The platform information.
+              class Chip_Info* Chip - The chip information.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ ARMCC_Gen::ARMCC_Gen(void):
-Tool_Gen("ARMCC")
+/* void */ ARMCC_Gen::ARMCC_Gen(class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip):
+Tool_Gen("ARMCC", Proj, Plat, Chip)
 {
     try
     {

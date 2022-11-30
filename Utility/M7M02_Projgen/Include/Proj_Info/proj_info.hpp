@@ -65,6 +65,8 @@ public:
     /* void */ Proj_Info(xml_node_t* Root);
 
     void Check(void);
+
+    static ptr_t Flag_Alloc(ptr_t Source, ptr_t Wordlength, ptr_t Kmem_Order);
 };
 /*****************************************************************************/
 /* __PROJ_INFO_HPP_CLASSES__ */

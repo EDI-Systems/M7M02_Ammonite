@@ -27,6 +27,7 @@ extern "C"
 
 #define __HDR_CLASSES__
 #include "rvm_gen.hpp"
+#include "Proj_Info/proj_info.hpp"
 #include "Proj_Info/Kobj/kobj.hpp"
 #include "Proj_Info/Process/process.hpp"
 #include "Proj_Info/Process/Captbl/captbl.hpp"
@@ -37,6 +38,7 @@ extern "C"
 #include "Proj_Info/Process/Receive/receive.hpp"
 #include "Proj_Info/Process/Send/send.hpp"
 #include "Proj_Info/Process/Kfunc/kfunc.hpp"
+#include "Proj_Info/Process/Virtual/virtual.hpp"
 #include "Mem_Info/mem_info.hpp"
 #include "Vect_Info/vect_info.hpp"
 #undef __HDR_CLASSES__
@@ -455,6 +457,113 @@ void Process::Global_Alloc_Vector(std::vector<class Vect_Info*>& Global)
     }
 }
 /* End Function:Process::Global_Alloc_Vector *********************************/
+
+/* Begin Function:Process::Mem_Alloc ******************************************
+Description : Allocate process memory.
+Input       : ptr_t Wordlength - The number of bits in a word.
+              ptr_t Kmem_Order - The kernel memory order.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Process::Mem_Alloc(ptr_t Wordlength, ptr_t Reg_Size, ptr_t Param_Size, ptr_t Kmem_Order)
+{
+    class Virtual* Virt;
+
+    /* Allocate everything to primary code and data sections */
+    this->Code_Base=this->Memory_Code[0]->Base;
+    this->Code_Size=this->Memory_Code[0]->Size;
+    this->Entry_Code_Front=this->Code_Base;
+    this->Data_Base=this->Memory_Data[0]->Base;
+    this->Data_Size=this->Memory_Data[0]->Size;
+
+    /* Sort the threads according to their priority - The highest priority comes first */
+    std::sort(this->Thread.begin(),this->Thread.end(),
+    [](const std::unique_ptr<class Thread>& Left, const std::unique_ptr<class Thread>& Right)
+    {
+            return Left->Priority>Right->Priority;
+    });
+
+    /* Threads come first */
+    for(const std::unique_ptr<class Thread>& Thd:this->Thread)
+    {
+        try
+        {
+            /* Allocate stack from the main data memory */
+            Thd->Stack_Size=ROUND_UP_POW2(Thd->Stack_Size,Kmem_Order);
+            Thd->Stack_Base=this->Data_Base+this->Data_Size-Thd->Stack_Size;
+            Main::Info("> Thread '%s' stack base 0x%llX size 0x%llX.", Thd->Name.c_str(), Thd->Stack_Base, Thd->Stack_Size);
+            if(Thd->Stack_Base<=this->Data_Base)
+                Main::Error("M2300: Data section size is not big enough, unable to allocate stack.");
+            this->Data_Size=Thd->Stack_Base-this->Data_Base;
+
+            /* Allocate entry from code memory */
+            Thd->Entry_Addr=this->Entry_Code_Front;
+            this->Entry_Code_Front+=Wordlength/8*ENTRY_SLOT_SIZE;
+        }
+        catch(std::exception& Exc)
+        {
+            Main::Error(std::string("Thread: ")+Thd->Name+"\n"+Exc.what());
+        }
+    }
+
+    /* Then invocations */
+    for(std::unique_ptr<class Invocation>& Inv:this->Invocation)
+    {
+        try
+        {
+            /* Allocate stack from the main data memory */
+            Inv->Stack_Size=ROUND_UP_POW2(Inv->Stack_Size,Kmem_Order);
+            Inv->Stack_Base=this->Data_Base+this->Data_Size-Inv->Stack_Size;
+            Main::Info("> Invocation '%s' stack base 0x%llX size 0x%llX.", Inv->Name.c_str(), Inv->Stack_Base, Inv->Stack_Size);
+            if(Inv->Stack_Base<=this->Data_Base)
+                Main::Error("M2300: Data section size is not big enough, unable to allocate stack.");
+            this->Data_Size=Inv->Stack_Base-this->Data_Base;
+
+            /* Allocate entry from code memory */
+            Inv->Entry_Addr=this->Entry_Code_Front;
+            this->Entry_Code_Front+=Wordlength/8*ENTRY_SLOT_SIZE;
+        }
+        catch(std::exception& Exc)
+        {
+            Main::Error(std::string("Invocation: ")+Inv->Name+"\n"+Exc.what());
+        }
+    }
+
+    /* See if this is a virtual machine. If yes, we go on to allocate its register set space,
+     * parameter space and interrupt space. These are used for communicating through the VM. */
+    if(this->Type==PROC_VIRTUAL)
+    {
+        Virt=static_cast<class Virtual*>(this);
+
+        /* Vector flag space */
+        Virt->Vctf_Size=Proj_Info::Flag_Alloc(Virt->Vect_Num, Wordlength, Kmem_Order);
+        Virt->Vctf_Base=this->Data_Base+this->Data_Size-Virt->Vctf_Size;
+        Main::Info("> Vector flag base 0x%llX size 0x%llX.", Virt->Vctf_Base, Virt->Vctf_Size);
+        if(Virt->Vctf_Base<=this->Data_Base)
+            Main::Error("M2301: Data section size is not big enough, unable to allocate virtual machine interrupt flags.");
+        this->Data_Size=Virt->Vctf_Base-this->Data_Base;
+
+        /* Hypercall parameter space */
+        Virt->Param_Size=ROUND_UP_POW2(Param_Size,Kmem_Order);
+        Virt->Param_Base=this->Data_Base+this->Data_Size-Virt->Param_Size;
+        Main::Info("> Parameter base 0x%llX size 0x%llX.", Virt->Param_Base, Virt->Param_Size);
+        if(Virt->Param_Base<=this->Data_Base)
+            Main::Error("M2302: Data section size is not big enough, unable to allocate virtual machine parameters.");
+        this->Data_Size=Virt->Param_Base-this->Data_Base;
+
+        /* Register space */
+        Virt->Reg_Size=ROUND_UP_POW2(Reg_Size,Kmem_Order);
+        Virt->Reg_Base=this->Data_Base+this->Data_Size-Virt->Reg_Size;
+        Main::Info("> Register base 0x%llX size 0x%llX.", Virt->Reg_Base, Virt->Reg_Size);
+        if(Virt->Reg_Base<=this->Data_Base)
+            Main::Error("M2303: Data section size is not big enough, unable to allocate virtual machine registers.");
+        this->Data_Size=Virt->Reg_Base-this->Data_Base;
+    }
+
+    /* Data section - whatever is left */
+    Main::Info("> Data base 0x%llX size 0x%llX.", this->Data_Base, Virt->Data_Size);
+}
+/* End Function:Process::Mem_Alloc *******************************************/
 }
 /* End Of File ***************************************************************/
 

@@ -48,15 +48,19 @@ namespace RVM_GEN
 /* Begin Function:Gen_Tool::Gen_Tool ******************************************
 Description : Constructor for generation tool class.
 Input       : const std::string& Name - The name of the platform.
+Input       : class Proj_Info* Proj - The project information.
+              class Plat_Info* Plat - The platform information.
+              class Chip_Info* Chip - The chip information.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Gen_Tool::Gen_Tool(const std::string& Name)
+/* void */ Gen_Tool::Gen_Tool(const std::string& Name,
+                              class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip)
 {
     try
     {
         if(Name=="A7M")
-            this->Plat=std::make_unique<class A7M_Gen>();
+            this->Plat=std::make_unique<class A7M_Gen>(Proj,Plat,Chip);
         else
             Main::Error("PXXXX: Platform generator for '"+Name+"' is not found.");
     }
@@ -83,9 +87,9 @@ void  Gen_Tool::Build_Load(const std::string& Name)
             return;
 
         if(Name=="Keil")
-            Build=std::make_unique<class Keil_Gen>();
+            Build=std::make_unique<class Keil_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
         else if(Name=="Makefile")
-            Build=std::make_unique<class Makefile_Gen>();
+            Build=std::make_unique<class Makefile_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
         else
             Main::Error("PXXXX: Buildsystem generator for '"+Name+"' is not found.");
 
@@ -115,9 +119,9 @@ void  Gen_Tool::Tool_Load(const std::string& Name)
             return;
 
         if(Name=="ARMCC")
-            Tool=std::make_unique<class ARMCC_Gen>();
+            Tool=std::make_unique<class ARMCC_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
         else if(Name=="GCC")
-            Tool=std::make_unique<class GCC_Gen>();
+            Tool=std::make_unique<class GCC_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
         else
             Main::Error("PXXXX: Toolchain generator for '"+Name+"' is not found.");
 
@@ -147,7 +151,7 @@ void  Gen_Tool::Guest_Load(const std::string& Name)
             return;
 
         if(Name=="RMP")
-            Guest=std::make_unique<class RMP_Gen>();
+            Guest=std::make_unique<class RMP_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
         else
             Main::Error("PXXXX: Guest generator for '"+Name+"' is not found.");
 

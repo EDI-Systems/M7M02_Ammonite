@@ -32,7 +32,7 @@ class Captbl:public Kobj
 public:
     /* The frontier */
     ptr_t Front;
-    /* The ultimate size */
+    /* The ultimate size (number of entries) */
     ptr_t Size;
 
     /* void */ Captbl(ptr_t Front, ptr_t Size, class Process* Owner);

@@ -107,6 +107,15 @@ public:
     std::vector<std::unique_ptr<class Kfunc>> Kfunc;
     std::map<std::string,class Kfunc*> Kfunc_Map;
 
+    /* Code memory */
+    ptr_t Code_Base;
+    ptr_t Code_Size;
+    /* Data memory */
+    ptr_t Data_Base;
+    ptr_t Data_Size;
+    /* Code memory frontier for entries */
+    ptr_t Entry_Code_Front;
+
     /* void */ Process(xml_node_t* Root, ptr_t Type);
 
     void Check(void);
@@ -120,6 +129,8 @@ public:
     void Global_Alloc_Invocation(std::vector<class Invocation*>& Global);
     void Global_Alloc_Receive(std::vector<class Receive*>& Global);
     void Global_Alloc_Vector(std::vector<class Vect_Info*>& Global);
+
+    void Mem_Alloc(ptr_t Wordlength, ptr_t Reg_Size, ptr_t Param_Size, ptr_t Kmem_Order);
 };
 /*****************************************************************************/
 /* __PROCESS_HPP_CLASSES__ */

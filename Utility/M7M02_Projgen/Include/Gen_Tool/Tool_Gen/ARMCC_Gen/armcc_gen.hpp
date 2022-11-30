@@ -31,7 +31,7 @@ class ARMCC_Gen:public Tool_Gen
 {
 public:
 
-    /* void */ ARMCC_Gen(void);
+    /* void */ ARMCC_Gen(class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip);
 };
 /*****************************************************************************/
 /* __ARMCC_GEN_HPP_CLASSES__ */

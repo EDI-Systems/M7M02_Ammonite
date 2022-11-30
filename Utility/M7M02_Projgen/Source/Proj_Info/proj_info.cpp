@@ -167,6 +167,29 @@ void Proj_Info::Check(void)
     }
 }
 /* End Function:Proj_Info::Check *********************************************/
+
+/* Begin Function:Proj_Info::Flag_Alloc ***************************************
+Description : Allocate the memory for vector/event flags. Flags are always like
+              struct Flag
+              {
+                    ptr_t Lock_Group;
+                    ptr_t Flag[31];
+              };
+              Each bit corresponds to a single vector. The whole struct will repeat twice.
+Input       : ptr_t Source - The source number.
+              ptr_t Wordlength - The processor wordlength.
+              ptr_t Kmem_Order - The kernel memory alignment order of 2.
+Output      : None.
+Return      : ptr_t - The vector flag sector size.
+******************************************************************************/
+ptr_t Proj_Info::Flag_Alloc(ptr_t Source, ptr_t Wordlength, ptr_t Kmem_Order)
+{
+    ptr_t Raw;
+
+    Raw=(ROUND_DIV(Source,Wordlength)+1)*Wordlength/8;
+    return ROUND_UP_POW2(Raw,Kmem_Order)*2;
+}
+/* End Function:Proj_Info::Flag_Alloc ****************************************/
 }
 /* End Of File ***************************************************************/
 

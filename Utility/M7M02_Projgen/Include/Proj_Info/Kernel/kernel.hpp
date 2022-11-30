@@ -72,7 +72,24 @@ public:
     std::string Handler_Source_Output;
     ptr_t Handler_Source_Overwrite;
 
+    /* Kernel memory */
+    ptr_t Kmem_Base;
+    ptr_t Kmem_Size;
+    /* Kernel stack */
+    ptr_t Stack_Base;
+    /* Vector flag section */
+    ptr_t Vctf_Base;
+    ptr_t Vctf_Size;
+    /* Event flag section */
+    ptr_t Evtf_Base;
+    ptr_t Evtf_Size;
+    /* Initial state for vector creation */
+    ptr_t Vect_Cap_Front;
+    ptr_t Vect_Kmem_Front;
+
     /* void */ Kernel(xml_node_t* Root);
+
+    void Mem_Alloc(ptr_t Kmem_Front, ptr_t Vector_Num, ptr_t Event_Num, ptr_t Wordlength);
 };
 /*****************************************************************************/
 /* __KERNEL_HPP_CLASSES__ */

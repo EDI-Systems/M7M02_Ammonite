@@ -33,15 +33,21 @@ namespace RVM_GEN
 {
 /* Begin Function:Build_Gen::Build_Gen ****************************************
 Description : Generator for the toolchain.
-Input       : const std::string& Name - The toolchain name.
+Input       : class Proj_Info* Proj - The project information.
+              class Plat_Info* Plat - The platform information.
+              class Chip_Info* Chip - The chip information.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Build_Gen::Build_Gen(const std::string& Name)
+/* void */ Build_Gen::Build_Gen(const std::string& Name,
+                                class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip)
 {
     try
     {
         this->Name=Name;
+        this->Proj=Proj;
+        this->Plat=Plat;
+        this->Chip=Chip;
     }
     catch(std::exception& Exc)
     {

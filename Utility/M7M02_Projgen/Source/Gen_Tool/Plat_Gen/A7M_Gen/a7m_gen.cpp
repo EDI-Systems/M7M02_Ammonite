@@ -23,6 +23,10 @@ extern "C"
 #define __HDR_DEFS__
 #include "rvm_gen.hpp"
 #include "Mem_Info/mem_info.hpp"
+#include "Plat_Info/plat_info.hpp"
+#include "Chip_Info/chip_info.hpp"
+#include "Proj_Info/Kobj/kobj.hpp"
+#include "Proj_Info/proj_info.hpp"
 #include "Gen_Tool/Plat_Gen/plat_gen.hpp"
 #include "Gen_Tool/Plat_Gen/A7M_Gen/a7m_gen.hpp"
 #undef __HDR_DEFS__
@@ -30,9 +34,11 @@ extern "C"
 #define __HDR_CLASSES__
 #include "rvm_gen.hpp"
 #include "Mem_Info/mem_info.hpp"
+#include "Plat_Info/plat_info.hpp"
+#include "Chip_Info/chip_info.hpp"
 #include "Proj_Info/Kobj/kobj.hpp"
+#include "Proj_Info/proj_info.hpp"
 #include "Proj_Info/Process/Pgtbl/pgtbl.hpp"
-#include "Gen_Tool/Plat_Gen/plat_gen.hpp"
 #include "Gen_Tool/Plat_Gen/plat_gen.hpp"
 #include "Gen_Tool/Plat_Gen/A7M_Gen/a7m_gen.hpp"
 #undef __HDR_STRUCTS__
@@ -41,12 +47,14 @@ namespace RVM_GEN
 {
 /* Begin Function:A7M_Gen::A7M_Gen ********************************************
 Description : Generator for the ARMv7-M platform.
-Input       : None.
+Input       : class Proj_Info* Proj - The project information.
+              class Plat_Info* Plat - The platform information.
+              class Chip_Info* Chip - The chip information.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ A7M_Gen::A7M_Gen(void):
-Plat_Gen("A7M")
+/* void */ A7M_Gen::A7M_Gen(class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip):
+Plat_Gen("A7M", Proj, Plat, Chip)
 {
     try
     {
@@ -409,7 +417,7 @@ void A7M_Gen::Pgdir_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
 }
 /* End Function:A7M_Gen::Pgdir_Map *******************************************/
 
-/* Begin Function:A7M_Gen:Pgtbl_Gen *******************************************
+/* Begin Function:A7M_Gen::Pgtbl_Gen ******************************************
 Description : Recursively construct the page table for the ARMv7-M port.
 Input       : std::vector<std::unique_ptr<class Mem_Info>>& - The list containing
                                                               memory segments to fit
@@ -465,6 +473,76 @@ std::unique_ptr<class Pgtbl> A7M_Gen::Pgtbl_Gen(std::vector<std::unique_ptr<clas
     return Pgtbl;
 }
 /* End Function:A7M::Gen_Pgtbl ***********************************************/
+
+/* Begin Function:A7M_Gen::Raw_Pgtbl ******************************************
+Description : Query the size of page table given the parameters.
+Input       : ptr_t Num_Order - The number order.
+              ptr_t Is_Top - Whether this is a top-level.
+Output      : None.
+Return      : ptr_t - The size in bytes.
+******************************************************************************/
+ptr_t A7M_Gen::Raw_Pgtbl(ptr_t Num_Order, ptr_t Is_Top)
+{
+    if(Is_Top!=0)
+        return A7M_RAW_PGTBL_SIZE_TOP_NOREGIONS(Num_Order)+this->Chip->Region*8;
+    else
+        return A7M_RAW_PGTBL_SIZE_NOM(Num_Order);
+}
+/* End Function:A7M_Gen::Size_Pgtbl ******************************************/
+
+/* Begin Function:A7M_Gen::Raw_Thread *****************************************
+Description : Query the size of thread.
+Input       : None
+Output      : None.
+Return      : ptr_t - The size in bytes.
+******************************************************************************/
+ptr_t A7M_Gen::Raw_Thread(void)
+{
+    if(this->Chip->Attribute["FPU"]=="None")
+        return A7M_RAW_THD_SIZE;
+    else
+        return A7M_RAW_THD_FPU_SIZE;
+}
+/* End Function:A7M_Gen::Raw_Thread ******************************************/
+
+/* Begin Function:A7M_Gen::Raw_Invocation *************************************
+Description : Query the size of a invocation.
+Input       : None
+Output      : None.
+Return      : ptr_t - The size in bytes.
+******************************************************************************/
+ptr_t A7M_Gen::Raw_Invocation(void)
+{
+    return A7M_RAW_INV_SIZE;
+}
+/* End Function:A7M_Gen::Raw_Invocation **************************************/
+
+/* Begin Function:A7M_Gen::Raw_Register ***************************************
+Description : Query the size of the register set.
+Input       : None.
+Output      : None.
+Return      : ptr_t - The size in bytes.
+******************************************************************************/
+ptr_t A7M_Gen::Raw_Register(void)
+{
+    if(this->Chip->Attribute["FPU"]=="None")
+        return A7M_RAW_REG_SIZE;
+    else
+        return A7M_RAW_REG_FPU_SIZE;
+}
+/* End Function:A7M_Gen::Raw_Register ****************************************/
+
+/* Begin Function:A7M_Gen::Raw_Parameter **************************************
+Description : Query the size of the parameter passing area.
+Input       : None.
+Output      : None.
+Return      : ptr_t - The size in bytes.
+******************************************************************************/
+ptr_t A7M_Gen::Raw_Parameter(void)
+{
+    return A7M_RAW_PARAM_SIZE;
+}
+/* End Function:A7M_Gen::Raw_Parameter ***************************************/
 }
 /* End Of File ***************************************************************/
 

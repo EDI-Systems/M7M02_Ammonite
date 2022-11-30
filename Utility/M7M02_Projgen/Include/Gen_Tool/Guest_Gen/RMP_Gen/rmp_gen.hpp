@@ -31,7 +31,7 @@ class RMP_Gen:public Guest_Gen
 {
 public:
 
-    /* void */ RMP_Gen(void);
+    /* void */ RMP_Gen(class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip);
 };
 /*****************************************************************************/
 /* __RMP_GEN_HPP_CLASSES__ */

@@ -37,6 +37,11 @@ public:
     /* The priority of the thread */
     ptr_t Priority;
 
+    /* Position of the entry address from the header */
+    ptr_t Entry_Addr;
+    /* The address of the stack */
+    ptr_t Stack_Base;
+
     /* void */ Thread(xml_node_t* Root, class Process* Owner);
 };
 /*****************************************************************************/
