@@ -51,11 +51,9 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-# Unneeded history and documents
-Documents/*
-!Documents/CN_M7M2_RT-Runtime-User-Manual.pdf
-!Documents/EN_M7M2_RT-Runtime-User-Manual.pdf
-!Documents/Demo/
+# eclipse
+*.o
+*/Release/*.exe
 
 # Keil specific
 Project/**/Debug/**
