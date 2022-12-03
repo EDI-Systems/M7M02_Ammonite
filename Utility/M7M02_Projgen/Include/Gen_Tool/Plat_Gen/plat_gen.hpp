@@ -32,6 +32,8 @@ class Plat_Gen
 public:
     /* Platform name */
     std::string Name;
+    /* Platform lower-case name */
+    std::string Lower;
     /* All info */
     class Proj_Info* Proj;
     class Plat_Info* Plat;
@@ -62,6 +64,8 @@ public:
     virtual ptr_t Raw_Invocation(void)=0;
     virtual ptr_t Raw_Register(void)=0;
     virtual ptr_t Raw_Parameter(void)=0;
+
+    virtual void Kernel_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)=0;
 };
 /*****************************************************************************/
 /* __PLAT_GEN_HPP_CLASSES__ */

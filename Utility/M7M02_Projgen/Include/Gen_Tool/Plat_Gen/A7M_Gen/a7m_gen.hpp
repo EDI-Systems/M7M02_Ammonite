@@ -13,25 +13,6 @@ namespace RVM_GEN
 #ifndef __A7M_GEN_HPP_DEFS__
 #define __A7M_GEN_HPP_DEFS__
 /*****************************************************************************/
-/* NVIC grouping */
-#define A7M_NVIC_P0S8                           (7)    
-#define A7M_NVIC_P1S7                           (6)
-#define A7M_NVIC_P2S6                           (5)
-#define A7M_NVIC_P3S5                           (4)
-#define A7M_NVIC_P4S4                           (3)
-#define A7M_NVIC_P5S3                           (2)
-#define A7M_NVIC_P6S2                           (1)
-#define A7M_NVIC_P7S1                           (0)
-/* CPU type */
-#define A7M_CPU_CM0P                            (0)
-#define A7M_CPU_CM3                             (1)
-#define A7M_CPU_CM4                             (2)
-#define A7M_CPU_CM7                             (3)
-/* FPU type */
-#define A7M_FPU_NONE                            (0)
-#define A7M_FPU_FPV4                            (1)
-#define A7M_FPU_FPV5_SP                         (2)
-#define A7M_FPU_FPV5_DP                         (3)
 /* Endianness */
 #define A7M_END_LITTLE                          (0)
 #define A7M_END_BIG                             (1)
@@ -87,6 +68,8 @@ public:
     virtual ptr_t Raw_Invocation(void) final override;
     virtual ptr_t Raw_Register(void) final override;
     virtual ptr_t Raw_Parameter(void) final override;
+
+    virtual void Kernel_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List) final override;
 };
 /*****************************************************************************/
 /* __A7M_GEN_HPP_CLASSES__ */

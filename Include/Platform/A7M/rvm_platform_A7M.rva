@@ -11,7 +11,7 @@
             <Name>NVIC_Grouping</Name>
             <Macro>RME_A7M_NVIC_GROUPING</Macro>
             <Type>Choice</Type>
-            <Range>0-8,1-7,2-6,3-5,4-4,5-3,6-2,7-1</Range>
+            <Range>P0S8,P1S7,P2S6,P3S5,P4S4,P5S3,P6S2,P7S1</Range>
             <Display>#A7M_NVIC_GROUPING</Display>
         </C0>
         <C1>

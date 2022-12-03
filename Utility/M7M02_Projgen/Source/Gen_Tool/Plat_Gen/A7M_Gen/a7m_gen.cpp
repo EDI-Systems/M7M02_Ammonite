@@ -33,12 +33,28 @@ extern "C"
 
 #define __HDR_CLASSES__
 #include "rvm_gen.hpp"
-#include "Mem_Info/mem_info.hpp"
 #include "Plat_Info/plat_info.hpp"
 #include "Chip_Info/chip_info.hpp"
-#include "Proj_Info/Kobj/kobj.hpp"
 #include "Proj_Info/proj_info.hpp"
+#include "Proj_Info/Kobj/kobj.hpp"
+#include "Proj_Info/Chip/chip.hpp"
+#include "Proj_Info/Kernel/kernel.hpp"
+#include "Proj_Info/Monitor/monitor.hpp"
+#include "Proj_Info/Process/process.hpp"
+#include "Proj_Info/Process/Captbl/captbl.hpp"
 #include "Proj_Info/Process/Pgtbl/pgtbl.hpp"
+#include "Proj_Info/Process/Thread/thread.hpp"
+#include "Proj_Info/Process/Invocation/invocation.hpp"
+#include "Proj_Info/Process/Port/port.hpp"
+#include "Proj_Info/Process/Receive/receive.hpp"
+#include "Proj_Info/Process/Send/send.hpp"
+#include "Proj_Info/Process/Kfunc/kfunc.hpp"
+#include "Proj_Info/Process/Virtual/virtual.hpp"
+#include "Mem_Info/mem_info.hpp"
+#include "Vect_Info/vect_info.hpp"
+#include "Conf_Info/conf_info.hpp"
+
+#include "Gen_Tool/Gen_Tool.hpp"
 #include "Gen_Tool/Plat_Gen/plat_gen.hpp"
 #include "Gen_Tool/Plat_Gen/A7M_Gen/a7m_gen.hpp"
 #undef __HDR_STRUCTS__
@@ -543,6 +559,39 @@ ptr_t A7M_Gen::Raw_Parameter(void)
     return A7M_RAW_PARAM_SIZE;
 }
 /* End Function:A7M_Gen::Raw_Parameter ***************************************/
+
+/* Begin Function:A7M_Gen::Kernel_Conf_Hdr ************************************
+Description : Replace kernel configuration header macros.
+Input       : std::unique_ptr<std::vector<std::string>>& List - The input file.
+Output      : std::unique_ptr<std::vector<std::string>>& List - The modified file.
+Return      : None.
+******************************************************************************/
+void A7M_Gen::Kernel_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
+{
+    /* Shared vector flag region address */
+    Gen_Tool::Macro_Hex(List, "RME_A7M_VECT_FLAG_ADDR", this->Proj->Kernel->Vctf_Base);
+    /* Shared event flag region address */
+    Gen_Tool::Macro_Hex(List, "RME_A7M_EVT_FLAG_ADDR",this->Proj->Kernel->Evtf_Base);
+    /* Initial kernel object frontier limit */
+    Gen_Tool::Macro_Hex(List, "RME_A7M_KMEM_BOOT_FRONTIER",this->Proj->Kernel->Kmem_Base+this->Proj->Monitor->Before_Kmem_Front);
+    /* Init process's first thread's entry point address */
+    Gen_Tool::Macro_Hex(List, "RME_A7M_INIT_ENTRY",this->Proj->Kernel->Code_Base|0x01);
+    /* Init process's first thread's stack address */
+    Gen_Tool::Macro_Hex(List, "RME_A7M_INIT_STACK",this->Proj->Monitor->Init_Stack_Base+this->Proj->Monitor->Init_Stack_Size-16);
+    /* What is the NVIC priority grouping? */
+    Gen_Tool::Macro_String(List,"RME_A7M_NVIC_GROUPING",std::string("RME_A7M_NVIC_GROUPING_")+this->Proj->Chip->Config["NVIC_Grouping"]);
+    /* What is the Systick value? - (usually) 10ms per tick */
+    Gen_Tool::Macro_String(List, "RME_A7M_SYSTICK_VAL", this->Proj->Chip->Config["Systick_Value"]);
+
+    /* Fixed attributes - we will refill these with database values */
+    /* Number of MPU regions available */
+    Gen_Tool::Macro_Int(List, "RME_A7M_MPU_REGIONS", this->Chip->Region);
+    /* What is the FPU type? */
+    Gen_Tool::Macro_String(List, "RME_A7M_FPU_TYPE",std::string("RME_A7M_FPU_")+this->Chip->Attribute["FPU"]);
+
+    /* CPU & Endianness currently unused */
+}
+/* End Function:A7M_Gen::Kernel_Conf_Hdr *************************************/
 }
 /* End Of File ***************************************************************/
 

@@ -9,8 +9,8 @@
     <Iregion>0</Iregion>
     <Dregion>0</Dregion>
     <Attribute>
-        <CPU>Cortex-M4</CPU>
-        <FPU>Single</FPU>
+        <CPU>CM4</CPU>
+        <FPU>FPV4_SP</FPU>
         <Endian>Little</Endian>
     </Attribute>
     <Memory>

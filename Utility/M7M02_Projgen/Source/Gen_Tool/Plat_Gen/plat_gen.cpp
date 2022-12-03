@@ -31,6 +31,7 @@ extern "C"
 #define __HDR_CLASSES__
 #include "rvm_gen.hpp"
 #include "Proj_Info/proj_info.hpp"
+#include "Proj_Info/Kobj/kobj.hpp"
 #include "Plat_Info/plat_info.hpp"
 #include "Chip_Info/chip_info.hpp"
 #include "Proj_Info/Kernel/kernel.hpp"
@@ -57,6 +58,10 @@ Return      : None.
         this->Proj=Proj;
         this->Plat=Plat;
         this->Chip=Chip;
+
+        /* Platform lower-case name */
+        this->Lower=Name;
+        Kobj::Lower(this->Lower);
     }
     catch(std::exception& Exc)
     {

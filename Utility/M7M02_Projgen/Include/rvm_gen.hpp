@@ -58,19 +58,19 @@ while(0)
 #define ROUND_KOBJ(X)                       ROUND_UP_POW2(X,this->Proj->Kernel->Kmem_Order)
 
 /* The code generator author name */
-#define CODE_AUTHOR                         "The RME project generator."
+#define CODE_AUTHOR                         "The RVM project generator."
 /* The license for the generator */
 #define CODE_LICENSE                        "LGPL v3+; see COPYING for details."
 /* Generator macro alignment */
-#define MACRO_ALIGN                         (56)
+#define MACRO_ALIGN                         (56-4-8)
 /* Buffer size for all temporary buffers */
-#define BUF_SIZE                            (1024)
+#define BUF_SIZE                            (2048)
 
 /* Entry point slot size (in words), fixed across all architectures */
 #define ENTRY_SLOT_SIZE                     (8)
 
 /* Maximum number of virtual events */
-#define VIRT_EVENT_NUM                      (1024)
+#define VIRT_EVENT_MAX                      (1024)
 
 /* Priority limit for threads */
 #define PROC_THD_PRIO_MIN                   (5)
@@ -94,7 +94,7 @@ class Main
 {
 public:
     char* Buffer;
-    std::string Time;
+    static std::string Time;
 
     std::string Input;
     static ptr_t Verbose;
@@ -138,6 +138,11 @@ public:
 
     void Kmem_Alloc(ptr_t Init_Capsz);
     void Obj_Alloc(void);
+
+    void Kernel_Gen(void);
+    void Monitor_Gen(void);
+    void Process_Gen(void);
+    void Report_Gen(void);
 
     static std::string XML_Get_String(xml_node_t* Root, const char* Name,
                                       const char* Errno0, const char* Errno1);

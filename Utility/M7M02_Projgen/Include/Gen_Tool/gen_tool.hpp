@@ -51,6 +51,28 @@ public:
     void Build_Load(const std::string& Name);
     void Tool_Load(const std::string& Name);
     void Guest_Load(const std::string& Name);
+
+    static std::unique_ptr<std::vector<std::string>> Line_Read(const std::string& Path);
+    static void Line_Write(std::unique_ptr<std::vector<std::string>>& List, const std::string& Path);
+
+    static void Macro_String(std::unique_ptr<std::vector<std::string>>& List,
+                             const std::string& Macro, const std::string& Value);
+    static void Macro_Hex(std::unique_ptr<std::vector<std::string>>& List,
+                          const std::string& Macro, ptr_t Value);
+    static void Macro_Int(std::unique_ptr<std::vector<std::string>>& List,
+                          const std::string& Macro, ptr_t Value);
+
+    static void Src_Head(std::unique_ptr<std::vector<std::string>>& List,
+                         const std::string& Name, const std::string& Desc);
+    static void Src_Foot(std::unique_ptr<std::vector<std::string>>& List);
+
+    void Kernel_Conf_Hdr(void);
+    void Kernel_Boot_Hdr(void);
+    void Kernel_Boot_Src(void);
+    void Kernel_Init_Src(void);
+    void Kernel_Handler_Src(void);
+    void Kernel_Linker(void);
+    void Kernel_Proj(void);
 };
 /*****************************************************************************/
 /* __GEN_TOOL_HPP_CLASSES__ */

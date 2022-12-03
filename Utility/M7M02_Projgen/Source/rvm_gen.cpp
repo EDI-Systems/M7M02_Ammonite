@@ -117,6 +117,7 @@ namespace RVM_GEN
 {
 /* Global Variables **********************************************************/
 ptr_t Main::Verbose=0;
+std::string Main::Time;
 /* End Global Variables ******************************************************/
 
 /* Begin Function:Main::Proj_Parse ********************************************
@@ -232,7 +233,7 @@ void Main::Chip_Parse(void)
 /* End Function:Main::Chip_Parse *********************************************/
 
 /* Begin Function:Main::Plat_Parse ********************************************
-Description : Parse the platform configuration file.
+Description : Parse the platform description file.
 Input       : None.
 Output      : None.
 Return      : None.
@@ -247,10 +248,11 @@ void Main::Plat_Parse(void)
     Root=nullptr;
     try
     {
-        /* Try to find the correct chip description file */
+        /* Try to find the correct platform description file */
+        Path=this->Proj->Chip->Platform;
+        Kobj::Lower(Path);
         Path=this->Proj->Monitor->Monitor_Root+"/Include/Platform/"+
-             this->Proj->Chip->Platform+"/"
-             "rvm_platform_"+this->Proj->Chip->Platform+".rva";
+             this->Proj->Chip->Platform+"/rvm_platform_"+Path+".rva";
         /* Read in the whole chip description file */
         File=fopen(Path.c_str(),"r");
         if(File==nullptr)
@@ -380,8 +382,8 @@ void Main::Compatible_Check(void)
                 Main::Error("M1006: Virtual machine exists but the total number of virtual event sources is set to 0.");
             if((this->Proj->Monitor->Virt_Event%this->Plat->Wordlength)!=0)
                 Main::Error("M1007: Total number of virtual event sources must be a multiple of processor wordlength.");
-            if(this->Proj->Monitor->Virt_Event>VIRT_EVENT_NUM)
-                Main::Error("M1008: Total number of virtual event sources cannot exceed %d.",VIRT_EVENT_NUM);
+            if(this->Proj->Monitor->Virt_Event>VIRT_EVENT_MAX)
+                Main::Error("M1008: Total number of virtual event sources cannot exceed %d.",VIRT_EVENT_MAX);
             if(this->Proj->Monitor->Virt_Map<this->Proj->Monitor->Virt_Event)
                 Main::Error("M1009: Total number of virtual event to interrupt mappings cannot be smaller than the virtual event source number.");
 
@@ -1495,10 +1497,11 @@ void Main::Obj_Alloc(void)
         Main::Info("Allocating kernel objects (second pass).");
         this->Kmem_Alloc(this->Proj->Monitor->Captbl_Size);
 
-        /* Populate RME information */
+        /* Populate RME information - the vector flag max is not number
+         * of vectors, but the last vector number + 1 (!) */
         Main::Info("Allocating kernel memory.");
         this->Proj->Kernel->Mem_Alloc(this->Proj->Monitor->After_Kmem_Front,
-                                      this->Chip->Vector.size(),
+                                      this->Chip->Vector.back()->Number+1,
                                       this->Proj->Monitor->Virt_Event,
                                       this->Plat->Wordlength);
 
@@ -1529,6 +1532,125 @@ void Main::Obj_Alloc(void)
     }
 }
 /* End Function:Main::Obj_Alloc **********************************************/
+
+/* Begin Function:Main::Kernel_Gen ********************************************
+Description : Generate kernel project.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Kernel_Gen(void)
+{
+    try
+    {
+        /* Generate kernel folders, if they do not exist already */
+        Main::Info("Creating directories for kernel.");
+        std::filesystem::create_directories(this->Proj->Kernel->Project_Output);
+        std::filesystem::create_directories(this->Proj->Kernel->Linker_Output);
+        std::filesystem::create_directories(this->Proj->Kernel->Config_Header_Output);
+        std::filesystem::create_directories(this->Proj->Kernel->Boot_Header_Output);
+        std::filesystem::create_directories(this->Proj->Kernel->Boot_Source_Output);
+        std::filesystem::create_directories(this->Proj->Kernel->Init_Source_Output);
+        std::filesystem::create_directories(this->Proj->Kernel->Handler_Source_Output);
+
+        /* Generate kernel configuration header */
+        this->Gen->Kernel_Conf_Hdr();
+
+        /* Generate kernel boot header/source */
+        this->Gen->Kernel_Boot_Hdr();
+        this->Gen->Kernel_Boot_Src();
+
+        /* Generate kernel init source */
+        this->Gen->Kernel_Init_Src();
+
+        /* Generate kernel handler source */
+        this->Gen->Kernel_Handler_Src();
+
+        /* Generate kernel linker script */
+        this->Gen->Kernel_Linker();
+
+        /* Generate kernel project */
+        this->Gen->Kernel_Proj();
+    }
+    catch(std::exception& Exc)
+    {
+        Main::Error(std::string("Kernel project generation:\n")+Exc.what());
+    }
+}
+/* End Function:Main::Kernel_Gen *********************************************/
+
+/* Begin Function:Main::Monitor_Gen *******************************************
+Description : Generate monitor project.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Monitor_Gen(void)
+{
+    try
+    {
+        /* Generate monitor folders, if they do not exist already */
+        Main::Info("Creating directories for monitor.");
+        std::filesystem::create_directories(this->Proj->Monitor->Project_Output);
+        std::filesystem::create_directories(this->Proj->Monitor->Linker_Output);
+        std::filesystem::create_directories(this->Proj->Monitor->Config_Header_Output);
+        std::filesystem::create_directories(this->Proj->Monitor->Boot_Header_Output);
+        std::filesystem::create_directories(this->Proj->Monitor->Boot_Source_Output);
+        std::filesystem::create_directories(this->Proj->Monitor->Init_Source_Output);
+    }
+    catch(std::exception& Exc)
+    {
+        Main::Error(std::string("Monitor project generation:\n")+Exc.what());
+    }
+}
+/* End Function:Main::Monitor_Gen ********************************************/
+
+/* Begin Function:Main::Process_Gen *******************************************
+Description : Generate process projects.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Process_Gen(void)
+{
+    for(const std::unique_ptr<class Process>& Proc:this->Proj->Process)
+    {
+        try
+        {
+            /* Generate process folders, if they do not exist already */
+            Main::Info("Creating directories for process '%s'.", Proc->Name.c_str());
+            std::filesystem::create_directories(Proc->Project_Output);
+            std::filesystem::create_directories(Proc->Linker_Output);
+            if(Proc->Type==PROC_VIRTUAL)
+                std::filesystem::create_directories(static_cast<class Virtual*>(Proc.get())->Config_Header_Output);
+            std::filesystem::create_directories(Proc->Init_Source_Output);
+        }
+        catch(std::exception& Exc)
+        {
+            Main::Error(std::string("Process '")+Proc->Name+"' project generation:\n"+Exc.what());
+        }
+    }
+}
+/* End Function:Main::Process_Gen ********************************************/
+
+/* Begin Function:Main::Report_Gen ********************************************
+Description : Generate after report. This is currently not used.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Report_Gen(void)
+{
+    try
+    {
+
+    }
+    catch(std::exception& Exc)
+    {
+        Main::Error(std::string("Report generation:\n")+Exc.what());
+    }
+}
+/* End Function:Main::Report_Gen *********************************************/
 
 /* Begin Function:Main::Main **************************************************
 Description : Preprocess the input parameters, and generate a preprocessed
@@ -1949,7 +2071,10 @@ int main(int argc, char* argv[])
         Main->Obj_Alloc();
 
 /* Phase 4: Produce output ***************************************************/
-        //Main->Generate();
+        Main->Kernel_Gen();
+        Main->Monitor_Gen();
+        Main->Process_Gen();
+        Main->Report_Gen();
     }
     catch(std::exception& Exc)
     {

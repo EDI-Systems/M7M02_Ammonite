@@ -78,8 +78,18 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
+					<folderInfo id="cdt.managedbuild.config.gnu.mingw.exe.release.133070221.42377578" name="/" resourcePath="Source/Gen_Tool/Source_Gen">
+						<toolChain id="cdt.managedbuild.toolchain.gnu.mingw.exe.release.1114998173" name="MinGW GCC" superClass="cdt.managedbuild.toolchain.gnu.mingw.exe.release" unusedChildren="">
+							<tool id="cdt.managedbuild.tool.gnu.assembler.mingw.exe.release.2017362345" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.mingw.exe.release.1800651588"/>
+							<tool id="cdt.managedbuild.tool.gnu.archiver.mingw.base.1593128244" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.mingw.base.1539879069"/>
+							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.mingw.exe.release.1452590081" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.mingw.exe.release.891547135"/>
+							<tool id="cdt.managedbuild.tool.gnu.c.compiler.mingw.exe.release.1238477116" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.mingw.exe.release.884092561"/>
+							<tool id="cdt.managedbuild.tool.gnu.c.linker.mingw.exe.release.748449553" name="MinGW C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.mingw.exe.release.1210483260"/>
+							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.mingw.exe.release.2115253163" name="MinGW C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.mingw.exe.release.1972752418"/>
+						</toolChain>
+					</folderInfo>
 					<sourceEntries>
-						<entry excluding="Source/language.cpp|Source/App_Sizer/Folder_Notebook|Source/Mem_Info/Mem_Map|except.app|Source/Proj_Info/Filesys|Source/Platform|Source/App_Sizer/Body_Sizer/Main_Sizer|Source/Generate/Guest|Source/Sch_Info|Mem_Info|Source/Generate/Buildsys|Source/Guest|Source/App_Sizer/Main_Sizer|src|Source/Remote_Dialog|Source/App_Sizer/Body_Sizer/Workarea_Sizer/Draw_Sizer/Output_Notebook|Source/statusbar.cpp|Source/App_Sizer/Debug_Tool_Sizer|History|images|Source/App_Sizer/Build_Tool_Sizer|Include/Mem_Info/Mem_Map|Source/App_Sizer/tool_bar.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="Source/Gen_Tool/Source_Gen|Source/language.cpp|Source/App_Sizer/Folder_Notebook|Source/Mem_Info/Mem_Map|except.app|Source/Proj_Info/Filesys|Source/Platform|Source/App_Sizer/Body_Sizer/Main_Sizer|Source/Generate/Guest|Source/Sch_Info|Mem_Info|Source/Generate/Buildsys|Source/Guest|Source/App_Sizer/Main_Sizer|src|Source/Remote_Dialog|Source/App_Sizer/Body_Sizer/Workarea_Sizer/Draw_Sizer/Output_Notebook|Source/statusbar.cpp|Source/App_Sizer/Debug_Tool_Sizer|History|images|Source/App_Sizer/Build_Tool_Sizer|Include/Mem_Info/Mem_Map|Source/App_Sizer/tool_bar.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="images"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 					</sourceEntries>
