@@ -32,6 +32,8 @@ class Build_Gen
 public:
     /* Name */
     std::string Name;
+    std::string Name_Upper;
+    std::string Name_Lower;
     /* All info */
     class Proj_Info* Proj;
     class Plat_Info* Plat;

@@ -61,6 +61,7 @@ Kobj(this)
         this->Type=Type;
         /* Name */
         this->Name=Main::XML_Get_String(Root,"Name","DXXXX","DXXXX");
+        Name_Gen(this);
         /* Extra_Captbl */
         this->Extra_Captbl=Main::XML_Get_Number(Root,"Extra_Captbl","DXXXX","DXXXX");
 
@@ -72,12 +73,15 @@ Kobj(this)
         this->Optimization=Main::XML_Get_String(Root,"Optimization","DXXXX","DXXXX");
         /* Project_Output */
         this->Project_Output=Main::XML_Get_String(Root,"Project_Output","DXXXX","DXXXX");
+        Main::Dir_Fixup(this->Project_Output);
         /* Project_Overwrite */
         this->Project_Overwrite=Main::XML_Get_Yesno(Root,"Project_Overwrite","DXXXX","DXXXX");
         /* Linker_Output */
         this->Linker_Output=Main::XML_Get_String(Root,"Linker_Output","DXXXX","DXXXX");
+        Main::Dir_Fixup(this->Linker_Output);
         /* Init_Source_Output */
         this->Init_Source_Output=Main::XML_Get_String(Root,"Init_Source_Output","DXXXX","DXXXX");
+        Main::Dir_Fixup(this->Init_Source_Output);
         /* Init_Source_Output */
         this->Init_Source_Overwrite=Main::XML_Get_Yesno(Root,"Init_Source_Overwrite","DXXXX","DXXXX");
 
@@ -260,7 +264,7 @@ void Process::Local_Alloc(ptr_t Max)
         {
             Port->Capid_Local=Capid++;
             Port->Macro_Local=std::string("PORT_")+Port->Name+"_PROC_"+Port->Process;
-            Kobj::Upper(Port->Macro_Local);
+            Main::Upper(Port->Macro_Local);
             Main::Info("> Port %s allocated local capid %lld.",Port->Macro_Local.c_str(),Port->Capid_Local);
         }
 
@@ -268,7 +272,7 @@ void Process::Local_Alloc(ptr_t Max)
         {
             Recv->Capid_Local=Capid++;
             Recv->Macro_Local=std::string("RECV_")+Recv->Name;
-            Kobj::Upper(Recv->Macro_Local);
+            Main::Upper(Recv->Macro_Local);
             Main::Info("> Receive endpoint %s allocated local capid %lld.",Recv->Macro_Local.c_str(),Recv->Capid_Local);
         }
 
@@ -276,7 +280,7 @@ void Process::Local_Alloc(ptr_t Max)
         {
             Send->Capid_Local=Capid++;
             Send->Macro_Local=std::string("SEND_")+Send->Name+"_PROC_"+Send->Process;
-            Kobj::Upper(Send->Macro_Local);
+            Main::Upper(Send->Macro_Local);
             Main::Info("> Send endpoint %s allocated local capid %lld.",Send->Macro_Local.c_str(),Send->Capid_Local);
         }
 
@@ -284,7 +288,7 @@ void Process::Local_Alloc(ptr_t Max)
         {
             Vect->Capid_Local=Capid++;
             Vect->Macro_Local=std::string("VECT_")+Vect->Name;
-            Kobj::Upper(Vect->Macro_Local);
+            Main::Upper(Vect->Macro_Local);
             Main::Info("> Vector endpoint %s allocated local capid %lld.",Vect->Macro_Local.c_str(),Vect->Capid_Local);
         }
 
@@ -292,7 +296,7 @@ void Process::Local_Alloc(ptr_t Max)
         {
             Kfunc->Capid_Local=Capid++;
             Kfunc->Macro_Local=std::string("KFUNC_")+Kfunc->Name;
-            Kobj::Upper(Kfunc->Macro_Local);
+            Main::Upper(Kfunc->Macro_Local);
             Main::Info("> Kernel function %s allocated local capid %lld.",Kfunc->Macro_Local.c_str(),Kfunc->Capid_Local);
         }
 
@@ -318,7 +322,7 @@ void Process::Global_Alloc_Captbl(std::vector<class Captbl*>& Global)
 {
     this->Captbl->Capid_Global=Global.size();
     this->Captbl->Macro_Global=std::string("RVM_CAPTBL_")+this->Name;
-    Kobj::Upper(this->Captbl->Macro_Global);
+    Main::Upper(this->Captbl->Macro_Global);
     Global.push_back(this->Captbl.get());
     Main::Info("> Captbl %s allocated global capid %lld.",
                this->Captbl->Macro_Global.c_str(),this->Captbl->Capid_Global);
@@ -345,7 +349,7 @@ void Process::Global_Alloc_Pgtbl(std::vector<class Pgtbl*>& Global,
 
     Pgtbl->Capid_Global=Global.size();
     Pgtbl->Macro_Global=std::string("RVM_PGTBL_")+this->Name+"_"+std::to_string(Serial);
-    Kobj::Upper(Pgtbl->Macro_Global);
+    Main::Upper(Pgtbl->Macro_Global);
     Global.push_back(Pgtbl.get());
     Main::Info("> Pgtbl %s allocated global capid %lld.",
                Pgtbl->Macro_Global.c_str(),Pgtbl->Capid_Global);
@@ -369,7 +373,7 @@ void Process::Global_Alloc_Process(std::vector<class Process*>& Global)
 {
     this->Capid_Global=Global.size();
     this->Macro_Global=std::string("RVM_PROC_")+this->Name;
-    Kobj::Upper(this->Macro_Global);
+    Main::Upper(this->Macro_Global);
     Global.push_back(this);
     Main::Info("> Process %s allocated global capid %lld.",
                this->Macro_Global.c_str(),this->Capid_Global);
@@ -388,7 +392,7 @@ void Process::Global_Alloc_Thread(std::vector<class Thread*>& Global)
     {
         Thd->Capid_Global=Global.size();
         Thd->Macro_Global=std::string("RVM_THD_")+Thd->Name+"_PROC_"+this->Name;
-        Kobj::Upper(Thd->Macro_Global);
+        Main::Upper(Thd->Macro_Global);
         Global.push_back(Thd.get());
         Main::Info("> Thread %s allocated global capid %lld.",
                    Thd->Macro_Global.c_str(),Thd->Capid_Global);
@@ -408,7 +412,7 @@ void Process::Global_Alloc_Invocation(std::vector<class Invocation*>& Global)
     {
         Inv->Capid_Global=Global.size();
         Inv->Macro_Global=std::string("RVM_INV_")+Inv->Name+"_PROC_"+this->Name;
-        Kobj::Upper(Inv->Macro_Global);
+        Main::Upper(Inv->Macro_Global);
         Global.push_back(Inv.get());
         Main::Info("> Invocation %s allocated global capid %lld.",
                    Inv->Macro_Global.c_str(),Inv->Capid_Global);
@@ -428,7 +432,7 @@ void Process::Global_Alloc_Receive(std::vector<class Receive*>& Global)
     {
         Recv->Capid_Global=Global.size();
         Recv->Macro_Global=std::string("RVM_RECV_")+Recv->Name+"_PROC_"+this->Name;
-        Kobj::Upper(Recv->Macro_Global);
+        Main::Upper(Recv->Macro_Global);
         Global.push_back(Recv.get());
         Main::Info("> Receive endpoint %s allocated global capid %lld.",
                    Recv->Macro_Global.c_str(),Recv->Capid_Global);
@@ -448,9 +452,9 @@ void Process::Global_Alloc_Vector(std::vector<class Vect_Info*>& Global)
     {
         Vect->Capid_Global=Global.size();
         Vect->Macro_Global=std::string("RVM_VECT_")+Vect->Name+"_BOOT";
-        Kobj::Upper(Vect->Macro_Global);
+        Main::Upper(Vect->Macro_Global);
         Vect->Macro_Kernel=std::string("RME_VECT_")+Vect->Name+"_BOOT";
-        Kobj::Upper(Vect->Macro_Kernel);
+        Main::Upper(Vect->Macro_Kernel);
         Global.push_back(Vect.get());
         Main::Info("> Vector endpoint %s (%s) allocated global capid %lld.",
                    Vect->Macro_Global.c_str(),Vect->Macro_Kernel.c_str(),Vect->Capid_Global);

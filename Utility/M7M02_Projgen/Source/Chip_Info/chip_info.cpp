@@ -46,16 +46,17 @@ Return      : None.
 {
     try
     {
-        /* Platform */
-        this->Platform=Main::XML_Get_String(Root,"Platform","DXXXX","DXXXX");
+        /* Name */
+        this->Name=Main::XML_Get_String(Root,"Name","DXXXX","DXXXX");
+        Name_Gen(this);
         /* Version */
         this->Version=Main::XML_Get_String(Root,"Version","DXXXX","DXXXX");
-        /* Class */
-        this->Class=Main::XML_Get_String(Root,"Class","DXXXX","DXXXX");
+        /* Platform */
+        this->Platform=Main::XML_Get_String(Root,"Platform","DXXXX","DXXXX");
         /* Compatible */
         Main::XML_Get_CSV(Root,"Compatible",this->Compatible,"DXXXX","DXXXX");
         /* Vendor */
-        this->Vendor=Main::XML_Get_String(Root,"Class","DXXXX","DXXXX");
+        this->Vendor=Main::XML_Get_String(Root,"Vendor","DXXXX","DXXXX");
         /* Region */
         this->Region=Main::XML_Get_Number(Root,"Region","DXXXX","DXXXX");
         /* Iregion */
@@ -73,8 +74,8 @@ Return      : None.
     }
     catch(std::exception& Exc)
     {
-        if(this->Class!="")
-            Main::Error(std::string("Chip: ")+this->Class+"\n"+Exc.what());
+        if(this->Name!="")
+            Main::Error(std::string("Chip: ")+this->Name+"\n"+Exc.what());
         else
             Main::Error(std::string("Chip: ")+"Unknown"+"\n"+Exc.what());
     }
@@ -125,8 +126,8 @@ void Chip_Info::Check(void)
     }
     catch(std::exception& Exc)
     {
-        if(this->Class!="")
-            Main::Error(std::string("Chip: ")+this->Class+"\n"+Exc.what());
+        if(this->Name!="")
+            Main::Error(std::string("Chip: ")+this->Name+"\n"+Exc.what());
         else
             Main::Error(std::string("Chip: ")+"Unknown"+"\n"+Exc.what());
     }
@@ -151,8 +152,8 @@ void Chip_Info::Project_Config_Mark_Check(void)
     }
     catch(std::exception& Exc)
     {
-        if(this->Class!="")
-            Main::Error(std::string("Chip: ")+this->Class+"\n"+Exc.what());
+        if(this->Name!="")
+            Main::Error(std::string("Chip: ")+this->Name+"\n"+Exc.what());
         else
             Main::Error(std::string("Chip: ")+"Unknown"+"\n"+Exc.what());
     }

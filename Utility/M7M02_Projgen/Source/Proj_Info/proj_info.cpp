@@ -63,6 +63,7 @@ Return      : None.
     {
         /* Name */
         this->Name=Main::XML_Get_String(Root,"Name","DXXXX","DXXXX");
+        Name_Gen(this);
         /* Version */
         this->Version=Main::XML_Get_String(Root,"Version","DXXXX","DXXXX");
 

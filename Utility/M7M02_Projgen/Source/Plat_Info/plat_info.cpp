@@ -44,6 +44,7 @@ Return      : None.
     {
         /* Platform */
         this->Name=Main::XML_Get_String(Root,"Name","DXXXX","DXXXX");
+        Name_Gen(this);
         /* Wordlength */
         this->Wordlength=Main::XML_Get_Number(Root,"Wordlength","DXXXX","DXXXX");
         /* Captbl_Max */

@@ -13,7 +13,8 @@ namespace RVM_GEN
 #ifndef __GEN_TOOL_HPP_DEFS__
 #define __GEN_TOOL_HPP_DEFS__
 /*****************************************************************************/
-
+#define MACRO_ADD               (0)
+#define MACRO_REPLACE           (1)
 /*****************************************************************************/
 /* __GEN_TOOL_HPP_DEFS__ */
 #endif
@@ -56,16 +57,24 @@ public:
     static void Line_Write(std::unique_ptr<std::vector<std::string>>& List, const std::string& Path);
 
     static void Macro_String(std::unique_ptr<std::vector<std::string>>& List,
-                             const std::string& Macro, const std::string& Value);
+                             const std::string& Macro, const std::string& Value, ptr_t Mode);
     static void Macro_Hex(std::unique_ptr<std::vector<std::string>>& List,
-                          const std::string& Macro, ptr_t Value);
+                          const std::string& Macro, ptr_t Value, ptr_t Mode);
     static void Macro_Int(std::unique_ptr<std::vector<std::string>>& List,
-                          const std::string& Macro, ptr_t Value);
+                          const std::string& Macro, ptr_t Value, ptr_t Mode);
 
     static void Src_Head(std::unique_ptr<std::vector<std::string>>& List,
                          const std::string& Name, const std::string& Desc);
     static void Src_Foot(std::unique_ptr<std::vector<std::string>>& List);
+    static void Func_Head(std::unique_ptr<std::vector<std::string>>& List,
+                          const std::string& Name,
+                          const std::string& Description,
+                          const std::vector<std::string>& Input,
+                          const std::vector<std::string>& Output,
+                          const std::string& Return);
+    static void Func_Foot(std::unique_ptr<std::vector<std::string>>& List, const std::string& Name);
 
+    void Kernel_Inc(std::unique_ptr<std::vector<std::string>>& List);
     void Kernel_Conf_Hdr(void);
     void Kernel_Boot_Hdr(void);
     void Kernel_Boot_Src(void);

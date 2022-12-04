@@ -54,54 +54,6 @@ Return      : None.
     /* Do nothing */
 }
 /* End Function:Kobj::~Kobj **************************************************/
-
-/* Begin Function:Kobj::Upper *************************************************
-Description : Convert the string to uppercase.
-Input       : std::string& Str - The string to convert.
-Output      : std::string& Str - The converted string.
-Return      : None.
-******************************************************************************/
-void Kobj::Upper(std::string& Str)
-{
-    std::transform(Str.begin(), Str.end(), Str.begin(), (int(*)(int))std::toupper);
-}
-/* End Function:Kobj::Upper **************************************************/
-
-/* Begin Function:Kobj::Lower *************************************************
-Description : Convert the string to lowercase.
-Input       : std::string& Str - The string to convert.
-Output      : std::string& Str - The converted string.
-Return      : None.
-******************************************************************************/
-void Kobj::Lower(std::string& Str)
-{
-    std::transform(Str.begin(), Str.end(), Str.begin(), (int(*)(int))std::tolower);
-}
-/* End Function:Kobj::Lower **************************************************/
-
-/* Begin Function:Kobj::Strcicmp **********************************************
-Description : Compare two strings in a case insensitive way.
-Input       : const std::string& Str1 - The first string.
-              const std::string& Str2 - The second string.
-Output      : None.
-Return      : ret_t - If two strings are equal, then 0; if not, -1.
-******************************************************************************/
-ret_t Kobj::Strcicmp(const std::string& Str1, const std::string& Str2)
-{
-    bool Equal;
-
-    Equal=std::equal(Str1.begin(), Str1.end(), Str2.begin(), Str2.end(),
-                     [](s8_t Char1, s8_t Char2)
-                     {
-                         return std::tolower(Char1)==std::tolower(Char2);
-                     });
-
-    if(Equal==true)
-        return 0;
-
-    return -1;
-}
-/* End Function:Kobj::Strcicmp ***********************************************/
 }
 /* End Of File ***************************************************************/
 

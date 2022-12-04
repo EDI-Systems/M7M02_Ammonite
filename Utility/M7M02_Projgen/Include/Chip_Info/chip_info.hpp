@@ -30,12 +30,14 @@ namespace RVM_GEN
 class Chip_Info
 {
 public:
-    /* The platform */
-    std::string Platform;
+    /* The name of the chip class */
+    std::string Name;
+    std::string Name_Upper;
+    std::string Name_Lower;
     /* Version info */
     std::string Version;
-    /* The name of the chip class */
-    std::string Class;
+    /* The platform */
+    std::string Platform;
     /* Compatible chip list */
     std::vector<std::string> Compatible;
     /* The vendor */

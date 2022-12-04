@@ -190,7 +190,7 @@ void Main::Chip_Parse(void)
     try
     {
         /* Try to find the correct chip description file */
-        Path=this->Proj->Monitor->Monitor_Root+"/Include/Platform/"+
+        Path=this->Proj->Monitor->Monitor_Root+"Include/Platform/"+
              this->Proj->Chip->Platform+"/Chip/"+
              this->Proj->Chip->Class+"/"+
              "rvm_platform_"+this->Proj->Chip->Class+".rvc";
@@ -250,8 +250,8 @@ void Main::Plat_Parse(void)
     {
         /* Try to find the correct platform description file */
         Path=this->Proj->Chip->Platform;
-        Kobj::Lower(Path);
-        Path=this->Proj->Monitor->Monitor_Root+"/Include/Platform/"+
+        Main::Lower(Path);
+        Path=this->Proj->Monitor->Monitor_Root+"Include/Platform/"+
              this->Proj->Chip->Platform+"/rvm_platform_"+Path+".rva";
         /* Read in the whole chip description file */
         File=fopen(Path.c_str(),"r");
@@ -354,7 +354,7 @@ void Main::Compatible_Check(void)
         /* Check project/platform/chip compatibility */
         if((this->Proj->Chip->Platform!=this->Chip->Platform)||(this->Plat->Name!=this->Chip->Platform))
             Main::Error("PXXXX: The project platform and the chip platform is different.");
-        if(this->Proj->Chip->Class!=this->Chip->Class)
+        if(this->Proj->Chip->Class!=this->Chip->Name)
             Main::Error("PXXXX: The project class and the chip class is different.");
         if(std::find(this->Chip->Compatible.begin(),
                      this->Chip->Compatible.end(),
@@ -1544,7 +1544,7 @@ void Main::Kernel_Gen(void)
     try
     {
         /* Generate kernel folders, if they do not exist already */
-        Main::Info("Creating directories for kernel.");
+        Main::Info("Creating kernel directories.");
         std::filesystem::create_directories(this->Proj->Kernel->Project_Output);
         std::filesystem::create_directories(this->Proj->Kernel->Linker_Output);
         std::filesystem::create_directories(this->Proj->Kernel->Config_Header_Output);
@@ -1554,22 +1554,29 @@ void Main::Kernel_Gen(void)
         std::filesystem::create_directories(this->Proj->Kernel->Handler_Source_Output);
 
         /* Generate kernel configuration header */
+        Main::Info("Generating kernel configuration header.");
         this->Gen->Kernel_Conf_Hdr();
 
         /* Generate kernel boot header/source */
+        Main::Info("Generating kernel boot header.");
         this->Gen->Kernel_Boot_Hdr();
+        Main::Info("Generating kernel boot source.");
         this->Gen->Kernel_Boot_Src();
 
         /* Generate kernel init source */
+        Main::Info("Generating kernel initialization source.");
         this->Gen->Kernel_Init_Src();
 
         /* Generate kernel handler source */
+        Main::Info("Generating kernel vector handler sources.");
         this->Gen->Kernel_Handler_Src();
 
         /* Generate kernel linker script */
+        Main::Info("Generating kernel linker script.");
         this->Gen->Kernel_Linker();
 
         /* Generate kernel project */
+        Main::Info("Generating kernel project.");
         this->Gen->Kernel_Proj();
     }
     catch(std::exception& Exc)
@@ -1590,7 +1597,7 @@ void Main::Monitor_Gen(void)
     try
     {
         /* Generate monitor folders, if they do not exist already */
-        Main::Info("Creating directories for monitor.");
+        Main::Info("Creating monitor directories.");
         std::filesystem::create_directories(this->Proj->Monitor->Project_Output);
         std::filesystem::create_directories(this->Proj->Monitor->Linker_Output);
         std::filesystem::create_directories(this->Proj->Monitor->Config_Header_Output);
@@ -1875,6 +1882,82 @@ void Main::Idtfr_Check(const std::string& Idtfr, const char* Name,
     }
 }
 /* End Function:Main::Idtfr_Check ********************************************/
+
+/* Begin Function:Main::Dir_Fixup *********************************************
+Description : Fix up all directory paths with a lagging '/'.
+Input       : std::string& Dir - The directory path.
+Output      : std::string& Dir - The guaranteed correct directory path.
+Return      : None.
+******************************************************************************/
+void Main::Dir_Fixup(std::string& Dir)
+{
+    if((Dir.back()!='/')&&(Dir.back()!='\\'))
+        Dir+='/';
+}
+/* End Function:Main::Dir_Fixup **********************************************/
+
+/* Begin Function:Main::Hex ***************************************************
+Description : Convert a number to a hex string, without 0x prefix.
+Input       : ptr_t Number - The number to convert.
+Output      : None.
+Return      : std::string - The string created.
+******************************************************************************/
+std::string Main::Hex(ptr_t Number)
+{
+    char Buf[64];
+
+    sprintf(Buf,"%llX",Number);
+    return Buf;
+}
+/* End Function:Main::Hex ****************************************************/
+
+/* Begin Function:Main::Upper *************************************************
+Description : Convert the string to uppercase.
+Input       : std::string& Str - The string to convert.
+Output      : std::string& Str - The converted string.
+Return      : None.
+******************************************************************************/
+void Main::Upper(std::string& Str)
+{
+    std::transform(Str.begin(), Str.end(), Str.begin(), (int(*)(int))std::toupper);
+}
+/* End Function:Main::Upper **************************************************/
+
+/* Begin Function:Main::Lower *************************************************
+Description : Convert the string to lowercase.
+Input       : std::string& Str - The string to convert.
+Output      : std::string& Str - The converted string.
+Return      : None.
+******************************************************************************/
+void Main::Lower(std::string& Str)
+{
+    std::transform(Str.begin(), Str.end(), Str.begin(), (int(*)(int))std::tolower);
+}
+/* End Function:Main::Lower **************************************************/
+
+/* Begin Function:Main::Strcicmp **********************************************
+Description : Compare two strings in a case insensitive way.
+Input       : const std::string& Str1 - The first string.
+              const std::string& Str2 - The second string.
+Output      : None.
+Return      : ret_t - If two strings are equal, then 0; if not, -1.
+******************************************************************************/
+ret_t Main::Strcicmp(const std::string& Str1, const std::string& Str2)
+{
+    bool Equal;
+
+    Equal=std::equal(Str1.begin(), Str1.end(), Str2.begin(), Str2.end(),
+                     [](s8_t Char1, s8_t Char2)
+                     {
+                         return std::tolower(Char1)==std::tolower(Char2);
+                     });
+
+    if(Equal==true)
+        return 0;
+
+    return -1;
+}
+/* End Function:Main::Strcicmp ***********************************************/
 
 /* Begin Function:Main::Info **************************************************
 Description : Output information in verbose mode.

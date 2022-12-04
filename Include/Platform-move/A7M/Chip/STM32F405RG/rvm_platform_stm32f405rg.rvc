@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <Chip>
-    <Platform>A7M</Platform>
+    <Name>STM32F405RG</Name>
     <Version>1.0</Version>
-    <Class>STM32F405RG</Class>
+    <Platform>A7M</Platform>
     <Compatible>STM32F405RGT6,STM32F405RGT7</Compatible>
     <Vendor>STMicroelectronics</Vendor>
     <Region>8</Region>

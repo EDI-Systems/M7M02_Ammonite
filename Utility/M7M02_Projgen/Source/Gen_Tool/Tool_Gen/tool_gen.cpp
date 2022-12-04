@@ -46,6 +46,7 @@ Return      : None.
     try
     {
         this->Name=Name;
+        Name_Gen(this);
         this->Proj=Proj;
         this->Plat=Plat;
         this->Chip=Chip;

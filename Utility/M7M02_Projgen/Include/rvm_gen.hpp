@@ -159,6 +159,13 @@ public:
 
     static void Idtfr_Check(const std::string& Idtfr, const char* Name,
                             const char* Errno0, const char* Errno1);
+    static void Dir_Fixup(std::string& Dir);
+
+    static std::string Hex(ptr_t Number);
+
+    static void Upper(std::string& Str);
+    static void Lower(std::string& Str);
+    static ret_t Strcicmp(const std::string& Str1, const std::string& Str2);
 
     static void Info(const char* Format, ...);
     static void Info(const std::string& Format);
@@ -168,6 +175,15 @@ public:
     static void Error[[noreturn]](const std::string& Format);
 };
 
+/* Name generation */
+template <typename T>
+void Name_Gen(T* This)
+{
+    This->Name_Lower=This->Name;
+    Main::Lower(This->Name_Lower);
+    This->Name_Upper=This->Name;
+    Main::Upper(This->Name_Upper);
+}
 
 /* XML trunk parsing */
 template <typename CONT, typename ELEM>

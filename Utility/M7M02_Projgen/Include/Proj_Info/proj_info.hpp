@@ -32,6 +32,8 @@ class Proj_Info
 public:
     /* The name of the project */
     std::string Name;
+    std::string Name_Upper;
+    std::string Name_Lower;
     /* The project version */
     std::string Version;
     /* Chip information */

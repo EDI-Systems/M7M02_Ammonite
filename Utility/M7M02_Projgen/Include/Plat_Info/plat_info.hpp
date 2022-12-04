@@ -32,6 +32,8 @@ class Plat_Info
 public:
     /* The platform */
     std::string Name;
+    std::string Name_Upper;
+    std::string Name_Lower;
     /* Version info */
     std::string Version;
     /* Processor word length */

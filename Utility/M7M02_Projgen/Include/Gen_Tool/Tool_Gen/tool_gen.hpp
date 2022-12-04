@@ -32,6 +32,8 @@ class Tool_Gen
 public:
     /* Name */
     std::string Name;
+    std::string Name_Upper;
+    std::string Name_Lower;
     /* All info */
     class Proj_Info* Proj;
     class Plat_Info* Plat;
@@ -40,6 +42,8 @@ public:
     /* void */ Tool_Gen(const std::string& Name,
                         class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip);
     virtual /* void */ ~Tool_Gen(void){};
+
+    virtual std::string Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)=0;
 };
 /*****************************************************************************/
 /* __TOOL_GEN_HPP_CLASSES__ */

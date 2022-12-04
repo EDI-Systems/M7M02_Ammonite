@@ -116,6 +116,11 @@ public:
     /* Code memory frontier for entries */
     ptr_t Entry_Code_Front;
 
+    /* Linker filename */
+    std::string Linker_Filename;
+    /* Project filename */
+    std::string Project_Filename;
+
     /* void */ Process(xml_node_t* Root, ptr_t Type);
 
     void Check(void);

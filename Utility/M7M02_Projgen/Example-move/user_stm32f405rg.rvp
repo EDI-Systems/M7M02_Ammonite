@@ -10,7 +10,7 @@
         <Class>STM32F405RG</Class>
         <Name>STM32F405RGT6</Name>
         <Config>
-            <NVIC_Grouping>2-6</NVIC_Grouping>
+            <NVIC_Grouping>P2S6</NVIC_Grouping>
             <Systick_Value>16800</Systick_Value>
             <XTAL>8</XTAL>
             <PLLM>8</PLLM>

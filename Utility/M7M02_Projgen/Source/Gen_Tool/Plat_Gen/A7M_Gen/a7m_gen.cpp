@@ -27,6 +27,7 @@ extern "C"
 #include "Chip_Info/chip_info.hpp"
 #include "Proj_Info/Kobj/kobj.hpp"
 #include "Proj_Info/proj_info.hpp"
+#include "Gen_Tool/Gen_Tool.hpp"
 #include "Gen_Tool/Plat_Gen/plat_gen.hpp"
 #include "Gen_Tool/Plat_Gen/A7M_Gen/a7m_gen.hpp"
 #undef __HDR_DEFS__
@@ -569,25 +570,28 @@ Return      : None.
 void A7M_Gen::Kernel_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
 {
     /* Shared vector flag region address */
-    Gen_Tool::Macro_Hex(List, "RME_A7M_VECT_FLAG_ADDR", this->Proj->Kernel->Vctf_Base);
+    Gen_Tool::Macro_Hex(List, "RME_A7M_VECT_FLAG_ADDR",this->Proj->Kernel->Vctf_Base, MACRO_REPLACE);
     /* Shared event flag region address */
-    Gen_Tool::Macro_Hex(List, "RME_A7M_EVT_FLAG_ADDR",this->Proj->Kernel->Evtf_Base);
+    Gen_Tool::Macro_Hex(List, "RME_A7M_EVT_FLAG_ADDR",this->Proj->Kernel->Evtf_Base, MACRO_REPLACE);
     /* Initial kernel object frontier limit */
-    Gen_Tool::Macro_Hex(List, "RME_A7M_KMEM_BOOT_FRONTIER",this->Proj->Kernel->Kmem_Base+this->Proj->Monitor->Before_Kmem_Front);
+    Gen_Tool::Macro_Hex(List, "RME_A7M_KMEM_BOOT_FRONTIER",
+                        this->Proj->Kernel->Kmem_Base+this->Proj->Monitor->Before_Kmem_Front, MACRO_REPLACE);
     /* Init process's first thread's entry point address */
-    Gen_Tool::Macro_Hex(List, "RME_A7M_INIT_ENTRY",this->Proj->Kernel->Code_Base|0x01);
+    Gen_Tool::Macro_Hex(List, "RME_A7M_INIT_ENTRY",this->Proj->Kernel->Code_Base|0x01, MACRO_REPLACE);
     /* Init process's first thread's stack address */
-    Gen_Tool::Macro_Hex(List, "RME_A7M_INIT_STACK",this->Proj->Monitor->Init_Stack_Base+this->Proj->Monitor->Init_Stack_Size-16);
+    Gen_Tool::Macro_Hex(List, "RME_A7M_INIT_STACK",
+                        this->Proj->Monitor->Init_Stack_Base+this->Proj->Monitor->Init_Stack_Size-16, MACRO_REPLACE);
     /* What is the NVIC priority grouping? */
-    Gen_Tool::Macro_String(List,"RME_A7M_NVIC_GROUPING",std::string("RME_A7M_NVIC_GROUPING_")+this->Proj->Chip->Config["NVIC_Grouping"]);
+    Gen_Tool::Macro_String(List,"RME_A7M_NVIC_GROUPING",
+                           std::string("RME_A7M_NVIC_GROUPING_")+this->Proj->Chip->Config["NVIC_Grouping"], MACRO_REPLACE);
     /* What is the Systick value? - (usually) 10ms per tick */
-    Gen_Tool::Macro_String(List, "RME_A7M_SYSTICK_VAL", this->Proj->Chip->Config["Systick_Value"]);
+    Gen_Tool::Macro_String(List, "RME_A7M_SYSTICK_VAL", this->Proj->Chip->Config["Systick_Value"], MACRO_REPLACE);
 
     /* Fixed attributes - we will refill these with database values */
     /* Number of MPU regions available */
-    Gen_Tool::Macro_Int(List, "RME_A7M_MPU_REGIONS", this->Chip->Region);
+    Gen_Tool::Macro_Int(List, "RME_A7M_MPU_REGIONS", this->Chip->Region, MACRO_REPLACE);
     /* What is the FPU type? */
-    Gen_Tool::Macro_String(List, "RME_A7M_FPU_TYPE",std::string("RME_A7M_FPU_")+this->Chip->Attribute["FPU"]);
+    Gen_Tool::Macro_String(List, "RME_A7M_FPU_TYPE",std::string("RME_A7M_FPU_")+this->Chip->Attribute["FPU"], MACRO_REPLACE);
 
     /* CPU & Endianness currently unused */
 }

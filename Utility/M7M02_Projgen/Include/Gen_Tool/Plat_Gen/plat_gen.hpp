@@ -32,8 +32,8 @@ class Plat_Gen
 public:
     /* Platform name */
     std::string Name;
-    /* Platform lower-case name */
-    std::string Lower;
+    std::string Name_Upper;
+    std::string Name_Lower;
     /* All info */
     class Proj_Info* Proj;
     class Plat_Info* Plat;

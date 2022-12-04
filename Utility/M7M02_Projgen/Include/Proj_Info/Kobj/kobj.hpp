@@ -32,6 +32,8 @@ class Kobj
 public:
     /* Name of the kernel object */
     std::string Name;
+    std::string Name_Upper;
+    std::string Name_Lower;
     /* The process that it belongs to */
     class Process* Owner;
     /* The local capid of the port */
@@ -47,10 +49,6 @@ public:
 
     /* void */ Kobj(class Process* Owner);
     virtual /* void */ ~Kobj(void)=0;
-
-    static void Upper(std::string& Str);
-    static void Lower(std::string& Str);
-    static ret_t Strcicmp(const std::string& Str1, const std::string& Str2);
 };
 /*****************************************************************************/
 /* __KOBJ_HPP_CLASSES__ */

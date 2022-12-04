@@ -45,6 +45,7 @@ Kobj(Owner)
     {
         /* Name */
         this->Name=Main::XML_Get_String(Root,"Name","DXXXX","DXXXX");
+        Name_Gen(this);
         /* Process */
         this->Process=Main::XML_Get_String(Root,"Process","DXXXX","DXXXX");
     }

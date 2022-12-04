@@ -87,6 +87,11 @@ public:
     ptr_t Vect_Cap_Front;
     ptr_t Vect_Kmem_Front;
 
+    /* Linker filename */
+    std::string Linker_Filename;
+    /* Project filename */
+    std::string Project_Filename;
+
     /* void */ Kernel(xml_node_t* Root);
 
     void Mem_Alloc(ptr_t Kmem_Front, ptr_t Vector_Num, ptr_t Event_Num, ptr_t Wordlength);

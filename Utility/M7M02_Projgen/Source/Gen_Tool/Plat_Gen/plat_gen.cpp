@@ -55,13 +55,10 @@ Return      : None.
     try
     {
         this->Name=Name;
+        Name_Gen(this);
         this->Proj=Proj;
         this->Plat=Plat;
         this->Chip=Chip;
-
-        /* Platform lower-case name */
-        this->Lower=Name;
-        Kobj::Lower(this->Lower);
     }
     catch(std::exception& Exc)
     {

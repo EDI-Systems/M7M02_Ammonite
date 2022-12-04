@@ -72,20 +72,27 @@ Return      : None.
         this->Optimization=Main::XML_Get_String(Root,"Optimization","DXXXX","DXXXX");
         /* Monitor_Root */
         this->Monitor_Root=Main::XML_Get_String(Root,"Monitor_Root","DXXXX","DXXXX");
+        Main::Dir_Fixup(this->Monitor_Root);
         /* Project_Output */
         this->Project_Output=Main::XML_Get_String(Root,"Project_Output","DXXXX","DXXXX");
+        Main::Dir_Fixup(this->Project_Output);
         /* Project_Overwrite */
         this->Project_Overwrite=Main::XML_Get_Yesno(Root,"Project_Overwrite","DXXXX","DXXXX");
         /* Linker_Output */
         this->Linker_Output=Main::XML_Get_String(Root,"Linker_Output","DXXXX","DXXXX");
+        Main::Dir_Fixup(this->Linker_Output);
         /* Config_Header_Output */
         this->Config_Header_Output=Main::XML_Get_String(Root,"Config_Header_Output","DXXXX","DXXXX");
+        Main::Dir_Fixup(this->Config_Header_Output);
         /* Boot_Header_Output */
         this->Boot_Header_Output=Main::XML_Get_String(Root,"Boot_Header_Output","DXXXX","DXXXX");
+        Main::Dir_Fixup(this->Boot_Header_Output);
         /* Boot_Source_Output */
         this->Boot_Source_Output=Main::XML_Get_String(Root,"Boot_Source_Output","DXXXX","DXXXX");
+        Main::Dir_Fixup(this->Boot_Source_Output);
         /* Init_Source_Output */
         this->Init_Source_Output=Main::XML_Get_String(Root,"Init_Source_Output","DXXXX","DXXXX");
+        Main::Dir_Fixup(this->Init_Source_Output);
         /* Init_Source_Output */
         this->Init_Source_Overwrite=Main::XML_Get_Yesno(Root,"Init_Source_Overwrite","DXXXX","DXXXX");
     }

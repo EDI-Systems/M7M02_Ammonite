@@ -128,6 +128,11 @@ public:
     ptr_t After_Cap_Front;
     ptr_t After_Kmem_Front;
 
+    /* Linker filename */
+    std::string Linker_Filename;
+    /* Project filename */
+    std::string Project_Filename;
+
     /* void */ Monitor(xml_node_t* Root, ptr_t Code_Base, ptr_t Code_Size);
 
     void Mem_Alloc(ptr_t Kmem_Order);

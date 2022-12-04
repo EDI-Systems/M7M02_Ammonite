@@ -60,8 +60,10 @@ Process(Root,PROC_VIRTUAL)
         this->Guest_Type=Main::XML_Get_String(Root,"Guest_Type","DXXXX","DXXXX");
         /* Guest_Root */
         this->Guest_Root=Main::XML_Get_String(Root,"Guest_Root","DXXXX","DXXXX");
+        Main::Dir_Fixup(this->Guest_Root);
         /* Config_Header_Output */
         this->Config_Header_Output=Main::XML_Get_String(Root,"Config_Header_Output","DXXXX","DXXXX");
+        Main::Dir_Fixup(this->Config_Header_Output);
 
         /* Stack Size */
         this->Stack_Size=Main::XML_Get_Number(Root,"Stack_Size","DXXXX","DXXXX");

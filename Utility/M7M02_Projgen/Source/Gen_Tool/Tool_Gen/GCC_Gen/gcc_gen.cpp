@@ -54,6 +54,19 @@ Tool_Gen("GCC", Proj, Plat, Chip)
     }
 }
 /* End Function:GCC_Gen::GCC_Gen *********************************************/
+
+/* Begin Function:GCC_Gen::Kernel_Linker **************************************
+Description : Generate the RME linker script.
+Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
+Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
+Return      : std::string - The linker file suffix.
+******************************************************************************/
+std::string GCC_Gen::Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)
+{
+
+    return "ld";
+}
+/* End Function:GCC_Gen::Kernel_Linker ***************************************/
 }
 /* End Of File ***************************************************************/
 
