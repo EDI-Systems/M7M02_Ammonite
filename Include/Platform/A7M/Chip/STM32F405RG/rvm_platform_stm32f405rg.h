@@ -1,5 +1,5 @@
 /******************************************************************************
-Filename   : rvm_platform_STM32F405RG.h
+Filename   : rvm_platform_stm32f405rg.h
 Author     : pry
 Date       : 26/06/2017
 Licence    : The Unlicense; see LICENSE for details.
