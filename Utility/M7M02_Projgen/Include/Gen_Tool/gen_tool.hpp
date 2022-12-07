@@ -73,6 +73,7 @@ public:
                           const std::vector<std::string>& Output,
                           const std::string& Return);
     static void Func_Foot(std::unique_ptr<std::vector<std::string>>& List, const std::string& Name);
+    static void Path_Conv(const std::string& Root, std::vector<std::string>& List);
 
     void Kernel_Inc(std::unique_ptr<std::vector<std::string>>& List);
     void Kernel_Conf_Hdr(void);

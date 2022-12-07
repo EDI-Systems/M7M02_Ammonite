@@ -55,16 +55,32 @@ Tool_Gen("GCC", Proj, Plat, Chip)
 }
 /* End Function:GCC_Gen::GCC_Gen *********************************************/
 
+/* Begin Function:GCC_Gen::Suffix *********************************************
+Description : Returns suffix for a given type of file.
+Input       : ptr_t Type - The file type.
+Output      : None.
+Return      : std::string - The file suffix.
+******************************************************************************/
+std::string GCC_Gen::Suffix(ptr_t Type)
+{
+    if(Type==TOOL_LINKER)
+        return ".ld";
+    else if(Type==TOOL_ASSEMBLER)
+        return ".s";
+    else
+        Main::Error("AXXXX: File type not recognized.");
+}
+/* End Function:GCC_Gen::Suffix **********************************************/
+
 /* Begin Function:GCC_Gen::Kernel_Linker **************************************
 Description : Generate the RME linker script.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
-Return      : std::string - The linker file suffix.
+Return      : None.
 ******************************************************************************/
-std::string GCC_Gen::Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)
+void GCC_Gen::Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)
 {
 
-    return "ld";
 }
 /* End Function:GCC_Gen::Kernel_Linker ***************************************/
 }

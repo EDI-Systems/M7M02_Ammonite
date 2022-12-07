@@ -30,8 +30,21 @@ namespace RVM_GEN
 class Keil_Gen:public Build_Gen
 {
 public:
-
     /* void */ Keil_Gen(class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip);
+
+    virtual std::string Suffix(ptr_t Type) final override;
+
+    void Raw_Proj(std::unique_ptr<std::vector<std::string>>& List,
+                  const std::string& After1, const std::string& After2,
+                  const std::string& Target, const std::string& Optimization,
+                  const std::vector<std::string>& Include,
+                  const std::vector<std::string>& Source,
+                  const std::string& Linker, const std::string& Linker_Misc);
+
+    virtual void Kernel_Proj(std::unique_ptr<std::vector<std::string>>& List,
+                             const std::vector<std::string>& Include,
+                             const std::vector<std::string>& Source,
+                             const std::vector<std::string>& Linker) final override;
 };
 /*****************************************************************************/
 /* __KEIL_GEN_HPP_CLASSES__ */

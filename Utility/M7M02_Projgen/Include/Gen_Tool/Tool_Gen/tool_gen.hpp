@@ -13,7 +13,8 @@ namespace RVM_GEN
 #ifndef __TOOL_GEN_HPP_DEFS__
 #define __TOOL_GEN_HPP_DEFS__
 /*****************************************************************************/
-
+#define TOOL_ASSEMBLER          (1)
+#define TOOL_LINKER             (2)
 /*****************************************************************************/
 /* __TOOL_GEN_HPP_DEFS__ */
 #endif
@@ -43,7 +44,9 @@ public:
                         class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip);
     virtual /* void */ ~Tool_Gen(void){};
 
-    virtual std::string Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)=0;
+    virtual std::string Suffix(ptr_t Type)=0;
+
+    virtual void Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)=0;
 };
 /*****************************************************************************/
 /* __TOOL_GEN_HPP_CLASSES__ */

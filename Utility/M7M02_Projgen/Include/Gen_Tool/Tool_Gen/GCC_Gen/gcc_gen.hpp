@@ -32,7 +32,9 @@ class GCC_Gen:public Tool_Gen
 public:
     /* void */ GCC_Gen(class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip);
 
-    virtual std::string Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List) final override;
+    virtual std::string Suffix(ptr_t Type) final override;
+
+    virtual void Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List) final override;
 };
 /*****************************************************************************/
 /* __GCC_GEN_HPP_CLASSES__ */

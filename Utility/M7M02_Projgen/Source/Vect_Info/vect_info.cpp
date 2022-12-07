@@ -48,6 +48,7 @@ Kobj(Owner)
     {
         /* Name */
         this->Name=Main::XML_Get_String(Root,"Name","DXXXX","DXXXX");
+        Name_Gen(this);
         Main::Idtfr_Check(this->Name,"Name","DXXXX","DXXXX");
 
         /* Number */

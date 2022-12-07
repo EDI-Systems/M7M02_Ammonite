@@ -30,8 +30,14 @@ namespace RVM_GEN
 class Makefile_Gen:public Build_Gen
 {
 public:
-
     /* void */ Makefile_Gen(class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip);
+
+    virtual std::string Suffix(ptr_t Type) final override;
+
+    virtual void Kernel_Proj(std::unique_ptr<std::vector<std::string>>& List,
+                             const std::vector<std::string>& Include,
+                             const std::vector<std::string>& Source,
+                             const std::vector<std::string>& Linker) final override;
 };
 /*****************************************************************************/
 /* __MAKEFILE_GEN_HPP_CLASSES__ */

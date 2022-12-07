@@ -13,7 +13,7 @@ namespace RVM_GEN
 #ifndef __BUILD_GEN_HPP_DEFS__
 #define __BUILD_GEN_HPP_DEFS__
 /*****************************************************************************/
-
+#define BUILD_PROJECT            (0)
 /*****************************************************************************/
 /* __BUILD_GEN_HPP_DEFS__ */
 #endif
@@ -42,6 +42,13 @@ public:
     /* void */ Build_Gen(const std::string& Name,
                          class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip);
     virtual /* void */ ~Build_Gen(void){};
+
+    virtual std::string Suffix(ptr_t Type)=0;
+
+    virtual void Kernel_Proj(std::unique_ptr<std::vector<std::string>>& List,
+                             const std::vector<std::string>& Include,
+                             const std::vector<std::string>& Source,
+                             const std::vector<std::string>& Linker)=0;
 };
 /*****************************************************************************/
 /* __BUILD_GEN_HPP_CLASSES__ */

@@ -77,13 +77,30 @@ Tool_Gen("ARMCC", Proj, Plat, Chip)
 }
 /* End Function:ARMCC_Gen::ARMCC_Gen *****************************************/
 
+/* Begin Function:ARMCC_Gen::Suffix *******************************************
+Description : Returns suffix for a given type of file.
+Input       : ptr_t Type - The file type.
+Output      : None.
+Return      : std::string - The file suffix.
+******************************************************************************/
+std::string ARMCC_Gen::Suffix(ptr_t Type)
+{
+    if(Type==TOOL_LINKER)
+        return ".sct";
+    else if(Type==TOOL_ASSEMBLER)
+        return ".s";
+    else
+        Main::Error("AXXXX: File type not recognized.");
+}
+/* End Function:ARMCC_Gen::Suffix ********************************************/
+
 /* Begin Function:ARMCC_Gen::Kernel_Linker ************************************
 Description : Generate the RME linker script.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
-Return      : std::string - The linker file suffix.
+Return      : None.
 ******************************************************************************/
-std::string ARMCC_Gen::Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)
+void ARMCC_Gen::Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)
 {
     List->push_back(";******************************************************************************");
     List->push_back(std::string(";Filename    : rme_platform_")+this->Chip->Name_Lower+".sct");
@@ -173,8 +190,6 @@ std::string ARMCC_Gen::Kernel_Linker(std::unique_ptr<std::vector<std::string>>& 
     List->push_back("");
     List->push_back("; Copyright (C) Evo-Devo Instrum. All rights reserved *************************");
     List->push_back("");
-
-    return "sct";
 }
 /* End Function:ARMCC_Gen::Kernel_Linker *************************************/
 }

@@ -54,7 +54,41 @@ Build_Gen("Makefile", Proj, Plat, Chip)
         Main::Error(std::string("Makefile generator:\n")+Exc.what());
     }
 }
-/* End Function:Makefile_Gen::Makefile_Gen *******************************************/
+/* End Function:Makefile_Gen::Makefile_Gen ***********************************/
+
+/* Begin Function:Makefile_Gen::Suffix ****************************************
+Description : Returns suffix for a given type of file.
+Input       : ptr_t Type - The file type.
+Output      : None.
+Return      : std::string - The file suffix.
+******************************************************************************/
+std::string Makefile_Gen::Suffix(ptr_t Type)
+{
+    if(Type==BUILD_PROJECT)
+        return "";
+    else
+        Main::Error("AXXXX: File type not recognized.");
+}
+/* End Function:Makefile_Gen::Suffix *****************************************/
+
+/* Begin Function:Makefile_Gen::Kernel_Proj ***********************************
+Description : Generate kernel project.
+Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
+              const std::vector<std::string>& Include - The include file list.
+              const std::vector<std::string>& Source - The source file list.
+              const std::vector<std::string>& Source - The linker script file list.
+Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Makefile_Gen::Kernel_Proj(std::unique_ptr<std::vector<std::string>>& List,
+                               const std::vector<std::string>& Include,
+                               const std::vector<std::string>& Source,
+                               const std::vector<std::string>& Linker)
+{
+
+}
+/* End Function:Makefile_Gen::Kernel_Proj ************************************/
 }
 /* End Of File ***************************************************************/
 

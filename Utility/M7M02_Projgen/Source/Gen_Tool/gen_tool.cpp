@@ -14,6 +14,7 @@ extern "C"
 }
 
 #include "map"
+#include "set"
 #include "string"
 #include "memory"
 #include "vector"
@@ -24,6 +25,10 @@ extern "C"
 #define __HDR_DEFS__
 #include "rvm_gen.hpp"
 #include "Gen_Tool/gen_tool.hpp"
+#include "Gen_Tool/Plat_Gen/plat_gen.hpp"
+#include "Gen_Tool/Build_Gen/build_gen.hpp"
+#include "Gen_Tool/Tool_Gen/tool_gen.hpp"
+#include "Gen_Tool/Guest_Gen/guest_gen.hpp"
 #undef __HDR_DEFS__
 
 #define __HDR_CLASSES__
@@ -311,7 +316,7 @@ void Gen_Tool::Macro_String(std::unique_ptr<std::vector<std::string>>& List,
                 else
                     Pos-=11;
                 /* Decide format first, then generate the line */
-                sprintf(Format, "#define %%-%llds    %%s", Pos);
+                sprintf(Format, "#define %%-%llds    (%%s)", Pos);
                 sprintf(Buf, Format, Macro.c_str(), Value.c_str());
                 Line=Buf;
                 return;
@@ -321,7 +326,7 @@ void Gen_Tool::Macro_String(std::unique_ptr<std::vector<std::string>>& List,
 
     /* Print to file if this does not yet exist */
     Pos=MACRO_ALIGN;
-    sprintf(Format, "#define %%-%llds    %%s", Pos);
+    sprintf(Format, "#define %%-%llds    (%%s)", Pos);
     sprintf(Buf, Format, Macro.c_str(), Value.c_str());
     List->push_back(Buf);
 }
@@ -341,7 +346,7 @@ void Gen_Tool::Macro_Hex(std::unique_ptr<std::vector<std::string>>& List,
 {
     char Buf[64];
 
-    sprintf(Buf,"0x%llX",Value);
+    sprintf(Buf,"0x%llXU",Value);
     Gen_Tool::Macro_String(List,Macro,Buf,Mode);
 }
 /* End Function:Gen_Tool::Macro_Hex ******************************************/
@@ -360,7 +365,7 @@ void Gen_Tool::Macro_Int(std::unique_ptr<std::vector<std::string>>& List,
 {
     char Buf[64];
 
-    sprintf(Buf,"%lld",Value);
+    sprintf(Buf,"%lldU",Value);
     Gen_Tool::Macro_String(List,Macro,Buf,Mode);
 }
 /* End Function:Gen_Tool::Macro_Int ******************************************/
@@ -490,6 +495,54 @@ void Gen_Tool::Func_Foot(std::unique_ptr<std::vector<std::string>>& List, const 
 }
 /* End Function:Gen_Tool::Func_Foot ******************************************/
 
+/* Begin Function:Gen_Tool::Path_Conv *****************************************
+Description : Deduplicate all paths, and make them relative to the root path.
+Input       : const std::string& Root - The root path.
+              std::vector<std::string>& List - The path list.
+Output      : std::vector<std::string>& List - The modified path list.
+Return      : None.
+******************************************************************************/
+void Gen_Tool::Path_Conv(const std::string& Root, std::vector<std::string>& List)
+{
+    std::filesystem::path Root_Abs;
+    std::filesystem::path Path_Abs;
+    std::filesystem::path Path_Rel;
+    std::set<std::string> Result;
+    std::string Temp;
+
+    /* Convert root to absolute mode */
+    Root_Abs=std::filesystem::absolute(Root);
+
+    /* Convert then dump redundant files */
+    for(const std::string& Path:List)
+    {
+        Path_Abs=std::filesystem::absolute(Path);
+        Path_Rel=std::filesystem::relative(Path_Abs, Root_Abs);
+        /* If whatever being converted is a path, make it a path */
+        if((Path.back()=='/')||(Path.back()=='\\'))
+            Result.insert(Path_Rel.string()+"/");
+        else
+            Result.insert(Path_Rel.string());
+    }
+
+    /* Substitute path specifiers */
+    List.clear();
+    for(const std::string& Path:Result)
+    {
+        Temp=Path;
+        std::replace(Temp.begin(),Temp.end(),'\\','/');
+        List.push_back(Temp);
+    }
+
+    /* Sort the list from small to large for better view */
+    std::sort(List.begin(),List.end(),
+              [](const std::string& Left, const std::string& Right)->bool
+              {
+                  return Left>Right;
+              });
+}
+/* End Function:Gen_Tool::Path_Conv ******************************************/
+
 /* Begin Function:Gen_Tool::Kernel_Inc ****************************************
 Description : Write the include files for kernel.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The input file.
@@ -570,20 +623,20 @@ void Gen_Tool::Kernel_Conf_Hdr(void)
                              "Include/Platform/"+this->Plat->Name+"/Chip/"+this->Plat->Chip->Name+"/"+Filename);
     /* Replace general parameter macros */
     /* Generator enabled */
-    Gen_Tool::Macro_String(List, "RME_RVM_GEN_ENABLE", "RME_TRUE", MACRO_REPLACE);
+    Gen_Tool::Macro_Int(List, "RME_RVM_GEN_ENABLE", 1, MACRO_REPLACE);
     /* The initial capability table size */
     Gen_Tool::Macro_Int(List, "RME_BOOT_CAPTBL_SIZE", Monitor->Captbl_Size, MACRO_REPLACE);
     /* The virtual memory start address for the kernel objects */
-    Gen_Tool::Macro_Hex(List, "RME_KMEM_VA_START", Kernel->Kmem_Base, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RME_KMEM_VA_BASE", Kernel->Kmem_Base, MACRO_REPLACE);
     /* The size of the kernel object virtual memory */
-    Gen_Tool::Macro_Hex(List, "RME_KMEM_SIZE", Kernel->Kmem_Size, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RME_KMEM_VA_SIZE", Kernel->Kmem_Size, MACRO_REPLACE);
     /* The virtual memory start address for the virtual machines - always full memory range, just in case */
-    Gen_Tool::Macro_Hex(List, "RME_HYP_VA_START", 0x00000000ULL, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RME_HYP_VA_BASE", 0x00000001ULL, MACRO_REPLACE);
     /* The size of the hypervisor reserved virtual memory */
-    Gen_Tool::Macro_Hex(List, "RME_HYP_SIZE", 0xFFFFFFFFULL, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RME_HYP_VA_SIZE", 0xFFFFFFFFULL, MACRO_REPLACE);
     /* Kernel stack base/size */
-    Gen_Tool::Macro_Hex(List, "RME_KMEM_STACK_BASE", Kernel->Stack_Base, MACRO_REPLACE);
-    Gen_Tool::Macro_Hex(List, "RME_KMEM_STACK_SIZE", Kernel->Stack_Size, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RME_KSTK_VA_BASE", Kernel->Stack_Base, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RME_KSTK_VA_SIZE", Kernel->Stack_Size, MACRO_REPLACE);
     /* The maximum number of preemption priority levels in the system.
      * This parameter must be divisible by the word length - 32 is usually sufficient */
     Gen_Tool::Macro_Int(List, "RME_MAX_PREEMPT_PRIO", Kernel->Kern_Prio, MACRO_REPLACE);
@@ -933,8 +986,7 @@ void Gen_Tool::Kernel_Handler_Src(void)
     for(const class Vect_Info* Vect:Monitor->Vector)
     {
         /* Generate filename */
-        Filename=std::string("rme_handler_")+Vect->Name+".c";
-        Main::Lower(Filename);
+        Filename=std::string("rme_handler_")+Vect->Name_Lower+".c";
 
         /* Does the file already exist? */
         if(std::filesystem::exists(Kernel->Handler_Source_Output+Filename)==true)
@@ -994,7 +1046,6 @@ Return      : None.
 ******************************************************************************/
 void Gen_Tool::Kernel_Linker(void)
 {
-    std::string Filename;
     class Kernel* Kernel;
     class Tool_Gen* Tool;
     std::unique_ptr<std::vector<std::string>> List;
@@ -1004,7 +1055,8 @@ void Gen_Tool::Kernel_Linker(void)
     Tool=this->Tool_Map[Kernel->Toolchain];
 
     Main::Info("> Generating linker script.");
-    Kernel->Linker_Filename=std::string("rme_platform_")+this->Plat->Chip->Name_Lower+"."+Tool->Kernel_Linker(List);
+    Kernel->Linker_Filename=std::string("rme_platform_")+this->Plat->Chip->Name_Lower+Tool->Suffix(TOOL_LINKER);
+    Tool->Kernel_Linker(List);
     Gen_Tool::Line_Write(List, Kernel->Linker_Output+Kernel->Linker_Filename);
 }
 /* End Function:Gen_Tool::Kernel_Linker **************************************/
@@ -1017,7 +1069,72 @@ Return      : None.
 ******************************************************************************/
 void Gen_Tool::Kernel_Proj(void)
 {
+    class Kernel* Kernel;
+    class Monitor* Monitor;
+    class Build_Gen* Build;
+    class Tool_Gen* Tool;
+    std::unique_ptr<std::vector<std::string>> List;
+    std::vector<std::string> Include;
+    std::vector<std::string> Source;
+    std::vector<std::string> Linker;
 
+    Kernel=this->Plat->Proj->Kernel.get();
+    Monitor=this->Plat->Proj->Monitor.get();
+    List=std::make_unique<std::vector<std::string>>();
+    Build=this->Build_Map[Kernel->Buildsystem];
+    Tool=this->Tool_Map[Kernel->Toolchain];
+
+    /* Does the file already exist? */
+    Kernel->Project_Filename=std::string("kernel")+Build->Suffix(BUILD_PROJECT);
+    if(std::filesystem::exists(Kernel->Project_Output+Kernel->Project_Filename)==true)
+    {
+        /* See if we'll use forced regenerate */
+        if(Kernel->Project_Overwrite==0)
+        {
+            Main::Info(std::string("> File '")+Kernel->Project_Filename+"' exists, skipping generation.");
+            return;
+        }
+    }
+
+    /* Extract the include paths */
+    Main::Info("> Generating project include paths:");
+
+    Include.push_back(Kernel->Project_Output);
+    Include.push_back(Kernel->Kernel_Root+"Include/");
+    Include.push_back(Kernel->Config_Header_Output);
+    Include.push_back(Kernel->Boot_Header_Output);
+    Gen_Tool::Path_Conv(Kernel->Project_Output, Include);
+
+    for(const std::string& Path:Include)
+        Main::Info(std::string("> > ")+Path);
+
+    /* Extract the source paths */
+    Main::Info("> Generating project source paths:");
+
+    Source.push_back(Kernel->Kernel_Root+"Source/Kernel/rme_kernel.c");
+    Source.push_back(Kernel->Kernel_Root+"Source/Platform/"+this->Plat->Name+"/rme_platform_"+this->Plat->Name_Lower+".c");
+    Source.push_back(Kernel->Kernel_Root+"Source/Platform/"+this->Plat->Name+
+                     "/rme_platform_"+this->Plat->Name_Lower+"_"+Tool->Name_Lower+Tool->Suffix(TOOL_ASSEMBLER));
+    Source.push_back(Kernel->Boot_Source_Output+"rme_boot.c");
+    Source.push_back(Kernel->Init_Source_Output+"rme_init.c");
+    for(const class Vect_Info* Vect:Monitor->Vector)
+        Source.push_back(Kernel->Handler_Source_Output+"rme_handler_"+Vect->Name_Lower+".c");
+    Gen_Tool::Path_Conv(Kernel->Project_Output, Source);
+
+    for(const std::string& Path:Source)
+        Main::Info(std::string("> > ")+Path);
+
+    /* Extract the linker paths */
+    Main::Info("> Generating project linker paths:");
+
+    Linker.push_back(Kernel->Linker_Output+"rme_platform_"+this->Plat->Chip->Name_Lower+Tool->Suffix(TOOL_LINKER));
+    Gen_Tool::Path_Conv(Kernel->Project_Output, Linker);
+
+    for(const std::string& Path:Linker)
+        Main::Info(std::string("> > ")+Path);
+
+    Build->Kernel_Proj(List, Include, Source, Linker);
+    Gen_Tool::Line_Write(List, Kernel->Project_Output+Kernel->Project_Filename);
 }
 /* End Function:Gen_Tool::Kernel_Proj ****************************************/
 }

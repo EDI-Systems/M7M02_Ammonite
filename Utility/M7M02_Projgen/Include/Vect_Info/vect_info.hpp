@@ -32,8 +32,6 @@ namespace RVM_GEN
 class Vect_Info:public Kobj
 {
 public:
-    /* Name*/
-    std::string Name;
     /* Vector number */
     ptr_t Number;
 
