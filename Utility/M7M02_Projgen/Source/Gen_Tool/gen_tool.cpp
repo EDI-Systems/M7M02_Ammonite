@@ -24,6 +24,7 @@ extern "C"
 
 #define __HDR_DEFS__
 #include "rvm_gen.hpp"
+#include "Conf_Info/conf_info.hpp"
 #include "Gen_Tool/gen_tool.hpp"
 #include "Gen_Tool/Plat_Gen/plat_gen.hpp"
 #include "Gen_Tool/Build_Gen/build_gen.hpp"
@@ -626,27 +627,37 @@ void Gen_Tool::Kernel_Conf_Hdr(void)
     Gen_Tool::Macro_Int(List, "RME_RVM_GEN_ENABLE", 1, MACRO_REPLACE);
     /* The initial capability table size */
     Gen_Tool::Macro_Int(List, "RME_BOOT_CAPTBL_SIZE", Monitor->Captbl_Size, MACRO_REPLACE);
-    /* The virtual memory start address for the kernel objects */
+    /* The virtual memory base/size for the kernel objects */
     Gen_Tool::Macro_Hex(List, "RME_KMEM_VA_BASE", Kernel->Kmem_Base, MACRO_REPLACE);
-    /* The size of the kernel object virtual memory */
     Gen_Tool::Macro_Hex(List, "RME_KMEM_VA_SIZE", Kernel->Kmem_Size, MACRO_REPLACE);
-    /* The virtual memory start address for the virtual machines - always full memory range, just in case */
+    /* The virtual memory base/size for the virtual machines - always full memory range, just in case */
     Gen_Tool::Macro_Hex(List, "RME_HYP_VA_BASE", 0x00000001ULL, MACRO_REPLACE);
-    /* The size of the hypervisor reserved virtual memory */
     Gen_Tool::Macro_Hex(List, "RME_HYP_VA_SIZE", 0xFFFFFFFFULL, MACRO_REPLACE);
     /* Kernel stack base/size */
     Gen_Tool::Macro_Hex(List, "RME_KSTK_VA_BASE", Kernel->Stack_Base, MACRO_REPLACE);
     Gen_Tool::Macro_Hex(List, "RME_KSTK_VA_SIZE", Kernel->Stack_Size, MACRO_REPLACE);
     /* The maximum number of preemption priority levels in the system.
      * This parameter must be divisible by the word length - 32 is usually sufficient */
-    Gen_Tool::Macro_Int(List, "RME_MAX_PREEMPT_PRIO", Kernel->Kern_Prio, MACRO_REPLACE);
+    Gen_Tool::Macro_Int(List, "RME_PREEMPT_PRIO_NUM", Kernel->Kern_Prio, MACRO_REPLACE);
     /* The granularity of kernel memory allocation, in bytes */
     Gen_Tool::Macro_Int(List, "RME_KMEM_SLOT_ORDER", Kernel->Kmem_Order, MACRO_REPLACE);
+    /* Shared vector flag region address */
+    Gen_Tool::Macro_Hex(List, "RME_RVM_VECT_FLAG_ADDR", Kernel->Vctf_Base, MACRO_REPLACE);
+    /* Shared event flag region address */
+    Gen_Tool::Macro_Hex(List, "RME_RVM_EVT_FLAG_ADDR", Kernel->Evtf_Base, MACRO_REPLACE);
+    /* Initial kernel object frontier limit */
+    Gen_Tool::Macro_Hex(List, "RME_RVM_KMEM_BOOT_FRONTIER", Kernel->Kmem_Base+Monitor->Before_Kmem_Front, MACRO_REPLACE);
+
     /* Replace platform specific macros */
     this->Plat->Kernel_Conf_Hdr(List);
     /* Chip specific macros - we must be able to find it because we checked before */
     for(std::unique_ptr<class Conf_Info>& Conf:this->Plat->Chip->Config)
-        Gen_Tool::Macro_String(List, Conf->Macro, this->Plat->Proj->Chip->Config[Conf->Name], MACRO_REPLACE);
+    {
+        if(Conf->Type==CONFIG_RANGE)
+            Gen_Tool::Macro_String(List, Conf->Macro, this->Plat->Proj->Chip->Config[Conf->Name]+"U", MACRO_REPLACE);
+        else
+            Gen_Tool::Macro_String(List, Conf->Macro, this->Plat->Proj->Chip->Config[Conf->Name], MACRO_REPLACE);
+    }
     /* Write to kernel configuration file */
     Gen_Tool::Line_Write(List, Kernel->Config_Header_Output+Filename);
 }
@@ -1137,6 +1148,569 @@ void Gen_Tool::Kernel_Proj(void)
     Gen_Tool::Line_Write(List, Kernel->Project_Output+Kernel->Project_Filename);
 }
 /* End Function:Gen_Tool::Kernel_Proj ****************************************/
+
+/* Begin Function:Gen_Tool::Monitor_Inc ***************************************
+Description : Write the include files for kernel.
+Input       : std::unique_ptr<std::vector<std::string>>& List - The input file.
+Output      : std::unique_ptr<std::vector<std::string>>& List - The appended file.
+Return      : None.
+******************************************************************************/
+void Gen_Tool::Monitor_Inc(std::unique_ptr<std::vector<std::string>>& List)
+{
+    std::string Temp;
+
+    List->push_back("/* Includes ******************************************************************/");
+    List->push_back("rvm.h");
+    Temp=std::string("#include \"Platform/")+this->Plat->Name+"/rvm_platform_"+this->Plat->Name_Lower+".h\"";
+    List->push_back("#define __HDR_DEFS__");
+    List->push_back(Temp);
+    List->push_back("#include \"Monitor/rvm_syssvc.h\"");
+    List->push_back("#include \"Monitor/rvm_init.h\"");
+    List->push_back("#include \"Monitor/rvm_hyper.h\"");
+    List->push_back("#undef __HDR_DEFS__");
+    List->push_back("");
+    List->push_back("#define __HDR_STRUCTS__");
+    List->push_back(Temp);
+    List->push_back("#include \"Monitor/rvm_syssvc.h\"");
+    List->push_back("#include \"Monitor/rvm_init.h\"");
+    List->push_back("#include \"Monitor/rvm_hyper.h\"");
+    List->push_back("#undef __HDR_STRUCTS__");
+    List->push_back("");
+    List->push_back("#define __HDR_PUBLIC_MEMBERS__");
+    List->push_back(Temp);
+    List->push_back("#include \"Monitor/rvm_syssvc.h\"");
+    List->push_back("#include \"Monitor/rvm_init.h\"");
+    List->push_back("#include \"Monitor/rvm_hyper.h\"");
+    List->push_back("#undef __HDR_PUBLIC_MEMBERS__");
+    List->push_back("");
+    List->push_back("/* End Includes **************************************************************/");
+}
+/* End Function:Gen_Tool::Monitor_Inc ****************************************/
+
+/* Begin Function:Gen_Tool::Monitor_Conf_Hdr **********************************
+Description : Generate the platform configuration headers for RVM.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Gen_Tool::Monitor_Conf_Hdr(void)
+{
+    std::string Filename;
+    class Kernel* Kernel;
+    class Monitor* Monitor;
+    std::vector<std::string> Input;
+    std::vector<std::string> Output;
+    std::unique_ptr<std::vector<std::string>> List;
+
+    Kernel=this->Plat->Proj->Kernel.get();
+    Monitor=this->Plat->Proj->Monitor.get();
+    List=std::make_unique<std::vector<std::string>>();
+
+    /* Generate rvm_platform.h */
+    Main::Info("> Generating 'rvm_platform.h'.");
+    Gen_Tool::Src_Head(List, "rvm_platform.h", "The platform selection header.");
+    List->push_back("");
+    List->push_back("/* Platform Includes *********************************************************/");
+    List->push_back(std::string("#include \"Platform/")+this->Plat->Name+"/rvm_platform_"+this->Plat->Name_Lower+".h\"");
+    List->push_back("/* End Platform Includes *****************************************************/");
+    List->push_back("");
+    Gen_Tool::Src_Foot(List);
+    Gen_Tool::Line_Write(List, Monitor->Config_Header_Output+"/rvm_platform.h");
+
+    /* Generate rvm_platform_xxx_conf.h */
+    Filename=std::string("rvm_platform_")+this->Plat->Name_Lower+"_conf.h";
+    Main::Info(std::string("> Generating '")+Filename+"'.");
+    List->clear();
+    Gen_Tool::Src_Head(List, Filename, "The chip selection header.");
+    List->push_back("");
+    List->push_back("/* Platform Includes *********************************************************/");
+    List->push_back(std::string("#include \"rvm_platform_")+this->Plat->Chip->Name_Lower+".h\"");
+    List->push_back("/* End Platform Includes *****************************************************/");
+    List->push_back("");
+    Gen_Tool::Src_Foot(List);
+    Gen_Tool::Line_Write(List, Monitor->Config_Header_Output+"rme_platform_"+this->Plat->Name_Lower+"_conf.h");
+
+
+    /* Generate rvm_platform_chipname.h */
+    Filename=std::string("rvm_platform_")+this->Plat->Chip->Name_Lower+".h";
+    Main::Info(std::string("> Generating '")+Filename+"'.");
+    List=Gen_Tool::Line_Read(Monitor->Monitor_Root+
+                             "Include/Platform/"+this->Plat->Name+"/Chip/"+this->Plat->Chip->Name+"/"+Filename);
+    /* Replace general parameter macros */
+    /* The virtual memory base/size for the kernel objects */
+    Gen_Tool::Macro_Hex(List, "RVM_KMEM_VA_BASE", Kernel->Kmem_Base, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RVM_KMEM_VA_SIZE", Kernel->Kmem_Size, MACRO_REPLACE);
+    /* The maximum number of preemption priority levels in the system.
+     * This parameter must be divisible by the word length - 32 is usually sufficient */
+    Gen_Tool::Macro_Int(List, "RVM_PREEMPT_PRIO_NUM", Kernel->Kern_Prio, MACRO_REPLACE);
+    /* The granularity of kernel memory allocation, in bytes */
+    Gen_Tool::Macro_Int(List, "RVM_KMEM_SLOT_ORDER", Kernel->Kmem_Order, MACRO_REPLACE);
+    /* Stack safety redundancy, in bytes - fixed to 16 words */
+    Gen_Tool::Macro_Int(List, "RVM_STACK_SAFE_RDCY", 16, MACRO_REPLACE);
+    /* Number of virtual priorities in the system */
+    Gen_Tool::Macro_Int(List, "RVM_PREEMPT_VPRIO_NUM", Monitor->Virt_Prio, MACRO_REPLACE);
+    /* Number of events */
+    Gen_Tool::Macro_Int(List, "RVM_VIRT_EVENT_NUM", Monitor->Virt_Event, MACRO_REPLACE);
+    /* Number of mappings */
+    Gen_Tool::Macro_Int(List, "RVM_VIRT_MAP_NUM", Monitor->Virt_Map, MACRO_REPLACE);
+    /* Stack base and size of the daemon threads, in bytes */
+    Gen_Tool::Macro_Int(List, "RVM_SFTD_STACK_BASE", Monitor->Sftd_Stack_Base, MACRO_REPLACE);
+    Gen_Tool::Macro_Int(List, "RVM_SFTD_STACK_SIZE", Monitor->Sftd_Stack_Size, MACRO_REPLACE);
+    Gen_Tool::Macro_Int(List, "RVM_TIMD_STACK_BASE", Monitor->Timd_Stack_Base, MACRO_REPLACE);
+    Gen_Tool::Macro_Int(List, "RVM_TIMD_STACK_SIZE", Monitor->Timd_Stack_Size, MACRO_REPLACE);
+    Gen_Tool::Macro_Int(List, "RVM_VMMD_STACK_BASE", Monitor->Vmmd_Stack_Base, MACRO_REPLACE);
+    Gen_Tool::Macro_Int(List, "RVM_VMMD_STACK_SIZE", Monitor->Vmmd_Stack_Size, MACRO_REPLACE);
+    Gen_Tool::Macro_Int(List, "RVM_VCTD_STACK_BASE", Monitor->Vctd_Stack_Base, MACRO_REPLACE);
+    Gen_Tool::Macro_Int(List, "RVM_VCTD_STACK_SIZE", Monitor->Vctd_Stack_Size, MACRO_REPLACE);
+    /* Shared vector flag region address */
+    Gen_Tool::Macro_Int(List, "RVM_VECT_FLAG_ADDR", Kernel->Vctf_Base, MACRO_REPLACE);
+    /* Shared event flag region address */
+    Gen_Tool::Macro_Int(List, "RVM_EVT_FLAG_ADDR", Kernel->Evtf_Base, MACRO_REPLACE);
+    /* Initial capability frontier limit */
+    Gen_Tool::Macro_Int(List, "RVM_CAP_BOOT_FRONTIER", Monitor->Before_Cap_Front, MACRO_REPLACE);
+    /* Initial kernel memory frontier limit */
+    Gen_Tool::Macro_Int(List, "RVM_KMEM_BOOT_FRONTIER", Monitor->Before_Kmem_Front, MACRO_REPLACE);
+
+//    /* The granularity of kernel memory allocation, in bytes */
+//    /* Replace platform specific macros */
+//    this->Plat->Monitor_Conf_Hdr(List);
+//    /* Chip specific macros - we must be able to find it because we checked before */
+//    for(std::unique_ptr<class Conf_Info>& Conf:this->Plat->Chip->Config)
+//        Gen_Tool::Macro_String(List, Conf->Macro, this->Plat->Proj->Chip->Config[Conf->Name], MACRO_REPLACE);
+
+//    /* Init process's first thread's entry point address */
+//    Para->Cdef("RVM_A7M_INIT_ENTRY",this->Main->Proj->RVM->Map->Code_Base|0x01);
+//    /* Init process's first thread's stack address */
+//    Para->Cdef("RVM_A7M_INIT_STACK",
+//               (this->Main->Proj->RVM->Map->Init_Stack_Base+this->Main->Proj->RVM->Map->Init_Stack_Size-16)&0xFFFFFFF0ULL);
+//    /* Fixed settings - we will refill these with database values */
+//    /* Number of MPU regions available */
+//    Para->Cdef("RVM_A7M_MPU_REGIONS",(ret_t)(this->Main->Chip->Regions));
+//    /* What is the FPU type? */
+//    A7M=static_cast<class A7M*>(this->Main->Plat.get());
+//    switch(A7M->FPU_Type)
+//    {
+//        case A7M_FPU_NONE:Para->Cdef("RVM_A7M_FPU_TYPE","RVM_A7M_FPU_NONE");break;
+//        case A7M_FPU_FPV4:Para->Cdef("RVM_A7M_FPU_TYPE","RVM_A7M_FPU_FPV4");break;
+//        case A7M_FPU_FPV5_SP:Para->Cdef("RVM_A7M_FPU_TYPE","RVM_A7M_FPU_FPV5_SP");break;
+//        case A7M_FPU_FPV5_DP:Para->Cdef("RVM_A7M_FPU_TYPE","RVM_A7M_FPU_FPV5_DP");break;
+//        default:throw std::runtime_error("A7M:\nA0400: Internal FPU type error.");break;
+//    }
+//
+//    /* Write to kernel configuration file */
+//    Gen_Tool::Line_Write(List, Monitor->Config_Header_Output+Filename);
+}
+/* End Function:Gen_Tool::Monitor_Conf_Hdr ***********************************/
+
+/* Begin Function:Gen_Tool::Monitor_Boot_Hdr **********************************
+Description : Create the boot header for kernel.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Gen_Tool::Monitor_Boot_Hdr(void)
+{
+    ptr_t Obj_Cnt;
+    ret_t Cap_Front;
+    class Kernel* Kernel;
+    class Monitor* Monitor;
+    std::unique_ptr<std::vector<std::string>> List;
+
+    Kernel=this->Plat->Proj->Kernel.get();
+    Monitor=this->Plat->Proj->Monitor.get();
+    List=std::make_unique<std::vector<std::string>>();
+
+    Main::Info("> Generating file header.");
+    Gen_Tool::Src_Head(List, "rme_boot.h", "The boot-time initialization file header.");
+    List->push_back("");
+
+    Main::Info("> Generating defines.");
+    List->push_back("/* Defines *******************************************************************/");
+    List->push_back("/* Vector endpoint capability tables */");
+
+    /* Vector capability tables */
+    Cap_Front=Kernel->Vect_Cap_Front;
+    for(Obj_Cnt=0;Obj_Cnt<Monitor->Vector.size();Obj_Cnt+=this->Plat->Plat->Captbl_Max)
+    {
+        Gen_Tool::Macro_Int(List, std::string("RME_BOOT_CTVECT_")+std::to_string(Obj_Cnt/this->Plat->Plat->Captbl_Max),
+                            Cap_Front, MACRO_ADD);
+        Cap_Front++;
+    }
+
+    /* Vector endpoints */
+    List->push_back("");
+    List->push_back("/* Vector endpoints */");
+    Obj_Cnt=0;
+    for(const class Vect_Info* Vect:Monitor->Vector)
+    {
+        Gen_Tool::Macro_Int(List, Vect->Macro_Global, Obj_Cnt%this->Plat->Plat->Captbl_Max, MACRO_ADD);
+        Obj_Cnt++;
+    }
+
+    List->push_back("/* End Defines ***************************************************************/");
+    List->push_back("");
+
+    Main::Info("> Writing file.");
+    Gen_Tool::Src_Foot(List);
+    Gen_Tool::Line_Write(List, Kernel->Boot_Header_Output+"rme_boot.h");
+}
+/* End Function:Gen_Tool::Monitor_Boot_Hdr ***********************************/
+
+/* Begin Function:Gen_Tool::Monitor_Boot_Src **********************************
+Description : Create the boot source for kernel.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Gen_Tool::Monitor_Boot_Src(void)
+{
+    ptr_t Obj_Cnt;
+    ptr_t Captbl_Size;
+    class Kernel* Kernel;
+    class Monitor* Monitor;
+    std::vector<std::string> Input;
+    std::vector<std::string> Output;
+    std::unique_ptr<std::vector<std::string>> List;
+
+    Kernel=this->Plat->Proj->Kernel.get();
+    Monitor=this->Plat->Proj->Monitor.get();
+    List=std::make_unique<std::vector<std::string>>();
+
+    /* File header */
+    Main::Info("> Generating file header.");
+    Gen_Tool::Src_Head(List, "rme_boot.c", "The boot-time initialization file.");
+    List->push_back("");
+
+    /* Print all header includes */
+    Main::Info("> Generating C header includes.");
+    this->Kernel_Inc(List);
+    List->push_back("");
+
+    /* Global variables */
+    List->push_back("/* Private Global Variables **************************************************/");
+    for(const class Vect_Info* Vect:Monitor->Vector)
+        List->push_back(std::string("static struct RME_Cap_Sig* ")+Vect->Name+"_Vect_Sig;");
+    List->push_back("/* End Private Global Variables **********************************************/");
+    List->push_back("");
+
+    /* Private prototypes */
+    Main::Info("> Generating private C function prototypes.");
+    List->push_back("/* Private C Function Prototypes *********************************************/");
+    for(const class Vect_Info* Vect:Monitor->Vector)
+        List->push_back(std::string("extern rme_ptr_t RME_Vect_")+Vect->Name+"_User(rme_ptr_t Int_Num);");
+    List->push_back("/* End Private C Function Prototypes *****************************************/");
+    List->push_back("");
+
+    /* Public prototypes */
+    Main::Info("> Generating public C function prototypes.");
+    List->push_back("/* Public C Function Prototypes **********************************************/");
+    List->push_back("rme_ptr_t RME_Boot_Vect_Init(struct RME_Cap_Captbl* Captbl, rme_ptr_t Cap_Front, rme_ptr_t Kmem_Front);");
+    List->push_back("rme_ptr_t RME_Boot_Vect_Handler(rme_ptr_t Vect_Num);");
+    List->push_back("/* End Public C Function Prototypes ******************************************/");
+    List->push_back("");
+
+    /* Boot-time setup routine for the interrupt endpoints */
+    Main::Info("> Generating boot-time vector endpoint initialization routine.");
+    Input.push_back("rme_ptr_t Cap_Front - The current capability table frontier.");
+    Input.push_back("rme_ptr_t Kmem_Front - The current kernel absolute memory frontier.");
+    Gen_Tool::Func_Head(List, "RME_Boot_Vect_Init",
+                        "Initialize all the vector endpoints at boot-time.",
+                        Input, Output, "rme_ptr_t - The kernel memory frontier after booting is all done.");
+    Input.clear();
+    List->push_back("rme_ptr_t RME_Boot_Vect_Init(struct RME_Cap_Captbl* Captbl, rme_ptr_t Cap_Front, rme_ptr_t Kmem_Front)");
+    List->push_back("{");
+    List->push_back("    rme_ptr_t Cur_Addr;");
+    List->push_back("    struct RME_Cap_Captbl* Sig_Captbl;");
+    List->push_back("");
+    List->push_back("    /* The address here shall match what is in the generator */");
+    List->push_back(std::string("    RME_ASSERT(Cap_Front==")+std::to_string(Kernel->Vect_Cap_Front)+");");
+    List->push_back(std::string("    RME_ASSERT(Kmem_Front==0x")+Main::Hex(Kernel->Vect_Kmem_Front+Kernel->Kmem_Base)+");");
+    List->push_back("");
+    List->push_back("    Cur_Addr=Kmem_Front;");
+    List->push_back("    /* Create all the vector capability tables first */");
+    for(Obj_Cnt=0;Obj_Cnt<Monitor->Vector.size();Obj_Cnt+=this->Plat->Plat->Captbl_Max)
+    {
+        /* See if this is the last (residue) captbl to create */
+        if(Monitor->Vector.size()>=((Obj_Cnt+1)*this->Plat->Plat->Captbl_Max))
+            Captbl_Size=this->Plat->Plat->Captbl_Max;
+        else
+            Captbl_Size=Monitor->Vector.size()%this->Plat->Plat->Captbl_Max;
+
+        List->push_back(std::string("    RME_ASSERT(_RME_Captbl_Boot_Crt(Captbl, RME_BOOT_CAPTBL, RME_BOOT_CTVECT_")+
+                        std::to_string(Obj_Cnt/this->Plat->Plat->Captbl_Max)+", Cur_Addr, "+std::to_string(Captbl_Size)+")==0);");
+        List->push_back(std::string("    Cur_Addr+=RME_KOTBL_ROUND(RME_CAPTBL_SIZE(")+std::to_string(Captbl_Size)+"));");
+    }
+    List->push_back("");
+    List->push_back("    /* Then all the vectors */");
+    Obj_Cnt=0;
+    for(const class Vect_Info* Vect:Monitor->Vector)
+    {
+        List->push_back(std::string("    Sig_Captbl=&(RME_CAP_GETOBJ(Captbl,struct RME_Cap_Captbl*)[RME_BOOT_CTVECT_")+
+                        std::to_string(Obj_Cnt/this->Plat->Plat->Captbl_Max)+"]);");
+        List->push_back(std::string("    ")+Vect->Name+
+                        "_Vect_Sig=&(RME_CAP_GETOBJ(Sig_Captbl,struct RME_Cap_Sig*)["+Vect->Macro_Global+"]);");
+        List->push_back(std::string("    RME_ASSERT(_RME_Sig_Boot_Crt(Captbl, RME_BOOT_CTVECT_")+
+                        std::to_string(Obj_Cnt/this->Plat->Plat->Captbl_Max)+", "+Vect->Macro_Global+")==0);");
+        Obj_Cnt++;
+    }
+    List->push_back("");
+    List->push_back("    return Cur_Addr;");
+    List->push_back("}");
+    Gen_Tool::Func_Foot(List, "RME_Boot_Vect_Init");
+    List->push_back("");
+
+    /* Print the interrupt relaying function */
+    Main::Info("> Generating interrupt relay facility.");
+    Input.push_back("rme_ptr_t Vect_Num - The vector number.");
+    Gen_Tool::Func_Head(List, "RME_Boot_Vect_Handler",
+                        "The interrupt handler entry for all the vectors.",
+                        Input, Output, "rme_ptr_t - The number of signals to send to the generic vector endpoint.");
+    Input.clear();
+    List->push_back("rme_ptr_t RME_Boot_Vect_Handler(rme_ptr_t Vect_Num)");
+    List->push_back("{");
+    List->push_back("    rme_ptr_t Send_Num;");
+    List->push_back("");
+    List->push_back("    Send_Num=0;");
+    List->push_back("");
+    List->push_back("    switch(Vect_Num)");
+    List->push_back("    {");
+    for(const class Vect_Info* Vect:Monitor->Vector)
+    {
+        List->push_back(std::string("        /* ")+Vect->Name+" */");
+        List->push_back(std::string("        case ")+std::to_string(Vect->Number)+": ");
+        List->push_back("        {");
+        List->push_back(std::string("            extern rme_ptr_t RME_Vect_")+Vect->Name+"_User(rme_ptr_t Vect_Num);");
+        List->push_back(std::string("            Send_Num=RME_Vect_")+Vect->Name+"_User(Vect_Num);");
+        List->push_back(std::string("            _RME_Kern_Snd(")+Vect->Name+"_Vect_Sig);");
+        List->push_back("            break;");
+        List->push_back("        }");
+    }
+    List->push_back("        default: break;");
+    List->push_back("    }");
+    List->push_back("");
+    List->push_back("    return Send_Num;");
+    List->push_back("}");
+    Gen_Tool::Func_Foot(List, "RME_Boot_Vect_Handler");
+    List->push_back("");
+
+    /* Generate rme_boot.c */
+    Main::Info("> Writing file.");
+    Gen_Tool::Src_Foot(List);
+    Gen_Tool::Line_Write(List, Kernel->Boot_Source_Output+"rme_boot.c");
+}
+/* End Function:Gen_Tool::Monitor_Boot_Src ***********************************/
+
+/* Begin Function:Gen_Tool::Monitor_Init_Src **********************************
+Description : Create the initialization source file for kernel.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Gen_Tool::Monitor_Init_Src(void)
+{
+    class Kernel* Kernel;
+    class Monitor* Monitor;
+    std::vector<std::string> Input;
+    std::vector<std::string> Output;
+    std::unique_ptr<std::vector<std::string>> List;
+
+    Kernel=this->Plat->Proj->Kernel.get();
+    Monitor=this->Plat->Proj->Monitor.get();
+    List=std::make_unique<std::vector<std::string>>();
+
+    /* Does the file already exist? */
+    if(std::filesystem::exists(Kernel->Init_Source_Output+"rme_init.c")==true)
+    {
+        /* See if we'll use forced regenerate */
+        if(Kernel->Init_Source_Overwrite==0)
+        {
+            Main::Info("> File 'rme_init.c' exists, skipping generation.");
+            return;
+        }
+    }
+
+    /* File header */
+    Main::Info("> Generating file header.");
+    Gen_Tool::Src_Head(List, "rme_init.c", "The user initialization file.");
+    List->push_back("");
+
+    /* Print all header includes */
+    Main::Info("> Generating C header includes.");
+    this->Kernel_Inc(List);
+    List->push_back("");
+
+    /* Print all global prototypes */
+    Main::Info("> Generating public C function prototypes.");
+    List->push_back("/* Public C Function Prototypes **********************************************/");
+    List->push_back("void RME_Boot_Pre_Init(void);");
+    List->push_back("void RME_Boot_Post_Init(void);");
+    List->push_back("void RME_Reboot_Failsafe(void);");
+    List->push_back("rme_ret_t RME_User_Kern_Func_Handler(rme_ptr_t Func_ID, rme_ptr_t Sub_ID, rme_ptr_t Param1, rme_ptr_t Param2);");
+    /* Add all the user vector stubs */
+    for(const class Vect_Info* Vect:Monitor->Vector)
+        List->push_back(std::string("rme_ptr_t RME_Vect_")+Vect->Name+"_User(rme_ptr_t Int_Num);");
+    List->push_back("/* End Public C Function Prototypes ******************************************/");
+
+    /* Preinitialization of hardware */
+    Main::Info("> Generating boot-time pre-initialization stub.");
+    Gen_Tool::Func_Head(List, "RME_Boot_Pre_Init",
+                        "Initialize critical hardware before any kernel initialization takes place.",
+                        Input, Output, "None.");
+    List->push_back("void RME_Boot_Pre_Init(void)");
+    List->push_back("{");
+    List->push_back("    /* Add code here */");
+    List->push_back("}");
+    Gen_Tool::Func_Foot(List, "RME_Boot_Pre_Init");
+    List->push_back("");
+
+    /* Postinitialization of hardware */
+    Main::Info("> Generating boot-time post-initialization stub.");
+    Gen_Tool::Func_Head(List, "RME_Boot_Post_Init",
+                        "Initialize hardware after all kernel initialization took place.",
+                        Input, Output, "None.");
+    List->push_back("void RME_Boot_Post_Init(void)");
+    List->push_back("{");
+    List->push_back("    /* Add code here */");
+    List->push_back("}");
+    Gen_Tool::Func_Foot(List, "RME_Boot_Post_Init");
+    List->push_back("");
+
+    /* Kernel function processing */
+    Main::Info("> Generating kernel function handler.");
+    Input.push_back("rme_ptr_t Func_ID - The function ID.");
+    Input.push_back("rme_ptr_t Sub_ID - The subfunction ID.");
+    Input.push_back("rme_ptr_t Param1 - The first parameter.");
+    Input.push_back("rme_ptr_t Param2 - The second parameter.");
+    Gen_Tool::Func_Head(List, "RME_User_Kern_Func_Handler",
+                        "User-modifiable kernel function handler.",
+                        Input, Output, "rme_ret_t - The return value.");
+    Input.clear();
+    List->push_back("rme_ret_t RME_User_Kern_Func_Handler(rme_ptr_t Func_ID, rme_ptr_t Sub_ID, rme_ptr_t Param1, rme_ptr_t Param2)");
+    List->push_back("{");
+    List->push_back("    /* Add code here */");
+    List->push_back("    return RME_ERR_KERN_OPFAIL;");
+    List->push_back("}");
+    Gen_Tool::Func_Foot(List, "RME_User_Kern_Func_Handler");
+    List->push_back("");
+
+    /* Rebooting */
+    Main::Info("> Generating reboot fail-safe handler.");
+    Gen_Tool::Func_Head(List, "RME_Reboot_Failsafe",
+                        "User-modifiable pre-rebooting failsafe sequence.",
+                        Input, Output, "None.");
+    List->push_back("void RME_Reboot_Failsafe(void)");
+    List->push_back("{");
+    List->push_back("    /* Add code here */");
+    List->push_back("}");
+    Gen_Tool::Func_Foot(List, "RME_Reboot_Failsafe");
+    List->push_back("");
+
+    /* Generate rme_init.c */
+    Main::Info("> Writing file.");
+    Gen_Tool::Src_Foot(List);
+    Gen_Tool::Line_Write(List, Kernel->Init_Source_Output+"rme_init.c");
+}
+/* End Function:Gen_Tool::Monitor_Init_Src ***********************************/
+
+/* Begin Function:Gen_Tool::Monitor_Linker ************************************
+Description : Create the linker script file for kernel.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Gen_Tool::Monitor_Linker(void)
+{
+    class Kernel* Kernel;
+    class Tool_Gen* Tool;
+    std::unique_ptr<std::vector<std::string>> List;
+
+    Kernel=this->Plat->Proj->Kernel.get();
+    List=std::make_unique<std::vector<std::string>>();
+    Tool=this->Tool_Map[Kernel->Toolchain];
+
+    Main::Info("> Generating linker script.");
+    Kernel->Linker_Filename=std::string("rme_platform_")+this->Plat->Chip->Name_Lower+Tool->Suffix(TOOL_LINKER);
+    Tool->Kernel_Linker(List);
+    Gen_Tool::Line_Write(List, Kernel->Linker_Output+Kernel->Linker_Filename);
+}
+/* End Function:Gen_Tool::Monitor_Linker *************************************/
+
+/* Begin Function:Gen_Tool::Monitor_Proj **************************************
+Description : Create the project file for kernel.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Gen_Tool::Monitor_Proj(void)
+{
+    class Kernel* Kernel;
+    class Monitor* Monitor;
+    class Build_Gen* Build;
+    class Tool_Gen* Tool;
+    std::unique_ptr<std::vector<std::string>> List;
+    std::vector<std::string> Include;
+    std::vector<std::string> Source;
+    std::vector<std::string> Linker;
+
+    Kernel=this->Plat->Proj->Kernel.get();
+    Monitor=this->Plat->Proj->Monitor.get();
+    List=std::make_unique<std::vector<std::string>>();
+    Build=this->Build_Map[Kernel->Buildsystem];
+    Tool=this->Tool_Map[Kernel->Toolchain];
+
+    /* Does the file already exist? */
+    Kernel->Project_Filename=std::string("kernel")+Build->Suffix(BUILD_PROJECT);
+    if(std::filesystem::exists(Kernel->Project_Output+Kernel->Project_Filename)==true)
+    {
+        /* See if we'll use forced regenerate */
+        if(Kernel->Project_Overwrite==0)
+        {
+            Main::Info(std::string("> File '")+Kernel->Project_Filename+"' exists, skipping generation.");
+            return;
+        }
+    }
+
+    /* Extract the include paths */
+    Main::Info("> Generating project include paths:");
+
+    Include.push_back(Kernel->Project_Output);
+    Include.push_back(Kernel->Kernel_Root+"Include/");
+    Include.push_back(Kernel->Config_Header_Output);
+    Include.push_back(Kernel->Boot_Header_Output);
+    Gen_Tool::Path_Conv(Kernel->Project_Output, Include);
+
+    for(const std::string& Path:Include)
+        Main::Info(std::string("> > ")+Path);
+
+    /* Extract the source paths */
+    Main::Info("> Generating project source paths:");
+
+    Source.push_back(Kernel->Kernel_Root+"Source/Kernel/rme_kernel.c");
+    Source.push_back(Kernel->Kernel_Root+"Source/Platform/"+this->Plat->Name+"/rme_platform_"+this->Plat->Name_Lower+".c");
+    Source.push_back(Kernel->Kernel_Root+"Source/Platform/"+this->Plat->Name+
+                     "/rme_platform_"+this->Plat->Name_Lower+"_"+Tool->Name_Lower+Tool->Suffix(TOOL_ASSEMBLER));
+    Source.push_back(Kernel->Boot_Source_Output+"rme_boot.c");
+    Source.push_back(Kernel->Init_Source_Output+"rme_init.c");
+    for(const class Vect_Info* Vect:Monitor->Vector)
+        Source.push_back(Kernel->Handler_Source_Output+"rme_handler_"+Vect->Name_Lower+".c");
+    Gen_Tool::Path_Conv(Kernel->Project_Output, Source);
+
+    for(const std::string& Path:Source)
+        Main::Info(std::string("> > ")+Path);
+
+    /* Extract the linker paths */
+    Main::Info("> Generating project linker paths:");
+
+    Linker.push_back(Kernel->Linker_Output+"rme_platform_"+this->Plat->Chip->Name_Lower+Tool->Suffix(TOOL_LINKER));
+    Gen_Tool::Path_Conv(Kernel->Project_Output, Linker);
+
+    for(const std::string& Path:Linker)
+        Main::Info(std::string("> > ")+Path);
+
+    Build->Kernel_Proj(List, Include, Source, Linker);
+    Gen_Tool::Line_Write(List, Kernel->Project_Output+Kernel->Project_Filename);
+}
+/* End Function:Gen_Tool::Monitor_Proj ***************************************/
 }
 /* End Of File ***************************************************************/
 

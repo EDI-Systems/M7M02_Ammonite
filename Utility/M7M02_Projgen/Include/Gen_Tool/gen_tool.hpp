@@ -83,6 +83,14 @@ public:
     void Kernel_Handler_Src(void);
     void Kernel_Linker(void);
     void Kernel_Proj(void);
+
+    void Monitor_Inc(std::unique_ptr<std::vector<std::string>>& List);
+    void Monitor_Conf_Hdr(void);
+    void Monitor_Boot_Hdr(void);
+    void Monitor_Boot_Src(void);
+    void Monitor_Init_Src(void);
+    void Monitor_Linker(void);
+    void Monitor_Proj(void);
 };
 /*****************************************************************************/
 /* __GEN_TOOL_HPP_CLASSES__ */

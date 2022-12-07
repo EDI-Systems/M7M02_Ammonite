@@ -569,13 +569,6 @@ Return      : None.
 ******************************************************************************/
 void A7M_Gen::Kernel_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
 {
-    /* Shared vector flag region address */
-    Gen_Tool::Macro_Hex(List, "RME_A7M_VECT_FLAG_ADDR",this->Proj->Kernel->Vctf_Base, MACRO_REPLACE);
-    /* Shared event flag region address */
-    Gen_Tool::Macro_Hex(List, "RME_A7M_EVT_FLAG_ADDR",this->Proj->Kernel->Evtf_Base, MACRO_REPLACE);
-    /* Initial kernel object frontier limit */
-    Gen_Tool::Macro_Hex(List, "RME_A7M_KMEM_BOOT_FRONTIER",
-                        this->Proj->Kernel->Kmem_Base+this->Proj->Monitor->Before_Kmem_Front, MACRO_REPLACE);
     /* Init process's first thread's entry point address */
     Gen_Tool::Macro_Hex(List, "RME_A7M_INIT_ENTRY",this->Proj->Kernel->Code_Base|0x01, MACRO_REPLACE);
     /* Init process's first thread's stack address */
@@ -591,7 +584,7 @@ void A7M_Gen::Kernel_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
     /* Number of MPU regions available */
     Gen_Tool::Macro_Int(List, "RME_A7M_MPU_REGIONS", this->Chip->Region, MACRO_REPLACE);
     /* What is the FPU type? */
-    Gen_Tool::Macro_String(List, "RME_A7M_FPU_TYPE",std::string("RME_A7M_FPU_")+this->Chip->Attribute["FPU"], MACRO_REPLACE);
+    Gen_Tool::Macro_String(List, "RME_A7M_FPU_TYPE", std::string("RME_A7M_FPU_")+this->Chip->Attribute["FPU"], MACRO_REPLACE);
 
     /* CPU & Endianness currently unused */
 }
