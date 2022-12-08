@@ -15,6 +15,15 @@ namespace RVM_GEN
 /*****************************************************************************/
 #define MACRO_ADD               (0)
 #define MACRO_REPLACE           (1)
+
+/* Captbl ID and object ID extraction/stringify */
+#define CTID(X)                 ((X)/this->Plat->Plat->Captbl_Max)
+#define CTIDS(X)                std::to_string(CTID(X))
+#define OID(X)                  ((X)%this->Plat->Plat->Captbl_Max)
+#define OIDS(X)                 std::to_string(OID(X))
+
+/* Get current capability table size */
+#define CTSIZE(TOTAL, NUM, MAX) (((TOTAL)>=(((NUM)+1)*(MAX)))?(MAX):((TOTAL)%(MAX)))
 /*****************************************************************************/
 /* __GEN_TOOL_HPP_DEFS__ */
 #endif
@@ -92,6 +101,28 @@ public:
     void Monitor_Linker(void);
     void Monitor_Proj(void);
 };
+
+/* Generate capability table creations for kernel objects */
+template<class OBJECT>
+void RVM_Captbl_Crt_Gen(std::unique_ptr<std::vector<std::string>>& List,
+                        const std::vector<OBJECT*>& Vector,
+                        const std::string& Kobjname,
+                        const std::string& Kobjmacro,
+                        ptr_t Captbl_Max)
+{
+    ptr_t Obj_Cnt;
+    ptr_t Captbl_Size;
+
+    for(Obj_Cnt=0;Obj_Cnt<Vector.size();Obj_Cnt+=Captbl_Max)
+    {
+        Captbl_Size=CTSIZE(Vector.size(), Obj_Cnt, Captbl_Max);
+        List->push_back(std::string("    RVM_ASSERT(RVM_Captbl_Crt(RVM_BOOT_CAPTBL, RVM_BOOT_INIT_KMEM, RVM_BOOT_CT")+Kobjmacro+"_"+
+                        std::to_string(Obj_Cnt/Captbl_Max)+", Cur_Addr, "+std::to_string(Captbl_Size)+"U)==0U);");
+        List->push_back(std::string("    RVM_LOG_SISUS(\"Init:Created ")+Kobjname+" capability table CID \", RVM_BOOT_CT"+Kobjmacro+"_"+
+                        std::to_string(Obj_Cnt/Captbl_Max)+", \" @ address 0x\", Cur_Addr, \".\\r\\n\");");
+        List->push_back(std::string("    Cur_Addr+=RVM_KOTBL_ROUND(RVM_CAPTBL_SIZE(")+std::to_string(Captbl_Size)+"U));");
+    }
+}
 /*****************************************************************************/
 /* __GEN_TOOL_HPP_CLASSES__ */
 #endif

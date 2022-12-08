@@ -104,8 +104,8 @@ public:
     ptr_t Before_Cap_Front;
     ptr_t Before_Kmem_Front;
     /* When we begin creating virtual machine endpoints */
-    ptr_t Virt_Cap_Front;
-    ptr_t Virt_Kmem_Front;
+    ptr_t Vep_Cap_Front;
+    ptr_t Vep_Kmem_Front;
     /* When we begin creating capability tables */
     ptr_t Captbl_Cap_Front;
     ptr_t Captbl_Kmem_Front;

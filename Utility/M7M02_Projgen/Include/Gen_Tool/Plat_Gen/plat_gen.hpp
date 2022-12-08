@@ -66,6 +66,7 @@ public:
     virtual ptr_t Raw_Parameter(void)=0;
 
     virtual void Kernel_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)=0;
+    virtual void Monitor_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)=0;
 };
 /*****************************************************************************/
 /* __PLAT_GEN_HPP_CLASSES__ */

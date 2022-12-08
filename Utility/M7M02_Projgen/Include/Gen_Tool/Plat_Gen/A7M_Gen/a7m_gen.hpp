@@ -70,6 +70,7 @@ public:
     virtual ptr_t Raw_Parameter(void) final override;
 
     virtual void Kernel_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List) final override;
+    virtual void Monitor_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List) final override;
 };
 /*****************************************************************************/
 /* __A7M_GEN_HPP_CLASSES__ */

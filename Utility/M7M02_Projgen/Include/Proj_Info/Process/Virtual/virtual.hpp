@@ -13,7 +13,10 @@ namespace RVM_GEN
 #ifndef __VIRTUAL_HPP_DEFS__
 #define __VIRTUAL_HPP_DEFS__
 /*****************************************************************************/
-
+/* The priority of the vector handling thread is always 3 on all architectures */
+#define VIRT_HANDLER_PRIO       (3)
+/* The priority of the user thread is always 2 on all architectures */
+#define VIRT_USER_PRIO          (2)
 /*****************************************************************************/
 /* __VIRTUAL_HPP_DEFS__ */
 #endif

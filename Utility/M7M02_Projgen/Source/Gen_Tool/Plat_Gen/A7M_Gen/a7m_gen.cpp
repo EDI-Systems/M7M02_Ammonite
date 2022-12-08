@@ -570,7 +570,7 @@ Return      : None.
 void A7M_Gen::Kernel_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
 {
     /* Init process's first thread's entry point address */
-    Gen_Tool::Macro_Hex(List, "RME_A7M_INIT_ENTRY",this->Proj->Kernel->Code_Base|0x01, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RME_A7M_INIT_ENTRY",this->Proj->Monitor->Code_Base|0x01, MACRO_REPLACE);
     /* Init process's first thread's stack address */
     Gen_Tool::Macro_Hex(List, "RME_A7M_INIT_STACK",
                         this->Proj->Monitor->Init_Stack_Base+this->Proj->Monitor->Init_Stack_Size-16, MACRO_REPLACE);
@@ -589,6 +589,29 @@ void A7M_Gen::Kernel_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
     /* CPU & Endianness currently unused */
 }
 /* End Function:A7M_Gen::Kernel_Conf_Hdr *************************************/
+
+/* Begin Function:A7M_Gen::Monitor_Conf_Hdr ***********************************
+Description : Replace kernel configuration header macros.
+Input       : std::unique_ptr<std::vector<std::string>>& List - The input file.
+Output      : std::unique_ptr<std::vector<std::string>>& List - The modified file.
+Return      : None.
+******************************************************************************/
+void A7M_Gen::Monitor_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
+{
+    /* Init process's first thread's entry point address */
+    Gen_Tool::Macro_Hex(List, "RVM_A7M_INIT_ENTRY",this->Proj->Monitor->Code_Base|0x01, MACRO_REPLACE);
+    /* Init process's first thread's stack address */
+    Gen_Tool::Macro_Hex(List, "RVM_A7M_INIT_STACK",
+                        this->Proj->Monitor->Init_Stack_Base+this->Proj->Monitor->Init_Stack_Size-16, MACRO_REPLACE);
+    /* Fixed attributes - we will refill these with database values */
+    /* Number of MPU regions available */
+    Gen_Tool::Macro_Int(List, "RVM_A7M_MPU_REGIONS", this->Chip->Region, MACRO_REPLACE);
+    /* What is the FPU type? */
+    Gen_Tool::Macro_String(List, "RVM_A7M_FPU_TYPE", std::string("RVM_A7M_FPU_")+this->Chip->Attribute["FPU"], MACRO_REPLACE);
+
+    /* CPU & Endianness currently unused */
+}
+/* End Function:A7M_Gen::Monitor_Conf_Hdr ************************************/
 }
 /* End Of File ***************************************************************/
 

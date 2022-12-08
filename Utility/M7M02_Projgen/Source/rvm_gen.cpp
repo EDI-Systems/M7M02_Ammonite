@@ -569,13 +569,16 @@ void Main::Reference_Check(void)
                         Main::Error("PXXXX: Shared memory '"+Shmem->Name+"' contains wrong attributes.");
                 }
 
-                /* Check thread parameters */
-                for(std::unique_ptr<class Thread>& Thd:Proc->Thread)
+                /* Check thread parameters if this is not a VM - VM priorities are generated so fine */
+                if(Proc->Type==PROC_NATIVE)
                 {
-                    if(Thd->Priority<PROC_THD_PRIO_MIN)
-                        Main::Error("M1010: Thread '"+Thd->Name+"' priority must be bigger than service daemons' priority (4).");
-                    else if(Thd->Priority>(this->Proj->Kernel->Kern_Prio-2))
-                        Main::Error("M1011: Thread '"+Thd->Name+"' priority must be smaller than safety daemon's priority (Kern_Prio-1).");
+                    for(std::unique_ptr<class Thread>& Thd:Proc->Thread)
+                    {
+                        if(Thd->Priority<PROC_THD_PRIO_MIN)
+                            Main::Error("M1010: Thread '"+Thd->Name+"' priority must be bigger than service daemons' priority (4).");
+                        else if(Thd->Priority>(this->Proj->Kernel->Kern_Prio-2))
+                            Main::Error("M1011: Thread '"+Thd->Name+"' priority must be smaller than safety daemon's priority (Kern_Prio-1).");
+                    }
                 }
 
                 /* Check port references */
@@ -1388,8 +1391,8 @@ void Main::Kmem_Alloc(ptr_t Init_Capsz)
          * Each virtual machine have two endpoints, but only one is dedicated to
          * it, so we only need to create one for each VM. */
         Main::Info("> Monitor VM endpoint cap front %lld kmem front 0x%llX.", Cap_Front, Kmem_Front);
-        this->Proj->Monitor->Virt_Cap_Front=Cap_Front;
-        this->Proj->Monitor->Virt_Kmem_Front=Kmem_Front;
+        this->Proj->Monitor->Vep_Cap_Front=Cap_Front;
+        this->Proj->Monitor->Vep_Kmem_Front=Kmem_Front;
         Cap_Front+=ROUND_DIV(this->Proj->Virtual.size(),this->Plat->Captbl_Max);
         Kmem_Front+=this->Gen->Plat->Size_Captbl(this->Proj->Virtual.size());
     }
@@ -1400,8 +1403,8 @@ void Main::Kmem_Alloc(ptr_t Init_Capsz)
         Kmem_Front+=this->Gen->Plat->Size_Thread();
 
         /* No virtual machine endpoints to create at all */
-        this->Proj->Monitor->Virt_Cap_Front=Cap_Front;
-        this->Proj->Monitor->Virt_Kmem_Front=Kmem_Front;
+        this->Proj->Monitor->Vep_Cap_Front=Cap_Front;
+        this->Proj->Monitor->Vep_Kmem_Front=Kmem_Front;
     }
 
     /* Create capability tables */
@@ -1604,6 +1607,16 @@ void Main::Monitor_Gen(void)
         std::filesystem::create_directories(this->Proj->Monitor->Boot_Header_Output);
         std::filesystem::create_directories(this->Proj->Monitor->Boot_Source_Output);
         std::filesystem::create_directories(this->Proj->Monitor->Init_Source_Output);
+
+        /* Generate monitor configuration header */
+        Main::Info("Generating monitor configuration header.");
+        this->Gen->Monitor_Conf_Hdr();
+
+        /* Generate kernel boot header/source */
+        Main::Info("Generating monitor boot header.");
+        this->Gen->Monitor_Boot_Hdr();
+        Main::Info("Generating monitor boot source.");
+        this->Gen->Monitor_Boot_Src();
     }
     catch(std::exception& Exc)
     {

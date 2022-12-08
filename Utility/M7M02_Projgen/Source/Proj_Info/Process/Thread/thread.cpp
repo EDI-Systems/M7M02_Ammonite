@@ -62,6 +62,28 @@ Kobj(Owner)
     }
 }
 /* End Function:Thread::Thread ***********************************************/
+
+/* Begin Function:Thread::Thread **********************************************
+Description : Constructor for thread class.
+Input       : const std::string& Name - The name of the thread.
+              ptr_t Stack_Size - Thread stack size.
+              ptr_t Parameter - Thread start parameter.
+              ptr_t Priority - Thread priority.
+              class Process* Owner - The owner process of this kernel object.
+Output      : None.
+Return      : None.
+******************************************************************************/
+/* void */ Thread::Thread(const std::string& Name,
+                          ptr_t Stack_Size, ptr_t Parameter, ptr_t Priority, class Process* Owner):
+Kobj(Owner)
+{
+    this->Name=Name;
+    Name_Gen(this);
+    this->Stack_Size=Stack_Size;
+    this->Parameter=Parameter;
+    this->Priority=Priority;
+}
+/* End Function:Thread::Thread ***********************************************/
 }
 /* End Of File ***************************************************************/
 
