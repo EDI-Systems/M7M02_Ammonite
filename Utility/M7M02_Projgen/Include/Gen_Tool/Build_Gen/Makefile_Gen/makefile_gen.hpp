@@ -38,6 +38,11 @@ public:
                              const std::vector<std::string>& Include,
                              const std::vector<std::string>& Source,
                              const std::vector<std::string>& Linker) final override;
+
+    virtual void Monitor_Proj(std::unique_ptr<std::vector<std::string>>& List,
+                              const std::vector<std::string>& Include,
+                              const std::vector<std::string>& Source,
+                              const std::vector<std::string>& Linker) final override;
 };
 /*****************************************************************************/
 /* __MAKEFILE_GEN_HPP_CLASSES__ */

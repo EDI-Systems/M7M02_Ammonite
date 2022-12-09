@@ -10,66 +10,66 @@ Description : The system call wrapper of RVM virtual machine monitor.
 #include "rvm.h"
 
 #define __HDR_DEFS__
-#include "Platform/rvm_platform.h"
-#include "Init/rvm_syssvc.h"
+#include "rvm_platform.h"
+#include "Monitor/rvm_syssvc.h"
 #undef __HDR_DEFS__
 
 #define __HDR_STRUCTS__
-#include "Platform/rvm_platform.h"
-#include "Init/rvm_syssvc.h"
+#include "rvm_platform.h"
+#include "Monitor/rvm_syssvc.h"
 #undef __HDR_STRUCTS__
 
 /* Private include */
-#include "Init/rvm_syssvc.h"
+#include "Monitor/rvm_syssvc.h"
 
 #define __HDR_PUBLIC_MEMBERS__
-#include "Platform/rvm_platform.h"
+#include "rvm_platform.h"
 #undef __HDR_PUBLIC_MEMBERS__
 /* End Includes **************************************************************/
 
 /* Begin Function:RVM_List_Crt ************************************************
 Description : Create a doubly linkled list.
-Input       : volatile struct RVM_List* Head - The pointer to the list head.
+Input       : struct RVM_List* Head - The pointer to the list head.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void RVM_List_Crt(volatile struct RVM_List* Head)
+void RVM_List_Crt(struct RVM_List* Head)
 {
-    Head->Prev=(struct RVM_List*)Head;
-    Head->Next=(struct RVM_List*)Head;
+    Head->Prev=Head;
+    Head->Next=Head;
 }
 /* End Function:RVM_List_Crt *************************************************/
 
 /* Begin Function:RVM_List_Del ************************************************
 Description : Delete a node from the doubly-linked list.
-Input       : volatile struct RVM_List* Prev - The prevoius node of the target node.
-              volatile struct RVM_List* Next - The next node of the target node.
+Input       : struct RVM_List* Prev - The prevoius node of the target node.
+              struct RVM_List* Next - The next node of the target node.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void RVM_List_Del(volatile struct RVM_List* Prev,volatile struct RVM_List* Next)
+void RVM_List_Del(struct RVM_List* Prev, struct RVM_List* Next)
 {
-    Next->Prev=(struct RVM_List*)Prev;
-    Prev->Next=(struct RVM_List*)Next;
+    Next->Prev=Prev;
+    Prev->Next=Next;
 }
 /* End Function:RVM_List_Del *************************************************/
 
 /* Begin Function:RVM_List_Ins ************************************************
 Description : Insert a node to the doubly-linked list.
-Input       : volatile struct RVM_List* New - The new node to insert.
-              volatile struct RVM_List* Prev - The previous node.
-              volatile struct RVM_List* Next - The next node.
+Input       : struct RVM_List* New - The new node to insert.
+              struct RVM_List* Prev - The previous node.
+              struct RVM_List* Next - The next node.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void RVM_List_Ins(volatile struct RVM_List* New,
-                  volatile struct RVM_List* Prev,
-                  volatile struct RVM_List* Next)
+void RVM_List_Ins(struct RVM_List* New,
+                  struct RVM_List* Prev,
+                  struct RVM_List* Next)
 {
-    Next->Prev=(struct RVM_List*)New;
-    New->Next=(struct RVM_List*)Next;
-    New->Prev=(struct RVM_List*)Prev;
-    Prev->Next=(struct RVM_List*)New;
+    Next->Prev=New;
+    New->Next=Next;
+    New->Prev=Prev;
+    Prev->Next=New;
 }
 /* End Function:RVM_List_Ins *************************************************/
 
@@ -82,10 +82,10 @@ Return      : rvm_cnt_t - The length of the string printed.
 ******************************************************************************/
 rvm_cnt_t RVM_Print_Int(rvm_cnt_t Int)
 {
-    rvm_ptr_t Iter;
+    rvm_cnt_t Iter;
     rvm_cnt_t Count;
     rvm_cnt_t Num;
-    rvm_ptr_t Div;
+    rvm_cnt_t Div;
     
     /* how many digits are there? */
     if(Int==0)
@@ -114,7 +114,7 @@ rvm_cnt_t RVM_Print_Int(rvm_cnt_t Int)
         while(Count>0)
         {
             Count--;
-            RVM_Putchar(Iter/Div+'0');
+            RVM_Putchar((rvm_s8_t)(Iter/Div)+'0');
             Iter=Iter%Div;
             Div/=10;
         }
@@ -139,7 +139,7 @@ rvm_cnt_t RVM_Print_Int(rvm_cnt_t Int)
         while(Count>0)
         {
             Count--;
-            RVM_Putchar(Iter/Div+'0');
+            RVM_Putchar((rvm_s8_t)(Iter/Div)+'0');
             Iter=Iter%Div;
             Div/=10;
         }
@@ -159,11 +159,11 @@ Return      : rvm_cnt_t - The length of the string printed.
 rvm_cnt_t RVM_Print_Uint(rvm_ptr_t Uint)
 {
     rvm_ptr_t Iter;
-    rvm_cnt_t Count;
-    rvm_cnt_t Num;
+    rvm_ptr_t Count;
+    rvm_ptr_t Num;
     
     /* how many digits are there? */
-    if(Uint==0)
+    if(Uint==0U)
     {
         RVM_Putchar('0');
         return 1;
@@ -171,28 +171,28 @@ rvm_cnt_t RVM_Print_Uint(rvm_ptr_t Uint)
     else
     {
         /* Filter out all the zeroes */
-        Count=0;
+        Count=0U;
         Iter=Uint;
-        while((Iter>>((sizeof(rvm_ptr_t)*8)-4))==0)
+        while((Iter>>((sizeof(rvm_ptr_t)*8U)-4U))==0U)
         {
             Iter<<=4;
             Count++;
         }
         /* Count is the number of pts to print */
-        Count=sizeof(rvm_ptr_t)*2-Count;
+        Count=sizeof(rvm_ptr_t)*2U-Count;
         Num=Count;
-        while(Count>0)
+        while(Count>0U)
         {
             Count--;
-            Iter=(Uint>>(Count*4))&0x0F;
-            if(Iter<10)
-                RVM_Putchar('0'+Iter);
+            Iter=(Uint>>(Count*4U))&0x0FU;
+            if(Iter<10U)
+                RVM_Putchar((rvm_s8_t)Iter+'0');
             else
-                RVM_Putchar('A'+Iter-10);
+                RVM_Putchar((rvm_s8_t)Iter+'A'-10);
         }
     }
     
-    return Num;
+    return (rvm_cnt_t)Num;
 }
 /* End Function:RVM_Print_Uint ***********************************************/
 
@@ -205,18 +205,17 @@ Return      : rvm_cnt_t - The length of the string printed, the '\0' is not incl
 ******************************************************************************/
 rvm_cnt_t RVM_Print_String(rvm_s8_t* String)
 {
-    rvm_cnt_t Count;
+    rvm_ptr_t Count;
     
-    Count=0;
-    while(Count<RVM_USER_DEBUG_MAX_STR)
+    for(Count=0U;Count<RVM_USER_DEBUG_MAX_STR;Count++)
     {
         if(String[Count]=='\0')
             break;
         
-        RVM_Putchar(String[Count++]);
+        RVM_Putchar(String[Count]);
     }
     
-    return Count;
+    return (rvm_cnt_t)Count;
 }
 /* End Function:RVM_Print_String *********************************************/
 

@@ -192,6 +192,54 @@ void ARMCC_Gen::Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back("");
 }
 /* End Function:ARMCC_Gen::Kernel_Linker *************************************/
+
+/* Begin Function:ARMCC_Gen::Monitor_Linker ***********************************
+Description : Generate the RVM linker script.
+Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
+Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
+Return      : None.
+******************************************************************************/
+void ARMCC_Gen::Monitor_Linker(std::unique_ptr<std::vector<std::string>>& List)
+{
+    List->push_back(";******************************************************************************");
+    List->push_back(std::string(";Filename    : rvm_platform_")+this->Chip->Name_Lower+".sct");
+    List->push_back(std::string(";Author      : ")+CODE_AUTHOR);
+    List->push_back(std::string(";Date        : ")+Main::Time);
+    List->push_back(std::string(";Licence     : ")+CODE_LICENSE);
+    List->push_back(";Description : The scatter file for ARMv7-M layout. This file is intended");
+    List->push_back(std::string(";              to be used with ")+this->Chip->Name+".");
+    List->push_back(";******************************************************************************");
+    List->push_back("");
+    List->push_back("; Begin Segment:MONITOR *******************************************************");
+    List->push_back("; Description : The init segment, which contains the core of the user-level library.");
+    List->push_back("; *****************************************************************************");
+    List->push_back(std::string("MONITOR 0x")+Main::Hex(this->Proj->Monitor->Code_Base)+" 0x"+Main::Hex(this->Proj->Monitor->Code_Size));
+    List->push_back("{");
+    List->push_back("    ; The code segment of the monitor process");
+    List->push_back(std::string("    MONITOR_CODE 0x")+Main::Hex(this->Proj->Monitor->Code_Base)+" 0x"+Main::Hex(this->Proj->Monitor->Code_Size));
+    List->push_back("    {");
+    List->push_back("        ; The entry will be the first instruction");
+    List->push_back("        *.o                    (ARCH, +First)");
+    List->push_back("        ; The lib code copying code");
+    List->push_back("        *                      (InRoot$$Sections)");
+    List->push_back("        ; The init code section");
+    List->push_back("        .ANY                   (+RO)");
+    List->push_back("    }");
+    List->push_back("");
+    List->push_back("    ; The data section of the monitor process");
+    List->push_back(std::string("    MONITOR_DATA 0x")+Main::Hex(this->Proj->Monitor->Data_Base)+" 0x"+Main::Hex(this->Proj->Monitor->Data_Size));
+    List->push_back("    {");
+    List->push_back("        .ANY                   (+RW +ZI)");
+    List->push_back("    }");
+    List->push_back("}");
+    List->push_back("; End Segment:INIT ************************************************************");
+    List->push_back("");
+    List->push_back("; End Of File *****************************************************************");
+    List->push_back("");
+    List->push_back("; Copyright (C) Evo-Devo Instrum. All rights reserved *************************");
+    List->push_back("");
+}
+/* End Function:ARMCC_Gen::Monitor_Linker ************************************/
 }
 /* End Of File ***************************************************************/
 

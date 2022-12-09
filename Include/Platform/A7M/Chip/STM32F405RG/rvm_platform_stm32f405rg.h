@@ -11,69 +11,71 @@ Description: The configuration file for STM32F405RG. The values listed here shou
 /* The generator must be enabled to use this */
 /* Kernel configurations - keep the same with the kernel *********************/
 /* The virtual memory start address for the kernel objects */
-#define RVM_KMEM_VA_START                               (0x10002000)
+#define RVM_KMEM_VA_BASE                                (0x10002000U)
 /* The size of the kernel object virtual memory */
-#define RVM_KMEM_SIZE                                   (0x6000)
+#define RVM_KMEM_VA_SIZE                                (0x6000U)
 /* The granularity of kernel memory allocation, order of 2 in bytes */
-#define RVM_KMEM_SLOT_ORDER                             (4)
+#define RVM_KMEM_SLOT_ORDER                             (4U)
 /* The maximum number of preemption priority levels in the system.
  * This parameter must be divisible by the word length - 32 is usually sufficient */
-#define RVM_MAX_PREEMPT_PRIO                            (32)
+#define RVM_PREEMPT_PRIO_NUM                            (32U)
 /* Number of virtual priorities in the system */
-#define RVM_MAX_PREEMPT_VPRIO                           (32)
-/* Number of events */
-#define RVM_EVT_NUM                                     (10)
-/* Number of mappings */
-#define RVM_MAP_NUM                                     (64)
+#define RVM_PREEMPT_VPRIO_NUM                           (32U)
+
+/* Physical vector number, flag area base and its size */
+#define RVM_PHYS_VECT_NUM                               (82U)
+#define RVM_PHYS_VECT_BASE                              (0x10007C00U)
+#define RVM_PHYS_VECT_SIZE                              (0x200U)
+/* Virtual event number, flag area base and its size */
+#define RVM_VIRT_EVENT_NUM                              (10U)
+#define RVM_VIRT_EVENT_BASE                             (0x10007E00U)
+#define RVM_VIRT_EVENT_SIZE                             (0x200U)
+/* Maximum number of mappings allowed */
+#define RVM_VIRT_MAP_NUM                                (64U)
 
 /* Initial kernel object capability limit */
-#define RVM_A7M_CAP_BOOT_FRONTIER                       (9)
+#define RVM_CAP_BOOT_FRONTIER                           (9U)
 /* Initial kernel object memory limit */
-#define RVM_A7M_KMEM_BOOT_FRONTIER                      (0x400)
-/* Number of MPU regions available */
-#define RVM_A7M_MPU_REGIONS                             (8)
+#define RVM_KMEM_BOOT_FRONTIER                          (0x400U)
+
 /* Init process's first thread's entry point address */
-#define RVM_A7M_INIT_ENTRY                              (0x08004000|0x01)
+#define RVM_A7M_INIT_ENTRY                              (0x08004000U|0x01U)
 /* Init process's first thread's stack address */
-#define RVM_A7M_INIT_STACK                              (0x1000FFF0)
+#define RVM_A7M_INIT_STACK                              (0x1000FFF0U)
+/* Number of MPU regions available */
+#define RVM_A7M_MPU_REGIONS                             (8U)
 /* What is the FPU type? */
-#define RVM_A7M_FPU_TYPE                                (RVM_A7M_FPU_FPV4)
-/* Interrupt flag address */
-#define RVM_A7M_VECT_FLAG_ADDR                          (0x10007C00)
-/* Shared interrupt flag region address - always 512B memory for ARMv7-M */
-#define RVM_A7M_EVT_FLAG_ADDR                           (0x10007E00)
+#define RVM_A7M_FPU_TYPE                                (RVM_A7M_FPU_FPV4_SP)
 
 /* Fixed info ****************************************************************/
-/* What is the vector number excluding system vectors? */
-#define RVM_A7M_VECT_NUM                                (82)
 
 /* Syslib configurations *****************************************************/
 /* Stack redundancy */
-#define RVM_STACK_SAFE_RDCY                             (0x10)
+#define RVM_STACK_SAFE_RDCY                             (0x10U)
 /* Daemon process stack address and size, in bytes */
-#define RVM_SFTD_STACK_BASE                             (0x20000000)
-#define RVM_SFTD_STACK_SIZE                             (1024)
-#define RVM_TIMD_STACK_BASE                             (0x20000000)
-#define RVM_TIMD_STACK_SIZE                             (1024)
-#define RVM_VMMD_STACK_BASE                             (0x20000000)
-#define RVM_VMMD_STACK_SIZE                             (1024)
-#define RVM_VCTD_STACK_BASE                             (0x20000000)
-#define RVM_VCTD_STACK_SIZE                             (1024)
+#define RVM_SFTD_STACK_BASE                             (0x20000000U)
+#define RVM_SFTD_STACK_SIZE                             (1024U)
+#define RVM_TIMD_STACK_BASE                             (0x20000000U)
+#define RVM_TIMD_STACK_SIZE                             (1024U)
+#define RVM_VMMD_STACK_BASE                             (0x20000000U)
+#define RVM_VMMD_STACK_SIZE                             (1024U)
+#define RVM_VCTD_STACK_BASE                             (0x20000000U)
+#define RVM_VCTD_STACK_SIZE                             (1024U)
 
 /* Is debugging output enabled? */
-#define RVM_DEBUG_LOG                                   RVM_TRUE
+#define RVM_DEBUG_LOG                                   (1U)
 
-#define RVM_A7M_USART1_SR                               RVM_A7M_REG(0x40011000)
-#define RVM_A7M_USART1_DR                               RVM_A7M_REG(0x40011004)
+#define RVM_A7M_USART1_SR                               RVM_A7M_REG(0x40011000U)
+#define RVM_A7M_USART1_DR                               RVM_A7M_REG(0x40011004U)
 
 /* Print characters to console */
 #define RVM_A7M_PUTCHAR(CHAR) \
 do \
 { \
-    RVM_A7M_USART1_DR=(CHAR); \
-    while((RVM_A7M_USART1_SR&0x80)==0); \
+    RVM_A7M_USART1_DR=(rvm_ptr_t)(CHAR); \
+    while((RVM_A7M_USART1_SR&0x80U)==0U); \
 } \
-while(0)
+while(0U)
 /* End Defines ***************************************************************/
 
 /* End Of File ***************************************************************/

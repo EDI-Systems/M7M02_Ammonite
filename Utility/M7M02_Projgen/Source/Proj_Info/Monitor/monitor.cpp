@@ -90,11 +90,11 @@ Return      : None.
         /* Boot_Source_Output */
         this->Boot_Source_Output=Main::XML_Get_String(Root,"Boot_Source_Output","DXXXX","DXXXX");
         Main::Dir_Fixup(this->Boot_Source_Output);
+        /* Hook_Source_Output */
+        this->Hook_Source_Output=Main::XML_Get_String(Root,"Hook_Source_Output","DXXXX","DXXXX");
+        Main::Dir_Fixup(this->Hook_Source_Output);
         /* Init_Source_Output */
-        this->Init_Source_Output=Main::XML_Get_String(Root,"Init_Source_Output","DXXXX","DXXXX");
-        Main::Dir_Fixup(this->Init_Source_Output);
-        /* Init_Source_Output */
-        this->Init_Source_Overwrite=Main::XML_Get_Yesno(Root,"Init_Source_Overwrite","DXXXX","DXXXX");
+        this->Hook_Source_Overwrite=Main::XML_Get_Yesno(Root,"Hook_Source_Overwrite","DXXXX","DXXXX");
     }
     catch(std::exception& Exc)
     {

@@ -36,8 +36,8 @@ public:
     /* Name and root folder of the guest operating system */
     std::string Guest_Type;
     std::string Guest_Root;
-    /* Configuration header output folder */
-    std::string Config_Header_Output;
+    /* Header (config, etc.) output folder */
+    std::string Header_Output;
 
     /* The stack size for interrupt thread and user thread */
     ptr_t Stack_Size;

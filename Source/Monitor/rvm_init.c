@@ -11,26 +11,26 @@ Description : The init process of MPU-based RVM systems. This process just sets
 #include "rvm.h"
 
 #define __HDR_DEFS__
-#include "Platform/rvm_platform.h"
-#include "Init/rvm_syssvc.h"
-#include "Init/rvm_init.h"
-#include "Init/rvm_hyper.h"
+#include "rvm_platform.h"
+#include "Monitor/rvm_syssvc.h"
+#include "Monitor/rvm_init.h"
+#include "Monitor/rvm_hyper.h"
 #undef __HDR_DEFS__
 
 #define __HDR_STRUCTS__
-#include "Platform/rvm_platform.h"
-#include "Init/rvm_syssvc.h"
-#include "Init/rvm_init.h"
-#include "Init/rvm_hyper.h"
+#include "rvm_platform.h"
+#include "Monitor/rvm_syssvc.h"
+#include "Monitor/rvm_init.h"
+#include "Monitor/rvm_hyper.h"
 #undef __HDR_STRUCTS__
 
 /* Private include */
-#include "Init/rvm_init.h"
+#include "Monitor/rvm_init.h"
 
 #define __HDR_PUBLIC_MEMBERS__
-#include "Platform/rvm_platform.h"
-#include "Init/rvm_syssvc.h"
-#include "Init/rvm_hyper.h"
+#include "rvm_platform.h"
+#include "Monitor/rvm_syssvc.h"
+#include "Monitor/rvm_hyper.h"
 #undef __HDR_PUBLIC_MEMBERS__
 /* End Includes **************************************************************/
 
@@ -101,26 +101,26 @@ rvm_ptr_t RVM_Daemon_Init(rvm_ptr_t Cap_Front, rvm_ptr_t Kmem_Front)
     RVM_LOG_S("-------------------------------------------------------------------------------\r\n");
     
     /* Safety daemon initialization - highest priority as always */
-    RVM_Sftd_Sig_Cap=Cap_Front++;
+    RVM_Sftd_Sig_Cap=(rvm_cid_t)Cap_Front++;
     RVM_ASSERT(RVM_Sig_Crt(RVM_BOOT_CAPTBL, RVM_Sftd_Sig_Cap)==0);
     RVM_LOG_SIS("Init:Created safety daemon fault endpoint CID ",RVM_Sftd_Sig_Cap,".\r\n");
     
-    RVM_Sftd_Thd_Cap=Cap_Front++;
+    RVM_Sftd_Thd_Cap=(rvm_cid_t)Cap_Front++;
     RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_CAPTBL, RVM_BOOT_INIT_KMEM, RVM_Sftd_Thd_Cap,
                            RVM_BOOT_INIT_PROC, RVM_SFTD_PRIO, Kmem_Front)>=0);
     RVM_LOG_SISUS("Init:Created safety daemon CID ",RVM_Sftd_Thd_Cap," @ address 0x",Kmem_Front,".\r\n");
     Kmem_Front+=RVM_THD_SIZE;
     
-    RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Sftd_Thd_Cap, RVM_BOOT_INIT_THD, RVM_Sftd_Sig_Cap, RVM_Sftd_Thd_Cap, RVM_MAX_PREEMPT_PRIO-1)==0);
+    RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Sftd_Thd_Cap, RVM_BOOT_INIT_THD, RVM_Sftd_Sig_Cap, RVM_Sftd_Thd_Cap, RVM_PREEMPT_PRIO_NUM-1U)==0);
     RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Sftd_Thd_Cap, (rvm_ptr_t)RVM_Sftd, 
                                 RVM_Stack_Init(RVM_SFTD_STACK_BASE, RVM_SFTD_STACK_SIZE,
-                                               (rvm_ptr_t)RVM_Sftd, (rvm_ptr_t)_RVM_Jmp_Stub),0)==0);
+                                               (rvm_ptr_t)RVM_Sftd, (rvm_ptr_t)_RVM_Jmp_Stub),0U)==0);
     RVM_LOG_S("Init:Safety daemon initialization complete.\r\n");
 
     /* Don't bother boot these daemons if we do not have virtual machines installed at all */
-#if(RVM_MAX_PREEMPT_VPRIO!=0)
+#if(RVM_PREEMPT_VPRIO_NUM!=0U)
     /* Timer daemon initialization - main priority */
-    RVM_Timd_Thd_Cap=Cap_Front++;
+    RVM_Timd_Thd_Cap=(rvm_cid_t)Cap_Front++;
     RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_CAPTBL, RVM_BOOT_INIT_KMEM, RVM_Timd_Thd_Cap,
                            RVM_BOOT_INIT_PROC, RVM_TIMD_PRIO, Kmem_Front)>=0);
     RVM_LOG_SISUS("Init:Created timer daemon CID ",RVM_Timd_Thd_Cap," @ address 0x",Kmem_Front,".\r\n");
@@ -133,11 +133,11 @@ rvm_ptr_t RVM_Daemon_Init(rvm_ptr_t Cap_Front, rvm_ptr_t Kmem_Front)
     RVM_LOG_S("Init:Timer daemon initialization complete.\r\n");
 
     /* VMM daemon initialization - main priority */
-    RVM_Vmmd_Sig_Cap=Cap_Front++;
+    RVM_Vmmd_Sig_Cap=(rvm_cid_t)Cap_Front++;
     RVM_ASSERT(RVM_Sig_Crt(RVM_BOOT_CAPTBL, RVM_Vmmd_Sig_Cap)==0);
     RVM_LOG_SIS("Init:Created virtual machine monitor endpoint CID ",RVM_Vmmd_Sig_Cap,".\r\n");
     
-    RVM_Vmmd_Thd_Cap=Cap_Front++;
+    RVM_Vmmd_Thd_Cap=(rvm_cid_t)Cap_Front++;
     RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_CAPTBL, RVM_BOOT_INIT_KMEM, RVM_Vmmd_Thd_Cap,
                            RVM_BOOT_INIT_PROC, RVM_VMMD_PRIO, Kmem_Front)>=0);
     RVM_LOG_SISUS("Init:Created virtual machine monitor daemon CID ",RVM_Vmmd_Thd_Cap," @ address 0x",Kmem_Front,".\r\n");
@@ -150,7 +150,7 @@ rvm_ptr_t RVM_Daemon_Init(rvm_ptr_t Cap_Front, rvm_ptr_t Kmem_Front)
     RVM_LOG_S("Init:Virtual machine monitor daemon initialization complete.\r\n");
 
     /* Interrupt relaying daemon initialization - main priority */
-    RVM_Vctd_Thd_Cap=Cap_Front++;
+    RVM_Vctd_Thd_Cap=(rvm_cid_t)Cap_Front++;
     RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_CAPTBL, RVM_BOOT_INIT_KMEM, RVM_Vctd_Thd_Cap,
                            RVM_BOOT_INIT_PROC, RVM_VCTD_PRIO, Kmem_Front)>=0);
     RVM_LOG_SISUS("Init:Created vector handling daemon CID ",RVM_Vctd_Thd_Cap," @ address 0x",Kmem_Front,".\r\n");
@@ -202,14 +202,14 @@ int main(void)
     RVM_LOG_S("-------------------------------------------------------------------------------\r\n");
 
     /* Raise our own priority to the top of the system */
-    RVM_ASSERT(RVM_Thd_Sched_Prio(RVM_BOOT_INIT_THD, RVM_MAX_PREEMPT_PRIO-1)==0);
+    RVM_ASSERT(RVM_Thd_Sched_Prio(RVM_BOOT_INIT_THD, RVM_PREEMPT_PRIO_NUM-1U)==0);
     RVM_LOG_S("Init:Preparation - priority raised.\r\n");
     
     /* Initialize RVM database */
-#if(RVM_MAX_PREEMPT_VPRIO!=0)
+#if(RVM_PREEMPT_VPRIO_NUM!=0U)
     RVM_Virt_Init();
 #endif
-    RVM_LOG_SUS("Init:Kernel virtual address base is 0x",RVM_KMEM_VA_START,".\r\n");
+    RVM_LOG_SUS("Init:Kernel virtual address base is 0x",RVM_KMEM_VA_BASE,".\r\n");
     RVM_LOG_SUS("Init:Start creating kernel objects @ frontier 0x",RVM_KMEM_BOOT_FRONTIER,".\r\n");
     Kmem_Bump=RVM_KMEM_BOOT_FRONTIER;
     
@@ -229,7 +229,7 @@ int main(void)
      * actually, and we have done operating the database, now all the work is the safety
      * daemon's. From now on, no further kernel objects will be created anymore. */
     RVM_ASSERT(RVM_Thd_Time_Xfer(RVM_Sftd_Thd_Cap, RVM_BOOT_INIT_THD, RVM_THD_INF_TIME)==RVM_THD_INF_TIME);
-#if(RVM_MAX_PREEMPT_VPRIO!=0)
+#if(RVM_PREEMPT_VPRIO_NUM!=0U)
     RVM_ASSERT(RVM_Thd_Time_Xfer(RVM_Timd_Thd_Cap, RVM_BOOT_INIT_THD, RVM_THD_INF_TIME)==RVM_THD_INF_TIME);
     RVM_ASSERT(RVM_Thd_Time_Xfer(RVM_Vmmd_Thd_Cap, RVM_BOOT_INIT_THD, RVM_THD_INF_TIME)==RVM_THD_INF_TIME);
     RVM_ASSERT(RVM_Thd_Time_Xfer(RVM_Vctd_Thd_Cap, RVM_BOOT_INIT_THD, RVM_THD_INF_TIME)==RVM_THD_INF_TIME);
@@ -243,7 +243,7 @@ int main(void)
 
     RVM_Boot_Post_Init();
 		
-    while(1)
+    while(1U)
     {
         /* Receive the scheduler notifications for the interrupt threads. If any of
          * them failed, then we just panic, because none of them are supposed to fail. */

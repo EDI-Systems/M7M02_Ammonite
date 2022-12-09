@@ -173,8 +173,9 @@ void Proj_Info::Check(void)
 Description : Allocate the memory for vector/event flags. Flags are always like
               struct Flag
               {
-                    ptr_t Lock_Group;
-                    ptr_t Flag[31];
+                    ptr_t Lock;
+                    ptr_t Group;
+                    ptr_t Flag[1];
               };
               Each bit corresponds to a single vector. The whole struct will repeat twice.
 Input       : ptr_t Source - The source number.
@@ -187,7 +188,7 @@ ptr_t Proj_Info::Flag_Alloc(ptr_t Source, ptr_t Wordlength, ptr_t Kmem_Order)
 {
     ptr_t Raw;
 
-    Raw=(ROUND_DIV(Source,Wordlength)+1)*Wordlength/8;
+    Raw=(ROUND_DIV(Source,Wordlength)+2)*(Wordlength/8);
     return ROUND_UP_POW2(Raw,Kmem_Order)*2;
 }
 /* End Function:Proj_Info::Flag_Alloc ****************************************/

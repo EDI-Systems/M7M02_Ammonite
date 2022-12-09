@@ -65,9 +65,9 @@ public:
     /* Boot header/source output folder */
     std::string Boot_Header_Output;
     std::string Boot_Source_Output;
-    /* Kernel initialization source folder/overwrite */
-    std::string Init_Source_Output;
-    ptr_t Init_Source_Overwrite;
+    /* Initialization hook source folder/overwrite */
+    std::string Hook_Source_Output;
+    ptr_t Hook_Source_Overwrite;
     /* Interrupt handler source folder/overwrite */
     std::string Handler_Source_Output;
     ptr_t Handler_Source_Overwrite;

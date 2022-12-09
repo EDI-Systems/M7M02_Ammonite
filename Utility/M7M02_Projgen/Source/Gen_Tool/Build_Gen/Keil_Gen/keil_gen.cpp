@@ -302,7 +302,7 @@ void Keil_Gen::Raw_Proj(std::unique_ptr<std::vector<std::string>>& List,
     List->push_back("            <v6Rtti>0</v6Rtti>");
     List->push_back("            <VariousControls>");
     /* These warnings are spurious */
-    List->push_back("              <MiscControls>-Wno-date-time -Wno-unused-parameter -Wno-missing-variable-declarations</MiscControls>");
+    List->push_back("              <MiscControls>-Wno-date-time -Wno-unused-parameter -Wno-missing-variable-declarations -Wno-missing-noreturn</MiscControls>");
     List->push_back("              <Define></Define>");
     List->push_back("              <Undefine></Undefine>");
     List->push_back(std::string("              <IncludePath>")+Include_Path+"</IncludePath>");
@@ -404,6 +404,33 @@ void Keil_Gen::Kernel_Proj(std::unique_ptr<std::vector<std::string>>& List,
                    ""                                   /* Linker_Misc */);
 }
 /* End Function:Keil_Gen::Kernel_Proj ****************************************/
+
+/* Begin Function:Keil_Gen::Monitor_Proj **************************************
+Description : Generate monitor project.
+Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
+              const std::vector<std::string>& Include - The include file list.
+              const std::vector<std::string>& Source - The source file list.
+              const std::vector<std::string>& Source - The linker script file list.
+Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Keil_Gen::Monitor_Proj(std::unique_ptr<std::vector<std::string>>& List,
+                            const std::vector<std::string>& Include,
+                            const std::vector<std::string>& Source,
+                            const std::vector<std::string>& Linker)
+{
+    this->Raw_Proj(List,
+                   "",                                  /* After 1 */
+                   "",                                  /* After 2 */
+                   "Monitor",                            /* Target */
+                   this->Proj->Monitor->Optimization,    /* Optimization */
+                   Include,                             /* Include */
+                   Source,                              /* Source */
+                   Linker[0],                           /* Linker */
+                   ""                                   /* Linker_Misc */);
+}
+/* End Function:Keil_Gen::Monitor_Proj ***************************************/
 }
 /* End Of File ***************************************************************/
 

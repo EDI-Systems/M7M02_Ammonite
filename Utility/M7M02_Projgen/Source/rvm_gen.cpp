@@ -1504,7 +1504,7 @@ void Main::Obj_Alloc(void)
          * of vectors, but the last vector number + 1 (!) */
         Main::Info("Allocating kernel memory.");
         this->Proj->Kernel->Mem_Alloc(this->Proj->Monitor->After_Kmem_Front,
-                                      this->Chip->Vector.back()->Number+1,
+                                      this->Chip->Vect_Num,
                                       this->Proj->Monitor->Virt_Event,
                                       this->Plat->Wordlength);
 
@@ -1553,7 +1553,7 @@ void Main::Kernel_Gen(void)
         std::filesystem::create_directories(this->Proj->Kernel->Config_Header_Output);
         std::filesystem::create_directories(this->Proj->Kernel->Boot_Header_Output);
         std::filesystem::create_directories(this->Proj->Kernel->Boot_Source_Output);
-        std::filesystem::create_directories(this->Proj->Kernel->Init_Source_Output);
+        std::filesystem::create_directories(this->Proj->Kernel->Hook_Source_Output);
         std::filesystem::create_directories(this->Proj->Kernel->Handler_Source_Output);
 
         /* Generate kernel configuration header */
@@ -1566,9 +1566,9 @@ void Main::Kernel_Gen(void)
         Main::Info("Generating kernel boot source.");
         this->Gen->Kernel_Boot_Src();
 
-        /* Generate kernel init source */
-        Main::Info("Generating kernel initialization source.");
-        this->Gen->Kernel_Init_Src();
+        /* Generate kernel hook source */
+        Main::Info("Generating kernel hook source.");
+        this->Gen->Kernel_Hook_Src();
 
         /* Generate kernel handler source */
         Main::Info("Generating kernel vector handler sources.");
@@ -1606,17 +1606,29 @@ void Main::Monitor_Gen(void)
         std::filesystem::create_directories(this->Proj->Monitor->Config_Header_Output);
         std::filesystem::create_directories(this->Proj->Monitor->Boot_Header_Output);
         std::filesystem::create_directories(this->Proj->Monitor->Boot_Source_Output);
-        std::filesystem::create_directories(this->Proj->Monitor->Init_Source_Output);
+        std::filesystem::create_directories(this->Proj->Monitor->Hook_Source_Output);
 
         /* Generate monitor configuration header */
         Main::Info("Generating monitor configuration header.");
         this->Gen->Monitor_Conf_Hdr();
 
-        /* Generate kernel boot header/source */
+        /* Generate monitor boot header/source */
         Main::Info("Generating monitor boot header.");
         this->Gen->Monitor_Boot_Hdr();
         Main::Info("Generating monitor boot source.");
         this->Gen->Monitor_Boot_Src();
+
+        /* Generate monitor hook source */
+        Main::Info("Generating monitor hook source.");
+        this->Gen->Monitor_Hook_Src();
+
+        /* Generate monitor linker script */
+        Main::Info("Generating monitor linker script.");
+        this->Gen->Monitor_Linker();
+
+        /* Generate monitor project */
+        Main::Info("Generating monitor project.");
+        this->Gen->Monitor_Proj();
     }
     catch(std::exception& Exc)
     {
@@ -1642,8 +1654,32 @@ void Main::Process_Gen(void)
             std::filesystem::create_directories(Proc->Project_Output);
             std::filesystem::create_directories(Proc->Linker_Output);
             if(Proc->Type==PROC_VIRTUAL)
-                std::filesystem::create_directories(static_cast<class Virtual*>(Proc.get())->Config_Header_Output);
-            std::filesystem::create_directories(Proc->Init_Source_Output);
+                std::filesystem::create_directories(static_cast<class Virtual*>(Proc.get())->Header_Output);
+            std::filesystem::create_directories(Proc->Source_Output);
+
+
+            /* Generate process main header */
+            Main::Info("Generating process main header.");
+            this->Gen->Process_Main_Hdr(Proc.get());
+
+            /* If this process is a virtual machine, generate VM configuration header as well */
+            if(Proc->Type==PROC_VIRTUAL)
+            {
+                Main::Info("Generating virtual machine configuration header.");
+                this->Gen->Virtual_Conf_Hdr(static_cast<class Virtual*>(Proc.get()));
+            }
+
+            /* Generate process main source */
+            Main::Info("Generating process main source.");
+            this->Gen->Process_Main_Src(Proc.get());
+
+            /* Generate monitor linker script */
+            Main::Info("Generating process linker script.");
+            this->Gen->Process_Linker(Proc.get());
+
+            /* Generate monitor project */
+            Main::Info("Generating process project.");
+            this->Gen->Process_Proj(Proc.get());
         }
         catch(std::exception& Exc)
         {
@@ -1652,6 +1688,25 @@ void Main::Process_Gen(void)
     }
 }
 /* End Function:Main::Process_Gen ********************************************/
+
+/* Begin Function:Main::Workspace_Gen *****************************************
+Description : Generate workspace, if required.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Workspace_Gen(void)
+{
+    try
+    {
+
+    }
+    catch(std::exception& Exc)
+    {
+        Main::Error(std::string("Workspace generation:\n")+Exc.what());
+    }
+}
+/* End Function:Main::Workspace_Gen ******************************************/
 
 /* Begin Function:Main::Report_Gen ********************************************
 Description : Generate after report. This is currently not used.
@@ -2170,6 +2225,7 @@ int main(int argc, char* argv[])
         Main->Kernel_Gen();
         Main->Monitor_Gen();
         Main->Process_Gen();
+        Main->Workspace_Gen();
         Main->Report_Gen();
     }
     catch(std::exception& Exc)

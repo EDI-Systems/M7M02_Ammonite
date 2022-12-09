@@ -88,7 +88,7 @@ public:
     void Kernel_Conf_Hdr(void);
     void Kernel_Boot_Hdr(void);
     void Kernel_Boot_Src(void);
-    void Kernel_Init_Src(void);
+    void Kernel_Hook_Src(void);
     void Kernel_Handler_Src(void);
     void Kernel_Linker(void);
     void Kernel_Proj(void);
@@ -96,19 +96,29 @@ public:
     void Monitor_Inc(std::unique_ptr<std::vector<std::string>>& List);
     void Monitor_Conf_Hdr(void);
     void Monitor_Boot_Hdr(void);
+    void Monitor_Pgtbl_Con(std::unique_ptr<std::vector<std::string>>& List, const class Pgtbl* Pgtbl);
+    void Monitor_Pgtbl_Map(std::unique_ptr<std::vector<std::string>>& List, const class Pgtbl* Pgtbl, ptr_t Init_Size_Ord);
     void Monitor_Boot_Src(void);
-    void Monitor_Init_Src(void);
+    void Monitor_Hook_Src(void);
     void Monitor_Linker(void);
     void Monitor_Proj(void);
+
+    void Process_Main_Hdr(const class Process* Proc);
+    void Virtual_Conf_Hdr(const class Virtual* Virt);
+    void Process_Main_Src(const class Process* Proc);
+    void Process_Linker(const class Process* Proc);
+    void Process_Proj(const class Process* Proc);
+
+    void Workspace_Proj(void);
 };
 
 /* Generate capability table creations for kernel objects */
 template<class OBJECT>
-void RVM_Captbl_Crt_Gen(std::unique_ptr<std::vector<std::string>>& List,
-                        const std::vector<OBJECT*>& Vector,
-                        const std::string& Kobjname,
-                        const std::string& Kobjmacro,
-                        ptr_t Captbl_Max)
+void Monitor_Captbl_Crt_Gen(std::unique_ptr<std::vector<std::string>>& List,
+                            const std::vector<OBJECT*>& Vector,
+                            const std::string& Kobjname,
+                            const std::string& Kobjmacro,
+                            ptr_t Captbl_Max)
 {
     ptr_t Obj_Cnt;
     ptr_t Captbl_Size;

@@ -87,11 +87,11 @@ Return      : None.
         /* Boot_Source_Output */
         this->Boot_Source_Output=Main::XML_Get_String(Root,"Boot_Source_Output","DXXXX","DXXXX");
         Main::Dir_Fixup(this->Boot_Source_Output);
-        /* Init_Source_Output */
-        this->Init_Source_Output=Main::XML_Get_String(Root,"Init_Source_Output","DXXXX","DXXXX");
-        Main::Dir_Fixup(this->Init_Source_Output);
-        /* Init_Source_Output */
-        this->Init_Source_Overwrite=Main::XML_Get_Yesno(Root,"Init_Source_Overwrite","DXXXX","DXXXX");
+        /* Hook_Source_Output */
+        this->Hook_Source_Output=Main::XML_Get_String(Root,"Hook_Source_Output","DXXXX","DXXXX");
+        Main::Dir_Fixup(this->Hook_Source_Output);
+        /* Hook_Source_Output */
+        this->Hook_Source_Overwrite=Main::XML_Get_Yesno(Root,"Hook_Source_Overwrite","DXXXX","DXXXX");
         /* Handler_Source_Output */
         this->Handler_Source_Output=Main::XML_Get_String(Root,"Handler_Source_Output","DXXXX","DXXXX");
         Main::Dir_Fixup(this->Handler_Source_Output);
@@ -114,7 +114,7 @@ Return      : None.
 void Kernel::Mem_Alloc(ptr_t Kmem_Front, ptr_t Vector_Num, ptr_t Event_Num, ptr_t Wordlength)
 {
     /* Vector flag section - cut out from the data section */
-    this->Vctf_Size=Proj_Info::Flag_Alloc(Vector_Num,Wordlength,this->Kmem_Order);
+    this->Vctf_Size=Proj_Info::Flag_Alloc(Vector_Num, Wordlength, this->Kmem_Order);
     this->Vctf_Base=this->Data_Base+this->Data_Size-this->Vctf_Size;
     Main::Info("> Vector flag base 0x%llX size 0x%llX.", this->Vctf_Base, this->Vctf_Size);
     if(this->Vctf_Base<=this->Data_Base)
@@ -122,7 +122,7 @@ void Kernel::Mem_Alloc(ptr_t Kmem_Front, ptr_t Vector_Num, ptr_t Event_Num, ptr_
     this->Data_Size=this->Vctf_Base-this->Data_Base;
 
     /* Event flag section - cut out from the data section */
-    this->Evtf_Size=Proj_Info::Flag_Alloc(Event_Num,Wordlength,this->Kmem_Order);
+    this->Evtf_Size=Proj_Info::Flag_Alloc(Event_Num, Wordlength, this->Kmem_Order);
     this->Evtf_Base=this->Data_Base+this->Data_Size-this->Evtf_Size;
     Main::Info("> Event flag base 0x%llX size 0x%llX.", this->Evtf_Base, this->Evtf_Size);
     if(this->Evtf_Base<=this->Data_Base)

@@ -23,14 +23,14 @@ Description : The header of microcontroller user-level library.
  * 0       : Inactive virtual machine
  */
 /* Priority of threads */
-#define RVM_SFTD_PRIO            (RVM_MAX_PREEMPT_PRIO-1)
-#define RVM_TIMD_PRIO            (4)
-#define RVM_VMMD_PRIO            (4)
-#define RVM_VCTD_PRIO            (4)
-#define RVM_VECT_PRIO            (3)
-#define RVM_USER_PRIO            (2)
-#define RVM_INIT_PRIO            (1)
-#define RVM_WAIT_PRIO            (0)
+#define RVM_SFTD_PRIO            (RVM_PREEMPT_PRIO_NUM-1U)
+#define RVM_TIMD_PRIO            (4U)
+#define RVM_VMMD_PRIO            (4U)
+#define RVM_VCTD_PRIO            (4U)
+#define RVM_VECT_PRIO            (3U)
+#define RVM_USER_PRIO            (2U)
+#define RVM_INIT_PRIO            (1U)
+#define RVM_WAIT_PRIO            (0U)
 /*****************************************************************************/
 /* __RVM_INIT_H_DEFS__ */
 #endif
@@ -95,14 +95,14 @@ static rvm_ptr_t RVM_Daemon_Init(rvm_ptr_t Cap_Front, rvm_ptr_t Kmem_Front);
 
 /*****************************************************************************/
 /* The capabilities */
-__EXTERN__ rvm_ptr_t RVM_Sftd_Thd_Cap;
-__EXTERN__ rvm_ptr_t RVM_Sftd_Sig_Cap;
+__EXTERN__ rvm_cid_t RVM_Sftd_Thd_Cap;
+__EXTERN__ rvm_cid_t RVM_Sftd_Sig_Cap;
 
-#if(RVM_MAX_PREEMPT_VPRIO!=0)
-__EXTERN__ rvm_ptr_t RVM_Timd_Thd_Cap;
-__EXTERN__ rvm_ptr_t RVM_Vmmd_Thd_Cap;
-__EXTERN__ rvm_ptr_t RVM_Vmmd_Sig_Cap;
-__EXTERN__ rvm_ptr_t RVM_Vctd_Thd_Cap;
+#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+__EXTERN__ rvm_cid_t RVM_Timd_Thd_Cap;
+__EXTERN__ rvm_cid_t RVM_Vmmd_Thd_Cap;
+__EXTERN__ rvm_cid_t RVM_Vmmd_Sig_Cap;
+__EXTERN__ rvm_cid_t RVM_Vctd_Thd_Cap;
 #endif
 /*****************************************************************************/
 

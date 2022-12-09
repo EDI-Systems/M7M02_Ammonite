@@ -49,8 +49,8 @@
 		<Config_Header_Output>./Kernel/Include</Config_Header_Output>
 		<Boot_Header_Output>./Kernel/Include</Boot_Header_Output>
 		<Boot_Source_Output>./Kernel/Source</Boot_Source_Output>
-		<Init_Source_Output>./Kernel/Source</Init_Source_Output>
-		<Init_Source_Overwrite>No</Init_Source_Overwrite>
+		<Hook_Source_Output>./Kernel/Source</Hook_Source_Output>
+		<Hook_Source_Overwrite>No</Hook_Source_Overwrite>
 		<Handler_Source_Output>./Kernel/Source</Handler_Source_Output>
 		<Handler_Source_Overwrite>No</Handler_Source_Overwrite>
     </Kernel>
@@ -72,8 +72,8 @@
 		<Config_Header_Output>./Monitor/Include</Config_Header_Output>
 		<Boot_Header_Output>./Monitor/Include</Boot_Header_Output>
 		<Boot_Source_Output>./Monitor/Source</Boot_Source_Output>
-		<Init_Source_Output>./Monitor/Source</Init_Source_Output>
-		<Init_Source_Overwrite>No</Init_Source_Overwrite>
+		<Hook_Source_Output>./Monitor/Source</Hook_Source_Output>
+		<Hook_Source_Overwrite>No</Hook_Source_Overwrite>
     </Monitor>
     <Process>
         <P0>
@@ -85,8 +85,9 @@
 			<Project_Output>./Proc1/Project</Project_Output>
 			<Project_Overwrite>No</Project_Overwrite>
 			<Linker_Output>./Proc1/Project</Linker_Output>
-			<Init_Source_Output>./Proc1/Source</Init_Source_Output>
-			<Init_Source_Overwrite>No</Init_Source_Overwrite>
+			<Main_Header_Output>./Proc1/Include</Main_Header_Output>
+			<Main_Source_Output>./Proc1/Source</Main_Source_Output>
+			<Main_Source_Overwrite>No</Main_Source_Overwrite>
             <Memory>
                 <M0>
                     <Name>Main_Code</Name>
@@ -166,8 +167,9 @@
 			<Project_Overwrite>No</Project_Overwrite>
 			<Linker_Output>./Proc2/Project</Linker_Output>
 			<Linker_Overwrite>Yes</Linker_Overwrite>
-			<Init_Source_Output>./Proc2/Source</Init_Source_Output>
-			<Init_Source_Overwrite>No</Init_Source_Overwrite>
+			<Main_Header_Output>./Proc2/Include</Main_Header_Output>
+			<Main_Source_Output>./Proc2/Source</Main_Source_Output>
+			<Main_Source_Overwrite>No</Main_Source_Overwrite>
             <Memory>
                 <M0>
                     <Base>Auto</Base>
@@ -250,9 +252,9 @@
 			<Project_Overwrite>No</Project_Overwrite>
 			<Linker_Output>./Virt1/Project</Linker_Output>
 			<Config_Header_Output>./Virt1/Include</Config_Header_Output>
-			<Config_Header_Overwrite>No</Config_Header_Overwrite>
-			<Init_Source_Output>./Virt1/Source</Init_Source_Output>
-			<Init_Source_Overwrite>No</Init_Source_Overwrite>
+			<Main_Header_Output>./Virt1/Include</Main_Header_Output>
+			<Main_Source_Output>./Virt1/Source</Main_Source_Output>
+			<Main_Source_Overwrite>No</Main_Source_Overwrite>
             <Memory>
                 <M0>
                     <Name>Main_Code</Name>
@@ -290,5 +292,4 @@
             </Kfunc>
         </V0>
     </Virtual>
-
 </Project>

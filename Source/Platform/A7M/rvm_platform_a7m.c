@@ -11,19 +11,19 @@ Description : The Cortex-M system library platform specific header.
 
 #define __HDR_DEFS__
 #include "Platform/A7M/rvm_platform_a7m.h"
-#include "Init/rvm_syssvc.h"
+#include "Monitor/rvm_syssvc.h"
 #undef __HDR_DEFS__
 
 #define __HDR_STRUCTS__
 #include "Platform/A7M/rvm_platform_a7m.h"
-#include "Init/rvm_syssvc.h"
+#include "Monitor/rvm_syssvc.h"
 #undef __HDR_STRUCTS__
 
 /* Private include */
 #include "Platform/A7M/rvm_platform_a7m.h"
 
 #define __HDR_PUBLIC_MEMBERS__
-#include "Init/rvm_syssvc.h"
+#include "Monitor/rvm_syssvc.h"
 #undef __HDR_PUBLIC_MEMBERS__
 /* End Includes **************************************************************/
 
@@ -95,7 +95,7 @@ Return      : rvm_ret_t - If successful, 0; else a negative value.
 ******************************************************************************/
 rvm_ret_t RVM_A7M_Kern_Act(rvm_cid_t Cap_Kern, rvm_ptr_t Func_ID, rvm_ptr_t Sub_ID, rvm_ptr_t* Params)
 {
-    return RVM_A7M_Svc_Kern((RVM_SVC_KERN<<(sizeof(rvm_ptr_t)*4))|(Cap_Kern),
+    return RVM_A7M_Svc_Kern((RVM_SVC_KERN<<(sizeof(rvm_ptr_t)*4U))|((rvm_ptr_t)Cap_Kern),
                             RVM_PARAM_D1(Sub_ID)|RVM_PARAM_D0(Func_ID),
                             Params);
 }
@@ -170,70 +170,70 @@ rvm_ret_t RVM_Thd_Print_Regs(rvm_cid_t Cap_Thd)
     Params[0]=RVM_A7M_KERN_DEBUG_REG_MOD_R4_GET;
     RVM_ASSERT(RVM_A7M_Kern_Act(RVM_BOOT_INIT_KERN, 
                                 RVM_KERN_DEBUG_REG_MOD,
-                                Cap_Thd,
+                                (rvm_ptr_t)Cap_Thd,
                                 Params)==0);
     RVM_LOG_SUS("Sftd:R4:0x",Params[0],"\r\n");
     
     Params[0]=RVM_A7M_KERN_DEBUG_REG_MOD_R5_GET;
     RVM_ASSERT(RVM_A7M_Kern_Act(RVM_BOOT_INIT_KERN, 
                                 RVM_KERN_DEBUG_REG_MOD,
-                                Cap_Thd,
+                                (rvm_ptr_t)Cap_Thd,
                                 Params)==0);
     RVM_LOG_SUS("Sftd:R5:0x",Params[0],"\r\n");
     
     Params[0]=RVM_A7M_KERN_DEBUG_REG_MOD_R6_GET;
     RVM_ASSERT(RVM_A7M_Kern_Act(RVM_BOOT_INIT_KERN, 
                                 RVM_KERN_DEBUG_REG_MOD,
-                                Cap_Thd,
+                                (rvm_ptr_t)Cap_Thd,
                                 Params)==0);
     RVM_LOG_SUS("Sftd:R6:0x",Params[0],"\r\n");
     
     Params[0]=RVM_A7M_KERN_DEBUG_REG_MOD_R7_GET;
     RVM_ASSERT(RVM_A7M_Kern_Act(RVM_BOOT_INIT_KERN, 
                                 RVM_KERN_DEBUG_REG_MOD,
-                                Cap_Thd,
+                                (rvm_ptr_t)Cap_Thd,
                                 Params)==0);
     RVM_LOG_SUS("Sftd:R7:0x",Params[0],"\r\n");
     
     Params[0]=RVM_A7M_KERN_DEBUG_REG_MOD_R8_GET;
     RVM_ASSERT(RVM_A7M_Kern_Act(RVM_BOOT_INIT_KERN, 
                                 RVM_KERN_DEBUG_REG_MOD,
-                                Cap_Thd,
+                                (rvm_ptr_t)Cap_Thd,
                                 Params)==0);
     RVM_LOG_SUS("Sftd:R8:0x",Params[0],"\r\n");
     
     Params[0]=RVM_A7M_KERN_DEBUG_REG_MOD_R9_GET;
     RVM_ASSERT(RVM_A7M_Kern_Act(RVM_BOOT_INIT_KERN, 
                                 RVM_KERN_DEBUG_REG_MOD,
-                                Cap_Thd,
+                                (rvm_ptr_t)Cap_Thd,
                                 Params)==0);
     RVM_LOG_SUS("Sftd:R9:0x",Params[0],"\r\n");
     
     Params[0]=RVM_A7M_KERN_DEBUG_REG_MOD_R10_GET;
     RVM_ASSERT(RVM_A7M_Kern_Act(RVM_BOOT_INIT_KERN, 
                                 RVM_KERN_DEBUG_REG_MOD,
-                                Cap_Thd,
+                                (rvm_ptr_t)Cap_Thd,
                                 Params)==0);
     RVM_LOG_SUS("Sftd:R10:0x",Params[0],"\r\n");
     
     Params[0]=RVM_A7M_KERN_DEBUG_REG_MOD_R11_GET;
     RVM_ASSERT(RVM_A7M_Kern_Act(RVM_BOOT_INIT_KERN, 
                                 RVM_KERN_DEBUG_REG_MOD,
-                                Cap_Thd,
+                                (rvm_ptr_t)Cap_Thd,
                                 Params)==0);
     RVM_LOG_SUS("Sftd:R11:0x",Params[0],"\r\n");
     
     Params[0]=RVM_A7M_KERN_DEBUG_REG_MOD_SP_GET;
     RVM_ASSERT(RVM_A7M_Kern_Act(RVM_BOOT_INIT_KERN, 
                                 RVM_KERN_DEBUG_REG_MOD,
-                                Cap_Thd,
+                                (rvm_ptr_t)Cap_Thd,
                                 Params)==0);
     RVM_LOG_SUS("Sftd:SP:0x",Params[0],"\r\n");
     
     Params[0]=RVM_A7M_KERN_DEBUG_REG_MOD_LR_GET;
     RVM_ASSERT(RVM_A7M_Kern_Act(RVM_BOOT_INIT_KERN, 
                                 RVM_KERN_DEBUG_REG_MOD,
-                                Cap_Thd,
+                                (rvm_ptr_t)Cap_Thd,
                                 Params)==0);
     RVM_LOG_SUS("Sftd:LR:0x",Params[0],"\r\n");
 

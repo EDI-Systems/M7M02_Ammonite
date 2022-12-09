@@ -57,9 +57,9 @@ public:
     ptr_t Project_Overwrite;
     /* Linker output folder */
     std::string Linker_Output;
-    /* Kernel initialization source folder/overwrite */
-    std::string Init_Source_Output;
-    ptr_t Init_Source_Overwrite;
+    /* Initialization source folder/overwrite */
+    std::string Source_Output;
+    ptr_t Source_Overwrite;
 
     /* Memory trunk information */
     std::vector<std::unique_ptr<class Mem_Info>> Memory;

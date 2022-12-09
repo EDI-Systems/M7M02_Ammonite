@@ -71,6 +71,8 @@ Return      : None.
         Trunk_Parse<class Conf_Info,class Conf_Info>(Root,"Config",this->Config,"DXXXX","DXXXX");
         /* Vector */
         Trunk_Parse_Param<class Vect_Info,class Vect_Info>(Root,"Vector",this->Vector,nullptr,"DXXXX","DXXXX");
+        /* Vector number */
+        this->Vect_Num=this->Vector.back()->Number+1;
     }
     catch(std::exception& Exc)
     {

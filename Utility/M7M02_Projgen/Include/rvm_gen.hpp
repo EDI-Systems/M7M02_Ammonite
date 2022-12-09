@@ -142,6 +142,7 @@ public:
     void Kernel_Gen(void);
     void Monitor_Gen(void);
     void Process_Gen(void);
+    void Workspace_Gen(void);
     void Report_Gen(void);
 
     static std::string XML_Get_String(xml_node_t* Root, const char* Name,

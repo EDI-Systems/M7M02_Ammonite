@@ -83,6 +83,18 @@ void GCC_Gen::Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)
 
 }
 /* End Function:GCC_Gen::Kernel_Linker ***************************************/
+
+/* Begin Function:GCC_Gen::Monitor_Linker *************************************
+Description : Generate the RVM linker script.
+Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
+Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
+Return      : None.
+******************************************************************************/
+void GCC_Gen::Monitor_Linker(std::unique_ptr<std::vector<std::string>>& List)
+{
+
+}
+/* End Function:GCC_Gen::Monitor_Linker **************************************/
 }
 /* End Of File ***************************************************************/
 

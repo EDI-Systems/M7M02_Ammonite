@@ -58,6 +58,7 @@ public:
     std::map<std::string,class Conf_Info*> Config_Map;
     std::map<std::string,class Conf_Info*> Config_Macro_Map;
     /* Interrupt vector information */
+    ptr_t Vect_Num;
     std::vector<std::unique_ptr<class Vect_Info>> Vector;
     std::map<std::string,class Vect_Info*> Vector_Map;
     std::map<ptr_t,class Vect_Info*> Vector_Number_Map;

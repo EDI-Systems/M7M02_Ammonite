@@ -79,11 +79,11 @@ Kobj(this)
         /* Linker_Output */
         this->Linker_Output=Main::XML_Get_String(Root,"Linker_Output","DXXXX","DXXXX");
         Main::Dir_Fixup(this->Linker_Output);
-        /* Init_Source_Output */
-        this->Init_Source_Output=Main::XML_Get_String(Root,"Init_Source_Output","DXXXX","DXXXX");
-        Main::Dir_Fixup(this->Init_Source_Output);
-        /* Init_Source_Output */
-        this->Init_Source_Overwrite=Main::XML_Get_Yesno(Root,"Init_Source_Overwrite","DXXXX","DXXXX");
+        /* Source_Output */
+        this->Source_Output=Main::XML_Get_String(Root,"Source_Output","DXXXX","DXXXX");
+        Main::Dir_Fixup(this->Source_Output);
+        /* Source_Output */
+        this->Source_Overwrite=Main::XML_Get_Yesno(Root,"Source_Overwrite","DXXXX","DXXXX");
 
         /* Memory */
         Trunk_Parse_Param<class Mem_Info,class Mem_Info,ptr_t>(Root,"Memory",this->Memory,MEM_DECL,"DXXXX","DXXXX");
@@ -565,7 +565,7 @@ void Process::Mem_Alloc(ptr_t Wordlength, ptr_t Reg_Size, ptr_t Param_Size, ptr_
     }
 
     /* Data section - whatever is left */
-    Main::Info("> Data base 0x%llX size 0x%llX.", this->Data_Base, Virt->Data_Size);
+    Main::Info("> Data base 0x%llX size 0x%llX.", this->Data_Base, this->Data_Size);
 }
 /* End Function:Process::Mem_Alloc *******************************************/
 }

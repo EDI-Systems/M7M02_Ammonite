@@ -47,6 +47,7 @@ public:
     virtual std::string Suffix(ptr_t Type)=0;
 
     virtual void Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)=0;
+    virtual void Monitor_Linker(std::unique_ptr<std::vector<std::string>>& List)=0;
 };
 /*****************************************************************************/
 /* __TOOL_GEN_HPP_CLASSES__ */
