@@ -12,18 +12,16 @@ Description : The header of MPU-based user level low-level library.
 #define __RVM_SYSSVC_H_DEFS__
 /*****************************************************************************/
 /* Generic definitions */
-#define RVM_TRUE                                    (1U)
-#define RVM_FALSE                                   (0U)
 #define RVM_NULL                                    (0U)
 #define RVM_EXIST                                   (1U)
 #define RVM_EMPTY                                   (0U)
 
 /* Debug string length */
 #define RVM_USER_DEBUG_MAX_STR                      (128U)
-/* Magic number for RVM interrupt header */
-#define RVM_INT_MAGIC                               (0x49535953U)
-/* Magic number for RTD image header */
-#define RVM_VM_MAGIC                                (0x56495254U)
+/* Magic number for native processes */
+#define RVM_MAGIC_NATIVE                            (0x49535953U)
+/* Magic number for virtual machine processes */
+#define RVM_MAGIC_VIRTUAL                           (0x56495254U)
 
 /* Assertion */
 #define RVM_PRINTU_I(INT)                           RVM_Print_Int((INT))
@@ -59,7 +57,7 @@ do \
 } \
 while(0)
     
-#if(RVM_DEBUG_LOG==RVM_TRUE)
+#if(RVM_DEBUG_LOG==1U)
 #define RVM_LOG_I(INT)                              RVM_PRINTU_I(INT)
 #define RVM_LOG_U(UINT)                             RVM_PRINTU_U(UINT)
 #define RVM_LOG_S(STR)                              RVM_PRINTU_S(STR)

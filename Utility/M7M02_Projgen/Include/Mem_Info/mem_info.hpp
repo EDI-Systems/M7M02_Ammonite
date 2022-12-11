@@ -75,6 +75,8 @@ public:
     ptr_t Reference;
     /* The name of the memory trunk */
     std::string Name;
+    std::string Name_Upper;
+    std::string Name_Lower;
     /* The memory base */
     ptr_t Base;
     /* The size */
@@ -88,7 +90,8 @@ public:
     ptr_t Align;
     /* Memory map - to be used by the memory allocator */
     std::vector<bool> Map;
-
+    /* Memory map - identifies sharing relationships in individual projects */
+    ptr_t Is_Shared;
 
     /* void */ Mem_Info(xml_node_t* Root, ptr_t Ref);
     /* void */ Mem_Info(class Mem_Info* Block, ptr_t Attr_New);

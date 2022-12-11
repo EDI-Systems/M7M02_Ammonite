@@ -37,8 +37,8 @@ public:
     /* The priority of the thread */
     ptr_t Priority;
 
-    /* Position of the entry address from the header */
-    ptr_t Entry_Addr;
+    /* Header entry address slot index */
+    ptr_t Header_Slot;
     /* The address of the stack */
     ptr_t Stack_Base;
 

@@ -79,11 +79,14 @@ Kobj(this)
         /* Linker_Output */
         this->Linker_Output=Main::XML_Get_String(Root,"Linker_Output","DXXXX","DXXXX");
         Main::Dir_Fixup(this->Linker_Output);
-        /* Source_Output */
-        this->Source_Output=Main::XML_Get_String(Root,"Source_Output","DXXXX","DXXXX");
-        Main::Dir_Fixup(this->Source_Output);
-        /* Source_Output */
-        this->Source_Overwrite=Main::XML_Get_Yesno(Root,"Source_Overwrite","DXXXX","DXXXX");
+        /* Main_Header_Output */
+        this->Main_Header_Output=Main::XML_Get_String(Root,"Main_Header_Output","DXXXX","DXXXX");
+        Main::Dir_Fixup(this->Main_Header_Output);
+        /* Main_Source_Output */
+        this->Main_Source_Output=Main::XML_Get_String(Root,"Main_Source_Output","DXXXX","DXXXX");
+        Main::Dir_Fixup(this->Main_Source_Output);
+        /* Main_Source_Output */
+        this->Main_Source_Overwrite=Main::XML_Get_Yesno(Root,"Main_Source_Overwrite","DXXXX","DXXXX");
 
         /* Memory */
         Trunk_Parse_Param<class Mem_Info,class Mem_Info,ptr_t>(Root,"Memory",this->Memory,MEM_DECL,"DXXXX","DXXXX");
@@ -463,7 +466,14 @@ void Process::Global_Alloc_Vector(std::vector<class Vect_Info*>& Global)
 /* End Function:Process::Global_Alloc_Vector *********************************/
 
 /* Begin Function:Process::Mem_Alloc ******************************************
-Description : Allocate process memory.
+Description : Allocate process memory. The header of a process is like
+              struct RVM_Header
+              {
+                  rvm_ptr_t Magic;
+                  rvm_ptr_t Number;
+                  rvm_ptr_t Entry[1024];
+              };
+              and the real entry point immediately follows it.
 Input       : ptr_t Wordlength - The number of bits in a word.
               ptr_t Kmem_Order - The kernel memory order.
 Output      : None.
@@ -476,9 +486,9 @@ void Process::Mem_Alloc(ptr_t Wordlength, ptr_t Reg_Size, ptr_t Param_Size, ptr_
     /* Allocate everything to primary code and data sections */
     this->Code_Base=this->Memory_Code[0]->Base;
     this->Code_Size=this->Memory_Code[0]->Size;
-    this->Entry_Code_Front=this->Code_Base;
     this->Data_Base=this->Memory_Data[0]->Base;
     this->Data_Size=this->Memory_Data[0]->Size;
+    this->Header_Front=0;
 
     /* Sort the threads according to their priority - The highest priority comes first */
     std::sort(this->Thread.begin(),this->Thread.end(),
@@ -495,14 +505,14 @@ void Process::Mem_Alloc(ptr_t Wordlength, ptr_t Reg_Size, ptr_t Param_Size, ptr_
             /* Allocate stack from the main data memory */
             Thd->Stack_Size=ROUND_UP_POW2(Thd->Stack_Size,Kmem_Order);
             Thd->Stack_Base=this->Data_Base+this->Data_Size-Thd->Stack_Size;
-            Main::Info("> Thread '%s' stack base 0x%llX size 0x%llX.", Thd->Name.c_str(), Thd->Stack_Base, Thd->Stack_Size);
             if(Thd->Stack_Base<=this->Data_Base)
                 Main::Error("M2300: Data section size is not big enough, unable to allocate stack.");
             this->Data_Size=Thd->Stack_Base-this->Data_Base;
-
-            /* Allocate entry from code memory */
-            Thd->Entry_Addr=this->Entry_Code_Front;
-            this->Entry_Code_Front+=Wordlength/8*ENTRY_SLOT_SIZE;
+            /* Allocate entry from header */
+            Thd->Header_Slot=this->Header_Front;
+            Main::Info("> Thread '%s' stack base 0x%llX size 0x%llX header slot %lld.",
+                       Thd->Name.c_str(), Thd->Stack_Base, Thd->Stack_Size, Thd->Header_Slot);
+            this->Header_Front++;
         }
         catch(std::exception& Exc)
         {
@@ -518,20 +528,23 @@ void Process::Mem_Alloc(ptr_t Wordlength, ptr_t Reg_Size, ptr_t Param_Size, ptr_
             /* Allocate stack from the main data memory */
             Inv->Stack_Size=ROUND_UP_POW2(Inv->Stack_Size,Kmem_Order);
             Inv->Stack_Base=this->Data_Base+this->Data_Size-Inv->Stack_Size;
-            Main::Info("> Invocation '%s' stack base 0x%llX size 0x%llX.", Inv->Name.c_str(), Inv->Stack_Base, Inv->Stack_Size);
             if(Inv->Stack_Base<=this->Data_Base)
                 Main::Error("M2300: Data section size is not big enough, unable to allocate stack.");
             this->Data_Size=Inv->Stack_Base-this->Data_Base;
-
-            /* Allocate entry from code memory */
-            Inv->Entry_Addr=this->Entry_Code_Front;
-            this->Entry_Code_Front+=Wordlength/8*ENTRY_SLOT_SIZE;
+            /* Allocate entry from header */
+            Inv->Header_Slot=this->Header_Front;
+            Main::Info("> Invocation '%s' stack base 0x%llX size 0x%llX header slot %lld.",
+                       Inv->Name.c_str(), Inv->Stack_Base, Inv->Stack_Size, Inv->Header_Slot);
+            this->Header_Front++;
         }
         catch(std::exception& Exc)
         {
             Main::Error(std::string("Invocation: ")+Inv->Name+"\n"+Exc.what());
         }
     }
+
+    /* Compensate for the Magic, Number & optional jump Stub that fills the last slot */
+    this->Header_Front+=3;
 
     /* See if this is a virtual machine. If yes, we go on to allocate its register set space,
      * parameter space and interrupt space. These are used for communicating through the VM. */

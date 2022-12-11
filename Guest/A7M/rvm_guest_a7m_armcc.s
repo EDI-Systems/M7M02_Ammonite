@@ -9,19 +9,23 @@
     ;Stack for initializing process only
     AREA                STACK, NOINIT, READWRITE, ALIGN=3
 RVM_User_Stack
-User_Stack SPACE        0x00000400
+User_Stack SPACE        0x00000200
 __initial_sp
 
 RVM_Int_Stack
-Int_Stack SPACE         0x00000400
+Int_Stack SPACE         0x00000200
     
     ;The align is "(2^3)/8=1(Byte)." In fact it does not take effect.            
-    AREA                RESET,CODE,READONLY,ALIGN=3
+    AREA                RESET, CODE, READONLY, ALIGN=3
                 
     THUMB
     REQUIRE8
     PRESERVE8
 ;/* End Header ***************************************************************/
+
+;/* Begin Imports ************************************************************/
+    IMPORT              __main
+;/* End Imports **************************************************************/
 
 ;/* Begin Exports ************************************************************/
     ;The initial stack pointer position
@@ -44,7 +48,14 @@ Int_Stack SPACE         0x00000400
     EXPORT              _RVM_MSB_Get  
     ;The atomic AND operation
     EXPORT              RVM_Fetch_And
+    ;The jump stub and entry stub
+    EXPORT              _RVM_Jmp_Stub
+    EXPORT              RVM_Entry
 ;/* End Exports **************************************************************/
+
+;/* Entry point **************************************************************/
+    B                   __main
+;/* Entry point **************************************************************/
 
 ;/* Begin Function:RVM_Inv_Act ************************************************
 ;Description : Activate an invocation. If the return value is not desired, pass
@@ -221,6 +232,38 @@ RVM_Fetch_And_Fail
     POP                 {R4}
     BX                  LR
 ;/* End Function:RVM_Fetch_And ***********************************************/
+
+;/* Begin Function:_RVM_Jmp_Stub **********************************************
+;Description : The user level stub for thread creation.
+;Input       : R4 - rvm_ptr_t Entry - The entry address.
+;              R5 - rvm_ptr_t Stack - The stack address that we are using now.
+;Output      : None.
+;Return      : None.
+;*****************************************************************************/
+_RVM_Jmp_Stub
+    SUB                 SP,#0x40            ; In order not to destroy the stack
+    MOV                 R0,R5
+    BLX                 R4                  ; Branch to the actual entry address.
+;/* End Function:_RVM_Jmp_Stub ***********************************************/
+
+;/* Begin Function:RVM_Entry **************************************************
+;Description : The jump to a desired position to start initialization of the system,
+;              using a certain stack address.
+;Input       : rvm_ptr_t R0 - The entry.
+;              rvm_ptr_t R1 - The stack base.
+;              rvm_ptr_t R2 - The stack length.
+;              rvm_ptr_r R3 - The parameter.
+;Output      : None.
+;Return      : None.
+;*****************************************************************************/
+RVM_Entry
+    ADD                 R1,R1,R2
+    SUB                 R1,#0x100
+    MOV                 SP,R1
+    MOV                 R4,R0
+    MOV                 R0,R3
+    BX                  R4
+;/* End Function:RVM_Entry ***************************************************/
 
     END
 ;/* End Of File **************************************************************/

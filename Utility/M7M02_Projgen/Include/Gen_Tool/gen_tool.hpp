@@ -103,11 +103,15 @@ public:
     void Monitor_Linker(void);
     void Monitor_Proj(void);
 
-    void Process_Main_Hdr(const class Process* Proc);
-    void Virtual_Conf_Hdr(const class Virtual* Virt);
-    void Process_Main_Src(const class Process* Proc);
-    void Process_Linker(const class Process* Proc);
-    void Process_Proj(const class Process* Proc);
+    void Process_Inc(std::unique_ptr<std::vector<std::string>>& List, class Process* Proc);
+    void Process_Main_Hdr_Mem(std::unique_ptr<std::vector<std::string>>& List, const class Mem_Info* Mem);
+    void Process_Main_Hdr(class Process* Proc);
+    void Virtual_Conf_Hdr(class Virtual* Virt);
+    void Process_Stub_Src(class Process* Proc);
+    void Process_Desc_Src(class Process* Proc);
+    void Process_Main_Src(class Process* Proc);
+    void Process_Linker(class Process* Proc);
+    void Process_Proj(class Process* Proc);
 
     void Workspace_Proj(void);
 };

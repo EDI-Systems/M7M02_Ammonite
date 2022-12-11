@@ -80,6 +80,8 @@ typedef rvm_s32_t rvm_ret_t;
 /* Size of kernel objects - architecture dependent */
 /* Thread */
 #define RVM_THD_WORD_SIZE                           (46)
+/* Invocation */
+#define RVM_INV_WORD_SIZE                           (9)
 /* Normal page directory */
 #define RVM_PGTBL_WORD_SIZE_NOM(NUM_ORDER)          ((((rvm_ptr_t)1)<<(NUM_ORDER))+5)
 /* Top-level page directory */

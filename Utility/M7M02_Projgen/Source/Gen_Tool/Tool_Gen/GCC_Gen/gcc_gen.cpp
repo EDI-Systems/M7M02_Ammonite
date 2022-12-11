@@ -95,6 +95,20 @@ void GCC_Gen::Monitor_Linker(std::unique_ptr<std::vector<std::string>>& List)
 
 }
 /* End Function:GCC_Gen::Monitor_Linker **************************************/
+
+/* Begin Function:GCC_Gen::Process_Linker *************************************
+Description : Generate the process linker script.
+Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
+              const class Process* Proc - The process to generate for.
+Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
+Return      : None.
+******************************************************************************/
+void GCC_Gen::Process_Linker(std::unique_ptr<std::vector<std::string>>& List,
+                             const class Process* Proc)
+{
+
+}
+/* End Function:GCC_Gen::Process_Linker **************************************/
 }
 /* End Of File ***************************************************************/
 

@@ -240,6 +240,81 @@ void ARMCC_Gen::Monitor_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back("");
 }
 /* End Function:ARMCC_Gen::Monitor_Linker ************************************/
+
+/* Begin Function:ARMCC_Gen::Process_Linker ***********************************
+Description : Generate the process linker script.
+Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
+              const class Process* Proc - The process to generate for.
+Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
+Return      : None.
+******************************************************************************/
+void ARMCC_Gen::Process_Linker(std::unique_ptr<std::vector<std::string>>& List,
+                               const class Process* Proc)
+{
+    ptr_t Header_Size;
+    ptr_t Real_Code_Base;
+    ptr_t Real_Code_Size;
+    std::string Tool_Lower;
+
+    Tool_Lower=Proc->Toolchain;
+    Main::Lower(Tool_Lower);
+    Header_Size=Proc->Header_Front*(this->Plat->Wordlength/8);
+    Real_Code_Base=Proc->Code_Base+Header_Size;
+    Real_Code_Size=Proc->Code_Size-Header_Size;
+
+    List->push_back(";******************************************************************************");
+    List->push_back(std::string(";Filename    : proc_")+Proc->Name_Lower+"_"+this->Chip->Name_Lower+".sct");
+    List->push_back(std::string(";Author      : ")+CODE_AUTHOR);
+    List->push_back(std::string(";Date        : ")+Main::Time);
+    List->push_back(std::string(";Licence     : ")+CODE_LICENSE);
+    List->push_back(";Description : The scatter file for ARMv7-M layout. This file is intended");
+    List->push_back(std::string(";              to be used with ")+this->Chip->Name+".");
+    List->push_back(";******************************************************************************");
+    List->push_back("");
+    List->push_back("; Begin Segment:DESC **********************************************************");
+    List->push_back("; Description : The process header segment that describe process info.");
+    List->push_back("; *****************************************************************************");
+    List->push_back(std::string("DESC 0x")+Main::Hex(Proc->Code_Base)+" 0x"+Main::Hex(Header_Size));
+    List->push_back("{");
+    List->push_back("    ; The header segment of the process");
+    List->push_back(std::string("    PROC_DESC 0x")+Main::Hex(Proc->Code_Base)+" 0x"+Main::Hex(Header_Size));
+    List->push_back("    {");
+    List->push_back("        ; Process header");
+    List->push_back(std::string("        proc_")+Proc->Name_Lower+"_desc.o         (+RO)");
+    List->push_back("    }");
+    List->push_back("}");
+    List->push_back("; End Segment:DESC ************************************************************");
+    List->push_back("");
+    List->push_back("; Begin Segment:PROC **********************************************************");
+    List->push_back("; Description : The process segment, where the process executable is located at.");
+    List->push_back("; *****************************************************************************");
+    List->push_back(std::string("PROC 0x")+Main::Hex(Real_Code_Base)+" 0x"+Main::Hex(Real_Code_Size));
+    List->push_back("{");
+    List->push_back("    ; The code segment of the process");
+    List->push_back(std::string("    PROC_CODE 0x")+Main::Hex(Real_Code_Base)+" 0x"+Main::Hex(Real_Code_Size));
+    List->push_back("    {");
+    List->push_back("        ; Entry point assembly");
+    List->push_back(std::string("        rvm_guest_")+this->Plat->Name_Lower+"_"+Tool_Lower+".o     (RESET, +First)");
+    List->push_back("        ; The lib code copying code");
+    List->push_back("        *                      (InRoot$$Sections)");
+    List->push_back("        ; The init code section");
+    List->push_back("        .ANY                   (+RO)");
+    List->push_back("    }");
+    List->push_back("");
+    List->push_back("    ; The data section of the process");
+    List->push_back(std::string("    PROC_DATA 0x")+Main::Hex(Proc->Data_Base)+" 0x"+Main::Hex(Proc->Data_Size));
+    List->push_back("    {");
+    List->push_back("        .ANY                   (+RW +ZI)");
+    List->push_back("    }");
+    List->push_back("}");
+    List->push_back("; End Segment:PROC ************************************************************");
+    List->push_back("");
+    List->push_back("; End Of File *****************************************************************");
+    List->push_back("");
+    List->push_back("; Copyright (C) Evo-Devo Instrum. All rights reserved *************************");
+    List->push_back("");
+}
+/* End Function:ARMCC_Gen::Process_Linker ************************************/
 }
 /* End Of File ***************************************************************/
 

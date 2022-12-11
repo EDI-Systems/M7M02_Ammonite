@@ -108,6 +108,27 @@ void Makefile_Gen::Monitor_Proj(std::unique_ptr<std::vector<std::string>>& List,
 
 }
 /* End Function:Makefile_Gen::Monitor_Proj ***********************************/
+
+/* Begin Function:Makefile_Gen::Process_Proj **********************************
+Description : Generate process project.
+Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
+              const std::vector<std::string>& Include - The include file list.
+              const std::vector<std::string>& Source - The source file list.
+              const std::vector<std::string>& Source - The linker script file list.
+              const class Process* Proc - The process to generate for.
+Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Makefile_Gen::Process_Proj(std::unique_ptr<std::vector<std::string>>& List,
+                            const std::vector<std::string>& Include,
+                            const std::vector<std::string>& Source,
+                            const std::vector<std::string>& Linker,
+                            const class Process* Proc)
+{
+
+}
+/* End Function:Makefile_Gen::Process_Proj ***********************************/
 }
 /* End Of File ***************************************************************/
 

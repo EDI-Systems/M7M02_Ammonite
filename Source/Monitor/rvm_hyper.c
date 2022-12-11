@@ -700,13 +700,19 @@ void _RVM_Recover_Cur_Virt(void)
     RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Cur_Virt->Map->User_Thd_Cap, RVM_Sftd_Thd_Cap, RVM_Sftd_Sig_Cap, 
                                   RVM_Cur_Virt->Map->User_TID|RVM_VIRT_THDID_MARKER, RVM_USER_PRIO)==0);
     
-    /* Set the execution properties for both threads */
+    /* Set the execution properties for virt @ position 0 */
     Init_Stack_Addr=RVM_Stack_Init(RVM_Cur_Virt->Map->Vect_Stack_Base, RVM_Cur_Virt->Map->Vect_Stack_Size,
-                                   RVM_Cur_Virt->Map->Vect_Entry, RVM_Cur_Virt->Map->Entry_Code_Front);
-    RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Cur_Virt->Map->Vect_Thd_Cap, RVM_Cur_Virt->Map->Vect_Entry, Init_Stack_Addr, 0)==0);
+                                   RVM_PROC_ENTRY(RVM_Cur_Virt->Map->Header_Base,0U),
+                                   RVM_PROC_STUB(RVM_Cur_Virt->Map->Header_Base));
+    RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Cur_Virt->Map->Vect_Thd_Cap, 
+                                RVM_PROC_ENTRY(RVM_Cur_Virt->Map->Header_Base,0U), Init_Stack_Addr, 0)==0);
+    
+    /* Set the execution properties for user @ position 1 */
     Init_Stack_Addr=RVM_Stack_Init(RVM_Cur_Virt->Map->User_Stack_Base, RVM_Cur_Virt->Map->User_Stack_Size,
-                                   RVM_Cur_Virt->Map->User_Entry, RVM_Cur_Virt->Map->Entry_Code_Front);
-    RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Cur_Virt->Map->User_Thd_Cap, RVM_Cur_Virt->Map->User_Entry, Init_Stack_Addr ,0)==0);
+                                   RVM_PROC_ENTRY(RVM_Cur_Virt->Map->Header_Base,1U),
+                                   RVM_PROC_STUB(RVM_Cur_Virt->Map->Header_Base));
+    RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Cur_Virt->Map->User_Thd_Cap, 
+                                RVM_PROC_ENTRY(RVM_Cur_Virt->Map->Header_Base,1U), Init_Stack_Addr ,0)==0);
     
     /* Delegate infinite time to both threads */
     RVM_ASSERT(RVM_Thd_Time_Xfer(RVM_Cur_Virt->Map->Vect_Thd_Cap, RVM_BOOT_INIT_THD, RVM_THD_INF_TIME)==RVM_THD_INF_TIME);
@@ -1093,10 +1099,10 @@ void RVM_Vctd(void)
     volatile struct RVM_Flag* Event_Set0;
     volatile struct RVM_Flag* Event_Set1;
     
-    Vect_Set0=RME_RVM_FLAG_SET(RVM_PHYS_VECT_BASE, RVM_PHYS_VECT_SIZE, 0U);
-    Vect_Set1=RME_RVM_FLAG_SET(RVM_PHYS_VECT_BASE, RVM_PHYS_VECT_SIZE, 1U);
-    Event_Set0=RME_RVM_FLAG_SET(RVM_VIRT_EVENT_BASE, RVM_VIRT_EVENT_SIZE, 0U);
-    Event_Set1=RME_RVM_FLAG_SET(RVM_VIRT_EVENT_BASE, RVM_VIRT_EVENT_SIZE, 1U);
+    Vect_Set0=RVM_FLAG_SET(RVM_PHYS_VECT_BASE, RVM_PHYS_VECT_SIZE, 0U);
+    Vect_Set1=RVM_FLAG_SET(RVM_PHYS_VECT_BASE, RVM_PHYS_VECT_SIZE, 1U);
+    Event_Set0=RVM_FLAG_SET(RVM_VIRT_EVENT_BASE, RVM_VIRT_EVENT_SIZE, 0U);
+    Event_Set1=RVM_FLAG_SET(RVM_VIRT_EVENT_BASE, RVM_VIRT_EVENT_SIZE, 1U);
     
     RVM_LOG_S("Vctd:Vector handling daemon initialization complete.\r\n");
     

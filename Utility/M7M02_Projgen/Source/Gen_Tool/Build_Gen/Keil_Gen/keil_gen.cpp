@@ -423,14 +423,43 @@ void Keil_Gen::Monitor_Proj(std::unique_ptr<std::vector<std::string>>& List,
     this->Raw_Proj(List,
                    "",                                  /* After 1 */
                    "",                                  /* After 2 */
-                   "Monitor",                            /* Target */
-                   this->Proj->Monitor->Optimization,    /* Optimization */
+                   "Monitor",                           /* Target */
+                   this->Proj->Monitor->Optimization,   /* Optimization */
                    Include,                             /* Include */
                    Source,                              /* Source */
                    Linker[0],                           /* Linker */
                    ""                                   /* Linker_Misc */);
 }
 /* End Function:Keil_Gen::Monitor_Proj ***************************************/
+
+/* Begin Function:Keil_Gen::Process_Proj **************************************
+Description : Generate process project.
+Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
+              const std::vector<std::string>& Include - The include file list.
+              const std::vector<std::string>& Source - The source file list.
+              const std::vector<std::string>& Source - The linker script file list.
+              const class Process* Proc - The process to generate for.
+Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Keil_Gen::Process_Proj(std::unique_ptr<std::vector<std::string>>& List,
+                            const std::vector<std::string>& Include,
+                            const std::vector<std::string>& Source,
+                            const std::vector<std::string>& Linker,
+                            const class Process* Proc)
+{
+    this->Raw_Proj(List,
+                   "",                                  /* After 1 */
+                   "",                                  /* After 2 */
+                   Proc->Name,                          /* Target */
+                   Proc->Optimization,                  /* Optimization */
+                   Include,                             /* Include */
+                   Source,                              /* Source */
+                   Linker[0],                           /* Linker */
+                   ""                                   /* Linker_Misc */);
+}
+/* End Function:Keil_Gen::Process_Proj ***************************************/
 }
 /* End Of File ***************************************************************/
 

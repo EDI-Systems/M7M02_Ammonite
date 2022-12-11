@@ -1631,18 +1631,16 @@ void Gen_Tool::Monitor_Boot_Src(void)
                             Main::Hex(Virt->Param_Base)+"U,");
             List->push_back(std::string(" (struct RVM_Vctf*)0x")+
                             Main::Hex(Virt->Vctf_Base)+"U, 0x"+
-                            Main::Hex(Virt->Entry_Code_Front)+"U, RVM_CAPID(RVM_BOOT_CTVEP_"+
+                            Main::Hex(Virt->Header_Front)+"U, RVM_CAPID(RVM_BOOT_CTVEP_"+
                             CTIDS(Obj_Cnt)+", "+OIDS(Obj_Cnt)+"U),");
             List->push_back(std::string(" ")+
                             Virt->Thread[0]->Macro_Global+", "+
                             Virt->Thread[0]->Macro_Global+", 0x"+
-                            Main::Hex(Virt->Thread[0]->Entry_Addr)+"U, 0x"+
                             Main::Hex(Virt->Thread[0]->Stack_Base)+"U, 0x"+
                             Main::Hex(Virt->Thread[0]->Stack_Size)+"U,");
             List->push_back(std::string(" ")+
                             Virt->Thread[1]->Macro_Global+", "+
                             Virt->Thread[1]->Macro_Global+", 0x"+
-                            Main::Hex(Virt->Thread[1]->Entry_Addr)+"U, 0x"+
                             Main::Hex(Virt->Thread[1]->Stack_Base)+"U, 0x"+
                             Main::Hex(Virt->Thread[1]->Stack_Size)+"U},");
             Obj_Cnt++;
@@ -2077,9 +2075,10 @@ void Gen_Tool::Monitor_Boot_Src(void)
                         "Initialize the all threads.", Input, Output, "None.");
     List->push_back("void RVM_Boot_Thd_Init(void)");
     List->push_back("{");
+    List->push_back("    rvm_ptr_t Init_Entry_Addr;");
+    List->push_back("    rvm_ptr_t Init_Stub_Addr;");
     List->push_back("    rvm_ptr_t Init_Stack_Addr;");
     List->push_back("");
-    List->push_back("    Init_Stack_Addr=0U;");
     List->push_back("    RVM_LOG_S(\"-------------------------------------------------------------------------------\\r\\n\");");
     List->push_back("    RVM_LOG_S(\"Init:Initializing threads.\\r\\n\");");
     for(const std::unique_ptr<class Process>& Proc:this->Plat->Proj->Process)
@@ -2112,21 +2111,22 @@ void Gen_Tool::Monitor_Boot_Src(void)
                                     Main::Hex(static_cast<class Virtual*>(Proc.get())->Reg_Base)+"U)==0U);");
                 }
             }
+
+            List->push_back(std::string("    Init_Entry_Addr=RVM_PROC_ENTRY(0x")+
+                            Main::Hex(Proc->Code_Base)+"U, "+Main::Hex(Thd->Header_Slot)+"U);");
+            List->push_back(std::string("    Init_Stub_Addr=RVM_PROC_STUB(0x")+Main::Hex(Proc->Code_Base)+"U);");
             List->push_back(std::string("    Init_Stack_Addr=RVM_Stack_Init(0x")+
                             Main::Hex(Thd->Stack_Base)+"U, 0x"+
-                            Main::Hex(Thd->Stack_Size)+"U, 0x"+
-                            Main::Hex(Thd->Entry_Addr)+"U, 0x"+
-                            Main::Hex(Proc->Entry_Code_Front)+"U);");
+                            Main::Hex(Thd->Stack_Size)+"U, Init_Entry_Addr, Init_Stub_Addr);");
             List->push_back(std::string("    RVM_ASSERT(RVM_Thd_Exec_Set(")+
-                            Thd->Macro_Global+", 0x"+
-                            Main::Hex(Thd->Entry_Addr)+"U, Init_Stack_Addr, 0x"+
+                            Thd->Macro_Global+", Init_Entry_Addr, Init_Stack_Addr, 0x"+
                             Main::Hex(Thd->Parameter)+"U)==0U);");
             List->push_back(std::string("    RVM_ASSERT(RVM_Thd_Time_Xfer(")+
                             Thd->Macro_Global+", RVM_BOOT_INIT_THD, RVM_THD_INF_TIME)==RVM_THD_INF_TIME);");
             List->push_back(std::string("    RVM_LOG_S(\"Init:Initialized thread '")+
                             Thd->Macro_Global+"' process '"+
-                            Thd->Macro_Global+"' entry 0x"+
-                            Main::Hex(Thd->Entry_Addr)+" stack 0x"+
+                            Thd->Macro_Global+"' header slot 0x"+
+                            Main::Hex(Thd->Header_Slot)+" stack 0x"+
                             Main::Hex(Thd->Stack_Base)+" - 0x"+
                             Main::Hex(Thd->Stack_Size)+" param 0x"+
                             Main::Hex(Thd->Parameter)+".\\r\\n\");");
@@ -2143,9 +2143,10 @@ void Gen_Tool::Monitor_Boot_Src(void)
                         "Initialize the all invocations.", Input, Output, "None.");
     List->push_back("void RVM_Boot_Inv_Init(void)");
     List->push_back("{");
+    List->push_back("    rvm_ptr_t Init_Entry_Addr;");
+    List->push_back("    rvm_ptr_t Init_Stub_Addr;");
     List->push_back("    rvm_ptr_t Init_Stack_Addr;");
     List->push_back("");
-    List->push_back("    Init_Stack_Addr=0U;");
     List->push_back("    RVM_LOG_S(\"-------------------------------------------------------------------------------\\r\\n\");");
     List->push_back("    RVM_LOG_S(\"Init:Initializing invocations.\\r\\n\");");
     for(const std::unique_ptr<class Process>& Proc:this->Plat->Proj->Process)
@@ -2153,19 +2154,19 @@ void Gen_Tool::Monitor_Boot_Src(void)
         List->push_back(std::string("    /* Initializing invocation for process: '")+Proc->Name+"' */");
         for(const std::unique_ptr<class Invocation>& Inv:Proc->Invocation)
         {
+            List->push_back(std::string("    Init_Entry_Addr=RVM_PROC_ENTRY(0x")+
+                            Main::Hex(Proc->Code_Base)+"U, "+Main::Hex(Inv->Header_Slot)+"U);");
+            List->push_back(std::string("    Init_Stub_Addr=RVM_PROC_STUB(0x")+Main::Hex(Proc->Code_Base)+"U);");
             List->push_back(std::string("    Init_Stack_Addr=RVM_Stack_Init(0x")+
                             Main::Hex(Inv->Stack_Base)+"U, 0x"+
-                            Main::Hex(Inv->Stack_Size)+"U, 0x"+
-                            Main::Hex(Inv->Entry_Addr)+"U, 0x"+
-                            Main::Hex(Proc->Entry_Code_Front)+"U);");
+                            Main::Hex(Inv->Stack_Size)+"U, Init_Entry_Addr, Init_Stub_Addr);");
             /* We always return directly on fault for MCUs, because RVM does not do fault handling there */
             List->push_back(std::string("    RVM_ASSERT(RVM_Inv_Set(")+
-                            Inv->Macro_Global+", 0x"+
-                            Main::Hex(Inv->Entry_Addr)+"U, Init_Stack_Addr, 1U)==0U);");
+                            Inv->Macro_Global+", Init_Entry_Addr, Init_Stack_Addr, 1U)==0U);");
             List->push_back(std::string("    RVM_LOG_S(\"Init:Initialized invocation '")+
                             Inv->Macro_Global+"' process '"+
-                            Proc->Macro_Global+"' entry 0x"+
-                            Main::Hex(Inv->Entry_Addr)+" stack 0x"+
+                            Proc->Macro_Global+"' header slot 0x"+
+                            Main::Hex(Inv->Header_Slot)+" stack 0x"+
                             Main::Hex(Inv->Stack_Base)+" - 0x"+
                             Main::Hex(Inv->Stack_Size)+".\\r\\n\");");
             List->push_back("");
@@ -2246,6 +2247,7 @@ void Gen_Tool::Monitor_Hook_Src(void)
     List->push_back("void RVM_Boot_Pre_Init(void);");
     List->push_back("void RVM_Boot_Post_Init(void);");
     List->push_back("/* End Public C Function Prototypes ******************************************/");
+    List->push_back("");
 
     /* Preinitialization of hardware */
     Main::Info("> Generating boot-time pre-initialization stub.");
@@ -2376,63 +2378,577 @@ void Gen_Tool::Monitor_Proj(void)
 }
 /* End Function:Gen_Tool::Monitor_Proj ***************************************/
 
+/* Begin Function:Gen_Tool::Process_Inc ***************************************
+Description : Write the include files for process files.
+Input       : std::unique_ptr<std::vector<std::string>>& List - The input file.
+              class Process* Proc - The process.
+Output      : std::unique_ptr<std::vector<std::string>>& List - The appended file.
+Return      : None.
+******************************************************************************/
+void Gen_Tool::Process_Inc(std::unique_ptr<std::vector<std::string>>& List,
+                           class Process* Proc)
+{
+    List->push_back("/* Includes ******************************************************************/");
+    List->push_back("#include \"rvm.h\"");
+    List->push_back(std::string("#include \"proc_")+Proc->Name_Lower+".h\"");
+    List->push_back("#include \"rvm_guest.h\"");
+    List->push_back("/* End Includes **************************************************************/");
+}
+/* End Function:Gen_Tool::Process_Inc ****************************************/
+
+/* Begin Function:Gen_Tool::Process_Main_Hdr_Mem ******************************
+Description : Print memory referernce for process config header.
+Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
+              const class Mem_Info* Mem - The memory to generate for.
+Output      : std::unique_ptr<std::vector<std::string>>& List - The appended file.
+Return      : None.
+******************************************************************************/
+void Gen_Tool::Process_Main_Hdr_Mem(std::unique_ptr<std::vector<std::string>>& List,
+                                    const class Mem_Info* Mem)
+{
+    std::string Macro;
+
+    if(Mem->Name=="")
+        return;
+
+    switch(Mem->Type)
+    {
+        case MEM_CODE: Macro="CODE_"; break;
+        case MEM_DATA: Macro="DATA_"; break;
+        case MEM_DEVICE: Macro="DEVICE_"; break;
+        default:ASSERT(0);
+    }
+
+    if(Mem->Is_Shared!=0)
+        Macro+="SHARED_";
+
+    Macro+=Mem->Name_Upper;
+
+    Gen_Tool::Macro_Hex(List, Macro+"_BASE", Mem->Base, MACRO_ADD);
+    Gen_Tool::Macro_Hex(List, Macro+"_SIZE", Mem->Size, MACRO_ADD);
+}
+/* End Function:Gen_Tool::Process_Main_Hdr_Mem *******************************/
+
 /* Begin Function:Gen_Tool::Process_Main_Hdr **********************************
 Description : Create the main header for process.
-Input       : const class Process* Proc - The process to generate for.
+Input       : class Process* Proc - The process to generate for.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Gen_Tool::Process_Main_Hdr(const class Process* Proc)
+void Gen_Tool::Process_Main_Hdr(class Process* Proc)
 {
+    const class Virtual* Virt;
+    std::vector<std::string> Input;
+    std::vector<std::string> Output;
+    std::unique_ptr<std::vector<std::string>> List;
 
+    List=std::make_unique<std::vector<std::string>>();
+
+    /* File header */
+    Main::Info("> Generating main header.");
+    Gen_Tool::Src_Head(List, std::string("proc_")+Proc->Name_Lower+".h", "The user kernel object header.");
+    List->push_back("");
+
+    /* Definitions */
+    List->push_back("/* Defines *******************************************************************/");
+    List->push_back(std::string("#ifndef __PROC_")+Proc->Name_Upper+"_H__");
+    List->push_back(std::string("#define __PROC_")+Proc->Name_Upper+"_H__");
+
+    /* Ports */
+    List->push_back("/* Ports */");
+    for(const std::unique_ptr<class Port>& Port: Proc->Port)
+        Gen_Tool::Macro_Int(List, Port->Macro_Local, Port->Capid_Local, MACRO_ADD);
+    List->push_back("");
+    /* Receive endpoint */
+    List->push_back("/* Receive endpoints */");
+    for(const std::unique_ptr<class Receive>& Recv: Proc->Receive)
+        Gen_Tool::Macro_Int(List, Recv->Macro_Local, Recv->Capid_Local, MACRO_ADD);
+    List->push_back("");
+    /* Send endpoint */
+    List->push_back("/* Send endpoints */");
+    for(const std::unique_ptr<class Send>& Send: Proc->Send)
+        Gen_Tool::Macro_Int(List, Send->Macro_Local, Send->Capid_Local, MACRO_ADD);
+    List->push_back("");
+    /* Vector endpoint */
+    List->push_back("/* Vector endpoints */");
+    for(const std::unique_ptr<class Vect_Info>& Vect: Proc->Vector)
+        Gen_Tool::Macro_Int(List, Vect->Macro_Local, Vect->Capid_Local, MACRO_ADD);
+    List->push_back("");
+    /* Kernel function */
+    List->push_back("/* Kernel functions */");
+    for(const std::unique_ptr<class Kfunc>& Kfunc: Proc->Kfunc)
+        Gen_Tool::Macro_Int(List, Kfunc->Macro_Local, Kfunc->Capid_Local, MACRO_ADD);
+    List->push_back("");
+
+    /* Memory block */
+    List->push_back("/* Code memory blocks */");
+    for(const class Mem_Info* Mem: Proc->Memory_Code)
+        this->Process_Main_Hdr_Mem(List, Mem);
+    List->push_back("");
+    List->push_back("/* Data memory blocks */");
+    for(const class Mem_Info* Mem: Proc->Memory_Data)
+        this->Process_Main_Hdr_Mem(List, Mem);
+    List->push_back("");
+    List->push_back("/* Device memory blocks */");
+    for(const class Mem_Info* Mem: Proc->Memory_Device)
+        this->Process_Main_Hdr_Mem(List, Mem);
+    List->push_back("");
+
+    /* The number of MPU regions */
+    List->push_back("/* The number of MPU regions */");
+    Gen_Tool::Macro_Int(List, "RVM_MPU_REGIONS", this->Plat->Chip->Region, MACRO_ADD);
+    /* The kernel memory slot order */
+    List->push_back("/* The kernel memory allocation granularity order */");
+    Gen_Tool::Macro_Int(List, "RVM_KMEM_SLOT_ORDER", this->Plat->Proj->Kernel->Kmem_Order, MACRO_ADD);
+
+    /* If this is a virtual machine, define the following */
+    if(Proc->Type==PROC_VIRTUAL)
+    {
+        Virt=static_cast<const class Virtual*>(Proc);
+        List->push_back("/* Virtual vector total number */");
+        Gen_Tool::Macro_Int(List, "RVM_VIRT_VECT_NUM", Virt->Vect_Num, MACRO_ADD);
+        List->push_back("/* Virtual vector bitmap base address */");
+        Gen_Tool::Macro_Hex(List, "RVM_VIRT_VCTF_BASE", Virt->Vctf_Base, MACRO_ADD);
+        List->push_back("/* Virtual register base address */");
+        Gen_Tool::Macro_Hex(List, "RVM_VIRT_REG_BASE", Virt->Reg_Base, MACRO_ADD);
+        List->push_back("/* Hypercall parameter base address */");
+        Gen_Tool::Macro_Hex(List, "RVM_VIRT_PARAM_BASE", Virt->Param_Base, MACRO_ADD);
+    }
+    List->push_back(std::string("#endif /* __PROC_")+Proc->Name_Upper+"_H__ */");
+    List->push_back("/* End Defines ***************************************************************/");
+    List->push_back("");
+
+    Gen_Tool::Src_Foot(List);
+    List->push_back("");
+
+    /* Generate proc_xxx.h */
+    Gen_Tool::Line_Write(List, Proc->Main_Header_Output+"proc_"+Proc->Name_Lower+".h");
+
+    /* Generate platform selection header */
+    Main::Info("> Generating platform selection header.");
+    List->clear();
+    Gen_Tool::Src_Head(List, "rvm_guest_conf.h", "The guest library configuration header.");
+    List->push_back("");
+    List->push_back("/* Includes ******************************************************************/");
+    List->push_back(std::string("#include \"proc_")+Proc->Name_Lower+".h\"");
+    List->push_back(std::string("#include \"")+this->Plat->Name_Upper+"/rvm_guest_"+this->Plat->Name_Lower+".h\"");
+    List->push_back("/* End Includes **************************************************************/");
+    List->push_back("");
+    Gen_Tool::Src_Foot(List);
+    List->push_back("");
+    Gen_Tool::Line_Write(List, Proc->Main_Header_Output+"rvm_guest_conf.h");
 }
 /* End Function:Gen_Tool::Process_Main_Hdr ***********************************/
 
 /* Begin Function:Gen_Tool::Virtual_Conf_Hdr **********************************
 Description : Create the configuration header for VMs.
-Input       : const class Virtual* Virt - The process to generate for.
+Input       : class Virtual* Virt - The process to generate for.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Gen_Tool::Virtual_Conf_Hdr(const class Virtual* Virt)
+void Gen_Tool::Virtual_Conf_Hdr(class Virtual* Virt)
 {
 
 }
 /* End Function:Gen_Tool::Virtual_Conf_Hdr ***********************************/
 
-/* Begin Function:Gen_Tool::Process_Main_Src **********************************
-Description : Create the main source for process.
-Input       : const class Process* Proc - The process to generate for.
+/* Begin Function:Gen_Tool::Process_Stub_Src **********************************
+Description : Create the stubs for process. Each invocation and thread will
+              have its own file, so there is least interference between them.
+Input       : class Process* Proc - The process to generate for.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Gen_Tool::Process_Main_Src(const class Process* Proc)
+void Gen_Tool::Process_Stub_Src(class Process* Proc)
 {
+    std::string Filename;
+    std::vector<std::string> Input;
+    std::vector<std::string> Output;
+    std::unique_ptr<std::vector<std::string>> List;
 
+    /* Single files only used for native threads */
+    if(Proc->Type==PROC_VIRTUAL)
+        return;
+
+    List=std::make_unique<std::vector<std::string>>();
+
+    /* For each thread, create a single file */
+    Input.push_back("rvm_ret_t Param - The parameter supplied by the OS.");
+    for(const std::unique_ptr<class Thread>& Thd:Proc->Thread)
+    {
+        Filename=std::string("proc_")+Proc->Name_Lower+"_thd_"+Thd->Name_Lower+".c";
+        if(std::filesystem::exists(Proc->Main_Source_Output+Filename)==true)
+        {
+            /* See if we'll use forced regenerate */
+            if(Proc->Main_Source_Overwrite==0)
+            {
+                Main::Info(std::string("> File '")+Filename+"' exists, skipping generation.");
+                return;
+            }
+        }
+        Main::Info(std::string("> Generating source for thread '")+Thd->Name+"'.");
+        List->clear();
+        Gen_Tool::Src_Head(List, Filename, std::string("The user stub file for thread '")+Thd->Name+"'.");
+        List->push_back("");
+        /* Includes */
+        this->Process_Inc(List, Proc);
+        List->push_back("");
+        /* Private prototypes */
+        List->push_back("/* Private C Function Prototypes *********************************************/");
+        List->push_back(std::string("rvm_ret_t Thd_")+Thd->Name+"(rvm_ret_t Param);");
+        List->push_back("/* End Private C Function Prototypes *****************************************/");
+        List->push_back("");
+        /* Thread functions themselves */
+        Gen_Tool::Func_Head(List, std::string("Thd_")+Thd->Name,
+                            "The function body for thread.", Input, Output, "rvm_ret_t - Should never return.");
+        List->push_back(std::string("rvm_ret_t Thd_")+Thd->Name+"(rvm_ret_t Param)");
+        List->push_back("{");
+        List->push_back("    /* Add your code here - Threads shall never return */");
+        List->push_back("    while(1);");
+        List->push_back("}");
+        Gen_Tool::Func_Foot(List, std::string("Thd_")+Thd->Name);
+        List->push_back("");
+        this->Src_Foot(List);
+        List->push_back("");
+        Gen_Tool::Line_Write(List, Proc->Main_Source_Output+Filename);
+    }
+    Input.clear();
+
+    /* For each invocation, create a single file */
+    Input.push_back("rvm_ret_t Param - The parameter supplied by the caller.");
+    for(const std::unique_ptr<class Invocation>& Inv:Proc->Invocation)
+    {
+        Filename=std::string("proc_")+Proc->Name_Lower+"_inv_"+Inv->Name_Lower+".c";
+        if(std::filesystem::exists(Proc->Main_Source_Output+Filename)==true)
+        {
+            /* See if we'll use forced regenerate */
+            if(Proc->Main_Source_Overwrite==0)
+            {
+                Main::Info(std::string("> File '")+Filename+"' exists, skipping generation.");
+                return;
+            }
+        }
+        Main::Info(std::string("> Generating source for invocation '")+Inv->Name+"'.");
+        List->clear();
+        Gen_Tool::Src_Head(List, Filename, std::string("The user stub file for thread '")+Inv->Name+"'.");
+        List->push_back("");
+        /* Includes */
+        this->Process_Inc(List, Proc);
+        List->push_back("");
+        /* Private prototypes */
+        List->push_back("/* Private C Function Prototypes *********************************************/");
+        List->push_back(std::string("rvm_ret_t Inv_")+Inv->Name+"(rvm_ret_t Param);");
+        List->push_back("/* End Private C Function Prototypes *****************************************/");
+        List->push_back("");
+        /* Thread functions themselves */
+        Gen_Tool::Func_Head(List, std::string("Inv_")+Inv->Name,
+                            "The function body for invocation.", Input, Output, "rvm_ret_t - Should never return.");
+        List->push_back(std::string("rvm_ret_t Inv_")+Inv->Name+"(rvm_ret_t Param)");
+        List->push_back("{");
+        List->push_back("    /* Add your code here */");
+        List->push_back("    return 0;");
+        List->push_back("}");
+        Gen_Tool::Func_Foot(List, std::string("Inv_")+Inv->Name);
+        List->push_back("");
+        this->Src_Foot(List);
+        List->push_back("");
+        Gen_Tool::Line_Write(List, Proc->Main_Source_Output+Filename);
+    }
+    Input.clear();
+}
+/* End Function:Gen_Tool::Process_Stub_Src ***********************************/
+
+/* Begin Function:Gen_Tool::Process_Desc_Src **********************************
+Description : Create the descriptor header for process.
+Input       : class Process* Proc - The process to generate for.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Gen_Tool::Process_Desc_Src(class Process* Proc)
+{
+    std::string Filename;
+    std::vector<std::string> Input;
+    std::vector<std::string> Output;
+    std::unique_ptr<std::vector<std::string>> List;
+
+    List=std::make_unique<std::vector<std::string>>();
+
+    Main::Info("> Generating main source descriptor.");
+    Filename=std::string("proc_")+Proc->Name_Lower+"_desc.c";
+    Gen_Tool::Src_Head(List, Filename, "The process compartment header file - do not edit!.");
+    List->push_back("");
+
+    /* Includes */
+    this->Process_Inc(List, Proc);
+    List->push_back("");
+
+    /* Public prototypes */
+    List->push_back("/* Public C Function Prototypes **********************************************/");
+    for(const std::unique_ptr<class Thread>& Thd:Proc->Thread)
+        List->push_back(std::string("extern rvm_ret_t Thd_")+Thd->Name+"(rvm_ret_t Param);");
+    for(const std::unique_ptr<class Invocation>& Inv:Proc->Invocation)
+        List->push_back(std::string("extern rvm_ret_t Inv_")+Inv->Name+"(rvm_ret_t Param);");
+    List->push_back("extern void _RVM_Jmp_Stub(void);");
+    List->push_back("/* End Public C Function Prototypes ******************************************/");
+    List->push_back("");
+
+    /* Global variables */
+    List->push_back("/* Public Global Variables ***************************************************/");
+    List->push_back(std::string("const rvm_ptr_t RVM_Proc_Header[")+std::to_string(Proc->Header_Front)+"]=");
+    List->push_back("{");
+    if(Proc->Type==PROC_NATIVE)
+        List->push_back(std::string("    0x")+Main::Hex(MAGIC_NATIVE)+"U,");
+    else
+        List->push_back(std::string("    0x")+Main::Hex(MAGIC_VIRTUAL)+"U,");
+    List->push_back(std::string("    0x")+Main::Hex(Proc->Header_Front+1)+"U,");
+    for(const std::unique_ptr<class Thread>& Thd:Proc->Thread)
+    {
+        /* The first thread's entry is always the main entry point that just immediately follows the header */
+        if(Thd.get()==Proc->Thread[0].get())
+        {
+            List->push_back(std::string("    ((rvm_ptr_t)RVM_Proc_Header)+0x")+
+                            Main::Hex(Proc->Header_Front*(this->Plat->Plat->Wordlength/8))+"U,");
+        }
+        else
+            List->push_back(std::string("    Thd_")+Thd->Name+",");
+    }
+    for(const std::unique_ptr<class Invocation>& Inv:Proc->Invocation)
+        List->push_back(std::string("    Inv_")+Inv->Name+",");
+    List->push_back("_RVM_Jmp_Stub,");
+    List->push_back("};");
+    List->push_back("/* End Public Global Varibles ************************************************/");
+    List->push_back("");
+    Gen_Tool::Src_Foot(List);
+    List->push_back("");
+
+    /* Generate proc_xxx_header.c */
+    Gen_Tool::Line_Write(List, Proc->Main_Source_Output+Filename);
+}
+/* End Function:Gen_Tool::Process_Desc_Src ***********************************/
+
+/* Begin Function:Gen_Tool::Process_Main_Src **********************************
+Description : Create the main sources for process. Each invocation and thread will
+              have its own file, so there is least interference between them.
+Input       : class Process* Proc - The process to generate for.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Gen_Tool::Process_Main_Src(class Process* Proc)
+{
+    std::string Filename;
+    std::vector<std::string> Input;
+    std::vector<std::string> Output;
+    std::unique_ptr<std::vector<std::string>> List;
+
+    List=std::make_unique<std::vector<std::string>>();
+
+    Main::Info("> Generating main source.");
+    Filename=std::string("proc_")+Proc->Name_Lower+".c";
+    Gen_Tool::Src_Head(List, Filename, "The main user stub file.");
+    List->push_back("");
+
+    /* Includes */
+    this->Process_Inc(List, Proc);
+    List->push_back("");
+
+    /* Private prototypes */
+    if(Proc->Type==PROC_VIRTUAL)
+    {
+        List->push_back("/* Private C Function Prototypes *********************************************/");
+        List->push_back("rvm_ret_t Thd_Vector(rvm_ret_t Param);");
+        List->push_back("rvm_ret_t Thd_User(rvm_ret_t Param);");
+        List->push_back("/* End Private C Function Prototypes *****************************************/");
+        List->push_back("");
+    }
+    else
+    {
+        List->push_back("/* Public C Function Prototypes **********************************************/");
+        for(const std::unique_ptr<class Thread>& Thd:Proc->Thread)
+            List->push_back(std::string("extern rvm_ret_t Thd_")+Thd->Name+"(rvm_ret_t Param);");
+        for(const std::unique_ptr<class Invocation>& Inv:Proc->Invocation)
+            List->push_back(std::string("extern rvm_ret_t Inv_")+Inv->Name+"(rvm_ret_t Param);");
+        List->push_back("extern void _RVM_Jmp_Stub(void);");
+        List->push_back(std::string("extern const rvm_ptr_t RVM_Proc_Header[")+std::to_string(Proc->Header_Front)+"];");
+        List->push_back("/* End Private C Function Prototypes *****************************************/");
+        List->push_back("");
+    }
+
+    /* If this is a virtual machine, create the two essential threads */
+    if(Proc->Type==PROC_VIRTUAL)
+    {
+        Input.push_back("rvm_ret_t Param - The parameter supplied by the OS.");
+        /* The vector handler thread */
+        Gen_Tool::Func_Head(List, "Thd_Vector", "The function body for vector handler.",
+                            Input, Output, "rvm_ret_t - Should never return.");
+        List->push_back("rvm_ret_t Thd_Vector(rvm_ret_t Param)");
+        List->push_back("{");
+        List->push_back("    /* Check header validity */");
+        List->push_back("    RVM_ASSERT(RVM_Proc_Header[0]==RVM_MAGIC_NATIVE);");
+        List->push_back(std::string("    RVM_ASSERT(RVM_Proc_Header[1]==")+std::to_string(Proc->Header_Front-2)+"U);");
+        List->push_back("");
+        List->push_back("    /* DO NOT MODIFY - ESSENTIAL FOR VIRTUAL MACHINE */");
+        List->push_back("    RVM_Virt_Init();");
+        List->push_back("    RVM_Vect_Loop();");
+        List->push_back("}");
+        Gen_Tool::Func_Foot(List, "Thd_Vector");
+        List->push_back("");
+        /* The user context thread */
+        Gen_Tool::Func_Head(List, "Thd_User", "The function body for user context runtime.",
+                            Input, Output, "rvm_ret_t - Should never return.");
+        List->push_back("rvm_ret_t Thd_User(rvm_ret_t Param)");
+        List->push_back("{");
+        List->push_back("    /* USELESS STUB - MAIN FUNCTION PROVIDED BY ORIGINAL OPERATING SYSTEM */");
+        List->push_back("}");
+        Gen_Tool::Func_Foot(List, "Thd_User");
+        List->push_back("");
+        Input.clear();
+    }
+    /* If not, create the main function */
+    else
+    {
+        Gen_Tool::Func_Head(List, "main", "The function body for thread.", Input, Output, "rvm_ret_t - Should never return.");
+        List->push_back("rvm_ret_t main(void)");
+        List->push_back("{");
+        List->push_back("    /* Check header validity */");
+        List->push_back("    RVM_ASSERT(RVM_Proc_Header[0]==RVM_MAGIC_NATIVE);");
+        List->push_back(std::string("    RVM_ASSERT(RVM_Proc_Header[1]==")+std::to_string(Proc->Header_Front-2)+"U);");
+        List->push_back("");
+        List->push_back("    /* Jump to the entry of the first (highest-priority) thread */");
+        List->push_back(std::string("    RVM_Entry((rvm_ptr_t)Thd_")+
+                        Proc->Thread[0]->Name+", 0x"+
+                        Main::Hex(Proc->Thread[0]->Stack_Base)+"U, 0x"+
+                        Main::Hex(Proc->Thread[0]->Stack_Size)+"U, 0x"+
+                        Main::Hex(Proc->Thread[0]->Parameter)+"U);");
+        List->push_back("}");
+        Gen_Tool::Func_Foot(List, "main");
+        List->push_back("");
+    }
+
+    /* The RVM library putchar function - print character to console */
+    Input.push_back("char Char - The character to print to console.");
+    Gen_Tool::Func_Head(List, "RVM_Putchar", "The character printing function for debugging.", Input, Output, "None.");
+    List->push_back("void RVM_Putchar(char Char)");
+    List->push_back("{");
+    List->push_back("    /* Add your own code */");
+    List->push_back("}");
+    Gen_Tool::Func_Foot(List, "RVM_Putchar");
+    List->push_back("");
+    Gen_Tool::Src_Foot(List);
+
+    /* Generate proc_xxx.c */
+    Gen_Tool::Line_Write(List, Proc->Main_Source_Output+Filename);
 }
 /* End Function:Gen_Tool::Process_Main_Src ***********************************/
 
 /* Begin Function:Gen_Tool::Process_Linker ************************************
 Description : Create the linker script file for process.
-Input       : const class Process* Proc - The process to generate for.
+Input       : class Process* Proc - The process to generate for.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Gen_Tool::Process_Linker(const class Process* Proc)
+void Gen_Tool::Process_Linker(class Process* Proc)
 {
+    class Tool_Gen* Tool;
+    std::unique_ptr<std::vector<std::string>> List;
 
+    List=std::make_unique<std::vector<std::string>>();
+    Tool=this->Tool_Map[Proc->Toolchain];
+
+    Main::Info("> Generating linker script.");
+    Proc->Linker_Filename=std::string("proc_")+Proc->Name_Lower+"_"+this->Plat->Chip->Name_Lower+Tool->Suffix(TOOL_LINKER);
+    Tool->Process_Linker(List, Proc);
+    Gen_Tool::Line_Write(List, Proc->Linker_Output+Proc->Linker_Filename);
 }
 /* End Function:Gen_Tool::Process_Linker *************************************/
 
 /* Begin Function:Gen_Tool::Process_Proj **************************************
 Description : Create the project file for process.
-Input       : const class Process* Proc - The process to generate for.
+Input       : class Process* Proc - The process to generate for.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Gen_Tool::Process_Proj(const class Process* Proc)
+void Gen_Tool::Process_Proj(class Process* Proc)
 {
+    class Virtual* Virt;
+    class Monitor* Monitor;
+    class Build_Gen* Build;
+    class Tool_Gen* Tool;
+    std::unique_ptr<std::vector<std::string>> List;
+    std::vector<std::string> Include;
+    std::vector<std::string> Source;
+    std::vector<std::string> Linker;
 
+    List=std::make_unique<std::vector<std::string>>();
+    Virt=static_cast<class Virtual*>(Proc);
+    Monitor=this->Plat->Proj->Monitor.get();
+    Build=this->Build_Map[Proc->Buildsystem];
+    Tool=this->Tool_Map[Proc->Toolchain];
+
+    /* Does the file already exist? */
+    Proc->Project_Filename=std::string("proc_")+Proc->Name_Lower+Build->Suffix(BUILD_PROJECT);
+    if(std::filesystem::exists(Proc->Project_Output+Proc->Project_Filename)==true)
+    {
+        /* See if we'll use forced regenerate */
+        if(Proc->Project_Overwrite==0)
+        {
+            Main::Info(std::string("> File '")+Proc->Project_Filename+"' exists, skipping generation.");
+            return;
+        }
+    }
+
+    /* Extract the include paths */
+    Main::Info("> Generating project include paths:");
+
+    Include.push_back(Monitor->Monitor_Root+"Guest/");
+    Include.push_back(Monitor->Monitor_Root+"Include/");
+    Include.push_back(Proc->Project_Output);
+    Include.push_back(Proc->Main_Header_Output);
+    /* For virtual machines, add all the VM files as well */
+    if(Proc->Type==PROC_VIRTUAL)
+        Include.push_back(Virt->Config_Header_Output);
+    Gen_Tool::Path_Conv(Proc->Project_Output, Include);
+
+    for(const std::string& Path:Include)
+        Main::Info(std::string("> > ")+Path);
+
+    /* Extract the source paths */
+    Main::Info("> Generating project source paths:");
+
+    Source.push_back(Monitor->Monitor_Root+"Guest/rvm_guest.c");
+    Source.push_back(Monitor->Monitor_Root+"Guest/"+this->Plat->Name+"/rvm_guest_"+this->Plat->Name_Lower+".c");
+    Source.push_back(Monitor->Monitor_Root+"Guest/"+this->Plat->Name+
+                     "/rvm_guest_"+this->Plat->Name_Lower+"_"+Tool->Name_Lower+Tool->Suffix(TOOL_ASSEMBLER));
+    Source.push_back(Proc->Main_Source_Output+"proc_"+Proc->Name_Lower+".c");
+    Source.push_back(Proc->Main_Source_Output+"proc_"+Proc->Name_Lower+"_desc.c");
+    /* For native processes, add all the stub files */
+    if(Proc->Type==PROC_NATIVE)
+    {
+        for(const std::unique_ptr<class Thread>& Thd:Proc->Thread)
+            Source.push_back(Proc->Main_Source_Output+"proc_"+Proc->Name_Lower+"_thd_"+Thd->Name_Lower+".c");
+        for(const std::unique_ptr<class Invocation>& Inv:Proc->Invocation)
+            Source.push_back(Proc->Main_Source_Output+"proc_"+Proc->Name_Lower+"_inv_"+Inv->Name_Lower+".c");
+    }
+    /* For virtual machines, add all the VM files as well */
+    else
+    {
+
+    }
+    Gen_Tool::Path_Conv(Proc->Project_Output, Source);
+
+    for(const std::string& Path:Source)
+        Main::Info(std::string("> > ")+Path);
+
+    /* Extract the linker paths */
+    Main::Info("> Generating project linker paths:");
+
+    Linker.push_back(Proc->Linker_Output+"proc_"+Proc->Name_Lower+"_"+this->Plat->Chip->Name_Lower+Tool->Suffix(TOOL_LINKER));
+    Gen_Tool::Path_Conv(Proc->Project_Output, Linker);
+
+    for(const std::string& Path:Linker)
+        Main::Info(std::string("> > ")+Path);
+
+    Build->Process_Proj(List, Include, Source, Linker, Proc);
+    Gen_Tool::Line_Write(List, Proc->Project_Output+Proc->Project_Filename);
 }
 /* End Function:Gen_Tool::Process_Proj ***************************************/
 

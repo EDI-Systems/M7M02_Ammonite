@@ -1099,7 +1099,7 @@ void Main::Shmem_Add(void)
         {
             try
             {
-                /* Link the shared memory blocks with references in processes */
+                /* Link the shared memory blocks with references in processes, and add result to private memory pool */
                 for(std::unique_ptr<class Mem_Info>& Ref:Proc->Shmem)
                 {
                     /* Find the shared memory block declared in the project */
@@ -1107,6 +1107,7 @@ void Main::Shmem_Add(void)
                     ASSERT(Mem!=this->Proj->Shmem_Map.end());
                     /* Check attributes then populate */
                     Temp=std::make_unique<class Mem_Info>(Mem->second,Ref->Attr);
+                    Temp->Is_Shared=1;
                     switch(Temp->Type)
                     {
                         case MEM_CODE:Proc->Memory_Code.push_back(Temp.get());break;
@@ -1114,10 +1115,10 @@ void Main::Shmem_Add(void)
                         case MEM_DEVICE:Proc->Memory_Device.push_back(Temp.get());break;
                         default:ASSERT(0);
                     }
-                    Proc->Memory_All.push_back(std::move(Temp));
+                    Proc->Memory.push_back(std::move(Temp));
                 }
 
-                /* Add everything else to full list as well */
+                /* Copy everything over to the final memory list so that we can operate on that list */
                 for(std::unique_ptr<class Mem_Info>& Mem:Proc->Memory)
                     Proc->Memory_All.push_back(std::make_unique<class Mem_Info>(Mem.get(),Mem->Attr));
             }
@@ -1654,8 +1655,9 @@ void Main::Process_Gen(void)
             std::filesystem::create_directories(Proc->Project_Output);
             std::filesystem::create_directories(Proc->Linker_Output);
             if(Proc->Type==PROC_VIRTUAL)
-                std::filesystem::create_directories(static_cast<class Virtual*>(Proc.get())->Header_Output);
-            std::filesystem::create_directories(Proc->Source_Output);
+                std::filesystem::create_directories(static_cast<class Virtual*>(Proc.get())->Config_Header_Output);
+            std::filesystem::create_directories(Proc->Main_Header_Output);
+            std::filesystem::create_directories(Proc->Main_Source_Output);
 
 
             /* Generate process main header */
@@ -1671,6 +1673,8 @@ void Main::Process_Gen(void)
 
             /* Generate process main source */
             Main::Info("Generating process main source.");
+            this->Gen->Process_Stub_Src(Proc.get());
+            this->Gen->Process_Desc_Src(Proc.get());
             this->Gen->Process_Main_Src(Proc.get());
 
             /* Generate monitor linker script */

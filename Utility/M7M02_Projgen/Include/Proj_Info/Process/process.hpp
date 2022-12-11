@@ -17,6 +17,11 @@ namespace RVM_GEN
 #define PROC_NATIVE         (0)
 #define PROC_VIRTUAL        (1)
 
+/* Magic number for native processes */
+#define MAGIC_NATIVE        (0x49535953U)
+/* Magic number for virtual machine processes */
+#define MAGIC_VIRTUAL       (0x56495254U)
+
 /* Every processes have the some capability slots at the front preserved.
  * For processes,
  * [0] is the potential event send kernel capability,
@@ -57,9 +62,11 @@ public:
     ptr_t Project_Overwrite;
     /* Linker output folder */
     std::string Linker_Output;
-    /* Initialization source folder/overwrite */
-    std::string Source_Output;
-    ptr_t Source_Overwrite;
+    /* Main header folder */
+    std::string Main_Header_Output;
+    /* Main source folder/overwrite */
+    std::string Main_Source_Output;
+    ptr_t Main_Source_Overwrite;
 
     /* Memory trunk information */
     std::vector<std::unique_ptr<class Mem_Info>> Memory;
@@ -114,7 +121,7 @@ public:
     ptr_t Data_Base;
     ptr_t Data_Size;
     /* Code memory frontier for entries */
-    ptr_t Entry_Code_Front;
+    ptr_t Header_Front;
 
     /* Linker filename */
     std::string Linker_Filename;

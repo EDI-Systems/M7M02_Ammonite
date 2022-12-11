@@ -56,6 +56,7 @@ Return      : None.
         {
             this->Name="";
         }
+        Name_Gen(this);
 
         this->Reference=Reference;
         if(Reference==MEM_DECL)
@@ -102,6 +103,7 @@ Return      : None.
 
         /* Alignment */
         this->Align=0;
+        this->Is_Shared=0;
     }
     catch(std::exception& Exc)
     {
@@ -129,11 +131,13 @@ Return      : None.
     /* Copy everything of that source block */
     this->Reference=Block->Reference;
     this->Name=Block->Name;
+    Name_Gen(this);
     this->Base=Block->Base;
     this->Size=Block->Size;
     this->Type=Block->Type;
     this->Attr=Attr_New;
     this->Align=Block->Align;
+    this->Is_Shared=0;
 }
 /* End Function:Mem_Info::Mem_Info *******************************************/
 
@@ -151,11 +155,13 @@ Return      : None.
 {
     this->Reference=MEM_DECL;
     this->Name=Name;
+    Name_Gen(this);
     this->Base=Base;
     this->Size=Size;
     this->Type=Type;
     this->Attr=Attr;
     this->Align=0;
+    this->Is_Shared=0;
 }
 /* End Function:Mem_Info::Mem_Info *******************************************/
 

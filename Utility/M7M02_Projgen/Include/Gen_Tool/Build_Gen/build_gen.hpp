@@ -54,6 +54,12 @@ public:
                               const std::vector<std::string>& Include,
                               const std::vector<std::string>& Source,
                               const std::vector<std::string>& Linker)=0;
+
+    virtual void Process_Proj(std::unique_ptr<std::vector<std::string>>& List,
+                              const std::vector<std::string>& Include,
+                              const std::vector<std::string>& Source,
+                              const std::vector<std::string>& Linker,
+                              const class Process* Proc)=0;
 };
 /*****************************************************************************/
 /* __BUILD_GEN_HPP_CLASSES__ */

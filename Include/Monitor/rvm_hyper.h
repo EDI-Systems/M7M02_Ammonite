@@ -82,7 +82,11 @@ Description : The header of microcontroller user-level library.
 #define RVM_VIRT_THDID_MARKER       ((rvm_tid_t)RVM_POW2(16U))
 
 /* Communication flag set selection */
-#define RME_RVM_FLAG_SET(B, S, N)   ((volatile struct RVM_Flag*)((B)+((S)>>1)*(N)))
+#define RVM_FLAG_SET(B, S, N)       ((volatile struct RVM_Flag*)((B)+((S)>>1)*(N)))
+
+/* Header branch address extraction */
+#define RVM_PROC_ENTRY(B, X)        (((const struct RVM_Header*)(B))->Entry[X])
+#define RVM_PROC_STUB(B)            RVM_PROC_ENTRY(B, RVM_PROC_ENTRY(B, 2U)-1U)
 /*****************************************************************************/
 /* __RVM_HYPER_H_DEFS__ */
 #endif
@@ -170,8 +174,8 @@ struct RVM_Vmap_Struct
     struct RVM_Param* Param_Base;
     /* Vector flag base */
     struct RVM_Vctf* Vctf_Base;
-    /* Stub entry code frontier */
-    rvm_ptr_t Entry_Code_Front;
+    /* Header base address */
+    rvm_ptr_t Header_Base;
     /* Vector signal endpoint capability */
     rvm_cid_t Vect_Sig_Cap;
     
@@ -179,8 +183,6 @@ struct RVM_Vmap_Struct
     rvm_cid_t Vect_Thd_Cap;
     /* Vector thread TID */
     rvm_tid_t Vect_TID;
-    /* Vector thread entry */
-    rvm_ptr_t Vect_Entry;
     /* Vector thread stack base */
     rvm_ptr_t Vect_Stack_Base;
     /* Vector thread size */
@@ -190,8 +192,6 @@ struct RVM_Vmap_Struct
     rvm_cid_t User_Thd_Cap;
     /* User thread TID */
     rvm_tid_t User_TID;
-    /* User thread entry */
-    rvm_ptr_t User_Entry;
     /* User thread stack base */
     rvm_ptr_t User_Stack_Base;
     /* User thread size */
@@ -222,6 +222,14 @@ struct RVM_Flag
     rvm_ptr_t Lock;
     rvm_ptr_t Group;
     rvm_ptr_t Flags[1024];
+};
+
+/* Process header */
+struct RVM_Header
+{
+    rvm_ptr_t Magic;
+    rvm_ptr_t Number;
+    rvm_ptr_t Entry[1024];
 };
 /*****************************************************************************/
 /* __RVM_HYPER_H_STRUCTS__ */

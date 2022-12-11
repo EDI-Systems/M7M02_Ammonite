@@ -20,8 +20,6 @@ __initial_sp
 ;/* Begin Exports ************************************************************/
     ;Required by keil
     EXPORT              __initial_sp
-    ;User entry stub
-    EXPORT              _RVM_Entry
     ;User level stub for thread creation and synchronous invocation
     EXPORT              _RVM_Jmp_Stub
     ;Triggering an invocation
@@ -43,18 +41,24 @@ __initial_sp
 ;/* Begin Imports ************************************************************/
     ;The ARM C library entrance. This will do all the dirty init jobs for us.
     IMPORT              __main
+    ; All four daemons
+    IMPORT              RVM_Sftd
+    IMPORT              RVM_Timd
+    IMPORT              RVM_Vmmd
+    IMPORT              RVM_Vctd
 ;/* End Imports **************************************************************/
 
-;/* Begin Function:_RVM_Entry *************************************************
-;Description : The entry of the process.
-;Input       : None.
-;Output      : None.
-;Return      : None.
-;*****************************************************************************/
-_RVM_Entry
-    LDR                 R0, =__main
-    BX                  R0
-;/* End Function:_RVM_Entry **************************************************/
+;/* Begin Entry List *********************************************************/
+    DCD                 0x49535953          ; Magic number for native process
+    DCD                 0x00000006          ; Six entries specified
+    DCD                 __main              ; Init thread entry
+    DCD                 RVM_Sftd            ; All four daemons
+    DCD                 RVM_Timd
+    DCD                 RVM_Vmmd
+    DCD                 RVM_Vctd
+	DCD                 _RVM_Jmp_Stub	    ; Jump stub
+    B                   __main              ; Real entry
+;/* End Entry List ***********************************************************/
 
 ;/* Begin Function:_RVM_Jmp_Stub **********************************************
 ;Description : The user level stub for thread/invocation creation.

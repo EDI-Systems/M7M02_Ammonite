@@ -14,7 +14,7 @@ namespace RVM_GEN
 #define __VIRTUAL_HPP_DEFS__
 /*****************************************************************************/
 /* The priority of the vector handling thread is always 3 on all architectures */
-#define VIRT_HANDLER_PRIO       (3)
+#define VIRT_VECTOR_PRIO        (3)
 /* The priority of the user thread is always 2 on all architectures */
 #define VIRT_USER_PRIO          (2)
 /*****************************************************************************/
@@ -36,8 +36,8 @@ public:
     /* Name and root folder of the guest operating system */
     std::string Guest_Type;
     std::string Guest_Root;
-    /* Header (config, etc.) output folder */
-    std::string Header_Output;
+    /* Config header output folder */
+    std::string Config_Header_Output;
 
     /* The stack size for interrupt thread and user thread */
     ptr_t Stack_Size;

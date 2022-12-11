@@ -61,9 +61,9 @@ Process(Root,PROC_VIRTUAL)
         /* Guest_Root */
         this->Guest_Root=Main::XML_Get_String(Root,"Guest_Root","DXXXX","DXXXX");
         Main::Dir_Fixup(this->Guest_Root);
-        /* Header_Output */
-        this->Header_Output=Main::XML_Get_String(Root,"Header_Output","DXXXX","DXXXX");
-        Main::Dir_Fixup(this->Header_Output);
+        /* Config_Header_Output */
+        this->Config_Header_Output=Main::XML_Get_String(Root,"Config_Header_Output","DXXXX","DXXXX");
+        Main::Dir_Fixup(this->Config_Header_Output);
 
         /* Stack Size */
         this->Stack_Size=Main::XML_Get_Number(Root,"Stack_Size","DXXXX","DXXXX");
@@ -79,7 +79,7 @@ Process(Root,PROC_VIRTUAL)
         this->Vect_Num=Main::XML_Get_Number(Root,"Vect_Num","DXXXX","DXXXX");
 
         /* Handler & user thread for VM - VM does not have other threads */
-        this->Thread.push_back(std::make_unique<class Thread>("Handler", this->Stack_Size, 0, VIRT_HANDLER_PRIO, this));
+        this->Thread.push_back(std::make_unique<class Thread>("Vector", this->Stack_Size, 0, VIRT_VECTOR_PRIO, this));
         this->Thread.push_back(std::make_unique<class Thread>("User", this->Stack_Size, 0, VIRT_USER_PRIO, this));
     }
     catch(std::exception& Exc)

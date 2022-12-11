@@ -36,6 +36,8 @@ public:
 
     virtual void Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List) final override;
     virtual void Monitor_Linker(std::unique_ptr<std::vector<std::string>>& List) final override;
+    virtual void Process_Linker(std::unique_ptr<std::vector<std::string>>& List,
+                                const class Process* Proc) final override;
 };
 /*****************************************************************************/
 /* __ARMCC_GEN_HPP_CLASSES__ */

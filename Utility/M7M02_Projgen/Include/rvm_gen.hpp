@@ -66,9 +66,6 @@ while(0)
 /* Buffer size for all temporary buffers */
 #define BUF_SIZE                            (2048)
 
-/* Entry point slot size (in words), fixed across all architectures */
-#define ENTRY_SLOT_SIZE                     (8)
-
 /* Maximum number of virtual events */
 #define VIRT_EVENT_MAX                      (1024)
 

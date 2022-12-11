@@ -89,7 +89,7 @@ Description : Initialize the daemons. These daemons include four ones:
               1. SFTD, the daemon for the startup and process recovery.
               2. TIMD, the daemon for time accounting and sending timer interrupts to VMs.
               3. VMMD, the daemon for real-time scheduling & hypercall handling.
-              4. INTD, the daemon for interrupt handling to VMs and .
+              4. VCTD, the daemon for interrupt vector handling to VMs.
               The TID of all these daemons are zero.
 Input       : rvm_ptr_t Cap_Front - The capability frontier for allocation.
               rvm_ptr_t Kmem_Front - The kernel memory pointer for allocation.
