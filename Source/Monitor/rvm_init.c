@@ -36,33 +36,18 @@ Description : The init process of MPU-based RVM systems. This process just sets
 
 /* Begin Function:RVM_Clear ***************************************************
 Description : Memset a memory area to zero.
-Input       : void* Addr - The address to clear.
+Input       : volatile void* Addr - The address to clear.
               rvm_ptr_t Size - The size to clear.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void RVM_Clear(void* Addr, rvm_ptr_t Size)
+void RVM_Clear(volatile void* Addr,
+               rvm_ptr_t Size)
 {
-    rvm_ptr_t* Word_Inc;
-    rvm_u8_t* Byte_Inc;
-    rvm_ptr_t Words;
-    rvm_ptr_t Bytes;
-    
-    /* On processors that are not that fast, copy by word is really important */
-    Word_Inc=(rvm_ptr_t*)Addr;
-    for(Words=Size/sizeof(rvm_ptr_t);Words>0;Words--)
-    {
-        *Word_Inc=0;
-        Word_Inc++;
-    }
-    
-    /* Get the final bytes */
-    Byte_Inc=(rvm_u8_t*)Word_Inc;
-    for(Bytes=Size%sizeof(rvm_ptr_t);Bytes>0;Bytes--)
-    {
-        *Byte_Inc=0;
-        Byte_Inc++;
-    }
+    rvm_ptr_t Count;
+
+    for(Count=0U;Count<Size;Count++)
+        ((volatile rvm_u8_t*)Addr)[Count]=0U;
 }
 /* End Function:RVM_Clear ****************************************************/
 
@@ -96,7 +81,8 @@ Input       : rvm_ptr_t Cap_Front - The capability frontier for allocation.
 Output      : None.
 Return      : rvm_ptr_t - The kernel memory pointer's new location.
 ******************************************************************************/
-rvm_ptr_t RVM_Daemon_Init(rvm_ptr_t Cap_Front, rvm_ptr_t Kmem_Front)
+rvm_ptr_t RVM_Daemon_Init(rvm_ptr_t Cap_Front,
+                          rvm_ptr_t Kmem_Front)
 {
     RVM_LOG_S("-------------------------------------------------------------------------------\r\n");
     

@@ -14,6 +14,7 @@ namespace RVM_GEN
 #define __BUILD_GEN_HPP_DEFS__
 /*****************************************************************************/
 #define BUILD_PROJECT            (0)
+#define BUILD_WORKSPACE          (1)
 /*****************************************************************************/
 /* __BUILD_GEN_HPP_DEFS__ */
 #endif
@@ -60,6 +61,9 @@ public:
                               const std::vector<std::string>& Source,
                               const std::vector<std::string>& Linker,
                               const class Process* Proc)=0;
+
+    virtual void Workspace_Proj(std::unique_ptr<std::vector<std::string>>& List,
+                                const std::vector<std::string>& Project)=0;
 };
 /*****************************************************************************/
 /* __BUILD_GEN_HPP_CLASSES__ */

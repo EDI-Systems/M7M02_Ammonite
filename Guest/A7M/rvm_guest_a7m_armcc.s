@@ -215,9 +215,9 @@ _RVM_MSB_Get
 ;/* Begin Function:RVM_Fetch_And **********************************************
 ;Description : The fetch-and-logic-and atomic instruction. Logic AND the pointer
 ;              value with the operand, and return the value before logic AND.
-;Input       : rvm_ptr_t* Ptr - The pointer to the data.
+;Input       : volatile rvm_ptr_t* Ptr - The pointer to the data.
 ;              rvm_ptr_t Operand - The number to logic AND with the destination.
-;Output      : rvm_ptr_t* Ptr - The pointer to the data.
+;Output      : volatile rvm_ptr_t* Ptr - The pointer to the data.
 ;Return      : rvm_ptr_t - The value before the AND operation.
 ;*****************************************************************************/
 RVM_Fetch_And

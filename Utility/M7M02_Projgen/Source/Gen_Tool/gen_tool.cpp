@@ -2389,8 +2389,6 @@ void Gen_Tool::Process_Inc(std::unique_ptr<std::vector<std::string>>& List,
                            class Process* Proc)
 {
     List->push_back("/* Includes ******************************************************************/");
-    List->push_back("#include \"rvm.h\"");
-    List->push_back(std::string("#include \"proc_")+Proc->Name_Lower+".h\"");
     List->push_back("#include \"rvm_guest.h\"");
     List->push_back("/* End Includes **************************************************************/");
 }
@@ -2494,12 +2492,19 @@ void Gen_Tool::Process_Main_Hdr(class Process* Proc)
         this->Process_Main_Hdr_Mem(List, Mem);
     List->push_back("");
 
+    /* The total priority numbers */
+    List->push_back("/* Total priority number */");
+    Gen_Tool::Macro_Int(List, "RVM_PREEMPT_PRIO_NUM", this->Plat->Proj->Kernel->Kern_Prio, MACRO_ADD);
+    /* The VM priority numbers */
+    List->push_back("/* Total VM priority number */");
+    Gen_Tool::Macro_Int(List, "RVM_PREEMPT_VPRIO_NUM", this->Plat->Proj->Monitor->Virt_Prio, MACRO_ADD);
     /* The number of MPU regions */
     List->push_back("/* The number of MPU regions */");
     Gen_Tool::Macro_Int(List, "RVM_MPU_REGIONS", this->Plat->Chip->Region, MACRO_ADD);
     /* The kernel memory slot order */
     List->push_back("/* The kernel memory allocation granularity order */");
     Gen_Tool::Macro_Int(List, "RVM_KMEM_SLOT_ORDER", this->Plat->Proj->Kernel->Kmem_Order, MACRO_ADD);
+    List->push_back("");
 
     /* If this is a virtual machine, define the following */
     if(Proc->Type==PROC_VIRTUAL)
@@ -2513,7 +2518,12 @@ void Gen_Tool::Process_Main_Hdr(class Process* Proc)
         Gen_Tool::Macro_Hex(List, "RVM_VIRT_REG_BASE", Virt->Reg_Base, MACRO_ADD);
         List->push_back("/* Hypercall parameter base address */");
         Gen_Tool::Macro_Hex(List, "RVM_VIRT_PARAM_BASE", Virt->Param_Base, MACRO_ADD);
+        List->push_back("");
     }
+
+    /* By default, debugging is turned off */
+    Gen_Tool::Macro_Hex(List, "RVM_DEBUG_LOG", 0, MACRO_ADD);
+
     List->push_back(std::string("#endif /* __PROC_")+Proc->Name_Upper+"_H__ */");
     List->push_back("/* End Defines ***************************************************************/");
     List->push_back("");
@@ -2539,18 +2549,6 @@ void Gen_Tool::Process_Main_Hdr(class Process* Proc)
     Gen_Tool::Line_Write(List, Proc->Main_Header_Output+"rvm_guest_conf.h");
 }
 /* End Function:Gen_Tool::Process_Main_Hdr ***********************************/
-
-/* Begin Function:Gen_Tool::Virtual_Conf_Hdr **********************************
-Description : Create the configuration header for VMs.
-Input       : class Virtual* Virt - The process to generate for.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Gen_Tool::Virtual_Conf_Hdr(class Virtual* Virt)
-{
-
-}
-/* End Function:Gen_Tool::Virtual_Conf_Hdr ***********************************/
 
 /* Begin Function:Gen_Tool::Process_Stub_Src **********************************
 Description : Create the stubs for process. Each invocation and thread will
@@ -2697,24 +2695,44 @@ void Gen_Tool::Process_Desc_Src(class Process* Proc)
     List->push_back(std::string("const rvm_ptr_t RVM_Proc_Header[")+std::to_string(Proc->Header_Front)+"]=");
     List->push_back("{");
     if(Proc->Type==PROC_NATIVE)
-        List->push_back(std::string("    0x")+Main::Hex(MAGIC_NATIVE)+"U,");
-    else
-        List->push_back(std::string("    0x")+Main::Hex(MAGIC_VIRTUAL)+"U,");
-    List->push_back(std::string("    0x")+Main::Hex(Proc->Header_Front+1)+"U,");
-    for(const std::unique_ptr<class Thread>& Thd:Proc->Thread)
     {
-        /* The first thread's entry is always the main entry point that just immediately follows the header */
-        if(Thd.get()==Proc->Thread[0].get())
+        List->push_back(std::string("    0x")+Main::Hex(MAGIC_NATIVE)+"U,");
+        List->push_back(std::string("    0x")+Main::Hex(Proc->Header_Front-2)+"U,");
+        /* For native processes, the first (higher-priority) thread's entry is always the main entry point
+         * that immediately follows the header, and aligned to a 16-byte boundary. This is due to some
+         * proprietary toolchains requiring an aligned address - e.g. ARMCC. */
+        for(const std::unique_ptr<class Thread>& Thd:Proc->Thread)
         {
-            List->push_back(std::string("    ((rvm_ptr_t)RVM_Proc_Header)+0x")+
-                            Main::Hex(Proc->Header_Front*(this->Plat->Plat->Wordlength/8))+"U,");
+            if(Thd.get()==Proc->Thread[0].get())
+                List->push_back(std::string("    0x")+Main::Hex(Proc->Code_Front)+"U,");
+            else
+                List->push_back(std::string("    (rvm_ptr_t)Thd_")+Thd->Name+",");
         }
-        else
-            List->push_back(std::string("    Thd_")+Thd->Name+",");
+    }
+    else
+    {
+        List->push_back(std::string("    0x")+Main::Hex(MAGIC_VIRTUAL)+"U,");
+        List->push_back(std::string("    0x")+Main::Hex(Proc->Header_Front-2)+"U,");
+        /* For native processes, the second (lower-priority) thread's entry is always the main entry point.
+         * Because the second thread that runs the user code is low-priority, and the guest VM may have
+         * already defined a main function. We want to be as less intrusive as possible */
+        for(const std::unique_ptr<class Thread>& Thd:Proc->Thread)
+        {
+            if(Thd.get()==Proc->Thread[1].get())
+            {
+                ASSERT(Thd->Name=="User");
+                List->push_back(std::string("    0x")+Main::Hex(Proc->Code_Front)+"U,");
+            }
+            else
+            {
+                ASSERT(Thd->Name=="Vector");
+                List->push_back(std::string("    (rvm_ptr_t)Thd_")+Thd->Name+",");
+            }
+        }
     }
     for(const std::unique_ptr<class Invocation>& Inv:Proc->Invocation)
-        List->push_back(std::string("    Inv_")+Inv->Name+",");
-    List->push_back("_RVM_Jmp_Stub,");
+        List->push_back(std::string("    (rvm_ptr_t)Inv_")+Inv->Name+",");
+    List->push_back("    (rvm_ptr_t)_RVM_Jmp_Stub,");
     List->push_back("};");
     List->push_back("/* End Public Global Varibles ************************************************/");
     List->push_back("");
@@ -2751,12 +2769,19 @@ void Gen_Tool::Process_Main_Src(class Process* Proc)
     this->Process_Inc(List, Proc);
     List->push_back("");
 
+    /* Global variable - The only one being the process header reference */
+    List->push_back("/* Public Global Variables ***************************************************/");
+    List->push_back(std::string("extern const rvm_ptr_t RVM_Proc_Header[")+std::to_string(Proc->Header_Front)+"];");
+    List->push_back("/* End Public Global Varibles ************************************************/");
+    List->push_back("");
+
     /* Private prototypes */
     if(Proc->Type==PROC_VIRTUAL)
     {
         List->push_back("/* Private C Function Prototypes *********************************************/");
         List->push_back("rvm_ret_t Thd_Vector(rvm_ret_t Param);");
         List->push_back("rvm_ret_t Thd_User(rvm_ret_t Param);");
+        List->push_back("extern void _RVM_Jmp_Stub(void);");
         List->push_back("/* End Private C Function Prototypes *****************************************/");
         List->push_back("");
     }
@@ -2768,7 +2793,6 @@ void Gen_Tool::Process_Main_Src(class Process* Proc)
         for(const std::unique_ptr<class Invocation>& Inv:Proc->Invocation)
             List->push_back(std::string("extern rvm_ret_t Inv_")+Inv->Name+"(rvm_ret_t Param);");
         List->push_back("extern void _RVM_Jmp_Stub(void);");
-        List->push_back(std::string("extern const rvm_ptr_t RVM_Proc_Header[")+std::to_string(Proc->Header_Front)+"];");
         List->push_back("/* End Private C Function Prototypes *****************************************/");
         List->push_back("");
     }
@@ -2782,13 +2806,15 @@ void Gen_Tool::Process_Main_Src(class Process* Proc)
                             Input, Output, "rvm_ret_t - Should never return.");
         List->push_back("rvm_ret_t Thd_Vector(rvm_ret_t Param)");
         List->push_back("{");
-        List->push_back("    /* Check header validity */");
-        List->push_back("    RVM_ASSERT(RVM_Proc_Header[0]==RVM_MAGIC_NATIVE);");
+        List->push_back("    /* Check header validity on boot */");
+        List->push_back("    RVM_ASSERT(RVM_Proc_Header[0]==RVM_MAGIC_VIRTUAL);");
         List->push_back(std::string("    RVM_ASSERT(RVM_Proc_Header[1]==")+std::to_string(Proc->Header_Front-2)+"U);");
         List->push_back("");
-        List->push_back("    /* DO NOT MODIFY - ESSENTIAL FOR VIRTUAL MACHINE */");
+        List->push_back("    /* DO NOT MODIFY - THIS HIGH PRIORITY THREAD IS DESIGNED TO RUN ON UNINITIALIZED RAM */");
         List->push_back("    RVM_Virt_Init();");
         List->push_back("    RVM_Vect_Loop();");
+        List->push_back("");
+        List->push_back("    return 0;");
         List->push_back("}");
         Gen_Tool::Func_Foot(List, "Thd_Vector");
         List->push_back("");
@@ -2797,7 +2823,8 @@ void Gen_Tool::Process_Main_Src(class Process* Proc)
                             Input, Output, "rvm_ret_t - Should never return.");
         List->push_back("rvm_ret_t Thd_User(rvm_ret_t Param)");
         List->push_back("{");
-        List->push_back("    /* USELESS STUB - MAIN FUNCTION PROVIDED BY ORIGINAL OPERATING SYSTEM */");
+        List->push_back("    /* USELESS STUB - MAIN FUNCTION PROVIDED BY GUEST OS, THIS MAY BE OPTIMIZED OUT */");
+        List->push_back("    return 0;");
         List->push_back("}");
         Gen_Tool::Func_Foot(List, "Thd_User");
         List->push_back("");
@@ -2839,6 +2866,32 @@ void Gen_Tool::Process_Main_Src(class Process* Proc)
     Gen_Tool::Line_Write(List, Proc->Main_Source_Output+Filename);
 }
 /* End Function:Gen_Tool::Process_Main_Src ***********************************/
+
+/* Begin Function:Gen_Tool::Process_Virt_Hdr **********************************
+Description : Create the configuration header for VMs.
+Input       : class Virtual* Virt - The process to generate for.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Gen_Tool::Process_Virt_Hdr(class Virtual* Virt)
+{
+    /* Just pass this work down so that the underlying layers will handle it */
+    this->Guest_Map[Virt->Guest_Type]->Process_Virt_Hdr(Virt);
+}
+/* End Function:Gen_Tool::Process_Virt_Hdr ***********************************/
+
+/* Begin Function:Gen_Tool::Process_Virt_Src **********************************
+Description : Create the configuration header for VMs.
+Input       : class Virtual* Virt - The process to generate for.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Gen_Tool::Process_Virt_Src(class Virtual* Virt)
+{
+    /* Just pass this work down so that the underlying layers will handle it */
+    this->Guest_Map[Virt->Guest_Type]->Process_Virt_Src(Virt, this->Tool_Map[Virt->Toolchain]);
+}
+/* End Function:Gen_Tool::Process_Virt_Src ***********************************/
 
 /* Begin Function:Gen_Tool::Process_Linker ************************************
 Description : Create the linker script file for process.
@@ -2905,7 +2958,7 @@ void Gen_Tool::Process_Proj(class Process* Proc)
     Include.push_back(Proc->Main_Header_Output);
     /* For virtual machines, add all the VM files as well */
     if(Proc->Type==PROC_VIRTUAL)
-        Include.push_back(Virt->Config_Header_Output);
+        Include.insert(Include.end(), Virt->Virtual_Include.begin(), Virt->Virtual_Include.end());
     Gen_Tool::Path_Conv(Proc->Project_Output, Include);
 
     for(const std::string& Path:Include)
@@ -2930,9 +2983,7 @@ void Gen_Tool::Process_Proj(class Process* Proc)
     }
     /* For virtual machines, add all the VM files as well */
     else
-    {
-
-    }
+        Source.insert(Source.end(), Virt->Virtual_Source.begin(), Virt->Virtual_Source.end());
     Gen_Tool::Path_Conv(Proc->Project_Output, Source);
 
     for(const std::string& Path:Source)
@@ -2953,14 +3004,61 @@ void Gen_Tool::Process_Proj(class Process* Proc)
 /* End Function:Gen_Tool::Process_Proj ***************************************/
 
 /* Begin Function:Gen_Tool::Workspace_Proj ************************************
-Description : Create the workspace file for all projects.
+Description : Create the workspace file for all projects. This generation is only
+              possible when (1) all workspace projects use the same build system,
+              and (2) the build system supports a workspace project.
 Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
 void Gen_Tool::Workspace_Proj(void)
 {
+    class Build_Gen* Build;
+    class Proj_Info* Proj;
+    std::unique_ptr<std::vector<std::string>> List;
+    std::vector<std::string> Project;
 
+    Proj=this->Plat->Proj;
+
+    /* The user can waive workspace generation if this "None" */
+    if(Proj->Buildsystem=="None")
+        return;
+
+    /* This buildsystem must be in the map, and no other buildsystems other than it should exist */
+    if((this->Build_Map.find(Proj->Buildsystem)==this->Build_Map.end())||(this->Build_Map.size()!=1))
+    {
+        Main::Info("> Underlying projects have hybrid buildsystems, skipping workspace generation.");
+        return;
+    }
+
+    Build=this->Build_Map[Proj->Buildsystem];
+
+    /* Does the file already exist? */
+    Proj->Workspace_Filename=Proj->Name_Lower+Build->Suffix(BUILD_WORKSPACE);
+    if(std::filesystem::exists(Proj->Workspace_Output+Proj->Workspace_Filename)==true)
+    {
+        /* See if we'll use forced regenerate */
+        if(Proj->Workspace_Overwrite==0)
+        {
+            Main::Info(std::string("> File '")+Proj->Workspace_Filename+"' exists, skipping generation.");
+            return;
+        }
+    }
+
+    List=std::make_unique<std::vector<std::string>>();
+
+    /* Add all project file positions */
+    Project.push_back(Proj->Kernel->Project_Output+Proj->Kernel->Project_Filename);
+    Project.push_back(Proj->Monitor->Project_Output+Proj->Monitor->Project_Filename);
+    for(const std::unique_ptr<class Process>& Proc:Proj->Process)
+        Project.push_back(Proc->Project_Output+Proc->Project_Filename);
+    Gen_Tool::Path_Conv(Proj->Workspace_Output, Project);
+
+    for(const std::string& Path:Project)
+        Main::Info(std::string("> > ")+Path);
+
+    Build->Workspace_Proj(List, Project);
+    Gen_Tool::Line_Write(List, Proj->Workspace_Output+Proj->Workspace_Filename);
 }
 /* End Function:Gen_Tool::Workspace_Proj *************************************/
 }

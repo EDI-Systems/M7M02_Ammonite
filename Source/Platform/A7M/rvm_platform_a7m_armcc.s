@@ -57,6 +57,14 @@ __initial_sp
     DCD                 RVM_Vmmd
     DCD                 RVM_Vctd
 	DCD                 _RVM_Jmp_Stub	    ; Jump stub
+    NOP                                     ; Catch something in the middle
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
     B                   __main              ; Real entry
 ;/* End Entry List ***********************************************************/
 

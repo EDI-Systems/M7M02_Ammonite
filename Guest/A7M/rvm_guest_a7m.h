@@ -301,34 +301,81 @@ struct RVM_Regs
 /*****************************************************************************/
 extern void RVM_Putchar(char Char);
 
-extern rvm_ret_t RVM_Svc(rvm_ptr_t Op_Capid, rvm_ptr_t Arg1, rvm_ptr_t Arg2, rvm_ptr_t Arg3);
-extern rvm_ret_t RVM_A7M_Svc_Kern(rvm_ptr_t Op_Capid, rvm_ptr_t ID, rvm_ptr_t* Args);
+extern rvm_ret_t RVM_Svc(rvm_ptr_t Op_Capid,
+                         rvm_ptr_t Arg1,
+                         rvm_ptr_t Arg2,
+                         rvm_ptr_t Arg3);
+extern rvm_ret_t RVM_A7M_Svc_Kern(rvm_ptr_t Op_Capid,
+                                  rvm_ptr_t ID,
+                                  rvm_ptr_t* Args);
 /* Invocation */
-extern rvm_ret_t RVM_Inv_Act(rvm_cid_t Cap_Inv, rvm_ptr_t Param, rvm_ptr_t* Retval);
+extern rvm_ret_t RVM_Inv_Act(rvm_cid_t Cap_Inv,
+                             rvm_ptr_t Param,
+                             rvm_ptr_t* Retval);
 extern rvm_ret_t RVM_Inv_Ret(rvm_ptr_t Retval);
-extern rvm_ret_t RVM_Thd_Sched_Rcv(rvm_cid_t Cap_Thd, rvm_ptr_t* Fault);
+extern rvm_ret_t RVM_Thd_Sched_Rcv(rvm_cid_t Cap_Thd,
+                                   rvm_ptr_t* Fault);
 
-extern rvm_ptr_t RVM_Fetch_And(rvm_ptr_t* Ptr, rvm_ptr_t Operand);
+extern rvm_ptr_t RVM_Fetch_And(volatile rvm_ptr_t* Ptr,
+                               rvm_ptr_t Operand);
 extern rvm_ptr_t _RVM_MSB_Get(rvm_ptr_t Val);
 
-extern void RVM_Entry(rvm_ptr_t Entry, rvm_ptr_t Stack_Base, rvm_ptr_t Stack_Size, rvm_ptr_t Param);
+extern void RVM_Entry(rvm_ptr_t Entry,
+                      rvm_ptr_t Stack_Base,
+                      rvm_ptr_t Stack_Size,
+                      rvm_ptr_t Param);
 
-EXTERN rvm_ret_t RVM_A7M_Kern_Act(rvm_cid_t Cap_Kern, rvm_ptr_t Func_ID, rvm_ptr_t Sub_ID, rvm_ptr_t* Params);
-EXTERN rvm_ret_t RVM_A7M_Pgtbl_Entry_Mod(rvm_cid_t Cap_Kern, rvm_cid_t Cap_Pgtbl, rvm_ptr_t Vaddr, rvm_ptr_t Type);
-EXTERN rvm_ret_t RVM_A7M_Int_Local_Mod(rvm_cid_t Cap_Kern, rvm_ptr_t Int_Num, rvm_ptr_t Operation, rvm_ptr_t Param);
-EXTERN rvm_ret_t RVM_A7M_Int_Local_Trig(rvm_cid_t Cap_Kern, rvm_ptr_t Int_Num);
-EXTERN rvm_ret_t RVM_A7M_Cache_Mod(rvm_cid_t Cap_Kern, rvm_ptr_t Cache_ID, rvm_ptr_t Operation, rvm_ptr_t Param);
-EXTERN rvm_ret_t RVM_A7M_Cache_Maint(rvm_cid_t Cap_Kern, rvm_ptr_t Cache_ID, rvm_ptr_t Operation, rvm_ptr_t Param);
-EXTERN rvm_ret_t RVM_A7M_Prfth_Mod(rvm_cid_t Cap_Kern, rvm_ptr_t Prfth_ID, rvm_ptr_t Operation, rvm_ptr_t Param);
-EXTERN rvm_ret_t RVM_A7M_Perf_CPU_Func(rvm_cid_t Cap_Kern, rvm_ptr_t Freg_ID, rvm_ptr_t* Content);
-EXTERN rvm_ret_t RVM_A7M_Perf_Mon_Mod(rvm_cid_t Cap_Kern, rvm_ptr_t Perf_ID, rvm_ptr_t Operation, rvm_ptr_t Param);
-EXTERN rvm_ret_t RVM_A7M_Perf_Cycle_Mod(rvm_cid_t Cap_Kern, rvm_ptr_t Cycle_ID, 
-                                        rvm_ptr_t Operation, rvm_ptr_t Value, rvm_ptr_t* Content);
-EXTERN rvm_ret_t RVM_A7M_Debug_Print(rvm_cid_t Cap_Kern, char Char);
-EXTERN rvm_ret_t RVM_A7M_Debug_Reg_Mod(rvm_cid_t Cap_Kern, rvm_cid_t Cap_Thd, 
-                                       rvm_ptr_t Operation, rvm_ptr_t Value, rvm_ptr_t* Content);
-EXTERN rvm_ret_t RVM_A7M_Debug_Inv_Mod(rvm_cid_t Cap_Kern, rvm_cid_t Cap_Thd, 
-                                       rvm_ptr_t Layer, rvm_ptr_t Operation, rvm_ptr_t Value, rvm_ptr_t* Content);
+EXTERN rvm_ret_t RVM_A7M_Kern_Act(rvm_cid_t Cap_Kern,
+                                  rvm_ptr_t Func_ID,
+                                  rvm_ptr_t Sub_ID,
+                                  rvm_ptr_t* Params);
+EXTERN rvm_ret_t RVM_A7M_Pgtbl_Entry_Mod(rvm_cid_t Cap_Kern,
+                                         rvm_cid_t Cap_Pgtbl,
+                                         rvm_ptr_t Vaddr,
+                                         rvm_ptr_t Type);
+EXTERN rvm_ret_t RVM_A7M_Int_Local_Mod(rvm_cid_t Cap_Kern,
+                                       rvm_ptr_t Int_Num,
+                                       rvm_ptr_t Operation,
+                                       rvm_ptr_t Param);
+EXTERN rvm_ret_t RVM_A7M_Int_Local_Trig(rvm_cid_t Cap_Kern,
+                                        rvm_ptr_t Int_Num);
+EXTERN rvm_ret_t RVM_A7M_Cache_Mod(rvm_cid_t Cap_Kern,
+                                   rvm_ptr_t Cache_ID,
+                                   rvm_ptr_t Operation,
+                                   rvm_ptr_t Param);
+EXTERN rvm_ret_t RVM_A7M_Cache_Maint(rvm_cid_t Cap_Kern,
+                                     rvm_ptr_t Cache_ID,
+                                     rvm_ptr_t Operation,
+                                     rvm_ptr_t Param);
+EXTERN rvm_ret_t RVM_A7M_Prfth_Mod(rvm_cid_t Cap_Kern,
+                                   rvm_ptr_t Prfth_ID,
+                                   rvm_ptr_t Operation,
+                                   rvm_ptr_t Param);
+EXTERN rvm_ret_t RVM_A7M_Perf_CPU_Func(rvm_cid_t Cap_Kern,
+                                       rvm_ptr_t Freg_ID,
+                                       rvm_ptr_t* Content);
+EXTERN rvm_ret_t RVM_A7M_Perf_Mon_Mod(rvm_cid_t Cap_Kern,
+                                      rvm_ptr_t Perf_ID,
+                                      rvm_ptr_t Operation,
+                                      rvm_ptr_t Param);
+EXTERN rvm_ret_t RVM_A7M_Perf_Cycle_Mod(rvm_cid_t Cap_Kern,
+                                        rvm_ptr_t Cycle_ID, 
+                                        rvm_ptr_t Operation,
+                                        rvm_ptr_t Value,
+                                        rvm_ptr_t* Content);
+EXTERN rvm_ret_t RVM_A7M_Debug_Print(rvm_cid_t Cap_Kern,
+                                     char Char);
+EXTERN rvm_ret_t RVM_A7M_Debug_Reg_Mod(rvm_cid_t Cap_Kern,
+                                       rvm_cid_t Cap_Thd, 
+                                       rvm_ptr_t Operation,
+                                       rvm_ptr_t Value,
+                                       rvm_ptr_t* Content);
+EXTERN rvm_ret_t RVM_A7M_Debug_Inv_Mod(rvm_cid_t Cap_Kern,
+                                       rvm_cid_t Cap_Thd, 
+                                       rvm_ptr_t Layer,
+                                       rvm_ptr_t Operation,
+                                       rvm_ptr_t Value,
+                                       rvm_ptr_t* Content);
 /*****************************************************************************/
 #endif /* __RVM_GUEST_A7M__ */
 /* End Public C Function Prototypes ******************************************/

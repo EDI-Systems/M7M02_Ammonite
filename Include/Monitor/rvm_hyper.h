@@ -133,7 +133,7 @@ struct RVM_Map_Struct
     /* The head to insert into the receiver */
     struct RVM_List Dst_Head;
     /* The pointer to the virtual machine to send to */
-    struct RVM_Virt_Struct* Virt;
+    volatile struct RVM_Virt_Struct* Virt;
     /* The virtual machine vector to send to */
     rvm_ptr_t Vect_Num;
 };
@@ -169,11 +169,11 @@ struct RVM_Vmap_Struct
     rvm_ptr_t Vect_Num;
 
     /* Register base */
-    struct RVM_Regs* Reg_Base;
+    volatile struct RVM_Regs* Reg_Base;
     /* Parameter base */
-    struct RVM_Param* Param_Base;
+    volatile struct RVM_Param* Param_Base;
     /* Vector flag base */
-    struct RVM_Vctf* Vctf_Base;
+    volatile struct RVM_Vctf* Vctf_Base;
     /* Header base address */
     rvm_ptr_t Header_Base;
     /* Vector signal endpoint capability */
@@ -263,22 +263,28 @@ struct RVM_Header
 /*****************************************************************************/
 #if(RVM_PREEMPT_VPRIO_NUM!=0U)
 /* Helper functions */
-static void _RVM_Set_Rdy(struct RVM_Virt_Struct* Virt);
-static void _RVM_Clr_Rdy(struct RVM_Virt_Struct* Virt);
-static struct RVM_Virt_Struct* _RVM_Get_High_Rdy(void);
-static void _RVM_Virt_Switch(struct RVM_Virt_Struct* From, struct RVM_Virt_Struct* To);
-static rvm_ret_t _RVM_Check_Vect_Pend(struct RVM_Virt_Struct* Virt);
-static void _RVM_Set_Vect_Flag(struct RVM_Virt_Struct* Virt, rvm_ptr_t Vect_Num);
-static void _RVM_Send_Virt_Vects(struct RVM_List* Array, rvm_ptr_t Num);
-static void _RVM_Wheel_Ins(struct RVM_Virt_Struct* Virt, rvm_ptr_t Period);
-static void _RVM_Timer_Send(struct RVM_Virt_Struct* Virt);
+static void _RVM_Set_Rdy(volatile struct RVM_Virt_Struct* Virt);
+static void _RVM_Clr_Rdy(volatile struct RVM_Virt_Struct* Virt);
+static volatile struct RVM_Virt_Struct* _RVM_Get_High_Rdy(void);
+static void _RVM_Virt_Switch(volatile struct RVM_Virt_Struct* From, 
+                             volatile struct RVM_Virt_Struct* To);
+static rvm_ret_t _RVM_Check_Vect_Pend(volatile struct RVM_Virt_Struct* Virt);
+static void _RVM_Set_Vect_Flag(volatile struct RVM_Virt_Struct* Virt,
+                               rvm_ptr_t Vect_Num);
+static void _RVM_Send_Virt_Vects(volatile struct RVM_List* Array,
+                                 rvm_ptr_t Num);
+static void _RVM_Wheel_Ins(volatile struct RVM_Virt_Struct* Virt,
+                           rvm_ptr_t Period);
+static void _RVM_Timer_Send(volatile struct RVM_Virt_Struct* Virt);
 static void _RVM_Recover_Cur_Virt(void);
 static rvm_ptr_t _RVM_Flagset_Get(volatile struct RVM_Flag* Set);
 
 static rvm_ret_t RVM_Hyp_Ena_Int(void);
 static rvm_ret_t RVM_Hyp_Dis_Int(void);
-static rvm_ret_t RVM_Hyp_Reg_Phys(rvm_ptr_t Phys_Num, rvm_ptr_t Vect_Num);
-static rvm_ret_t RVM_Hyp_Reg_Evt(rvm_ptr_t Evt_Num, rvm_ptr_t Vect_Num);
+static rvm_ret_t RVM_Hyp_Reg_Phys(rvm_ptr_t Phys_Num,
+                                  rvm_ptr_t Vect_Num);
+static rvm_ret_t RVM_Hyp_Reg_Evt(rvm_ptr_t Evt_Num,
+                                 rvm_ptr_t Vect_Num);
 static rvm_ret_t RVM_Hyp_Del_Vect(rvm_ptr_t Vect_Num);
 static rvm_ret_t RVM_Hyp_Add_Evt(rvm_ptr_t Evt_Num);
 static rvm_ret_t RVM_Hyp_Del_Evt(rvm_ptr_t Evt_Num);
@@ -301,24 +307,24 @@ static rvm_ret_t RVM_Hyp_Feed_Wdog(void);
 /*****************************************************************************/
 #if(RVM_PREEMPT_VPRIO_NUM!=0U)
 /* Timestamp value */
-__EXTERN__ rvm_ptr_t RVM_Tick;
+__EXTERN__ volatile rvm_ptr_t RVM_Tick;
 /* Timer wheel - This system supports about 64 VMs maximum, thus we set the timer wheel at 32 */
-__EXTERN__ struct RVM_List RVM_Wheel[RVM_WHEEL_SIZE];
+__EXTERN__ volatile struct RVM_List RVM_Wheel[RVM_WHEEL_SIZE];
 
 /* The current virtual machine */
-__EXTERN__ struct RVM_Virt_Struct* RVM_Cur_Virt;
+__EXTERN__ volatile struct RVM_Virt_Struct* volatile RVM_Cur_Virt;
 /* Virtual machine run queue and bitmap */
-__EXTERN__ rvm_ptr_t RVM_Bitmap[RVM_PRIO_BITMAP];
-__EXTERN__ struct RVM_List RVM_Run[RVM_PREEMPT_VPRIO_NUM];
+__EXTERN__ volatile rvm_ptr_t RVM_Bitmap[RVM_PRIO_BITMAP];
+__EXTERN__ volatile struct RVM_List RVM_Run[RVM_PREEMPT_VPRIO_NUM];
 
 /* Event header */
-__EXTERN__ struct RVM_List RVM_Evt[RVM_VIRT_EVENT_NUM];
+__EXTERN__ volatile struct RVM_List RVM_Evt[RVM_VIRT_EVENT_NUM];
 /* Physical vector header */
-__EXTERN__ struct RVM_List RVM_Phys[RVM_PHYS_VECT_NUM];
+__EXTERN__ volatile struct RVM_List RVM_Phys[RVM_PHYS_VECT_NUM];
 
 /* Mapping database */
-__EXTERN__ struct RVM_List RVM_Map_Free;
-__EXTERN__ struct RVM_Map_Struct RVM_Map[RVM_VIRT_MAP_NUM];
+__EXTERN__ volatile struct RVM_List RVM_Map_Free;
+__EXTERN__ volatile struct RVM_Map_Struct RVM_Map[RVM_VIRT_MAP_NUM];
 #endif
 /*****************************************************************************/
 
@@ -329,7 +335,9 @@ __EXTERN__ struct RVM_Map_Struct RVM_Map[RVM_VIRT_MAP_NUM];
 #if(RVM_PREEMPT_VPRIO_NUM!=0U)
 /* Initializing functions */
 __EXTERN__ void RVM_Virt_Init(void);
-__EXTERN__ void RVM_Virt_Crt(struct RVM_Virt_Struct* Virt, const struct RVM_Vmap_Struct* Vmap, rvm_ptr_t Virt_Num);
+__EXTERN__ void RVM_Virt_Crt(struct RVM_Virt_Struct* Virt,
+                             const struct RVM_Vmap_Struct* Vmap,
+                             rvm_ptr_t Virt_Num);
 /* VM daemons */
 __EXTERN__ void RVM_Timd(void);
 __EXTERN__ void RVM_Vmmd(void);

@@ -29,11 +29,11 @@ Description : The system call wrapper of RVM virtual machine monitor.
 
 /* Begin Function:RVM_List_Crt ************************************************
 Description : Create a doubly linkled list.
-Input       : struct RVM_List* Head - The pointer to the list head.
+Input       : volatile struct RVM_List* Head - The pointer to the list head.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void RVM_List_Crt(struct RVM_List* Head)
+void RVM_List_Crt(volatile struct RVM_List* Head)
 {
     Head->Prev=Head;
     Head->Next=Head;
@@ -42,12 +42,13 @@ void RVM_List_Crt(struct RVM_List* Head)
 
 /* Begin Function:RVM_List_Del ************************************************
 Description : Delete a node from the doubly-linked list.
-Input       : struct RVM_List* Prev - The prevoius node of the target node.
-              struct RVM_List* Next - The next node of the target node.
+Input       : volatile struct RVM_List* Prev - The prevoius node of the target node.
+              volatile struct RVM_List* Next - The next node of the target node.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void RVM_List_Del(struct RVM_List* Prev, struct RVM_List* Next)
+void RVM_List_Del(volatile struct RVM_List* Prev,
+                  volatile struct RVM_List* Next)
 {
     Next->Prev=Prev;
     Prev->Next=Next;
@@ -56,15 +57,15 @@ void RVM_List_Del(struct RVM_List* Prev, struct RVM_List* Next)
 
 /* Begin Function:RVM_List_Ins ************************************************
 Description : Insert a node to the doubly-linked list.
-Input       : struct RVM_List* New - The new node to insert.
-              struct RVM_List* Prev - The previous node.
-              struct RVM_List* Next - The next node.
+Input       : volatile struct RVM_List* New - The new node to insert.
+              volatile struct RVM_List* Prev - The previous node.
+              volatile struct RVM_List* Next - The next node.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void RVM_List_Ins(struct RVM_List* New,
-                  struct RVM_List* Prev,
-                  struct RVM_List* Next)
+void RVM_List_Ins(volatile struct RVM_List* New,
+                  volatile struct RVM_List* Prev,
+                  volatile struct RVM_List* Next)
 {
     Next->Prev=New;
     New->Next=Next;
@@ -231,10 +232,14 @@ Input       : rvm_cid_t Cap_Captbl_Crt - The capability table that contains the 
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-rvm_ret_t RVM_Captbl_Crt(rvm_cid_t Cap_Captbl_Crt, rvm_cid_t Cap_Kmem, 
-                         rvm_cid_t Cap_Captbl, rvm_ptr_t Raddr, rvm_ptr_t Entry_Num)
+rvm_ret_t RVM_Captbl_Crt(rvm_cid_t Cap_Captbl_Crt,
+                         rvm_cid_t Cap_Kmem, 
+                         rvm_cid_t Cap_Captbl,
+                         rvm_ptr_t Raddr,
+                         rvm_ptr_t Entry_Num)
 {
-    return RVM_CAP_OP(RVM_SVC_CAPTBL_CRT, Cap_Captbl_Crt, 
+    return RVM_CAP_OP(RVM_SVC_CAPTBL_CRT,
+                      Cap_Captbl_Crt, 
                       RVM_PARAM_D1(Cap_Kmem)|RVM_PARAM_D0(Cap_Captbl),
                       Raddr,
                       Entry_Num);
@@ -250,12 +255,14 @@ Input       : rvm_cid_t Cap_Captbl_Del - The capability table that contains the 
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-rvm_ret_t RVM_Captbl_Del(rvm_cid_t Cap_Captbl_Del, rvm_cid_t Cap_Del)
+rvm_ret_t RVM_Captbl_Del(rvm_cid_t Cap_Captbl_Del,
+                         rvm_cid_t Cap_Del)
 {
-    return RVM_CAP_OP(RVM_SVC_CAPTBL_DEL, Cap_Captbl_Del,
+    return RVM_CAP_OP(RVM_SVC_CAPTBL_DEL,
+                      Cap_Captbl_Del,
                       Cap_Del,
-                      0,
-                      0);
+                      0U,
+                      0U);
 }
 /* End Function:RVM_Captbl_Del ***********************************************/
 
@@ -267,12 +274,14 @@ Input       : rvm_cid_t Cap_Captbl_Frz  - The capability table containing the ca
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-rvm_ret_t RVM_Captbl_Frz(rvm_cid_t Cap_Captbl_Frz, rvm_cid_t Cap_Frz)
+rvm_ret_t RVM_Captbl_Frz(rvm_cid_t Cap_Captbl_Frz,
+                         rvm_cid_t Cap_Frz)
 {
-        return RVM_CAP_OP(RVM_SVC_CAPTBL_FRZ, Cap_Captbl_Frz,
+        return RVM_CAP_OP(RVM_SVC_CAPTBL_FRZ,
+                          Cap_Captbl_Frz,
                           Cap_Frz,
-                          0,
-                          0);
+                          0U,
+                          0U);
 }
 /* End Function:RVM_Captbl_Frz ***********************************************/
 
@@ -292,12 +301,17 @@ Input       : rvm_cid_t Cap_Captbl_Dst - The capability to the destination capab
 Output      : None.
 Return      : rvm_ret_t - If the mapping is successful, it will return 0; else error code.
 ******************************************************************************/
-rvm_ret_t RVM_Captbl_Add(rvm_cid_t Cap_Captbl_Dst, rvm_cid_t Cap_Dst, 
-                         rvm_cid_t Cap_Captbl_Src, rvm_cid_t Cap_Src, rvm_ptr_t Flags)
+rvm_ret_t RVM_Captbl_Add(rvm_cid_t Cap_Captbl_Dst,
+                         rvm_cid_t Cap_Dst, 
+                         rvm_cid_t Cap_Captbl_Src,
+                         rvm_cid_t Cap_Src,
+                         rvm_ptr_t Flags)
 {
-    return RVM_CAP_OP(RVM_SVC_CAPTBL_ADD, 0,
+    return RVM_CAP_OP(RVM_SVC_CAPTBL_ADD,
+                      0,
                       RVM_PARAM_D1(Cap_Captbl_Dst)|RVM_PARAM_D0(Cap_Dst),
-                      RVM_PARAM_D1(Cap_Captbl_Src)|RVM_PARAM_D0(Cap_Src),Flags);
+                      RVM_PARAM_D1(Cap_Captbl_Src)|RVM_PARAM_D0(Cap_Src),
+                      Flags);
 }
 /* End Function:RVM_Captbl_Add ***********************************************/
 
@@ -318,11 +332,16 @@ Input       : rvm_cid_t Cap_Captbl_Dst - The capability to the destination capab
 Output      : None.
 Return      : rvm_ret_t - If the mapping is successful, it will return 0; else error code.
 ******************************************************************************/
-rvm_ret_t RVM_Captbl_Pgtbl(rvm_cid_t Cap_Captbl_Dst, rvm_cid_t Cap_Dst, 
-                           rvm_cid_t Cap_Captbl_Src, rvm_cid_t Cap_Src,
-                           rvm_ptr_t Start, rvm_ptr_t End, rvm_ptr_t Flags)
+rvm_ret_t RVM_Captbl_Pgtbl(rvm_cid_t Cap_Captbl_Dst,
+                           rvm_cid_t Cap_Dst, 
+                           rvm_cid_t Cap_Captbl_Src,
+                           rvm_cid_t Cap_Src,
+                           rvm_ptr_t Start,
+                           rvm_ptr_t End,
+                           rvm_ptr_t Flags)
 {
-    return RVM_CAP_OP(RVM_SVC_CAPTBL_ADD, 0,
+    return RVM_CAP_OP(RVM_SVC_CAPTBL_ADD,
+                      0,
                       RVM_PARAM_D1(Cap_Captbl_Dst)|RVM_PARAM_D0(Cap_Dst),
                       RVM_PARAM_D1(Cap_Captbl_Src)|RVM_PARAM_D0(Cap_Src),
                       RVM_PGTBL_FLAG(End,Start,Flags));
@@ -345,11 +364,15 @@ Input       : rvm_cid_t Cap_Captbl_Dst - The capability to the destination capab
 Output      : None.
 Return      : rvm_ret_t - If the mapping is successful, it will return 0; else error code.
 ******************************************************************************/
-rvm_ret_t RVM_Captbl_Kern(rvm_cid_t Cap_Captbl_Dst, rvm_cid_t Cap_Dst, 
-                          rvm_cid_t Cap_Captbl_Src, rvm_cid_t Cap_Src,
-                          rvm_ptr_t Start, rvm_ptr_t End)
+rvm_ret_t RVM_Captbl_Kern(rvm_cid_t Cap_Captbl_Dst,
+                          rvm_cid_t Cap_Dst, 
+                          rvm_cid_t Cap_Captbl_Src,
+                          rvm_cid_t Cap_Src,
+                          rvm_ptr_t Start,
+                          rvm_ptr_t End)
 {
-    return RVM_CAP_OP(RVM_SVC_CAPTBL_ADD, 0,
+    return RVM_CAP_OP(RVM_SVC_CAPTBL_ADD,
+                      0,
                       RVM_PARAM_D1(Cap_Captbl_Dst)|RVM_PARAM_D0(Cap_Dst),
                       RVM_PARAM_D1(Cap_Captbl_Src)|RVM_PARAM_D0(Cap_Src),
                       RVM_KERN_FLAG(End,Start));
@@ -373,11 +396,16 @@ Input       : rvm_cid_t Cap_Captbl_Dst - The capability to the destination capab
 Output      : None.
 Return      : rvm_ret_t - If the mapping is successful, it will return 0; else error code.
 ******************************************************************************/
-rvm_ret_t RVM_Captbl_Kmem(rvm_cid_t Cap_Captbl_Dst, rvm_cid_t Cap_Dst, 
-                          rvm_cid_t Cap_Captbl_Src, rvm_cid_t Cap_Src,
-                          rvm_ptr_t Start, rvm_ptr_t End, rvm_ptr_t Flags)
+rvm_ret_t RVM_Captbl_Kmem(rvm_cid_t Cap_Captbl_Dst,
+                          rvm_cid_t Cap_Dst, 
+                          rvm_cid_t Cap_Captbl_Src,
+                          rvm_cid_t Cap_Src,
+                          rvm_ptr_t Start,
+                          rvm_ptr_t End,
+                          rvm_ptr_t Flags)
 {
-    return RVM_CAP_OP(RVM_KMEM_SVC(End,RVM_SVC_CAPTBL_ADD), RVM_KMEM_CAPID(Start,Flags),
+    return RVM_CAP_OP(RVM_KMEM_SVC(End,RVM_SVC_CAPTBL_ADD),
+                      RVM_KMEM_CAPID(Start,Flags),
                       RVM_PARAM_D1(Cap_Captbl_Dst)|RVM_PARAM_D0(Cap_Dst),
                       RVM_PARAM_D1(Cap_Captbl_Src)|RVM_PARAM_D0(Cap_Src),
                       RVM_KMEM_FLAG(End,Start));
@@ -393,12 +421,14 @@ Input       : rvm_cid_t Cap_Captbl_Rem - The capability to the capability table 
 Output      : None.
 Return      : rvm_ret_t - If the mapping is successful, it will return 0; else error code.
 ******************************************************************************/
-rvm_ret_t RVM_Captbl_Rem(rvm_cid_t Cap_Captbl_Rem, rvm_cid_t Cap_Rem)
+rvm_ret_t RVM_Captbl_Rem(rvm_cid_t Cap_Captbl_Rem,
+                         rvm_cid_t Cap_Rem)
 {
-    return RVM_CAP_OP(RVM_SVC_CAPTBL_REM, Cap_Captbl_Rem,
+    return RVM_CAP_OP(RVM_SVC_CAPTBL_REM,
+                      Cap_Captbl_Rem,
                       Cap_Rem,
-                      0,
-                      0);
+                      0U,
+                      0U);
 }
 /* End Function:_RVM_Captbl_Rem **********************************************/
 
@@ -417,9 +447,14 @@ Return      : rvm_ret_t - If the call is successful, it will return whatever the
                           for setting the return value. On failure, a context switch 
                           in the kernel fucntion is banned.
 ******************************************************************************/
-rvm_ret_t RVM_Kern_Act(rvm_cid_t Cap_Kern, rvm_ptr_t Func_ID, rvm_ptr_t Sub_ID, rvm_ptr_t Param1, rvm_ptr_t Param2)
+rvm_ret_t RVM_Kern_Act(rvm_cid_t Cap_Kern,
+                       rvm_ptr_t Func_ID,
+                       rvm_ptr_t Sub_ID,
+                       rvm_ptr_t Param1,
+                       rvm_ptr_t Param2)
 {
-    return RVM_CAP_OP(RVM_SVC_KERN, Cap_Kern,
+    return RVM_CAP_OP(RVM_SVC_KERN,
+                      Cap_Kern,
                       RVM_PARAM_D1(Sub_ID)|RVM_PARAM_D0(Func_ID),
                       Param1,
                       Param2);
@@ -448,12 +483,18 @@ Input       : rvm_cid_t Cap_Captbl - The capability table that contains the newl
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-rvm_ret_t RVM_Pgtbl_Crt(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Kmem, rvm_cid_t Cap_Pgtbl, 
-                        rvm_ptr_t Raddr, rvm_ptr_t Base_Addr, rvm_ptr_t Top_Flag,
-                        rvm_ptr_t Size_Order, rvm_ptr_t Num_Order)
+rvm_ret_t RVM_Pgtbl_Crt(rvm_cid_t Cap_Captbl,
+                        rvm_cid_t Cap_Kmem,
+                        rvm_cid_t Cap_Pgtbl, 
+                        rvm_ptr_t Raddr,
+                        rvm_ptr_t Base_Addr,
+                        rvm_ptr_t Top_Flag,
+                        rvm_ptr_t Size_Order,
+                        rvm_ptr_t Num_Order)
 {
     
-    return RVM_CAP_OP(RVM_PGTBL_SVC(Num_Order,RVM_SVC_PGTBL_CRT), Cap_Captbl,
+    return RVM_CAP_OP(RVM_PGTBL_SVC(Num_Order, RVM_SVC_PGTBL_CRT),
+                      Cap_Captbl,
                       RVM_PARAM_D1(Cap_Kmem)|RVM_PARAM_Q1(Cap_Pgtbl)|RVM_PARAM_Q0(Size_Order),
                       Raddr, 
                       Base_Addr|Top_Flag);
@@ -472,12 +513,14 @@ Input       : rvm_cid_t Cap_Captbl - The capability to the captbl that may conta
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-rvm_ret_t RVM_Pgtbl_Del(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Pgtbl)
+rvm_ret_t RVM_Pgtbl_Del(rvm_cid_t Cap_Captbl,
+                        rvm_cid_t Cap_Pgtbl)
 {
-    return RVM_CAP_OP(RVM_SVC_PGTBL_DEL, Cap_Captbl,
+    return RVM_CAP_OP(RVM_SVC_PGTBL_DEL,
+                      Cap_Captbl,
                       Cap_Pgtbl,
-                      0,
-                      0);
+                      0U,
+                      0U);
 }
 /* End Function:RVM_Pgtbl_Del ************************************************/
 
@@ -500,10 +543,15 @@ Input       : rvm_cid_t Cap_Pgtbl_Dst - The capability to the destination page d
 Output      : None.
 Return      : rvm_ret_t - If the unmapping is successful, it will return 0; else error code.
 ******************************************************************************/
-rvm_ret_t RVM_Pgtbl_Add(rvm_cid_t Cap_Pgtbl_Dst, rvm_ptr_t Pos_Dst, rvm_ptr_t Flags_Dst,
-                        rvm_cid_t Cap_Pgtbl_Src, rvm_ptr_t Pos_Src, rvm_ptr_t Index)
+rvm_ret_t RVM_Pgtbl_Add(rvm_cid_t Cap_Pgtbl_Dst,
+                        rvm_ptr_t Pos_Dst,
+                        rvm_ptr_t Flags_Dst,
+                        rvm_cid_t Cap_Pgtbl_Src,
+                        rvm_ptr_t Pos_Src,
+                        rvm_ptr_t Index)
 {
-    return RVM_CAP_OP(RVM_SVC_PGTBL_ADD, RVM_PARAM_D0(Flags_Dst),
+    return RVM_CAP_OP(RVM_SVC_PGTBL_ADD,
+                      RVM_PARAM_D0(Flags_Dst),
                       RVM_PARAM_D1(Cap_Pgtbl_Dst)|RVM_PARAM_D0(Pos_Dst),
                       RVM_PARAM_D1(Cap_Pgtbl_Src)|RVM_PARAM_D0(Pos_Src),
                       Index);
@@ -517,12 +565,14 @@ Input       : rvm_cid_t Cap_Pgtbl - The capability to the page table. 2-Level.
 Output      : None.
 Return      : rvm_ret_t - If the unmapping is successful, it will return 0; else error code.
 ******************************************************************************/
-rvm_ret_t RVM_Pgtbl_Rem(rvm_cid_t Cap_Pgtbl, rvm_ptr_t Pos)
+rvm_ret_t RVM_Pgtbl_Rem(rvm_cid_t Cap_Pgtbl,
+                        rvm_ptr_t Pos)
 {
-    return RVM_CAP_OP(RVM_SVC_PGTBL_REM, 0,
+    return RVM_CAP_OP(RVM_SVC_PGTBL_REM,
+                      0,
                       Cap_Pgtbl,
                       Pos,
-                      0);
+                      0U);
 }
 /* End Function:RVM_Pgtbl_Rem ************************************************/
 
@@ -536,9 +586,13 @@ Input       : rvm_cid_t Cap_Pgtbl_Parent - The capability to the parent page tab
 Output      : None.
 Return      : rvm_ret_t - If the mapping is successful, it will return 0; else error code.
 ******************************************************************************/
-rvm_ret_t RVM_Pgtbl_Con(rvm_cid_t Cap_Pgtbl_Parent, rvm_ptr_t Pos, rvm_cid_t Cap_Pgtbl_Child, rvm_ptr_t Flags_Child)
+rvm_ret_t RVM_Pgtbl_Con(rvm_cid_t Cap_Pgtbl_Parent,
+                        rvm_ptr_t Pos,
+                        rvm_cid_t Cap_Pgtbl_Child,
+                        rvm_ptr_t Flags_Child)
 {
-    return RVM_CAP_OP(RVM_SVC_PGTBL_CON, 0,
+    return RVM_CAP_OP(RVM_SVC_PGTBL_CON,
+                      0,
                       RVM_PARAM_D1(Cap_Pgtbl_Parent)|RVM_PARAM_D0(Cap_Pgtbl_Child),
                       Pos,
                       Flags_Child);
@@ -555,9 +609,12 @@ Input       : rvm_cid_t Cap_Pgtbl_Parent - The capability to the parent page tab
 Output      : None.
 Return      : rvm_ret_t - If the mapping is successful, it will return 0; else error code.
 ******************************************************************************/
-rvm_ret_t RVM_Pgtbl_Des(rvm_cid_t Cap_Pgtbl_Parent, rvm_ptr_t Pos, rvm_cid_t Cap_Pgtbl_Child)
+rvm_ret_t RVM_Pgtbl_Des(rvm_cid_t Cap_Pgtbl_Parent,
+                        rvm_ptr_t Pos,
+                        rvm_cid_t Cap_Pgtbl_Child)
 {
-    return RVM_CAP_OP(RVM_SVC_PGTBL_DES, 0,
+    return RVM_CAP_OP(RVM_SVC_PGTBL_DES,
+                      0,
                       Cap_Pgtbl_Parent,
                       Pos,
                       Cap_Pgtbl_Child);
@@ -578,10 +635,13 @@ Input       : rvm_cid_t Cap_Captbl_Crt - The capability to the capability table 
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-rvm_ret_t RVM_Proc_Crt(rvm_cid_t Cap_Captbl_Crt, rvm_cid_t Cap_Proc,
-                       rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Pgtbl)
+rvm_ret_t RVM_Proc_Crt(rvm_cid_t Cap_Captbl_Crt,
+                       rvm_cid_t Cap_Proc,
+                       rvm_cid_t Cap_Captbl,
+                       rvm_cid_t Cap_Pgtbl)
 {
-    return RVM_CAP_OP(RVM_SVC_PROC_CRT, Cap_Captbl_Crt,
+    return RVM_CAP_OP(RVM_SVC_PROC_CRT,
+                      Cap_Captbl_Crt,
                       Cap_Proc,
                       Cap_Captbl,
                       Cap_Pgtbl);
@@ -595,12 +655,13 @@ Input       : rvm_cid_t Cap_Captbl - The capability to the capability table. 2-L
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-rvm_ret_t RVM_Proc_Del(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Proc)
+rvm_ret_t RVM_Proc_Del(rvm_cid_t Cap_Captbl,
+                       rvm_cid_t Cap_Proc)
 {
     return RVM_CAP_OP(RVM_SVC_PROC_DEL, Cap_Captbl,
                       Cap_Proc,
-                      0,
-                      0);
+                      0U,
+                      0U);
 }
 /* End Function:RVM_Proc_Del *************************************************/
 
@@ -613,12 +674,14 @@ Input       : rvm_cid_t Cap_Proc - The capability to the process that have been 
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-rvm_ret_t RVM_Proc_Cpt(rvm_cid_t Cap_Proc, rvm_cid_t Cap_Captbl)
+rvm_ret_t RVM_Proc_Cpt(rvm_cid_t Cap_Proc,
+                       rvm_cid_t Cap_Captbl)
 {
-    return RVM_CAP_OP(RVM_SVC_PROC_CPT, 0,
+    return RVM_CAP_OP(RVM_SVC_PROC_CPT,
+                      0,
                       Cap_Proc,
                       Cap_Captbl,
-                      0);
+                      0U);
 }
 /* End Function:RVM_Proc_Cpt *************************************************/
 
@@ -631,12 +694,14 @@ Input       : rvm_cid_t Cap_Proc - The capability slot that you want this newly 
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-rvm_ret_t RVM_Proc_Pgt(rvm_cid_t Cap_Proc, rvm_cid_t Cap_Pgtbl)
+rvm_ret_t RVM_Proc_Pgt(rvm_cid_t Cap_Proc,
+                       rvm_cid_t Cap_Pgtbl)
 {
-    return RVM_CAP_OP(RVM_SVC_PROC_PGT, 0,
+    return RVM_CAP_OP(RVM_SVC_PROC_PGT,
+                      0,
                       Cap_Proc,
                       Cap_Pgtbl,
-                      0);
+                      0U);
 }
 /* End Function:RVM_Proc_Pgt *************************************************/
 
@@ -653,10 +718,15 @@ Input       : rvm_cid_t Cap_Captbl - The capability to the capability table. 2-L
 Output      : None.
 Return      : rvm_ret_t - If successful, the Thread ID; or an error code.
 ******************************************************************************/
-rvm_ret_t RVM_Thd_Crt(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Kmem, rvm_cid_t Cap_Thd,
-                  rvm_cid_t Cap_Proc, rvm_ptr_t Max_Prio, rvm_ptr_t Raddr)
+rvm_ret_t RVM_Thd_Crt(rvm_cid_t Cap_Captbl,
+                      rvm_cid_t Cap_Kmem,
+                      rvm_cid_t Cap_Thd,
+                      rvm_cid_t Cap_Proc,
+                      rvm_ptr_t Max_Prio,
+                      rvm_ptr_t Raddr)
 {
-    return RVM_CAP_OP(RVM_SVC_THD_CRT, Cap_Captbl, 
+    return RVM_CAP_OP(RVM_SVC_THD_CRT,
+                      Cap_Captbl, 
                       RVM_PARAM_D1(Cap_Kmem)|RVM_PARAM_D0(Cap_Thd),
                       RVM_PARAM_D1(Cap_Proc)|RVM_PARAM_D0(Max_Prio),
                       Raddr);
@@ -670,12 +740,14 @@ Input       : rvm_cid_t Cap_Captbl - The capability to the capability table. 2-L
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-rvm_ret_t RVM_Thd_Del(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Thd)
+rvm_ret_t RVM_Thd_Del(rvm_cid_t Cap_Captbl,
+                      rvm_cid_t Cap_Thd)
 {
-    return RVM_CAP_OP(RVM_SVC_THD_DEL, Cap_Captbl,
+    return RVM_CAP_OP(RVM_SVC_THD_DEL,
+                      Cap_Captbl,
                       Cap_Thd,
-                      0,
-                      0);
+                      0U,
+                      0U);
 }
 /* End Function:RVM_Thd_Del **************************************************/
 
@@ -689,9 +761,13 @@ Input       : rvm_cid_t Cap_Thd - The capability to the thread. 2-Level.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-rvm_ret_t RVM_Thd_Exec_Set(rvm_cid_t Cap_Thd, rvm_ptr_t Entry, rvm_ptr_t Stack, rvm_ptr_t Param)
+rvm_ret_t RVM_Thd_Exec_Set(rvm_cid_t Cap_Thd,
+                           rvm_ptr_t Entry,
+                           rvm_ptr_t Stack,
+                           rvm_ptr_t Param)
 {
-    return RVM_CAP_OP(RVM_SVC_THD_EXEC_SET, Cap_Thd,
+    return RVM_CAP_OP(RVM_SVC_THD_EXEC_SET,
+                      Cap_Thd,
                       Entry, 
                       Stack,
                       Param);
@@ -707,12 +783,14 @@ Input       : rvm_cid_t Cap_Thd - The capability to the thread. 2-Level.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-rvm_ret_t RVM_Thd_Hyp_Set(rvm_cid_t Cap_Thd, rvm_ptr_t Kaddr)
+rvm_ret_t RVM_Thd_Hyp_Set(rvm_cid_t Cap_Thd,
+                          rvm_ptr_t Kaddr)
 {
-    return RVM_CAP_OP(RVM_SVC_THD_HYP_SET, 0,
+    return RVM_CAP_OP(RVM_SVC_THD_HYP_SET,
+                      0,
                       Cap_Thd,
                       Kaddr,
-                      0);
+                      0U);
 }
 /* End Function:RVM_Thd_Hyp_Set **********************************************/
 
@@ -741,9 +819,14 @@ Input       : rvm_cid_t Cap_Thd - The capability to the thread. 2-Level.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-rvm_ret_t RVM_Thd_Sched_Bind(rvm_cid_t Cap_Thd, rvm_cid_t Cap_Thd_Sched, rvm_cid_t Cap_Sig, rvm_tid_t TID, rvm_ptr_t Prio)
+rvm_ret_t RVM_Thd_Sched_Bind(rvm_cid_t Cap_Thd,
+                             rvm_cid_t Cap_Thd_Sched,
+                             rvm_cid_t Cap_Sig,
+                             rvm_tid_t TID,
+                             rvm_ptr_t Prio)
 {
-    return RVM_CAP_OP(RVM_SVC_THD_SCHED_BIND, Cap_Thd,
+    return RVM_CAP_OP(RVM_SVC_THD_SCHED_BIND,
+                      Cap_Thd,
                       RVM_PARAM_D1(Cap_Thd_Sched)|RVM_PARAM_D0(Cap_Sig),
                       TID, 
                       Prio);
@@ -760,12 +843,14 @@ Input       : rvm_cid_t Cap_Thd - The capability to the thread. 2-Level.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-rvm_ret_t RVM_Thd_Sched_Prio(rvm_cid_t Cap_Thd, rvm_ptr_t Prio)
+rvm_ret_t RVM_Thd_Sched_Prio(rvm_cid_t Cap_Thd,
+                             rvm_ptr_t Prio)
 {
-    return RVM_CAP_OP(RVM_SVC_THD_SCHED_PRIO, 0,
+    return RVM_CAP_OP(RVM_SVC_THD_SCHED_PRIO,
+                      0,
                       Cap_Thd,
                       Prio, 
-                      0);
+                      0U);
 }
 /* End Function:RVM_Thd_Sched_Prio *******************************************/
 
@@ -779,10 +864,11 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 rvm_ret_t RVM_Thd_Sched_Free(rvm_cid_t Cap_Thd)
 {
-    return RVM_CAP_OP(RVM_SVC_THD_SCHED_FREE, 0,
+    return RVM_CAP_OP(RVM_SVC_THD_SCHED_FREE,
+                      0,
                       Cap_Thd,
-                      0, 
-                      0);
+                      0U, 
+                      0U);
 }
 /* End Function:RVM_Thd_Sched_Free *******************************************/
 
@@ -806,9 +892,12 @@ Input       : rvm_cid_t Cap_Thd_Dst - The destination thread. 2-Level.
 Output      : None.
 Return      : rvm_ret_t - If successful, the destination time amount; or an error code.
 ******************************************************************************/
-rvm_ret_t RVM_Thd_Time_Xfer(rvm_cid_t Cap_Thd_Dst, rvm_cid_t Cap_Thd_Src, rvm_ptr_t Time)
+rvm_ret_t RVM_Thd_Time_Xfer(rvm_cid_t Cap_Thd_Dst,
+                            rvm_cid_t Cap_Thd_Src,
+                            rvm_ptr_t Time)
 {
-    return RVM_CAP_OP(RVM_SVC_THD_TIME_XFER, 0,
+    return RVM_CAP_OP(RVM_SVC_THD_TIME_XFER,
+                      0,
                       Cap_Thd_Dst,
                       Cap_Thd_Src, 
                       Time);
@@ -832,12 +921,14 @@ Input       : rvm_cid_t Cap_Thd - The capability to the thread. 2-Level. If this
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-rvm_ret_t RVM_Thd_Swt(rvm_cid_t Cap_Thd, rvm_ptr_t Full_Yield)
+rvm_ret_t RVM_Thd_Swt(rvm_cid_t Cap_Thd,
+                      rvm_ptr_t Full_Yield)
 {
-    return RVM_CAP_OP(RVM_SVC_THD_SWT, 0,
+    return RVM_CAP_OP(RVM_SVC_THD_SWT,
+                      0,
                       Cap_Thd,
                       Full_Yield, 
-                      0);
+                      0U);
 }
 /* End Function:RVM_Thd_Swt **************************************************/
 
@@ -850,12 +941,14 @@ Input       : rvm_cid_t Cap_Captbl - The capability to the capability table to u
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-rvm_ret_t RVM_Sig_Crt(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Sig)
+rvm_ret_t RVM_Sig_Crt(rvm_cid_t Cap_Captbl,
+                      rvm_cid_t Cap_Sig)
 {
-    return RVM_CAP_OP(RVM_SVC_SIG_CRT, Cap_Captbl,
+    return RVM_CAP_OP(RVM_SVC_SIG_CRT,
+                      Cap_Captbl,
                       Cap_Sig,
-                      0,
-                      0);
+                      0U,
+                      0U);
 }
 /* End Function:RVM_Sig_Crt **************************************************/
 
@@ -867,12 +960,14 @@ Input       : rvm_cid_t Cap_Captbl - The capability to the capability table to d
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-rvm_ret_t RVM_Sig_Del(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Sig)
+rvm_ret_t RVM_Sig_Del(rvm_cid_t Cap_Captbl,
+                      rvm_cid_t Cap_Sig)
 {
-    return RVM_CAP_OP(RVM_SVC_SIG_DEL, Cap_Captbl,
+    return RVM_CAP_OP(RVM_SVC_SIG_DEL,
+                      Cap_Captbl,
                       Cap_Sig,
-                      0,
-                      0);
+                      0U,
+                      0U);
 }
 /* End Function:RVM_Sig_Del **************************************************/
 
@@ -885,10 +980,11 @@ Return      : rvm_ret_t - If successful, 0, or an error code.
 ******************************************************************************/
 rvm_ret_t RVM_Sig_Snd(rvm_cid_t Cap_Sig)
 {
-    return RVM_CAP_OP(RVM_SVC_SIG_SND, 0,
+    return RVM_CAP_OP(RVM_SVC_SIG_SND,
+                      0,
                       Cap_Sig,
-                      0, 
-                      0);
+                      0U, 
+                      0U);
 }
 /* End Function:RVM_Sig_Snd **************************************************/
 
@@ -907,12 +1003,14 @@ Output      : None.
 Return      : rvm_ret_t - If successful, a non-negative number containing the number of
                           signals received will be returned; else an error code.
 ******************************************************************************/
-rvm_ret_t RVM_Sig_Rcv(rvm_cid_t Cap_Sig, rvm_ptr_t Option)
+rvm_ret_t RVM_Sig_Rcv(rvm_cid_t Cap_Sig,
+                      rvm_ptr_t Option)
 {
-    return RVM_CAP_OP(RVM_SVC_SIG_RCV, 0,
+    return RVM_CAP_OP(RVM_SVC_SIG_RCV,
+                      0,
                       Cap_Sig,
                       Option, 
-                      0);
+                      0U);
 }
 /* End Function:RVM_Sig_Rcv **************************************************/
 
@@ -928,10 +1026,14 @@ Input       : rvm_cid_t Cap_Captbl - The capability to the capability table to u
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-rvm_ret_t RVM_Inv_Crt(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Kmem, 
-                      rvm_cid_t Cap_Inv, rvm_cid_t Cap_Proc, rvm_ptr_t Raddr)
+rvm_ret_t RVM_Inv_Crt(rvm_cid_t Cap_Captbl,
+                      rvm_cid_t Cap_Kmem, 
+                      rvm_cid_t Cap_Inv,
+                      rvm_cid_t Cap_Proc,
+                      rvm_ptr_t Raddr)
 {
-    return RVM_CAP_OP(RVM_SVC_INV_CRT, Cap_Captbl,
+    return RVM_CAP_OP(RVM_SVC_INV_CRT,
+                      Cap_Captbl,
                       RVM_PARAM_D1(Cap_Kmem)|RVM_PARAM_D0(Cap_Inv),
                       Cap_Proc, 
                       Raddr);
@@ -946,12 +1048,14 @@ Input       : rvm_cid_t Cap_Captbl - The capability to the capability table to d
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-rvm_ret_t RVM_Inv_Del(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Inv)
+rvm_ret_t RVM_Inv_Del(rvm_cid_t Cap_Captbl,
+                      rvm_cid_t Cap_Inv)
 {
-    return RVM_CAP_OP(RVM_SVC_INV_DEL, Cap_Captbl,
+    return RVM_CAP_OP(RVM_SVC_INV_DEL,
+                      Cap_Captbl,
                       Cap_Inv,
-                      0, 
-                      0);
+                      0U, 
+                      0U);
 }
 /* End Function:RVM_Inv_Del **************************************************/
 
@@ -967,9 +1071,13 @@ Input       : rvm_cid_t Cap_Inv - The capability to the invocation stub. 2-Level
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-rvm_ret_t RVM_Inv_Set(rvm_cid_t Cap_Inv, rvm_ptr_t Entry, rvm_ptr_t Stack, rvm_ptr_t Fault_Ret_Flag)
+rvm_ret_t RVM_Inv_Set(rvm_cid_t Cap_Inv,
+                      rvm_ptr_t Entry,
+                      rvm_ptr_t Stack,
+                      rvm_ptr_t Fault_Ret_Flag)
 {
-    return RVM_CAP_OP(RVM_SVC_INV_SET, 0,
+    return RVM_CAP_OP(RVM_SVC_INV_SET,
+                      0,
                       RVM_PARAM_D1(Fault_Ret_Flag)|RVM_PARAM_D0(Cap_Inv),
                       Entry, 
                       Stack);

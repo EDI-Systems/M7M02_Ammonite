@@ -42,6 +42,9 @@ public:
     /* void */ Guest_Gen(const std::string& Name,
                          class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip);
     virtual /* void */ ~Guest_Gen(void){};
+
+    virtual void Process_Virt_Hdr(class Virtual* Virt)=0;
+    virtual void Process_Virt_Src(class Virtual* Virt, class Tool_Gen* Tool)=0;
 };
 /*****************************************************************************/
 /* __GUEST_GEN_HPP_CLASSES__ */

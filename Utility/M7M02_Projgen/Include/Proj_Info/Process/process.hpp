@@ -14,13 +14,13 @@ namespace RVM_GEN
 #define __PROCESS_HPP_DEFS__
 /*****************************************************************************/
 /* Process type */
-#define PROC_NATIVE         (0)
-#define PROC_VIRTUAL        (1)
+#define PROC_NATIVE             (0)
+#define PROC_VIRTUAL            (1)
 
 /* Magic number for native processes */
-#define MAGIC_NATIVE        (0x49535953U)
+#define MAGIC_NATIVE            (0x49535953U)
 /* Magic number for virtual machine processes */
-#define MAGIC_VIRTUAL       (0x56495254U)
+#define MAGIC_VIRTUAL           (0x56495254U)
 
 /* Every processes have the some capability slots at the front preserved.
  * For processes,
@@ -28,8 +28,11 @@ namespace RVM_GEN
  * For virtual machines,
  * [0] is the Vmmd hypercall endpoint,
  * [1] is the Vctd vector endpoint. */
-#define PROC_CAPTBL_BASE    (1)
-#define VIRT_CAPTBL_BASE    (2)
+#define PROC_CAPTBL_BASE        (1)
+#define VIRT_CAPTBL_BASE        (2)
+
+/* Description header alignment */
+#define PROC_DESCHDR_ALIGN(X)   ROUND_UP(X,16)
 /*****************************************************************************/
 /* __PROCESS_HPP_DEFS__ */
 #endif
@@ -120,8 +123,10 @@ public:
     /* Data memory */
     ptr_t Data_Base;
     ptr_t Data_Size;
-    /* Code memory frontier for entries */
+    /* Header entry frontier */
     ptr_t Header_Front;
+    /* Actual code frontier */
+    ptr_t Code_Front;
 
     /* Linker filename */
     std::string Linker_Filename;

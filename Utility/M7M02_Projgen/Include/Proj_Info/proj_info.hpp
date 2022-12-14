@@ -36,6 +36,11 @@ public:
     std::string Name_Lower;
     /* The project version */
     std::string Version;
+    /* Workspace build system */
+    std::string Buildsystem;
+    /* Workspace output folder & overwrite */
+    std::string Workspace_Output;
+    ptr_t Workspace_Overwrite;
     /* Chip information */
     std::unique_ptr<class Chip> Chip;
 
@@ -63,6 +68,9 @@ public:
     std::map<std::string,class Process*> Process_Map;
     /* The virtual machine information - some processes are VMs */
     std::vector<class Virtual*> Virtual;
+
+    /* Workspace filename */
+    std::string Workspace_Filename;
 
     /* void */ Proj_Info(xml_node_t* Root);
 

@@ -55,24 +55,8 @@ do \
     RVM_PRINTU_S(STR3); \
 } \
 while(0U)
-    
-#if(RVM_DEBUG_LOG==1U)
-#define RVM_LOG_I(INT)                              RVM_PRINTU_I(INT)
-#define RVM_LOG_U(UINT)                             RVM_PRINTU_U(UINT)
-#define RVM_LOG_S(STR)                              RVM_PRINTU_S(STR)
-#define RVM_LOG_SIS(STR1,INT,STR2)                  RVM_PRINTU_SIS(STR1,INT,STR2)
-#define RVM_LOG_SUS(STR1,UINT,STR2)                 RVM_PRINTU_SUS(STR1,UINT,STR2)
-#define RVM_LOG_SISUS(STR1,INT,STR2,UINT,STR3)      RVM_PRINTU_SISUS(STR1,INT,STR2,UINT,STR3)
-#else
-#define RVM_LOG_I(INT)                              while(0U)
-#define RVM_LOG_U(UINT)                             while(0U)
-#define RVM_LOG_S(STR)                              while(0U)
-#define RVM_LOG_SIS(STR1,INT,STR2)                  while(0U)
-#define RVM_LOG_SUS(STR1,UINT,STR2)                 while(0U)
-#define RVM_LOG_SISUS(STR1,INT,STR2,UINT,STR3)      while(0U)
-#endif
 
-/* Assert macro */
+/* Assert macro - won't be optimized out */
 #define RVM_ASSERT(X) \
 do \
 { \
@@ -223,6 +207,22 @@ while(0U)
 /*****************************************************************************/
 #include "rvm_guest_conf.h"
 
+#if(RVM_DEBUG_LOG==1U)
+#define RVM_LOG_I(INT)                              RVM_PRINTU_I(INT)
+#define RVM_LOG_U(UINT)                             RVM_PRINTU_U(UINT)
+#define RVM_LOG_S(STR)                              RVM_PRINTU_S(STR)
+#define RVM_LOG_SIS(STR1,INT,STR2)                  RVM_PRINTU_SIS(STR1,INT,STR2)
+#define RVM_LOG_SUS(STR1,UINT,STR2)                 RVM_PRINTU_SUS(STR1,UINT,STR2)
+#define RVM_LOG_SISUS(STR1,INT,STR2,UINT,STR3)      RVM_PRINTU_SISUS(STR1,INT,STR2,UINT,STR3)
+#else
+#define RVM_LOG_I(INT)                              while(0U)
+#define RVM_LOG_U(UINT)                             while(0U)
+#define RVM_LOG_S(STR)                              while(0U)
+#define RVM_LOG_SIS(STR1,INT,STR2)                  while(0U)
+#define RVM_LOG_SUS(STR1,UINT,STR2)                 while(0U)
+#define RVM_LOG_SISUS(STR1,INT,STR2,UINT,STR3)      while(0U)
+#endif
+
 #ifdef RVM_VIRT_VECT_NUM
 /* Register space */
 #define RVM_REGS                                    ((volatile struct RVM_Regs*)RVM_VIRT_REG_BASE)
@@ -231,7 +231,7 @@ while(0U)
 /* Vector space */
 #define RVM_VECT_FLAG                               ((volatile struct RVM_Vect_Flag*)RVM_VIRT_VCTF_BASE)
 /* Vector bitmap size */
-#define RVM_VIRT_VCTF_BITMAP                        ((RVM_VIRT_VECT_NUM-1)/RVM_WORD_SIZE+1)
+#define RVM_VIRT_VCTF_BITMAP                        ((RVM_VIRT_VECT_NUM-1U)/RVM_WORD_SIZE+1U)
 
 /* Virtualization signal endpoints */
 /* Vector signal endpoint */
@@ -312,10 +312,10 @@ struct RVM_Vect_Handler
 #define EXTERN
 /*****************************************************************************/
 #ifdef RVM_VIRT_VECT_NUM
-static struct RVM_Vect_Handler RVM_Vect;
-static rvm_ptr_t RVM_Int_Enable;
-static rvm_ptr_t RVM_Vect_Pend;
-static rvm_ptr_t RVM_Vect_Active;
+static volatile struct RVM_Vect_Handler RVM_Vect;
+static volatile rvm_ptr_t RVM_Int_Enable;
+static volatile rvm_ptr_t RVM_Vect_Pend;
+static volatile rvm_ptr_t RVM_Vect_Active;
 #endif
 /*****************************************************************************/
 /* End Private Global Variables **********************************************/
@@ -336,70 +336,151 @@ static rvm_ptr_t RVM_Vect_Active;
 /* Public C Function Prototypes **********************************************/
 /*****************************************************************************/
 /* Memory clearing */
-EXTERN void RVM_Clear(void* Addr, rvm_ptr_t Size);
+EXTERN void RVM_Clear(volatile void* Addr,
+                      rvm_ptr_t Size);
+
 /* Doubly linked list */
-EXTERN void RVM_List_Crt(volatile struct RVM_List* Head);
-EXTERN void RVM_List_Del(volatile struct RVM_List* Prev, volatile struct RVM_List* Next);
-EXTERN void RVM_List_Ins(volatile struct RVM_List* New,
-                         volatile struct RVM_List* Prev,
-                         volatile struct RVM_List* Next);
+EXTERN void RVM_List_Crt(struct RVM_List* Head);
+EXTERN void RVM_List_Del(struct RVM_List* Prev,
+                         struct RVM_List* Next);
+EXTERN void RVM_List_Ins(struct RVM_List* New,
+                         struct RVM_List* Prev,
+                         struct RVM_List* Next);
+                         
 /* Capability table operations */
-EXTERN rvm_ret_t RVM_Captbl_Crt(rvm_cid_t Cap_Captbl_Crt, rvm_cid_t Cap_Kmem, 
-                                rvm_cid_t Cap_Captbl, rvm_ptr_t Raddr, rvm_ptr_t Entry_Num);
-EXTERN rvm_ret_t RVM_Captbl_Del(rvm_cid_t Cap_Captbl_Del, rvm_cid_t Cap_Del);
-EXTERN rvm_ret_t RVM_Captbl_Frz(rvm_cid_t Cap_Captbl_Frz, rvm_cid_t Cap_Frz);
-EXTERN rvm_ret_t RVM_Captbl_Add(rvm_cid_t Cap_Captbl_Dst, rvm_cid_t Cap_Dst, 
-                                rvm_cid_t Cap_Captbl_Src, rvm_cid_t Cap_Src, rvm_ptr_t Flags);
-EXTERN rvm_ret_t RVM_Captbl_Pgtbl(rvm_cid_t Cap_Captbl_Dst, rvm_cid_t Cap_Dst, 
-                                  rvm_cid_t Cap_Captbl_Src, rvm_cid_t Cap_Src,
-                                  rvm_ptr_t Start, rvm_ptr_t End, rvm_ptr_t Flags);
-EXTERN rvm_ret_t RVM_Captbl_Kern(rvm_cid_t Cap_Captbl_Dst, rvm_cid_t Cap_Dst, 
-                                 rvm_cid_t Cap_Captbl_Src, rvm_cid_t Cap_Src,
-                                 rvm_ptr_t Start, rvm_ptr_t End);
-EXTERN rvm_ret_t RVM_Captbl_Kmem(rvm_cid_t Cap_Captbl_Dst, rvm_cid_t Cap_Dst, 
-                                 rvm_cid_t Cap_Captbl_Src, rvm_cid_t Cap_Src,
-                                 rvm_ptr_t Start, rvm_ptr_t End, rvm_ptr_t Flags);
-EXTERN rvm_ret_t RVM_Captbl_Rem(rvm_cid_t Cap_Captbl_Rem, rvm_cid_t Cap_Rem);
+EXTERN rvm_ret_t RVM_Captbl_Crt(rvm_cid_t Cap_Captbl_Crt,
+                                rvm_cid_t Cap_Kmem, 
+                                rvm_cid_t Cap_Captbl,
+                                rvm_ptr_t Raddr,
+                                rvm_ptr_t Entry_Num);
+EXTERN rvm_ret_t RVM_Captbl_Del(rvm_cid_t Cap_Captbl_Del,
+                                rvm_cid_t Cap_Del);
+EXTERN rvm_ret_t RVM_Captbl_Frz(rvm_cid_t Cap_Captbl_Frz,
+                                rvm_cid_t Cap_Frz);
+EXTERN rvm_ret_t RVM_Captbl_Add(rvm_cid_t Cap_Captbl_Dst,
+                                rvm_cid_t Cap_Dst, 
+                                rvm_cid_t Cap_Captbl_Src,
+                                rvm_cid_t Cap_Src,
+                                rvm_ptr_t Flags);
+EXTERN rvm_ret_t RVM_Captbl_Pgtbl(rvm_cid_t Cap_Captbl_Dst,
+                                  rvm_cid_t Cap_Dst, 
+                                  rvm_cid_t Cap_Captbl_Src,
+                                  rvm_cid_t Cap_Src,
+                                  rvm_ptr_t Start,
+                                  rvm_ptr_t End,
+                                  rvm_ptr_t Flags);
+EXTERN rvm_ret_t RVM_Captbl_Kern(rvm_cid_t Cap_Captbl_Dst,
+                                 rvm_cid_t Cap_Dst, 
+                                 rvm_cid_t Cap_Captbl_Src,
+                                 rvm_cid_t Cap_Src,
+                                 rvm_ptr_t Start,
+                                 rvm_ptr_t End);
+EXTERN rvm_ret_t RVM_Captbl_Kmem(rvm_cid_t Cap_Captbl_Dst,
+                                 rvm_cid_t Cap_Dst, 
+                                 rvm_cid_t Cap_Captbl_Src,
+                                 rvm_cid_t Cap_Src,
+                                 rvm_ptr_t Start,
+                                 rvm_ptr_t End,
+                                 rvm_ptr_t Flags);
+EXTERN rvm_ret_t RVM_Captbl_Rem(rvm_cid_t Cap_Captbl_Rem,
+                                rvm_cid_t Cap_Rem);
+                                
 /* Kernel function operations */
-EXTERN rvm_ret_t RVM_Kern_Act(rvm_cid_t Cap_Kern, rvm_ptr_t Func_ID, rvm_ptr_t Sub_ID, rvm_ptr_t Param1, rvm_ptr_t Param2);
+EXTERN rvm_ret_t RVM_Kern_Act(rvm_cid_t Cap_Kern,
+                              rvm_ptr_t Func_ID,
+                              rvm_ptr_t Sub_ID,
+                              rvm_ptr_t Param1,
+                              rvm_ptr_t Param2);
+                              
 /* Page table operations */
-EXTERN rvm_ret_t RVM_Pgtbl_Crt(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Kmem, rvm_cid_t Cap_Pgtbl, 
-                               rvm_ptr_t Raddr, rvm_ptr_t Base_Addr, rvm_ptr_t Top_Flag,
-                               rvm_ptr_t Size_Order, rvm_ptr_t Num_Order);
-EXTERN rvm_ret_t RVM_Pgtbl_Del(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Pgtbl);
-EXTERN rvm_ret_t RVM_Pgtbl_Add(rvm_cid_t Cap_Pgtbl_Dst, rvm_ptr_t Pos_Dst, rvm_ptr_t Flags_Dst,
-                               rvm_cid_t Cap_Pgtbl_Src, rvm_ptr_t Pos_Src, rvm_ptr_t Index);
-EXTERN rvm_ret_t RVM_Pgtbl_Rem(rvm_cid_t Cap_Pgtbl, rvm_ptr_t Pos);
-EXTERN rvm_ret_t RVM_Pgtbl_Con(rvm_cid_t Cap_Pgtbl_Parent, rvm_ptr_t Pos, rvm_cid_t Cap_Pgtbl_Child, rvm_ptr_t Flags_Child);
-EXTERN rvm_ret_t RVM_Pgtbl_Des(rvm_cid_t Cap_Pgtbl_Parent, rvm_ptr_t Pos, rvm_cid_t Cap_Pgtbl_Child);
+EXTERN rvm_ret_t RVM_Pgtbl_Crt(rvm_cid_t Cap_Captbl,
+                               rvm_cid_t Cap_Kmem,
+                               rvm_cid_t Cap_Pgtbl, 
+                               rvm_ptr_t Raddr,
+                               rvm_ptr_t Base_Addr,
+                               rvm_ptr_t Top_Flag,
+                               rvm_ptr_t Size_Order,
+                               rvm_ptr_t Num_Order);
+EXTERN rvm_ret_t RVM_Pgtbl_Del(rvm_cid_t Cap_Captbl,
+                               rvm_cid_t Cap_Pgtbl);
+EXTERN rvm_ret_t RVM_Pgtbl_Add(rvm_cid_t Cap_Pgtbl_Dst,
+                               rvm_ptr_t Pos_Dst,
+                               rvm_ptr_t Flags_Dst,
+                               rvm_cid_t Cap_Pgtbl_Src,
+                               rvm_ptr_t Pos_Src,
+                               rvm_ptr_t Index);
+EXTERN rvm_ret_t RVM_Pgtbl_Rem(rvm_cid_t Cap_Pgtbl,
+                               rvm_ptr_t Pos);
+EXTERN rvm_ret_t RVM_Pgtbl_Con(rvm_cid_t Cap_Pgtbl_Parent,
+                               rvm_ptr_t Pos,
+                               rvm_cid_t Cap_Pgtbl_Child,
+                               rvm_ptr_t Flags_Child);
+EXTERN rvm_ret_t RVM_Pgtbl_Des(rvm_cid_t Cap_Pgtbl_Parent,
+                               rvm_ptr_t Pos,
+                               rvm_cid_t Cap_Pgtbl_Child);
+                               
 /* Process operations */
-EXTERN rvm_ret_t RVM_Proc_Crt(rvm_cid_t Cap_Captbl_Crt, rvm_cid_t Cap_Proc,
-                              rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Pgtbl);
-EXTERN rvm_ret_t RVM_Proc_Del(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Proc);
-EXTERN rvm_ret_t RVM_Proc_Cpt(rvm_cid_t Cap_Proc, rvm_cid_t Cap_Captbl);
-EXTERN rvm_ret_t RVM_Proc_Pgt(rvm_cid_t Cap_Proc, rvm_cid_t Cap_Pgtbl);
+EXTERN rvm_ret_t RVM_Proc_Crt(rvm_cid_t Cap_Captbl_Crt,
+                              rvm_cid_t Cap_Proc,
+                              rvm_cid_t Cap_Captbl,
+                              rvm_cid_t Cap_Pgtbl);
+EXTERN rvm_ret_t RVM_Proc_Del(rvm_cid_t Cap_Captbl,
+                              rvm_cid_t Cap_Proc);
+EXTERN rvm_ret_t RVM_Proc_Cpt(rvm_cid_t Cap_Proc,
+                              rvm_cid_t Cap_Captbl);
+EXTERN rvm_ret_t RVM_Proc_Pgt(rvm_cid_t Cap_Proc,
+                              rvm_cid_t Cap_Pgtbl);
+                              
 /* Thread operations */
-EXTERN rvm_ret_t RVM_Thd_Crt(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Kmem, rvm_cid_t Cap_Thd,
-                             rvm_cid_t Cap_Proc, rvm_ptr_t Max_Prio, rvm_ptr_t Raddr);
-EXTERN rvm_ret_t RVM_Thd_Del(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Thd);
-EXTERN rvm_ret_t RVM_Thd_Exec_Set(rvm_cid_t Cap_Thd, rvm_ptr_t Entry, rvm_ptr_t Stack, rvm_ptr_t Param);
-EXTERN rvm_ret_t RVM_Thd_Hyp_Set(rvm_cid_t Cap_Thd, rvm_ptr_t Kaddr);
-EXTERN rvm_ret_t RVM_Thd_Sched_Bind(rvm_cid_t Cap_Thd, rvm_cid_t Cap_Thd_Sched,
-                                    rvm_cid_t Cap_Sig, rvm_tid_t TID, rvm_ptr_t Prio);
-EXTERN rvm_ret_t RVM_Thd_Sched_Prio(rvm_cid_t Cap_Thd, rvm_ptr_t Prio);
+EXTERN rvm_ret_t RVM_Thd_Crt(rvm_cid_t Cap_Captbl,
+                             rvm_cid_t Cap_Kmem,
+                             rvm_cid_t Cap_Thd,
+                             rvm_cid_t Cap_Proc,
+                             rvm_ptr_t Max_Prio,
+                             rvm_ptr_t Raddr);
+EXTERN rvm_ret_t RVM_Thd_Del(rvm_cid_t Cap_Captbl,
+                             rvm_cid_t Cap_Thd);
+EXTERN rvm_ret_t RVM_Thd_Exec_Set(rvm_cid_t Cap_Thd,
+                                  rvm_ptr_t Entry,
+                                  rvm_ptr_t Stack,
+                                  rvm_ptr_t Param);
+EXTERN rvm_ret_t RVM_Thd_Hyp_Set(rvm_cid_t Cap_Thd,
+                                 rvm_ptr_t Kaddr);
+EXTERN rvm_ret_t RVM_Thd_Sched_Bind(rvm_cid_t Cap_Thd,
+                                    rvm_cid_t Cap_Thd_Sched,
+                                    rvm_cid_t Cap_Sig,
+                                    rvm_tid_t TID,
+                                    rvm_ptr_t Prio);
+EXTERN rvm_ret_t RVM_Thd_Sched_Prio(rvm_cid_t Cap_Thd,
+                                    rvm_ptr_t Prio);
 EXTERN rvm_ret_t RVM_Thd_Sched_Free(rvm_cid_t Cap_Thd);
-EXTERN rvm_ret_t RVM_Thd_Time_Xfer(rvm_cid_t Cap_Thd_Dst, rvm_cid_t Cap_Thd_Src, rvm_ptr_t Time);
-EXTERN rvm_ret_t RVM_Thd_Swt(rvm_cid_t Cap_Thd, rvm_ptr_t Full_Yield);
+EXTERN rvm_ret_t RVM_Thd_Time_Xfer(rvm_cid_t Cap_Thd_Dst,
+                                   rvm_cid_t Cap_Thd_Src,
+                                   rvm_ptr_t Time);
+EXTERN rvm_ret_t RVM_Thd_Swt(rvm_cid_t Cap_Thd,
+                             rvm_ptr_t Full_Yield);
+                             
 /* Signal operations */
-EXTERN rvm_ret_t RVM_Sig_Crt(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Sig);
-EXTERN rvm_ret_t RVM_Sig_Del(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Sig);
+EXTERN rvm_ret_t RVM_Sig_Crt(rvm_cid_t Cap_Captbl,
+                             rvm_cid_t Cap_Sig);
+EXTERN rvm_ret_t RVM_Sig_Del(rvm_cid_t Cap_Captbl,
+                             rvm_cid_t Cap_Sig);
 EXTERN rvm_ret_t RVM_Sig_Snd(rvm_cid_t Cap_Sig);
-EXTERN rvm_ret_t RVM_Sig_Rcv(rvm_cid_t Cap_Sig, rvm_ptr_t Option);
+EXTERN rvm_ret_t RVM_Sig_Rcv(rvm_cid_t Cap_Sig,
+                             rvm_ptr_t Option);
+                             
 /* Invocation operations */
-EXTERN rvm_ret_t RVM_Inv_Crt(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Kmem, 
-                             rvm_cid_t Cap_Inv, rvm_cid_t Cap_Proc, rvm_ptr_t Raddr);
-EXTERN rvm_ret_t RVM_Inv_Del(rvm_cid_t Cap_Captbl, rvm_cid_t Cap_Inv);
-EXTERN rvm_ret_t RVM_Inv_Set(rvm_cid_t Cap_Inv, rvm_ptr_t Entry, rvm_ptr_t Stack, rvm_ptr_t Fault_Ret_Flag);
+EXTERN rvm_ret_t RVM_Inv_Crt(rvm_cid_t Cap_Captbl,
+                             rvm_cid_t Cap_Kmem, 
+                             rvm_cid_t Cap_Inv,
+                             rvm_cid_t Cap_Proc,
+                             rvm_ptr_t Raddr);
+EXTERN rvm_ret_t RVM_Inv_Del(rvm_cid_t Cap_Captbl,
+                             rvm_cid_t Cap_Inv);
+EXTERN rvm_ret_t RVM_Inv_Set(rvm_cid_t Cap_Inv,
+                             rvm_ptr_t Entry,
+                             rvm_ptr_t Stack,
+                             rvm_ptr_t Fault_Ret_Flag);
 
 /* Debugging helpers */
 EXTERN rvm_ret_t RVM_Print_Int(rvm_ret_t Int);
@@ -412,7 +493,8 @@ EXTERN rvm_ret_t RVM_Proc_Send_Evt(rvm_ptr_t Evt_Num);
 /* Virtual machine related - not used in normal processes */
 #ifdef RVM_VIRT_VECT_NUM
 EXTERN void RVM_Virt_Init(void);
-EXTERN rvm_ret_t RVM_Virt_Reg_Vect(rvm_ptr_t Vect_Num, void* Vect);
+EXTERN rvm_ret_t RVM_Virt_Reg_Vect(rvm_ptr_t Vect_Num,
+                                   void* Vect);
 EXTERN void RVM_Virt_Reg_Timer(void* Timer);
 EXTERN void RVM_Virt_Reg_Ctxsw(void* Ctxsw);
 EXTERN void RVM_Virt_Mask_Int(void);
@@ -420,11 +502,17 @@ EXTERN void RVM_Virt_Unmask_Int(void);
 EXTERN void RVM_Virt_Yield(void);
 
 /* Hypercall related - not used in normal processes */
-EXTERN rvm_ret_t RVM_Hyp(rvm_ptr_t Number, rvm_ptr_t Param1, rvm_ptr_t Param2, rvm_ptr_t Param3, rvm_ptr_t Param4);
+EXTERN rvm_ret_t RVM_Hyp(rvm_ptr_t Number,
+                         rvm_ptr_t Param1,
+                         rvm_ptr_t Param2,
+                         rvm_ptr_t Param3,
+                         rvm_ptr_t Param4);
 EXTERN void RVM_Hyp_Ena_Int(void);
 EXTERN void RVM_Hyp_Dis_Int(void);
-EXTERN rvm_ret_t RVM_Hyp_Reg_Phys(rvm_ptr_t Phys_Num, rvm_ptr_t Vect_Num);
-EXTERN rvm_ret_t RVM_Hyp_Reg_Evt(rvm_ptr_t Evt_Num, rvm_ptr_t Vect_Num);
+EXTERN rvm_ret_t RVM_Hyp_Reg_Phys(rvm_ptr_t Phys_Num,
+                                  rvm_ptr_t Vect_Num);
+EXTERN rvm_ret_t RVM_Hyp_Reg_Evt(rvm_ptr_t Evt_Num,
+                                 rvm_ptr_t Vect_Num);
 EXTERN rvm_ret_t RVM_Hyp_Del_Vect(rvm_ptr_t Vect_Num);
 EXTERN rvm_ret_t RVM_Hyp_Add_Evt(rvm_ptr_t Evt_Num);
 EXTERN rvm_ret_t RVM_Hyp_Del_Evt(rvm_ptr_t Evt_Num);

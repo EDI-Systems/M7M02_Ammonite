@@ -244,17 +244,20 @@
             <Watchdog>0</Watchdog>
             <Vect_Num>100</Vect_Num>
 			<Guest_Type>RMP</Guest_Type>
-			<Guest_Root>../../M5P01_Prokaron</Guest_Root>
+			<Guest_Root>../../../../M5P01_Prokaron</Guest_Root>
 			<Buildsystem>Keil</Buildsystem>
 			<Toolchain>ARMCC</Toolchain>
 			<Optimization>O2</Optimization>
 			<Project_Output>./Virt1/Project</Project_Output>
 			<Project_Overwrite>No</Project_Overwrite>
 			<Linker_Output>./Virt1/Project</Linker_Output>
-			<Config_Header_Output>./Virt1/Include</Config_Header_Output>
 			<Main_Header_Output>./Virt1/Include</Main_Header_Output>
 			<Main_Source_Output>./Virt1/Source</Main_Source_Output>
 			<Main_Source_Overwrite>No</Main_Source_Overwrite>
+			<Virtual_Header_Output>./Virt1/Include</Virtual_Header_Output>
+			<Virtual_Header_Overwrite>Yes</Virtual_Header_Overwrite>
+			<Virtual_Source_Output>./Virt1/Source</Virtual_Source_Output>
+			<Virtual_Source_Overwrite>Yes</Virtual_Source_Overwrite>
             <Memory>
                 <M0>
                     <Name>Main_Code</Name>

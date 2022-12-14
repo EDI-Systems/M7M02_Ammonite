@@ -106,10 +106,11 @@ public:
     void Process_Inc(std::unique_ptr<std::vector<std::string>>& List, class Process* Proc);
     void Process_Main_Hdr_Mem(std::unique_ptr<std::vector<std::string>>& List, const class Mem_Info* Mem);
     void Process_Main_Hdr(class Process* Proc);
-    void Virtual_Conf_Hdr(class Virtual* Virt);
     void Process_Stub_Src(class Process* Proc);
     void Process_Desc_Src(class Process* Proc);
     void Process_Main_Src(class Process* Proc);
+    void Process_Virt_Hdr(class Virtual* Virt);
+    void Process_Virt_Src(class Virtual* Virt);
     void Process_Linker(class Process* Proc);
     void Process_Proj(class Process* Proc);
 

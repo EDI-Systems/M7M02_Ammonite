@@ -36,8 +36,12 @@ public:
     /* Name and root folder of the guest operating system */
     std::string Guest_Type;
     std::string Guest_Root;
-    /* Config header output folder */
-    std::string Config_Header_Output;
+    /* Virtual header output folder & overwrite */
+    std::string Virtual_Header_Output;
+    ptr_t Virtual_Header_Overwrite;
+    /* Virtual source output folder & overwrite */
+    std::string Virtual_Source_Output;
+    ptr_t Virtual_Source_Overwrite;
 
     /* The stack size for interrupt thread and user thread */
     ptr_t Stack_Size;
@@ -61,6 +65,9 @@ public:
     /* Vector flag memory */
     ptr_t Vctf_Base;
     ptr_t Vctf_Size;
+
+    std::vector<std::string> Virtual_Include;
+    std::vector<std::string> Virtual_Source;
 
     /* void */ Virtual(xml_node_t* Root);
 };

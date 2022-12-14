@@ -49,6 +49,9 @@ public:
                               const std::vector<std::string>& Source,
                               const std::vector<std::string>& Linker,
                               const class Process* Proc) final override;
+
+    virtual void Workspace_Proj(std::unique_ptr<std::vector<std::string>>& List,
+                                const std::vector<std::string>& Project) final override;
 };
 /*****************************************************************************/
 /* __MAKEFILE_GEN_HPP_CLASSES__ */

@@ -86,6 +86,8 @@ std::string Keil_Gen::Suffix(ptr_t Type)
 {
     if(Type==BUILD_PROJECT)
         return ".uvprojx";
+    else if(Type==BUILD_WORKSPACE)
+        return ".uvmpw";
     else
         Main::Error("AXXXX: File type not recognized.");
 }
@@ -460,6 +462,40 @@ void Keil_Gen::Process_Proj(std::unique_ptr<std::vector<std::string>>& List,
                    ""                                   /* Linker_Misc */);
 }
 /* End Function:Keil_Gen::Process_Proj ***************************************/
+
+/* Begin Function:Keil_Gen::Workspace_Proj ************************************
+Description : Generate workspace project.
+Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
+              const std::vector<std::string>& Project - The project file list.
+Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Keil_Gen::Workspace_Proj(std::unique_ptr<std::vector<std::string>>& List,
+                              const std::vector<std::string>& Project)
+{
+    List->push_back("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\" ?>");
+    List->push_back("<ProjectWorkspace xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"project_mpw.xsd\">");
+    List->push_back("");
+    List->push_back("  <SchemaVersion>1.0</SchemaVersion>");
+    List->push_back("");
+    List->push_back("  <Header>### uVision Project, (C) Keil Software</Header>");
+    List->push_back("");
+    List->push_back("  <WorkspaceName>WorkSpace</WorkspaceName>");
+    List->push_back("");
+    for(const std::string& Proj:Project)
+    {
+        List->push_back("  <project>");
+        List->push_back(std::string("    <PathAndName>")+Proj+"</PathAndName>");
+        List->push_back("    <NodeIsExpanded>1</NodeIsExpanded>");
+        List->push_back("    <NodeIsCheckedInBatchBuild>1</NodeIsCheckedInBatchBuild>");
+        List->push_back("  </project>");
+        List->push_back("");
+    }
+    List->push_back("</ProjectWorkspace>");
+    List->push_back("");
+}
+/* End Function:Keil_Gen::Workspace_Proj *************************************/
 }
 /* End Of File ***************************************************************/
 

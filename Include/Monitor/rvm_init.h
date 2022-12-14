@@ -81,7 +81,8 @@ Description : The header of microcontroller user-level library.
 /*****************************************************************************/
 /* Initialization */
 static rvm_ptr_t RVM_Proc_Init(rvm_ptr_t Kmem_Bump);
-static rvm_ptr_t RVM_Daemon_Init(rvm_ptr_t Cap_Front, rvm_ptr_t Kmem_Front);
+static rvm_ptr_t RVM_Daemon_Init(rvm_ptr_t Cap_Front,
+                                 rvm_ptr_t Kmem_Front);
 /*****************************************************************************/
 #define __EXTERN__
 /* End Private C Function Prototypes *****************************************/
@@ -110,7 +111,8 @@ __EXTERN__ rvm_cid_t RVM_Vctd_Thd_Cap;
 
 /* Public C Function Prototypes **********************************************/
 /*****************************************************************************/
-__EXTERN__ void RVM_Clear(void* Addr, rvm_ptr_t Size);
+__EXTERN__ void RVM_Clear(volatile void* Addr,
+                          rvm_ptr_t Size);
 /*****************************************************************************/
 /* Undefine "__EXTERN__" to avoid redefinition */
 #undef __EXTERN__

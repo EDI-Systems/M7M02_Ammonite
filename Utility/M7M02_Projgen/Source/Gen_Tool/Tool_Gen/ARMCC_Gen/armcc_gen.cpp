@@ -252,14 +252,12 @@ void ARMCC_Gen::Process_Linker(std::unique_ptr<std::vector<std::string>>& List,
                                const class Process* Proc)
 {
     ptr_t Header_Size;
-    ptr_t Real_Code_Base;
     ptr_t Real_Code_Size;
     std::string Tool_Lower;
 
     Tool_Lower=Proc->Toolchain;
     Main::Lower(Tool_Lower);
-    Header_Size=Proc->Header_Front*(this->Plat->Wordlength/8);
-    Real_Code_Base=Proc->Code_Base+Header_Size;
+    Header_Size=Proc->Code_Front-Proc->Code_Base;
     Real_Code_Size=Proc->Code_Size-Header_Size;
 
     List->push_back(";******************************************************************************");
@@ -288,10 +286,10 @@ void ARMCC_Gen::Process_Linker(std::unique_ptr<std::vector<std::string>>& List,
     List->push_back("; Begin Segment:PROC **********************************************************");
     List->push_back("; Description : The process segment, where the process executable is located at.");
     List->push_back("; *****************************************************************************");
-    List->push_back(std::string("PROC 0x")+Main::Hex(Real_Code_Base)+" 0x"+Main::Hex(Real_Code_Size));
+    List->push_back(std::string("PROC 0x")+Main::Hex(Proc->Code_Front)+" 0x"+Main::Hex(Real_Code_Size));
     List->push_back("{");
     List->push_back("    ; The code segment of the process");
-    List->push_back(std::string("    PROC_CODE 0x")+Main::Hex(Real_Code_Base)+" 0x"+Main::Hex(Real_Code_Size));
+    List->push_back(std::string("    PROC_CODE 0x")+Main::Hex(Proc->Code_Front)+" 0x"+Main::Hex(Real_Code_Size));
     List->push_back("    {");
     List->push_back("        ; Entry point assembly");
     List->push_back(std::string("        rvm_guest_")+this->Plat->Name_Lower+"_"+Tool_Lower+".o     (RESET, +First)");

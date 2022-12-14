@@ -129,6 +129,21 @@ void Makefile_Gen::Process_Proj(std::unique_ptr<std::vector<std::string>>& List,
 
 }
 /* End Function:Makefile_Gen::Process_Proj ***********************************/
+
+/* Begin Function:Makefile_Gen::Workspace_Proj ********************************
+Description : Generate workspace project.
+Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
+              const std::vector<std::string>& Project - The project file list.
+Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Makefile_Gen::Workspace_Proj(std::unique_ptr<std::vector<std::string>>& List,
+                                  const std::vector<std::string>& Project)
+{
+
+}
+/* End Function:Makefile_Gen::Workspace_Proj *********************************/
 }
 /* End Of File ***************************************************************/
 

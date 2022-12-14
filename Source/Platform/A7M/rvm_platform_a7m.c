@@ -62,8 +62,10 @@ Input       : rvm_ptr_t Stack_Base - The start(lower) address of the stub.
 Output      : None.
 Return      : rvm_ptr_t - The actual stack address to use for system call.
 ******************************************************************************/
-rvm_ptr_t RVM_Stack_Init(rvm_ptr_t Stack_Base, rvm_ptr_t Stack_Size,
-                         rvm_ptr_t Entry_Addr, rvm_ptr_t Stub_Addr)
+rvm_ptr_t RVM_Stack_Init(rvm_ptr_t Stack_Base,
+                         rvm_ptr_t Stack_Size,
+                         rvm_ptr_t Entry_Addr,
+                         rvm_ptr_t Stub_Addr)
 
 {
     struct RVM_A7M_Ret_Stack* Stack_Ptr;
@@ -90,7 +92,7 @@ Return      : None.
 void RVM_Idle(void)
 {
     /* Put us to sleep */
-    RVM_Kern_Act(RVM_BOOT_INIT_KERN,RVM_KERN_IDLE_SLEEP,0U,0U,0U);
+    RVM_Kern_Act(RVM_BOOT_INIT_KERN,RVM_KERN_IDLE_SLEEP, 0U, 0U, 0U);
 }
 /* End Function:RVM_Idle *****************************************************/
 
@@ -104,7 +106,10 @@ Input       : rvm_cid_t Cap_Kern - The capability to the kernel capability. 2-Le
 Output      : rvm_ptr_t* Params - The return values, stored in an array of size 6.
 Return      : rvm_ret_t - If successful, 0; else a negative value.
 ******************************************************************************/
-rvm_ret_t RVM_A7M_Kern_Act(rvm_cid_t Cap_Kern, rvm_ptr_t Func_ID, rvm_ptr_t Sub_ID, rvm_ptr_t* Params)
+rvm_ret_t RVM_A7M_Kern_Act(rvm_cid_t Cap_Kern,
+                           rvm_ptr_t Func_ID,
+                           rvm_ptr_t Sub_ID,
+                           rvm_ptr_t* Params)
 {
     return RVM_A7M_Svc_Kern((RVM_SVC_KERN<<(sizeof(rvm_ptr_t)*4U))|((rvm_ptr_t)Cap_Kern),
                             RVM_PARAM_D1(Sub_ID)|RVM_PARAM_D0(Func_ID),

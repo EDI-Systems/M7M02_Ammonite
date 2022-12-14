@@ -26,9 +26,12 @@ Input       : rvm_cid_t Cap_Kern - The capability to the kernel capability. 2-Le
 Output      : rvm_ptr_t* Params - The return values, stored in an array of size 6.
 Return      : rvm_ret_t - If successful, 0; else a negative value.
 ******************************************************************************/
-rvm_ret_t RVM_A7M_Kern_Act(rvm_cid_t Cap_Kern, rvm_ptr_t Func_ID, rvm_ptr_t Sub_ID, rvm_ptr_t* Params)
+rvm_ret_t RVM_A7M_Kern_Act(rvm_cid_t Cap_Kern,
+                           rvm_ptr_t Func_ID,
+                           rvm_ptr_t Sub_ID,
+                           rvm_ptr_t* Params)
 {
-    return RVM_A7M_Svc_Kern((RVM_SVC_KERN<<(sizeof(rvm_ptr_t)*4))|(Cap_Kern),
+    return RVM_A7M_Svc_Kern((RVM_SVC_KERN<<(sizeof(rvm_ptr_t)*4U))|((rvm_ptr_t)Cap_Kern),
                             RVM_PARAM_D1(Sub_ID)|RVM_PARAM_D0(Func_ID),
                             Params);
 }
@@ -45,9 +48,12 @@ Input       : rvm_cid_t Cap_Kern - The kernel function capability.
 Output      : None.
 Return      : rvm_ret_t - If successful, the flags; else an error code.
 ******************************************************************************/
-rvm_ret_t RVM_A7M_Pgtbl_Entry_Mod(rvm_cid_t Cap_Kern, rvm_cid_t Cap_Pgtbl, rvm_ptr_t Vaddr, rvm_ptr_t Type)
+rvm_ret_t RVM_A7M_Pgtbl_Entry_Mod(rvm_cid_t Cap_Kern,
+                                  rvm_cid_t Cap_Pgtbl,
+                                  rvm_ptr_t Vaddr,
+                                  rvm_ptr_t Type)
 {
-    return RVM_Kern_Act(Cap_Kern, RVM_KERN_PGTBL_ENTRY_MOD, Cap_Pgtbl, Vaddr, Type);
+    return RVM_Kern_Act(Cap_Kern, RVM_KERN_PGTBL_ENTRY_MOD, (rvm_ptr_t)Cap_Pgtbl, Vaddr, Type);
 }
 /* End Function:RVM_A7M_Pgtbl_Entry_Mod **************************************/
 
@@ -60,7 +66,10 @@ Input       : rvm_cid_t Cap_Kern - The kernel function capability.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0 or the desired value; else an error code.
 ******************************************************************************/
-rvm_ret_t RVM_A7M_Int_Local_Mod(rvm_cid_t Cap_Kern, rvm_ptr_t Int_Num, rvm_ptr_t Operation, rvm_ptr_t Param)
+rvm_ret_t RVM_A7M_Int_Local_Mod(rvm_cid_t Cap_Kern,
+                                rvm_ptr_t Int_Num,
+                                rvm_ptr_t Operation,
+                                rvm_ptr_t Param)
 {
     return RVM_Kern_Act(Cap_Kern, RVM_KERN_INT_LOCAL_MOD, Int_Num, Operation, Param);
 }
@@ -73,7 +82,8 @@ Input       : rvm_cid_t Cap_Kern - The kernel function capability.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; else an error code.
 ******************************************************************************/
-rvm_ret_t RVM_A7M_Int_Local_Trig(rvm_cid_t Cap_Kern, rvm_ptr_t Int_Num)
+rvm_ret_t RVM_A7M_Int_Local_Trig(rvm_cid_t Cap_Kern,
+                                 rvm_ptr_t Int_Num)
 {
     return RVM_Kern_Act(Cap_Kern, RVM_KERN_INT_LOCAL_TRIG, 0, Int_Num, 0);
 }
@@ -88,7 +98,10 @@ Input       : rvm_cid_t Cap_Kern - The kernel function capability.
 Output      : None.
 Return      : If successful, 0; else RVM_ERR_KERN_OPFAIL.
 ******************************************************************************/
-rvm_ret_t RVM_A7M_Cache_Mod(rvm_cid_t Cap_Kern, rvm_ptr_t Cache_ID, rvm_ptr_t Operation, rvm_ptr_t Param)
+rvm_ret_t RVM_A7M_Cache_Mod(rvm_cid_t Cap_Kern,
+                            rvm_ptr_t Cache_ID,
+                            rvm_ptr_t Operation,
+                            rvm_ptr_t Param)
 {
     return RVM_Kern_Act(Cap_Kern, RVM_KERN_CACHE_MOD, Cache_ID, Operation, Param);
 }
@@ -103,7 +116,10 @@ Input       : rvm_cid_t Cap_Kern - The kernel function capability.
 Output      : None.
 Return      : If successful, 0; else an error code.
 ******************************************************************************/
-rvm_ret_t RVM_A7M_Cache_Maint(rvm_cid_t Cap_Kern, rvm_ptr_t Cache_ID, rvm_ptr_t Operation, rvm_ptr_t Param)
+rvm_ret_t RVM_A7M_Cache_Maint(rvm_cid_t Cap_Kern,
+                              rvm_ptr_t Cache_ID,
+                              rvm_ptr_t Operation,
+                              rvm_ptr_t Param)
 {
     return RVM_Kern_Act(Cap_Kern, RVM_KERN_CACHE_MAINT, Cache_ID, Operation, Param);
 }
@@ -121,7 +137,10 @@ Input       : rvm_cid_t Cap_Kern - The kernel function capability.
 Output      : None.
 Return      : If successful, 0; else RVM_ERR_KERN_OPFAIL.
 ******************************************************************************/
-rvm_ret_t RVM_A7M_Prfth_Mod(rvm_cid_t Cap_Kern, rvm_ptr_t Prfth_ID, rvm_ptr_t Operation, rvm_ptr_t Param)
+rvm_ret_t RVM_A7M_Prfth_Mod(rvm_cid_t Cap_Kern,
+                            rvm_ptr_t Prfth_ID,
+                            rvm_ptr_t Operation,
+                            rvm_ptr_t Param)
 {
     return RVM_Kern_Act(Cap_Kern, RVM_KERN_PRFTH_MOD, Prfth_ID, Operation, Param);
 }
@@ -134,7 +153,9 @@ Input       : rvm_cid_t Cap_Kern - The kernel function capability.
 Output      : rvm_ptr_t* Content - The content of the register.
 Return      : rvm_ret_t - If successful, 0;  else an error code.
 ******************************************************************************/
-rvm_ret_t RVM_A7M_Perf_CPU_Func(rvm_cid_t Cap_Kern, rvm_ptr_t Freg_ID, rvm_ptr_t* Content)
+rvm_ret_t RVM_A7M_Perf_CPU_Func(rvm_cid_t Cap_Kern,
+                                rvm_ptr_t Freg_ID,
+                                rvm_ptr_t* Content)
 {
     rvm_ptr_t Params[6];
     rvm_ret_t Retval;
@@ -161,7 +182,10 @@ Input       : rvm_ptr_t Perf_ID - The performance monitor identifier.
 Output      : None.
 Return      : rvm_ret_t - If successful, the desired value; if a negative value, failed.
 ******************************************************************************/
-rvm_ret_t RVM_A7M_Perf_Mon_Mod(rvm_cid_t Cap_Kern, rvm_ptr_t Perf_ID, rvm_ptr_t Operation, rvm_ptr_t Param)
+rvm_ret_t RVM_A7M_Perf_Mon_Mod(rvm_cid_t Cap_Kern,
+                               rvm_ptr_t Perf_ID,
+                               rvm_ptr_t Operation,
+                               rvm_ptr_t Param)
 {
     return RVM_Kern_Act(Cap_Kern, RVM_KERN_PERF_MON_MOD, Perf_ID, Operation, Param);
 }
@@ -175,8 +199,11 @@ Input       : rvm_cid_t Cap_Kern - The kernel function capability.
 Output      : rvm_ptr_t* Content - The content of the register in read mode.
 Return      : rvm_ret_t - If successful, 0; if a negative value, failed.
 ******************************************************************************/
-rvm_ret_t RVM_A7M_Perf_Cycle_Mod(rvm_cid_t Cap_Kern, rvm_ptr_t Cycle_ID, 
-                                 rvm_ptr_t Operation, rvm_ptr_t Value, rvm_ptr_t* Content)
+rvm_ret_t RVM_A7M_Perf_Cycle_Mod(rvm_cid_t Cap_Kern,
+                                 rvm_ptr_t Cycle_ID, 
+                                 rvm_ptr_t Operation,
+                                 rvm_ptr_t Value,
+                                 rvm_ptr_t* Content)
 {
     rvm_ptr_t Params[6];
     rvm_ret_t Retval;
@@ -205,9 +232,10 @@ Input       : rvm_cid_t Cap_Kern - The kernel function capability.
 Output      : rvm_ptr_t* Content - The content of the register in read mode.
 Return      : rvm_ret_t - If successful, 0; if a negative value, failed.
 ******************************************************************************/
-rvm_ret_t RVM_A7M_Debug_Print(rvm_cid_t Cap_Kern, char Char)
+rvm_ret_t RVM_A7M_Debug_Print(rvm_cid_t Cap_Kern,
+                              char Char)
 {
-    return RVM_Kern_Act(Cap_Kern, RVM_KERN_DEBUG_PRINT, Char, 0, 0);
+    return RVM_Kern_Act(Cap_Kern, RVM_KERN_DEBUG_PRINT, (rvm_ptr_t)Char, 0U, 0U);
 }
 /* End Function:RVM_A7M_Debug_Print ******************************************/
 
@@ -220,15 +248,18 @@ Input       : rvm_cid_t Cap_Kern - The kernel function capability.
 Output      : rvm_ptr_t* Content - The content of the register in read mode.
 Return      : rvm_ret_t - If successful, 0; if a negative value, failed.
 ******************************************************************************/
-rvm_ret_t RVM_A7M_Debug_Reg_Mod(rvm_cid_t Cap_Kern, rvm_cid_t Cap_Thd, 
-                                rvm_ptr_t Operation, rvm_ptr_t Value, rvm_ptr_t* Content)
+rvm_ret_t RVM_A7M_Debug_Reg_Mod(rvm_cid_t Cap_Kern,
+                                rvm_cid_t Cap_Thd, 
+                                rvm_ptr_t Operation,
+                                rvm_ptr_t Value,
+                                rvm_ptr_t* Content)
 {
     rvm_ptr_t Params[6];
     rvm_ret_t Retval;
 
     Params[0]=Operation;
     Params[1]=Value;
-    Retval=RVM_A7M_Kern_Act(Cap_Kern, RVM_KERN_DEBUG_REG_MOD, Cap_Thd, Params);
+    Retval=RVM_A7M_Kern_Act(Cap_Kern, RVM_KERN_DEBUG_REG_MOD, (rvm_ptr_t)Cap_Thd, Params);
 
     if(Retval<0)
         return Retval;
@@ -250,15 +281,19 @@ Input       : rvm_cid_t Cap_Kern - The kernel function capability.
 Output      : rvm_ptr_t* Content - The content of the register in read mode.
 Return      : rvm_ret_t - If successful, 0; if a negative value, failed.
 ******************************************************************************/
-rvm_ret_t RVM_A7M_Debug_Inv_Mod(rvm_cid_t Cap_Kern, rvm_cid_t Cap_Thd, 
-                                rvm_ptr_t Layer, rvm_ptr_t Operation, rvm_ptr_t Value, rvm_ptr_t* Content)
+rvm_ret_t RVM_A7M_Debug_Inv_Mod(rvm_cid_t Cap_Kern,
+                                rvm_cid_t Cap_Thd, 
+                                rvm_ptr_t Layer,
+                                rvm_ptr_t Operation,
+                                rvm_ptr_t Value,
+                                rvm_ptr_t* Content)
 {
     rvm_ptr_t Params[6];
     rvm_ret_t Retval;
 
     Params[0]=RVM_PARAM_D1(Layer)|RVM_PARAM_D0(Operation);
     Params[1]=Value;
-    Retval=RVM_A7M_Kern_Act(Cap_Kern, RVM_KERN_DEBUG_INV_MOD, Cap_Thd, Params);
+    Retval=RVM_A7M_Kern_Act(Cap_Kern, RVM_KERN_DEBUG_INV_MOD, (rvm_ptr_t)Cap_Thd, Params);
 
     if(Retval<0)
         return Retval;

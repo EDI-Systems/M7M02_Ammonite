@@ -1654,28 +1654,31 @@ void Main::Process_Gen(void)
             Main::Info("Creating directories for process '%s'.", Proc->Name.c_str());
             std::filesystem::create_directories(Proc->Project_Output);
             std::filesystem::create_directories(Proc->Linker_Output);
-            if(Proc->Type==PROC_VIRTUAL)
-                std::filesystem::create_directories(static_cast<class Virtual*>(Proc.get())->Config_Header_Output);
             std::filesystem::create_directories(Proc->Main_Header_Output);
             std::filesystem::create_directories(Proc->Main_Source_Output);
-
+            if(Proc->Type==PROC_VIRTUAL)
+            {
+                std::filesystem::create_directories(static_cast<class Virtual*>(Proc.get())->Virtual_Header_Output);
+                std::filesystem::create_directories(static_cast<class Virtual*>(Proc.get())->Virtual_Source_Output);
+            }
 
             /* Generate process main header */
             Main::Info("Generating process main header.");
             this->Gen->Process_Main_Hdr(Proc.get());
-
-            /* If this process is a virtual machine, generate VM configuration header as well */
-            if(Proc->Type==PROC_VIRTUAL)
-            {
-                Main::Info("Generating virtual machine configuration header.");
-                this->Gen->Virtual_Conf_Hdr(static_cast<class Virtual*>(Proc.get()));
-            }
 
             /* Generate process main source */
             Main::Info("Generating process main source.");
             this->Gen->Process_Stub_Src(Proc.get());
             this->Gen->Process_Desc_Src(Proc.get());
             this->Gen->Process_Main_Src(Proc.get());
+
+            /* If this process is a virtual machine, generate VM configuration header as well */
+            if(Proc->Type==PROC_VIRTUAL)
+            {
+                Main::Info("Generating virtual machine configuration header.");
+                this->Gen->Process_Virt_Hdr(static_cast<class Virtual*>(Proc.get()));
+                this->Gen->Process_Virt_Src(static_cast<class Virtual*>(Proc.get()));
+            }
 
             /* Generate monitor linker script */
             Main::Info("Generating process linker script.");
@@ -1703,7 +1706,9 @@ void Main::Workspace_Gen(void)
 {
     try
     {
-
+        /* Generate workspace project */
+        Main::Info("Generating workspace project.");
+        this->Gen->Workspace_Proj();
     }
     catch(std::exception& Exc)
     {

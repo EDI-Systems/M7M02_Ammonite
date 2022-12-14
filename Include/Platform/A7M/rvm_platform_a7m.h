@@ -372,7 +372,7 @@ struct RVM_Cop_Struct
 struct RVM_Regs
 {
     struct RVM_Reg_Struct Reg;
-    struct RVM_Cop_Struct Cop_Reg;
+    struct RVM_Cop_Struct Cop;
 };
 /*****************************************************************************/
 /* __RVM_PLATFORM_A7M_H_STRUCTS__ */
@@ -428,22 +428,35 @@ struct RVM_Regs
 EXTERN void _RVM_Entry(void);
 EXTERN void _RVM_Jmp_Stub(void);
 EXTERN rvm_ptr_t _RVM_MSB_Get(rvm_ptr_t Val); 
-EXTERN rvm_ret_t RVM_Svc(rvm_ptr_t Op_Capid, rvm_ptr_t Arg1, rvm_ptr_t Arg2, rvm_ptr_t Arg3);
-EXTERN rvm_ret_t RVM_A7M_Svc_Kern(rvm_ptr_t Op_Capid, rvm_ptr_t ID, rvm_ptr_t* Args);
+EXTERN rvm_ret_t RVM_Svc(rvm_ptr_t Op_Capid,
+                         rvm_ptr_t Arg1,
+                         rvm_ptr_t Arg2,
+                         rvm_ptr_t Arg3);
+EXTERN rvm_ret_t RVM_A7M_Svc_Kern(rvm_ptr_t Op_Capid,
+                                  rvm_ptr_t ID,
+                                  rvm_ptr_t* Args);
 /* Thread scheduler notifications */
-EXTERN rvm_ret_t RVM_Thd_Sched_Rcv(rvm_cid_t Cap_Thd, rvm_ptr_t* Fault);
+EXTERN rvm_ret_t RVM_Thd_Sched_Rcv(rvm_cid_t Cap_Thd,
+                                   rvm_ptr_t* Fault);
 /* Invocation */
-EXTERN rvm_ret_t RVM_Inv_Act(rvm_cid_t Cap_Inv, rvm_ptr_t Param, rvm_ptr_t* Retval);
+EXTERN rvm_ret_t RVM_Inv_Act(rvm_cid_t Cap_Inv,
+                             rvm_ptr_t Param,
+                             rvm_ptr_t* Retval);
 EXTERN rvm_ret_t RVM_Inv_Ret(rvm_ptr_t Retval);
 /* Character printing */
 __EXTERN__ rvm_ptr_t RVM_Putchar(char Char);
 /* Stack operations */
-__EXTERN__ rvm_ptr_t RVM_Stack_Init(rvm_ptr_t Stack_Base, rvm_ptr_t Stack_Size,
-                                    rvm_ptr_t Entry_Addr, rvm_ptr_t Stub_Addr);
+__EXTERN__ rvm_ptr_t RVM_Stack_Init(rvm_ptr_t Stack_Base,
+                                    rvm_ptr_t Stack_Size,
+                                    rvm_ptr_t Entry_Addr,
+                                    rvm_ptr_t Stub_Addr);
 /* Idle function */
 __EXTERN__ void RVM_Idle(void);
 /* Kernel function activation */
-__EXTERN__ rvm_ret_t RVM_A7M_Kern_Act(rvm_cid_t Cap_Kern, rvm_ptr_t Func_ID, rvm_ptr_t Sub_ID, rvm_ptr_t* Params);
+__EXTERN__ rvm_ret_t RVM_A7M_Kern_Act(rvm_cid_t Cap_Kern,
+                                      rvm_ptr_t Func_ID,
+                                      rvm_ptr_t Sub_ID,
+                                      rvm_ptr_t* Params);
 /* Print fault */
 __EXTERN__ void RVM_Thd_Print_Fault(rvm_ptr_t Fault);
 /* Print registers */

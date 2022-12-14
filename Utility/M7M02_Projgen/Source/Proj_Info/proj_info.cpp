@@ -66,6 +66,12 @@ Return      : None.
         Name_Gen(this);
         /* Version */
         this->Version=Main::XML_Get_String(Root,"Version","DXXXX","DXXXX");
+        /* Buildsystem */
+        this->Buildsystem=Main::XML_Get_String(Root,"Buildsystem","DXXXX","DXXXX");
+        /* Workspace_Output */
+        this->Workspace_Output=Main::XML_Get_String(Root,"Workspace_Output","DXXXX","DXXXX");
+        /* Workspace_Output */
+        this->Workspace_Overwrite=Main::XML_Get_Yesno(Root,"Workspace_Overwrite","DXXXX","DXXXX");
 
         /* Chip */
         if((XML_Child(Root,(xml_s8_t*)"Chip",&Temp)<0)||(Temp==0))

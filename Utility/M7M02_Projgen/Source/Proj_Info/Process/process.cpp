@@ -546,6 +546,9 @@ void Process::Mem_Alloc(ptr_t Wordlength, ptr_t Reg_Size, ptr_t Param_Size, ptr_
     /* Compensate for the Magic, Number & optional jump Stub that fills the last slot */
     this->Header_Front+=3;
 
+    /* The code memory frontier just follows the header but is aligned */
+    this->Code_Front=PROC_DESCHDR_ALIGN(this->Code_Base+this->Header_Front*(Wordlength/8));
+
     /* See if this is a virtual machine. If yes, we go on to allocate its register set space,
      * parameter space and interrupt space. These are used for communicating through the VM. */
     if(this->Type==PROC_VIRTUAL)

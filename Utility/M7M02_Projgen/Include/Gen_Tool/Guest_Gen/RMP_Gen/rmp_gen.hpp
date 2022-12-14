@@ -30,8 +30,10 @@ namespace RVM_GEN
 class RMP_Gen:public Guest_Gen
 {
 public:
-
     /* void */ RMP_Gen(class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip);
+
+    virtual void Process_Virt_Hdr(class Virtual* Virt) final override;
+    virtual void Process_Virt_Src(class Virtual* Virt, class Tool_Gen* Tool) final override;
 };
 /*****************************************************************************/
 /* __RMP_GEN_HPP_CLASSES__ */
