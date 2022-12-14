@@ -45,6 +45,7 @@
 		<Kernel_Root>../../../../M7M01_Eukaron</Kernel_Root>
 		<Project_Output>./Kernel/Project</Project_Output>
 		<Project_Overwrite>No</Project_Overwrite>
+		<Project_Full_Image>Yes</Project_Full_Image>
 		<Linker_Output>./Kernel/Project</Linker_Output>
 		<Config_Header_Output>./Kernel/Include</Config_Header_Output>
 		<Boot_Header_Output>./Kernel/Include</Boot_Header_Output>

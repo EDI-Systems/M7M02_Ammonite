@@ -21,6 +21,7 @@ extern "C"
 
 #define __HDR_DEFS__
 #include "rvm_gen.hpp"
+#include "Gen_Tool/gen_tool.hpp"
 #include "Gen_Tool/Build_Gen/build_gen.hpp"
 #include "Gen_Tool/Build_Gen/Keil_Gen/keil_gen.hpp"
 #undef __HDR_DEFS__
@@ -48,6 +49,7 @@ extern "C"
 #include "Vect_Info/vect_info.hpp"
 #include "Conf_Info/conf_info.hpp"
 
+#include "Gen_Tool/gen_tool.hpp"
 #include "Gen_Tool/Build_Gen/build_gen.hpp"
 #include "Gen_Tool/Build_Gen/Keil_Gen/keil_gen.hpp"
 #undef __HDR_STRUCTS__
@@ -396,14 +398,14 @@ void Keil_Gen::Kernel_Proj(std::unique_ptr<std::vector<std::string>>& List,
                            const std::vector<std::string>& Linker)
 {
     this->Raw_Proj(List,
-                   "",                                  /* After 1 */
-                   "",                                  /* After 2 */
-                   "Kernel",                            /* Target */
-                   this->Proj->Kernel->Optimization,    /* Optimization */
-                   Include,                             /* Include */
-                   Source,                              /* Source */
-                   Linker[0],                           /* Linker */
-                   ""                                   /* Linker_Misc */);
+                   "",                                      /* After 1 */
+                   "",                                      /* After 2 */
+                   "Kernel",                                /* Target */
+                   this->Proj->Kernel->Optimization,        /* Optimization */
+                   Include,                                 /* Include */
+                   Source,                                  /* Source */
+                   Linker[0],                               /* Linker */
+                   "");                                     /* Linker_Misc */
 }
 /* End Function:Keil_Gen::Kernel_Proj ****************************************/
 
@@ -422,15 +424,27 @@ void Keil_Gen::Monitor_Proj(std::unique_ptr<std::vector<std::string>>& List,
                             const std::vector<std::string>& Source,
                             const std::vector<std::string>& Linker)
 {
+    std::string After1;
+    std::string After2;
+    std::vector<std::string> Bincopy;
+
+    if(this->Proj->Kernel->Project_Full_Image!=0)
+    {
+        Bincopy.push_back(this->Proj->Monitor->Monitor_Root+"Utility/M7M02_Bincopy/bincopy.exe");
+        Gen_Tool::Path_Conv(this->Proj->Monitor->Project_Output, Bincopy);
+        After1="fromelf.exe --binCombined -o \"$L@L.bin\" \"#L\"";
+        After2=Bincopy[0]+" -i $L@L.bin -o ./monitor_image.c";
+    }
+
     this->Raw_Proj(List,
-                   "",                                  /* After 1 */
-                   "",                                  /* After 2 */
-                   "Monitor",                           /* Target */
-                   this->Proj->Monitor->Optimization,   /* Optimization */
-                   Include,                             /* Include */
-                   Source,                              /* Source */
-                   Linker[0],                           /* Linker */
-                   ""                                   /* Linker_Misc */);
+                   After1,                                  /* After 1 */
+                   After2,                                  /* After 2 */
+                   "Monitor",                               /* Target */
+                   this->Proj->Monitor->Optimization,       /* Optimization */
+                   Include,                                 /* Include */
+                   Source,                                  /* Source */
+                   Linker[0],                               /* Linker */
+                   "");                                     /* Linker_Misc */
 }
 /* End Function:Keil_Gen::Monitor_Proj ***************************************/
 
@@ -451,15 +465,27 @@ void Keil_Gen::Process_Proj(std::unique_ptr<std::vector<std::string>>& List,
                             const std::vector<std::string>& Linker,
                             const class Process* Proc)
 {
+    std::string After1;
+    std::string After2;
+    std::vector<std::string> Bincopy;
+
+    if(this->Proj->Kernel->Project_Full_Image!=0)
+    {
+        Bincopy.push_back(this->Proj->Monitor->Monitor_Root+"Utility/M7M02_Bincopy/bincopy.exe");
+        Gen_Tool::Path_Conv(Proc->Project_Output, Bincopy);
+        After1="fromelf.exe --binCombined -o \"$L@L.bin\" \"#L\"";
+        After2=Bincopy[0]+" -i $L@L.bin -o ./"+Proc->Name_Lower+"_image.c";
+    }
+
     this->Raw_Proj(List,
-                   "",                                  /* After 1 */
-                   "",                                  /* After 2 */
-                   Proc->Name,                          /* Target */
-                   Proc->Optimization,                  /* Optimization */
-                   Include,                             /* Include */
-                   Source,                              /* Source */
-                   Linker[0],                           /* Linker */
-                   ""                                   /* Linker_Misc */);
+                   After1,                                  /* After 1 */
+                   After2,                                  /* After 2 */
+                   Proc->Name,                              /* Target */
+                   Proc->Optimization,                      /* Optimization */
+                   Include,                                 /* Include */
+                   Source,                                  /* Source */
+                   Linker[0],                               /* Linker */
+                   "");                                     /* Linker_Misc */
 }
 /* End Function:Keil_Gen::Process_Proj ***************************************/
 

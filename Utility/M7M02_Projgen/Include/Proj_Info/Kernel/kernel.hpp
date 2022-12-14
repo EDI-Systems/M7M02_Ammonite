@@ -58,6 +58,8 @@ public:
     /* Project output folder/overwrite */
     std::string Project_Output;
     ptr_t Project_Overwrite;
+    /* Whether the kernel project will generate a full image (so that process partitions are linked together) */
+    ptr_t Project_Full_Image;
     /* Linker output folder */
     std::string Linker_Output;
     /* Configuration header output folder */

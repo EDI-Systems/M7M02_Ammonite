@@ -161,9 +161,9 @@ int main(int argc, char* argv[])
 
         /* See if we are printing the last one */
         if(Count==(Input_Size-1))
-    		fprintf(Output_File,"0x%02X",Temp);
+    		fprintf(Output_File,"0x%02XU",Temp);
         else
-        	fprintf(Output_File,"0x%02X, ",Temp);
+        	fprintf(Output_File,"0x%02XU, ",Temp);
 
 		if(Count%16==15)
 			fprintf(Output_File,"\n    ");
@@ -183,7 +183,8 @@ int main(int argc, char* argv[])
 	fclose(Input_File);
 	fclose(Output_File);
 
-	printf("Size of programming file: %d 8-bit words.\n",Input_Size);
+	printf("Size of image source file: %d 8-bit words.\n",Input_Size);
+
 	return 0;
 }
 /* End Function:main *********************************************************/

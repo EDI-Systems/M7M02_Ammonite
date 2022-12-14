@@ -152,40 +152,42 @@ void ARMCC_Gen::Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back("}");
     List->push_back("; End Segment:KERNEL **********************************************************");
     List->push_back("");
-    List->push_back("; Begin Segment:MONITOR *******************************************************");
-    List->push_back("; Description : The .text segment of process MONITOR, which is the first process");
-    List->push_back(";               in the system, and should act as a memory manager itself.");
-    List->push_back("; *****************************************************************************");
-    List->push_back(std::string("MONITOR 0x")+Main::Hex(this->Proj->Monitor->Code_Base)+" 0x"+Main::Hex(this->Proj->Monitor->Code_Size));
-    List->push_back("{");
-    List->push_back("    ; Init process code segment");
-    List->push_back(std::string("    MONITOR_CODE 0x")+Main::Hex(this->Proj->Monitor->Code_Base)+" 0x"+Main::Hex(this->Proj->Monitor->Code_Size));
-    List->push_back("    {");
-    List->push_back("        RVM.o                          (+RO)");
-    List->push_back("    }");
-    List->push_back("}");
-    List->push_back("; End Segment:MONITOR *********************************************************");
-    List->push_back("");
-
-    for(const class Process* Proc:this->Proj->Monitor->Process)
+    /* See if the kernel project needs to generate full image */
+    if(this->Proj->Kernel->Project_Full_Image!=0)
     {
-        List->push_back("; Begin Segment:Proc **********************************************************");
-        List->push_back("; Description : The .text segment of the virtual machines. All virtual machines");
-        List->push_back("; needs to be placed here; If you don't want to convert them to C and compile to");
-        List->push_back("; a whole image, flash them to this address.");
+        List->push_back("; Begin Segment:MONITOR *******************************************************");
+        List->push_back("; Description : The .text segment of process MONITOR, which is the first process");
+        List->push_back(";               in the system, and should act as a memory manager itself.");
         List->push_back("; *****************************************************************************");
-        List->push_back(Proc->Name_Upper+" 0x"+Main::Hex(Proc->Code_Base)+" 0x"+Main::Hex(Proc->Code_Size));
+        List->push_back(std::string("MONITOR 0x")+Main::Hex(this->Proj->Monitor->Code_Base)+" 0x"+Main::Hex(this->Proj->Monitor->Code_Size));
         List->push_back("{");
-        List->push_back("    ; Process code segment");
-        List->push_back(std::string("    ")+Proc->Name_Upper+"_CODE 0x"+Main::Hex(Proc->Code_Base)+" 0x"+Main::Hex(Proc->Code_Size));
+        List->push_back("    ; Init process code segment");
+        List->push_back(std::string("    MONITOR_CODE 0x")+Main::Hex(this->Proj->Monitor->Code_Base)+" 0x"+Main::Hex(this->Proj->Monitor->Code_Size));
         List->push_back("    {");
-        List->push_back(std::string("        ")+Proc->Name_Lower+".o                         (+RO)");
+        List->push_back("        monitor_image.o                    (+RO)");
         List->push_back("    }");
         List->push_back("}");
-        List->push_back("; End Segment:Proc ************************************************************");
+        List->push_back("; End Segment:MONITOR *********************************************************");
         List->push_back("");
+        for(const class Process* Proc:this->Proj->Monitor->Process)
+        {
+            List->push_back("; Begin Segment:PROC **********************************************************");
+            List->push_back("; Description : The .text segment of the processes/VMs. All processes/VMs need ");
+            List->push_back("; to be placed here one by one; If you don't want to convert them to C and compile");
+            List->push_back("; to a whole image, flash them to this address.");
+            List->push_back("; *****************************************************************************");
+            List->push_back(Proc->Name_Upper+" 0x"+Main::Hex(Proc->Code_Base)+" 0x"+Main::Hex(Proc->Code_Size));
+            List->push_back("{");
+            List->push_back("    ; Process code segment");
+            List->push_back(std::string("    ")+Proc->Name_Upper+"_CODE 0x"+Main::Hex(Proc->Code_Base)+" 0x"+Main::Hex(Proc->Code_Size));
+            List->push_back("    {");
+            List->push_back(std::string("        ")+Proc->Name_Lower+"_image.o                   (+RO)");
+            List->push_back("    }");
+            List->push_back("}");
+            List->push_back("; End Segment:PROC ************************************************************");
+            List->push_back("");
+        }
     }
-
     List->push_back("; End Of File *****************************************************************");
     List->push_back("");
     List->push_back("; Copyright (C) Evo-Devo Instrum. All rights reserved *************************");

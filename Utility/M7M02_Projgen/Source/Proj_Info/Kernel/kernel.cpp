@@ -75,6 +75,8 @@ Return      : None.
         Main::Dir_Fixup(this->Project_Output);
         /* Project_Overwrite */
         this->Project_Overwrite=Main::XML_Get_Yesno(Root,"Project_Overwrite","DXXXX","DXXXX");
+        /* Project_Full_Image */
+        this->Project_Full_Image=Main::XML_Get_Yesno(Root,"Project_Full_Image","DXXXX","DXXXX");
         /* Linker_Output */
         this->Linker_Output=Main::XML_Get_String(Root,"Linker_Output","DXXXX","DXXXX");
         Main::Dir_Fixup(this->Linker_Output);

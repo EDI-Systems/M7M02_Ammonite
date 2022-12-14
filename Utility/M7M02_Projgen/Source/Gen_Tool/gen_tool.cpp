@@ -1119,7 +1119,7 @@ void Gen_Tool::Kernel_Proj(void)
 
     /* Extract the source paths */
     Main::Info("> Generating project source paths:");
-
+    /* Regular kernel source */
     Source.push_back(Kernel->Kernel_Root+"Source/Kernel/rme_kernel.c");
     Source.push_back(Kernel->Kernel_Root+"Source/Platform/"+this->Plat->Name+"/rme_platform_"+this->Plat->Name_Lower+".c");
     Source.push_back(Kernel->Kernel_Root+"Source/Platform/"+this->Plat->Name+
@@ -1128,6 +1128,13 @@ void Gen_Tool::Kernel_Proj(void)
     Source.push_back(Kernel->Hook_Source_Output+"rme_hook.c");
     for(const class Vect_Info* Vect:Monitor->Vector)
         Source.push_back(Kernel->Handler_Source_Output+"rme_handler_"+Vect->Name_Lower+".c");
+    /* Other process compartments, if full image generation is required */
+    if(Kernel->Project_Full_Image!=0)
+    {
+        Source.push_back(Monitor->Project_Output+"monitor_image.c");
+        for(const std::unique_ptr<class Process>& Proc:this->Plat->Proj->Process)
+            Source.push_back(Proc->Project_Output+Proc->Name_Lower+"_image.c");
+    }
     Gen_Tool::Path_Conv(Kernel->Project_Output, Source);
 
     for(const std::string& Path:Source)
