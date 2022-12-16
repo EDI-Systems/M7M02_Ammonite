@@ -6,15 +6,6 @@
 ;*****************************************************************************/
 
 ;/* Begin Header *************************************************************/
-    ;Stack for initializing process only
-    AREA                STACK, NOINIT, READWRITE, ALIGN=3
-RVM_User_Stack
-User_Stack SPACE        0x00000200
-__initial_sp
-
-RVM_Int_Stack
-Int_Stack SPACE         0x00000200
-    
     ;The align is "(2^3)/8=1(Byte)." In fact it does not take effect.            
     AREA                RESET, CODE, READONLY, ALIGN=3
                 
@@ -28,12 +19,6 @@ Int_Stack SPACE         0x00000200
 ;/* End Imports **************************************************************/
 
 ;/* Begin Exports ************************************************************/
-    ;The initial stack pointer position
-    EXPORT              __initial_sp
-    ;The user stack pointer position
-    EXPORT              RVM_User_Stack
-    ;The interrupt stack pointer position
-    EXPORT              RVM_Int_Stack
     ;Triggering an invocation
     EXPORT              RVM_Inv_Act
     ;Returning from an invocation
@@ -50,7 +35,6 @@ Int_Stack SPACE         0x00000200
     EXPORT              RVM_Fetch_And
     ;The jump stub and entry stub
     EXPORT              _RVM_Jmp_Stub
-    EXPORT              RVM_Entry
 ;/* End Exports **************************************************************/
 
 ;/* Entry point **************************************************************/
@@ -245,25 +229,6 @@ _RVM_Jmp_Stub
     MOV                 R0,R5
     BLX                 R4                  ; Branch to the actual entry address.
 ;/* End Function:_RVM_Jmp_Stub ***********************************************/
-
-;/* Begin Function:RVM_Entry **************************************************
-;Description : The jump to a desired position to start initialization of the system,
-;              using a certain stack address.
-;Input       : rvm_ptr_t R0 - The entry.
-;              rvm_ptr_t R1 - The stack base.
-;              rvm_ptr_t R2 - The stack length.
-;              rvm_ptr_r R3 - The parameter.
-;Output      : None.
-;Return      : None.
-;*****************************************************************************/
-RVM_Entry
-    ADD                 R1,R1,R2
-    SUB                 R1,#0x100
-    MOV                 SP,R1
-    MOV                 R4,R0
-    MOV                 R0,R3
-    BX                  R4
-;/* End Function:RVM_Entry ***************************************************/
 
     END
 ;/* End Of File **************************************************************/

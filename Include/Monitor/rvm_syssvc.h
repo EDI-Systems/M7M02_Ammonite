@@ -17,7 +17,7 @@ Description : The header of MPU-based user level low-level library.
 #define RVM_EMPTY                                   (0U)
 
 /* Debug string length */
-#define RVM_USER_DEBUG_MAX_STR                      (128U)
+#define RVM_USER_DEBUG_MAX_STR                      (256U)
 /* Magic number for native processes */
 #define RVM_MAGIC_NATIVE                            (0x49535953U)
 /* Magic number for virtual machine processes */
@@ -94,6 +94,8 @@ do \
 } \
 while(0)
 
+/* Powers of 2 */
+#define RVM_POW2(POW)                               (((rvm_ptr_t)1U)<<(POW))
 /* Bit mask/address operations */
 #define RVM_ALLBITS                                 (~((rvm_ptr_t)0U))
 /* Word size settings */
@@ -108,7 +110,6 @@ while(0)
 /* Round the number down & up to a power of 2, or get the power of 2 */
 #define RVM_ROUND_DOWN(NUM,POW)                     ((NUM)&(RVM_MASK_START(POW)))
 #define RVM_ROUND_UP(NUM,POW)                       RVM_ROUND_DOWN((NUM)+RVM_MASK_END(POW-1U),POW)
-#define RVM_POW2(POW)                               (((rvm_ptr_t)1U)<<(POW))
 
 /* System service stub */
 #define RVM_CAP_OP(OP,CAPID,ARG1,ARG2,ARG3)         RVM_Svc(((OP)<<(sizeof(rvm_ptr_t)*4U))|((rvm_ptr_t)(CAPID)), \
@@ -169,24 +170,21 @@ while(0)
 #define RVM_CAPTBL_WORD_SIZE(NUM)                   (((rvm_ptr_t)(NUM))<<3)
 
 /* Rounded size of each object */
-#define RVM_ROUNDED(X)                              RVM_ROUND_UP(((rvm_ptr_t)(X))*sizeof(rvm_ptr_t),RVM_KMEM_SLOT_ORDER)
+#define RVM_KOBJ_ROUND(X)                           RVM_ROUND_UP((((rvm_ptr_t)(X))*sizeof(rvm_ptr_t)),RVM_KMEM_SLOT_ORDER)
 /* Capability table */
-#define RVM_CAPTBL_SIZE(NUM)                        RVM_ROUNDED(RVM_CAPTBL_WORD_SIZE(NUM))
+#define RVM_CAPTBL_SIZE(NUM)                        RVM_KOBJ_ROUND(RVM_CAPTBL_WORD_SIZE(NUM))
 /* Normal page directory */
-#define RVM_PGTBL_SIZE_NOM(NUM_ORDER)               RVM_ROUNDED(RVM_PGTBL_WORD_SIZE_NOM(NUM_ORDER))
+#define RVM_PGTBL_SIZE_NOM(NUM_ORDER)               RVM_KOBJ_ROUND(RVM_PGTBL_WORD_SIZE_NOM(NUM_ORDER))
 /* Top-level page directory */
-#define RVM_PGTBL_SIZE_TOP(NUM_ORDER)               RVM_ROUNDED(RVM_PGTBL_WORD_SIZE_TOP(NUM_ORDER))
+#define RVM_PGTBL_SIZE_TOP(NUM_ORDER)               RVM_KOBJ_ROUND(RVM_PGTBL_WORD_SIZE_TOP(NUM_ORDER))
 /* Process */
-#define RVM_PROC_SIZE                               RVM_ROUNDED(RVM_PROC_WORD_SIZE)
+#define RVM_PROC_SIZE                               RVM_KOBJ_ROUND(RVM_PROC_WORD_SIZE)
 /* Thread */
-#define RVM_THD_SIZE                                RVM_ROUNDED(RVM_THD_WORD_SIZE)
+#define RVM_THD_SIZE                                RVM_KOBJ_ROUND(RVM_THD_WORD_SIZE)
 /* Signal */                           
-#define RVM_SIG_SIZE                                RVM_ROUNDED(RVM_SIG_WORD_SIZE)
+#define RVM_SIG_SIZE                                RVM_KOBJ_ROUND(RVM_SIG_WORD_SIZE)
 /* Invocation */
-#define RVM_INV_SIZE                                RVM_ROUNDED(RVM_INV_WORD_SIZE)
-
-/* Round the kernel object size to the entry slot size */
-#define RVM_KOTBL_ROUND(X)                          RVM_ROUND_UP(X,RVM_KMEM_SLOT_ORDER)
+#define RVM_INV_SIZE                                RVM_KOBJ_ROUND(RVM_INV_WORD_SIZE)
 
 /* The TLS masks */ 
 #define RVM_TLS_MASK_128B                           RVM_ROUND_DOWN(RVM_ALLBITS, 7U)

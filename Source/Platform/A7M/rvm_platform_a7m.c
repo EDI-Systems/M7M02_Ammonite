@@ -245,6 +245,7 @@ rvm_ret_t RVM_Thd_Print_Regs(rvm_cid_t Cap_Thd)
                                 (rvm_ptr_t)Cap_Thd,
                                 Params)==0);
     RVM_LOG_SUS("Sftd:SP:0x",Params[0],"\r\n");
+    Stack=(struct RVM_A7M_Ret_Stack*)Params[0];
     
     Params[0]=RVM_A7M_KERN_DEBUG_REG_MOD_LR_GET;
     RVM_ASSERT(RVM_A7M_Kern_Act(RVM_BOOT_INIT_KERN, 
@@ -259,7 +260,6 @@ rvm_ret_t RVM_Thd_Print_Regs(rvm_cid_t Cap_Thd)
      * always print the stack trace, though this is quite dangerous. When 
      * developing products, this register printing function will be disabled
      * anyway and thus does not cause security breaches. */
-    Stack=(struct RVM_A7M_Ret_Stack*)Params[0];
     RVM_LOG_SUS("Sftd:Stack-R0:0x",Stack->R0,"\r\n");
     RVM_LOG_SUS("Sftd:Stack-R1:0x",Stack->R1,"\r\n");
     RVM_LOG_SUS("Sftd:Stack-R2:0x",Stack->R2,"\r\n");

@@ -17,7 +17,7 @@ Description : The header of microcontroller user-level library.
  * 4       : Timer daemon (adjustable from 29 to 4)
  *           Virtual machine monitor daemon
  *           Vector handling daemon
- * 3       : Active virtual machine - interrupt thread
+ * 3       : Active virtual machine - vector thread
  * 2       : Active virtual machine - user thread
  * 1       : Init daemon
  * 0       : Inactive virtual machine
@@ -83,6 +83,8 @@ Description : The header of microcontroller user-level library.
 static rvm_ptr_t RVM_Proc_Init(rvm_ptr_t Kmem_Bump);
 static rvm_ptr_t RVM_Daemon_Init(rvm_ptr_t Cap_Front,
                                  rvm_ptr_t Kmem_Front);
+/* Init daemon */
+static void RVM_Init(void);
 /*****************************************************************************/
 #define __EXTERN__
 /* End Private C Function Prototypes *****************************************/

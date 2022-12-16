@@ -137,6 +137,7 @@ void RMP_Gen::Process_Virt_Hdr(class Virtual* Virt)
     }
 
     Main::Info(std::string("> Generating '")+Filename+"'.");
+    /* This may pop up: gcc bug - ignoring copy_options, will fix in the future */
     std::filesystem::copy(Virt->Guest_Root+"Include/Platform/"+this->Plat->Name_Upper+"_RVM/Chip/"+this->Chip->Name+"/"+Filename,
                           Virt->Virtual_Header_Output+Filename,
                           std::filesystem::copy_options::overwrite_existing);
@@ -162,10 +163,10 @@ void RMP_Gen::Process_Virt_Src(class Virtual* Virt, class Tool_Gen* Tool)
     Virt->Virtual_Source.push_back(Virt->Virtual_Source_Output+"rmp_hook.c");
 
     /* Copy the blank file to the folder, in case that it is not there before */
-    if(std::filesystem::exists(Virt->Virtual_Header_Output+"rmp_hook.c")==true)
+    if(std::filesystem::exists(Virt->Virtual_Source_Output+"rmp_hook.c")==true)
     {
         /* See if we'll use forced regenerate */
-        if(Virt->Virtual_Header_Overwrite==0)
+        if(Virt->Virtual_Source_Overwrite==0)
         {
             Main::Info("> File 'rmp_hook.c' exists, skipping generation.");
             return;
@@ -173,6 +174,7 @@ void RMP_Gen::Process_Virt_Src(class Virtual* Virt, class Tool_Gen* Tool)
     }
 
     Main::Info("> Generating 'rmp_hook.c'.");
+    /* This may pop up: gcc bug - ignoring copy_options, will fix in the future */
     std::filesystem::copy(Virt->Guest_Root+"Source/Benchmark/rmp_hook_rvm.c",
                           Virt->Virtual_Source_Output+"rmp_hook.c",
                           std::filesystem::copy_options::overwrite_existing);

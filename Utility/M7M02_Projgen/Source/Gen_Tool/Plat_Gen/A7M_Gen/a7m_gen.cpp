@@ -27,6 +27,7 @@ extern "C"
 #include "Chip_Info/chip_info.hpp"
 #include "Proj_Info/Kobj/kobj.hpp"
 #include "Proj_Info/proj_info.hpp"
+#include "Proj_Info/Process/process.hpp"
 #include "Gen_Tool/Gen_Tool.hpp"
 #include "Gen_Tool/Plat_Gen/plat_gen.hpp"
 #include "Gen_Tool/Plat_Gen/A7M_Gen/a7m_gen.hpp"
@@ -501,7 +502,7 @@ Return      : ptr_t - The size in bytes.
 ptr_t A7M_Gen::Raw_Pgtbl(ptr_t Num_Order, ptr_t Is_Top)
 {
     if(Is_Top!=0)
-        return A7M_RAW_PGTBL_SIZE_TOP_NOREGIONS(Num_Order)+this->Chip->Region*8;
+        return A7M_RAW_PGTBL_SIZE_TOP(Num_Order, this->Chip->Region);
     else
         return A7M_RAW_PGTBL_SIZE_NOM(Num_Order);
 }
@@ -570,7 +571,7 @@ Return      : None.
 void A7M_Gen::Kernel_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
 {
     /* Init process's first thread's entry point address */
-    Gen_Tool::Macro_Hex(List, "RME_A7M_INIT_ENTRY",this->Proj->Monitor->Code_Base|0x01, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RME_A7M_INIT_ENTRY",PROC_DESC_ALIGN(this->Proj->Monitor->Code_Base+8*4)|0x01, MACRO_REPLACE);
     /* Init process's first thread's stack address */
     Gen_Tool::Macro_Hex(List, "RME_A7M_INIT_STACK",
                         this->Proj->Monitor->Init_Stack_Base+this->Proj->Monitor->Init_Stack_Size-16, MACRO_REPLACE);
@@ -599,7 +600,7 @@ Return      : None.
 void A7M_Gen::Monitor_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
 {
     /* Init process's first thread's entry point address */
-    Gen_Tool::Macro_Hex(List, "RVM_A7M_INIT_ENTRY",this->Proj->Monitor->Code_Base|0x01, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RVM_A7M_INIT_ENTRY",PROC_DESC_ALIGN(this->Proj->Monitor->Code_Base+8*4)|0x01, MACRO_REPLACE);
     /* Init process's first thread's stack address */
     Gen_Tool::Macro_Hex(List, "RVM_A7M_INIT_STACK",
                         this->Proj->Monitor->Init_Stack_Base+this->Proj->Monitor->Init_Stack_Size-16, MACRO_REPLACE);

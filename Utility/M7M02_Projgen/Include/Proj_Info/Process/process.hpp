@@ -32,7 +32,7 @@ namespace RVM_GEN
 #define VIRT_CAPTBL_BASE        (2)
 
 /* Description header alignment */
-#define PROC_DESCHDR_ALIGN(X)   ROUND_UP(X,16)
+#define PROC_DESC_ALIGN(X)      ROUND_UP(X,16)
 /*****************************************************************************/
 /* __PROCESS_HPP_DEFS__ */
 #endif
@@ -123,8 +123,8 @@ public:
     /* Data memory */
     ptr_t Data_Base;
     ptr_t Data_Size;
-    /* Header entry frontier */
-    ptr_t Header_Front;
+    /* Descriptor header entry frontier */
+    ptr_t Desc_Front;
     /* Actual code frontier */
     ptr_t Code_Front;
 

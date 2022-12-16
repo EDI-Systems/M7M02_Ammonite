@@ -405,7 +405,7 @@ void Keil_Gen::Kernel_Proj(std::unique_ptr<std::vector<std::string>>& List,
                    Include,                                 /* Include */
                    Source,                                  /* Source */
                    Linker[0],                               /* Linker */
-                   "");                                     /* Linker_Misc */
+                   "--keep=*_image");                       /* Linker_Misc */
 }
 /* End Function:Keil_Gen::Kernel_Proj ****************************************/
 
@@ -485,7 +485,7 @@ void Keil_Gen::Process_Proj(std::unique_ptr<std::vector<std::string>>& List,
                    Include,                                 /* Include */
                    Source,                                  /* Source */
                    Linker[0],                               /* Linker */
-                   "");                                     /* Linker_Misc */
+                   "--keep=*_desc");                        /* Linker_Misc */
 }
 /* End Function:Keil_Gen::Process_Proj ***************************************/
 

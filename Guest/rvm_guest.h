@@ -16,7 +16,7 @@ Description : The header of guest user level low-level library.
 #define RVM_EMPTY                                   (0U)
 
 /* Debug string length */
-#define RVM_USER_DEBUG_MAX_STR                      (128U)
+#define RVM_USER_DEBUG_MAX_STR                      (256U)
 /* Magic number for native processes */
 #define RVM_MAGIC_NATIVE                            (0x49535953U)
 /* Magic number for virtual machine processes */

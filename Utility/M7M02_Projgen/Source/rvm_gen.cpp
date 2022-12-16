@@ -1428,7 +1428,7 @@ void Main::Kmem_Alloc(ptr_t Init_Capsz)
     Kmem_Front+=this->Gen->Plat->Size_Captbl(this->Proj->Monitor->Pgtbl.size());
     /* Page table themselves */
     for(class Pgtbl* Pgtbl:this->Proj->Monitor->Pgtbl)
-        Kmem_Front+=this->Gen->Plat->Size_Pgtbl(Pgtbl->Num_Order,Pgtbl->Is_Top);
+        Kmem_Front+=this->Gen->Plat->Size_Pgtbl(Pgtbl->Num_Order, Pgtbl->Is_Top);
 
     /* Create processes */
     Main::Info("> Monitor process cap front %lld kmem front 0x%llX.", Cap_Front, Kmem_Front);

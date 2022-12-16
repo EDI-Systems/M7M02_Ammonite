@@ -633,7 +633,7 @@ void Gen_Tool::Kernel_Conf_Hdr(void)
     Gen_Tool::Macro_Hex(List, "RME_KMEM_VA_BASE", Kernel->Kmem_Base, MACRO_REPLACE);
     Gen_Tool::Macro_Hex(List, "RME_KMEM_VA_SIZE", Kernel->Kmem_Size, MACRO_REPLACE);
     /* The virtual memory base/size for the virtual machines - always full memory range, just in case */
-    Gen_Tool::Macro_Hex(List, "RME_HYP_VA_BASE", 0x00000001ULL, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RME_HYP_VA_BASE", 0x00000000ULL, MACRO_REPLACE);
     Gen_Tool::Macro_Hex(List, "RME_HYP_VA_SIZE", 0xFFFFFFFFULL, MACRO_REPLACE);
     /* Kernel stack base/size */
     Gen_Tool::Macro_Hex(List, "RME_KSTK_VA_BASE", Kernel->Stack_Base, MACRO_REPLACE);
@@ -1257,24 +1257,24 @@ void Gen_Tool::Monitor_Conf_Hdr(void)
 
     /* Physical vector number, flag area base and its size */
     Gen_Tool::Macro_Int(List, "RVM_PHYS_VECT_NUM", this->Plat->Chip->Vect_Num, MACRO_REPLACE);
-    Gen_Tool::Macro_Int(List, "RVM_PHYS_VECT_BASE", Kernel->Vctf_Base, MACRO_REPLACE);
-    Gen_Tool::Macro_Int(List, "RVM_PHYS_VECT_SIZE", Kernel->Vctf_Size, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RVM_PHYS_VECT_BASE", Kernel->Vctf_Base, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RVM_PHYS_VECT_SIZE", Kernel->Vctf_Size, MACRO_REPLACE);
     /* Virtual event number, flag area base and its size */
     Gen_Tool::Macro_Int(List, "RVM_VIRT_EVENT_NUM", Monitor->Virt_Event, MACRO_REPLACE);
-    Gen_Tool::Macro_Int(List, "RVM_VIRT_EVENT_BASE", Kernel->Evtf_Base, MACRO_REPLACE);
-    Gen_Tool::Macro_Int(List, "RVM_VIRT_EVENT_SIZE", Kernel->Evtf_Size, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RVM_VIRT_EVENT_BASE", Kernel->Evtf_Base, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RVM_VIRT_EVENT_SIZE", Kernel->Evtf_Size, MACRO_REPLACE);
     /* Maximum number of mappings allowed */
     Gen_Tool::Macro_Int(List, "RVM_VIRT_MAP_NUM", Monitor->Virt_Map, MACRO_REPLACE);
 
     /* Stack base and size of the daemon threads, in bytes */
-    Gen_Tool::Macro_Int(List, "RVM_SFTD_STACK_BASE", Monitor->Sftd_Stack_Base, MACRO_REPLACE);
-    Gen_Tool::Macro_Int(List, "RVM_SFTD_STACK_SIZE", Monitor->Sftd_Stack_Size, MACRO_REPLACE);
-    Gen_Tool::Macro_Int(List, "RVM_TIMD_STACK_BASE", Monitor->Timd_Stack_Base, MACRO_REPLACE);
-    Gen_Tool::Macro_Int(List, "RVM_TIMD_STACK_SIZE", Monitor->Timd_Stack_Size, MACRO_REPLACE);
-    Gen_Tool::Macro_Int(List, "RVM_VMMD_STACK_BASE", Monitor->Vmmd_Stack_Base, MACRO_REPLACE);
-    Gen_Tool::Macro_Int(List, "RVM_VMMD_STACK_SIZE", Monitor->Vmmd_Stack_Size, MACRO_REPLACE);
-    Gen_Tool::Macro_Int(List, "RVM_VCTD_STACK_BASE", Monitor->Vctd_Stack_Base, MACRO_REPLACE);
-    Gen_Tool::Macro_Int(List, "RVM_VCTD_STACK_SIZE", Monitor->Vctd_Stack_Size, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RVM_SFTD_STACK_BASE", Monitor->Sftd_Stack_Base, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RVM_SFTD_STACK_SIZE", Monitor->Sftd_Stack_Size, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RVM_TIMD_STACK_BASE", Monitor->Timd_Stack_Base, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RVM_TIMD_STACK_SIZE", Monitor->Timd_Stack_Size, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RVM_VMMD_STACK_BASE", Monitor->Vmmd_Stack_Base, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RVM_VMMD_STACK_SIZE", Monitor->Vmmd_Stack_Size, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RVM_VCTD_STACK_BASE", Monitor->Vctd_Stack_Base, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RVM_VCTD_STACK_SIZE", Monitor->Vctd_Stack_Size, MACRO_REPLACE);
     /* Initial capability frontier limit */
     Gen_Tool::Macro_Int(List, "RVM_CAP_BOOT_FRONTIER", Monitor->Before_Cap_Front, MACRO_REPLACE);
     /* Initial kernel memory frontier limit */
@@ -1638,7 +1638,7 @@ void Gen_Tool::Monitor_Boot_Src(void)
                             Main::Hex(Virt->Param_Base)+"U,");
             List->push_back(std::string(" (struct RVM_Vctf*)0x")+
                             Main::Hex(Virt->Vctf_Base)+"U, 0x"+
-                            Main::Hex(Virt->Header_Front)+"U, RVM_CAPID(RVM_BOOT_CTVEP_"+
+                            Main::Hex(Virt->Code_Base)+"U, RVM_CAPID(RVM_BOOT_CTVEP_"+
                             CTIDS(Obj_Cnt)+", "+OIDS(Obj_Cnt)+"U),");
             List->push_back(std::string(" ")+
                             Virt->Thread[0]->Macro_Global+", "+
@@ -1745,7 +1745,7 @@ void Gen_Tool::Monitor_Boot_Src(void)
         List->push_back(std::string("    RVM_LOG_SISUS(\"Init:Created capability table '")+
                         Captbl->Macro_Global+"' CID \", RVM_CAPID(RVM_BOOT_CTCAPTBL_"+
                         CTIDS(Captbl->Capid_Global)+", "+OIDS(Captbl->Capid_Global)+"U), \" @ address 0x\", Cur_Addr, \".\\r\\n\");");
-        List->push_back(std::string("    Cur_Addr+=RVM_KOTBL_ROUND(RVM_CAPTBL_SIZE(")+std::to_string(Captbl->Size)+"U));");
+        List->push_back(std::string("    Cur_Addr+=RVM_CAPTBL_SIZE(")+std::to_string(Captbl->Size)+"U);");
     }
     List->push_back("");
     List->push_back(std::string("    RVM_ASSERT(Cur_Addr==0x")+Main::Hex(Monitor->Pgtbl_Kmem_Front)+"U);");
@@ -1777,7 +1777,10 @@ void Gen_Tool::Monitor_Boot_Src(void)
         List->push_back(std::string("    RVM_LOG_SISUS(\"Init:Created page table '")+
                         Pgtbl->Macro_Global+"' CID \", RVM_CAPID(RVM_BOOT_CTPGTBL_"+
                         CTIDS(Pgtbl->Capid_Global)+", "+OIDS(Pgtbl->Capid_Global)+"U), \" @ address 0x\", Cur_Addr, \".\\r\\n\");");
-        List->push_back(std::string("    Cur_Addr+=0x")+Main::Hex(this->Plat->Size_Pgtbl(Pgtbl->Num_Order, Pgtbl->Is_Top))+"U;");
+        if(Pgtbl->Is_Top!=0)
+            List->push_back(std::string("    Cur_Addr+=RVM_PGTBL_SIZE_TOP(")+std::to_string(Pgtbl->Num_Order)+"U);");
+        else
+            List->push_back(std::string("    Cur_Addr+=RVM_PGTBL_SIZE_NOM(")+std::to_string(Pgtbl->Num_Order)+"U);");
     }
     List->push_back("");
     List->push_back(std::string("    RVM_ASSERT(Cur_Addr==0x")+Main::Hex(Monitor->Proc_Kmem_Front)+");");
@@ -1838,7 +1841,7 @@ void Gen_Tool::Monitor_Boot_Src(void)
         List->push_back(std::string("    RVM_LOG_SISUS(\"Init:Created thread '")+
                         Thd->Macro_Global+"' CID \", RVM_CAPID(RVM_BOOT_CTTHD_"+
                         CTIDS(Thd->Capid_Global)+", "+OIDS(Thd->Capid_Global)+"U), \" @ address 0x\", Cur_Addr, \".\\r\\n\");");
-        List->push_back("    Cur_Addr+=RVM_KOTBL_ROUND(RVM_THD_SIZE);");
+        List->push_back("    Cur_Addr+=RVM_THD_SIZE;");
     }
     List->push_back("");
     List->push_back(std::string("    RVM_ASSERT(Cur_Addr==0x")+Main::Hex(Monitor->Inv_Kmem_Front)+"U);");
@@ -1869,7 +1872,7 @@ void Gen_Tool::Monitor_Boot_Src(void)
         List->push_back(std::string("    RVM_LOG_SISUS(\"Init:Created invocation '")+
                         Inv->Macro_Global+"' CID \", RVM_CAPID(RVM_BOOT_CTINV_"+
                         CTIDS(Inv->Capid_Global)+", "+OIDS(Inv->Capid_Global)+"U), \" @ address 0x\", Cur_Addr, \".\\r\\n\");");
-        List->push_back("    Cur_Addr+=RVM_KOTBL_ROUND(RVM_INV_SIZE);");
+        List->push_back("    Cur_Addr+=RVM_INV_SIZE;");
     }
     List->push_back("");
     List->push_back(std::string("    RVM_ASSERT(Cur_Addr==0x")+Main::Hex(Monitor->Recv_Kmem_Front)+"U);");
@@ -1949,7 +1952,7 @@ void Gen_Tool::Monitor_Boot_Src(void)
             List->push_back(std::string("    RVM_ASSERT(RVM_Captbl_Add(")+
                             Virt->Captbl->Macro_Global+", 1U, RVM_BOOT_CTVEP_"+
                             CTIDS(Obj_Cnt)+", "+OIDS(Obj_Cnt)+"U, RVM_SIG_FLAG_SND|RVM_SIG_FLAG_RCV)==0U);");
-            List->push_back(std::string("    RVM_LOG_S(\"Init:Delegated system call send endpoint to virtual machine '")+
+            List->push_back(std::string("    RVM_LOG_S(\"Init:Delegated virtual machine vector endpoint to virtual machine '")+
                             Virt->Macro_Global+"'.\\r\\n\");");
             List->push_back("");
             /* Initialize virtual machine data structure */
@@ -2119,9 +2122,9 @@ void Gen_Tool::Monitor_Boot_Src(void)
                 }
             }
 
-            List->push_back(std::string("    Init_Entry_Addr=RVM_PROC_ENTRY(0x")+
+            List->push_back(std::string("    Init_Entry_Addr=RVM_DESC_ENTRY(0x")+
                             Main::Hex(Proc->Code_Base)+"U, "+Main::Hex(Thd->Header_Slot)+"U);");
-            List->push_back(std::string("    Init_Stub_Addr=RVM_PROC_STUB(0x")+Main::Hex(Proc->Code_Base)+"U);");
+            List->push_back(std::string("    Init_Stub_Addr=RVM_DESC_STUB(0x")+Main::Hex(Proc->Code_Base)+"U);");
             List->push_back(std::string("    Init_Stack_Addr=RVM_Stack_Init(0x")+
                             Main::Hex(Thd->Stack_Base)+"U, 0x"+
                             Main::Hex(Thd->Stack_Size)+"U, Init_Entry_Addr, Init_Stub_Addr);");
@@ -2161,9 +2164,9 @@ void Gen_Tool::Monitor_Boot_Src(void)
         List->push_back(std::string("    /* Initializing invocation for process: '")+Proc->Name+"' */");
         for(const std::unique_ptr<class Invocation>& Inv:Proc->Invocation)
         {
-            List->push_back(std::string("    Init_Entry_Addr=RVM_PROC_ENTRY(0x")+
+            List->push_back(std::string("    Init_Entry_Addr=RVM_DESC_ENTRY(0x")+
                             Main::Hex(Proc->Code_Base)+"U, "+Main::Hex(Inv->Header_Slot)+"U);");
-            List->push_back(std::string("    Init_Stub_Addr=RVM_PROC_STUB(0x")+Main::Hex(Proc->Code_Base)+"U);");
+            List->push_back(std::string("    Init_Stub_Addr=RVM_DESC_STUB(0x")+Main::Hex(Proc->Code_Base)+"U);");
             List->push_back(std::string("    Init_Stack_Addr=RVM_Stack_Init(0x")+
                             Main::Hex(Inv->Stack_Base)+"U, 0x"+
                             Main::Hex(Inv->Stack_Size)+"U, Init_Entry_Addr, Init_Stub_Addr);");
@@ -2396,6 +2399,7 @@ void Gen_Tool::Process_Inc(std::unique_ptr<std::vector<std::string>>& List,
                            class Process* Proc)
 {
     List->push_back("/* Includes ******************************************************************/");
+    List->push_back("#include \"rvm.h\"");
     List->push_back("#include \"rvm_guest.h\"");
     List->push_back("/* End Includes **************************************************************/");
 }
@@ -2680,7 +2684,7 @@ void Gen_Tool::Process_Desc_Src(class Process* Proc)
 
     Main::Info("> Generating main source descriptor.");
     Filename=std::string("proc_")+Proc->Name_Lower+"_desc.c";
-    Gen_Tool::Src_Head(List, Filename, "The process compartment header file - do not edit!.");
+    Gen_Tool::Src_Head(List, Filename, "The process descriptor header file - do not edit!.");
     List->push_back("");
 
     /* Includes */
@@ -2699,12 +2703,12 @@ void Gen_Tool::Process_Desc_Src(class Process* Proc)
 
     /* Global variables */
     List->push_back("/* Public Global Variables ***************************************************/");
-    List->push_back(std::string("const rvm_ptr_t RVM_Proc_Header[")+std::to_string(Proc->Header_Front)+"]=");
+    List->push_back(std::string("const rvm_ptr_t RVM_Proc_Desc[")+std::to_string(Proc->Desc_Front)+"]=");
     List->push_back("{");
     if(Proc->Type==PROC_NATIVE)
     {
         List->push_back(std::string("    0x")+Main::Hex(MAGIC_NATIVE)+"U,");
-        List->push_back(std::string("    0x")+Main::Hex(Proc->Header_Front-2)+"U,");
+        List->push_back(std::string("    0x")+Main::Hex(Proc->Desc_Front-2)+"U,");
         /* For native processes, the first (higher-priority) thread's entry is always the main entry point
          * that immediately follows the header, and aligned to a 16-byte boundary. This is due to some
          * proprietary toolchains requiring an aligned address - e.g. ARMCC. */
@@ -2719,7 +2723,7 @@ void Gen_Tool::Process_Desc_Src(class Process* Proc)
     else
     {
         List->push_back(std::string("    0x")+Main::Hex(MAGIC_VIRTUAL)+"U,");
-        List->push_back(std::string("    0x")+Main::Hex(Proc->Header_Front-2)+"U,");
+        List->push_back(std::string("    0x")+Main::Hex(Proc->Desc_Front-2)+"U,");
         /* For native processes, the second (lower-priority) thread's entry is always the main entry point.
          * Because the second thread that runs the user code is low-priority, and the guest VM may have
          * already defined a main function. We want to be as less intrusive as possible */
@@ -2778,7 +2782,7 @@ void Gen_Tool::Process_Main_Src(class Process* Proc)
 
     /* Global variable - The only one being the process header reference */
     List->push_back("/* Public Global Variables ***************************************************/");
-    List->push_back(std::string("extern const rvm_ptr_t RVM_Proc_Header[")+std::to_string(Proc->Header_Front)+"];");
+    List->push_back(std::string("extern const rvm_ptr_t RVM_Proc_Desc[")+std::to_string(Proc->Desc_Front)+"];");
     List->push_back("/* End Public Global Varibles ************************************************/");
     List->push_back("");
 
@@ -2814,8 +2818,8 @@ void Gen_Tool::Process_Main_Src(class Process* Proc)
         List->push_back("rvm_ret_t Thd_Vector(rvm_ret_t Param)");
         List->push_back("{");
         List->push_back("    /* Check header validity on boot */");
-        List->push_back("    RVM_ASSERT(RVM_Proc_Header[0]==RVM_MAGIC_VIRTUAL);");
-        List->push_back(std::string("    RVM_ASSERT(RVM_Proc_Header[1]==")+std::to_string(Proc->Header_Front-2)+"U);");
+        List->push_back("    RVM_ASSERT(RVM_Proc_Desc[0]==RVM_MAGIC_VIRTUAL);");
+        List->push_back(std::string("    RVM_ASSERT(RVM_Proc_Desc[1]==")+std::to_string(Proc->Desc_Front-2)+"U);");
         List->push_back("");
         List->push_back("    /* DO NOT MODIFY - THIS HIGH PRIORITY THREAD IS DESIGNED TO RUN ON UNINITIALIZED RAM */");
         List->push_back("    RVM_Virt_Init();");
@@ -2844,15 +2848,11 @@ void Gen_Tool::Process_Main_Src(class Process* Proc)
         List->push_back("rvm_ret_t main(void)");
         List->push_back("{");
         List->push_back("    /* Check header validity */");
-        List->push_back("    RVM_ASSERT(RVM_Proc_Header[0]==RVM_MAGIC_NATIVE);");
-        List->push_back(std::string("    RVM_ASSERT(RVM_Proc_Header[1]==")+std::to_string(Proc->Header_Front-2)+"U);");
+        List->push_back("    RVM_ASSERT(RVM_Proc_Desc[0]==RVM_MAGIC_NATIVE);");
+        List->push_back(std::string("    RVM_ASSERT(RVM_Proc_Desc[1]==")+std::to_string(Proc->Desc_Front-2)+"U);");
         List->push_back("");
-        List->push_back("    /* Jump to the entry of the first (highest-priority) thread */");
-        List->push_back(std::string("    RVM_Entry((rvm_ptr_t)Thd_")+
-                        Proc->Thread[0]->Name+", 0x"+
-                        Main::Hex(Proc->Thread[0]->Stack_Base)+"U, 0x"+
-                        Main::Hex(Proc->Thread[0]->Stack_Size)+"U, 0x"+
-                        Main::Hex(Proc->Thread[0]->Parameter)+"U);");
+        List->push_back("    /* Call the first (highest-priority) thread */");
+        List->push_back(std::string("    Thd_")+Proc->Thread[0]->Name+"("+Main::Hex(Proc->Thread[0]->Parameter)+"U);");
         List->push_back("}");
         Gen_Tool::Func_Foot(List, "main");
         List->push_back("");

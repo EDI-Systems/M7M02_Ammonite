@@ -24,8 +24,8 @@ namespace RVM_GEN
 #define A7M_INIT_NUM_ORD                        (0)
 
 /* A7M kernel object size */
-#define A7M_RAW_PGTBL_SIZE_TOP_NOREGIONS(ORDER) (0x14+0x04+POW2(ORDER)*4)
-#define A7M_RAW_PGTBL_SIZE_NOM(ORDER)           (0x14+POW2(ORDER)*4)
+#define A7M_RAW_PGTBL_SIZE_NOM(O)               ((5+POW2(O))*4)
+#define A7M_RAW_PGTBL_SIZE_TOP(O, R)            (((1+(R)*2)*4)+A7M_RAW_PGTBL_SIZE_NOM(O))
 #define A7M_RAW_THD_SIZE                        (0x7C)
 #define A7M_RAW_THD_FPU_SIZE                    (0xBC)
 #define A7M_RAW_INV_SIZE                        (0x24)

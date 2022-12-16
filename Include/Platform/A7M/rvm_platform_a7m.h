@@ -58,9 +58,9 @@ typedef unsigned char rvm_u8_t;
 /* Invocation size */
 #define RVM_INV_WORD_SIZE                           (9U)
 /* Normal page directory size */
-#define RVM_PGTBL_WORD_SIZE_NOM(NUM_ORDER)          (RVM_POW2(NUM_ORDER)+5U)
+#define RVM_PGTBL_WORD_SIZE_NOM(NUM_ORDER)          (5U+RVM_POW2(NUM_ORDER))
 /* Top-level page directory size */
-#define RVM_PGTBL_WORD_SIZE_TOP(NUM_ORDER)          (RVM_PGTBL_SIZE_NOM(NUM_ORDER)+5U+1U+2U*RVM_A7M_MPU_REGIONS)
+#define RVM_PGTBL_WORD_SIZE_TOP(NUM_ORDER)          (1U+2U*RVM_A7M_MPU_REGIONS+RVM_PGTBL_WORD_SIZE_NOM(NUM_ORDER))
 
 #define RVM_A7M_REG(X)                              (*((volatile rvm_ptr_t*)(X)))
 #define RVM_A7M_REGB(X)                             (*((volatile rvm_u8_t*)(X)))

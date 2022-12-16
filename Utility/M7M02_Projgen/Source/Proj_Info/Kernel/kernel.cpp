@@ -115,6 +115,8 @@ Return      : None.
 ******************************************************************************/
 void Kernel::Mem_Alloc(ptr_t Kmem_Front, ptr_t Vector_Num, ptr_t Event_Num, ptr_t Wordlength)
 {
+    ptr_t Real_Kmem_Order;
+
     /* Vector flag section - cut out from the data section */
     this->Vctf_Size=Proj_Info::Flag_Alloc(Vector_Num, Wordlength, this->Kmem_Order);
     this->Vctf_Base=this->Data_Base+this->Data_Size-this->Vctf_Size;
@@ -139,11 +141,16 @@ void Kernel::Mem_Alloc(ptr_t Kmem_Front, ptr_t Vector_Num, ptr_t Event_Num, ptr_
         Main::Error("M2102: Kernel data section is not big enough, unable to allocate kernel stack.");
     this->Data_Size=this->Stack_Base-this->Data_Base;
 
-    /* Kernel memory section - cut out from the data section */
+    /* Kernel memory section - cut out from the data section - alignment order at least 6 */
+    if(this->Kmem_Order>6)
+        Real_Kmem_Order=this->Kmem_Order;
+    else
+        Real_Kmem_Order=6;
+
     this->Kmem_Size=Kmem_Front+this->Extra_Kmem;
-    this->Kmem_Size=ROUND_UP_POW2(this->Kmem_Size,this->Kmem_Order);
+    this->Kmem_Size=ROUND_UP_POW2(this->Kmem_Size, Real_Kmem_Order);
     this->Kmem_Base=this->Data_Base+this->Data_Size-this->Kmem_Size;
-    this->Kmem_Base=ROUND_DOWN_POW2(this->Kmem_Base,this->Kmem_Order);
+    this->Kmem_Base=ROUND_DOWN_POW2(this->Kmem_Base, Real_Kmem_Order);
     Main::Info("> Kmem base 0x%llX size 0x%llX.", this->Kmem_Base, this->Kmem_Size);
     if(this->Kmem_Base<=this->Data_Base)
         Main::Error("M2103: Kernel data section is not big enough, unable to allocate kernel object memory.");

@@ -709,17 +709,17 @@ void _RVM_Recover_Cur_Virt(void)
     
     /* Set the execution properties for virt @ position 0 */
     Init_Stack_Addr=RVM_Stack_Init(RVM_Cur_Virt->Map->Vect_Stack_Base, RVM_Cur_Virt->Map->Vect_Stack_Size,
-                                   RVM_PROC_ENTRY(RVM_Cur_Virt->Map->Header_Base,0U),
-                                   RVM_PROC_STUB(RVM_Cur_Virt->Map->Header_Base));
+                                   RVM_DESC_ENTRY(RVM_Cur_Virt->Map->Desc_Base,0U),
+                                   RVM_DESC_STUB(RVM_Cur_Virt->Map->Desc_Base));
     RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Cur_Virt->Map->Vect_Thd_Cap, 
-                                RVM_PROC_ENTRY(RVM_Cur_Virt->Map->Header_Base,0U), Init_Stack_Addr, 0)==0);
+                                RVM_DESC_ENTRY(RVM_Cur_Virt->Map->Desc_Base,0U), Init_Stack_Addr, 0)==0);
     
     /* Set the execution properties for user @ position 1 */
     Init_Stack_Addr=RVM_Stack_Init(RVM_Cur_Virt->Map->User_Stack_Base, RVM_Cur_Virt->Map->User_Stack_Size,
-                                   RVM_PROC_ENTRY(RVM_Cur_Virt->Map->Header_Base,1U),
-                                   RVM_PROC_STUB(RVM_Cur_Virt->Map->Header_Base));
+                                   RVM_DESC_ENTRY(RVM_Cur_Virt->Map->Desc_Base,1U),
+                                   RVM_DESC_STUB(RVM_Cur_Virt->Map->Desc_Base));
     RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Cur_Virt->Map->User_Thd_Cap, 
-                                RVM_PROC_ENTRY(RVM_Cur_Virt->Map->Header_Base,1U), Init_Stack_Addr ,0)==0);
+                                RVM_DESC_ENTRY(RVM_Cur_Virt->Map->Desc_Base,1U), Init_Stack_Addr ,0)==0);
     
     /* Delegate infinite time to both threads */
     RVM_ASSERT(RVM_Thd_Time_Xfer(RVM_Cur_Virt->Map->Vect_Thd_Cap, RVM_BOOT_INIT_THD, RVM_THD_INF_TIME)==RVM_THD_INF_TIME);
@@ -880,14 +880,13 @@ void RVM_Timd(void)
     {
         RVM_ASSERT(RVM_Sig_Rcv(RVM_BOOT_INIT_TIMER, RVM_RCV_BS)>=0);
         RVM_Tick++;
-        /*
-        if((RVM_Tick%1000)==0)
-            RVM_LOG_S("Timd:Timer daemon passed 1000 ticks.\r\n");
-        */
-        Slot=&(RVM_Wheel[RVM_Tick%RVM_WHEEL_SIZE]);
         
-        Trav=Slot->Next;
+        if((RVM_Tick%10000U)==0U)
+            RVM_LOG_S("Timd:Timer daemon passed 10000 ticks.\r\n");
+        
         /* See if we need to process the timer wheel to deliver timer interrupts to virtual machines */
+        Slot=&(RVM_Wheel[RVM_Tick%RVM_WHEEL_SIZE]);
+        Trav=Slot->Next;
         while(Trav!=Slot)
         {
             Virt=RVM_DLY2VM(Trav);
@@ -906,10 +905,10 @@ void RVM_Timd(void)
         }
         
         /* If there is at least one virtual machine working, check slices and watchdog */
-        if(RVM_Cur_Virt!=0)
+        if(RVM_Cur_Virt!=0U)
         {
             /* Is the timeslices exhausted? */
-            if(RVM_Cur_Virt->Sched.Slices_Left==0)   
+            if(RVM_Cur_Virt->Sched.Slices_Left==0U)   
             {
                 RVM_Cur_Virt->Sched.Slices_Left=RVM_Cur_Virt->Map->Slices;
                 /* Place it at the end of the run queue */
@@ -922,10 +921,10 @@ void RVM_Timd(void)
                 RVM_Cur_Virt->Sched.Slices_Left--;
             
             /* Is the watchdog enabled for this virtual machine? */
-            if((RVM_Cur_Virt->Sched.State&RVM_VM_WDOGENA)!=0)
+            if((RVM_Cur_Virt->Sched.State&RVM_VM_WDOGENA)!=0U)
             {
                 /* Is the watchdog timeout? */
-                if(RVM_Cur_Virt->Sched.Watchdog_Left==0)   
+                if(RVM_Cur_Virt->Sched.Watchdog_Left==0U)   
                 {
                     /* Watchdog timeout - seek to reboot the VM */
                     RVM_LOG_S("Timd:Watchdog overflow in virtual machine ");
@@ -977,8 +976,8 @@ void RVM_Vmmd(void)
     while(1U)
     {
         /* Blocking multi receive */
-        RVM_ASSERT(RVM_Sig_Rcv(RVM_Vmmd_Sig_Cap, RVM_RCV_BS)>=0);
-
+        RVM_ASSERT(RVM_Sig_Rcv(RVM_Vmmd_Sig_Cap, RVM_RCV_BM)>=0);
+        
         /* See if the vector is active */
         if(RVM_Cur_Virt->Map->Param_Base->Vector_Active!=0U)
         {

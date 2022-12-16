@@ -488,7 +488,7 @@ void Process::Mem_Alloc(ptr_t Wordlength, ptr_t Reg_Size, ptr_t Param_Size, ptr_
     this->Code_Size=this->Memory_Code[0]->Size;
     this->Data_Base=this->Memory_Data[0]->Base;
     this->Data_Size=this->Memory_Data[0]->Size;
-    this->Header_Front=0;
+    this->Desc_Front=0;
 
     /* Sort the threads according to their priority - The highest priority comes first */
     std::sort(this->Thread.begin(),this->Thread.end(),
@@ -509,10 +509,10 @@ void Process::Mem_Alloc(ptr_t Wordlength, ptr_t Reg_Size, ptr_t Param_Size, ptr_
                 Main::Error("M2300: Data section size is not big enough, unable to allocate stack.");
             this->Data_Size=Thd->Stack_Base-this->Data_Base;
             /* Allocate entry from header */
-            Thd->Header_Slot=this->Header_Front;
+            Thd->Header_Slot=this->Desc_Front;
             Main::Info("> Thread '%s' stack base 0x%llX size 0x%llX header slot %lld.",
                        Thd->Name.c_str(), Thd->Stack_Base, Thd->Stack_Size, Thd->Header_Slot);
-            this->Header_Front++;
+            this->Desc_Front++;
         }
         catch(std::exception& Exc)
         {
@@ -531,11 +531,11 @@ void Process::Mem_Alloc(ptr_t Wordlength, ptr_t Reg_Size, ptr_t Param_Size, ptr_
             if(Inv->Stack_Base<=this->Data_Base)
                 Main::Error("M2300: Data section size is not big enough, unable to allocate stack.");
             this->Data_Size=Inv->Stack_Base-this->Data_Base;
-            /* Allocate entry from header */
-            Inv->Header_Slot=this->Header_Front;
+            /* Allocate entry from descriptor header */
+            Inv->Header_Slot=this->Desc_Front;
             Main::Info("> Invocation '%s' stack base 0x%llX size 0x%llX header slot %lld.",
                        Inv->Name.c_str(), Inv->Stack_Base, Inv->Stack_Size, Inv->Header_Slot);
-            this->Header_Front++;
+            this->Desc_Front++;
         }
         catch(std::exception& Exc)
         {
@@ -544,10 +544,10 @@ void Process::Mem_Alloc(ptr_t Wordlength, ptr_t Reg_Size, ptr_t Param_Size, ptr_
     }
 
     /* Compensate for the Magic, Number & optional jump Stub that fills the last slot */
-    this->Header_Front+=3;
+    this->Desc_Front+=3;
 
     /* The code memory frontier just follows the header but is aligned */
-    this->Code_Front=PROC_DESCHDR_ALIGN(this->Code_Base+this->Header_Front*(Wordlength/8));
+    this->Code_Front=PROC_DESC_ALIGN(this->Code_Base+this->Desc_Front*(Wordlength/8));
 
     /* See if this is a virtual machine. If yes, we go on to allocate its register set space,
      * parameter space and interrupt space. These are used for communicating through the VM. */

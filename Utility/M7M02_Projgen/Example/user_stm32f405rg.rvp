@@ -167,7 +167,6 @@
 			<Project_Output>./Proc2/Project</Project_Output>
 			<Project_Overwrite>No</Project_Overwrite>
 			<Linker_Output>./Proc2/Project</Linker_Output>
-			<Linker_Overwrite>Yes</Linker_Overwrite>
 			<Main_Header_Output>./Proc2/Include</Main_Header_Output>
 			<Main_Source_Output>./Proc2/Source</Main_Source_Output>
 			<Main_Source_Overwrite>No</Main_Source_Overwrite>
@@ -256,9 +255,9 @@
 			<Main_Source_Output>./Virt1/Source</Main_Source_Output>
 			<Main_Source_Overwrite>No</Main_Source_Overwrite>
 			<Virtual_Header_Output>./Virt1/Include</Virtual_Header_Output>
-			<Virtual_Header_Overwrite>Yes</Virtual_Header_Overwrite>
+			<Virtual_Header_Overwrite>No</Virtual_Header_Overwrite>
 			<Virtual_Source_Output>./Virt1/Source</Virtual_Source_Output>
-			<Virtual_Source_Overwrite>Yes</Virtual_Source_Overwrite>
+			<Virtual_Source_Overwrite>No</Virtual_Source_Overwrite>
             <Memory>
                 <M0>
                     <Name>Main_Code</Name>

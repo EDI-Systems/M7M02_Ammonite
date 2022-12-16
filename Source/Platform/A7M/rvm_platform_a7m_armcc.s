@@ -65,7 +65,7 @@ __initial_sp
     NOP
     NOP
     NOP
-    B                   __main              ; Real entry
+    B                   __main              ; Real entry - this will set SP again
 ;/* End Entry List ***********************************************************/
 
 ;/* Begin Function:_RVM_Jmp_Stub **********************************************

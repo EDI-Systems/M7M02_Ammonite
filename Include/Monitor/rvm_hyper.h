@@ -85,8 +85,10 @@ Description : The header of microcontroller user-level library.
 #define RVM_FLAG_SET(B, S, N)       ((volatile struct RVM_Flag*)((B)+((S)>>1)*(N)))
 
 /* Header branch address extraction */
-#define RVM_PROC_ENTRY(B, X)        (((const struct RVM_Header*)(B))->Entry[X])
-#define RVM_PROC_STUB(B)            RVM_PROC_ENTRY(B, RVM_PROC_ENTRY(B, 2U)-1U)
+#define RVM_DESC_ENTRY(B, X)        (((const struct RVM_Desc*)(B))->Entry[X])
+#define RVM_DESC_MAGIC(B)           (((const struct RVM_Desc*)(B))->Magic)
+#define RVM_DESC_NUM(B)             (((const struct RVM_Desc*)(B))->Number)
+#define RVM_DESC_STUB(B)            RVM_DESC_ENTRY(B, RVM_DESC_NUM(B)-1U)
 /*****************************************************************************/
 /* __RVM_HYPER_H_DEFS__ */
 #endif
@@ -174,8 +176,8 @@ struct RVM_Vmap_Struct
     volatile struct RVM_Param* Param_Base;
     /* Vector flag base */
     volatile struct RVM_Vctf* Vctf_Base;
-    /* Header base address */
-    rvm_ptr_t Header_Base;
+    /* Descriptor header base address */
+    rvm_ptr_t Desc_Base;
     /* Vector signal endpoint capability */
     rvm_cid_t Vect_Sig_Cap;
     
@@ -224,8 +226,8 @@ struct RVM_Flag
     rvm_ptr_t Flags[1024];
 };
 
-/* Process header */
-struct RVM_Header
+/* Process descriptor header */
+struct RVM_Desc
 {
     rvm_ptr_t Magic;
     rvm_ptr_t Number;

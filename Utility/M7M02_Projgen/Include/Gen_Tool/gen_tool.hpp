@@ -135,7 +135,7 @@ void Monitor_Captbl_Crt_Gen(std::unique_ptr<std::vector<std::string>>& List,
                         std::to_string(Obj_Cnt/Captbl_Max)+", Cur_Addr, "+std::to_string(Captbl_Size)+"U)==0U);");
         List->push_back(std::string("    RVM_LOG_SISUS(\"Init:Created ")+Kobjname+" capability table CID \", RVM_BOOT_CT"+Kobjmacro+"_"+
                         std::to_string(Obj_Cnt/Captbl_Max)+", \" @ address 0x\", Cur_Addr, \".\\r\\n\");");
-        List->push_back(std::string("    Cur_Addr+=RVM_KOTBL_ROUND(RVM_CAPTBL_SIZE(")+std::to_string(Captbl_Size)+"U));");
+        List->push_back(std::string("    Cur_Addr+=RVM_CAPTBL_SIZE(")+std::to_string(Captbl_Size)+"U);");
     }
 }
 /*****************************************************************************/

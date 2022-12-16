@@ -21,6 +21,7 @@ extern "C"
 
 #define __HDR_DEFS__
 #include "rvm_gen.hpp"
+#include "Proj_Info/Process/process.hpp"
 #include "Gen_Tool/Tool_Gen/tool_gen.hpp"
 #include "Gen_Tool/Tool_Gen/ARMCC_Gen/armcc_gen.hpp"
 #undef __HDR_DEFS__
@@ -131,11 +132,10 @@ void ARMCC_Gen::Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back("        .ANY                           (+RO)");
     List->push_back("    }");
     List->push_back("");
-    List->push_back("    ; Kernel stack segment");
-    List->push_back(std::string("    KERNEL_STACK 0x")+Main::Hex(this->Proj->Kernel->Stack_Base)+" 0x"+Main::Hex(this->Proj->Kernel->Stack_Size));
+    List->push_back("    ; Kernel stack segment - required by armlib");
+    List->push_back(std::string("    ARM_LIB_STACK 0x")+Main::Hex(this->Proj->Kernel->Stack_Base)+" EMPTY 0x"+Main::Hex(this->Proj->Kernel->Stack_Size));
     List->push_back("    {");
-    List->push_back("        rme_platform_*_asm.o             (HEAP)");
-    List->push_back("        rme_platform_*_asm.o             (STACK)");
+    List->push_back("");
     List->push_back("    }");
     List->push_back("");
     List->push_back("    ; Initial kernel data segment");
@@ -217,7 +217,7 @@ void ARMCC_Gen::Monitor_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back("; *****************************************************************************");
     List->push_back(std::string("MONITOR 0x")+Main::Hex(this->Proj->Monitor->Code_Base)+" 0x"+Main::Hex(this->Proj->Monitor->Code_Size));
     List->push_back("{");
-    List->push_back("    ; The code segment of the monitor process");
+    List->push_back("    ; The code segment of the monitor");
     List->push_back(std::string("    MONITOR_CODE 0x")+Main::Hex(this->Proj->Monitor->Code_Base)+" 0x"+Main::Hex(this->Proj->Monitor->Code_Size));
     List->push_back("    {");
     List->push_back("        ; The entry will be the first instruction");
@@ -228,10 +228,16 @@ void ARMCC_Gen::Monitor_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back("        .ANY                   (+RO)");
     List->push_back("    }");
     List->push_back("");
-    List->push_back("    ; The data section of the monitor process");
+    List->push_back("    ; The data section of the monitor");
     List->push_back(std::string("    MONITOR_DATA 0x")+Main::Hex(this->Proj->Monitor->Data_Base)+" 0x"+Main::Hex(this->Proj->Monitor->Data_Size));
     List->push_back("    {");
     List->push_back("        .ANY                   (+RW +ZI)");
+    List->push_back("    }");
+    List->push_back("");
+    List->push_back("    ; The stack section of the monitor - required by armlib; reusing the init thread's");
+    List->push_back(std::string("    ARM_LIB_STACK 0x")+Main::Hex(this->Proj->Monitor->Init_Stack_Base)+" EMPTY 0x"+Main::Hex(this->Proj->Monitor->Init_Stack_Size));
+    List->push_back("    {");
+    List->push_back("");
     List->push_back("    }");
     List->push_back("}");
     List->push_back("; End Segment:INIT ************************************************************");
@@ -305,6 +311,18 @@ void ARMCC_Gen::Process_Linker(std::unique_ptr<std::vector<std::string>>& List,
     List->push_back(std::string("    PROC_DATA 0x")+Main::Hex(Proc->Data_Base)+" 0x"+Main::Hex(Proc->Data_Size));
     List->push_back("    {");
     List->push_back("        .ANY                   (+RW +ZI)");
+    List->push_back("    }");
+    List->push_back("");
+    List->push_back("    ; The stack section of the process - required by armlib; reusing the booting thread's");
+    if(Proc->Type==PROC_NATIVE)
+        List->push_back(std::string("    ARM_LIB_STACK 0x")+Main::Hex(Proc->Thread[0]->Stack_Base)+" EMPTY 0x"+Main::Hex(Proc->Thread[0]->Stack_Size));
+    else
+    {
+        ASSERT(Proc->Thread[1]->Name=="User");
+        List->push_back(std::string("    ARM_LIB_STACK 0x")+Main::Hex(Proc->Thread[1]->Stack_Base)+" EMPTY 0x"+Main::Hex(Proc->Thread[1]->Stack_Size));
+    }
+    List->push_back("    {");
+    List->push_back("");
     List->push_back("    }");
     List->push_back("}");
     List->push_back("; End Segment:PROC ************************************************************");

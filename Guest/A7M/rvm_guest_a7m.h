@@ -320,11 +320,6 @@ extern rvm_ptr_t RVM_Fetch_And(volatile rvm_ptr_t* Ptr,
                                rvm_ptr_t Operand);
 extern rvm_ptr_t _RVM_MSB_Get(rvm_ptr_t Val);
 
-extern void RVM_Entry(rvm_ptr_t Entry,
-                      rvm_ptr_t Stack_Base,
-                      rvm_ptr_t Stack_Size,
-                      rvm_ptr_t Param);
-
 EXTERN rvm_ret_t RVM_A7M_Kern_Act(rvm_cid_t Cap_Kern,
                                   rvm_ptr_t Func_ID,
                                   rvm_ptr_t Sub_ID,

@@ -153,13 +153,13 @@ rvm_ptr_t RVM_Daemon_Init(rvm_ptr_t Cap_Front,
 }
 /* End Function:RVM_Daemon_Init **********************************************/
 
-/* Begin Function:main ********************************************************
-Description : The entry of the VMM's init thread. 
+/* Begin Function:RVM_Init ****************************************************
+Description : The VMM's init thread, which boots the VMM from here.
 Input       : None.
 Output      : None.
-Return      : int - This function shall never return.
+Return      : None.
 ******************************************************************************/
-int main(void)
+void RVM_Init(void)
 {
     /* The kernel heap allocation bump pointer */
     rvm_ptr_t Kmem_Bump;
@@ -236,6 +236,18 @@ int main(void)
         /* RVM_LOG_S("I"); */
         RVM_Idle();
     }
+}
+/* End Function:RVM_Init *****************************************************/
+
+/* Begin Function:main ********************************************************
+Description : The entry of the VMM's init thread.
+Input       : None.
+Output      : None.
+Return      : int - This function shall never return.
+******************************************************************************/
+int main(void)
+{
+    RVM_Init();
 }
 /* End Function:main *********************************************************/
 
