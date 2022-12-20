@@ -74,14 +74,15 @@ void RVM_List_Ins(volatile struct RVM_List* New,
 }
 /* End Function:RVM_List_Ins *************************************************/
 
-/* Begin Function:RVM_Print_Int ***********************************************
+/* Begin Function:RVM_Int_Print ***********************************************
 Description : Print a signed integer on the debugging console. This integer is
               printed as decimal with sign.
 Input       : rvm_cnt_t Int - The integer to print.
 Output      : None.
 Return      : rvm_cnt_t - The length of the string printed.
 ******************************************************************************/
-rvm_cnt_t RVM_Print_Int(rvm_cnt_t Int)
+#if(RVM_DEBUG_PRINT==1U)
+rvm_cnt_t RVM_Int_Print(rvm_cnt_t Int)
 {
     rvm_cnt_t Iter;
     rvm_cnt_t Count;
@@ -148,16 +149,18 @@ rvm_cnt_t RVM_Print_Int(rvm_cnt_t Int)
     
     return Num;
 }
-/* End Function:RVM_Print_Int ************************************************/
+#endif
+/* End Function:RVM_Int_Print ************************************************/
 
-/* Begin Function:RVM_Print_Uint **********************************************
+/* Begin Function:RVM_Hex_Print **********************************************
 Description : Print a unsigned integer on the debugging console. This integer is
               printed as hexadecimal.
 Input       : rvm_ptr_t Uint - The unsigned integer to print.
 Output      : None.
 Return      : rvm_cnt_t - The length of the string printed.
 ******************************************************************************/
-rvm_cnt_t RVM_Print_Uint(rvm_ptr_t Uint)
+#if(RVM_DEBUG_PRINT==1U)
+rvm_cnt_t RVM_Hex_Print(rvm_ptr_t Uint)
 {
     rvm_ptr_t Iter;
     rvm_ptr_t Count;
@@ -195,16 +198,18 @@ rvm_cnt_t RVM_Print_Uint(rvm_ptr_t Uint)
     
     return (rvm_cnt_t)Num;
 }
-/* End Function:RVM_Print_Uint ***********************************************/
+#endif
+/* End Function:RVM_Hex_Print ***********************************************/
 
-/* Begin Function:RVM_Print_String ********************************************
+/* Begin Function:RVM_Str_Print ********************************************
 Description : Print a string on the debugging console.
               This is only used for user-level debugging.
 Input       : rvm_s8_t* String - The string to print.
 Output      : None.
 Return      : rvm_cnt_t - The length of the string printed, the '\0' is not included.
 ******************************************************************************/
-rvm_cnt_t RVM_Print_String(rvm_s8_t* String)
+#if(RVM_DEBUG_PRINT==1U)
+rvm_cnt_t RVM_Str_Print(rvm_s8_t* String)
 {
     rvm_ptr_t Count;
     
@@ -218,7 +223,8 @@ rvm_cnt_t RVM_Print_String(rvm_s8_t* String)
     
     return (rvm_cnt_t)Count;
 }
-/* End Function:RVM_Print_String *********************************************/
+#endif
+/* End Function:RVM_Str_Print *********************************************/
 
 /* Begin Function:RVM_Captbl_Crt **********************************************
 Description : Create a capability table.
@@ -779,7 +785,7 @@ Description : Set a thread's entry point and stack. The registers will be initia
               with these contents.
 Input       : rvm_cid_t Cap_Thd - The capability to the thread. 2-Level.
               rvm_ptr_t Kaddr - The kernel-accessible virtual memory address for this
-                            thread's register sets.
+                                thread's register sets.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
@@ -787,12 +793,35 @@ rvm_ret_t RVM_Thd_Hyp_Set(rvm_cid_t Cap_Thd,
                           rvm_ptr_t Kaddr)
 {
     return RVM_CAP_OP(RVM_SVC_THD_HYP_SET,
-                      0,
                       Cap_Thd,
                       Kaddr,
+                      0U,
                       0U);
 }
 /* End Function:RVM_Thd_Hyp_Set **********************************************/
+
+/* Begin Function:RVM_Thd_Hyp_Exec_Set ****************************************
+Description : Set a thread's entry point and stack. The registers will be initialized
+              with these contents. This also (optionally) sets the execution
+              information, as with 'Exec_Set'.
+Input       : rvm_cid_t Cap_Thd - The capability to the thread. 2-Level.
+              rvm_ptr_t Kaddr - The kernel-accessible virtual memory address for this
+                            thread's register sets.
+Output      : None.
+Return      : rvm_ret_t - If successful, 0; or an error code.
+******************************************************************************/
+rvm_ret_t RVM_Thd_Hyp_Exec_Set(rvm_cid_t Cap_Thd,
+                               rvm_ptr_t Kaddr,
+                               rvm_ptr_t Entry,
+                               rvm_ptr_t Stack)
+{
+    return RVM_CAP_OP(RVM_SVC_THD_HYP_SET,
+                      Cap_Thd,
+                      Kaddr,
+                      Entry,
+                      Stack);
+}
+/* End Function:RVM_Thd_Hyp_Exec_Set *****************************************/
 
 /* Begin Function:RVM_Thd_Sched_Bind ******************************************
 Description : Set a thread's priority level, and its scheduler thread. When there
@@ -835,9 +864,10 @@ rvm_ret_t RVM_Thd_Sched_Bind(rvm_cid_t Cap_Thd,
 
 /* Begin Function:RVM_Thd_Sched_Prio ******************************************
 Description : Change a thread's priority level. This can only be called from the
-              core that have the thread bonded.
+              core that have the thread binded. Single thread version.
               This system call can cause a potential context switch.
-              It is impossible to set a thread's priority beyond its maximum priority. 
+              It is impossible to set a thread's priority beyond its maximum 
+              priority. 
 Input       : rvm_cid_t Cap_Thd - The capability to the thread. 2-Level.
               rvm_ptr_t Prio - The priority level, higher is more critical.
 Output      : None.
@@ -847,15 +877,65 @@ rvm_ret_t RVM_Thd_Sched_Prio(rvm_cid_t Cap_Thd,
                              rvm_ptr_t Prio)
 {
     return RVM_CAP_OP(RVM_SVC_THD_SCHED_PRIO,
-                      0,
-                      Cap_Thd,
-                      Prio, 
+                      1U,
+                      RVM_PARAM_D1(Prio)|RVM_PARAM_D0(Cap_Thd),
+                      0U, 
                       0U);
 }
 /* End Function:RVM_Thd_Sched_Prio *******************************************/
 
+/* Begin Function:RVM_Thd_Sched_Prio2 *****************************************
+Description : Change a thread's priority level. This can only be called from the
+              core that have the thread binded. Double thread version.
+              This system call can cause a potential context switch.
+              It is impossible to set a thread's priority beyond its maximum 
+              priority. 
+Input       : rvm_cid_t Cap_Thd - The capability to the thread. 2-Level.
+              rvm_ptr_t Prio - The priority level, higher is more critical.
+Output      : None.
+Return      : rvm_ret_t - If successful, 0; or an error code.
+******************************************************************************/
+rvm_ret_t RVM_Thd_Sched_Prio2(rvm_cid_t Cap_Thd0,
+                              rvm_ptr_t Prio0,
+                              rvm_cid_t Cap_Thd1,
+                              rvm_ptr_t Prio1)
+{
+    return RVM_CAP_OP(RVM_SVC_THD_SCHED_PRIO,
+                      2U,
+                      RVM_PARAM_D1(Prio0)|RVM_PARAM_D0(Cap_Thd0),
+                      RVM_PARAM_D1(Prio1)|RVM_PARAM_D0(Cap_Thd1), 
+                      0U);
+}
+/* End Function:RVM_Thd_Sched_Prio2 ******************************************/
+
+/* Begin Function:RVM_Thd_Sched_Prio3 *****************************************
+Description : Change a thread's priority level. This can only be called from the
+              core that have the thread binded. Triple thread version.
+              This system call can cause a potential context switch.
+              It is impossible to set a thread's priority beyond its maximum 
+              priority. 
+Input       : rvm_cid_t Cap_Thd - The capability to the thread. 2-Level.
+              rvm_ptr_t Prio - The priority level, higher is more critical.
+Output      : None.
+Return      : rvm_ret_t - If successful, 0; or an error code.
+******************************************************************************/
+rvm_ret_t RVM_Thd_Sched_Prio3(rvm_cid_t Cap_Thd0,
+                              rvm_ptr_t Prio0,
+                              rvm_cid_t Cap_Thd1,
+                              rvm_ptr_t Prio1,
+                              rvm_cid_t Cap_Thd2,
+                              rvm_ptr_t Prio2)
+{
+    return RVM_CAP_OP(RVM_SVC_THD_SCHED_PRIO,
+                      3U,
+                      RVM_PARAM_D1(Prio0)|RVM_PARAM_D0(Cap_Thd0),
+                      RVM_PARAM_D1(Prio1)|RVM_PARAM_D0(Cap_Thd1), 
+                      RVM_PARAM_D1(Prio2)|RVM_PARAM_D0(Cap_Thd2));
+}
+/* End Function:RVM_Thd_Sched_Prio3 ******************************************/
+
 /* Begin Function:RVM_Thd_Sched_Free ******************************************
-Description : Free a thread from its current bonding. This function can only be
+Description : Free a thread from its current binding. This function can only be
               executed from the same core on with the thread.
               This system call can cause a potential context switch.
 Input       : rvm_cid_t Cap_Thd - The capability to the thread. 2-Level.

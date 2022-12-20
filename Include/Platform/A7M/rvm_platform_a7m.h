@@ -254,6 +254,9 @@ typedef unsigned char rvm_u8_t;
 #define RVM_A7M_KERN_DEBUG_INV_MOD_SP_SET           (1U)
 #define RVM_A7M_KERN_DEBUG_INV_MOD_LR_GET           (2U)
 #define RVM_A7M_KERN_DEBUG_INV_MOD_LR_SET           (3U)
+/* Error register read */
+#define RVM_A7M_KERN_DEBUG_ERR_GET_CAUSE            (0U)
+#define RVM_A7M_KERN_DEBUG_ERR_GET_ADDR             (1U)
 /* Begin Extended Types ******************************************************/
 #ifndef __RVM_TID_T__
 #define __RVM_TID_T__
@@ -369,10 +372,17 @@ struct RVM_Cop_Struct
     rvm_ptr_t S31;
 };
 
+struct RVM_Err_Struct
+{
+    rvm_ptr_t Cause;
+    rvm_ptr_t Addr;
+};
+
 struct RVM_Regs
 {
     struct RVM_Reg_Struct Reg;
     struct RVM_Cop_Struct Cop;
+    struct RVM_Err_Struct Err;
 };
 /*****************************************************************************/
 /* __RVM_PLATFORM_A7M_H_STRUCTS__ */
@@ -443,8 +453,10 @@ EXTERN rvm_ret_t RVM_Inv_Act(rvm_cid_t Cap_Inv,
                              rvm_ptr_t Param,
                              rvm_ptr_t* Retval);
 EXTERN rvm_ret_t RVM_Inv_Ret(rvm_ptr_t Retval);
-/* Character printing */
+#if(RVM_DEBUG_PRINT==1U)
+/* Debugging */
 __EXTERN__ rvm_ptr_t RVM_Putchar(char Char);
+#endif
 /* Stack operations */
 __EXTERN__ rvm_ptr_t RVM_Stack_Init(rvm_ptr_t Stack_Base,
                                     rvm_ptr_t Stack_Size,
@@ -460,7 +472,7 @@ __EXTERN__ rvm_ret_t RVM_A7M_Kern_Act(rvm_cid_t Cap_Kern,
 /* Print fault */
 __EXTERN__ void RVM_Thd_Print_Fault(rvm_ptr_t Fault);
 /* Print registers */
-__EXTERN__ rvm_ret_t RVM_Thd_Print_Regs(rvm_cid_t Cap_Thd);
+__EXTERN__ rvm_ret_t RVM_Thd_Print_Reg(rvm_cid_t Cap_Thd);
 /*****************************************************************************/
 /* Undefine "__EXTERN__" to avoid redefinition */
 #undef __EXTERN__

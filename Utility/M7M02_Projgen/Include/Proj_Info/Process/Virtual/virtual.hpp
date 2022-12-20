@@ -44,7 +44,8 @@ public:
     ptr_t Virtual_Source_Overwrite;
 
     /* The stack size for interrupt thread and user thread */
-    ptr_t Stack_Size;
+    ptr_t Vector_Stack_Size;
+    ptr_t User_Stack_Size;
     /* The priority of the virtual machine */
     ptr_t Priority;
     /* The number of slices for timer interrupts */
@@ -59,17 +60,16 @@ public:
     /* Register set memory */
     ptr_t Reg_Base;
     ptr_t Reg_Size;
-    /* Parameter memory */
-    ptr_t Param_Base;
-    ptr_t Param_Size;
-    /* Vector flag memory */
-    ptr_t Vctf_Base;
-    ptr_t Vctf_Size;
+    /* State block memory */
+    ptr_t State_Base;
+    ptr_t State_Size;
 
     std::vector<std::string> Virtual_Include;
     std::vector<std::string> Virtual_Source;
 
     /* void */ Virtual(xml_node_t* Root);
+
+    static ptr_t State_Alloc(ptr_t Source, ptr_t Wordlength, ptr_t Kmem_Order);
 };
 /*****************************************************************************/
 /* __VIRTUAL_HPP_CLASSES__ */

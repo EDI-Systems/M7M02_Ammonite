@@ -147,7 +147,7 @@ public:
     void Global_Alloc_Receive(std::vector<class Receive*>& Global);
     void Global_Alloc_Vector(std::vector<class Vect_Info*>& Global);
 
-    void Mem_Alloc(ptr_t Wordlength, ptr_t Reg_Size, ptr_t Param_Size, ptr_t Kmem_Order);
+    void Mem_Alloc(ptr_t Wordlength, ptr_t Reg_Size, ptr_t Kmem_Order);
 };
 /*****************************************************************************/
 /* __PROCESS_HPP_CLASSES__ */

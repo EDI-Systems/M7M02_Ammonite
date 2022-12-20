@@ -61,7 +61,7 @@ Description: The configuration file for STM32F767IG. The values listed here shou
 #define RVM_VCTD_STACK_SIZE                             (1024)
 
 /* Is debugging output enabled? */
-#define RVM_DEBUG_LOG                                   RVM_TRUE
+#define RVM_DEBUG_PRINT                                   RVM_TRUE
 
 #define RVM_A7M_USART1_ISR                              RVM_A7M_REG(0x4001101C)
 #define RVM_A7M_USART1_TDR                              RVM_A7M_REG(0x40011028)

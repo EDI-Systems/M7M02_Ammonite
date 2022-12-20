@@ -66,6 +66,10 @@ Return      : None.
         Name_Gen(this);
         /* Version */
         this->Version=Main::XML_Get_String(Root,"Version","DXXXX","DXXXX");
+        /* Assert_Correct */
+        this->Assert_Correct=Main::XML_Get_Yesno(Root,"Assert_Correct","DXXXX","DXXXX");
+        /* Debug_Print */
+        this->Debug_Print=Main::XML_Get_Yesno(Root,"Debug_Print","DXXXX","DXXXX");
         /* Buildsystem */
         this->Buildsystem=Main::XML_Get_String(Root,"Buildsystem","DXXXX","DXXXX");
         /* Workspace_Output */

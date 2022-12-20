@@ -318,7 +318,7 @@ void ARMCC_Gen::Process_Linker(std::unique_ptr<std::vector<std::string>>& List,
         List->push_back(std::string("    ARM_LIB_STACK 0x")+Main::Hex(Proc->Thread[0]->Stack_Base)+" EMPTY 0x"+Main::Hex(Proc->Thread[0]->Stack_Size));
     else
     {
-        ASSERT(Proc->Thread[1]->Name=="User");
+        ASSERT((Proc->Thread[0]->Name=="Vect")&&(Proc->Thread[1]->Name=="User"));
         List->push_back(std::string("    ARM_LIB_STACK 0x")+Main::Hex(Proc->Thread[1]->Stack_Base)+" EMPTY 0x"+Main::Hex(Proc->Thread[1]->Stack_Size));
     }
     List->push_back("    {");

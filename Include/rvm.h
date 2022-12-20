@@ -522,12 +522,14 @@ Description : The header of the RVM user-level library. This header defines the
 #define RVM_KERN_DEBUG_REG_MOD          (0xF801U)
 /* Modify thread invocation register content */
 #define RVM_KERN_DEBUG_INV_MOD          (0xF802U)
+/* Get thread error register content */
+#define RVM_KERN_DEBUG_ERR_GET          (0xF803U)
 /* Modify debug engine configuration */
-#define RVM_KERN_DEBUG_MODE_MOD         (0xF803U)
+#define RVM_KERN_DEBUG_MODE_MOD         (0xF804U)
 /* Modify instruction breakpoint state */
-#define RVM_KERN_DEBUG_IBP_MOD          (0xF804U)
+#define RVM_KERN_DEBUG_IBP_MOD          (0xF805U)
 /* Modify data breakpoint state */
-#define RVM_KERN_DEBUG_DBP_MOD          (0xF805U)
+#define RVM_KERN_DEBUG_DBP_MOD          (0xF806U)
 /* End Kernel Functions ******************************************************/
 /* End Defines ***************************************************************/
 

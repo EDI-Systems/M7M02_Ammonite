@@ -215,7 +215,7 @@ rvm_ret_t RVM_A7M_Perf_Cycle_Mod(rvm_cid_t Cap_Kern,
     if(Retval<0)
         return Retval;
 
-    if(Content!=0)
+    if(Content!=RVM_NULL)
         Content[0]=Params[0];
 
     return Retval;
@@ -304,6 +304,35 @@ rvm_ret_t RVM_A7M_Debug_Inv_Mod(rvm_cid_t Cap_Kern,
     return Retval;
 }
 /* End Function:RVM_A7M_Debug_Inv_Mod ****************************************/
+
+/* Begin Function:RVM_A7M_Debug_Err_Get ***************************************
+Description : Debug error register extraction implementation for ARMv7-M.
+Input       : rvm_cid_t Cap_Kern - The kernel function capability.
+              rvm_cid_t Cap_Thd - The capability to the thread to consult.
+              rvm_ptr_t Operation - The operation, e.g. which register to read.
+Output      : rvm_ptr_t* Content - The content of the register.
+Return      : rvm_ret_t - If successful, 0; if a negative value, failed.
+******************************************************************************/
+rvm_ret_t RVM_A7M_Debug_Err_Get(rvm_cid_t Cap_Kern,
+                                rvm_cid_t Cap_Thd,
+                                rvm_ptr_t Operation,
+                                rvm_ptr_t* Content)
+{
+    rvm_ptr_t Params[6];
+    rvm_ret_t Retval;
+
+    Params[0]=RVM_PARAM_D0(Operation);
+    Retval=RVM_A7M_Kern_Act(Cap_Kern, RVM_KERN_DEBUG_ERR_GET, (rvm_ptr_t)Cap_Thd, Params);
+
+    if(Retval<0)
+        return Retval;
+
+    if(Content!=0)
+        Content[0]=Params[0];
+
+    return Retval;
+}
+/* End Function:RVM_A7M_Debug_Err_Get ****************************************/
 
 /* End Of File ***************************************************************/
 

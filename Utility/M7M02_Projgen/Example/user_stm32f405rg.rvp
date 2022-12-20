@@ -2,6 +2,8 @@
 <Project>
     <Name>Test_Proj</Name>
     <Version>1.0</Version>
+	<Assert_Correct>Yes</Assert_Correct>
+	<Debug_Print>Yes</Debug_Print>
 	<Buildsystem>Keil</Buildsystem>
 	<Workspace_Output>./</Workspace_Output>
 	<Workspace_Overwrite>No</Workspace_Overwrite>
@@ -237,7 +239,8 @@
         <V0>
             <Name>Virt1</Name>
             <Extra_Captbl>0</Extra_Captbl>
-            <Stack_Size>0x400</Stack_Size>
+            <Vector_Stack_Size>0x400</Vector_Stack_Size>
+            <User_Stack_Size>0x400</User_Stack_Size>
             <Priority>5</Priority>
             <Timeslice>10</Timeslice>
             <Period>100</Period>

@@ -36,6 +36,10 @@ public:
     std::string Name_Lower;
     /* The project version */
     std::string Version;
+    /* Whether we assume all asserts to be correct */
+    ptr_t Assert_Correct;
+    /* Whether we enable debug prints */
+    ptr_t Debug_Print;
     /* Workspace build system */
     std::string Buildsystem;
     /* Workspace output folder & overwrite */

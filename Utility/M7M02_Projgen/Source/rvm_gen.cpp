@@ -1521,7 +1521,6 @@ void Main::Obj_Alloc(void)
                 Main::Info("Allocating memory for process '%s'.",Proc->Name.c_str());
                 Proc->Mem_Alloc(this->Plat->Wordlength,
                                 this->Gen->Plat->Size_Register(),
-                                this->Gen->Plat->Size_Parameter(),
                                 this->Proj->Kernel->Kmem_Order);
             }
             catch(std::exception& Exc)

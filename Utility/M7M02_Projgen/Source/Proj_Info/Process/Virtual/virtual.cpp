@@ -70,8 +70,9 @@ Process(Root,PROC_VIRTUAL)
         Main::Dir_Fixup(this->Virtual_Source_Output);
         this->Virtual_Source_Overwrite=Main::XML_Get_Yesno(Root,"Virtual_Source_Overwrite","DXXXX","DXXXX");
 
-        /* Stack Size */
-        this->Stack_Size=Main::XML_Get_Number(Root,"Stack_Size","DXXXX","DXXXX");
+        /* Stack_Size */
+        this->Vector_Stack_Size=Main::XML_Get_Number(Root,"Vector_Stack_Size","DXXXX","DXXXX");
+        this->User_Stack_Size=Main::XML_Get_Number(Root,"User_Stack_Size","DXXXX","DXXXX");
         /* Priority */
         this->Priority=Main::XML_Get_Number(Root,"Priority","DXXXX","DXXXX");
         /* Timeslice */
@@ -84,8 +85,8 @@ Process(Root,PROC_VIRTUAL)
         this->Vect_Num=Main::XML_Get_Number(Root,"Vect_Num","DXXXX","DXXXX");
 
         /* Handler & user thread for VM - VM does not have other threads */
-        this->Thread.push_back(std::make_unique<class Thread>("Vector", this->Stack_Size, 0, VIRT_VECTOR_PRIO, this));
-        this->Thread.push_back(std::make_unique<class Thread>("User", this->Stack_Size, 0, VIRT_USER_PRIO, this));
+        this->Thread.push_back(std::make_unique<class Thread>("Vect", this->Vector_Stack_Size, 0, VIRT_VECTOR_PRIO, this));
+        this->Thread.push_back(std::make_unique<class Thread>("User", this->User_Stack_Size, 0, VIRT_USER_PRIO, this));
     }
     catch(std::exception& Exc)
     {
@@ -95,7 +96,44 @@ Process(Root,PROC_VIRTUAL)
             Main::Error(std::string("Virtual: ")+"Unknown"+"\n"+Exc.what());
     }
 }
-/* End Function:Virt::Virt ***************************************************/
+/* End Function:Virtual::Virtual *********************************************/
+
+/* Begin Function:Virtual::State_Alloc ****************************************
+Description : Allocate the memory for state space. State space is like
+              struct RVM_Param
+              {
+                  rvm_ptr_t Number;
+                  rvm_ptr_t Param[4];
+              };
+              struct RVM_Vctf
+              {
+                  rvm_ptr_t Timer;
+                  rvm_ptr_t Ctxsw;
+                  rvm_ptr_t Vect[1];
+              };
+              struct RVM_State
+              {
+                  rvm_ptr_t Vect_Act;
+                  struct RVM_Param Vect;
+                  struct RVM_Param User;
+                  struct RVM_Vctf Flag;
+              };
+              Each bit corresponds to a single vector. The whole struct will repeat twice.
+Input       : ptr_t Source - The source number.
+              ptr_t Wordlength - The processor wordlength.
+              ptr_t Kmem_Order - The kernel memory alignment order of 2.
+Output      : None.
+Return      : ptr_t - The vector flag sector size.
+******************************************************************************/
+ptr_t Virtual::State_Alloc(ptr_t Source, ptr_t Wordlength, ptr_t Kmem_Order)
+{
+    ptr_t Raw;
+
+    Raw=(1+5+5+2+ROUND_DIV(Source, Wordlength))*(Wordlength/8);
+
+    return ROUND_UP_POW2(Raw, Kmem_Order);
+}
+/* End Function:Virtual::State_Alloc *****************************************/
 }
 /* End Of File ***************************************************************/
 

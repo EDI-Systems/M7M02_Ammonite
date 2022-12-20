@@ -127,18 +127,6 @@ ptr_t Plat_Gen::Size_Register(void)
     return ROUND_UP_POW2(this->Raw_Register(),this->Proj->Kernel->Kmem_Order);
 }
 /* End Function:Plat_Gen::Size_Register **************************************/
-
-/* Begin Function:Plat_Gen::Size_Parameter *************************************
-Description : Query the size of the parameter passing area.
-Input       : None.
-Output      : None.
-Return      : ptr_t - The size in bytes.
-******************************************************************************/
-ptr_t Plat_Gen::Size_Parameter(void)
-{
-    return ROUND_UP_POW2(this->Raw_Parameter(),this->Proj->Kernel->Kmem_Order);
-}
-/* End Function:Plat_Gen::Size_Parameter *************************************/
 }
 /* End Of File ***************************************************************/
 

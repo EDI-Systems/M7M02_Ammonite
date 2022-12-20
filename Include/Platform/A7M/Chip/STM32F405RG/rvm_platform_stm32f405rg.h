@@ -8,7 +8,9 @@ Description: The configuration file for STM32F405RG. The values listed here shou
 ******************************************************************************/
 
 /* Defines *******************************************************************/
-/* The generator must be enabled to use this */
+/* Debugging *****************************************************************/
+#define RVM_ASSERT_CORRECT                              (0U)
+#define RVM_DEBUG_PRINT                                 (1U)
 /* Kernel configurations - keep the same with the kernel *********************/
 /* The virtual memory start address for the kernel objects */
 #define RVM_KMEM_VA_BASE                                (0x10002000U)
@@ -62,12 +64,10 @@ Description: The configuration file for STM32F405RG. The values listed here shou
 #define RVM_VCTD_STACK_BASE                             (0x20000000U)
 #define RVM_VCTD_STACK_SIZE                             (1024U)
 
-/* Is debugging output enabled? */
-#define RVM_DEBUG_LOG                                   (1U)
-
 #define RVM_A7M_USART1_SR                               RVM_A7M_REG(0x40011000U)
 #define RVM_A7M_USART1_DR                               RVM_A7M_REG(0x40011004U)
 
+#if(RVM_DEBUG_PRINT==1U)
 /* Print characters to console */
 #define RVM_A7M_PUTCHAR(CHAR) \
 do \
@@ -76,6 +76,7 @@ do \
     while((RVM_A7M_USART1_SR&0x80U)==0U); \
 } \
 while(0U)
+#endif
 /* End Defines ***************************************************************/
 
 /* End Of File ***************************************************************/

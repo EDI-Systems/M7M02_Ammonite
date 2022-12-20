@@ -133,7 +133,7 @@ void Monitor_Captbl_Crt_Gen(std::unique_ptr<std::vector<std::string>>& List,
         Captbl_Size=CTSIZE(Vector.size(), Obj_Cnt, Captbl_Max);
         List->push_back(std::string("    RVM_ASSERT(RVM_Captbl_Crt(RVM_BOOT_CAPTBL, RVM_BOOT_INIT_KMEM, RVM_BOOT_CT")+Kobjmacro+"_"+
                         std::to_string(Obj_Cnt/Captbl_Max)+", Cur_Addr, "+std::to_string(Captbl_Size)+"U)==0U);");
-        List->push_back(std::string("    RVM_LOG_SISUS(\"Init:Created ")+Kobjname+" capability table CID \", RVM_BOOT_CT"+Kobjmacro+"_"+
+        List->push_back(std::string("    RVM_DBG_SISHS(\"Init:Created ")+Kobjname+" capability table CID \", RVM_BOOT_CT"+Kobjmacro+"_"+
                         std::to_string(Obj_Cnt/Captbl_Max)+", \" @ address 0x\", Cur_Addr, \".\\r\\n\");");
         List->push_back(std::string("    Cur_Addr+=RVM_CAPTBL_SIZE(")+std::to_string(Captbl_Size)+"U);");
     }

@@ -550,18 +550,6 @@ ptr_t A7M_Gen::Raw_Register(void)
 }
 /* End Function:A7M_Gen::Raw_Register ****************************************/
 
-/* Begin Function:A7M_Gen::Raw_Parameter **************************************
-Description : Query the size of the parameter passing area.
-Input       : None.
-Output      : None.
-Return      : ptr_t - The size in bytes.
-******************************************************************************/
-ptr_t A7M_Gen::Raw_Parameter(void)
-{
-    return A7M_RAW_PARAM_SIZE;
-}
-/* End Function:A7M_Gen::Raw_Parameter ***************************************/
-
 /* Begin Function:A7M_Gen::Kernel_Conf_Hdr ************************************
 Description : Replace kernel configuration header macros.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The input file.

@@ -23,76 +23,75 @@ Description : The header of MPU-based user level low-level library.
 /* Magic number for virtual machine processes */
 #define RVM_MAGIC_VIRTUAL                           (0x56495254U)
 
-/* Assertion */
-#define RVM_PRINTU_I(INT)                           RVM_Print_Int((INT))
-#define RVM_PRINTU_U(UINT)                          RVM_Print_Uint((UINT))
-#define RVM_PRINTU_S(STR)                           RVM_Print_String((rvm_s8_t*)(STR))
-
-#define RVM_PRINTU_SIS(STR1,INT,STR2) \
-do \
-{ \
-    RVM_PRINTU_S(STR1); \
-    RVM_PRINTU_I(INT); \
-    RVM_PRINTU_S(STR2); \
-} \
-while(0)
-    
-#define RVM_PRINTU_SUS(STR1,UINT,STR2) \
-do \
-{ \
-    RVM_PRINTU_S(STR1); \
-    RVM_PRINTU_U(UINT); \
-    RVM_PRINTU_S(STR2); \
-} \
-while(0)
-    
-#define RVM_PRINTU_SISUS(STR1,INT,STR2,UINT,STR3) \
-do \
-{ \
-    RVM_PRINTU_S(STR1); \
-    RVM_PRINTU_I(INT); \
-    RVM_PRINTU_S(STR2); \
-    RVM_PRINTU_U(UINT); \
-    RVM_PRINTU_S(STR3); \
-} \
-while(0)
-    
-#if(RVM_DEBUG_LOG==1U)
-#define RVM_LOG_I(INT)                              RVM_PRINTU_I(INT)
-#define RVM_LOG_U(UINT)                             RVM_PRINTU_U(UINT)
-#define RVM_LOG_S(STR)                              RVM_PRINTU_S(STR)
-#define RVM_LOG_SIS(STR1,INT,STR2)                  RVM_PRINTU_SIS(STR1,INT,STR2)
-#define RVM_LOG_SUS(STR1,UINT,STR2)                 RVM_PRINTU_SUS(STR1,UINT,STR2)
-#define RVM_LOG_SISUS(STR1,INT,STR2,UINT,STR3)      RVM_PRINTU_SISUS(STR1,INT,STR2,UINT,STR3)
+#if(RVM_DEBUG_PRINT==1U)
+/* Debug prints */
+#define RVM_DBG_I(INT)                              RVM_Int_Print(INT)
+#define RVM_DBG_H(UINT)                             RVM_Hex_Print(UINT)
+#define RVM_DBG_S(STR)                              RVM_Str_Print((rvm_s8_t*)(STR))
 #else
-#define RVM_LOG_I(INT)                              while(0U)
-#define RVM_LOG_U(UINT)                             while(0U)
-#define RVM_LOG_S(STR)                              while(0U)
-#define RVM_LOG_SIS(STR1,INT,STR2)                  while(0U)
-#define RVM_LOG_SUS(STR1,UINT,STR2)                 while(0U)
-#define RVM_LOG_SISUS(STR1,INT,STR2,UINT,STR3)      while(0U)
+#define RVM_DBG_I(INT)                              while(0U)
+#define RVM_DBG_H(UINT)                             while(0U)
+#define RVM_DBG_S(STR)                              while(0U)
 #endif
 
-/* Assert macro */
+#define RVM_DBG_SIS(STR1,INT,STR2) \
+do \
+{ \
+    RVM_DBG_S(STR1); \
+    RVM_DBG_I(INT); \
+    RVM_DBG_S(STR2); \
+} \
+while(0)
+    
+#define RVM_DBG_SHS(STR1,UINT,STR2) \
+do \
+{ \
+    RVM_DBG_S(STR1); \
+    RVM_DBG_H(UINT); \
+    RVM_DBG_S(STR2); \
+} \
+while(0)
+    
+#define RVM_DBG_SISHS(STR1,INT,STR2,UINT,STR3) \
+do \
+{ \
+    RVM_DBG_S(STR1); \
+    RVM_DBG_I(INT); \
+    RVM_DBG_S(STR2); \
+    RVM_DBG_H(UINT); \
+    RVM_DBG_S(STR3); \
+} \
+while(0)
+
+#if(RVM_ASSERT_CORRECT==0U)
+/* Assert macro - used only in internal development */
 #define RVM_ASSERT(X) \
 do \
 { \
     if((X)==0) \
     { \
-        RVM_PRINTU_S("\r\n***\r\nUser-level library panic - not syncing:\r\n"); \
-        RVM_PRINTU_S(__FILE__); \
-        RVM_PRINTU_S(", Line "); \
-        RVM_PRINTU_I(__LINE__); \
-        RVM_PRINTU_S("\r\n"); \
-        RVM_PRINTU_S(__DATE__); \
-        RVM_PRINTU_S(", "); \
-        RVM_PRINTU_S(__TIME__); \
-        RVM_PRINTU_S("\r\n"); \
+        RVM_DBG_S("\r\n***\r\nUser-level library panic - not syncing:\r\n"); \
+        RVM_DBG_S(__FILE__); \
+        RVM_DBG_S(", Line "); \
+        RVM_DBG_I(__LINE__); \
+        RVM_DBG_S("\r\n"); \
+        RVM_DBG_S(__DATE__); \
+        RVM_DBG_S(", "); \
+        RVM_DBG_S(__TIME__); \
+        RVM_DBG_S("\r\n"); \
         RVM_Kern_Act(RVM_BOOT_INIT_KERN,RVM_KERN_SYS_REBOOT,0,0,0); \
         while(1); \
     } \
 } \
 while(0)
+#else
+#define RVM_ASSERT(X) \
+do \
+{ \
+    if((X)==0) {} \
+} \
+while(0)
+#endif
 
 /* Powers of 2 */
 #define RVM_POW2(POW)                               (((rvm_ptr_t)1U)<<(POW))
@@ -407,6 +406,10 @@ __EXTERN__ rvm_ret_t RVM_Thd_Exec_Set(rvm_cid_t Cap_Thd,
                                       rvm_ptr_t Param);
 __EXTERN__ rvm_ret_t RVM_Thd_Hyp_Set(rvm_cid_t Cap_Thd,
                                      rvm_ptr_t Kaddr);
+__EXTERN__ rvm_ret_t RVM_Thd_Hyp_Exec_Set(rvm_cid_t Cap_Thd,
+                                          rvm_ptr_t Kaddr,
+                                          rvm_ptr_t Entry,
+                                          rvm_ptr_t Stack);
 __EXTERN__ rvm_ret_t RVM_Thd_Sched_Bind(rvm_cid_t Cap_Thd,
                                         rvm_cid_t Cap_Thd_Sched,
                                         rvm_cid_t Cap_Sig,
@@ -414,6 +417,16 @@ __EXTERN__ rvm_ret_t RVM_Thd_Sched_Bind(rvm_cid_t Cap_Thd,
                                         rvm_ptr_t Prio);
 __EXTERN__ rvm_ret_t RVM_Thd_Sched_Prio(rvm_cid_t Cap_Thd,
                                         rvm_ptr_t Prio);
+__EXTERN__ rvm_ret_t RVM_Thd_Sched_Prio2(rvm_cid_t Cap_Thd0,
+                                         rvm_ptr_t Prio0,
+                                         rvm_cid_t Cap_Thd1,
+                                         rvm_ptr_t Prio1);
+__EXTERN__ rvm_ret_t RVM_Thd_Sched_Prio3(rvm_cid_t Cap_Thd0,
+                                         rvm_ptr_t Prio0,
+                                         rvm_cid_t Cap_Thd1,
+                                         rvm_ptr_t Prio1,
+                                         rvm_cid_t Cap_Thd2,
+                                         rvm_ptr_t Prio2);
 __EXTERN__ rvm_ret_t RVM_Thd_Sched_Free(rvm_cid_t Cap_Thd);
 __EXTERN__ rvm_ret_t RVM_Thd_Time_Xfer(rvm_cid_t Cap_Thd_Dst,
                                        rvm_cid_t Cap_Thd_Src,
@@ -442,11 +455,12 @@ __EXTERN__ rvm_ret_t RVM_Inv_Set(rvm_cid_t Cap_Inv,
                                  rvm_ptr_t Entry,
                                  rvm_ptr_t Stack,
                                  rvm_ptr_t Fault_Ret_Flag);
-
-/* Debugging helpers */
-__EXTERN__ rvm_ret_t RVM_Print_Int(rvm_ret_t Int);
-__EXTERN__ rvm_ret_t RVM_Print_Uint(rvm_ptr_t Uint);
-__EXTERN__ rvm_ret_t RVM_Print_String(rvm_s8_t* String);
+#if(RVM_DEBUG_PRINT==1U)
+/* Debugging */
+__EXTERN__ rvm_ret_t RVM_Int_Print(rvm_ret_t Int);
+__EXTERN__ rvm_ret_t RVM_Hex_Print(rvm_ptr_t Uint);
+__EXTERN__ rvm_ret_t RVM_Str_Print(rvm_s8_t* String);
+#endif
 /*****************************************************************************/
 /* Undefine "__EXTERN__" to avoid redefinition */
 #undef __EXTERN__

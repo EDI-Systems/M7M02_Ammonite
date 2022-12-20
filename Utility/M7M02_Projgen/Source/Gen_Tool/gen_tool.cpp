@@ -625,6 +625,9 @@ void Gen_Tool::Kernel_Conf_Hdr(void)
     List=Gen_Tool::Line_Read(Kernel->Kernel_Root+
                              "Include/Platform/"+this->Plat->Name+"/Chip/"+this->Plat->Chip->Name+"/"+Filename);
     /* Replace general parameter macros */
+    /* Debugging control */
+    Gen_Tool::Macro_Int(List, "RME_ASSERT_CORRECT", this->Plat->Proj->Assert_Correct, MACRO_REPLACE);
+    Gen_Tool::Macro_Int(List, "RME_DEBUG_PRINT", this->Plat->Proj->Debug_Print, MACRO_REPLACE);
     /* Generator enabled */
     Gen_Tool::Macro_Int(List, "RME_RVM_GEN_ENABLE", 1, MACRO_REPLACE);
     /* The initial capability table size */
@@ -1244,6 +1247,9 @@ void Gen_Tool::Monitor_Conf_Hdr(void)
     List=Gen_Tool::Line_Read(Monitor->Monitor_Root+
                              "Include/Platform/"+this->Plat->Name+"/Chip/"+this->Plat->Chip->Name+"/"+Filename);
     /* Replace general parameter macros */
+    /* Debugging control */
+    Gen_Tool::Macro_Int(List, "RVM_ASSERT_CORRECT", this->Plat->Proj->Assert_Correct, MACRO_REPLACE);
+    Gen_Tool::Macro_Int(List, "RVM_DEBUG_PRINT", this->Plat->Proj->Debug_Print, MACRO_REPLACE);
     /* The virtual memory base/size for the kernel objects */
     Gen_Tool::Macro_Hex(List, "RVM_KMEM_VA_BASE", Kernel->Kmem_Base, MACRO_REPLACE);
     Gen_Tool::Macro_Hex(List, "RVM_KMEM_VA_SIZE", Kernel->Kmem_Size, MACRO_REPLACE);
@@ -1514,7 +1520,7 @@ void Gen_Tool::Monitor_Pgtbl_Con(std::unique_ptr<std::vector<std::string>>& List
                         Pgtbl->Macro_Global+", 0x"+
                         Main::Hex(Count)+"U, "+
                         Child->Macro_Global+", RVM_PGTBL_ALL_PERM)==0U);");
-        List->push_back(std::string("    RVM_LOG_S(\"Init:Constructed page table child '")+
+        List->push_back(std::string("    RVM_DBG_S(\"Init:Constructed page table child '")+
                         Child->Macro_Global+"' into page table parent '"+
                         Pgtbl->Macro_Global+"' @ position 0x"+
                         Main::Hex(Count)+".\\r\\n\");");
@@ -1579,7 +1585,7 @@ void Gen_Tool::Monitor_Pgtbl_Map(std::unique_ptr<std::vector<std::string>>& List
                         "                             "+Flags+", \n"+
                         "                             RVM_BOOT_PGTBL, 0x"+
                         Main::Hex(Pos_Src)+"U, 0x"+Main::Hex(Index)+"U)==0U);");
-        List->push_back(std::string("    RVM_LOG_S(\"Init:Added page addr 0x")+
+        List->push_back(std::string("    RVM_DBG_S(\"Init:Added page addr 0x")+
                         Main::Hex(Page_Start)+"U size 0x"+
                         Main::Hex(Page_Size)+" to page table '"+
                         Pgtbl->Macro_Global+"' @ position 0x"+
@@ -1634,19 +1640,17 @@ void Gen_Tool::Monitor_Boot_Src(void)
                             std::to_string(Virt->Watchdog)+"U, "+
                             std::to_string(Virt->Vect_Num)+"U, ");
             List->push_back(std::string(" (struct RVM_Regs*)0x")+
-                            Main::Hex(Virt->Reg_Base)+"U, (struct RVM_Param*)0x"+
-                            Main::Hex(Virt->Param_Base)+"U,");
-            List->push_back(std::string(" (struct RVM_Vctf*)0x")+
-                            Main::Hex(Virt->Vctf_Base)+"U, 0x"+
+                            Main::Hex(Virt->Reg_Base)+"U, (struct RVM_State*)0x"+
+                            Main::Hex(Virt->State_Base)+"U,");
+            List->push_back(std::string(" 0x")+
+                            Main::Hex(Virt->State_Size)+"U, 0x"+
                             Main::Hex(Virt->Code_Base)+"U, RVM_CAPID(RVM_BOOT_CTVEP_"+
                             CTIDS(Obj_Cnt)+", "+OIDS(Obj_Cnt)+"U),");
             List->push_back(std::string(" ")+
-                            Virt->Thread[0]->Macro_Global+", "+
                             Virt->Thread[0]->Macro_Global+", 0x"+
                             Main::Hex(Virt->Thread[0]->Stack_Base)+"U, 0x"+
                             Main::Hex(Virt->Thread[0]->Stack_Size)+"U,");
             List->push_back(std::string(" ")+
-                            Virt->Thread[1]->Macro_Global+", "+
                             Virt->Thread[1]->Macro_Global+", 0x"+
                             Main::Hex(Virt->Thread[1]->Stack_Base)+"U, 0x"+
                             Main::Hex(Virt->Thread[1]->Stack_Size)+"U},");
@@ -1699,8 +1703,8 @@ void Gen_Tool::Monitor_Boot_Src(void)
         List->push_back("    rvm_ptr_t Cur_Addr;");
         List->push_back("");
         List->push_back(std::string("    Cur_Addr=0x")+Main::Hex(Monitor->Vep_Kmem_Front)+"U;");
-        List->push_back("    RVM_LOG_S(\"-------------------------------------------------------------------------------\\r\\n\");");
-        List->push_back("    RVM_LOG_S(\"Init:Creating virtual machine endpoints.\\r\\n\");");
+        List->push_back("    RVM_DBG_S(\"-------------------------------------------------------------------------------\\r\\n\");");
+        List->push_back("    RVM_DBG_S(\"Init:Creating virtual machine endpoints.\\r\\n\");");
         List->push_back("    /* Create all the virtual machine endpoint capability tables first */");
         Monitor_Captbl_Crt_Gen(List, this->Plat->Proj->Virtual, "VM vector endpoint", "VEP", this->Plat->Plat->Captbl_Max);
         List->push_back("");
@@ -1710,7 +1714,7 @@ void Gen_Tool::Monitor_Boot_Src(void)
         {
             List->push_back(std::string("    RVM_ASSERT(RVM_Sig_Crt(RVM_BOOT_CTVEP_")+
                             CTIDS(Obj_Cnt)+", "+OIDS(Obj_Cnt)+"U)==0U);");
-            List->push_back(std::string("    RVM_LOG_SIS(\"Init:Created virtual machine '")+
+            List->push_back(std::string("    RVM_DBG_SIS(\"Init:Created virtual machine '")+
                             Virt->Name+"' endpoint CID \", RVM_CAPID(RVM_BOOT_CTVEP_"+
                             CTIDS(Obj_Cnt)+", "+OIDS(Obj_Cnt)+"U), \".\\r\\n\");");
             Obj_Cnt++;
@@ -1731,8 +1735,8 @@ void Gen_Tool::Monitor_Boot_Src(void)
     List->push_back("    rvm_ptr_t Cur_Addr;");
     List->push_back("");
     List->push_back(std::string("    Cur_Addr=0x")+Main::Hex(Monitor->Captbl_Kmem_Front)+"U;");
-    List->push_back("    RVM_LOG_S(\"-------------------------------------------------------------------------------\\r\\n\");");
-    List->push_back("    RVM_LOG_S(\"Init:Creating process capability tables.\\r\\n\");");
+    List->push_back("    RVM_DBG_S(\"-------------------------------------------------------------------------------\\r\\n\");");
+    List->push_back("    RVM_DBG_S(\"Init:Creating process capability tables.\\r\\n\");");
     List->push_back("    /* Create all the capability table capability tables first */");
     Monitor_Captbl_Crt_Gen(List, Monitor->Captbl, "capability table", "CAPTBL", this->Plat->Plat->Captbl_Max);
     List->push_back("");
@@ -1742,7 +1746,7 @@ void Gen_Tool::Monitor_Boot_Src(void)
         List->push_back(std::string("    RVM_ASSERT(RVM_Captbl_Crt(RVM_BOOT_CTCAPTBL_")+
                         CTIDS(Captbl->Capid_Global)+", RVM_BOOT_INIT_KMEM, "+OIDS(Captbl->Capid_Global)+"U, Cur_Addr, "+
                         std::to_string(Captbl->Size)+"U)==0U);");
-        List->push_back(std::string("    RVM_LOG_SISUS(\"Init:Created capability table '")+
+        List->push_back(std::string("    RVM_DBG_SISHS(\"Init:Created capability table '")+
                         Captbl->Macro_Global+"' CID \", RVM_CAPID(RVM_BOOT_CTCAPTBL_"+
                         CTIDS(Captbl->Capid_Global)+", "+OIDS(Captbl->Capid_Global)+"U), \" @ address 0x\", Cur_Addr, \".\\r\\n\");");
         List->push_back(std::string("    Cur_Addr+=RVM_CAPTBL_SIZE(")+std::to_string(Captbl->Size)+"U);");
@@ -1762,8 +1766,8 @@ void Gen_Tool::Monitor_Boot_Src(void)
     List->push_back("    rvm_ptr_t Cur_Addr;");
     List->push_back("");
     List->push_back(std::string("    Cur_Addr=0x")+Main::Hex(Monitor->Pgtbl_Kmem_Front)+"U;");
-    List->push_back("    RVM_LOG_S(\"-------------------------------------------------------------------------------\\r\\n\");");
-    List->push_back("    RVM_LOG_S(\"Init:Creating process page tables.\\r\\n\");");
+    List->push_back("    RVM_DBG_S(\"-------------------------------------------------------------------------------\\r\\n\");");
+    List->push_back("    RVM_DBG_S(\"Init:Creating process page tables.\\r\\n\");");
     List->push_back("    /* Create all the page tables capability tables first */");
     Monitor_Captbl_Crt_Gen(List, Monitor->Pgtbl, "page table", "PGTBL", this->Plat->Plat->Captbl_Max);
     List->push_back("");
@@ -1774,7 +1778,7 @@ void Gen_Tool::Monitor_Boot_Src(void)
                         CTIDS(Pgtbl->Capid_Global)+", RVM_BOOT_INIT_KMEM, "+OIDS(Pgtbl->Capid_Global)+"U, Cur_Addr, 0x"+
                         Main::Hex(Pgtbl->Base)+"U, "+std::to_string((ptr_t)(Pgtbl->Is_Top!=0))+"U, "+
                         std::to_string(Pgtbl->Size_Order)+"U, "+std::to_string(Pgtbl->Num_Order)+"U)==0U);");
-        List->push_back(std::string("    RVM_LOG_SISUS(\"Init:Created page table '")+
+        List->push_back(std::string("    RVM_DBG_SISHS(\"Init:Created page table '")+
                         Pgtbl->Macro_Global+"' CID \", RVM_CAPID(RVM_BOOT_CTPGTBL_"+
                         CTIDS(Pgtbl->Capid_Global)+", "+OIDS(Pgtbl->Capid_Global)+"U), \" @ address 0x\", Cur_Addr, \".\\r\\n\");");
         if(Pgtbl->Is_Top!=0)
@@ -1797,8 +1801,8 @@ void Gen_Tool::Monitor_Boot_Src(void)
     List->push_back("    rvm_ptr_t Cur_Addr;");
     List->push_back("");
     List->push_back(std::string("    Cur_Addr=0x")+Main::Hex(Monitor->Proc_Kmem_Front)+"U;");
-    List->push_back("    RVM_LOG_S(\"-------------------------------------------------------------------------------\\r\\n\");");
-    List->push_back("    RVM_LOG_S(\"Init:Creating processes.\\r\\n\");");
+    List->push_back("    RVM_DBG_S(\"-------------------------------------------------------------------------------\\r\\n\");");
+    List->push_back("    RVM_DBG_S(\"Init:Creating processes.\\r\\n\");");
     List->push_back("    /* Create all the process capability tables first */");
     Monitor_Captbl_Crt_Gen(List, Monitor->Process, "process", "PROC", this->Plat->Plat->Captbl_Max);
     List->push_back("");
@@ -1808,7 +1812,7 @@ void Gen_Tool::Monitor_Boot_Src(void)
         List->push_back(std::string("    RVM_ASSERT(RVM_Proc_Crt(RVM_BOOT_CTPROC_")+
                         CTIDS(Proc->Capid_Global)+", "+OIDS(Proc->Capid_Global)+"U, "+
                         Proc->Captbl->Macro_Global+", "+Proc->Pgtbl->Macro_Global+")==0U);");
-        List->push_back(std::string("    RVM_LOG_SIS(\"Init:Created process '")+
+        List->push_back(std::string("    RVM_DBG_SIS(\"Init:Created process '")+
                         Proc->Macro_Global+"' CID \", RVM_CAPID(RVM_BOOT_CTPROC_"+
                         CTIDS(Proc->Capid_Global)+", "+OIDS(Proc->Capid_Global)+"U), \".\\r\\n\");");
     }
@@ -1827,8 +1831,8 @@ void Gen_Tool::Monitor_Boot_Src(void)
     List->push_back("    rvm_ptr_t Cur_Addr;");
     List->push_back("");
     List->push_back(std::string("    Cur_Addr=0x")+Main::Hex(Monitor->Thd_Kmem_Front)+"U;");
-    List->push_back("    RVM_LOG_S(\"-------------------------------------------------------------------------------\\r\\n\");");
-    List->push_back("    RVM_LOG_S(\"Init:Creating threads.\\r\\n\");");
+    List->push_back("    RVM_DBG_S(\"-------------------------------------------------------------------------------\\r\\n\");");
+    List->push_back("    RVM_DBG_S(\"Init:Creating threads.\\r\\n\");");
     List->push_back("    /* Create all the thread capability tables first */");
     Monitor_Captbl_Crt_Gen(List, Monitor->Thread, "thread", "THD", this->Plat->Plat->Captbl_Max);
     List->push_back("");
@@ -1838,7 +1842,7 @@ void Gen_Tool::Monitor_Boot_Src(void)
         List->push_back(std::string("    RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_CTTHD_")+
                         CTIDS(Thd->Capid_Global)+", RVM_BOOT_INIT_KMEM, "+OIDS(Thd->Capid_Global)+"U, "+
                         Thd->Owner->Macro_Global+", "+std::to_string(Thd->Priority)+"U, Cur_Addr)==0U);");
-        List->push_back(std::string("    RVM_LOG_SISUS(\"Init:Created thread '")+
+        List->push_back(std::string("    RVM_DBG_SISHS(\"Init:Created thread '")+
                         Thd->Macro_Global+"' CID \", RVM_CAPID(RVM_BOOT_CTTHD_"+
                         CTIDS(Thd->Capid_Global)+", "+OIDS(Thd->Capid_Global)+"U), \" @ address 0x\", Cur_Addr, \".\\r\\n\");");
         List->push_back("    Cur_Addr+=RVM_THD_SIZE;");
@@ -1858,8 +1862,8 @@ void Gen_Tool::Monitor_Boot_Src(void)
     List->push_back("    rvm_ptr_t Cur_Addr;");
     List->push_back("");
     List->push_back(std::string("    Cur_Addr=0x")+Main::Hex(Monitor->Inv_Kmem_Front)+"U;");
-    List->push_back("    RVM_LOG_S(\"-------------------------------------------------------------------------------\\r\\n\");");
-    List->push_back("    RVM_LOG_S(\"Init:Creating invocations.\\r\\n\");");
+    List->push_back("    RVM_DBG_S(\"-------------------------------------------------------------------------------\\r\\n\");");
+    List->push_back("    RVM_DBG_S(\"Init:Creating invocations.\\r\\n\");");
     List->push_back("    /* Create all the invocation capability tables first */");
     Monitor_Captbl_Crt_Gen(List, Monitor->Invocation, "invocation", "INV", this->Plat->Plat->Captbl_Max);
     List->push_back("");
@@ -1869,7 +1873,7 @@ void Gen_Tool::Monitor_Boot_Src(void)
         List->push_back(std::string("    RVM_ASSERT(RVM_Inv_Crt(RVM_BOOT_CTINV_")+
                         CTIDS(Inv->Capid_Global)+", RVM_BOOT_INIT_KMEM, "+OIDS(Inv->Capid_Global)+"U, "+
                         Inv->Owner->Macro_Global+", Cur_Addr)==0U);");
-        List->push_back(std::string("    RVM_LOG_SISUS(\"Init:Created invocation '")+
+        List->push_back(std::string("    RVM_DBG_SISHS(\"Init:Created invocation '")+
                         Inv->Macro_Global+"' CID \", RVM_CAPID(RVM_BOOT_CTINV_"+
                         CTIDS(Inv->Capid_Global)+", "+OIDS(Inv->Capid_Global)+"U), \" @ address 0x\", Cur_Addr, \".\\r\\n\");");
         List->push_back("    Cur_Addr+=RVM_INV_SIZE;");
@@ -1889,8 +1893,8 @@ void Gen_Tool::Monitor_Boot_Src(void)
     List->push_back("    rvm_ptr_t Cur_Addr;");
     List->push_back("");
     List->push_back(std::string("    Cur_Addr=0x")+Main::Hex(Monitor->Recv_Kmem_Front)+"U;");
-    List->push_back("    RVM_LOG_S(\"-------------------------------------------------------------------------------\\r\\n\");");
-    List->push_back("    RVM_LOG_S(\"Init:Creating receive endpoints.\\r\\n\");");
+    List->push_back("    RVM_DBG_S(\"-------------------------------------------------------------------------------\\r\\n\");");
+    List->push_back("    RVM_DBG_S(\"Init:Creating receive endpoints.\\r\\n\");");
     List->push_back("    /* Create all the receive endpoint capability tables first */");
     Monitor_Captbl_Crt_Gen(List, Monitor->Receive, "receive endpoint", "RECV", this->Plat->Plat->Captbl_Max);
     List->push_back("");
@@ -1899,7 +1903,7 @@ void Gen_Tool::Monitor_Boot_Src(void)
     {
         List->push_back(std::string("    RVM_ASSERT(RVM_Sig_Crt(RVM_BOOT_CTRECV_")+
                         CTIDS(Recv->Capid_Global)+", "+OIDS(Recv->Capid_Global)+"U)==0U);");
-        List->push_back(std::string("    RVM_LOG_SIS(\"Init:Created receive endpoint '")+
+        List->push_back(std::string("    RVM_DBG_SIS(\"Init:Created receive endpoint '")+
                         Recv->Macro_Global+"' CID \", RVM_CAPID(RVM_BOOT_CTRECV_"+
                         CTIDS(Recv->Capid_Global)+", "+OIDS(Recv->Capid_Global)+"U), \".\\r\\n\");");
     }
@@ -1935,8 +1939,8 @@ void Gen_Tool::Monitor_Boot_Src(void)
                             "Initialize all VM capability table special contents.", Input, Output, "None.");
         List->push_back("void RVM_Boot_Vcap_Init(void)");
         List->push_back("{");
-        List->push_back("    RVM_LOG_S(\"-------------------------------------------------------------------------------\\r\\n\");");
-        List->push_back("    RVM_LOG_S(\"Init:Initializing virtual machine capability tables.\\r\\n\");");
+        List->push_back("    RVM_DBG_S(\"-------------------------------------------------------------------------------\\r\\n\");");
+        List->push_back("    RVM_DBG_S(\"Init:Initializing virtual machine capability tables.\\r\\n\");");
         Obj_Cnt=0;
         for(const class Virtual* Virt:this->Plat->Proj->Virtual)
         {
@@ -1945,14 +1949,14 @@ void Gen_Tool::Monitor_Boot_Src(void)
             List->push_back("    /* System call endpoint */");
             List->push_back(std::string("    RVM_ASSERT(RVM_Captbl_Add(")+
                             Virt->Captbl->Macro_Global+", 0U, RVM_BOOT_CAPTBL, RVM_Vmmd_Sig_Cap, RVM_SIG_FLAG_SND)==0U);");
-            List->push_back(std::string("    RVM_LOG_S(\"Init:Delegated system call send endpoint to virtual machine '")+
+            List->push_back(std::string("    RVM_DBG_S(\"Init:Delegated system call send endpoint to virtual machine '")+
                             Virt->Macro_Global+"'.\\r\\n\");");
             /* Setup virtual machine vector endpoint at capability table location 1 */
             List->push_back("    /* Vector endpoint - this is a special one */");
             List->push_back(std::string("    RVM_ASSERT(RVM_Captbl_Add(")+
                             Virt->Captbl->Macro_Global+", 1U, RVM_BOOT_CTVEP_"+
                             CTIDS(Obj_Cnt)+", "+OIDS(Obj_Cnt)+"U, RVM_SIG_FLAG_SND|RVM_SIG_FLAG_RCV)==0U);");
-            List->push_back(std::string("    RVM_LOG_S(\"Init:Delegated virtual machine vector endpoint to virtual machine '")+
+            List->push_back(std::string("    RVM_DBG_S(\"Init:Delegated virtual machine vector endpoint to virtual machine '")+
                             Virt->Macro_Global+"'.\\r\\n\");");
             List->push_back("");
             /* Initialize virtual machine data structure */
@@ -1969,8 +1973,8 @@ void Gen_Tool::Monitor_Boot_Src(void)
                         "Initialize the capability tables of all processes.", Input, Output, "None.");
     List->push_back("void RVM_Boot_Captbl_Init(void)");
     List->push_back("{");
-    List->push_back("    RVM_LOG_S(\"-------------------------------------------------------------------------------\\r\\n\");");
-    List->push_back("    RVM_LOG_S(\"Init:Initializing process capability tables.\\r\\n\");");
+    List->push_back("    RVM_DBG_S(\"-------------------------------------------------------------------------------\\r\\n\");");
+    List->push_back("    RVM_DBG_S(\"Init:Initializing process capability tables.\\r\\n\");");
     for(const std::unique_ptr<class Process>& Proc:this->Plat->Proj->Process)
     {
         List->push_back(std::string("    /* Initializing captbl for process: '")+Proc->Name+"' */");
@@ -1981,7 +1985,7 @@ void Gen_Tool::Monitor_Boot_Src(void)
             List->push_back("    /* Event kernel capability */");
             List->push_back(std::string("    RVM_ASSERT(RVM_Captbl_Kern(")+
                             Proc->Captbl->Macro_Global+", 0U, RVM_BOOT_CAPTBL, RVM_BOOT_INIT_KERN, RVM_KERN_EVT_LOCAL_TRIG, RVM_KERN_EVT_LOCAL_TRIG)==0U);");
-            List->push_back(std::string("    RVM_LOG_S(\"Init:Delegated kernel capability for event sending to process '")+
+            List->push_back(std::string("    RVM_DBG_S(\"Init:Delegated kernel capability for event sending to process '")+
                             Proc->Macro_Global+"' capability table position 0.\\r\\n\");");
         }
         /* Ports */
@@ -1992,7 +1996,7 @@ void Gen_Tool::Monitor_Boot_Src(void)
                             Proc->Captbl->Macro_Global+", "+
                             std::to_string(Port->Capid_Local)+"U, RVM_BOOT_CTINV_"+
                             CTIDS(Port->Capid_Global)+", "+OIDS(Port->Capid_Global)+"U, RVM_INV_FLAG_ACT)==0U);");
-            List->push_back(std::string("    RVM_LOG_S(\"Init:Delegated invocation port '")+
+            List->push_back(std::string("    RVM_DBG_S(\"Init:Delegated invocation port '")+
                             Port->Macro_Global+"' to process '"+
                             Proc->Macro_Global+"' capability table position "+
                             std::to_string(Port->Capid_Local)+".\\r\\n\");");
@@ -2005,7 +2009,7 @@ void Gen_Tool::Monitor_Boot_Src(void)
                             Proc->Captbl->Macro_Global+", "+
                             std::to_string(Recv->Capid_Local)+"U, RVM_BOOT_CTRECV_"+
                             CTIDS(Recv->Capid_Global)+", "+OIDS(Recv->Capid_Global)+"U, RVM_SIG_FLAG_SND|RVM_SIG_FLAG_RCV)==0U);");
-            List->push_back(std::string("    RVM_LOG_S(\"Init:Delegated receive endpoint '")+
+            List->push_back(std::string("    RVM_DBG_S(\"Init:Delegated receive endpoint '")+
                             Recv->Macro_Global+"' to process '"+
                             Proc->Macro_Global+"' capability table position "+
                             std::to_string(Recv->Capid_Global)+".\\r\\n\");");
@@ -2018,7 +2022,7 @@ void Gen_Tool::Monitor_Boot_Src(void)
                             Proc->Captbl->Macro_Global+", "+
                             std::to_string(Send->Capid_Local)+"U, RVM_BOOT_CTRECV_"+
                             CTIDS(Send->Capid_Global)+", "+OIDS(Send->Capid_Global)+"U, RVM_SIG_FLAG_SND)==0U);");
-            List->push_back(std::string("    RVM_LOG_S(\"Init:Delegated send endpoint '")+
+            List->push_back(std::string("    RVM_DBG_S(\"Init:Delegated send endpoint '")+
                             Send->Macro_Global+"' to process '"+Proc->Macro_Global+"' capability table position "+
                             std::to_string(Send->Capid_Local)+".\\r\\n\");");
         }
@@ -2030,7 +2034,7 @@ void Gen_Tool::Monitor_Boot_Src(void)
                             Proc->Captbl->Macro_Global+", "+
                             std::to_string(Vect->Capid_Local)+"U, RVM_BOOT_CTVECT_"+
                             CTIDS(Vect->Capid_Global)+", "+OIDS(Vect->Capid_Global)+"U, RVM_SIG_FLAG_RCV)==0U);");
-            List->push_back(std::string("    RVM_LOG_S(\"Init:Delegated vector endpoint '")+
+            List->push_back(std::string("    RVM_DBG_S(\"Init:Delegated vector endpoint '")+
                             Vect->Macro_Global+"' to process '"+
                             Proc->Macro_Global+"' capability table position "+
                             std::to_string(Vect->Capid_Global)+".\\r\\n\");");
@@ -2043,7 +2047,7 @@ void Gen_Tool::Monitor_Boot_Src(void)
                             Proc->Captbl->Macro_Global+", "+
                             std::to_string(Kfunc->Capid_Local)+"U, RVM_BOOT_CAPTBL, RVM_BOOT_INIT_KERN, 0x"+
                             Main::Hex(Kfunc->Start)+"U, 0x"+Main::Hex(Kfunc->End)+"U)==0U);");
-            List->push_back(std::string("    RVM_LOG_S(\"Init:Delegated kernel function 0x")+
+            List->push_back(std::string("    RVM_DBG_S(\"Init:Delegated kernel function 0x")+
                             Main::Hex(Kfunc->Start)+" - 0x"+Main::Hex(Kfunc->End)+" to process '"+
                             Proc->Macro_Global+"' capability table position "+std::to_string(Kfunc->Capid_Local)+".\\r\\n\");");
         }
@@ -2059,8 +2063,8 @@ void Gen_Tool::Monitor_Boot_Src(void)
                         "Initialize the page tables of all processes.", Input, Output, "None.");
     List->push_back("void RVM_Boot_Pgtbl_Init(void)");
     List->push_back("{");
-    List->push_back("    RVM_LOG_S(\"-------------------------------------------------------------------------------\\r\\n\");");
-    List->push_back("    RVM_LOG_S(\"Init:Initializing process page tables.\\r\\n\");");
+    List->push_back("    RVM_DBG_S(\"-------------------------------------------------------------------------------\\r\\n\");");
+    List->push_back("    RVM_DBG_S(\"Init:Initializing process page tables.\\r\\n\");");
     /* Do page table construction first */
     for(const std::unique_ptr<class Process>& Proc:this->Plat->Proj->Process)
     {
@@ -2089,8 +2093,8 @@ void Gen_Tool::Monitor_Boot_Src(void)
     List->push_back("    rvm_ptr_t Init_Stub_Addr;");
     List->push_back("    rvm_ptr_t Init_Stack_Addr;");
     List->push_back("");
-    List->push_back("    RVM_LOG_S(\"-------------------------------------------------------------------------------\\r\\n\");");
-    List->push_back("    RVM_LOG_S(\"Init:Initializing threads.\\r\\n\");");
+    List->push_back("    RVM_DBG_S(\"-------------------------------------------------------------------------------\\r\\n\");");
+    List->push_back("    RVM_DBG_S(\"Init:Initializing threads.\\r\\n\");");
     for(const std::unique_ptr<class Process>& Proc:this->Plat->Proj->Process)
     {
         List->push_back(std::string("    /* Initializing thread for process: '")+Proc->Name+"' */");
@@ -2133,7 +2137,7 @@ void Gen_Tool::Monitor_Boot_Src(void)
                             Main::Hex(Thd->Parameter)+"U)==0U);");
             List->push_back(std::string("    RVM_ASSERT(RVM_Thd_Time_Xfer(")+
                             Thd->Macro_Global+", RVM_BOOT_INIT_THD, RVM_THD_INF_TIME)==RVM_THD_INF_TIME);");
-            List->push_back(std::string("    RVM_LOG_S(\"Init:Initialized thread '")+
+            List->push_back(std::string("    RVM_DBG_S(\"Init:Initialized thread '")+
                             Thd->Macro_Global+"' process '"+
                             Thd->Macro_Global+"' header slot 0x"+
                             Main::Hex(Thd->Header_Slot)+" stack 0x"+
@@ -2157,8 +2161,8 @@ void Gen_Tool::Monitor_Boot_Src(void)
     List->push_back("    rvm_ptr_t Init_Stub_Addr;");
     List->push_back("    rvm_ptr_t Init_Stack_Addr;");
     List->push_back("");
-    List->push_back("    RVM_LOG_S(\"-------------------------------------------------------------------------------\\r\\n\");");
-    List->push_back("    RVM_LOG_S(\"Init:Initializing invocations.\\r\\n\");");
+    List->push_back("    RVM_DBG_S(\"-------------------------------------------------------------------------------\\r\\n\");");
+    List->push_back("    RVM_DBG_S(\"Init:Initializing invocations.\\r\\n\");");
     for(const std::unique_ptr<class Process>& Proc:this->Plat->Proj->Process)
     {
         List->push_back(std::string("    /* Initializing invocation for process: '")+Proc->Name+"' */");
@@ -2173,7 +2177,7 @@ void Gen_Tool::Monitor_Boot_Src(void)
             /* We always return directly on fault for MCUs, because RVM does not do fault handling there */
             List->push_back(std::string("    RVM_ASSERT(RVM_Inv_Set(")+
                             Inv->Macro_Global+", Init_Entry_Addr, Init_Stack_Addr, 1U)==0U);");
-            List->push_back(std::string("    RVM_LOG_S(\"Init:Initialized invocation '")+
+            List->push_back(std::string("    RVM_DBG_S(\"Init:Initialized invocation '")+
                             Inv->Macro_Global+"' process '"+
                             Proc->Macro_Global+"' header slot 0x"+
                             Main::Hex(Inv->Header_Slot)+" stack 0x"+
@@ -2523,17 +2527,18 @@ void Gen_Tool::Process_Main_Hdr(class Process* Proc)
         Virt=static_cast<const class Virtual*>(Proc);
         List->push_back("/* Virtual vector total number */");
         Gen_Tool::Macro_Int(List, "RVM_VIRT_VECT_NUM", Virt->Vect_Num, MACRO_ADD);
-        List->push_back("/* Virtual vector bitmap base address */");
-        Gen_Tool::Macro_Hex(List, "RVM_VIRT_VCTF_BASE", Virt->Vctf_Base, MACRO_ADD);
-        List->push_back("/* Virtual register base address */");
+        List->push_back("/* State block base address & size */");
+        Gen_Tool::Macro_Hex(List, "RVM_VIRT_STATE_BASE", Virt->State_Base, MACRO_ADD);
+        Gen_Tool::Macro_Hex(List, "RVM_VIRT_STATE_SIZE", Virt->State_Size, MACRO_ADD);
+        List->push_back("/* Virtual register base address & size */");
         Gen_Tool::Macro_Hex(List, "RVM_VIRT_REG_BASE", Virt->Reg_Base, MACRO_ADD);
-        List->push_back("/* Hypercall parameter base address */");
-        Gen_Tool::Macro_Hex(List, "RVM_VIRT_PARAM_BASE", Virt->Param_Base, MACRO_ADD);
+        Gen_Tool::Macro_Hex(List, "RVM_VIRT_REG_SIZE", Virt->Reg_Size, MACRO_ADD);
         List->push_back("");
     }
 
-    /* By default, debugging is turned off */
-    Gen_Tool::Macro_Hex(List, "RVM_DEBUG_LOG", 0, MACRO_ADD);
+    /* Assert & debugging */
+    Gen_Tool::Macro_Int(List, "RVM_ASSERT_CORRECT", this->Plat->Proj->Assert_Correct, MACRO_ADD);
+    Gen_Tool::Macro_Int(List, "RVM_DEBUG_PRINT", this->Plat->Proj->Debug_Print, MACRO_ADD);
 
     List->push_back(std::string("#endif /* __PROC_")+Proc->Name_Upper+"_H__ */");
     List->push_back("/* End Defines ***************************************************************/");
@@ -2736,7 +2741,7 @@ void Gen_Tool::Process_Desc_Src(class Process* Proc)
             }
             else
             {
-                ASSERT(Thd->Name=="Vector");
+                ASSERT(Thd->Name=="Vect");
                 List->push_back(std::string("    (rvm_ptr_t)Thd_")+Thd->Name+",");
             }
         }
@@ -2790,8 +2795,7 @@ void Gen_Tool::Process_Main_Src(class Process* Proc)
     if(Proc->Type==PROC_VIRTUAL)
     {
         List->push_back("/* Private C Function Prototypes *********************************************/");
-        List->push_back("rvm_ret_t Thd_Vector(rvm_ret_t Param);");
-        List->push_back("rvm_ret_t Thd_User(rvm_ret_t Param);");
+        List->push_back("rvm_ret_t Thd_Vect(rvm_ret_t Param);");
         List->push_back("extern void _RVM_Jmp_Stub(void);");
         List->push_back("/* End Private C Function Prototypes *****************************************/");
         List->push_back("");
@@ -2813,31 +2817,21 @@ void Gen_Tool::Process_Main_Src(class Process* Proc)
     {
         Input.push_back("rvm_ret_t Param - The parameter supplied by the OS.");
         /* The vector handler thread */
-        Gen_Tool::Func_Head(List, "Thd_Vector", "The function body for vector handler.",
+        Gen_Tool::Func_Head(List, "Thd_Vect", "The function body for vector handler.",
                             Input, Output, "rvm_ret_t - Should never return.");
-        List->push_back("rvm_ret_t Thd_Vector(rvm_ret_t Param)");
+        List->push_back("rvm_ret_t Thd_Vect(rvm_ret_t Param)");
         List->push_back("{");
         List->push_back("    /* Check header validity on boot */");
         List->push_back("    RVM_ASSERT(RVM_Proc_Desc[0]==RVM_MAGIC_VIRTUAL);");
         List->push_back(std::string("    RVM_ASSERT(RVM_Proc_Desc[1]==")+std::to_string(Proc->Desc_Front-2)+"U);");
         List->push_back("");
-        List->push_back("    /* DO NOT MODIFY - THIS HIGH PRIORITY THREAD IS DESIGNED TO RUN ON UNINITIALIZED RAM */");
+        List->push_back("    /* DO NOT MODIFY - THIS HIGH PRIORITY THREAD CAN RUN ON UNINITIALIZED RAM */");
         List->push_back("    RVM_Virt_Init();");
         List->push_back("    RVM_Vect_Loop();");
         List->push_back("");
         List->push_back("    return 0;");
         List->push_back("}");
         Gen_Tool::Func_Foot(List, "Thd_Vector");
-        List->push_back("");
-        /* The user context thread */
-        Gen_Tool::Func_Head(List, "Thd_User", "The function body for user context runtime.",
-                            Input, Output, "rvm_ret_t - Should never return.");
-        List->push_back("rvm_ret_t Thd_User(rvm_ret_t Param)");
-        List->push_back("{");
-        List->push_back("    /* USELESS STUB - MAIN FUNCTION PROVIDED BY GUEST OS, THIS MAY BE OPTIMIZED OUT */");
-        List->push_back("    return 0;");
-        List->push_back("}");
-        Gen_Tool::Func_Foot(List, "Thd_User");
         List->push_back("");
         Input.clear();
     }
@@ -2861,10 +2855,12 @@ void Gen_Tool::Process_Main_Src(class Process* Proc)
     /* The RVM library putchar function - print character to console */
     Input.push_back("char Char - The character to print to console.");
     Gen_Tool::Func_Head(List, "RVM_Putchar", "The character printing function for debugging.", Input, Output, "None.");
+    List->push_back("#if(RVM_DEBUG_PRINT==1U)");
     List->push_back("void RVM_Putchar(char Char)");
     List->push_back("{");
     List->push_back("    /* Add your own code */");
     List->push_back("}");
+    List->push_back("#endif");
     Gen_Tool::Func_Foot(List, "RVM_Putchar");
     List->push_back("");
     Gen_Tool::Src_Foot(List);

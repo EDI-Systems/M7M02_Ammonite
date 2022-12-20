@@ -252,6 +252,8 @@ struct RVM_Reg_Struct
     rvm_ptr_t LR;
 };
 
+
+
 /* The coprocessor register set structure. In Cortex-M, if there is a 
  * single-precision FPU, then the FPU S0-S15 is automatically pushed */
 struct RVM_Cop_Struct
@@ -274,10 +276,17 @@ struct RVM_Cop_Struct
     rvm_ptr_t S31;
 };
 
-struct RVM_Regs
+struct RVM_Err_Struct
+{
+    rvm_ptr_t Cause;
+    rvm_ptr_t Addr;
+};
+
+struct RVM_Thd_Reg
 {
     struct RVM_Reg_Struct Reg;
-    struct RVM_Cop_Struct Cop_Reg;
+    struct RVM_Cop_Struct Cop;
+    struct RVM_Err_Struct Err;
 };
 /* End Structs ***************************************************************/
 
@@ -370,6 +379,10 @@ EXTERN rvm_ret_t RVM_A7M_Debug_Inv_Mod(rvm_cid_t Cap_Kern,
                                        rvm_ptr_t Layer,
                                        rvm_ptr_t Operation,
                                        rvm_ptr_t Value,
+                                       rvm_ptr_t* Content);
+EXTERN rvm_ret_t RVM_A7M_Debug_Err_Get(rvm_cid_t Cap_Kern,
+                                       rvm_cid_t Cap_Thd,
+                                       rvm_ptr_t Operation,
                                        rvm_ptr_t* Content);
 /*****************************************************************************/
 #endif /* __RVM_GUEST_A7M__ */

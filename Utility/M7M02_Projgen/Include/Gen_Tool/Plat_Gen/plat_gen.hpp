@@ -57,13 +57,11 @@ public:
     ptr_t Size_Thread(void);
     ptr_t Size_Invocation(void);
     ptr_t Size_Register(void);
-    ptr_t Size_Parameter(void);
     /* These are to be filled by the underlying platform */
     virtual ptr_t Raw_Pgtbl(ptr_t Size_Order, ptr_t Is_Top)=0;
     virtual ptr_t Raw_Thread(void)=0;
     virtual ptr_t Raw_Invocation(void)=0;
     virtual ptr_t Raw_Register(void)=0;
-    virtual ptr_t Raw_Parameter(void)=0;
 
     virtual void Kernel_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)=0;
     virtual void Monitor_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)=0;

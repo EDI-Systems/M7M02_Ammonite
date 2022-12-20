@@ -475,11 +475,12 @@ Description : Allocate process memory. The header of a process is like
               };
               and the real entry point immediately follows it.
 Input       : ptr_t Wordlength - The number of bits in a word.
+              ptr_t Reg_Size - The register set size.
               ptr_t Kmem_Order - The kernel memory order.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Process::Mem_Alloc(ptr_t Wordlength, ptr_t Reg_Size, ptr_t Param_Size, ptr_t Kmem_Order)
+void Process::Mem_Alloc(ptr_t Wordlength, ptr_t Reg_Size, ptr_t Kmem_Order)
 {
     class Virtual* Virt;
 
@@ -556,20 +557,12 @@ void Process::Mem_Alloc(ptr_t Wordlength, ptr_t Reg_Size, ptr_t Param_Size, ptr_
         Virt=static_cast<class Virtual*>(this);
 
         /* Vector flag space */
-        Virt->Vctf_Size=Proj_Info::Flag_Alloc(Virt->Vect_Num, Wordlength, Kmem_Order);
-        Virt->Vctf_Base=this->Data_Base+this->Data_Size-Virt->Vctf_Size;
-        Main::Info("> Vector flag base 0x%llX size 0x%llX.", Virt->Vctf_Base, Virt->Vctf_Size);
-        if(Virt->Vctf_Base<=this->Data_Base)
+        Virt->State_Size=Virtual::State_Alloc(Virt->Vect_Num, Wordlength, Kmem_Order);
+        Virt->State_Base=this->Data_Base+this->Data_Size-Virt->State_Size;
+        Main::Info("> State block base 0x%llX size 0x%llX.", Virt->State_Base, Virt->State_Size);
+        if(Virt->State_Base<=this->Data_Base)
             Main::Error("M2301: Data section size is not big enough, unable to allocate virtual machine interrupt flags.");
-        this->Data_Size=Virt->Vctf_Base-this->Data_Base;
-
-        /* Hypercall parameter space */
-        Virt->Param_Size=ROUND_UP_POW2(Param_Size,Kmem_Order);
-        Virt->Param_Base=this->Data_Base+this->Data_Size-Virt->Param_Size;
-        Main::Info("> Parameter base 0x%llX size 0x%llX.", Virt->Param_Base, Virt->Param_Size);
-        if(Virt->Param_Base<=this->Data_Base)
-            Main::Error("M2302: Data section size is not big enough, unable to allocate virtual machine parameters.");
-        this->Data_Size=Virt->Param_Base-this->Data_Base;
+        this->Data_Size=Virt->State_Base-this->Data_Base;
 
         /* Register space */
         Virt->Reg_Size=ROUND_UP_POW2(Reg_Size,Kmem_Order);
