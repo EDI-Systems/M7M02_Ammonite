@@ -39,8 +39,8 @@
         <Data_Base>0x20000000</Data_Base>
         <Data_Size>0x10000</Data_Size>
         <Stack_Size>0x1000</Stack_Size>
-        <Extra_Kmem>0x1000</Extra_Kmem>
-        <Kmem_Order>4</Kmem_Order>
+        <Extra_Kom>0x1000</Extra_Kom>
+        <Kom_Order>4</Kom_Order>
         <Kern_Prios>32</Kern_Prios>
         <Optimization>O2</Optimization>
     </Kernel>
@@ -48,7 +48,7 @@
         <Code_Size>0x10000</Code_Size>
         <Data_Size>0x10000</Data_Size>
         <Stack_Size>0x1000</Stack_Size>
-        <Extra_Captbl>32</Extra_Captbl>
+        <Extra_Cpt>32</Extra_Cpt>
         <Optimization>O2</Optimization>
         <Virt_Prios>32</Virt_Prios>
         <Virt_Evts>32</Virt_Evts>
@@ -56,8 +56,8 @@
     </Monitor>
     <Process>
         <P0>
-            <Name>Proc1</Name>
-            <Extra_Captbl>9</Extra_Captbl>
+            <Name>Prc1</Name>
+            <Extra_Cpt>9</Extra_Cpt>
             <Optimization>O2</Optimization>
             <Memory>
                 <M0>
@@ -109,7 +109,7 @@
             <Port>
                 <P0>
                     <Name>Inv1</Name>
-                    <Process>Proc2</Process>
+                    <Process>Prc2</Process>
                 </P0>
             </Port>
             <Receive>
@@ -130,8 +130,8 @@
             </Kfunc>
         </P0>
         <P1>
-            <Name>Proc2</Name>
-            <Extra_Captbl>0</Extra_Captbl>
+            <Name>Prc2</Name>
+            <Extra_Cpt>0</Extra_Cpt>
             <Optimization>O3</Optimization>
             <Memory>
                 <M0>
@@ -179,7 +179,7 @@
             <Send>
                 <S0>
                     <Name>Recv1</Name>
-                    <Process>Proc1</Process>
+                    <Process>Prc1</Process>
                 </S0>
             </Send>
             <Vector>
@@ -201,7 +201,7 @@
         <V0>
             <Name>Virt1</Name>
             <Guest>RMP</Guest>
-            <Extra_Captbl>0</Extra_Captbl>
+            <Extra_Cpt>0</Extra_Cpt>
             <Stack_Size>0x400</Stack_Size>
             <Priority>5</Priority>
             <Slices>10</Slices>
@@ -235,7 +235,7 @@
             <Send>
                 <S0>
                     <Name>Recv1</Name>
-                    <Process>Proc1</Process>
+                    <Process>Prc1</Process>
                 </S0>
             </Send>
             <Kfunc>

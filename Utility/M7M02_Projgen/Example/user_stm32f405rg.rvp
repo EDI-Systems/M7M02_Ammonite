@@ -3,7 +3,7 @@
     <Name>Test_Proj</Name>
     <Version>1.0</Version>
 	<Assert_Correct>Yes</Assert_Correct>
-	<Debug_Print>Yes</Debug_Print>
+	<Debug_Print>No</Debug_Print>
 	<Buildsystem>Keil</Buildsystem>
 	<Workspace_Output>./</Workspace_Output>
 	<Workspace_Overwrite>No</Workspace_Overwrite>
@@ -38,8 +38,8 @@
         <Data_Base>0x10000000</Data_Base>
         <Data_Size>0x3000</Data_Size>
         <Stack_Size>0x800</Stack_Size>
-        <Extra_Kmem>0x0</Extra_Kmem>
-        <Kmem_Order>4</Kmem_Order>
+        <Extra_Kom>0x0</Extra_Kom>
+        <Kom_Order>4</Kom_Order>
         <Kern_Prio>32</Kern_Prio>
 		<Buildsystem>Keil</Buildsystem>
 		<Toolchain>ARMCC</Toolchain>

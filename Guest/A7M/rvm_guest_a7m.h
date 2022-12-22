@@ -76,165 +76,165 @@ typedef rvm_s32_t rvm_ret_t;
 /* Compiler "extern" keyword setting */
 #define EXTERN                                      extern
 /* The order of bits in one CPU machine word */
-#define RVM_WORD_ORDER                              (5)
+#define RVM_WORD_ORDER                              (5U)
 /* Size of kernel objects - architecture dependent */
 /* Thread */
-#define RVM_THD_WORD_SIZE                           (46)
+#define RVM_THD_WORD_SIZE                           (46U)
 /* Invocation */
-#define RVM_INV_WORD_SIZE                           (9)
+#define RVM_INV_WORD_SIZE                           (9U)
 /* Normal page directory */
-#define RVM_PGTBL_WORD_SIZE_NOM(NUM_ORDER)          ((((rvm_ptr_t)1)<<(NUM_ORDER))+5)
+#define RVM_PGT_WORD_SIZE_NOM(NUM_ORDER)            ((((rvm_ptr_t)1)<<(NUM_ORDER))+5U)
 /* Top-level page directory */
-#define RVM_PGTBL_WORD_SIZE_TOP(NUM_ORDER)          (RVM_PGTBL_SIZE_NOM(NUM_ORDER)+5+1+2*RVM_MPU_REGIONS)
+#define RVM_PGT_WORD_SIZE_TOP(NUM_ORDER)            (RVM_PGT_SIZE_NOM(NUM_ORDER)+5U+1U+2U*RVM_MPU_REGIONS)
+
+/* FPU type definitions */
+#define RVM_A7M_FPU_NONE                            (0U)
+#define RVM_A7M_FPU_FPV4_SP                         (1U)
+#define RVM_A7M_FPU_FPV5_SP                         (2U)
+#define RVM_A7M_FPU_FPV5_DP                         (3U)
+
+/* Detect floating-point coprocessor existence */
+#define RVM_COPROCESSOR_TYPE                        RVM_A7M_FPU_TYPE
 
 /* ARMv7-M specific kernel function macros ***********************************/
 /* Page table entry mode which property to get */
-#define RVM_A7M_KERN_PGTBL_ENTRY_MOD_GET_FLAGS      (0)
-#define RVM_A7M_KERN_PGTBL_ENTRY_MOD_GET_SIZEORDER  (1)
-#define RVM_A7M_KERN_PGTBL_ENTRY_MOD_GET_NUMORDER   (2)
+#define RVM_A7M_KFN_PGT_ENTRY_MOD_GET_FLAGS         (0U)
+#define RVM_A7M_KFN_PGT_ENTRY_MOD_GET_SIZEORDER     (1U)
+#define RVM_A7M_KFN_PGT_ENTRY_MOD_GET_NUMORDER      (2U)
 /* Interrupt source configuration */
-#define RVM_A7M_KERN_INT_LOCAL_MOD_GET_STATE        (0)
-#define RVM_A7M_KERN_INT_LOCAL_MOD_SET_STATE        (1)
-#define RVM_A7M_KERN_INT_LOCAL_MOD_GET_PRIO         (2)
-#define RVM_A7M_KERN_INT_LOCAL_MOD_SET_PRIO         (3)
+#define RVM_A7M_KFN_INT_LOCAL_MOD_GET_STATE         (0U)
+#define RVM_A7M_KFN_INT_LOCAL_MOD_SET_STATE         (1U)
+#define RVM_A7M_KFN_INT_LOCAL_MOD_GET_PRIO          (2U)
+#define RVM_A7M_KFN_INT_LOCAL_MOD_SET_PRIO          (3U)
 /* Cache identifier */
-#define RVM_A7M_KERN_CACHE_ICACHE                   (0)
-#define RVM_A7M_KERN_CACHE_DCACHE                   (1)
-#define RVM_A7M_KERN_CACHE_BTAC                     (2)
-/* Cache modification */
-#define RVM_A7M_KERN_CACHE_MOD_GET_STATE            (0)
-#define RVM_A7M_KERN_CACHE_MOD_SET_STATE            (1)
-/* Cache state */
-#define RVM_A7M_KERN_CACHE_STATE_DISABLE            (0)
-#define RVM_A7M_KERN_CACHE_STATE_ENABLE             (1)
+#define RVM_A7M_KFN_CACHE_ICACHE                    (0U)
+#define RVM_A7M_KFN_CACHE_DCACHE                    (1U)
+#define RVM_A7M_KFN_CACHE_BTAC                      (2U)
 /* Cache maintenance */
-#define RVM_A7M_KERN_CACHE_CLEAN_ALL                (0)
-#define RVM_A7M_KERN_CACHE_CLEAN_ADDR               (1)
-#define RVM_A7M_KERN_CACHE_CLEAN_SET                (2)
-#define RVM_A7M_KERN_CACHE_CLEAN_WAY                (3)
-#define RVM_A7M_KERN_CACHE_CLEAN_SETWAY             (4)
-#define RVM_A7M_KERN_CACHE_INV_ALL                  (5)
-#define RVM_A7M_KERN_CACHE_INV_ADDR                 (6)
-#define RVM_A7M_KERN_CACHE_INV_SET                  (7)
-#define RVM_A7M_KERN_CACHE_INV_WAY                  (8)
-#define RVM_A7M_KERN_CACHE_INV_SETWAY               (9)
-#define RVM_A7M_KERN_CACHE_CLEAN_INV_ALL            (10)
-#define RVM_A7M_KERN_CACHE_CLEAN_INV_ADDR           (11)
-#define RVM_A7M_KERN_CACHE_CLEAN_INV_SET            (12)
-#define RVM_A7M_KERN_CACHE_CLEAN_INV_WAY            (13)
-#define RVM_A7M_KERN_CACHE_CLEAN_INV_SETWAY         (14)
-/* Prefetcher modification */
-#define RVM_A7M_KERN_PRFTH_MOD_GET_STATE            (0)
-#define RVM_A7M_KERN_PRFTH_MOD_SET_STATE            (1)
-/* Prefetcher state */
-#define RVM_A7M_KERN_PRFTH_STATE_DISABLE            (0)
-#define RVM_A7M_KERN_PRFTH_STATE_ENABLE             (1)
+#define RVM_A7M_KFN_CACHE_CLEAN_ALL                 (0U)
+#define RVM_A7M_KFN_CACHE_CLEAN_ADDR                (1U)
+#define RVM_A7M_KFN_CACHE_CLEAN_SET                 (2U)
+#define RVM_A7M_KFN_CACHE_CLEAN_WAY                 (3U)
+#define RVM_A7M_KFN_CACHE_CLEAN_SETWAY              (4U)
+#define RVM_A7M_KFN_CACHE_INV_ALL                   (5U)
+#define RVM_A7M_KFN_CACHE_INV_ADDR                  (6U)
+#define RVM_A7M_KFN_CACHE_INV_SET                   (7U)
+#define RVM_A7M_KFN_CACHE_INV_WAY                   (8U)
+#define RVM_A7M_KFN_CACHE_INV_SETWAY                (9U)
+#define RVM_A7M_KFN_CACHE_CLEAN_INV_ALL             (10U)
+#define RVM_A7M_KFN_CACHE_CLEAN_INV_ADDR            (11U)
+#define RVM_A7M_KFN_CACHE_CLEAN_INV_SET             (12U)
+#define RVM_A7M_KFN_CACHE_CLEAN_INV_WAY             (13U)
+#define RVM_A7M_KFN_CACHE_CLEAN_INV_SETWAY          (14U)
 /* CPU feature support */
-#define RVM_A7M_KERN_CPU_FUNC_CPUID                 (0)
-#define RVM_A7M_KERN_CPU_FUNC_ID_PFR0               (1)
-#define RVM_A7M_KERN_CPU_FUNC_ID_PFR1               (2)
-#define RVM_A7M_KERN_CPU_FUNC_ID_DFR0               (3)
-#define RVM_A7M_KERN_CPU_FUNC_ID_AFR0               (4)
-#define RVM_A7M_KERN_CPU_FUNC_ID_MMFR0              (5)
-#define RVM_A7M_KERN_CPU_FUNC_ID_MMFR1              (6)
-#define RVM_A7M_KERN_CPU_FUNC_ID_MMFR2              (7)
-#define RVM_A7M_KERN_CPU_FUNC_ID_MMFR3              (8)
-#define RVM_A7M_KERN_CPU_FUNC_ID_ISAR0              (9)
-#define RVM_A7M_KERN_CPU_FUNC_ID_ISAR1              (10)
-#define RVM_A7M_KERN_CPU_FUNC_ID_ISAR2              (11)
-#define RVM_A7M_KERN_CPU_FUNC_ID_ISAR3              (12)
-#define RVM_A7M_KERN_CPU_FUNC_ID_ISAR4              (13)
-#define RVM_A7M_KERN_CPU_FUNC_ID_ISAR5              (14)
-#define RVM_A7M_KERN_CPU_FUNC_CLIDR                 (15)
-#define RVM_A7M_KERN_CPU_FUNC_CTR                   (16)
-#define RVM_A7M_KERN_CPU_FUNC_ICACHE_CCSIDR         (17)
-#define RVM_A7M_KERN_CPU_FUNC_DCACHE_CCSIDR         (18)
-#define RVM_A7M_KERN_CPU_FUNC_MPU_TYPE              (19)
-#define RVM_A7M_KERN_CPU_FUNC_MVFR0                 (20)
-#define RVM_A7M_KERN_CPU_FUNC_MVFR1                 (21)
-#define RVM_A7M_KERN_CPU_FUNC_MVFR2                 (22)
-#define RVM_A7M_KERN_CPU_FUNC_PID0                  (23)
-#define RVM_A7M_KERN_CPU_FUNC_PID1                  (24)
-#define RVM_A7M_KERN_CPU_FUNC_PID2                  (25)
-#define RVM_A7M_KERN_CPU_FUNC_PID3                  (26)
-#define RVM_A7M_KERN_CPU_FUNC_PID4                  (27)
-#define RVM_A7M_KERN_CPU_FUNC_PID5                  (28)
-#define RVM_A7M_KERN_CPU_FUNC_PID6                  (29)
-#define RVM_A7M_KERN_CPU_FUNC_PID7                  (30)
-#define RVM_A7M_KERN_CPU_FUNC_CID0                  (31)
-#define RVM_A7M_KERN_CPU_FUNC_CID1                  (32)
-#define RVM_A7M_KERN_CPU_FUNC_CID2                  (33)
-#define RVM_A7M_KERN_CPU_FUNC_CID3                  (34)
+#define RVM_A7M_KFN_CPU_FUNC_CPUID                  (0U)
+#define RVM_A7M_KFN_CPU_FUNC_ID_PFR0                (1U)
+#define RVM_A7M_KFN_CPU_FUNC_ID_PFR1                (2U)
+#define RVM_A7M_KFN_CPU_FUNC_ID_DFR0                (3U)
+#define RVM_A7M_KFN_CPU_FUNC_ID_AFR0                (4U)
+#define RVM_A7M_KFN_CPU_FUNC_ID_MMFR0               (5U)
+#define RVM_A7M_KFN_CPU_FUNC_ID_MMFR1               (6U)
+#define RVM_A7M_KFN_CPU_FUNC_ID_MMFR2               (7U)
+#define RVM_A7M_KFN_CPU_FUNC_ID_MMFR3               (8U)
+#define RVM_A7M_KFN_CPU_FUNC_ID_ISAR0               (9U)
+#define RVM_A7M_KFN_CPU_FUNC_ID_ISAR1               (10U)
+#define RVM_A7M_KFN_CPU_FUNC_ID_ISAR2               (11U)
+#define RVM_A7M_KFN_CPU_FUNC_ID_ISAR3               (12U)
+#define RVM_A7M_KFN_CPU_FUNC_ID_ISAR4               (13U)
+#define RVM_A7M_KFN_CPU_FUNC_ID_ISAR5               (14U)
+#define RVM_A7M_KFN_CPU_FUNC_CLIDR                  (15U)
+#define RVM_A7M_KFN_CPU_FUNC_CTR                    (16U)
+#define RVM_A7M_KFN_CPU_FUNC_ICACHE_CCSIDR          (17U)
+#define RVM_A7M_KFN_CPU_FUNC_DCACHE_CCSIDR          (18U)
+#define RVM_A7M_KFN_CPU_FUNC_MPU_TYPE               (19U)
+#define RVM_A7M_KFN_CPU_FUNC_MVFR0                  (20U)
+#define RVM_A7M_KFN_CPU_FUNC_MVFR1                  (21U)
+#define RVM_A7M_KFN_CPU_FUNC_MVFR2                  (22U)
+#define RVM_A7M_KFN_CPU_FUNC_PID0                   (23U)
+#define RVM_A7M_KFN_CPU_FUNC_PID1                   (24U)
+#define RVM_A7M_KFN_CPU_FUNC_PID2                   (25U)
+#define RVM_A7M_KFN_CPU_FUNC_PID3                   (26U)
+#define RVM_A7M_KFN_CPU_FUNC_PID4                   (27U)
+#define RVM_A7M_KFN_CPU_FUNC_PID5                   (28U)
+#define RVM_A7M_KFN_CPU_FUNC_PID6                   (29U)
+#define RVM_A7M_KFN_CPU_FUNC_PID7                   (30U)
+#define RVM_A7M_KFN_CPU_FUNC_CID0                   (31U)
+#define RVM_A7M_KFN_CPU_FUNC_CID1                   (32U)
+#define RVM_A7M_KFN_CPU_FUNC_CID2                   (33U)
+#define RVM_A7M_KFN_CPU_FUNC_CID3                   (34U)
 /* Perfomance counters */
-#define RVM_A7M_KERN_PERF_CYCLE_CYCCNT              (0)
+#define RVM_A7M_KFN_PERF_CYCLE_CYCCNT               (0U)
 /* Performance counter state operations */
-#define RVM_A7M_KERN_PERF_STATE_GET                 (0)
-#define RVM_A7M_KERN_PERF_STATE_SET                 (1)
+#define RVM_A7M_KFN_PERF_STATE_GET                  (0U)
+#define RVM_A7M_KFN_PERF_STATE_SET                  (1U)
 /* Performance counter states */
-#define RVM_A7M_KERN_PERF_STATE_DISABLE             (0)
-#define RVM_A7M_KERN_PERF_STATE_ENABLE              (1)
+#define RVM_A7M_KFN_PERF_STATE_DISABLE              (0U)
+#define RVM_A7M_KFN_PERF_STATE_ENABLE               (1U)
 /* Performance counter value operations */
-#define RVM_A7M_KERN_PERF_VAL_GET                   (0)
-#define RVM_A7M_KERN_PERF_VAL_SET                   (1)
+#define RVM_A7M_KFN_PERF_VAL_GET                    (0U)
+#define RVM_A7M_KFN_PERF_VAL_SET                    (1U)
 /* Register read/write */
-#define RVM_A7M_KERN_DEBUG_REG_MOD_SP_GET           (0)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_SP_SET           (1)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_R4_GET           (2)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_R4_SET           (3)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_R5_GET           (4)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_R5_SET           (5)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_R6_GET           (6)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_R6_SET           (7)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_R7_GET           (8)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_R7_SET           (9)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_R8_GET           (10)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_R8_SET           (11)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_R9_GET           (12)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_R9_SET           (13)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_R10_GET          (14)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_R10_SET          (15)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_R11_GET          (16)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_R11_SET          (17)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_LR_GET           (18)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_LR_SET           (19)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_SP_GET            (0U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_SP_SET            (1U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_R4_GET            (2U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_R4_SET            (3U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_R5_GET            (4U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_R5_SET            (5U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_R6_GET            (6U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_R6_SET            (7U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_R7_GET            (8U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_R7_SET            (9U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_R8_GET            (10U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_R8_SET            (11U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_R9_GET            (12U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_R9_SET            (13U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_R10_GET           (14U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_R10_SET           (15U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_R11_GET           (16U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_R11_SET           (17U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_LR_GET            (18U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_LR_SET            (19U)
 /* FPU register read/write */
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S16_GET          (20)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S16_SET          (21)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S17_GET          (22)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S17_SET          (23)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S18_GET          (24)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S18_SET          (25)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S19_GET          (26)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S19_SET          (27)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S20_GET          (28)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S20_SET          (29)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S21_GET          (30)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S21_SET          (31)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S22_GET          (32)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S22_SET          (33)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S23_GET          (34)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S23_SET          (35)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S24_GET          (36)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S24_SET          (37)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S25_GET          (38)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S25_SET          (39)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S26_GET          (40)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S26_SET          (41)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S27_GET          (42)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S27_SET          (43)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S28_GET          (44)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S28_SET          (45)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S29_GET          (46)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S29_SET          (47)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S30_GET          (48)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S30_SET          (49)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S31_GET          (50)
-#define RVM_A7M_KERN_DEBUG_REG_MOD_S31_SET          (51)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S16_GET           (20U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S16_SET           (21U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S17_GET           (22U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S17_SET           (23U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S18_GET           (24U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S18_SET           (25U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S19_GET           (26U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S19_SET           (27U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S20_GET           (28U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S20_SET           (29U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S21_GET           (30U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S21_SET           (31U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S22_GET           (32U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S22_SET           (33U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S23_GET           (34U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S23_SET           (35U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S24_GET           (36U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S24_SET           (37U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S25_GET           (38U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S25_SET           (39U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S26_GET           (40U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S26_SET           (41U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S27_GET           (42U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S27_SET           (43U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S28_GET           (44U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S28_SET           (45U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S29_GET           (46U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S29_SET           (47U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S30_GET           (48U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S30_SET           (49U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S31_GET           (50U)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_S31_SET           (51U)
 /* Invocation register read/write */
-#define RVM_A7M_KERN_DEBUG_INV_MOD_SP_GET           (0)
-#define RVM_A7M_KERN_DEBUG_INV_MOD_SP_SET           (1)
-#define RVM_A7M_KERN_DEBUG_INV_MOD_LR_GET           (2)
-#define RVM_A7M_KERN_DEBUG_INV_MOD_LR_SET           (3)
+#define RVM_A7M_KFN_DEBUG_INV_MOD_SP_GET            (0U)
+#define RVM_A7M_KFN_DEBUG_INV_MOD_SP_SET            (1U)
+#define RVM_A7M_KFN_DEBUG_INV_MOD_LR_GET            (2U)
+#define RVM_A7M_KFN_DEBUG_INV_MOD_LR_SET            (3U)
+/* Error register read */
+#define RVM_A7M_KFN_DEBUG_ERR_GET_CAUSE             (0U)
+#define RVM_A7M_KFN_DEBUG_ERR_GET_ADDR              (1U)
 /* End Defines ***************************************************************/
 
 /* Structs *******************************************************************/
@@ -276,17 +276,10 @@ struct RVM_Cop_Struct
     rvm_ptr_t S31;
 };
 
-struct RVM_Err_Struct
+struct RVM_Exc_Struct
 {
     rvm_ptr_t Cause;
     rvm_ptr_t Addr;
-};
-
-struct RVM_Thd_Reg
-{
-    struct RVM_Reg_Struct Reg;
-    struct RVM_Cop_Struct Cop;
-    struct RVM_Err_Struct Err;
 };
 /* End Structs ***************************************************************/
 
@@ -314,73 +307,71 @@ extern rvm_ret_t RVM_Svc(rvm_ptr_t Op_Capid,
                          rvm_ptr_t Arg1,
                          rvm_ptr_t Arg2,
                          rvm_ptr_t Arg3);
-extern rvm_ret_t RVM_A7M_Svc_Kern(rvm_ptr_t Op_Capid,
-                                  rvm_ptr_t ID,
-                                  rvm_ptr_t* Args);
+extern rvm_ret_t RVM_A7M_Svc_Kfn(rvm_ptr_t Op_Capid,
+                                 rvm_ptr_t ID,
+                                 rvm_ptr_t* Param);
 /* Invocation */
 extern rvm_ret_t RVM_Inv_Act(rvm_cid_t Cap_Inv,
                              rvm_ptr_t Param,
                              rvm_ptr_t* Retval);
 extern rvm_ret_t RVM_Inv_Ret(rvm_ptr_t Retval);
-extern rvm_ret_t RVM_Thd_Sched_Rcv(rvm_cid_t Cap_Thd,
-                                   rvm_ptr_t* Fault);
 
 extern rvm_ptr_t RVM_Fetch_And(volatile rvm_ptr_t* Ptr,
                                rvm_ptr_t Operand);
 extern rvm_ptr_t _RVM_MSB_Get(rvm_ptr_t Val);
 
-EXTERN rvm_ret_t RVM_A7M_Kern_Act(rvm_cid_t Cap_Kern,
-                                  rvm_ptr_t Func_ID,
-                                  rvm_ptr_t Sub_ID,
-                                  rvm_ptr_t* Params);
-EXTERN rvm_ret_t RVM_A7M_Pgtbl_Entry_Mod(rvm_cid_t Cap_Kern,
-                                         rvm_cid_t Cap_Pgtbl,
-                                         rvm_ptr_t Vaddr,
-                                         rvm_ptr_t Type);
-EXTERN rvm_ret_t RVM_A7M_Int_Local_Mod(rvm_cid_t Cap_Kern,
+EXTERN rvm_ret_t RVM_A7M_Kfn_Act(rvm_cid_t Cap_Kfn,
+                                 rvm_ptr_t Func_ID,
+                                 rvm_ptr_t Sub_ID,
+                                 rvm_ptr_t* Param);
+EXTERN rvm_ret_t RVM_A7M_Pgt_Entry_Mod(rvm_cid_t Cap_Kfn,
+                                       rvm_cid_t Cap_Pgt,
+                                       rvm_ptr_t Vaddr,
+                                       rvm_ptr_t Type);
+EXTERN rvm_ret_t RVM_A7M_Int_Local_Mod(rvm_cid_t Cap_Kfn,
                                        rvm_ptr_t Int_Num,
                                        rvm_ptr_t Operation,
                                        rvm_ptr_t Param);
-EXTERN rvm_ret_t RVM_A7M_Int_Local_Trig(rvm_cid_t Cap_Kern,
+EXTERN rvm_ret_t RVM_A7M_Int_Local_Trig(rvm_cid_t Cap_Kfn,
                                         rvm_ptr_t Int_Num);
-EXTERN rvm_ret_t RVM_A7M_Cache_Mod(rvm_cid_t Cap_Kern,
+EXTERN rvm_ret_t RVM_A7M_Cache_Mod(rvm_cid_t Cap_Kfn,
                                    rvm_ptr_t Cache_ID,
                                    rvm_ptr_t Operation,
                                    rvm_ptr_t Param);
-EXTERN rvm_ret_t RVM_A7M_Cache_Maint(rvm_cid_t Cap_Kern,
+EXTERN rvm_ret_t RVM_A7M_Cache_Maint(rvm_cid_t Cap_Kfn,
                                      rvm_ptr_t Cache_ID,
                                      rvm_ptr_t Operation,
                                      rvm_ptr_t Param);
-EXTERN rvm_ret_t RVM_A7M_Prfth_Mod(rvm_cid_t Cap_Kern,
+EXTERN rvm_ret_t RVM_A7M_Prfth_Mod(rvm_cid_t Cap_Kfn,
                                    rvm_ptr_t Prfth_ID,
                                    rvm_ptr_t Operation,
                                    rvm_ptr_t Param);
-EXTERN rvm_ret_t RVM_A7M_Perf_CPU_Func(rvm_cid_t Cap_Kern,
+EXTERN rvm_ret_t RVM_A7M_Perf_CPU_Func(rvm_cid_t Cap_Kfn,
                                        rvm_ptr_t Freg_ID,
                                        rvm_ptr_t* Content);
-EXTERN rvm_ret_t RVM_A7M_Perf_Mon_Mod(rvm_cid_t Cap_Kern,
+EXTERN rvm_ret_t RVM_A7M_Perf_Mon_Mod(rvm_cid_t Cap_Kfn,
                                       rvm_ptr_t Perf_ID,
                                       rvm_ptr_t Operation,
                                       rvm_ptr_t Param);
-EXTERN rvm_ret_t RVM_A7M_Perf_Cycle_Mod(rvm_cid_t Cap_Kern,
+EXTERN rvm_ret_t RVM_A7M_Perf_Cycle_Mod(rvm_cid_t Cap_Kfn,
                                         rvm_ptr_t Cycle_ID, 
                                         rvm_ptr_t Operation,
                                         rvm_ptr_t Value,
                                         rvm_ptr_t* Content);
-EXTERN rvm_ret_t RVM_A7M_Debug_Print(rvm_cid_t Cap_Kern,
+EXTERN rvm_ret_t RVM_A7M_Debug_Print(rvm_cid_t Cap_Kfn,
                                      char Char);
-EXTERN rvm_ret_t RVM_A7M_Debug_Reg_Mod(rvm_cid_t Cap_Kern,
+EXTERN rvm_ret_t RVM_A7M_Debug_Reg_Mod(rvm_cid_t Cap_Kfn,
                                        rvm_cid_t Cap_Thd, 
                                        rvm_ptr_t Operation,
                                        rvm_ptr_t Value,
                                        rvm_ptr_t* Content);
-EXTERN rvm_ret_t RVM_A7M_Debug_Inv_Mod(rvm_cid_t Cap_Kern,
+EXTERN rvm_ret_t RVM_A7M_Debug_Inv_Mod(rvm_cid_t Cap_Kfn,
                                        rvm_cid_t Cap_Thd, 
                                        rvm_ptr_t Layer,
                                        rvm_ptr_t Operation,
                                        rvm_ptr_t Value,
                                        rvm_ptr_t* Content);
-EXTERN rvm_ret_t RVM_A7M_Debug_Err_Get(rvm_cid_t Cap_Kern,
+EXTERN rvm_ret_t RVM_A7M_Debug_Exc_Get(rvm_cid_t Cap_Kfn,
                                        rvm_cid_t Cap_Thd,
                                        rvm_ptr_t Operation,
                                        rvm_ptr_t* Content);

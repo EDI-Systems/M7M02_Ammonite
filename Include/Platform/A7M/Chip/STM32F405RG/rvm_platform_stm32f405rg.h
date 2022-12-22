@@ -13,11 +13,11 @@ Description: The configuration file for STM32F405RG. The values listed here shou
 #define RVM_DEBUG_PRINT                                 (1U)
 /* Kernel configurations - keep the same with the kernel *********************/
 /* The virtual memory start address for the kernel objects */
-#define RVM_KMEM_VA_BASE                                (0x10002000U)
+#define RVM_KOM_VA_BASE                                (0x10002000U)
 /* The size of the kernel object virtual memory */
-#define RVM_KMEM_VA_SIZE                                (0x6000U)
+#define RVM_KOM_VA_SIZE                                (0x6000U)
 /* The granularity of kernel memory allocation, order of 2 in bytes */
-#define RVM_KMEM_SLOT_ORDER                             (4U)
+#define RVM_KOM_SLOT_ORDER                             (4U)
 /* The maximum number of preemption priority levels in the system.
  * This parameter must be divisible by the word length - 32 is usually sufficient */
 #define RVM_PREEMPT_PRIO_NUM                            (32U)
@@ -38,7 +38,7 @@ Description: The configuration file for STM32F405RG. The values listed here shou
 /* Initial kernel object capability limit */
 #define RVM_CAP_BOOT_FRONTIER                           (9U)
 /* Initial kernel object memory limit */
-#define RVM_KMEM_BOOT_FRONTIER                          (0x400U)
+#define RVM_KOM_BOOT_FRONTIER                          (0x400U)
 
 /* Init process's first thread's entry point address */
 #define RVM_A7M_INIT_ENTRY                              (0x08004000U|0x01U)

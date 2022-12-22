@@ -14,8 +14,8 @@ namespace RVM_GEN
 #define __PROCESS_HPP_DEFS__
 /*****************************************************************************/
 /* Process type */
-#define PROC_NATIVE             (0)
-#define PROC_VIRTUAL            (1)
+#define PROCESS_NATIVE  		(0)
+#define PROCESS_VIRTUAL  		(1)
 
 /* Magic number for native processes */
 #define MAGIC_NATIVE            (0x49535953U)
@@ -24,15 +24,15 @@ namespace RVM_GEN
 
 /* Every processes have the some capability slots at the front preserved.
  * For processes,
- * [0] is the potential event send kernel capability,
+ * [0] is the event send kernel capability,
  * For virtual machines,
  * [0] is the Vmmd hypercall endpoint,
  * [1] is the Vctd vector endpoint. */
-#define PROC_CAPTBL_BASE        (1)
-#define VIRT_CAPTBL_BASE        (2)
+#define NATIVE_CPT_BASE        	(1)
+#define VIRTUAL_CPT_BASE		(2)
 
 /* Description header alignment */
-#define PROC_DESC_ALIGN(X)      ROUND_UP(X,16)
+#define PRC_DESC_ALIGN(X)      	ROUND_UP(X,16)
 /*****************************************************************************/
 /* __PROCESS_HPP_DEFS__ */
 #endif
@@ -84,7 +84,7 @@ public:
     /* Combined memory information */
     std::vector<std::unique_ptr<class Mem_Info>> Memory_All;
 
-    /* Captbl/Pgtbl */
+    /* Cpt/Pgt */
     std::unique_ptr<class Captbl> Captbl;
     std::unique_ptr<class Pgtbl> Pgtbl;
 
@@ -147,7 +147,7 @@ public:
     void Global_Alloc_Receive(std::vector<class Receive*>& Global);
     void Global_Alloc_Vector(std::vector<class Vect_Info*>& Global);
 
-    void Mem_Alloc(ptr_t Wordlength, ptr_t Reg_Size, ptr_t Kmem_Order);
+    void Mem_Alloc(ptr_t Wordlength, ptr_t Reg_Size, ptr_t Kom_Order);
 };
 /*****************************************************************************/
 /* __PROCESS_HPP_CLASSES__ */

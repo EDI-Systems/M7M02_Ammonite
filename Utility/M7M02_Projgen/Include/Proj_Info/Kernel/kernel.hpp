@@ -41,9 +41,9 @@ public:
     /* RME kernel stack size */
     ptr_t Stack_Size;
     /* Extra amount of kernel memory */
-    ptr_t Extra_Kmem;
+    ptr_t Extra_Kom;
     /* Slot order of kernel memory */
-    ptr_t Kmem_Order;
+    ptr_t Kom_Order;
     /* Priorities supported */
     ptr_t Kern_Prio;
 
@@ -75,8 +75,8 @@ public:
     ptr_t Handler_Source_Overwrite;
 
     /* Kernel memory */
-    ptr_t Kmem_Base;
-    ptr_t Kmem_Size;
+    ptr_t Kom_Base;
+    ptr_t Kom_Size;
     /* Kernel stack */
     ptr_t Stack_Base;
     /* Vector flag section */
@@ -87,7 +87,7 @@ public:
     ptr_t Evtf_Size;
     /* Initial state for vector creation */
     ptr_t Vect_Cap_Front;
-    ptr_t Vect_Kmem_Front;
+    ptr_t Vect_Kom_Front;
 
     /* Linker filename */
     std::string Linker_Filename;
@@ -96,7 +96,7 @@ public:
 
     /* void */ Kernel(xml_node_t* Root);
 
-    void Mem_Alloc(ptr_t Kmem_Front, ptr_t Vector_Num, ptr_t Event_Num, ptr_t Wordlength);
+    void Mem_Alloc(ptr_t Kom_Front, ptr_t Vector_Num, ptr_t Event_Num, ptr_t Wordlength);
 };
 /*****************************************************************************/
 /* __KERNEL_HPP_CLASSES__ */

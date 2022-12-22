@@ -107,14 +107,14 @@ Return      : None.
 Description : Allocate the kernel objects and memory for RVM user-level library.
 Input       : ptr_t Code_Start - The code start position for RVM.
               ptr_t Data_Start - The data start position for RVM.
-              ptr_t Kmem_Order - The kernel memory order.
+              ptr_t Kom_Order - The kernel memory order.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Monitor::Mem_Alloc(ptr_t Kmem_Order)
+void Monitor::Mem_Alloc(ptr_t Kom_Order)
 {
     /* Init stack section - cut out from the data section */
-    this->Init_Stack_Size=ROUND_UP_POW2(this->Stack_Size,Kmem_Order);
+    this->Init_Stack_Size=ROUND_UP_POW2(this->Stack_Size,Kom_Order);
     this->Init_Stack_Base=this->Data_Base+this->Data_Size-this->Init_Stack_Size;
     Main::Info("> Init stack base 0x%llX size 0x%llX.", this->Init_Stack_Base, this->Init_Stack_Size);
     if(this->Init_Stack_Base<=this->Data_Base)
@@ -122,7 +122,7 @@ void Monitor::Mem_Alloc(ptr_t Kmem_Order)
     this->Data_Size=this->Init_Stack_Base-this->Data_Base;
 
     /* Safety daemon stack section - cut out from the data section */
-    this->Sftd_Stack_Size=ROUND_UP_POW2(this->Stack_Size,Kmem_Order);
+    this->Sftd_Stack_Size=ROUND_UP_POW2(this->Stack_Size,Kom_Order);
     this->Sftd_Stack_Base=this->Data_Base+this->Data_Size-this->Sftd_Stack_Size;
     Main::Info("> Sftd stack base 0x%llX size 0x%llX.", this->Sftd_Stack_Base, this->Sftd_Stack_Size);
     if(this->Sftd_Stack_Base<=this->Data_Base)
@@ -133,7 +133,7 @@ void Monitor::Mem_Alloc(ptr_t Kmem_Order)
     if(this->Virt_Prio!=0)
     {
         /* VMM daemon stack section - cut out from the data section */
-        this->Vmmd_Stack_Size=ROUND_UP_POW2(this->Stack_Size,Kmem_Order);
+        this->Vmmd_Stack_Size=ROUND_UP_POW2(this->Stack_Size,Kom_Order);
         this->Vmmd_Stack_Base=this->Data_Base+this->Data_Size-this->Vmmd_Stack_Size;
         Main::Info("> Vmmd stack base 0x%llX size 0x%llX.", this->Vmmd_Stack_Base, this->Vmmd_Stack_Size);
         if(this->Vmmd_Stack_Base<=this->Data_Base)
@@ -141,7 +141,7 @@ void Monitor::Mem_Alloc(ptr_t Kmem_Order)
         this->Data_Size=this->Vmmd_Stack_Base-this->Data_Base;
 
         /* Vector daemon stack section - cut out from the data section */
-        this->Vctd_Stack_Size=ROUND_UP_POW2(this->Stack_Size,Kmem_Order);
+        this->Vctd_Stack_Size=ROUND_UP_POW2(this->Stack_Size,Kom_Order);
         this->Vctd_Stack_Base=this->Data_Base+this->Data_Size-this->Vctd_Stack_Size;
         Main::Info("> Vctd stack base 0x%llX size 0x%llX.", this->Vctd_Stack_Base, this->Vctd_Stack_Size);
         if(this->Vctd_Stack_Base<=this->Data_Base)
@@ -149,7 +149,7 @@ void Monitor::Mem_Alloc(ptr_t Kmem_Order)
         this->Data_Size=this->Vctd_Stack_Base-this->Data_Base;
 
         /* Timer stack section - cut out from the data section */
-        this->Timd_Stack_Size=ROUND_UP_POW2(this->Stack_Size,Kmem_Order);
+        this->Timd_Stack_Size=ROUND_UP_POW2(this->Stack_Size,Kom_Order);
         this->Timd_Stack_Base=this->Data_Base+this->Data_Size-this->Timd_Stack_Size;
         Main::Info("> Timd stack base 0x%llX size 0x%llX.", this->Timd_Stack_Base, this->Timd_Stack_Size);
         if(this->Timd_Stack_Base<=this->Data_Base)

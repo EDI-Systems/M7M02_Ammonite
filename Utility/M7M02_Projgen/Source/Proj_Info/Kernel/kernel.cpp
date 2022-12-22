@@ -55,9 +55,9 @@ Return      : None.
         /* Stack size */
         this->Stack_Size=Main::XML_Get_Number(Root,"Stack_Size","DXXXX","DXXXX");
         /* Extra kernel memory */
-        this->Extra_Kmem=Main::XML_Get_Number(Root,"Extra_Kmem","DXXXX","DXXXX");
-        /* Kmem_Order */
-        this->Kmem_Order=Main::XML_Get_Number(Root,"Kmem_Order","DXXXX","DXXXX");
+        this->Extra_Kom=Main::XML_Get_Number(Root,"Extra_Kom","DXXXX","DXXXX");
+        /* Kom_Order */
+        this->Kom_Order=Main::XML_Get_Number(Root,"Kom_Order","DXXXX","DXXXX");
         /* Kern_Prio */
         this->Kern_Prio=Main::XML_Get_Number(Root,"Kern_Prio","DXXXX","DXXXX");
 
@@ -109,16 +109,16 @@ Return      : None.
 
 /* Begin Function:Kernel::Mem_Alloc *******************************************
 Description : Allocate the memory for kernel itself.
-Input       : ptr_t Kmem_Front - The current kernel memory frontier.
+Input       : ptr_t Kom_Front - The current kernel memory frontier.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Kernel::Mem_Alloc(ptr_t Kmem_Front, ptr_t Vector_Num, ptr_t Event_Num, ptr_t Wordlength)
+void Kernel::Mem_Alloc(ptr_t Kom_Front, ptr_t Vector_Num, ptr_t Event_Num, ptr_t Wordlength)
 {
-    ptr_t Real_Kmem_Order;
+    ptr_t Real_Kom_Order;
 
     /* Vector flag section - cut out from the data section */
-    this->Vctf_Size=Proj_Info::Flag_Alloc(Vector_Num, Wordlength, this->Kmem_Order);
+    this->Vctf_Size=Proj_Info::Flag_Alloc(Vector_Num, Wordlength, this->Kom_Order);
     this->Vctf_Base=this->Data_Base+this->Data_Size-this->Vctf_Size;
     Main::Info("> Vector flag base 0x%llX size 0x%llX.", this->Vctf_Base, this->Vctf_Size);
     if(this->Vctf_Base<=this->Data_Base)
@@ -126,7 +126,7 @@ void Kernel::Mem_Alloc(ptr_t Kmem_Front, ptr_t Vector_Num, ptr_t Event_Num, ptr_
     this->Data_Size=this->Vctf_Base-this->Data_Base;
 
     /* Event flag section - cut out from the data section */
-    this->Evtf_Size=Proj_Info::Flag_Alloc(Event_Num, Wordlength, this->Kmem_Order);
+    this->Evtf_Size=Proj_Info::Flag_Alloc(Event_Num, Wordlength, this->Kom_Order);
     this->Evtf_Base=this->Data_Base+this->Data_Size-this->Evtf_Size;
     Main::Info("> Event flag base 0x%llX size 0x%llX.", this->Evtf_Base, this->Evtf_Size);
     if(this->Evtf_Base<=this->Data_Base)
@@ -134,7 +134,7 @@ void Kernel::Mem_Alloc(ptr_t Kmem_Front, ptr_t Vector_Num, ptr_t Event_Num, ptr_
     this->Data_Size=this->Evtf_Base-this->Data_Base;
 
     /* Stack section - cut out from the data section */
-    this->Stack_Size=ROUND_UP_POW2(this->Stack_Size,Kmem_Order);
+    this->Stack_Size=ROUND_UP_POW2(this->Stack_Size,Kom_Order);
     this->Stack_Base=this->Data_Base+this->Data_Size-this->Stack_Size;
     Main::Info("> Stack base 0x%llX size 0x%llX.", this->Stack_Base, this->Stack_Size);
     if(this->Stack_Base<=this->Data_Base)
@@ -142,21 +142,21 @@ void Kernel::Mem_Alloc(ptr_t Kmem_Front, ptr_t Vector_Num, ptr_t Event_Num, ptr_
     this->Data_Size=this->Stack_Base-this->Data_Base;
 
     /* Kernel memory section - cut out from the data section - alignment order at least 6 */
-    if(this->Kmem_Order>6)
-        Real_Kmem_Order=this->Kmem_Order;
+    if(this->Kom_Order>6)
+        Real_Kom_Order=this->Kom_Order;
     else
-        Real_Kmem_Order=6;
+        Real_Kom_Order=6;
 
-    this->Kmem_Size=Kmem_Front+this->Extra_Kmem;
-    this->Kmem_Size=ROUND_UP_POW2(this->Kmem_Size, Real_Kmem_Order);
-    this->Kmem_Base=this->Data_Base+this->Data_Size-this->Kmem_Size;
-    this->Kmem_Base=ROUND_DOWN_POW2(this->Kmem_Base, Real_Kmem_Order);
-    Main::Info("> Kmem base 0x%llX size 0x%llX.", this->Kmem_Base, this->Kmem_Size);
-    if(this->Kmem_Base<=this->Data_Base)
+    this->Kom_Size=Kom_Front+this->Extra_Kom;
+    this->Kom_Size=ROUND_UP_POW2(this->Kom_Size, Real_Kom_Order);
+    this->Kom_Base=this->Data_Base+this->Data_Size-this->Kom_Size;
+    this->Kom_Base=ROUND_DOWN_POW2(this->Kom_Base, Real_Kom_Order);
+    Main::Info("> Kom base 0x%llX size 0x%llX.", this->Kom_Base, this->Kom_Size);
+    if(this->Kom_Base<=this->Data_Base)
         Main::Error("M2103: Kernel data section is not big enough, unable to allocate kernel object memory.");
 
     /* Kernel data section - whatever is left */
-    this->Data_Size=this->Kmem_Base-this->Data_Base;
+    this->Data_Size=this->Kom_Base-this->Data_Base;
     Main::Info("> Data base 0x%llX size 0x%llX.", this->Data_Base, this->Data_Size);
 }
 /* End Function:Kernel::Mem_Alloc ********************************************/

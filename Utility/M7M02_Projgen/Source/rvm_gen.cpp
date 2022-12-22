@@ -366,9 +366,9 @@ void Main::Compatible_Check(void)
             Main::Error("M1000: Total number of kernel priorities must be a multiple of word size.");
 
         /* Check if the kernel memory granularity order is within range - we allow 2^3=8 bytes to 2^5=32 bytes */
-        if(this->Proj->Kernel->Kmem_Order<3)
+        if(this->Proj->Kernel->Kom_Order<3)
             Main::Error("M1001: Kernel memory allocation granularity order must be no less than 2^3=8 bytes.");
-        if(this->Proj->Kernel->Kmem_Order>5)
+        if(this->Proj->Kernel->Kom_Order>5)
             Main::Error("M1002: Kernel memory allocation granularity order must be no more than 2^5=32 bytes.");
 
         /* Check VMM configs */
@@ -508,11 +508,11 @@ void Main::Static_Check(void)
         Data.push_back(this->Proj->Monitor->Data.get());
 
         /* Process memory */
-        for(std::unique_ptr<class Process>& Proc:this->Proj->Process)
+        for(std::unique_ptr<class Process>& Prc:this->Proj->Process)
         {
-            Code.insert(Code.end(), Proc->Memory_Code.begin(), Proc->Memory_Code.end());
-            Data.insert(Data.end(), Proc->Memory_Data.begin(), Proc->Memory_Data.end());
-            Device.insert(Device.end(), Proc->Memory_Device.begin(), Proc->Memory_Device.end());
+            Code.insert(Code.end(), Prc->Memory_Code.begin(), Prc->Memory_Code.end());
+            Data.insert(Data.end(), Prc->Memory_Data.begin(), Prc->Memory_Data.end());
+            Device.insert(Device.end(), Prc->Memory_Device.begin(), Prc->Memory_Device.end());
         }
 
         /* Make sure the statically allocated memory do not overlap */
@@ -535,30 +535,30 @@ void Main::Reference_Check(void)
 {
     class Virtual* Virt;
     std::map<std::string,class Mem_Info*>::iterator Shmem_Iter;
-    std::map<std::string,class Process*>::iterator Proc_Iter;
+    std::map<std::string,class Process*>::iterator Prc_Iter;
     std::map<std::string,class Vect_Info*>::iterator Vect_Iter;
 
     try
     {
-        for(std::unique_ptr<class Process>& Proc:this->Proj->Process)
+        for(std::unique_ptr<class Process>& Prc:this->Proj->Process)
         {
             try
             {
                 /* Check extra capability table sizes */
-                if(Proc->Extra_Captbl>this->Plat->Captbl_Max)
+                if(Prc->Extra_Captbl>this->Plat->Captbl_Max)
                     Main::Error("M1013: Extra captbl capacity cannot be larger than the platform limit %lld.",this->Plat->Captbl_Max);
 
                 /* Check virtual machine priorities */
-                if(Proc->Type==PROC_VIRTUAL)
+                if(Prc->Type==PROCESS_VIRTUAL)
                 {
-                    Virt=static_cast<class Virtual*>(Proc.get());
+                    Virt=static_cast<class Virtual*>(Prc.get());
                     if(Virt->Priority>=this->Proj->Monitor->Virt_Prio)
                         Main::Error("M1012: Virtual machine priority %lld must be smaller than total number of virtual machine priorities %lld.",
                                     Virt->Priority, this->Proj->Monitor->Virt_Prio);
                 }
 
                 /* Check shared memory references */
-                for(std::unique_ptr<class Mem_Info>& Shmem:Proc->Shmem)
+                for(std::unique_ptr<class Mem_Info>& Shmem:Prc->Shmem)
                 {
                     /* Check existence */
                     Shmem_Iter=this->Proj->Shmem_Map.find(Shmem->Name);
@@ -570,11 +570,11 @@ void Main::Reference_Check(void)
                 }
 
                 /* Check thread parameters if this is not a VM - VM priorities are generated so fine */
-                if(Proc->Type==PROC_NATIVE)
+                if(Prc->Type==PROCESS_NATIVE)
                 {
-                    for(std::unique_ptr<class Thread>& Thd:Proc->Thread)
+                    for(std::unique_ptr<class Thread>& Thd:Prc->Thread)
                     {
-                        if(Thd->Priority<PROC_THD_PRIO_MIN)
+                        if(Thd->Priority<PRC_THD_PRIO_MIN)
                             Main::Error("M1010: Thread '"+Thd->Name+"' priority must be bigger than service daemons' priority (4).");
                         else if(Thd->Priority>(this->Proj->Kernel->Kern_Prio-2))
                             Main::Error("M1011: Thread '"+Thd->Name+"' priority must be smaller than safety daemon's priority (Kern_Prio-1).");
@@ -582,31 +582,31 @@ void Main::Reference_Check(void)
                 }
 
                 /* Check port references */
-                for(std::unique_ptr<class Port>& Port:Proc->Port)
+                for(std::unique_ptr<class Port>& Prt:Prc->Port)
                 {
                     /* Check process existence */
-                    Proc_Iter=this->Proj->Process_Map.find(Port->Process);
-                    if(Proc_Iter==this->Proj->Process_Map.end())
-                        Main::Error("PXXXX: Port '"+Port->Process+"."+Port->Name+"' refers to a nonexistent process.");
+                    Prc_Iter=this->Proj->Process_Map.find(Prt->Process);
+                    if(Prc_Iter==this->Proj->Process_Map.end())
+                        Main::Error("PXXXX: Port '"+Prt->Process+"."+Prt->Name+"' refers to a nonexistent process.");
                     /* Check invocation existence */
-                    if(Proc_Iter->second->Invocation_Map.find(Port->Name)==Proc_Iter->second->Invocation_Map.end())
-                        Main::Error("PXXXX: Port '"+Port->Process+"."+Port->Name+"' refers to a nonexistent invocation socket.");
+                    if(Prc_Iter->second->Invocation_Map.find(Prt->Name)==Prc_Iter->second->Invocation_Map.end())
+                        Main::Error("PXXXX: Port '"+Prt->Process+"."+Prt->Name+"' refers to a nonexistent invocation socket.");
                 }
 
                 /* Check send references */
-                for(std::unique_ptr<class Send>& Send:Proc->Send)
+                for(std::unique_ptr<class Send>& Snd:Prc->Send)
                 {
                     /* Check process existence */
-                    Proc_Iter=this->Proj->Process_Map.find(Send->Process);
-                    if(Proc_Iter==this->Proj->Process_Map.end())
-                        Main::Error("PXXXX: Send endpoint '"+Send->Process+"."+Send->Name+"' refers to a nonexistent process.");
+                    Prc_Iter=this->Proj->Process_Map.find(Snd->Process);
+                    if(Prc_Iter==this->Proj->Process_Map.end())
+                        Main::Error("PXXXX: Send endpoint '"+Snd->Process+"."+Snd->Name+"' refers to a nonexistent process.");
                     /* Check receive endpoint existence */
-                    if(Proc_Iter->second->Receive_Map.find(Send->Name)==Proc_Iter->second->Receive_Map.end())
-                        Main::Error("PXXXX: Send endpoint '"+Send->Process+"."+Send->Name+"' refers to a nonexistent receive endpoint.");
+                    if(Prc_Iter->second->Receive_Map.find(Snd->Name)==Prc_Iter->second->Receive_Map.end())
+                        Main::Error("PXXXX: Send endpoint '"+Snd->Process+"."+Snd->Name+"' refers to a nonexistent receive endpoint.");
                 }
 
                 /* Check vector references */
-                for(std::unique_ptr<class Vect_Info>& Vect:Proc->Vector)
+                for(std::unique_ptr<class Vect_Info>& Vect:Prc->Vector)
                 {
                     Vect_Iter=this->Chip->Vector_Map.find(Vect->Name);
                     if(Vect_Iter==this->Chip->Vector_Map.end())
@@ -616,16 +616,16 @@ void Main::Reference_Check(void)
                 }
 
                 /* Check kernel function ranges */
-                for(std::unique_ptr<class Kfunc>& Kfunc:Proc->Kfunc)
+                for(std::unique_ptr<class Kfunc>& Kfn:Prc->Kfunc)
                 {
-                    if(Kfunc->End>=this->Plat->Kfunc_Max)
+                    if(Kfn->End>=this->Plat->Kfunc_Max)
                         Main::Error("PXXXX: Kernel function '%s' number range exceeded the platform limit %lld.",
-                                    Kfunc->Name.c_str(),this->Plat->Kfunc_Max);
+                                    Kfn->Name.c_str(),this->Plat->Kfunc_Max);
                 }
             }
             catch(std::exception& Exc)
             {
-                Main::Error(std::string("Process: ")+Proc->Name+"\n"+Exc.what());
+                Main::Error(std::string("Process: ")+Prc->Name+"\n"+Exc.what());
             }
         }
     }
@@ -680,14 +680,14 @@ void Main::Setup(void)
         /* Load buildsystem toolset */
         this->Gen->Build_Load(this->Proj->Kernel->Buildsystem);
         this->Gen->Build_Load(this->Proj->Monitor->Buildsystem);
-        for(std::unique_ptr<class Process>& Proc:this->Proj->Process)
-            this->Gen->Build_Load(Proc->Buildsystem);
+        for(std::unique_ptr<class Process>& Prc:this->Proj->Process)
+            this->Gen->Build_Load(Prc->Buildsystem);
 
         /* Load toolchain toolset */
         this->Gen->Tool_Load(this->Proj->Kernel->Toolchain);
         this->Gen->Tool_Load(this->Proj->Monitor->Toolchain);
-        for(std::unique_ptr<class Process>& Proc:this->Proj->Process)
-            this->Gen->Tool_Load(Proc->Toolchain);
+        for(std::unique_ptr<class Process>& Prc:this->Proj->Process)
+            this->Gen->Tool_Load(Prc->Toolchain);
 
         /* Load guest OS toolset */
         for(class Virtual* Virt:this->Proj->Virtual)
@@ -709,24 +709,24 @@ void Main::Setup(void)
                                      "Native"))==List.end())
             Main::Error("PXXXX: Monitor buildsystem and toolchain is incompatible with the platform.");
         /* Check each process */
-        for(std::unique_ptr<class Process>& Proc:this->Proj->Process)
+        for(std::unique_ptr<class Process>& Prc:this->Proj->Process)
         {
             try
             {
-                if(Proc->Type==PROC_NATIVE)
+                if(Prc->Type==PROCESS_NATIVE)
                 {
                     if(std::find(List.begin(),List.end(),
-                                 std::make_tuple(Proc->Buildsystem,
-                                                 Proc->Toolchain,
+                                 std::make_tuple(Prc->Buildsystem,
+                                                 Prc->Toolchain,
                                                  "Native"))==List.end())
                         Main::Error("PXXXX: Process buildsystem and toolchain is incompatible with the platform.");
                 }
                 else
                 {
                     if(std::find(List.begin(),List.end(),
-                                 std::make_tuple(Proc->Buildsystem,
-                                                 Proc->Toolchain,
-                                                 static_cast<class Virtual*>(Proc.get())->Guest_Type))==List.end())
+                                 std::make_tuple(Prc->Buildsystem,
+                                                 Prc->Toolchain,
+                                                 static_cast<class Virtual*>(Prc.get())->Guest_Type))==List.end())
                         Main::Error("PXXXX: Virtual machine buildsystem and toolchain is incompatible with the platform and guest OS.");
                 }
             }
@@ -783,16 +783,16 @@ void Main::Mem_Align(void)
         }
 
         /* Align all private memory for each process */
-        for(std::unique_ptr<class Process>& Proc:this->Proj->Process)
+        for(std::unique_ptr<class Process>& Prc:this->Proj->Process)
         {
             try
             {
-                for(std::unique_ptr<class Mem_Info>& Mem:Proc->Memory)
+                for(std::unique_ptr<class Mem_Info>& Mem:Prc->Memory)
                     Mem->Align=this->Gen->Plat->Mem_Align(Mem->Base,Mem->Size);
             }
             catch(std::exception& Exc)
             {
-                Main::Error(std::string("Process: '")+Proc->Name+"'\n"+"Private memory:n"+Exc.what());
+                Main::Error(std::string("Process: '")+Prc->Name+"'\n"+"Private memory:n"+Exc.what());
             }
         }
     }
@@ -853,11 +853,11 @@ void Main::Code_Alloc(void)
         }
 
         /* Fit all static private memory regions, and leave the automatic ones for later */
-        for(std::unique_ptr<class Process>& Proc:this->Proj->Process)
+        for(std::unique_ptr<class Process>& Prc:this->Proj->Process)
         {
             try
             {
-                for(class Mem_Info* Mem:Proc->Memory_Code)
+                for(class Mem_Info* Mem:Prc->Memory_Code)
                 {
                     /* If this memory is not auto memory, we wait to deal with it */
                     if(Mem->Base!=MEM_AUTO)
@@ -871,7 +871,7 @@ void Main::Code_Alloc(void)
             }
             catch(std::exception& Exc)
             {
-                Main::Error(std::string("Process: ")+Proc->Name+"\n"+Exc.what());
+                Main::Error(std::string("Process: ")+Prc->Name+"\n"+Exc.what());
             }
         }
 
@@ -950,11 +950,11 @@ void Main::Data_Alloc(void)
         }
 
         /* Fit all static private memory regions, and leave the automatic ones for later */
-        for(std::unique_ptr<class Process>& Proc:this->Proj->Process)
+        for(std::unique_ptr<class Process>& Prc:this->Proj->Process)
         {
             try
             {
-                for(class Mem_Info* Mem:Proc->Memory_Data)
+                for(class Mem_Info* Mem:Prc->Memory_Data)
                 {
                     /* If this memory is not auto memory, we wait to deal with it */
                     if(Mem->Base!=MEM_AUTO)
@@ -968,7 +968,7 @@ void Main::Data_Alloc(void)
             }
             catch(std::exception& Exc)
             {
-                Main::Error(std::string("Process: ")+Proc->Name+"\n"+Exc.what());
+                Main::Error(std::string("Process: ")+Prc->Name+"\n"+Exc.what());
             }
         }
 
@@ -1032,11 +1032,11 @@ void Main::Device_Alloc(void)
         }
 
         /* Fit all static private memory regions, and leave the automatic ones for later */
-        for(std::unique_ptr<class Process>& Proc:this->Proj->Process)
+        for(std::unique_ptr<class Process>& Prc:this->Proj->Process)
         {
             try
             {
-                for(class Mem_Info* Mem:Proc->Memory_Device)
+                for(class Mem_Info* Mem:Prc->Memory_Device)
                 {
                     /* Device memory can't be auto */
                     ASSERT(Mem->Base!=MEM_AUTO);
@@ -1046,7 +1046,7 @@ void Main::Device_Alloc(void)
             }
             catch(std::exception& Exc)
             {
-                Main::Error(std::string("Process: ")+Proc->Name+"\n"+Exc.what());
+                Main::Error(std::string("Process: ")+Prc->Name+"\n"+Exc.what());
             }
         }
     }
@@ -1095,12 +1095,12 @@ void Main::Shmem_Add(void)
     {
         Main::Info("Instantiating shared memory.");
 
-        for(std::unique_ptr<class Process>& Proc:this->Proj->Process)
+        for(std::unique_ptr<class Process>& Prc:this->Proj->Process)
         {
             try
             {
                 /* Link the shared memory blocks with references in processes, and add result to private memory pool */
-                for(std::unique_ptr<class Mem_Info>& Ref:Proc->Shmem)
+                for(std::unique_ptr<class Mem_Info>& Ref:Prc->Shmem)
                 {
                     /* Find the shared memory block declared in the project */
                     Mem=this->Proj->Shmem_Map.find(Ref->Name);
@@ -1110,21 +1110,21 @@ void Main::Shmem_Add(void)
                     Temp->Is_Shared=1;
                     switch(Temp->Type)
                     {
-                        case MEM_CODE:Proc->Memory_Code.push_back(Temp.get());break;
-                        case MEM_DATA:Proc->Memory_Data.push_back(Temp.get());break;
-                        case MEM_DEVICE:Proc->Memory_Device.push_back(Temp.get());break;
+                        case MEM_CODE:Prc->Memory_Code.push_back(Temp.get());break;
+                        case MEM_DATA:Prc->Memory_Data.push_back(Temp.get());break;
+                        case MEM_DEVICE:Prc->Memory_Device.push_back(Temp.get());break;
                         default:ASSERT(0);
                     }
-                    Proc->Memory.push_back(std::move(Temp));
+                    Prc->Memory.push_back(std::move(Temp));
                 }
 
                 /* Copy everything over to the final memory list so that we can operate on that list */
-                for(std::unique_ptr<class Mem_Info>& Mem:Proc->Memory)
-                    Proc->Memory_All.push_back(std::make_unique<class Mem_Info>(Mem.get(),Mem->Attr));
+                for(std::unique_ptr<class Mem_Info>& Mem:Prc->Memory)
+                    Prc->Memory_All.push_back(std::make_unique<class Mem_Info>(Mem.get(),Mem->Attr));
             }
             catch(std::exception& Exc)
             {
-                Main::Error(std::string("Process: ")+Proc->Name+"\n"+Exc.what());
+                Main::Error(std::string("Process: ")+Prc->Name+"\n"+Exc.what());
             }
         }
     }
@@ -1135,13 +1135,13 @@ void Main::Shmem_Add(void)
 }
 /* End Function:Main::Shmem_Add **********************************************/
 
-/* Begin Function:Main::Pgtbl_Alloc *******************************************
+/* Begin Function:Main::Pgt_Alloc *******************************************
 Description : Allocate page tables.
 Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Main::Pgtbl_Alloc(void)
+void Main::Pgt_Alloc(void)
 {
     std::vector<std::unique_ptr<class Mem_Info>> List;
     ptr_t Cur_Start;
@@ -1153,28 +1153,28 @@ void Main::Pgtbl_Alloc(void)
     try
     {
         /* Allocate page table global captbl */
-        for(std::unique_ptr<class Process>& Proc:this->Proj->Process)
+        for(std::unique_ptr<class Process>& Prc:this->Proj->Process)
         {
-            Main::Info("Allocating page tables for process '%s'.",Proc->Name.c_str());
+            Main::Info("Allocating page tables for process '%s'.",Prc->Name.c_str());
 
             try
             {
                 /* Merge whatever this list has to offer - if two adjacent memory blocks have the
                  * same attributes, we simply merge them into one block, hopefully reducing MPU
                  * region number usage. */
-                std::sort(Proc->Memory_All.begin(),Proc->Memory_All.end(),
+                std::sort(Prc->Memory_All.begin(),Prc->Memory_All.end(),
                 [](std::unique_ptr<class Mem_Info>& Left, std::unique_ptr<class Mem_Info>& Right)
                 {
                     return Left->Base<Right->Base;
                 });
 
-                Cur_Start=Proc->Memory_All[0]->Base;
-                Cur_End=Cur_Start+Proc->Memory_All[0]->Size;
-                Cur_Type=Proc->Memory_All[0]->Type;
-                Cur_Attr=Proc->Memory_All[0]->Attr;
+                Cur_Start=Prc->Memory_All[0]->Base;
+                Cur_End=Cur_Start+Prc->Memory_All[0]->Size;
+                Cur_Type=Prc->Memory_All[0]->Type;
+                Cur_Attr=Prc->Memory_All[0]->Attr;
 
-                Proc->Memory_All.erase(Proc->Memory_All.begin());
-                for(std::unique_ptr<class Mem_Info>& Mem:Proc->Memory_All)
+                Prc->Memory_All.erase(Prc->Memory_All.begin());
+                for(std::unique_ptr<class Mem_Info>& Mem:Prc->Memory_All)
                 {
                     if(Mem->Base>Cur_End)
                     {
@@ -1210,9 +1210,9 @@ void Main::Pgtbl_Alloc(void)
                 List.push_back(std::make_unique<class Mem_Info>("",Cur_Start,Cur_End-Cur_Start,Cur_Type,Cur_Attr));
 
                 /* Replace the list with whatever we have now */
-                Proc->Memory_All.clear();
+                Prc->Memory_All.clear();
                 for(std::unique_ptr<class Mem_Info>& Mem:List)
-                    Proc->Memory_All.push_back(std::move(Mem));
+                    Prc->Memory_All.push_back(std::move(Mem));
                 List.clear();
 
                 /* We must reserve at least 2 MPU regions. If this is not the case, we give an warning, cause new static
@@ -1224,17 +1224,17 @@ void Main::Pgtbl_Alloc(void)
                  *   2.1 If there are no less than 2 DYNAMIC regions, replace one of them.
                  *   2.2 If there are less than 2 DYNAMIC regions, replace a STATIC region. */
                 Total_Static=0;
-                Proc->Pgtbl=this->Gen->Plat->Pgtbl_Gen(Proc->Memory_All, Proc.get(), this->Plat->Wordlength, Total_Static);
-                Proc->Pgtbl->Is_Top=1;
+                Prc->Pgtbl=this->Gen->Plat->Pgt_Gen(Prc->Memory_All, Prc.get(), this->Plat->Wordlength, Total_Static);
+                Prc->Pgtbl->Is_Top=1;
                 if(Total_Static>(this->Chip->Region-2))
                 {
-                    Main::Warning(std::string("A0203: Too many static memory segments declared in process '")+Proc->Name+"', using "+
+                    Main::Warning(std::string("A0203: Too many static memory segments declared in process '")+Prc->Name+"', using "+
                                   std::to_string(Total_Static)+" regions, exceeding limit "+std::to_string(this->Chip->Region-2)+".");
                 }
             }
             catch(std::exception& Exc)
             {
-                Main::Error(std::string("Process:\n")+Proc->Name+"\n"+Exc.what());
+                Main::Error(std::string("Process:\n")+Prc->Name+"\n"+Exc.what());
             }
         }
     }
@@ -1243,7 +1243,7 @@ void Main::Pgtbl_Alloc(void)
         Main::Error(std::string("Page table allocation:\n")+Exc.what());
     }
 }
-/* End Function:Main::Pgtbl_Alloc ********************************************/
+/* End Function:Main::Pgt_Alloc ********************************************/
 
 /* Begin Function:Main::Cap_Alloc *********************************************
 Description : Allocate capabilities for kernel objects. This includes both local and
@@ -1266,23 +1266,23 @@ void Main::Cap_Alloc(void)
     try
     {
         /* Local capid/macro allocation */
-        for(std::unique_ptr<class Process>& Proc:this->Proj->Process)
+        for(std::unique_ptr<class Process>& Prc:this->Proj->Process)
         {
-            Main::Info(std::string("Allocating local caps for process '")+Proc->Name+"'.");
-            Proc->Local_Alloc(this->Plat->Captbl_Max);
+            Main::Info(std::string("Allocating local caps for process '")+Prc->Name+"'.");
+            Prc->Local_Alloc(this->Plat->Captbl_Max);
         }
 
         /* Global (monitor) capid/macro allocation */
-        for(std::unique_ptr<class Process>& Proc:this->Proj->Process)
+        for(std::unique_ptr<class Process>& Prc:this->Proj->Process)
         {
-            Main::Info(std::string("Allocating global caps for process '")+Proc->Name+"'.");
-            Proc->Global_Alloc_Captbl(this->Proj->Monitor->Captbl);
-            Proc->Global_Alloc_Pgtbl(this->Proj->Monitor->Pgtbl,Proc->Pgtbl);
-            Proc->Global_Alloc_Process(this->Proj->Monitor->Process);
-            Proc->Global_Alloc_Thread(this->Proj->Monitor->Thread);
-            Proc->Global_Alloc_Invocation(this->Proj->Monitor->Invocation);
-            Proc->Global_Alloc_Receive(this->Proj->Monitor->Receive);
-            Proc->Global_Alloc_Vector(this->Proj->Monitor->Vector);
+            Main::Info(std::string("Allocating global caps for process '")+Prc->Name+"'.");
+            Prc->Global_Alloc_Captbl(this->Proj->Monitor->Captbl);
+            Prc->Global_Alloc_Pgtbl(this->Proj->Monitor->Pgtbl,Prc->Pgtbl);
+            Prc->Global_Alloc_Process(this->Proj->Monitor->Process);
+            Prc->Global_Alloc_Thread(this->Proj->Monitor->Thread);
+            Prc->Global_Alloc_Invocation(this->Proj->Monitor->Invocation);
+            Prc->Global_Alloc_Receive(this->Proj->Monitor->Receive);
+            Prc->Global_Alloc_Vector(this->Proj->Monitor->Vector);
         }
     }
     catch(std::exception& Exc)
@@ -1306,12 +1306,12 @@ void Main::Cap_Link(void)
     try
     {
         /* Guaranteed to find stuff, or there'll be an internal error */
-        for(std::unique_ptr<class Process>& Proc:this->Proj->Process)
+        for(std::unique_ptr<class Process>& Prc:this->Proj->Process)
         {
-            Main::Info(std::string("Linking caps for process '")+Proc->Name+"'.");
+            Main::Info(std::string("Linking caps for process '")+Prc->Name+"'.");
 
             /* For every port, there must be a invocation somewhere */
-            for(std::unique_ptr<class Port>& Port:Proc->Port)
+            for(std::unique_ptr<class Port>& Port:Prc->Port)
             {
                 Inv_Dst=this->Proj->Process_Map[Port->Process]->Invocation_Map[Port->Name];
                 Port->Capid_Global=Inv_Dst->Capid_Global;
@@ -1321,7 +1321,7 @@ void Main::Cap_Link(void)
             }
 
             /* For every send endpoint, there must be a receive endpoint somewhere */
-            for(std::unique_ptr<class Send>& Send:Proc->Send)
+            for(std::unique_ptr<class Send>& Send:Prc->Send)
             {
                 Recv_Dst=this->Proj->Process_Map[Send->Process]->Receive_Map[Send->Name];
                 Send->Capid_Global=Recv_Dst->Capid_Global;
@@ -1338,27 +1338,27 @@ void Main::Cap_Link(void)
 }
 /* End Function:Main::Cap_Link ***********************************************/
 
-/* Begin Function:Main::Kmem_Alloc ********************************************
+/* Begin Function:Main::Kom_Alloc ********************************************
 Description : Get the size of the kernel memory, and generate the initial states
               for kernel object creation.
 Input       : ptr_t Init_Capsz - The initial capability table's size;
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Main::Kmem_Alloc(ptr_t Init_Capsz)
+void Main::Kom_Alloc(ptr_t Init_Capsz)
 {
     ptr_t Cap_Front;
-    ptr_t Kmem_Front;
+    ptr_t Kom_Front;
 
     /* Compute initial state when creating the vectors */
     Cap_Front=0;
-    Kmem_Front=0;
+    Kom_Front=0;
     /* Initial capability table */
     Cap_Front++;
-    Kmem_Front+=this->Gen->Plat->Size_Captbl(Init_Capsz);
+    Kom_Front+=this->Gen->Plat->Size_Cpt(Init_Capsz);
     /* Initial page table - always order 0, containing all address space */
     Cap_Front++;
-    Kmem_Front+=this->Gen->Plat->Size_Pgtbl(0,1);
+    Kom_Front+=this->Gen->Plat->Size_Pgt(0,1);
     /* Initial RVM process */
     Cap_Front++;
     /* Initial kcap and kmem */
@@ -1367,111 +1367,111 @@ void Main::Kmem_Alloc(ptr_t Init_Capsz)
     Cap_Front+=2;
     /* Initial thread */
     Cap_Front++;
-    Kmem_Front+=this->Gen->Plat->Size_Thread();
+    Kom_Front+=this->Gen->Plat->Size_Thread();
 
     /* Create vectors */
-    Main::Info("> Kernel vector cap front %lld kmem front 0x%llX.", Cap_Front, Kmem_Front);
+    Main::Info("> Kernel vector cap front %lld kmem front 0x%llX.", Cap_Front, Kom_Front);
     this->Proj->Kernel->Vect_Cap_Front=Cap_Front;
-    this->Proj->Kernel->Vect_Kmem_Front=Kmem_Front;
+    this->Proj->Kernel->Vect_Kom_Front=Kom_Front;
     /* Capability tables for containing vector endpoints */
-    Cap_Front+=ROUND_DIV(this->Proj->Monitor->Vector.size(),this->Plat->Captbl_Max);
-    Kmem_Front+=this->Gen->Plat->Size_Captbl(this->Proj->Monitor->Vector.size());
+    Cap_Front+=ROUND_DIV(this->Proj->Monitor->Vector.size(), this->Plat->Captbl_Max);
+    Kom_Front+=this->Gen->Plat->Size_Cpt(this->Proj->Monitor->Vector.size());
 
     /* Create RVM */
-    Main::Info("> Monitor before cap front %lld kmem front 0x%llX.", Cap_Front, Kmem_Front);
+    Main::Info("> Monitor before cap front %lld kmem front 0x%llX.", Cap_Front, Kom_Front);
     this->Proj->Monitor->Before_Cap_Front=Cap_Front;
-    this->Proj->Monitor->Before_Kmem_Front=Kmem_Front;
+    this->Proj->Monitor->Before_Kom_Front=Kom_Front;
     /* When there are virtual machines, generate everything */
     if(this->Proj->Virtual.size()!=0)
     {
         /* Four threads and two endpoints for RVM */
         Cap_Front+=6;
-        Kmem_Front+=4*this->Gen->Plat->Size_Thread();
+        Kom_Front+=4*this->Gen->Plat->Size_Thread();
 
         /* Create virtual machine endpoints. These endpoints does not have names.
          * Each virtual machine have two endpoints, but only one is dedicated to
          * it, so we only need to create one for each VM. */
-        Main::Info("> Monitor VM endpoint cap front %lld kmem front 0x%llX.", Cap_Front, Kmem_Front);
+        Main::Info("> Monitor VM endpoint cap front %lld kmem front 0x%llX.", Cap_Front, Kom_Front);
         this->Proj->Monitor->Vep_Cap_Front=Cap_Front;
-        this->Proj->Monitor->Vep_Kmem_Front=Kmem_Front;
+        this->Proj->Monitor->Vep_Kom_Front=Kom_Front;
         Cap_Front+=ROUND_DIV(this->Proj->Virtual.size(),this->Plat->Captbl_Max);
-        Kmem_Front+=this->Gen->Plat->Size_Captbl(this->Proj->Virtual.size());
+        Kom_Front+=this->Gen->Plat->Size_Cpt(this->Proj->Virtual.size());
     }
     /* When there are no virtual machines at all, just generate one endpoint and one thread */
     else
     {
         Cap_Front+=2;
-        Kmem_Front+=this->Gen->Plat->Size_Thread();
+        Kom_Front+=this->Gen->Plat->Size_Thread();
 
         /* No virtual machine endpoints to create at all */
         this->Proj->Monitor->Vep_Cap_Front=Cap_Front;
-        this->Proj->Monitor->Vep_Kmem_Front=Kmem_Front;
+        this->Proj->Monitor->Vep_Kom_Front=Kom_Front;
     }
 
     /* Create capability tables */
-    Main::Info("> Monitor captbl cap front %lld kmem front 0x%llX.", Cap_Front, Kmem_Front);
-    this->Proj->Monitor->Captbl_Cap_Front=Cap_Front;
-    this->Proj->Monitor->Captbl_Kmem_Front=Kmem_Front;
+    Main::Info("> Monitor captbl cap front %lld kmem front 0x%llX.", Cap_Front, Kom_Front);
+    this->Proj->Monitor->Cpt_Cap_Front=Cap_Front;
+    this->Proj->Monitor->Cpt_Kom_Front=Kom_Front;
     /* Capability tables for containing capability tables */
     Cap_Front+=ROUND_DIV(this->Proj->Monitor->Captbl.size(),this->Plat->Captbl_Max);
-    Kmem_Front+=this->Gen->Plat->Size_Captbl(this->Proj->Monitor->Captbl.size());
+    Kom_Front+=this->Gen->Plat->Size_Cpt(this->Proj->Monitor->Captbl.size());
     /* Capability tables themselves */
-    for(class Captbl* Captbl:this->Proj->Monitor->Captbl)
-        Kmem_Front+=this->Gen->Plat->Size_Captbl(Captbl->Size);
+    for(class Captbl* Cpt:this->Proj->Monitor->Captbl)
+        Kom_Front+=this->Gen->Plat->Size_Cpt(Cpt->Size);
 
     /* Create page tables */
-    Main::Info("> Monitor pgtbl cap front %lld kmem front 0x%llX.", Cap_Front, Kmem_Front);
-    this->Proj->Monitor->Pgtbl_Cap_Front=Cap_Front;
-    this->Proj->Monitor->Pgtbl_Kmem_Front=Kmem_Front;
+    Main::Info("> Monitor pgtbl cap front %lld kmem front 0x%llX.", Cap_Front, Kom_Front);
+    this->Proj->Monitor->Pgt_Cap_Front=Cap_Front;
+    this->Proj->Monitor->Pgt_Kom_Front=Kom_Front;
     /* Capability tables for containing page tables */
     Cap_Front+=ROUND_DIV(this->Proj->Monitor->Pgtbl.size(),this->Plat->Captbl_Max);
-    Kmem_Front+=this->Gen->Plat->Size_Captbl(this->Proj->Monitor->Pgtbl.size());
+    Kom_Front+=this->Gen->Plat->Size_Cpt(this->Proj->Monitor->Pgtbl.size());
     /* Page table themselves */
-    for(class Pgtbl* Pgtbl:this->Proj->Monitor->Pgtbl)
-        Kmem_Front+=this->Gen->Plat->Size_Pgtbl(Pgtbl->Num_Order, Pgtbl->Is_Top);
+    for(class Pgtbl* Pgt:this->Proj->Monitor->Pgtbl)
+        Kom_Front+=this->Gen->Plat->Size_Pgt(Pgt->Num_Order, Pgt->Is_Top);
 
     /* Create processes */
-    Main::Info("> Monitor process cap front %lld kmem front 0x%llX.", Cap_Front, Kmem_Front);
-    this->Proj->Monitor->Proc_Cap_Front=Cap_Front;
-    this->Proj->Monitor->Proc_Kmem_Front=Kmem_Front;
+    Main::Info("> Monitor process cap front %lld kmem front 0x%llX.", Cap_Front, Kom_Front);
+    this->Proj->Monitor->Prc_Cap_Front=Cap_Front;
+    this->Proj->Monitor->Prc_Kom_Front=Kom_Front;
     /* Capability tables for containing processes */
     Cap_Front+=ROUND_DIV(this->Proj->Monitor->Process.size(),this->Plat->Captbl_Max);
-    Kmem_Front+=this->Gen->Plat->Size_Captbl(this->Proj->Monitor->Process.size());
+    Kom_Front+=this->Gen->Plat->Size_Cpt(this->Proj->Monitor->Process.size());
     /* Processes themselves - they do not use extra memory */
 
     /* Create threads */
-    Main::Info("> Monitor thread cap front %lld kmem front 0x%llX.", Cap_Front, Kmem_Front);
+    Main::Info("> Monitor thread cap front %lld kmem front 0x%llX.", Cap_Front, Kom_Front);
     this->Proj->Monitor->Thd_Cap_Front=Cap_Front;
-    this->Proj->Monitor->Thd_Kmem_Front=Kmem_Front;
+    this->Proj->Monitor->Thd_Kom_Front=Kom_Front;
     /* Capability tables for containing threads */
     Cap_Front+=ROUND_DIV(this->Proj->Monitor->Thread.size(),this->Plat->Captbl_Max);
-    Kmem_Front+=this->Gen->Plat->Size_Captbl(this->Proj->Monitor->Thread.size());
+    Kom_Front+=this->Gen->Plat->Size_Cpt(this->Proj->Monitor->Thread.size());
     /* Threads themselves */
-    Kmem_Front+=this->Proj->Monitor->Thread.size()*this->Gen->Plat->Size_Thread();
+    Kom_Front+=this->Proj->Monitor->Thread.size()*this->Gen->Plat->Size_Thread();
 
     /* Create invocations */
-    Main::Info("> Monitor invocation cap front %lld kmem front 0x%llX.", Cap_Front, Kmem_Front);
+    Main::Info("> Monitor invocation cap front %lld kmem front 0x%llX.", Cap_Front, Kom_Front);
     this->Proj->Monitor->Inv_Cap_Front=Cap_Front;
-    this->Proj->Monitor->Inv_Kmem_Front=Kmem_Front;
+    this->Proj->Monitor->Inv_Kom_Front=Kom_Front;
     /* Capability tables for containing invocations */
     Cap_Front+=ROUND_DIV(this->Proj->Monitor->Invocation.size(),this->Plat->Captbl_Max);
-    Kmem_Front+=this->Gen->Plat->Size_Captbl(this->Proj->Monitor->Invocation.size());
+    Kom_Front+=this->Gen->Plat->Size_Cpt(this->Proj->Monitor->Invocation.size());
     /* Invocations themselves */
-    Kmem_Front+=this->Proj->Monitor->Invocation.size()*this->Gen->Plat->Size_Invocation();
+    Kom_Front+=this->Proj->Monitor->Invocation.size()*this->Gen->Plat->Size_Invocation();
 
     /* Create receive endpoints */
-    Main::Info("> Monitor recv cap front %lld kmem front 0x%llX.", Cap_Front, Kmem_Front);
-    this->Proj->Monitor->Recv_Cap_Front=Cap_Front;
-    this->Proj->Monitor->Recv_Kmem_Front=Kmem_Front;
+    Main::Info("> Monitor recv cap front %lld kmem front 0x%llX.", Cap_Front, Kom_Front);
+    this->Proj->Monitor->Rcv_Cap_Front=Cap_Front;
+    this->Proj->Monitor->Rcv_Kom_Front=Kom_Front;
     /* Capability tables for containing receive endpoints */
     Cap_Front+=ROUND_DIV(this->Proj->Monitor->Receive.size(),this->Plat->Captbl_Max);
-    Kmem_Front+=this->Gen->Plat->Size_Captbl(this->Proj->Monitor->Receive.size());
+    Kom_Front+=this->Gen->Plat->Size_Cpt(this->Proj->Monitor->Receive.size());
     /* Receive endpoints themselves - they do not use memory */
 
     /* Final pointer positions */
-    Main::Info("> Monitor after cap front %lld kmem front 0x%llX.", Cap_Front, Kmem_Front);
+    Main::Info("> Monitor after cap front %lld kmem front 0x%llX.", Cap_Front, Kom_Front);
     this->Proj->Monitor->After_Cap_Front=Cap_Front;
-    this->Proj->Monitor->After_Kmem_Front=Kmem_Front;
+    this->Proj->Monitor->After_Kom_Front=Kom_Front;
 
     /* Check if we are out of table space */
     this->Proj->Monitor->Captbl_Size=this->Proj->Monitor->Extra_Captbl+this->Proj->Monitor->After_Cap_Front;
@@ -1481,7 +1481,7 @@ void Main::Kmem_Alloc(ptr_t Init_Capsz)
                     this->Proj->Monitor->Captbl_Size,this->Plat->Captbl_Max);
     }
 }
-/* End Function:Main::Kmem_Alloc *********************************************/
+/* End Function:Main::Kom_Alloc *********************************************/
 
 /* Begin Function:Main::Obj_Alloc *********************************************
 Description : Allocate kernel objects.
@@ -1496,36 +1496,36 @@ void Main::Obj_Alloc(void)
         /* Compute the kernel memory needed, disregarding the initial
          * capability table size because we don't know its size yet */
         Main::Info("Allocating kernel objects (first pass).");
-        this->Kmem_Alloc(0);
+        this->Kom_Alloc(0);
         /* Now recompute to get the real usage */
         Main::Info("Allocating kernel objects (second pass).");
-        this->Kmem_Alloc(this->Proj->Monitor->Captbl_Size);
+        this->Kom_Alloc(this->Proj->Monitor->Captbl_Size);
 
         /* Populate RME information - the vector flag max is not number
          * of vectors, but the last vector number + 1 (!) */
         Main::Info("Allocating kernel memory.");
-        this->Proj->Kernel->Mem_Alloc(this->Proj->Monitor->After_Kmem_Front,
+        this->Proj->Kernel->Mem_Alloc(this->Proj->Monitor->After_Kom_Front,
                                       this->Chip->Vect_Num,
                                       this->Proj->Monitor->Virt_Event,
                                       this->Plat->Wordlength);
 
         /* Populate RVM information */
         Main::Info("Allocating monitor memory.");
-        this->Proj->Monitor->Mem_Alloc(this->Proj->Kernel->Kmem_Order);
+        this->Proj->Monitor->Mem_Alloc(this->Proj->Kernel->Kom_Order);
 
         /* Populate Process information */
-        for(std::unique_ptr<class Process>& Proc:this->Proj->Process)
+        for(std::unique_ptr<class Process>& Prc:this->Proj->Process)
         {
             try
             {
-                Main::Info("Allocating memory for process '%s'.",Proc->Name.c_str());
-                Proc->Mem_Alloc(this->Plat->Wordlength,
+                Main::Info("Allocating memory for process '%s'.",Prc->Name.c_str());
+                Prc->Mem_Alloc(this->Plat->Wordlength,
                                 this->Gen->Plat->Size_Register(),
-                                this->Proj->Kernel->Kmem_Order);
+                                this->Proj->Kernel->Kom_Order);
             }
             catch(std::exception& Exc)
             {
-                Main::Error(std::string("Process: ")+Proc->Name+"\n"+Exc.what());
+                Main::Error(std::string("Process: ")+Prc->Name+"\n"+Exc.what());
             }
         }
     }
@@ -1645,51 +1645,51 @@ Return      : None.
 ******************************************************************************/
 void Main::Process_Gen(void)
 {
-    for(const std::unique_ptr<class Process>& Proc:this->Proj->Process)
+    for(const std::unique_ptr<class Process>& Prc:this->Proj->Process)
     {
         try
         {
             /* Generate process folders, if they do not exist already */
-            Main::Info("Creating directories for process '%s'.", Proc->Name.c_str());
-            std::filesystem::create_directories(Proc->Project_Output);
-            std::filesystem::create_directories(Proc->Linker_Output);
-            std::filesystem::create_directories(Proc->Main_Header_Output);
-            std::filesystem::create_directories(Proc->Main_Source_Output);
-            if(Proc->Type==PROC_VIRTUAL)
+            Main::Info("Creating directories for process '%s'.", Prc->Name.c_str());
+            std::filesystem::create_directories(Prc->Project_Output);
+            std::filesystem::create_directories(Prc->Linker_Output);
+            std::filesystem::create_directories(Prc->Main_Header_Output);
+            std::filesystem::create_directories(Prc->Main_Source_Output);
+            if(Prc->Type==PROCESS_VIRTUAL)
             {
-                std::filesystem::create_directories(static_cast<class Virtual*>(Proc.get())->Virtual_Header_Output);
-                std::filesystem::create_directories(static_cast<class Virtual*>(Proc.get())->Virtual_Source_Output);
+                std::filesystem::create_directories(static_cast<class Virtual*>(Prc.get())->Virtual_Header_Output);
+                std::filesystem::create_directories(static_cast<class Virtual*>(Prc.get())->Virtual_Source_Output);
             }
 
             /* Generate process main header */
             Main::Info("Generating process main header.");
-            this->Gen->Process_Main_Hdr(Proc.get());
+            this->Gen->Process_Main_Hdr(Prc.get());
 
             /* Generate process main source */
             Main::Info("Generating process main source.");
-            this->Gen->Process_Stub_Src(Proc.get());
-            this->Gen->Process_Desc_Src(Proc.get());
-            this->Gen->Process_Main_Src(Proc.get());
+            this->Gen->Process_Stub_Src(Prc.get());
+            this->Gen->Process_Desc_Src(Prc.get());
+            this->Gen->Process_Main_Src(Prc.get());
 
             /* If this process is a virtual machine, generate VM configuration header as well */
-            if(Proc->Type==PROC_VIRTUAL)
+            if(Prc->Type==PROCESS_VIRTUAL)
             {
                 Main::Info("Generating virtual machine configuration header.");
-                this->Gen->Process_Virt_Hdr(static_cast<class Virtual*>(Proc.get()));
-                this->Gen->Process_Virt_Src(static_cast<class Virtual*>(Proc.get()));
+                this->Gen->Process_Virt_Hdr(static_cast<class Virtual*>(Prc.get()));
+                this->Gen->Process_Virt_Src(static_cast<class Virtual*>(Prc.get()));
             }
 
             /* Generate monitor linker script */
             Main::Info("Generating process linker script.");
-            this->Gen->Process_Linker(Proc.get());
+            this->Gen->Process_Linker(Prc.get());
 
             /* Generate monitor project */
             Main::Info("Generating process project.");
-            this->Gen->Process_Proj(Proc.get());
+            this->Gen->Process_Proj(Prc.get());
         }
         catch(std::exception& Exc)
         {
-            Main::Error(std::string("Process '")+Proc->Name+"' project generation:\n"+Exc.what());
+            Main::Error(std::string("Process '")+Prc->Name+"' project generation:\n"+Exc.what());
         }
     }
 }
@@ -2222,7 +2222,7 @@ int main(int argc, char* argv[])
 
 /* Phase 3: Set up kernel objects for each process ***************************/
         Main->Shmem_Add();
-        Main->Pgtbl_Alloc();
+        Main->Pgt_Alloc();
 
 /* Phase 3: Allocate kernel object IDs & macros & kernel objects *************/
         Main->Cap_Alloc();

@@ -82,7 +82,7 @@ Description : The header of microcontroller user-level library.
 #define RVM_DLY2VM(X)               ((struct RVM_Virt_Struct*)(((rvm_ptr_t)(X))-sizeof(struct RVM_List)))
 
 /* Virtual machine thread ID identification */
-#define RVM_VIRT_THDID_MARKER       ((rvm_tid_t)RVM_POW2(16U))
+#define RVM_VIRT_TID_MARKER         ((rvm_tid_t)RVM_POW2(16U))
 
 /* Communication flag set selection */
 #define RVM_FLAG_SET(B, S, N)       ((volatile struct RVM_Flag*)((B)+((S)>>1)*(N)))
@@ -92,6 +92,9 @@ Description : The header of microcontroller user-level library.
 #define RVM_DESC_MAGIC(B)           (((const struct RVM_Desc*)(B))->Magic)
 #define RVM_DESC_NUM(B)             (((const struct RVM_Desc*)(B))->Number)
 #define RVM_DESC_STUB(B)            RVM_DESC_ENTRY(B, RVM_DESC_NUM(B)-1U)
+
+/* Coprocessor */
+#define RVM_COPROCESSOR_NONE        (0U)
 /*****************************************************************************/
 /* __RVM_HYPER_H_DEFS__ */
 #endif
@@ -108,7 +111,7 @@ Description : The header of microcontroller user-level library.
 #define __HDR_DEFS__
 #undef __HDR_DEFS__
 /*****************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 /* Parameter */
 struct RVM_Param
 {
@@ -180,7 +183,7 @@ struct RVM_Vmap_Struct
     rvm_ptr_t Vect_Num;
 
     /* Register base */
-    volatile struct RVM_Regs* Reg_Base;
+    volatile struct RVM_Thd_Reg* Reg_Base;
     /* Parameter base & size */
     volatile struct RVM_State* State_Base;
     rvm_ptr_t State_Size;
@@ -227,7 +230,7 @@ struct RVM_Flag
 {
     rvm_ptr_t Lock;
     rvm_ptr_t Group;
-    rvm_ptr_t Flags[1024];
+    rvm_ptr_t Flag[1024];
 };
 
 /* Process descriptor header */
@@ -236,6 +239,16 @@ struct RVM_Desc
     rvm_ptr_t Magic;
     rvm_ptr_t Number;
     rvm_ptr_t Entry[1024];
+};
+
+/* Thread register set */
+struct RVM_Thd_Reg
+{
+    struct RVM_Reg_Struct Reg;
+#if(RVM_COPROCESSOR_TYPE!=RVM_COPROCESSOR_NONE)
+    struct RVM_Cop_Struct Cop;
+#endif
+    struct RVM_Exc_Struct Exc;
 };
 /*****************************************************************************/
 /* __RVM_HYPER_H_STRUCTS__ */
@@ -267,7 +280,7 @@ struct RVM_Desc
 
 /* Private C Function Prototypes *********************************************/ 
 /*****************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 /* Helper functions */
 static void _RVM_Run_Ins(volatile struct RVM_Virt_Struct* Virt);
 static void _RVM_Run_Del(volatile struct RVM_Virt_Struct* Virt);
@@ -321,7 +334,7 @@ static rvm_ret_t RVM_Hyp_Wdog_Feed(void);
 #endif
 
 /*****************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 /* Timestamp value */
 __EXTERN__ volatile rvm_ptr_t RVM_Tick;
 /* Timer wheel - This system supports about 64 VMs maximum, thus we set the timer wheel at 32 */
@@ -348,7 +361,7 @@ __EXTERN__ volatile struct RVM_Map_Struct RVM_Map[RVM_VIRT_MAP_NUM];
 
 /* Public C Function Prototypes **********************************************/
 /*****************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 /* Initializing functions */
 __EXTERN__ void RVM_Virt_Init(void);
 __EXTERN__ void RVM_Virt_Crt(struct RVM_Virt_Struct* Virt,

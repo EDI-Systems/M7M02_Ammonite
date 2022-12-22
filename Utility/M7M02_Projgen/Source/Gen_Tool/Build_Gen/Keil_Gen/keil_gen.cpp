@@ -454,7 +454,7 @@ Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
               const std::vector<std::string>& Include - The include file list.
               const std::vector<std::string>& Source - The source file list.
               const std::vector<std::string>& Source - The linker script file list.
-              const class Process* Proc - The process to generate for.
+              const class Process* Prc - The process to generate for.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
 Output      : None.
 Return      : None.
@@ -463,7 +463,7 @@ void Keil_Gen::Process_Proj(std::unique_ptr<std::vector<std::string>>& List,
                             const std::vector<std::string>& Include,
                             const std::vector<std::string>& Source,
                             const std::vector<std::string>& Linker,
-                            const class Process* Proc)
+                            const class Process* Prc)
 {
     std::string After1;
     std::string After2;
@@ -472,16 +472,16 @@ void Keil_Gen::Process_Proj(std::unique_ptr<std::vector<std::string>>& List,
     if(this->Proj->Kernel->Project_Full_Image!=0)
     {
         Bincopy.push_back(this->Proj->Monitor->Monitor_Root+"Utility/M7M02_Bincopy/bincopy.exe");
-        Gen_Tool::Path_Conv(Proc->Project_Output, Bincopy);
+        Gen_Tool::Path_Conv(Prc->Project_Output, Bincopy);
         After1="fromelf.exe --binCombined -o \"$L@L.bin\" \"#L\"";
-        After2=Bincopy[0]+" -i $L@L.bin -o ./"+Proc->Name_Lower+"_image.c";
+        After2=Bincopy[0]+" -i $L@L.bin -o ./"+Prc->Name_Lower+"_image.c";
     }
 
     this->Raw_Proj(List,
                    After1,                                  /* After 1 */
                    After2,                                  /* After 2 */
-                   Proc->Name,                              /* Target */
-                   Proc->Optimization,                      /* Optimization */
+                   Prc->Name,                              /* Target */
+                   Prc->Optimization,                      /* Optimization */
                    Include,                                 /* Include */
                    Source,                                  /* Source */
                    Linker[0],                               /* Linker */

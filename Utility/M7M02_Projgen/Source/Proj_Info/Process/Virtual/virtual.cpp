@@ -52,7 +52,7 @@ Output      : None.
 Return      : None.
 ******************************************************************************/
 /* void */ Virtual::Virtual(xml_node_t* Root):
-Process(Root,PROC_VIRTUAL)
+Process(Root,PROCESS_VIRTUAL)
 {
     try
     {
@@ -121,17 +121,17 @@ Description : Allocate the memory for state space. State space is like
               Each bit corresponds to a single vector. The whole struct will repeat twice.
 Input       : ptr_t Source - The source number.
               ptr_t Wordlength - The processor wordlength.
-              ptr_t Kmem_Order - The kernel memory alignment order of 2.
+              ptr_t Kom_Order - The kernel memory alignment order of 2.
 Output      : None.
 Return      : ptr_t - The vector flag sector size.
 ******************************************************************************/
-ptr_t Virtual::State_Alloc(ptr_t Source, ptr_t Wordlength, ptr_t Kmem_Order)
+ptr_t Virtual::State_Alloc(ptr_t Source, ptr_t Wordlength, ptr_t Kom_Order)
 {
     ptr_t Raw;
 
     Raw=(1+5+5+2+ROUND_DIV(Source, Wordlength))*(Wordlength/8);
 
-    return ROUND_UP_POW2(Raw, Kmem_Order);
+    return ROUND_UP_POW2(Raw, Kom_Order);
 }
 /* End Function:Virtual::State_Alloc *****************************************/
 }

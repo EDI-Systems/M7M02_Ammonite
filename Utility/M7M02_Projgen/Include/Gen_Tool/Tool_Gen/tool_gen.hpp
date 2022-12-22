@@ -49,7 +49,7 @@ public:
     virtual void Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)=0;
     virtual void Monitor_Linker(std::unique_ptr<std::vector<std::string>>& List)=0;
     virtual void Process_Linker(std::unique_ptr<std::vector<std::string>>& List,
-                                const class Process* Proc)=0;
+                                const class Process* Prc)=0;
 };
 /*****************************************************************************/
 /* __TOOL_GEN_HPP_CLASSES__ */

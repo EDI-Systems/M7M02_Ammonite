@@ -32,7 +32,7 @@ extern "C"
 namespace RVM_GEN
 {
 /* Begin Function:Captbl::Captbl **********************************************
-Description : Constructor for Captbl class.
+Description : Constructor for Cpt class.
 Input       : ptr_t Front - The final frontier.
               ptr_t Size - The final size.
               class Process* Owner - The owner process of this kernel object.

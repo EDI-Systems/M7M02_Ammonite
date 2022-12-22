@@ -49,7 +49,7 @@ Description : The header of the RVM user-level library. This header defines the
 /* The base of process/thread errors */
 #define RVM_ERR_PTH                     (-200)
 /* Incorrect address */
-#define RVM_ERR_PTH_PGTBL               ((-1)+RVM_ERR_PTH)
+#define RVM_ERR_PTH_PGT                 ((-1)+RVM_ERR_PTH)
 /* Conflicting operations happening at the same time */
 #define RVM_ERR_PTH_CONFLICT            ((-2)+RVM_ERR_PTH)
 /* Thread ID error */
@@ -86,76 +86,76 @@ Description : The header of the RVM user-level library. This header defines the
 /* End Errors ****************************************************************/
 
 /* Operation Flags ***********************************************************/
-/* Captbl */
+/* Cpt */
 /* This cap to captbl allows creating kernel objects in the captbl */
-#define RVM_CAPTBL_FLAG_CRT             (1U<<0)
+#define RVM_CPT_FLAG_CRT                (1U<<0)
 /* This cap to captbl allows deleting kernel objects in the captbl */
-#define RVM_CAPTBL_FLAG_DEL             (1U<<1)
+#define RVM_CPT_FLAG_DEL                (1U<<1)
 /* This cap to captbl allows freezing kernel objects in the captbl */
-#define RVM_CAPTBL_FLAG_FRZ             (1U<<2)
+#define RVM_CPT_FLAG_FRZ                (1U<<2)
 /* This cap to captbl allows delegating kernel objects in it */
-#define RVM_CAPTBL_FLAG_ADD_SRC         (1U<<3)
+#define RVM_CPT_FLAG_ADD_SRC            (1U<<3)
 /* This cap to captbl allows receiving delegated kernel objects to it */
-#define RVM_CAPTBL_FLAG_ADD_DST         (1U<<4)  
+#define RVM_CPT_FLAG_ADD_DST            (1U<<4)  
 /* This cap to captbl allows removal operation in kernel objects(captbls) in the captbl */
-#define RVM_CAPTBL_FLAG_REM             (1U<<5)
+#define RVM_CPT_FLAG_REM                (1U<<5)
 /* This cap to captbl allows itself to be used in process creation */
-#define RVM_CAPTBL_FLAG_PROC_CRT        (1U<<6)
+#define RVM_CPT_FLAG_PRC_CRT            (1U<<6)
 /* This cap to captbl allows itself to be used in process capability table replacement */
-#define RVM_CAPTBL_FLAG_PROC_CPT        (1U<<7)
+#define RVM_CPT_FLAG_PRC_CPT            (1U<<7)
 /* This cap to captbl allows all operations */
-#define RVM_CAPTBL_FLAG_ALL             (RVM_CAPTBL_FLAG_CRT|RVM_CAPTBL_FLAG_DEL|RVM_CAPTBL_FLAG_FRZ| \
-                                         RVM_CAPTBL_FLAG_ADD_SRC|RVM_CAPTBL_FLAG_ADD_DST|RVM_CAPTBL_FLAG_REM| \
-                                         RVM_CAPTBL_FLAG_PROC_CRT|RVM_CAPTBL_FLAG_PROC_CPT)
+#define RVM_CPT_FLAG_ALL                (RVM_CPT_FLAG_CRT|RVM_CPT_FLAG_DEL|RVM_CPT_FLAG_FRZ| \
+                                         RVM_CPT_FLAG_ADD_SRC|RVM_CPT_FLAG_ADD_DST|RVM_CPT_FLAG_REM| \
+                                         RVM_CPT_FLAG_PRC_CRT|RVM_CPT_FLAG_PRC_CPT)
 
 /* Page table */
 /* This cap to pgtbl allows delegating pages in it */
-#define RVM_PGTBL_FLAG_ADD_SRC          (1U<<0)
+#define RVM_PGT_FLAG_ADD_SRC            (1U<<0)
 /* This cap to pgtbl allows receiving delegated pages to it */
-#define RVM_PGTBL_FLAG_ADD_DST          (1U<<1)
+#define RVM_PGT_FLAG_ADD_DST            (1U<<1)
 /* This cap to pgtbl allows removal of pages in it */
-#define RVM_PGTBL_FLAG_REM              (1U<<2) 
+#define RVM_PGT_FLAG_REM                (1U<<2) 
 /* This cap to pgtbl allows to be mapped into other page tables as a child
  * or destructed from other page tables as a child */
-#define RVM_PGTBL_FLAG_CHILD            (1U<<3)
+#define RVM_PGT_FLAG_CHILD              (1U<<3)
 /* This cap to pgtbl allows accepting lower page table mappings */
-#define RVM_PGTBL_FLAG_CON_PARENT       (1U<<4)
+#define RVM_PGT_FLAG_CON_PARENT         (1U<<4)
 /* This cap to pgtbl allows its lower level page table mappings to be destructed */
-#define RVM_PGTBL_FLAG_DES_PARENT       (1U<<5)
+#define RVM_PGT_FLAG_DES_PARENT         (1U<<5)
 /* This cap to pgtbl allows itself to be used in process creation */
-#define RVM_PGTBL_FLAG_PROC_CRT         (1U<<6)
+#define RVM_PGT_FLAG_PRC_CRT            (1U<<6)
 /* This cap to pgtbl allows itself to be used in process page table replacement */
-#define RVM_PGTBL_FLAG_PROC_PGT         (1U<<7)
+#define RVM_PGT_FLAG_PRC_PGT            (1U<<7)
 /* This cap to pgtbl allows all operations */
-#define RVM_PGTBL_FLAG_ALL              (RVM_PGTBL_FLAG_ADD_SRC|RVM_PGTBL_FLAG_ADD_DST|RVM_PGTBL_FLAG_REM| \
-                                         RVM_PGTBL_FLAG_CHILD|RVM_PGTBL_FLAG_CON_PARENT|RVM_PGTBL_FLAG_DES_PARENT| \
-                                         RVM_PGTBL_FLAG_PROC_CRT|RVM_PGTBL_FLAG_PROC_PGT)
+#define RVM_PGT_FLAG_ALL                (RVM_PGT_FLAG_ADD_SRC|RVM_PGT_FLAG_ADD_DST|RVM_PGT_FLAG_REM| \
+                                         RVM_PGT_FLAG_CHILD|RVM_PGT_FLAG_CON_PARENT|RVM_PGT_FLAG_DES_PARENT| \
+                                         RVM_PGT_FLAG_PRC_CRT|RVM_PGT_FLAG_PRC_PGT)
 
 /* Kernel memory */
 /* This cap to kernel memory allows creation of captbl */
-#define RVM_KMEM_FLAG_CAPTBL            (1U<<0)
+#define RVM_KOM_FLAG_CPT                (1U<<0)
 /* This cap to kernel memory allows creation of pgtbl */
-#define RVM_KMEM_FLAG_PGTBL             (1U<<1)
+#define RVM_KOM_FLAG_PGT                (1U<<1)
 /* This cap to kernel memory allows creation of thread */
-#define RVM_KMEM_FLAG_THD               (1U<<2)
+#define RVM_KOM_FLAG_THD                (1U<<2)
 /* This cap to kernel memory allows creation of invocation */
-#define RVM_KMEM_FLAG_INV               (1U<<3)
+#define RVM_KOM_FLAG_INV                (1U<<3)
 /* This cap to kernel memory allows all operations */
-#define RVM_KMEM_FLAG_ALL               (RVM_KMEM_FLAG_CAPTBL|RVM_KMEM_FLAG_PGTBL| \
-                                         RVM_KMEM_FLAG_THD|RVM_KMEM_FLAG_INV)
+#define RVM_KOM_FLAG_ALL                (RVM_KOM_FLAG_CPT|RVM_KOM_FLAG_PGT| \
+                                         RVM_KOM_FLAG_THD|RVM_KOM_FLAG_INV)
 
 /* Process */
 /* This cap to process allows creating invocation stubs in it */
-#define RVM_PROC_FLAG_INV               (1U<<0)
+#define RVM_PRC_FLAG_INV                (1U<<0)
 /* This cap to process allows creating threads in it */
-#define RVM_PROC_FLAG_THD               (1U<<1)
+#define RVM_PRC_FLAG_THD                (1U<<1)
 /* This cap to process allows changing its capability table */
-#define RVM_PROC_FLAG_CPT               (1U<<2)
+#define RVM_PRC_FLAG_CPT                (1U<<2)
 /* This cap to process allows changing its page table */
-#define RVM_PROC_FLAG_PGT               (1U<<3)
+#define RVM_PRC_FLAG_PGT                (1U<<3)
 /* This cap to process allows all operations */
-#define RVM_PROC_FLAG_ALL               (RVM_PROC_FLAG_INV|RVM_PROC_FLAG_THD| \
-                                         RVM_PROC_FLAG_CPT|RVM_PROC_FLAG_PGT)
+#define RVM_PRC_FLAG_ALL                (RVM_PRC_FLAG_INV|RVM_PRC_FLAG_THD| \
+                                         RVM_PRC_FLAG_CPT|RVM_PRC_FLAG_PGT)
 
 /* Thread */
 /* This cap to thread allows setting its execution parameters */
@@ -214,117 +214,117 @@ Description : The header of the RVM user-level library. This header defines the
 /* Special Definitions *******************************************************/
 /* Generic page table flags */
 /* This page allows to be read */
-#define RVM_PGTBL_READ                  (1U<<0)
+#define RVM_PGT_READ                    (1U<<0)
 /* This page allows to be written */
-#define RVM_PGTBL_WRITE                 (1U<<1)
+#define RVM_PGT_WRITE                   (1U<<1)
 /* This page allows execution */
-#define RVM_PGTBL_EXECUTE               (1U<<2)
+#define RVM_PGT_EXECUTE                 (1U<<2)
 /* This page is cacheable */
-#define RVM_PGTBL_CACHE                 (1U<<3)
+#define RVM_PGT_CACHE                   (1U<<3)
 /* This page is bufferable (write-back can be used instead of write-through) */
-#define RVM_PGTBL_BUFFER                (1U<<4)
+#define RVM_PGT_BUFFER                  (1U<<4)
 /* This page is pinned in TLB */
-#define RVM_PGTBL_STATIC                (1U<<5)
+#define RVM_PGT_STATIC                  (1U<<5)
 /* All the permissions are set */
-#define RVM_PGTBL_ALL_PERM              (RVM_PGTBL_READ|RVM_PGTBL_WRITE|RVM_PGTBL_EXECUTE| \
-                                         RVM_PGTBL_CACHE|RVM_PGTBL_BUFFER|RVM_PGTBL_STATIC)
+#define RVM_PGT_ALL_PERM                (RVM_PGT_READ|RVM_PGT_WRITE|RVM_PGT_EXECUTE| \
+                                         RVM_PGT_CACHE|RVM_PGT_BUFFER|RVM_PGT_STATIC)
                                         
 /* Generic page size order definitions */
-#define RVM_PGTBL_SIZE_2B               (1U)
-#define RVM_PGTBL_SIZE_4B               (2U)
-#define RVM_PGTBL_SIZE_8B               (3U)
-#define RVM_PGTBL_SIZE_16B              (4U)
-#define RVM_PGTBL_SIZE_32B              (5U)
-#define RVM_PGTBL_SIZE_64B              (6U)
-#define RVM_PGTBL_SIZE_128B             (7U)
-#define RVM_PGTBL_SIZE_256B             (8U)
-#define RVM_PGTBL_SIZE_512B             (9U)
-#define RVM_PGTBL_SIZE_1K               (10U)
-#define RVM_PGTBL_SIZE_2K               (11U)
-#define RVM_PGTBL_SIZE_4K               (12U)
-#define RVM_PGTBL_SIZE_8K               (13U)
-#define RVM_PGTBL_SIZE_16K              (14U)
-#define RVM_PGTBL_SIZE_32K              (15U)
-#define RVM_PGTBL_SIZE_64K              (16U)
-#define RVM_PGTBL_SIZE_128K             (17U)
-#define RVM_PGTBL_SIZE_256K             (18U)
-#define RVM_PGTBL_SIZE_512K             (19U)
-#define RVM_PGTBL_SIZE_1M               (20U)
-#define RVM_PGTBL_SIZE_2M               (21U)
-#define RVM_PGTBL_SIZE_4M               (22U)
-#define RVM_PGTBL_SIZE_8M               (23U)
-#define RVM_PGTBL_SIZE_16M              (24U)
-#define RVM_PGTBL_SIZE_32M              (25U)
-#define RVM_PGTBL_SIZE_64M              (26U)
-#define RVM_PGTBL_SIZE_128M             (27U)
-#define RVM_PGTBL_SIZE_256M             (28U)
-#define RVM_PGTBL_SIZE_512M             (29U)
-#define RVM_PGTBL_SIZE_1G               (30U)
-#define RVM_PGTBL_SIZE_2G               (31U)
-#define RVM_PGTBL_SIZE_4G               (32U)
-#define RVM_PGTBL_SIZE_8G               (33U)
-#define RVM_PGTBL_SIZE_16G              (34U)
-#define RVM_PGTBL_SIZE_32G              (35U)
-#define RVM_PGTBL_SIZE_64G              (36U)
-#define RVM_PGTBL_SIZE_128G             (37U)
-#define RVM_PGTBL_SIZE_256G             (38U)
-#define RVM_PGTBL_SIZE_512G             (39U)
-#define RVM_PGTBL_SIZE_1T               (40U)
-#define RVM_PGTBL_SIZE_2T               (41U)
-#define RVM_PGTBL_SIZE_4T               (42U)
-#define RVM_PGTBL_SIZE_8T               (43U)
-#define RVM_PGTBL_SIZE_16T              (44U)
-#define RVM_PGTBL_SIZE_32T              (45U)
-#define RVM_PGTBL_SIZE_64T              (46U)
-#define RVM_PGTBL_SIZE_128T             (47U)
-#define RVM_PGTBL_SIZE_256T             (48U)
-#define RVM_PGTBL_SIZE_512T             (49U)
-#define RVM_PGTBL_SIZE_1P               (50U)
-#define RVM_PGTBL_SIZE_2P               (51U)
-#define RVM_PGTBL_SIZE_4P               (52U)
-#define RVM_PGTBL_SIZE_8P               (53U)
-#define RVM_PGTBL_SIZE_16P              (54U)
-#define RVM_PGTBL_SIZE_32P              (55U)
-#define RVM_PGTBL_SIZE_64P              (56U)
-#define RVM_PGTBL_SIZE_128P             (57U)
-#define RVM_PGTBL_SIZE_256P             (58U)
-#define RVM_PGTBL_SIZE_512P             (59U)
-#define RVM_PGTBL_SIZE_1E               (60U)
-#define RVM_PGTBL_SIZE_2E               (61U)
-#define RVM_PGTBL_SIZE_4E               (62U)
-#define RVM_PGTBL_SIZE_8E               (63U)
-#define RVM_PGTBL_SIZE_16E              (64U)
-#define RVM_PGTBL_SIZE_32E              (65U)
-#define RVM_PGTBL_SIZE_64E              (66U)
-#define RVM_PGTBL_SIZE_128E             (67U)
-#define RVM_PGTBL_SIZE_256E             (68U)
-#define RVM_PGTBL_SIZE_512E             (69U)
-#define RVM_PGTBL_SIZE_1Z               (70U)
+#define RVM_PGT_SIZE_2B                 (1U)
+#define RVM_PGT_SIZE_4B                 (2U)
+#define RVM_PGT_SIZE_8B                 (3U)
+#define RVM_PGT_SIZE_16B                (4U)
+#define RVM_PGT_SIZE_32B                (5U)
+#define RVM_PGT_SIZE_64B                (6U)
+#define RVM_PGT_SIZE_128B               (7U)
+#define RVM_PGT_SIZE_256B               (8U)
+#define RVM_PGT_SIZE_512B               (9U)
+#define RVM_PGT_SIZE_1K                 (10U)
+#define RVM_PGT_SIZE_2K                 (11U)
+#define RVM_PGT_SIZE_4K                 (12U)
+#define RVM_PGT_SIZE_8K                 (13U)
+#define RVM_PGT_SIZE_16K                (14U)
+#define RVM_PGT_SIZE_32K                (15U)
+#define RVM_PGT_SIZE_64K                (16U)
+#define RVM_PGT_SIZE_128K               (17U)
+#define RVM_PGT_SIZE_256K               (18U)
+#define RVM_PGT_SIZE_512K               (19U)
+#define RVM_PGT_SIZE_1M                 (20U)
+#define RVM_PGT_SIZE_2M                 (21U)
+#define RVM_PGT_SIZE_4M                 (22U)
+#define RVM_PGT_SIZE_8M                 (23U)
+#define RVM_PGT_SIZE_16M                (24U)
+#define RVM_PGT_SIZE_32M                (25U)
+#define RVM_PGT_SIZE_64M                (26U)
+#define RVM_PGT_SIZE_128M               (27U)
+#define RVM_PGT_SIZE_256M               (28U)
+#define RVM_PGT_SIZE_512M               (29U)
+#define RVM_PGT_SIZE_1G                 (30U)
+#define RVM_PGT_SIZE_2G                 (31U)
+#define RVM_PGT_SIZE_4G                 (32U)
+#define RVM_PGT_SIZE_8G                 (33U)
+#define RVM_PGT_SIZE_16G                (34U)
+#define RVM_PGT_SIZE_32G                (35U)
+#define RVM_PGT_SIZE_64G                (36U)
+#define RVM_PGT_SIZE_128G               (37U)
+#define RVM_PGT_SIZE_256G               (38U)
+#define RVM_PGT_SIZE_512G               (39U)
+#define RVM_PGT_SIZE_1T                 (40U)
+#define RVM_PGT_SIZE_2T                 (41U)
+#define RVM_PGT_SIZE_4T                 (42U)
+#define RVM_PGT_SIZE_8T                 (43U)
+#define RVM_PGT_SIZE_16T                (44U)
+#define RVM_PGT_SIZE_32T                (45U)
+#define RVM_PGT_SIZE_64T                (46U)
+#define RVM_PGT_SIZE_128T               (47U)
+#define RVM_PGT_SIZE_256T               (48U)
+#define RVM_PGT_SIZE_512T               (49U)
+#define RVM_PGT_SIZE_1P                 (50U)
+#define RVM_PGT_SIZE_2P                 (51U)
+#define RVM_PGT_SIZE_4P                 (52U)
+#define RVM_PGT_SIZE_8P                 (53U)
+#define RVM_PGT_SIZE_16P                (54U)
+#define RVM_PGT_SIZE_32P                (55U)
+#define RVM_PGT_SIZE_64P                (56U)
+#define RVM_PGT_SIZE_128P               (57U)
+#define RVM_PGT_SIZE_256P               (58U)
+#define RVM_PGT_SIZE_512P               (59U)
+#define RVM_PGT_SIZE_1E                 (60U)
+#define RVM_PGT_SIZE_2E                 (61U)
+#define RVM_PGT_SIZE_4E                 (62U)
+#define RVM_PGT_SIZE_8E                 (63U)
+#define RVM_PGT_SIZE_16E                (64U)
+#define RVM_PGT_SIZE_32E                (65U)
+#define RVM_PGT_SIZE_64E                (66U)
+#define RVM_PGT_SIZE_128E               (67U)
+#define RVM_PGT_SIZE_256E               (68U)
+#define RVM_PGT_SIZE_512E               (69U)
+#define RVM_PGT_SIZE_1Z                 (70U)
 
 /* Generic page table entry number definitions */
-#define RVM_PGTBL_NUM_1                 (0U)
-#define RVM_PGTBL_NUM_2                 (1U)
-#define RVM_PGTBL_NUM_4                 (2U)
-#define RVM_PGTBL_NUM_8                 (3U)
-#define RVM_PGTBL_NUM_16                (4U)
-#define RVM_PGTBL_NUM_32                (5U)
-#define RVM_PGTBL_NUM_64                (6U)
-#define RVM_PGTBL_NUM_128               (7U)
-#define RVM_PGTBL_NUM_256               (8U)
-#define RVM_PGTBL_NUM_512               (9U)
-#define RVM_PGTBL_NUM_1K                (10U)
-#define RVM_PGTBL_NUM_2K                (11U)
-#define RVM_PGTBL_NUM_4K                (12U)
-#define RVM_PGTBL_NUM_8K                (13U)
-#define RVM_PGTBL_NUM_16K               (14U)
-#define RVM_PGTBL_NUM_32K               (15U)
-#define RVM_PGTBL_NUM_64K               (16U)
-#define RVM_PGTBL_NUM_128K              (17U)
-#define RVM_PGTBL_NUM_256K              (18U)
-#define RVM_PGTBL_NUM_512K              (19U)
-#define RVM_PGTBL_NUM_1M                (20U)
-#define RVM_PGTBL_NUM_2M                (21U)
-#define RVM_PGTBL_NUM_4M                (22U)
+#define RVM_PGT_NUM_1                   (0U)
+#define RVM_PGT_NUM_2                   (1U)
+#define RVM_PGT_NUM_4                   (2U)
+#define RVM_PGT_NUM_8                   (3U)
+#define RVM_PGT_NUM_16                  (4U)
+#define RVM_PGT_NUM_32                  (5U)
+#define RVM_PGT_NUM_64                  (6U)
+#define RVM_PGT_NUM_128                 (7U)
+#define RVM_PGT_NUM_256                 (8U)
+#define RVM_PGT_NUM_512                 (9U)
+#define RVM_PGT_NUM_1K                  (10U)
+#define RVM_PGT_NUM_2K                  (11U)
+#define RVM_PGT_NUM_4K                  (12U)
+#define RVM_PGT_NUM_8K                  (13U)
+#define RVM_PGT_NUM_16K                 (14U)
+#define RVM_PGT_NUM_32K                 (15U)
+#define RVM_PGT_NUM_64K                 (16U)
+#define RVM_PGT_NUM_128K                (17U)
+#define RVM_PGT_NUM_256K                (18U)
+#define RVM_PGT_NUM_512K                (19U)
+#define RVM_PGT_NUM_1M                  (20U)
+#define RVM_PGT_NUM_2M                  (21U)
+#define RVM_PGT_NUM_4M                  (22U)
 
 /* Receive options */
 #define RVM_RCV_BS                      (0U)
@@ -344,7 +344,7 @@ Description : The header of the RVM user-level library. This header defines the
 /* Receive from a signal endpoint */
 #define RVM_SVC_SIG_RCV                 (3U)
 /* Kernel function calling ***************************************************/
-#define RVM_SVC_KERN                    (4U)
+#define RVM_SVC_KFN                     (4U)
 /* The operations that may cause a context switch ****************************/
 /* Changing thread priority */
 #define RVM_SVC_THD_SCHED_PRIO          (5U)
@@ -356,37 +356,37 @@ Description : The header of the RVM user-level library. This header defines the
 #define RVM_SVC_THD_SWT                 (8U)
 /* Capability table operations ***********************************************/
 /* Create */
-#define RVM_SVC_CAPTBL_CRT              (9U)
+#define RVM_SVC_CPT_CRT                 (9U)
 /* Delete */
-#define RVM_SVC_CAPTBL_DEL              (10U)
+#define RVM_SVC_CPT_DEL                 (10U)
 /* Freeze */
-#define RVM_SVC_CAPTBL_FRZ              (11U)
+#define RVM_SVC_CPT_FRZ                 (11U)
 /* Add */
-#define RVM_SVC_CAPTBL_ADD              (12U)
+#define RVM_SVC_CPT_ADD                 (12U)
 /* Remove */
-#define RVM_SVC_CAPTBL_REM              (13U)
+#define RVM_SVC_CPT_REM                 (13U)
 /* Page table operations *****************************************************/
 /* Create */
-#define RVM_SVC_PGTBL_CRT               (14U)
+#define RVM_SVC_PGT_CRT                 (14U)
 /* Delete */
-#define RVM_SVC_PGTBL_DEL               (15U)
+#define RVM_SVC_PGT_DEL                 (15U)
 /* Add */
-#define RVM_SVC_PGTBL_ADD               (16U)
+#define RVM_SVC_PGT_ADD                 (16U)
 /* Remove */
-#define RVM_SVC_PGTBL_REM               (17U)
+#define RVM_SVC_PGT_REM                 (17U)
 /* Construction */
-#define RVM_SVC_PGTBL_CON               (18U)
+#define RVM_SVC_PGT_CON                 (18U)
 /* Destruction */
-#define RVM_SVC_PGTBL_DES               (19U)
+#define RVM_SVC_PGT_DES                 (19U)
 /* Process operations ********************************************************/
 /* Create */
-#define RVM_SVC_PROC_CRT                (20U)
+#define RVM_SVC_PRC_CRT                 (20U)
 /* Delete */
-#define RVM_SVC_PROC_DEL                (21U)
+#define RVM_SVC_PRC_DEL                 (21U)
 /* Change captbl */
-#define RVM_SVC_PROC_CPT                (22U)
+#define RVM_SVC_PRC_CPT                 (22U)
 /* Change pgtbl */ 
-#define RVM_SVC_PROC_PGT                (23U)
+#define RVM_SVC_PRC_PGT                 (23U)
 /* Thread operations *********************************************************/
 /* Create */
 #define RVM_SVC_THD_CRT                 (24U)
@@ -417,119 +417,119 @@ Description : The header of the RVM user-level library. This header defines the
 /* Kernel Functions **********************************************************/
 /* Page table operations *****************************************************/
 /* Clear the whole TLB */
-#define RVM_KERN_PGTBL_CACHE_CLR        (0xF000U)
+#define RVM_KFN_PGT_CACHE_CLR           (0xF000U)
 /* Clear a single TLB line */
-#define RVM_KERN_PGTBL_LINE_CLR         (0xF001U)
+#define RVM_KFN_PGT_LINE_CLR            (0xF001U)
 /* Set the ASID of a page table */
-#define RVM_KERN_PGTBL_ASID_SET         (0xF002U)
+#define RVM_KFN_PGT_ASID_SET            (0xF002U)
 /* Lock a page into the TLB */
-#define RVM_KERN_PGTBL_TLB_LOCK         (0xF003U)
+#define RVM_KFN_PGT_TLB_LOCK            (0xF003U)
 /* Query or modify the content of an entry */
-#define RVM_KERN_PGTBL_ENTRY_MOD        (0xF004U)
+#define RVM_KFN_PGT_ENTRY_MOD           (0xF004U)
 /* Interrupt controller operations *******************************************/
 /* Modify local interrupt controller */
-#define RVM_KERN_INT_LOCAL_MOD          (0xF100U)
+#define RVM_KFN_INT_LOCAL_MOD           (0xF100U)
 /* Modify global interrupt controller */
-#define RVM_KERN_INT_GLOBAL_MOD         (0xF101U)
+#define RVM_KFN_INT_GLOBAL_MOD          (0xF101U)
 /* Trigger a local interrupt */
-#define RVM_KERN_INT_LOCAL_TRIG         (0xF102U)
+#define RVM_KFN_INT_LOCAL_TRIG          (0xF102U)
 /* Trigger a local event */
-#define RVM_KERN_EVT_LOCAL_TRIG         (0xF103U)
+#define RVM_KFN_EVT_LOCAL_TRIG          (0xF103U)
 /* Cache operations **********************************************************/
 /* Modify cache state */
-#define RVM_KERN_CACHE_MOD              (0xF200U)
+#define RVM_KFN_CACHE_MOD               (0xF200U)
 /* Configure cache */
-#define RVM_KERN_CACHE_CONFIG           (0xF201U)
+#define RVM_KFN_CACHE_CONFIG            (0xF201U)
 /* Invalidate cache */
-#define RVM_KERN_CACHE_MAINT            (0xF202U)
+#define RVM_KFN_CACHE_MAINT             (0xF202U)
 /* Lock cache */
-#define RVM_KERN_CACHE_LOCK             (0xF203U)
+#define RVM_KFN_CACHE_LOCK              (0xF203U)
 /* Modify prefetcher state */
-#define RVM_KERN_PRFTH_MOD              (0xF204U)
+#define RVM_KFN_PRFTH_MOD               (0xF204U)
 /* Hot plug and pull operations **********************************************/
 /* Modify physical CPU configuration */
-#define RVM_KERN_HPNP_PCPU_MOD          (0xF300U)
+#define RVM_KFN_HPNP_PCPU_MOD           (0xF300U)
 /* Modify logical CPU configuration */
-#define RVM_KERN_HPNP_LCPU_MOD          (0xF301U)
+#define RVM_KFN_HPNP_LCPU_MOD           (0xF301U)
 /* Modify physical memory configuration */
-#define RVM_KERN_HPNP_PMEM_MOD          (0xF302U)
+#define RVM_KFN_HPNP_PMEM_MOD           (0xF302U)
 /* Power and frequency adjustment operations *********************************/
 /* Put CPU into idle sleep mode */
-#define RVM_KERN_IDLE_SLEEP             (0xF400U)
+#define RVM_KFN_IDLE_SLEEP              (0xF400U)
 /* Reboot the whole system */
-#define RVM_KERN_SYS_REBOOT             (0xF401U)
+#define RVM_KFN_SYS_REBOOT              (0xF401U)
 /* Shutdown the whole system */
-#define RVM_KERN_SYS_SHUTDOWN           (0xF402U)
+#define RVM_KFN_SYS_SHUTDOWN            (0xF402U)
 /* Modify voltage configuration */
-#define RVM_KERN_VOLT_MOD               (0xF403U)
+#define RVM_KFN_VOLT_MOD                (0xF403U)
 /* Modify frequency configuration */
-#define RVM_KERN_FREQ_MOD               (0xF404U)
+#define RVM_KFN_FREQ_MOD                (0xF404U)
 /* Modify power state */
-#define RVM_KERN_PMOD_MOD               (0xF405U)
+#define RVM_KFN_PMOD_MOD                (0xF405U)
 /* Modify safety lock state */
-#define RVM_KERN_SAFETY_MOD             (0xF406U)
+#define RVM_KFN_SAFETY_MOD              (0xF406U)
 /* Performance monitoring operations *****************************************/
 /* Query or modify CPU function configuration */
-#define RVM_KERN_PERF_CPU_FUNC          (0xF500U)
+#define RVM_KFN_PERF_CPU_FUNC           (0xF500U)
 /* Query or modify performance monitor configuration */
-#define RVM_KERN_PERF_MON_MOD           (0xF501U)
+#define RVM_KFN_PERF_MON_MOD            (0xF501U)
 /* Query or modify counting performance monitor register */
-#define RVM_KERN_PERF_CNT_MOD           (0xF502U)
+#define RVM_KFN_PERF_CNT_MOD            (0xF502U)
 /* Query or modify clock cycle performance monitor register */
-#define RVM_KERN_PERF_CYCLE_MOD         (0xF503U)
+#define RVM_KFN_PERF_CYCLE_MOD          (0xF503U)
 /* Query or modify data performance monitor register */
-#define RVM_KERN_PERF_DATA_MOD          (0xF504U)
+#define RVM_KFN_PERF_DATA_MOD           (0xF504U)
 /* Query or modify physical monitor register */
-#define RVM_KERN_PERF_PHYS_MOD          (0xF505U)
+#define RVM_KFN_PERF_PHYS_MOD           (0xF505U)
 /* Query or modify cumulative monitor register */
-#define RVM_KERN_PERF_CUMUL_MOD         (0xF506U)
+#define RVM_KFN_PERF_CUMUL_MOD          (0xF506U)
 /* Hardware virtualization operations ****************************************/
 /* Create a virtual machine */
-#define RVM_KERN_VM_CRT                 (0xF600U)
+#define RVM_KFN_VM_CRT                  (0xF600U)
 /* Delete a virtual machine */
-#define RVM_KERN_VM_DEL                 (0xF601U)
+#define RVM_KFN_VM_DEL                  (0xF601U)
 /* Assign a user-level page table to the virtual machine */
-#define RVM_KERN_VM_PGT                 (0xF602U)
+#define RVM_KFN_VM_PGT                  (0xF602U)
 /* Query or modify virtual machine state */
-#define RVM_KERN_VM_MOD                 (0xF603U)
+#define RVM_KFN_VM_MOD                  (0xF603U)
 /* Create a virtual CPU */
-#define RVM_KERN_VCPU_CRT               (0xF604U)
+#define RVM_KFN_VCPU_CRT                (0xF604U)
 /* Bind a virtual CPU to a virtual machine */
-#define RVM_KERN_VCPU_BIND              (0xF605U)
+#define RVM_KFN_VCPU_BIND               (0xF605U)
 /* Free a virtual CPU from a virtual machine */
-#define RVM_KERN_VCPU_FREE              (0xF606U)
+#define RVM_KFN_VCPU_FREE               (0xF606U)
 /* Delete a virtual CPU */
-#define RVM_KERN_VCPU_DEL               (0xF607U)
+#define RVM_KFN_VCPU_DEL                (0xF607U)
 /* Query or modify virtual registers */
-#define RVM_KERN_VCPU_MOD               (0xF608U)
+#define RVM_KFN_VCPU_MOD                (0xF608U)
 /* Run the VCPU on this thread */
-#define RVM_KERN_VCPU_RUN               (0xF609U)
+#define RVM_KFN_VCPU_RUN                (0xF609U)
 /* Security monitor operations ***********************************************/
 /* Create an enclave */
-#define RVM_KERN_ECLV_CRT               (0xF700U)
+#define RVM_KFN_ECLV_CRT                (0xF700U)
 /* Query or modify an enclave */
-#define RVM_KERN_ECLV_MOD               (0xF701U)
+#define RVM_KFN_ECLV_MOD                (0xF701U)
 /* Delete an enclave */
-#define RVM_KERN_ECLV_DEL               (0xF702U)
+#define RVM_KFN_ECLV_DEL                (0xF702U)
 /* Call into an enclave */
-#define RVM_KERN_ECLV_ACT               (0xF703U)
+#define RVM_KFN_ECLV_ACT                (0xF703U)
 /* Return from an enclave */
-#define RVM_KERN_ECLV_RET               (0xF704U)
+#define RVM_KFN_ECLV_RET                (0xF704U)
 /* Debugging operations ******************************************************/
 /* Debug printing - a single character or a series of characters */
-#define RVM_KERN_DEBUG_PRINT            (0xF800U)
+#define RVM_KFN_DEBUG_PRINT             (0xF800U)
 /* Modify thread register content */
-#define RVM_KERN_DEBUG_REG_MOD          (0xF801U)
+#define RVM_KFN_DEBUG_REG_MOD           (0xF801U)
 /* Modify thread invocation register content */
-#define RVM_KERN_DEBUG_INV_MOD          (0xF802U)
+#define RVM_KFN_DEBUG_INV_MOD           (0xF802U)
 /* Get thread error register content */
-#define RVM_KERN_DEBUG_ERR_GET          (0xF803U)
+#define RVM_KFN_DEBUG_EXC_GET           (0xF803U)
 /* Modify debug engine configuration */
-#define RVM_KERN_DEBUG_MODE_MOD         (0xF804U)
+#define RVM_KFN_DEBUG_MODE_MOD          (0xF804U)
 /* Modify instruction breakpoint state */
-#define RVM_KERN_DEBUG_IBP_MOD          (0xF805U)
+#define RVM_KFN_DEBUG_IBP_MOD           (0xF805U)
 /* Modify data breakpoint state */
-#define RVM_KERN_DEBUG_DBP_MOD          (0xF806U)
+#define RVM_KFN_DEBUG_DBP_MOD           (0xF806U)
 /* End Kernel Functions ******************************************************/
 /* End Defines ***************************************************************/
 

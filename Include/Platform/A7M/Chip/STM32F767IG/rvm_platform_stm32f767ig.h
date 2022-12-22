@@ -11,11 +11,11 @@ Description: The configuration file for STM32F767IG. The values listed here shou
 /* The generator must be enabled to use this */
 /* Kernel configurations - keep the same with the kernel *********************/
 /* The virtual memory start address for the kernel objects */
-#define RVM_KMEM_VA_START                               (0x20003000)
+#define RVM_KOM_VA_START                               (0x20003000)
 /* The size of the kernel object virtual memory */
-#define RVM_KMEM_SIZE                                   (0xD000)
+#define RVM_KOM_SIZE                                   (0xD000)
 /* The granularity of kernel memory allocation, order of 2 in bytes */
-#define RVM_KMEM_SLOT_ORDER                             (4)
+#define RVM_KOM_SLOT_ORDER                             (4)
 /* The maximum number of preemption priority levels in the system.
  * This parameter must be divisible by the word length - 32 is usually sufficient */
 #define RVM_MAX_PREEMPT_PRIO                            (32)
@@ -29,7 +29,7 @@ Description: The configuration file for STM32F767IG. The values listed here shou
 /* Initial kernel object capability limit */
 #define RVM_A7M_CAP_BOOT_FRONTIER                       (9)
 /* Initial kernel object memory limit */
-#define RVM_A7M_KMEM_BOOT_FRONTIER                      (0x400)
+#define RVM_A7M_KOM_BOOT_FRONTIER                      (0x400)
 /* Number of MPU regions available */
 #define RVM_A7M_MPU_REGIONS                             (8)
 /* Init process's first thread's entry point address */

@@ -16,14 +16,18 @@ namespace RVM_GEN
 #define MACRO_ADD               (0)
 #define MACRO_REPLACE           (1)
 
-/* Captbl ID and object ID extraction/stringify */
-#define CTID(X)                 ((X)/this->Plat->Plat->Captbl_Max)
-#define CTIDS(X)                std::to_string(CTID(X))
-#define OID(X)                  ((X)%this->Plat->Plat->Captbl_Max)
-#define OIDS(X)                 std::to_string(OID(X))
+/* Main ID and slot ID extraction/stringify */
+#define MID(X)                  ((X)/this->Plat->Plat->Captbl_Max)
+#define MIDS(X)                 std::to_string(MID(X))
+#define SID(X)                  ((X)%this->Plat->Plat->Captbl_Max)
+#define SIDS(X)                 std::to_string(SID(X))
 
+/* Get total capability table number */
+#define CTNUM(TOTAL)            ROUND_DIV(TOTAL, this->Plat->Plat->Captbl_Max)
 /* Get current capability table size */
-#define CTSIZE(TOTAL, NUM, MAX) (((TOTAL)>=(((NUM)+1)*(MAX)))?(MAX):((TOTAL)%(MAX)))
+#define CTSIZE(TOTAL, NUM)      (((TOTAL)>=(((NUM)+1)*(this->Plat->Plat->Captbl_Max)))? \
+                                 (this->Plat->Plat->Captbl_Max): \
+                                 ((TOTAL)%(this->Plat->Plat->Captbl_Max)))
 /*****************************************************************************/
 /* __GEN_TOOL_HPP_DEFS__ */
 #endif
@@ -54,6 +58,11 @@ public:
     /* Guest OS-specific tool */
     std::vector<std::unique_ptr<class Guest_Gen>> Guest;
     std::map<std::string,class Guest_Gen*> Guest_Map;
+
+    /* Initialization numbers - these must be remembered for generation */
+    ptr_t Cpt_Init_Total;
+    ptr_t Cpt_Kfunc_Total;
+    ptr_t Pgt_Con_Total;
 
     /* void */ Gen_Tool(const std::string& Name,
                         class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip);
@@ -95,49 +104,29 @@ public:
 
     void Monitor_Inc(std::unique_ptr<std::vector<std::string>>& List);
     void Monitor_Conf_Hdr(void);
+    ptr_t Monitor_Cpt_Init(std::unique_ptr<std::vector<std::string>>& List, ptr_t Is_Kfunc);
+    ptr_t Monitor_Pgt_Con(std::unique_ptr<std::vector<std::string>>& List, const class Pgtbl* Pgt);
+    ptr_t Monitor_Pgt_Add(std::unique_ptr<std::vector<std::string>>& List, const class Pgtbl* Pgt, ptr_t Init_Size_Ord);
     void Monitor_Boot_Hdr(void);
-    void Monitor_Pgtbl_Con(std::unique_ptr<std::vector<std::string>>& List, const class Pgtbl* Pgtbl);
-    void Monitor_Pgtbl_Map(std::unique_ptr<std::vector<std::string>>& List, const class Pgtbl* Pgtbl, ptr_t Init_Size_Ord);
+    void Monitor_Main_Crt(std::unique_ptr<std::vector<std::string>>& List, ptr_t Number, const std::string& Macro);
     void Monitor_Boot_Src(void);
     void Monitor_Hook_Src(void);
     void Monitor_Linker(void);
     void Monitor_Proj(void);
 
-    void Process_Inc(std::unique_ptr<std::vector<std::string>>& List, class Process* Proc);
+    void Process_Inc(std::unique_ptr<std::vector<std::string>>& List, class Process* Prc);
     void Process_Main_Hdr_Mem(std::unique_ptr<std::vector<std::string>>& List, const class Mem_Info* Mem);
-    void Process_Main_Hdr(class Process* Proc);
-    void Process_Stub_Src(class Process* Proc);
-    void Process_Desc_Src(class Process* Proc);
-    void Process_Main_Src(class Process* Proc);
+    void Process_Main_Hdr(class Process* Prc);
+    void Process_Stub_Src(class Process* Prc);
+    void Process_Desc_Src(class Process* Prc);
+    void Process_Main_Src(class Process* Prc);
     void Process_Virt_Hdr(class Virtual* Virt);
     void Process_Virt_Src(class Virtual* Virt);
-    void Process_Linker(class Process* Proc);
-    void Process_Proj(class Process* Proc);
+    void Process_Linker(class Process* Prc);
+    void Process_Proj(class Process* Prc);
 
     void Workspace_Proj(void);
 };
-
-/* Generate capability table creations for kernel objects */
-template<class OBJECT>
-void Monitor_Captbl_Crt_Gen(std::unique_ptr<std::vector<std::string>>& List,
-                            const std::vector<OBJECT*>& Vector,
-                            const std::string& Kobjname,
-                            const std::string& Kobjmacro,
-                            ptr_t Captbl_Max)
-{
-    ptr_t Obj_Cnt;
-    ptr_t Captbl_Size;
-
-    for(Obj_Cnt=0;Obj_Cnt<Vector.size();Obj_Cnt+=Captbl_Max)
-    {
-        Captbl_Size=CTSIZE(Vector.size(), Obj_Cnt, Captbl_Max);
-        List->push_back(std::string("    RVM_ASSERT(RVM_Captbl_Crt(RVM_BOOT_CAPTBL, RVM_BOOT_INIT_KMEM, RVM_BOOT_CT")+Kobjmacro+"_"+
-                        std::to_string(Obj_Cnt/Captbl_Max)+", Cur_Addr, "+std::to_string(Captbl_Size)+"U)==0U);");
-        List->push_back(std::string("    RVM_DBG_SISHS(\"Init:Created ")+Kobjname+" capability table CID \", RVM_BOOT_CT"+Kobjmacro+"_"+
-                        std::to_string(Obj_Cnt/Captbl_Max)+", \" @ address 0x\", Cur_Addr, \".\\r\\n\");");
-        List->push_back(std::string("    Cur_Addr+=RVM_CAPTBL_SIZE(")+std::to_string(Captbl_Size)+"U);");
-    }
-}
 /*****************************************************************************/
 /* __GEN_TOOL_HPP_CLASSES__ */
 #endif

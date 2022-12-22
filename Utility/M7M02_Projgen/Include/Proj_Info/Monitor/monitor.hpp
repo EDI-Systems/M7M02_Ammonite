@@ -102,31 +102,31 @@ public:
     ptr_t Timd_Stack_Size;
     /* Initial state for RVM setup */
     ptr_t Before_Cap_Front;
-    ptr_t Before_Kmem_Front;
+    ptr_t Before_Kom_Front;
     /* When we begin creating virtual machine endpoints */
     ptr_t Vep_Cap_Front;
-    ptr_t Vep_Kmem_Front;
+    ptr_t Vep_Kom_Front;
     /* When we begin creating capability tables */
-    ptr_t Captbl_Cap_Front;
-    ptr_t Captbl_Kmem_Front;
+    ptr_t Cpt_Cap_Front;
+    ptr_t Cpt_Kom_Front;
     /* When we begin creating page tables */
-    ptr_t Pgtbl_Cap_Front;
-    ptr_t Pgtbl_Kmem_Front;
+    ptr_t Pgt_Cap_Front;
+    ptr_t Pgt_Kom_Front;
     /* When we begin creating processes */
-    ptr_t Proc_Cap_Front;
-    ptr_t Proc_Kmem_Front;
+    ptr_t Prc_Cap_Front;
+    ptr_t Prc_Kom_Front;
     /* When we begin creating threads */
     ptr_t Thd_Cap_Front;
-    ptr_t Thd_Kmem_Front;
+    ptr_t Thd_Kom_Front;
     /* When we begin creating invocations */
     ptr_t Inv_Cap_Front;
-    ptr_t Inv_Kmem_Front;
+    ptr_t Inv_Kom_Front;
     /* When we begin creating receive endpoints */
-    ptr_t Recv_Cap_Front;
-    ptr_t Recv_Kmem_Front;
+    ptr_t Rcv_Cap_Front;
+    ptr_t Rcv_Kom_Front;
     /* After the booting all finishes */
     ptr_t After_Cap_Front;
-    ptr_t After_Kmem_Front;
+    ptr_t After_Kom_Front;
 
     /* Linker filename */
     std::string Linker_Filename;
@@ -135,7 +135,7 @@ public:
 
     /* void */ Monitor(xml_node_t* Root, ptr_t Code_Base, ptr_t Code_Size);
 
-    void Mem_Alloc(ptr_t Kmem_Order);
+    void Mem_Alloc(ptr_t Kom_Order);
 };
 /*****************************************************************************/
 /* __MONITOR_HPP_CLASSES__ */

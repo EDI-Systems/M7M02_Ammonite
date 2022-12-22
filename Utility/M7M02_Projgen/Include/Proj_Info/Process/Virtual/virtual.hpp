@@ -69,7 +69,7 @@ public:
 
     /* void */ Virtual(xml_node_t* Root);
 
-    static ptr_t State_Alloc(ptr_t Source, ptr_t Wordlength, ptr_t Kmem_Order);
+    static ptr_t State_Alloc(ptr_t Source, ptr_t Wordlength, ptr_t Kom_Order);
 };
 /*****************************************************************************/
 /* __VIRTUAL_HPP_CLASSES__ */

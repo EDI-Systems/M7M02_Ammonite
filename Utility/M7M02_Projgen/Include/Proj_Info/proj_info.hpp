@@ -13,7 +13,7 @@ namespace RVM_GEN
 #ifndef __PROJ_INFO_HPP_DEFS__
 #define __PROJ_INFO_HPP_DEFS__
 /*****************************************************************************/
-#define RAW_CAPTBL_SIZE(BITS,NUM)               ((BITS)/8*8*(NUM))
+#define RAW_CPT_SIZE(BITS,NUM)               ((BITS)/8*8*(NUM))
 /*****************************************************************************/
 /* __PROJ_INFO_HPP_DEFS__ */
 #endif
@@ -80,7 +80,7 @@ public:
 
     void Check(void);
 
-    static ptr_t Flag_Alloc(ptr_t Source, ptr_t Wordlength, ptr_t Kmem_Order);
+    static ptr_t Flag_Alloc(ptr_t Source, ptr_t Wordlength, ptr_t Kom_Order);
 };
 /*****************************************************************************/
 /* __PROJ_INFO_HPP_CLASSES__ */

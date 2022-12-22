@@ -100,12 +100,12 @@ Return      : None.
                                                       this->Kernel->Data_Base+this->Kernel->Data_Size);
 
         /* Processes & VMs */
-        Trunk_Parse_Param<class Process,class Process,ptr_t>(Root,"Process",this->Process,PROC_NATIVE,"DXXXX","DXXXX");
+        Trunk_Parse_Param<class Process,class Process,ptr_t>(Root,"Process",this->Process,PROCESS_NATIVE,"DXXXX","DXXXX");
         Trunk_Parse<class Process,class Virtual>(Root,"Virtual",this->Process,"DXXXX","DXXXX");
-        for(std::unique_ptr<class Process>& Proc:this->Process)
+        for(std::unique_ptr<class Process>& Prc:this->Process)
         {
-            if(Proc->Type==PROC_VIRTUAL)
-                this->Virtual.push_back(static_cast<class Virtual*>(Proc.get()));
+            if(Prc->Type==PROCESS_VIRTUAL)
+                this->Virtual.push_back(static_cast<class Virtual*>(Prc.get()));
         }
     }
     catch(std::exception& Exc)
@@ -162,12 +162,12 @@ void Proj_Info::Check(void)
 
         /* Check for duplicate process names */
         Duplicate_Check<class Process,std::string>(this->Process,this->Process_Map,
-                                                   [](std::unique_ptr<class Process>& Proc)->std::string{return Proc->Name;},
+                                                   [](std::unique_ptr<class Process>& Prc)->std::string{return Prc->Name;},
                                                    "PXXXX","name","Process");
 
         /* Check individual projects */
-        for(std::unique_ptr<class Process>& Proc:this->Process)
-            Proc->Check();
+        for(std::unique_ptr<class Process>& Prc:this->Process)
+            Prc->Check();
     }
     catch(std::exception& Exc)
     {
@@ -190,16 +190,16 @@ Description : Allocate the memory for vector/event flags. Flags are always like
               Each bit corresponds to a single vector. The whole struct will repeat twice.
 Input       : ptr_t Source - The source number.
               ptr_t Wordlength - The processor wordlength.
-              ptr_t Kmem_Order - The kernel memory alignment order of 2.
+              ptr_t Kom_Order - The kernel memory alignment order of 2.
 Output      : None.
 Return      : ptr_t - The vector flag sector size.
 ******************************************************************************/
-ptr_t Proj_Info::Flag_Alloc(ptr_t Source, ptr_t Wordlength, ptr_t Kmem_Order)
+ptr_t Proj_Info::Flag_Alloc(ptr_t Source, ptr_t Wordlength, ptr_t Kom_Order)
 {
     ptr_t Raw;
 
     Raw=(ROUND_DIV(Source,Wordlength)+2)*(Wordlength/8);
-    return ROUND_UP_POW2(Raw,Kmem_Order)*2;
+    return ROUND_UP_POW2(Raw,Kom_Order)*2;
 }
 /* End Function:Proj_Info::Flag_Alloc ****************************************/
 }

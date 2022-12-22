@@ -8,6 +8,7 @@ Description : The hypercall implementation file.
 
 /* Includes ******************************************************************/
 #include "rvm.h"
+#include "rvm_boot.h"
 
 #define __HDR_DEFS__
 #include "rvm_platform.h"
@@ -40,11 +41,11 @@ Input       : volatile struct RVM_Virt_Struct* Virt - The virtual machine to put
 Output      : None.
 Return      : None.
 ******************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 void _RVM_Run_Ins(volatile struct RVM_Virt_Struct* Virt)
 {
     /* Insert this into the corresponding runqueue */
-    RVM_List_Ins(&(Virt->Head),RVM_Run[Virt->Map->Prio].Prev,&(RVM_Run[Virt->Map->Prio]));
+    RVM_List_Ins(&(Virt->Head), RVM_Run[Virt->Map->Prio].Prev, &(RVM_Run[Virt->Map->Prio]));
     /* Set this runlevel as active */
     RVM_Bitmap[Virt->Map->Prio>>RVM_WORD_ORDER]|=RVM_POW2(Virt->Map->Prio&RVM_WORD_MASK);
 }
@@ -58,7 +59,7 @@ Input       : volatile struct RVM_Virt_Struct* Virt - The virtual machine to
 Output      : None.
 Return      : None.
 ******************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 void _RVM_Run_Del(volatile struct RVM_Virt_Struct* Virt)
 {
     /* See if it is the last thread on the priority level */
@@ -66,7 +67,7 @@ void _RVM_Run_Del(volatile struct RVM_Virt_Struct* Virt)
         RVM_Bitmap[Virt->Map->Prio>>RVM_WORD_ORDER]&=~RVM_POW2(Virt->Map->Prio&RVM_WORD_MASK);
     
     /* Delete this from the corresponding runqueue */
-    RVM_List_Del(Virt->Head.Prev,Virt->Head.Next);
+    RVM_List_Del(Virt->Head.Prev, Virt->Head.Next);
 }
 #endif
 /* End Function:_RVM_Run_Del *************************************************/
@@ -79,7 +80,7 @@ Return      : volatile struct RVM_Virt_Struct* Virt - The virtual machine. If al
                                                       virtual machine have gone 
                                                       asleep, this will be NULL.
 ******************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 volatile struct RVM_Virt_Struct* _RVM_Run_High(void)
 {
     rvm_cnt_t Count;
@@ -106,7 +107,7 @@ Input       : volatile struct RVM_Virt_Struct* From - The source virtual machine
 Output      : None.
 Return      : None.
 ******************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 void _RVM_Virt_Switch(volatile struct RVM_Virt_Struct* From, 
                       volatile struct RVM_Virt_Struct* To)
 {
@@ -135,7 +136,7 @@ Input       : volatile struct RVM_Virt_Struct* Virt - The virtual machine to che
 Output      : None.
 Return      : If there is one interrupt pending, return 1; else 0.
 ******************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 rvm_ret_t _RVM_Vect_Pend_Check(volatile struct RVM_Virt_Struct* Virt)
 {
     rvm_ptr_t Count;
@@ -167,7 +168,7 @@ Input       : volatile struct RVM_Virt_Struct* Virt - The virtual machine to set
 Output      : None.
 Return      : None.
 ******************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 void _RVM_Vect_Flag_Set(volatile struct RVM_Virt_Struct* Virt,
                         rvm_ptr_t Vect_Num)
 {
@@ -180,7 +181,7 @@ void _RVM_Vect_Flag_Set(volatile struct RVM_Virt_Struct* Virt,
 Description : Print one character to the RVM debug console.
 Input       : rvm_ptr_t Char - The character.
 Output      : None.
-Return      : rvm_ret_t - If successful, 0; else an error code.
+Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 #if((RVM_PREEMPT_VPRIO_NUM!=0U)&&(RVM_DEBUG_PRINT==1U))
 rvm_ret_t RVM_Hyp_Putchar(rvm_ptr_t Char)
@@ -197,9 +198,9 @@ Description : Enable interrupts for a virtual machine. Need to call this when
               or it wouldn't be able to receive interrupts.
 Input       : None.
 Output      : None.
-Return      : rvm_ret_t - If successful, 0; else an error code.
+Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 rvm_ret_t RVM_Hyp_Int_Ena(void)
 {
     if((RVM_Virt_Cur->Sched.State&RVM_VM_INTENA)!=0)
@@ -229,9 +230,9 @@ Description : Disable the interrupt for the virtual machine. All interrupts for 
               startup.
 Input       : None.
 Output      : None.
-Return      : rvm_ret_t - If successful, 0; else an error code.
+Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 rvm_ret_t RVM_Hyp_Int_Dis(void)
 {
     if((RVM_Virt_Cur->Sched.State&RVM_VM_INTENA)==0)
@@ -249,9 +250,9 @@ Description : Register the virtual machine's virtual vector with a physical vect
 Input       : rvm_ptr_t Phys_Num - The physical vector number.
               rvm_ptr_t Vect_Num - The virtual vector number.
 Output      : None.
-Return      : rvm_ret_t - If successful, the interrupt registration ID; else an error code.
+Return      : rvm_ret_t - If successful, the interrupt registration ID; or an error code.
 ******************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 rvm_ret_t RVM_Hyp_Vect_Phys(rvm_ptr_t Phys_Num,
                             rvm_ptr_t Vect_Num)
 {
@@ -314,9 +315,9 @@ Description : Register the virtual machine's virtual vector with an event channe
 Input       : rvm_ptr_t Evt_Num - The event number.
               rvm_ptr_t Vect_Num - The virtual vector number.
 Output      : None.
-Return      : rvm_ret_t - If successful, the event channel ID; else an error code.
+Return      : rvm_ret_t - If successful, the event channel ID; or an error code.
 ******************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 rvm_ret_t RVM_Hyp_Vect_Evt(rvm_ptr_t Evt_Num,
                            rvm_ptr_t Vect_Num)
 {
@@ -378,9 +379,9 @@ rvm_ret_t RVM_Hyp_Vect_Evt(rvm_ptr_t Evt_Num,
 Description : Deregister the vector of an virtual machine.
 Input       : rvm_ptr_t Vect_Num - The virtual vector to deregister.
 Output      : None.
-Return      : rvm_ret_t - If successful, 0; else an error code.
+Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 rvm_ret_t RVM_Hyp_Vect_Del(rvm_ptr_t Vect_Num)
 {
     volatile struct RVM_List* Trav;
@@ -422,9 +423,9 @@ rvm_ret_t RVM_Hyp_Vect_Del(rvm_ptr_t Vect_Num)
 Description : Lockdown the vector mapping of an virtual machine.
 Input       : rvm_ptr_t Vect_Num - The virtual vector to deregister.
 Output      : None.
-Return      : rvm_ret_t - If successful, 0; else an error code.
+Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 rvm_ret_t RVM_Hyp_Vect_Lock(void)
 {
     /* See if we have locked ourselves down */
@@ -443,9 +444,9 @@ rvm_ret_t RVM_Hyp_Vect_Lock(void)
 Description : Set the virtual machine to sleep until a vector comes in.
 Input       : None.
 Output      : None.
-Return      : rvm_ret_t - If successful, 0; else an error code.
+Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 rvm_ret_t RVM_Hyp_Vect_Wait(void)
 {
     volatile struct RVM_Virt_Struct* Next;
@@ -472,9 +473,9 @@ rvm_ret_t RVM_Hyp_Vect_Wait(void)
 Description : Add a event source's send capability to virtual machine.
 Input       : rvm_ptr_t Evt_Num - The event souce to register.
 Output      : None.
-Return      : rvm_ret_t - If successful, 0; else an error code.
+Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 rvm_ret_t RVM_Hyp_Evt_Add(rvm_ptr_t Evt_Num)
 {
     volatile rvm_ptr_t* Slot;
@@ -508,9 +509,9 @@ rvm_ret_t RVM_Hyp_Evt_Add(rvm_ptr_t Evt_Num)
 Description : Delete a event source's send capability from virtual machine.
 Input       : rvm_ptr_t Evt_Num - The event souce to deregister.
 Output      : None.
-Return      : rvm_ret_t - If successful, 0; else an error code.
+Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 rvm_ret_t RVM_Hyp_Evt_Del(rvm_ptr_t Evt_Num)
 {
     volatile rvm_ptr_t* Slot;
@@ -549,7 +550,7 @@ Input       : volatile struct RVM_List* Array - The array containing lists of
 Output      : None.
 Return      : None.
 ******************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 void _RVM_Virt_Vect_Send(volatile struct RVM_List* Array,
                          rvm_ptr_t Num)
 {
@@ -586,9 +587,9 @@ void _RVM_Virt_Vect_Send(volatile struct RVM_List* Array,
 Description : Send an event to the event channel.
 Input       : rvm_ptr_t Evt_Num - The event channel ID.
 Output      : None.
-Return      : rvm_ret_t - If successful, 0; else an error code.
+Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 rvm_ret_t RVM_Hyp_Evt_Send(rvm_ptr_t Evt_Num)
 {
     volatile rvm_ptr_t* Slot;
@@ -628,9 +629,9 @@ rvm_ret_t RVM_Hyp_Evt_Send(rvm_ptr_t Evt_Num)
 Description : Start and feed the watchdog for the current virtual machine.
 Input       : None.
 Output      : None.
-Return      : rvm_ret_t - If successful, 0; else an error code.
+Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 rvm_ret_t RVM_Hyp_Wdog_Feed(void)
 {   
     /* See if this virtual machine have watchdog enabled */
@@ -653,7 +654,7 @@ Input       : volatile struct RVM_Virt_Struct* Virt - The virtual machine to ins
 Output      : None.
 Return      : None.
 ******************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 void _RVM_Wheel_Ins(volatile struct RVM_Virt_Struct* Virt,
                     rvm_ptr_t Period)
 {
@@ -686,7 +687,7 @@ Input       : volatile struct RVM_Virt_Struct* Virt - The pointer to the virtual
 Output      : None.
 Return      : None.
 ******************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 void _RVM_Timer_Send(volatile struct RVM_Virt_Struct* Virt)
 {
     if(RVM_VM_STATE(Virt->Sched.State)==RVM_VM_WAITING)
@@ -713,7 +714,7 @@ Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 void _RVM_Virt_Cur_Recover(void)
 {
     struct RVM_Map_Struct* Map;
@@ -724,9 +725,9 @@ void _RVM_Virt_Cur_Recover(void)
     RVM_ASSERT(RVM_Thd_Sched_Free(RVM_Virt_Cur->Map->Vect_Thd_Cap)==0);
     RVM_ASSERT(RVM_Thd_Sched_Free(RVM_Virt_Cur->Map->User_Thd_Cap)==0);
     RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Virt_Cur->Map->Vect_Thd_Cap, RVM_Sftd_Thd_Cap, RVM_Sftd_Sig_Cap, 
-                                  RVM_Virt_Cur->Map->Vect_Thd_Cap|RVM_VIRT_THDID_MARKER, RVM_VECT_PRIO)==0);
+                                  RVM_Virt_Cur->Map->Vect_Thd_Cap|RVM_VIRT_TID_MARKER, RVM_VECT_PRIO)==0);
     RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Virt_Cur->Map->User_Thd_Cap, RVM_Sftd_Thd_Cap, RVM_Sftd_Sig_Cap, 
-                                  RVM_Virt_Cur->Map->User_Thd_Cap|RVM_VIRT_THDID_MARKER, RVM_USER_PRIO)==0);
+                                  RVM_Virt_Cur->Map->User_Thd_Cap|RVM_VIRT_TID_MARKER, RVM_USER_PRIO)==0);
     
     /* Set the execution properties for virt @ position 0 */
     Init_Stack_Addr=RVM_Stack_Init(RVM_Virt_Cur->Map->Vect_Stack_Base, RVM_Virt_Cur->Map->Vect_Stack_Size,
@@ -780,7 +781,6 @@ Return      : None.
 void RVM_Sftd(void)
 {
     rvm_tid_t Thd;
-    rvm_ptr_t Fault;
     
     RVM_DBG_S("Sftd:Safety guard daemon initialization complete.\r\n");
 
@@ -790,7 +790,7 @@ void RVM_Sftd(void)
         /* Blocking single receive */
         RVM_ASSERT(RVM_Sig_Rcv(RVM_Sftd_Sig_Cap, RVM_RCV_BS)>=0);
         
-        Thd=RVM_Thd_Sched_Rcv(RVM_Sftd_Thd_Cap, &Fault);
+        Thd=RVM_Thd_Sched_Rcv(RVM_Sftd_Thd_Cap);
         
         /* Is an error a fault? If not, then we must have done something wrong - This is really bad */
         if(((Thd&RVM_THD_FAULT_FLAG)==0)||(Thd<0))
@@ -800,13 +800,13 @@ void RVM_Sftd(void)
             RVM_ASSERT(0);
         }
         
-        /* Print the reason of the fault */
-        RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
-        RVM_Thd_Print_Fault(Fault);
-        
         /* See what thread faulted. If it is any of the process threads, then the system is done */
         Thd&=~RVM_THD_FAULT_FLAG;
         
+        /* Print the reason of the fault */
+        RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
+        RVM_Thd_Print_Exc(Thd);
+
         /* Whatever thread faults, we will need to print their registers, so we can figure out
          * what the fault is. There should be a print somewhere, but shouldn't be in the kernel. */
         if(Thd<RVM_CAPID_2L)
@@ -815,7 +815,7 @@ void RVM_Sftd(void)
             RVM_DBG_S("Sftd:Unrecoverable fault on RVM ");
             if(Thd==RVM_Sftd_Thd_Cap)
                 RVM_DBG_S("Sftd");
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
             else if(Thd==RVM_Timd_Thd_Cap)
                 RVM_DBG_S("Timd");
             else if(Thd==RVM_Vmmd_Thd_Cap)
@@ -833,7 +833,7 @@ void RVM_Sftd(void)
             /* Reboot */
             RVM_ASSERT(0);
         }
-        else if((Thd&RVM_VIRT_THDID_MARKER)==0U)
+        else if((Thd&RVM_VIRT_TID_MARKER)==0U)
         {
             /* We know that this happened in a process. Still, cannot be recovered. */
             RVM_DBG_SIS("Sftd:Unrecoverable fault on process thread TID ", Thd, ". Rebooting system...\r\n");
@@ -846,8 +846,8 @@ void RVM_Sftd(void)
         }
         else
         {
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
-            Thd&=~RVM_VIRT_THDID_MARKER;
+#if(RVM_VIRT_NUM!=0U)
+            Thd&=~RVM_VIRT_TID_MARKER;
             /* This must have happened in the current virtual machine */
             RVM_DBG_S("Sftd:Recoverable fault in virtual machine ");
             RVM_DBG_S(RVM_Virt_Cur->Map->Name);
@@ -886,7 +886,7 @@ Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 void RVM_Timd(void)
 {
     volatile struct RVM_Virt_Struct* Virt;
@@ -988,7 +988,7 @@ Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 void RVM_Vmmd(void)
 {
     rvm_ptr_t Number;
@@ -1106,7 +1106,7 @@ Input       : volatile struct RVM_Flag* Set - The interrupt set data.
 Output      : volatile struct RVM_Flag* Set - The interrupt set data.
 Return      : rvm_ptr_t - The interrupt number.
 ******************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 rvm_ptr_t _RVM_Flagset_Get(volatile struct RVM_Flag* Set)
 {
     rvm_ptr_t Group;
@@ -1114,11 +1114,11 @@ rvm_ptr_t _RVM_Flagset_Get(volatile struct RVM_Flag* Set)
     
     /* See which source group could possibly have any interrupts */
     Group=_RVM_MSB_Get(Set->Group);
-    Member=_RVM_MSB_Get(Set->Flags[Group]);
+    Member=_RVM_MSB_Get(Set->Flag[Group]);
     
     /* Clean up the slot now */
-    Set->Flags[Group]&=~RVM_POW2(Member);
-    if(Set->Flags[Group]==0U)
+    Set->Flag[Group]&=~RVM_POW2(Member);
+    if(Set->Flag[Group]==0U)
         Set->Group&=~RVM_POW2(Group);
     
     return (Group<<RVM_WORD_ORDER)|Member;
@@ -1132,7 +1132,7 @@ Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 void RVM_Vctd(void)
 {
     rvm_ptr_t Num;
@@ -1222,7 +1222,7 @@ Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 void RVM_Virt_Init(void)
 {
     rvm_ptr_t Count;
@@ -1261,7 +1261,7 @@ Input       : struct RVM_Virt_Struct* Virt - The virtual machine database.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-#if(RVM_PREEMPT_VPRIO_NUM!=0U)
+#if(RVM_VIRT_NUM!=0U)
 void RVM_Virt_Crt(struct RVM_Virt_Struct* Virt,
                   const struct RVM_Vmap_Struct* Vmap,
                   rvm_ptr_t Virt_Num)
@@ -1292,13 +1292,11 @@ void RVM_Virt_Crt(struct RVM_Virt_Struct* Virt,
         RVM_Clear(Vmap[Count].State_Base, Vmap[Count].State_Size);
         
         /* Clean up all event send capabilities for this virtual machine */
-        RVM_Clear((void*)(Virt[Count].Evt_Cap), RVM_EVTCAP_BITMAP*sizeof(rvm_ptr_t));
+        RVM_Clear(Virt[Count].Evt_Cap, RVM_EVTCAP_BITMAP*sizeof(rvm_ptr_t));
 
         /* Print log */
         RVM_DBG_S("Vmmd: Created VM ");
         RVM_DBG_S(Vmap[Count].Name);
-        RVM_DBG_S(" register 0x");
-        RVM_DBG_H((rvm_ptr_t)(Vmap[Count].Reg_Base));
         RVM_DBG_S(" control block 0x");
         RVM_DBG_H((rvm_ptr_t)&Virt[Count]);
         RVM_DBG_S(" database 0x");
@@ -1308,7 +1306,7 @@ void RVM_Virt_Crt(struct RVM_Virt_Struct* Virt,
     
     /* Now set up the scheduler for the first runnable virtual machine */
     RVM_Virt_Cur=_RVM_Run_High();
-    _RVM_Virt_Switch(0U, RVM_Virt_Cur);
+    _RVM_Virt_Switch(RVM_NULL, RVM_Virt_Cur);
 }
 #endif
 /* End Function:RVM_Virt_Init ************************************************/

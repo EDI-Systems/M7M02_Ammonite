@@ -47,7 +47,7 @@ while(0)
 
 /* Rounding macros */
 #define ROUND_DOWN(X,R)                     ((X)/(R)*(R))
-#define ROUND_UP(X,R)                       ROUND_DOWN((X)+(R)-1,R)
+#define ROUND_UP(X,R)                       ROUND_DOWN((X)+(R)-1, R)
 #define ROUND_DIV(X,R)                      (((X)+(R)-1)/(R))
 
 /* Power of 2 macros */
@@ -55,7 +55,7 @@ while(0)
 #define ROUND_DOWN_POW2(X,POW)              (((X)>>(POW))<<(POW))
 #define ROUND_UP_POW2(X,POW)                ROUND_DOWN_POW2((X)+POW2(POW)-1,POW)
 
-#define ROUND_KOBJ(X)                       ROUND_UP_POW2(X,this->Proj->Kernel->Kmem_Order)
+#define ROUND_KOBJ(X)                       ROUND_UP_POW2(X,this->Proj->Kernel->Kom_Order)
 
 /* The code generator author name */
 #define CODE_AUTHOR                         "The RVM project generator."
@@ -70,7 +70,7 @@ while(0)
 #define VIRT_EVENT_MAX                      (1024)
 
 /* Priority limit for threads */
-#define PROC_THD_PRIO_MIN                   (5)
+#define PRC_THD_PRIO_MIN                   (5)
 
 /* Maximum file length allowed */
 #define MAX_FILE_SIZE                       (16*1024*1024)
@@ -128,12 +128,12 @@ public:
 
     void Kobj_Init(void);
     void Shmem_Add(void);
-    void Pgtbl_Alloc(void);
+    void Pgt_Alloc(void);
 
     void Cap_Alloc(void);
     void Cap_Link(void);
 
-    void Kmem_Alloc(ptr_t Init_Capsz);
+    void Kom_Alloc(ptr_t Init_Capsz);
     void Obj_Alloc(void);
 
     void Kernel_Gen(void);

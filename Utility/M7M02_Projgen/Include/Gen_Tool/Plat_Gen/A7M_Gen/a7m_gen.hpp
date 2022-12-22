@@ -24,8 +24,8 @@ namespace RVM_GEN
 #define A7M_INIT_NUM_ORD                        (0)
 
 /* A7M kernel object size */
-#define A7M_RAW_PGTBL_SIZE_NOM(O)               ((5+POW2(O))*4)
-#define A7M_RAW_PGTBL_SIZE_TOP(O, R)            (((1+(R)*2)*4)+A7M_RAW_PGTBL_SIZE_NOM(O))
+#define A7M_RAW_PGT_SIZE_NOM(O)               ((5+POW2(O))*4)
+#define A7M_RAW_PGT_SIZE_TOP(O, R)            (((1+(R)*2)*4)+A7M_RAW_PGT_SIZE_NOM(O))
 #define A7M_RAW_THD_SIZE                        (0x80)
 #define A7M_RAW_THD_FPU_SIZE                    (0xC0)
 #define A7M_RAW_INV_SIZE                        (0x24)
@@ -47,28 +47,29 @@ namespace RVM_GEN
 class A7M_Gen:public Plat_Gen
 {
 private:
-    ptr_t Pgtbl_Total_Order(std::vector<std::unique_ptr<class Mem_Info>>& List, ptr_t* Base);
-    ptr_t Pgtbl_Num_Order(std::vector<std::unique_ptr<class Mem_Info>>& List, ptr_t Total_Order, ptr_t Base);
+    ptr_t Pgt_Total_Order(std::vector<std::unique_ptr<class Mem_Info>>& List, ptr_t* Base);
+    ptr_t Pgt_Num_Order(std::vector<std::unique_ptr<class Mem_Info>>& List, ptr_t Total_Order, ptr_t Base);
     void Page_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
-                  std::unique_ptr<class Pgtbl>& Pgtbl);
+                  std::unique_ptr<class Pgtbl>& Pgt);
     void Pgdir_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
-                   class Process* Owner, std::unique_ptr<class Pgtbl>& Pgtbl, ptr_t& Total_Static);
+                   class Process* Owner, std::unique_ptr<class Pgtbl>& Pgt, ptr_t& Total_Static);
 
 public:
     /* void */ A7M_Gen(class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip);
 
     virtual void Compatible_Get(std::vector<std::tuple<std::string,std::string,std::string>>& List) final override;
     virtual ptr_t Mem_Align(ptr_t Base, ptr_t Size) final override;
-    virtual std::unique_ptr<class Pgtbl> Pgtbl_Gen(std::vector<std::unique_ptr<class Mem_Info>>& List,
+    virtual std::unique_ptr<class Pgtbl> Pgt_Gen(std::vector<std::unique_ptr<class Mem_Info>>& List,
                                                    class Process* Owner, ptr_t Total_Max, ptr_t& Total_Static) final override;
 
-    virtual ptr_t Raw_Pgtbl(ptr_t Size_Order, ptr_t Is_Top) final override;
+    virtual ptr_t Raw_Pgt(ptr_t Size_Order, ptr_t Is_Top) final override;
     virtual ptr_t Raw_Thread(void) final override;
     virtual ptr_t Raw_Invocation(void) final override;
     virtual ptr_t Raw_Register(void) final override;
 
     virtual void Kernel_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List) final override;
     virtual void Monitor_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List) final override;
+    virtual void Process_Main_Hdr(std::unique_ptr<std::vector<std::string>>& List) final override;
 };
 /*****************************************************************************/
 /* __A7M_GEN_HPP_CLASSES__ */

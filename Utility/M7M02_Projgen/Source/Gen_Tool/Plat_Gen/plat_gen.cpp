@@ -67,30 +67,30 @@ Return      : None.
 }
 /* End Function:Plat_Gen::Plat_Gen *******************************************/
 
-/* Begin Function:Plat_Gen::Size_Captbl **************************************
+/* Begin Function:Plat_Gen::Size_Cpt **************************************
 Description : Query the size of capability table given the number of slots.
 Input       : ptr_t Slot - The number of slots.
 Output      : None.
 Return      : ptr_t - The size in bytes.
 ******************************************************************************/
-ptr_t Plat_Gen::Size_Captbl(ptr_t Slot)
+ptr_t Plat_Gen::Size_Cpt(ptr_t Slot)
 {
-    return ROUND_UP_POW2(this->Plat->Wordlength*Slot,this->Proj->Kernel->Kmem_Order);
+    return ROUND_UP_POW2(this->Plat->Wordlength*Slot,this->Proj->Kernel->Kom_Order);
 }
-/* End Function:Plat_Gen::Size_Captbl ****************************************/
+/* End Function:Plat_Gen::Size_Cpt ****************************************/
 
-/* Begin Function:Plat_Gen::Size_Pgtbl ****************************************
+/* Begin Function:Plat_Gen::Size_Pgt ****************************************
 Description : Query the size of page table given the parameters.
 Input       : ptr_t Num_Order - The number order.
               ptr_t Is_Top - Whether this is a top-level.
 Output      : None.
 Return      : ptr_t - The size in bytes.
 ******************************************************************************/
-ptr_t Plat_Gen::Size_Pgtbl(ptr_t Num_Order, ptr_t Is_Top)
+ptr_t Plat_Gen::Size_Pgt(ptr_t Num_Order, ptr_t Is_Top)
 {
-    return ROUND_UP_POW2(this->Raw_Pgtbl(Num_Order,Is_Top),this->Proj->Kernel->Kmem_Order);
+    return ROUND_UP_POW2(this->Raw_Pgt(Num_Order,Is_Top),this->Proj->Kernel->Kom_Order);
 }
-/* End Function:Plat_Gen::Size_Pgtbl *****************************************/
+/* End Function:Plat_Gen::Size_Pgt *****************************************/
 
 /* Begin Function:Plat_Gen::Size_Thread ***************************************
 Description : Query the size of thread.
@@ -100,7 +100,7 @@ Return      : ptr_t - The size in bytes.
 ******************************************************************************/
 ptr_t Plat_Gen::Size_Thread(void)
 {
-    return ROUND_UP_POW2(this->Raw_Thread(),this->Proj->Kernel->Kmem_Order);
+    return ROUND_UP_POW2(this->Raw_Thread(),this->Proj->Kernel->Kom_Order);
 }
 /* End Function:Plat_Gen::Size_Thread ****************************************/
 
@@ -112,7 +112,7 @@ Return      : ptr_t - The size in bytes.
 ******************************************************************************/
 ptr_t Plat_Gen::Size_Invocation(void)
 {
-    return ROUND_UP_POW2(this->Raw_Invocation(),this->Proj->Kernel->Kmem_Order);
+    return ROUND_UP_POW2(this->Raw_Invocation(),this->Proj->Kernel->Kom_Order);
 }
 /* End Function:Plat_Gen::Size_Invocation ************************************/
 
@@ -124,7 +124,7 @@ Return      : ptr_t - The size in bytes.
 ******************************************************************************/
 ptr_t Plat_Gen::Size_Register(void)
 {
-    return ROUND_UP_POW2(this->Raw_Register(),this->Proj->Kernel->Kmem_Order);
+    return ROUND_UP_POW2(this->Raw_Register(),this->Proj->Kernel->Kom_Order);
 }
 /* End Function:Plat_Gen::Size_Register **************************************/
 }

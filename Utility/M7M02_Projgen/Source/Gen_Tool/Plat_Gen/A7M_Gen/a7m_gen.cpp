@@ -146,13 +146,13 @@ ptr_t A7M_Gen::Mem_Align(ptr_t Base, ptr_t Size)
 }
 /* End Function:A7M_Gen::Mem_Align *******************************************/
 
-/* Begin Function:A7M_Gen::Pgtbl_Total_Order **********************************
+/* Begin Function:A7M_Gen::Pgt_Total_Order **********************************
 Description : Get the total order and the start address of the page table.
 Input       : std::vector<std::unique_ptr<class Mem_Info>>& List - The memory block list.
 Output      : ptr_t* Base - The base address of this page table.
 Return      : ptr_t - The total order of the page table.
 ******************************************************************************/
-ptr_t A7M_Gen::Pgtbl_Total_Order(std::vector<std::unique_ptr<class Mem_Info>>& List, ptr_t* Base)
+ptr_t A7M_Gen::Pgt_Total_Order(std::vector<std::unique_ptr<class Mem_Info>>& List, ptr_t* Base)
 {
     /* Start is inclusive, end is exclusive */
     ptr_t Start;
@@ -194,9 +194,9 @@ ptr_t A7M_Gen::Pgtbl_Total_Order(std::vector<std::unique_ptr<class Mem_Info>>& L
 
     return Total_Order;
 }
-/* End Function:A7M_Gen::Pgtbl_Total_Order ***********************************/
+/* End Function:A7M_Gen::Pgt_Total_Order ***********************************/
 
-/* Begin Function:A7M_Gen::Pgtbl_Num_Order ************************************
+/* Begin Function:A7M_Gen::Pgt_Num_Order ************************************
 Description : Get the number order of the page table.
 Input       : std::vector<std::unique_ptr<class Mem_Info>>& List - The memory block list.
               ptr_t Total_Order - The total order of the page table.
@@ -204,7 +204,7 @@ Input       : std::vector<std::unique_ptr<class Mem_Info>>& List - The memory bl
 Output      : None.
 Return      : ptr_t - The number order of the page table.
 ******************************************************************************/
-ptr_t A7M_Gen::Pgtbl_Num_Order(std::vector<std::unique_ptr<class Mem_Info>>& List,
+ptr_t A7M_Gen::Pgt_Num_Order(std::vector<std::unique_ptr<class Mem_Info>>& List,
                                ptr_t Total_Order, ptr_t Base)
 {
     ptr_t Num_Order;
@@ -290,17 +290,17 @@ ptr_t A7M_Gen::Pgtbl_Num_Order(std::vector<std::unique_ptr<class Mem_Info>>& Lis
 
     return Num_Order;
 }
-/* End Function:A7M_Gen::Pgtbl_Num_Order *************************************/
+/* End Function:A7M_Gen::Pgt_Num_Order *************************************/
 
 /* Begin Function:A7M_Gen::Page_Map *******************************************
 Description : Map pages into the page table as we can.
 Input       : std::vector<std::unique_ptr<class Mem>>& List - The memory block list.
-              std::unique_ptr<class Pgtbl>& Pgtbl - The current page table.
-Output      : std::unique_ptr<class Pgtbl>& Pgtbl - The updated current page table.
+              std::unique_ptr<class Pgtbl>& Pgt - The current page table.
+Output      : std::unique_ptr<class Pgtbl>& Pgt - The updated current page table.
 Return      : None.
 ******************************************************************************/
 void A7M_Gen::Page_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
-                       std::unique_ptr<class Pgtbl>& Pgtbl)
+                       std::unique_ptr<class Pgtbl>& Pgt)
 {
     ptr_t Attr;
     ptr_t Page_Cnt;
@@ -311,7 +311,7 @@ void A7M_Gen::Page_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
     ptr_t Cur_Attr;
 
     Main::Info("> Mapping pages into pgdir base 0x%llX size order %lld num order %lld.",
-               Pgtbl->Base,Pgtbl->Size_Order,Pgtbl->Num_Order);
+               Pgt->Base,Pgt->Size_Order,Pgt->Num_Order);
 
     /* Use the attribute that covers most pages - there are O(N) algorithms,
      * but this is easier to guarantee correctness */
@@ -325,10 +325,10 @@ void A7M_Gen::Page_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
         {
             if(Mem->Attr==Cur_Attr)
             {
-                for(Page_Cnt=0;Page_Cnt<POW2(Pgtbl->Num_Order);Page_Cnt++)
+                for(Page_Cnt=0;Page_Cnt<POW2(Pgt->Num_Order);Page_Cnt++)
                 {
-                    Page_Start=Pgtbl->Base+Page_Cnt*POW2(Pgtbl->Size_Order);
-                    Page_End=Page_Start+POW2(Pgtbl->Size_Order);
+                    Page_Start=Pgt->Base+Page_Cnt*POW2(Pgt->Size_Order);
+                    Page_End=Page_Start+POW2(Pgt->Size_Order);
 
                     if((Mem->Base<=Page_Start)&&((Mem->Base+Mem->Size)>=Page_End))
                         Page_Num++;
@@ -348,10 +348,10 @@ void A7M_Gen::Page_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
         return;
 
     /* Map whatever we can map, and postpone whatever we will have to postpone */
-    for(Page_Cnt=0;Page_Cnt<POW2(Pgtbl->Num_Order);Page_Cnt++)
+    for(Page_Cnt=0;Page_Cnt<POW2(Pgt->Num_Order);Page_Cnt++)
     {
-        Page_Start=Pgtbl->Base+Page_Cnt*POW2(Pgtbl->Size_Order);
-        Page_End=Page_Start+POW2(Pgtbl->Size_Order);
+        Page_Start=Pgt->Base+Page_Cnt*POW2(Pgt->Size_Order);
+        Page_End=Page_Start+POW2(Pgt->Size_Order);
 
         /* Can this compartment be mapped? It can if there is one segment covering the range */
         for(std::unique_ptr<class Mem_Info>& Mem:List)
@@ -363,7 +363,7 @@ void A7M_Gen::Page_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
                  * memory with the same attributes as possible */
                 if((Attr&(~MEM_STATIC))==(Mem->Attr&(~MEM_STATIC)))
                 {
-                    Pgtbl->Page[Page_Cnt]=Mem->Attr;
+                    Pgt->Page[Page_Cnt]=Mem->Attr;
                     Main::Info("> > Memory page base 0x%0llX size 0x%0llX mapped with attr 0x%0llX.",
                                Page_Start,Page_End-Page_Start,Mem->Attr);
                 }
@@ -377,13 +377,13 @@ void A7M_Gen::Page_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
 Description : Map page directories into the page table.
 Input       : std::vector<std::unique_ptr<class Mem>>& List - The memory block list.
               class Process* Owner - The owner process of this kernel object.
-              std::unique_ptr<class Pgtbl>& Pgtbl - The current page table.
-Output      : std::unique_ptr<class Pgtbl>& Pgtbl - The updated current page table.
+              std::unique_ptr<class Pgtbl>& Pgt - The current page table.
+Output      : std::unique_ptr<class Pgtbl>& Pgt - The updated current page table.
               ptr_t& Total_Static - The total number of static regions used.
 Return      : None.
 ******************************************************************************/
 void A7M_Gen::Pgdir_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
-                        class Process* Owner, std::unique_ptr<class Pgtbl>& Pgtbl, ptr_t& Total_Static)
+                        class Process* Owner, std::unique_ptr<class Pgtbl>& Pgt, ptr_t& Total_Static)
 {
     ptr_t Base;
     ptr_t Size;
@@ -393,14 +393,14 @@ void A7M_Gen::Pgdir_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
     std::vector<std::unique_ptr<class Mem_Info>> Child_List;
 
     Main::Info("> Mapping pgdirs into pgdir base 0x%llX size order %lld num order %lld.",
-               Pgtbl->Base,Pgtbl->Size_Order,Pgtbl->Num_Order);
+               Pgt->Base,Pgt->Size_Order,Pgt->Num_Order);
 
-    for(Page_Cnt=0;Page_Cnt<POW2(Pgtbl->Num_Order);Page_Cnt++)
+    for(Page_Cnt=0;Page_Cnt<POW2(Pgt->Num_Order);Page_Cnt++)
     {
-        Page_Start=Pgtbl->Base+Page_Cnt*POW2(Pgtbl->Size_Order);
-        Page_End=Page_Start+POW2(Pgtbl->Size_Order);
+        Page_Start=Pgt->Base+Page_Cnt*POW2(Pgt->Size_Order);
+        Page_End=Page_Start+POW2(Pgt->Size_Order);
 
-        if(Pgtbl->Page[Page_Cnt]==0)
+        if(Pgt->Page[Page_Cnt]==0)
         {
             /* See if any residue memory list are here */
             for(std::unique_ptr<class Mem_Info>& Mem:List)
@@ -426,7 +426,7 @@ void A7M_Gen::Pgdir_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
             /* Map in the child list if there are any at all */
             if(!Child_List.empty())
             {
-                Pgtbl->Pgdir[Page_Cnt]=this->Pgtbl_Gen(Child_List,Owner,Pgtbl->Size_Order,Total_Static);
+                Pgt->Pgdir[Page_Cnt]=this->Pgt_Gen(Child_List,Owner,Pgt->Size_Order,Total_Static);
                 /* Clean up what we have allocated */
                 Child_List.clear();
             }
@@ -435,7 +435,7 @@ void A7M_Gen::Pgdir_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
 }
 /* End Function:A7M_Gen::Pgdir_Map *******************************************/
 
-/* Begin Function:A7M_Gen::Pgtbl_Gen ******************************************
+/* Begin Function:A7M_Gen::Pgt_Gen ******************************************
 Description : Recursively construct the page table for the ARMv7-M port.
 Input       : std::vector<std::unique_ptr<class Mem_Info>>& - The list containing
                                                               memory segments to fit
@@ -450,36 +450,36 @@ Return      : std::unique_ptr<class Pgtbl> - The page table structure returned. 
                                              error is encountered, it will directly
                                              error out.
 ******************************************************************************/
-std::unique_ptr<class Pgtbl> A7M_Gen::Pgtbl_Gen(std::vector<std::unique_ptr<class Mem_Info>>& List,
+std::unique_ptr<class Pgtbl> A7M_Gen::Pgt_Gen(std::vector<std::unique_ptr<class Mem_Info>>& List,
                                                 class Process* Owner, ptr_t Total_Max, ptr_t& Total_Static)
 {
     ptr_t Base;
     ptr_t Num_Order;
     ptr_t Size_Order;
     ptr_t Total_Order;
-    std::unique_ptr<class Pgtbl> Pgtbl;
+    std::unique_ptr<class Pgtbl> Pgt;
 
     /* Total order and start address of the page table */
-    Total_Order=this->Pgtbl_Total_Order(List, &Base);
+    Total_Order=this->Pgt_Total_Order(List, &Base);
     /* See if this will violate the extension limit */
     if(Total_Order>Total_Max)
         Main::Error("A0201: Memory segment too small, cannot find a reasonable placement.");
 
     /* Number order */
-    Num_Order=this->Pgtbl_Num_Order(List, Total_Order, Base);
+    Num_Order=this->Pgt_Num_Order(List, Total_Order, Base);
     /* Size order */
     Size_Order=Total_Order-Num_Order;
 
     /* Page table attributes are in fact not used in A7M, we always set to full attributes */
-    Pgtbl=std::make_unique<class Pgtbl>(Base, Size_Order, Num_Order, MEM_FULL, Owner);
+    Pgt=std::make_unique<class Pgtbl>(Base, Size_Order, Num_Order, MEM_FULL, Owner);
     Main::Info("> Creating pgdir base 0x%llX size order %lld num order %lld.",Base,Size_Order,Num_Order);
     /* Map in all pages */
-    this->Page_Map(List, Pgtbl);
+    this->Page_Map(List, Pgt);
     /* Map in all page directories - recursive */
-    this->Pgdir_Map(List, Owner, Pgtbl, Total_Static);
+    this->Pgdir_Map(List, Owner, Pgt, Total_Static);
 
     /* If a single page is static, we now have a static MPU region */
-    for(ptr_t Page:Pgtbl->Page)
+    for(ptr_t Page:Pgt->Page)
     {
         if((Page&MEM_STATIC)!=0)
         {
@@ -488,25 +488,25 @@ std::unique_ptr<class Pgtbl> A7M_Gen::Pgtbl_Gen(std::vector<std::unique_ptr<clas
         }
     }
 
-    return Pgtbl;
+    return Pgt;
 }
-/* End Function:A7M::Gen_Pgtbl ***********************************************/
+/* End Function:A7M::Gen_Pgt ***********************************************/
 
-/* Begin Function:A7M_Gen::Raw_Pgtbl ******************************************
+/* Begin Function:A7M_Gen::Raw_Pgt ******************************************
 Description : Query the size of page table given the parameters.
 Input       : ptr_t Num_Order - The number order.
               ptr_t Is_Top - Whether this is a top-level.
 Output      : None.
 Return      : ptr_t - The size in bytes.
 ******************************************************************************/
-ptr_t A7M_Gen::Raw_Pgtbl(ptr_t Num_Order, ptr_t Is_Top)
+ptr_t A7M_Gen::Raw_Pgt(ptr_t Num_Order, ptr_t Is_Top)
 {
     if(Is_Top!=0)
-        return A7M_RAW_PGTBL_SIZE_TOP(Num_Order, this->Chip->Region);
+        return A7M_RAW_PGT_SIZE_TOP(Num_Order, this->Chip->Region);
     else
-        return A7M_RAW_PGTBL_SIZE_NOM(Num_Order);
+        return A7M_RAW_PGT_SIZE_NOM(Num_Order);
 }
-/* End Function:A7M_Gen::Size_Pgtbl ******************************************/
+/* End Function:A7M_Gen::Size_Pgt ******************************************/
 
 /* Begin Function:A7M_Gen::Raw_Thread *****************************************
 Description : Query the size of thread.
@@ -559,7 +559,7 @@ Return      : None.
 void A7M_Gen::Kernel_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
 {
     /* Init process's first thread's entry point address */
-    Gen_Tool::Macro_Hex(List, "RME_A7M_INIT_ENTRY",PROC_DESC_ALIGN(this->Proj->Monitor->Code_Base+8*4)|0x01, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RME_A7M_INIT_ENTRY",PRC_DESC_ALIGN(this->Proj->Monitor->Code_Base+8*4)|0x01, MACRO_REPLACE);
     /* Init process's first thread's stack address */
     Gen_Tool::Macro_Hex(List, "RME_A7M_INIT_STACK",
                         this->Proj->Monitor->Init_Stack_Base+this->Proj->Monitor->Init_Stack_Size-16, MACRO_REPLACE);
@@ -580,7 +580,7 @@ void A7M_Gen::Kernel_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
 /* End Function:A7M_Gen::Kernel_Conf_Hdr *************************************/
 
 /* Begin Function:A7M_Gen::Monitor_Conf_Hdr ***********************************
-Description : Replace kernel configuration header macros.
+Description : Replace monitor configuration header macros.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The input file.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The modified file.
 Return      : None.
@@ -588,7 +588,7 @@ Return      : None.
 void A7M_Gen::Monitor_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
 {
     /* Init process's first thread's entry point address */
-    Gen_Tool::Macro_Hex(List, "RVM_A7M_INIT_ENTRY",PROC_DESC_ALIGN(this->Proj->Monitor->Code_Base+8*4)|0x01, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RVM_A7M_INIT_ENTRY",PRC_DESC_ALIGN(this->Proj->Monitor->Code_Base+8*4)|0x01, MACRO_REPLACE);
     /* Init process's first thread's stack address */
     Gen_Tool::Macro_Hex(List, "RVM_A7M_INIT_STACK",
                         this->Proj->Monitor->Init_Stack_Base+this->Proj->Monitor->Init_Stack_Size-16, MACRO_REPLACE);
@@ -601,6 +601,21 @@ void A7M_Gen::Monitor_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
     /* CPU & Endianness currently unused */
 }
 /* End Function:A7M_Gen::Monitor_Conf_Hdr ************************************/
+
+/* Begin Function:A7M_Gen::Process_Main_Hdr ***********************************
+Description : Replace process main header macros.
+Input       : std::unique_ptr<std::vector<std::string>>& List - The input file.
+Output      : std::unique_ptr<std::vector<std::string>>& List - The modified file.
+Return      : None.
+******************************************************************************/
+void A7M_Gen::Process_Main_Hdr(std::unique_ptr<std::vector<std::string>>& List)
+{
+    /* What is the FPU type? */
+    Gen_Tool::Macro_String(List, "RVM_A7M_FPU_TYPE", std::string("RVM_A7M_FPU_")+this->Chip->Attribute["FPU"], MACRO_ADD);
+
+    /* CPU & Endianness currently unused */
+}
+/* End Function:A7M_Gen::Process_Main_Hdr ************************************/
 }
 /* End Of File ***************************************************************/
 
