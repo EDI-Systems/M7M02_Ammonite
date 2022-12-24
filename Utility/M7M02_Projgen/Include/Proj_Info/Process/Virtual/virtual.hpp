@@ -55,7 +55,7 @@ public:
     /* The watchdog timer interval, in slices */
     ptr_t Watchdog;
     /* The maximum number of virtual interrupt vectors */
-    ptr_t Vect_Num;
+    ptr_t Vector_Num;
 
     /* Register set memory */
     ptr_t Reg_Base;

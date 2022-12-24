@@ -1318,12 +1318,12 @@ Input       : None
 Output      : None.
 Return      : None.
 ******************************************************************************/
-#ifdef RVM_VIRT_VECT_NUM
+#ifdef RVM_VIRT_VCT_NUM
 void RVM_Virt_Init(void)
 {
     /* Clear all VM-related flags and registration tables */
-    RVM_Int_Enable=0U;
-    RVM_Vect_Pend=0U;
+    RVM_Int_Ena=0U;
+    RVM_Vct_Pend=0U;
     
     /* Clean up all shared global variables */
     RVM_Clear((void*)RVM_VIRT_STATE_BASE, RVM_VIRT_STATE_SIZE);
@@ -1332,54 +1332,54 @@ void RVM_Virt_Init(void)
 #endif
 /* End Function:RVM_Virt_Init ************************************************/
 
-/* Begin Function:RVM_Virt_Vect_Reg *******************************************
+/* Begin Function:RVM_Virt_Vct_Reg *******************************************
 Description : Initialize an interrupt handler.
 Input       : rvm_ptr_t Num - The vector number to register for.
-              void (*Vect)(void) - The actual vector handler, should take no
+              void (*Vct)(void) - The actual vector handler, should take no
                                    arguments and return nothing.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-#ifdef RVM_VIRT_VECT_NUM
-rvm_ret_t RVM_Virt_Vect_Reg(rvm_ptr_t Vect_Num,
-                            void (*Vect)(void))
+#ifdef RVM_VIRT_VCT_NUM
+rvm_ret_t RVM_Virt_Vct_Reg(rvm_ptr_t Vect_Num,
+                           void (*Vect)(void))
 {
-    if(Vect_Num>=RVM_VIRT_VECT_NUM)
+    if(Vect_Num>=RVM_VIRT_VCT_NUM)
         return RVM_ERR_RANGE;
     
-    RVM_Handler.Vect[Vect_Num]=Vect;
+    RVM_Handler.Vct[Vect_Num]=Vect;
     return 0;
 }
 #endif
-/* End Function:RVM_Virt_Vect_Reg ********************************************/
+/* End Function:RVM_Virt_Vct_Reg *********************************************/
 
-/* Begin Function:RVM_Virt_Timer_Reg ******************************************
+/* Begin Function:RVM_Virt_Tim_Reg ********************************************
 Description : Register special timer interrupt handler.
-Input       : void (*Timer)(void) - The timer interrupt vector handler.
+Input       : void (*Tim)(void) - The timer interrupt vector handler.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-#ifdef RVM_VIRT_VECT_NUM
-void RVM_Virt_Timer_Reg(void (*Timer)(void))
+#ifdef RVM_VIRT_VCT_NUM
+void RVM_Virt_Tim_Reg(void (*Tim)(void))
 {
-    RVM_Handler.Timer=Timer;
+    RVM_Handler.Tim=Tim;
 }
 #endif
-/* End Function:RVM_Virt_Timer_Reg *******************************************/
+/* End Function:RVM_Virt_Tim_Reg *********************************************/
 
-/* Begin Function:RVM_Virt_Ctxsw_Reg ******************************************
+/* Begin Function:RVM_Virt_Ctx_Reg ********************************************
 Description : Register special context switch interrupt handler.
-Input       : void (*Ctxsw)(void) - The context switch interrupt vector handler.
+Input       : void (*Ctx)(void) - The context switch interrupt vector handler.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-#ifdef RVM_VIRT_VECT_NUM
-void RVM_Virt_Ctxsw_Reg(void (*Ctxsw)(void))
+#ifdef RVM_VIRT_VCT_NUM
+void RVM_Virt_Ctx_Reg(void (*Ctx)(void))
 {
-    RVM_Handler.Ctxsw=Ctxsw;
+    RVM_Handler.Ctx=Ctx;
 }
 #endif
-/* End Function:RVM_Virt_Ctxsw_Reg *******************************************/
+/* End Function:RVM_Virt_Ctx_Reg *****&&**************************************/
 
 /* Begin Function:RVM_Virt_Int_Mask *******************************************
 Description : Mask interrupts; this does not stop the interrupt delivery, but will
@@ -1388,10 +1388,10 @@ Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-#ifdef RVM_VIRT_VECT_NUM
+#ifdef RVM_VIRT_VCT_NUM
 void RVM_Virt_Int_Mask(void)
 {
-    RVM_Int_Enable=0U;
+    RVM_Int_Ena=0U;
 }
 #endif
 /* End Function:RVM_Virt_Int_Mask ********************************************/
@@ -1402,15 +1402,15 @@ Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-#ifdef RVM_VIRT_VECT_NUM
+#ifdef RVM_VIRT_VCT_NUM
 void RVM_Virt_Int_Unmask(void)
 {
-    RVM_Int_Enable=1U;
+    RVM_Int_Ena=1U;
     /* Trigger interrupt processing if there are pending ones */
-    if(RVM_Vect_Pend!=0U)
+    if(RVM_Vct_Pend!=0U)
     {
-        RVM_Vect_Pend=0U;
-        RVM_ASSERT(RVM_Sig_Snd(RVM_SIG_VECT)==0);
+        RVM_Vct_Pend=0U;
+        RVM_ASSERT(RVM_Sig_Snd(RVM_SIG_VCT)==0);
     }
 }
 #endif
@@ -1422,19 +1422,19 @@ Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-#ifdef RVM_VIRT_VECT_NUM
+#ifdef RVM_VIRT_VCT_NUM
 void RVM_Virt_Yield(void)
 {
     /* Set the context switch flag */
-    RVM_VCTF->Ctxsw=1U;
+    RVM_VCTF->Ctx=1U;
     
     /* We send a new trigger if the interrupt is not masked and we are not in interrupt */
-    if(RVM_STATE->Vect_Act==0U)
+    if(RVM_STATE->Vct_Act==0U)
     {
-        if(RVM_Int_Enable!=0U)
-            RVM_ASSERT(RVM_Sig_Snd(RVM_SIG_VECT)==0);
+        if(RVM_Int_Ena!=0U)
+            RVM_ASSERT(RVM_Sig_Snd(RVM_SIG_VCT)==0);
         else
-            RVM_Vect_Pend=1U;
+            RVM_Vct_Pend=1U;
     }
 }
 #endif
@@ -1449,7 +1449,7 @@ Input       : rvm_ptr_t Number - The hypercall number.
 Output      : None.
 Return      : rvm_ret_t - The return value position.
 ******************************************************************************/
-#ifdef RVM_VIRT_VECT_NUM
+#ifdef RVM_VIRT_VCT_NUM
 rvm_ret_t RVM_Hyp(rvm_ptr_t Number,
                   rvm_ptr_t Param1,
                   rvm_ptr_t Param2,
@@ -1458,10 +1458,10 @@ rvm_ret_t RVM_Hyp(rvm_ptr_t Number,
 {
     volatile struct RVM_Param* Arg;
 
-    if(RVM_STATE->Vect_Act!=0U)
-        Arg=&(RVM_STATE->Vect);
+    if(RVM_STATE->Vct_Act!=0U)
+        Arg=&(RVM_STATE->Vct);
     else
-        Arg=&(RVM_STATE->User);
+        Arg=&(RVM_STATE->Usr);
 
     /* Pass the parameters */
     Arg->Number=Number;
@@ -1485,7 +1485,7 @@ Input       : char Char - The character.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-#ifdef RVM_VIRT_VECT_NUM
+#ifdef RVM_VIRT_VCT_NUM
 void RVM_Hyp_Putchar(char Char)
 {
 #if(RVM_DEBUG_PRINT==1U)
@@ -1503,11 +1503,11 @@ Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-#ifdef RVM_VIRT_VECT_NUM
+#ifdef RVM_VIRT_VCT_NUM
 void RVM_Hyp_Int_Ena(void)
 {
     /* Must be successful */
-    RVM_Int_Enable=1U;
+    RVM_Int_Ena=1U;
     RVM_Hyp(RVM_HYP_INT_ENA, 0U, 0U, 0U, 0U);
 }
 #endif
@@ -1520,61 +1520,61 @@ Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-#ifdef RVM_VIRT_VECT_NUM
+#ifdef RVM_VIRT_VCT_NUM
 void RVM_Hyp_Int_Dis(void)
 {
     /* Must be successful */
     RVM_Hyp(RVM_HYP_INT_DIS, 0U, 0U, 0U, 0U);
-    RVM_Int_Enable=0U;
+    RVM_Int_Ena=0U;
 }
 #endif
 /* End Function:RVM_Hyp_Int_Dis **********************************************/
 
-/* Begin Function:RVM_Hyp_Vect_Phys *******************************************
+/* Begin Function:RVM_Hyp_Vct_Phys ********************************************
 Description : Register the virtual machine's virtual vector with a physical vector.
 Input       : rvm_ptr_t Phys_Num - The physical vector number.
-              rvm_ptr_t Vect_Num - The virtual vector number.
+              rvm_ptr_t Vct_Num - The virtual vector number.
 Output      : None.
 Return      : rvm_ret_t - If successful, the interrupt registration ID; else an error code.
 ******************************************************************************/
-#ifdef RVM_VIRT_VECT_NUM
-rvm_ret_t RVM_Hyp_Vect_Phys(rvm_ptr_t Phys_Num,
-                            rvm_ptr_t Vect_Num)
+#ifdef RVM_VIRT_VCT_NUM
+rvm_ret_t RVM_Hyp_Vct_Phys(rvm_ptr_t Phys_Num,
+                           rvm_ptr_t Vct_Num)
 {   
-    return RVM_Hyp(RVM_HYP_VECT_PHYS, Phys_Num, Vect_Num, 0U, 0U);
+    return RVM_Hyp(RVM_HYP_VCT_PHYS, Phys_Num, Vct_Num, 0U, 0U);
 }
 #endif
-/* End Function:RVM_Hyp_Vect_Phys ********************************************/
+/* End Function:RVM_Hyp_Vct_Phys *********************************************/
 
-/* Begin Function:RVM_Hyp_Vect_Evt ********************************************
+/* Begin Function:RVM_Hyp_Vct_Evt *********************************************
 Description : Register the virtual machine's virtual vector with an event channel.
 Input       : rvm_ptr_t Evt_Num - The event number.
-              rvm_ptr_t Vect_Num - The virtual vector number.
+              rvm_ptr_t Vct_Num - The virtual vector number.
 Output      : None.
 Return      : rvm_ret_t - If successful, the event channel ID; else an error code.
 ******************************************************************************/
-#ifdef RVM_VIRT_VECT_NUM
-rvm_ret_t RVM_Hyp_Vect_Evt(rvm_ptr_t Evt_Num,
-                           rvm_ptr_t Vect_Num)
+#ifdef RVM_VIRT_VCT_NUM
+rvm_ret_t RVM_Hyp_Vct_Evt(rvm_ptr_t Evt_Num,
+                          rvm_ptr_t Vct_Num)
 {
-    return RVM_Hyp(RVM_HYP_VECT_EVT, Evt_Num, Vect_Num, 0U, 0U);
+    return RVM_Hyp(RVM_HYP_VCT_EVT, Evt_Num, Vct_Num, 0U, 0U);
 }
 #endif
-/* End Function:RVM_Hyp_Vect_Evt *********************************************/
+/* End Function:RVM_Hyp_Vct_Evt **********************************************/
 
-/* Begin Function:RVM_Hyp_Vect_Del ********************************************
+/* Begin Function:RVM_Hyp_Vct_Del *********************************************
 Description : Deregister the vector of an virtual machine.
-Input       : rvm_ptr_t Vect_Num - The virtual vector to deregister.
+Input       : rvm_ptr_t Vct_Num - The virtual vector to deregister.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; else an error code.
 ******************************************************************************/
-#ifdef RVM_VIRT_VECT_NUM
-rvm_ret_t RVM_Hyp_Vect_Del(rvm_ptr_t Vect_Num)
+#ifdef RVM_VIRT_VCT_NUM
+rvm_ret_t RVM_Hyp_Vct_Del(rvm_ptr_t Vect_Num)
 {
-    return RVM_Hyp(RVM_HYP_VECT_DEL, Vect_Num, 0U, 0U, 0U);
+    return RVM_Hyp(RVM_HYP_VCT_DEL, Vect_Num, 0U, 0U, 0U);
 }
 #endif
-/* End Function:RVM_Hyp_Vect_Del *********************************************/
+/* End Function:RVM_Hyp_Vct_Del **********************************************/
 
 /* Begin Function:RVM_Hyp_Evt_Add *********************************************
 Description : Add a event source's send capability to virtual machine.
@@ -1582,7 +1582,7 @@ Input       : rvm_ptr_t Evt_Num - The event souce to register.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; else an error code.
 ******************************************************************************/
-#ifdef RVM_VIRT_VECT_NUM
+#ifdef RVM_VIRT_VCT_NUM
 rvm_ret_t RVM_Hyp_Evt_Add(rvm_ptr_t Evt_Num)
 {
     return RVM_Hyp(RVM_HYP_EVT_ADD, Evt_Num, 0U, 0U, 0U);
@@ -1596,7 +1596,7 @@ Input       : rvm_ptr_t Evt_Num - The event souce to deregister.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; else an error code.
 ******************************************************************************/
-#ifdef RVM_VIRT_VECT_NUM
+#ifdef RVM_VIRT_VCT_NUM
 rvm_ret_t RVM_Hyp_Evt_Del(rvm_ptr_t Evt_Num)
 {
     return RVM_Hyp(RVM_HYP_EVT_DEL, Evt_Num, 0U, 0U, 0U);
@@ -1604,162 +1604,162 @@ rvm_ret_t RVM_Hyp_Evt_Del(rvm_ptr_t Evt_Num)
 #endif
 /* End Function:RVM_Hyp_Evt_Del **********************************************/
 
-/* Begin Function:RVM_Hyp_Vect_Lock *******************************************
+/* Begin Function:RVM_Hyp_Vct_Lck *********************************************
 Description : Lockdown the vector mappings in the virtual machine so that it cannot
               be edited in the future.
 Input       : None.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; else an error code.
 ******************************************************************************/
-#ifdef RVM_VIRT_VECT_NUM
-rvm_ret_t RVM_Hyp_Vect_Lock(void)
+#ifdef RVM_VIRT_VCT_NUM
+rvm_ret_t RVM_Hyp_Vct_Lck(void)
 {
-    return RVM_Hyp(RVM_HYP_VECT_LOCK, 0U, 0U, 0U, 0U);
+    return RVM_Hyp(RVM_HYP_VCT_LCK, 0U, 0U, 0U, 0U);
 }
 #endif
-/* End Function:RVM_Hyp_Vect_Lock ********************************************/
+/* End Function:RVM_Hyp_Vct_Lck **********************************************/
 
-/* Begin Function:RVM_Hyp_Evt_Send ********************************************
-Description : Send an event to the event channel.
-Input       : rvm_ptr_t Evt_Num - The event channel ID.
-Output      : None.
-Return      : rvm_ret_t - If successful, 0; else an error code.
-******************************************************************************/
-#ifdef RVM_VIRT_VECT_NUM
-rvm_ret_t RVM_Hyp_Evt_Send(rvm_ptr_t Evt_Num)
-{
-    return RVM_Hyp(RVM_HYP_EVT_SEND, Evt_Num, 0U, 0U, 0U);
-}
-#endif
-/* End Function:RVM_Hyp_Evt_Send *********************************************/
-
-/* Begin Function:RVM_Hyp_Vect_Wait *******************************************
+/* Begin Function:RVM_Hyp_Vct_Wait ********************************************
 Description : Set the virtual machine to sleep until a vector comes in.
 Input       : None.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; else an error code.
 ******************************************************************************/
-#ifdef RVM_VIRT_VECT_NUM
-rvm_ret_t RVM_Hyp_Vect_Wait(void)
+#ifdef RVM_VIRT_VCT_NUM
+rvm_ret_t RVM_Hyp_Vct_Wait(void)
 {
-    return RVM_Hyp(RVM_HYP_VECT_WAIT, 0U, 0U, 0U, 0U);
+    return RVM_Hyp(RVM_HYP_VCT_WAIT, 0U, 0U, 0U, 0U);
 }
 #endif
-/* End Function:RVM_Hyp_Vect_Wait ********************************************/
+/* End Function:RVM_Hyp_Vct_Wait *********************************************/
 
-/* Begin Function:RVM_Hyp_Feed_Wdog *******************************************
+/* Begin Function:RVM_Hyp_Evt_Snd *********************************************
+Description : Send an event to the event channel.
+Input       : rvm_ptr_t Evt_Num - The event channel ID.
+Output      : None.
+Return      : rvm_ret_t - If successful, 0; else an error code.
+******************************************************************************/
+#ifdef RVM_VIRT_VCT_NUM
+rvm_ret_t RVM_Hyp_Evt_Snd(rvm_ptr_t Evt_Num)
+{
+    return RVM_Hyp(RVM_HYP_EVT_SND, Evt_Num, 0U, 0U, 0U);
+}
+#endif
+/* End Function:RVM_Hyp_Evt_Snd **********************************************/
+
+/* Begin Function:RVM_Hyp_Wdg_Clr *********************************************
 Description : Start and feed the watchdog.
 Input       : None.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; else an error code.
 ******************************************************************************/
-#ifdef RVM_VIRT_VECT_NUM
-rvm_ret_t RVM_Hyp_Wdog_Feed(void)
+#ifdef RVM_VIRT_VCT_NUM
+rvm_ret_t RVM_Hyp_Wdg_Clr(void)
 {
-    return RVM_Hyp(RVM_HYP_WDOG_FEED, 0U, 0U, 0U, 0U);
+    return RVM_Hyp(RVM_HYP_WDG_CLR, 0U, 0U, 0U, 0U);
 }
 #endif
-/* End Function:RVM_Hyp_Wdog_Feed ********************************************/
+/* End Function:RVM_Hyp_Wdg_Clr **********************************************/
 
-/* Begin Function:RVM_Vect_Get ************************************************
+/* Begin Function:RVM_Vct_Get *************************************************
 Description : Get the interrupt number to handle. After returning the vector, clean
               up the corresponding bit.
 Input       : None.
 Output      : None.
 Return      : rvm_ret_t - If there is interrupt pending, the interrupt number; else -1.
 ******************************************************************************/
-#ifdef RVM_VIRT_VECT_NUM
-rvm_ret_t RVM_Vect_Get(void)
+#ifdef RVM_VIRT_VCT_NUM
+rvm_ret_t RVM_Vct_Get(void)
 {
     rvm_cnt_t Count;
     rvm_cnt_t Pos;
     
     /* See if interrupt enabled */
-    if(RVM_Int_Enable==0U)
+    if(RVM_Int_Ena==0U)
         return -1;
     
     /* See which one is ready, and pick it */
     Pos=-1;
     for(Count=RVM_VCTF_BITMAP-1;Count>=0;Count--)
     {
-        if(RVM_VCTF->Vect[Count]==0U)
+        if(RVM_VCTF->Vct[Count]==0U)
             continue;
         
-        Pos=(rvm_cnt_t)_RVM_MSB_Get(RVM_VCTF->Vect[Count]);
+        Pos=(rvm_cnt_t)_RVM_MSB_Get(RVM_VCTF->Vct[Count]);
         Pos+=(Count<<RVM_WORD_ORDER);
         break;
     }
 
     /* Now kill the bit */
     if(Pos>=0)
-        RVM_Fetch_And(&(RVM_VCTF->Vect[Count]), ~RVM_POW2(Pos));
+        RVM_Fetch_And(&(RVM_VCTF->Vct[Count]), ~RVM_POW2(Pos));
     
     return Pos;
 }
 #endif
-/* End Function:RVM_Vect_Get *************************************************/
+/* End Function:RVM_Vct_Get **************************************************/
 
-/* Begin Function:RVM_Vect_Loop ***********************************************
+/* Begin Function:RVM_Vct_Loop ************************************************
 Description : The interrupt handling thread's routine. This should be called by 
               the interrupt handling thread upon entering the system.
 Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-#ifdef RVM_VIRT_VECT_NUM
-void RVM_Vect_Loop(void)
+#ifdef RVM_VIRT_VCT_NUM
+void RVM_Vct_Loop(void)
 {
     rvm_cnt_t Vect_Num;
     
     while(1)
     {
         /* Block on the receive endpoint */
-        RVM_ASSERT(RVM_Sig_Rcv(RVM_SIG_VECT, RVM_RCV_BM)>=0);
+        RVM_ASSERT(RVM_Sig_Rcv(RVM_SIG_VCT, RVM_RCV_BM)>=0);
         
         /* Only try to get interrupts if we didn't mask it */
-        if(RVM_Int_Enable!=0U)
+        if(RVM_Int_Ena!=0U)
         {
             /* Indicate vector execution mode active */
-            RVM_STATE->Vect_Act=1U;
+            RVM_STATE->Vct_Act=1U;
             
             /* Clear the pending flag */
-            RVM_Vect_Pend=0U;
+            RVM_Vct_Pend=0U;
 
             /* Look for interrupts to handle from the first */
-            Vect_Num=RVM_Vect_Get();
+            Vect_Num=RVM_Vct_Get();
             /* Handle the vector here - the vectors are tail-chained */
             while(Vect_Num>=0)
             {
-                if(RVM_Handler.Vect[Vect_Num]!=RVM_NULL)
-                    RVM_Handler.Vect[Vect_Num]();
-                Vect_Num=RVM_Vect_Get();
+                if(RVM_Handler.Vct[Vect_Num]!=RVM_NULL)
+                    RVM_Handler.Vct[Vect_Num]();
+                Vect_Num=RVM_Vct_Get();
             }
             
             /* We have handled all vectors. Now handle timer vectors */
-            if(RVM_VCTF->Timer!=0U)
+            if(RVM_VCTF->Tim!=0U)
             {
-                RVM_VCTF->Timer=0U;
-                if(RVM_Handler.Timer!=RVM_NULL)
-                    RVM_Handler.Timer();
+                RVM_VCTF->Tim=0U;
+                if(RVM_Handler.Tim!=RVM_NULL)
+                    RVM_Handler.Tim();
             }
 
             /* Then finally handle the context switch vector, conduct context switch */
-            if(RVM_VCTF->Ctxsw!=0U)
+            if(RVM_VCTF->Ctx!=0U)
             {
-                RVM_VCTF->Ctxsw=0U;
-                if(RVM_Handler.Ctxsw!=0U)
-                    RVM_Handler.Ctxsw();
+                RVM_VCTF->Ctx=0U;
+                if(RVM_Handler.Ctx!=RVM_NULL)
+                    RVM_Handler.Ctx();
             }
             
             /* Deactivate once we finish */
-            RVM_STATE->Vect_Act=0U;
+            RVM_STATE->Vct_Act=0U;
         }
         else
-            RVM_Vect_Pend=1U;
+            RVM_Vct_Pend=1U;
     }
 }
 #endif
-/* End Function:RVM_Vect_Loop ************************************************/
+/* End Function:RVM_Vct_Loop *************************************************/
 
 /* End Of File ***************************************************************/
 

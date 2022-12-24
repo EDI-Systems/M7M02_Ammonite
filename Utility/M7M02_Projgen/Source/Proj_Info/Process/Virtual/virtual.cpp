@@ -82,11 +82,11 @@ Process(Root,PROCESS_VIRTUAL)
         /* Watchdog */
         this->Watchdog=Main::XML_Get_Number(Root,"Watchdog","DXXXX","DXXXX");
         /* Number of virtual interrupts */
-        this->Vect_Num=Main::XML_Get_Number(Root,"Vect_Num","DXXXX","DXXXX");
+        this->Vector_Num=Main::XML_Get_Number(Root,"Vector_Num","DXXXX","DXXXX");
 
         /* Handler & user thread for VM - VM does not have other threads */
-        this->Thread.push_back(std::make_unique<class Thread>("Vect", this->Vector_Stack_Size, 0, VIRT_VECTOR_PRIO, this));
-        this->Thread.push_back(std::make_unique<class Thread>("User", this->User_Stack_Size, 0, VIRT_USER_PRIO, this));
+        this->Thread.push_back(std::make_unique<class Thread>("Vct", this->Vector_Stack_Size, 0, VIRT_VECTOR_PRIO, this));
+        this->Thread.push_back(std::make_unique<class Thread>("Usr", this->User_Stack_Size, 0, VIRT_USER_PRIO, this));
     }
     catch(std::exception& Exc)
     {

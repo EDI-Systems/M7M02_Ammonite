@@ -129,7 +129,7 @@ void RVM_Boot_Vep_Crt(void)
 #endif
 /* End Function:RVM_Boot_Vep_Crt *********************************************/
 
-/* Begin Function:RVM_Boot_Cpt_Crt *****************************************
+/* Begin Function:RVM_Boot_Cpt_Crt ********************************************
 Description : Create all capability tables at boot-time.
 Input       : None.
 Output      : None.
@@ -170,9 +170,9 @@ void RVM_Boot_Cpt_Crt(void)
 
     RVM_ASSERT(Cur_Addr==RVM_BOOT_CPT_AFTER);
 }
-/* End Function:RVM_Boot_Cpt_Crt ******************************************/
+/* End Function:RVM_Boot_Cpt_Crt *********************************************/
 
-/* Begin Function:RVM_Boot_Pgt_Crt ******************************************
+/* Begin Function:RVM_Boot_Pgt_Crt ********************************************
 Description : Create all page tables at boot-time.
 Input       : None.
 Output      : None.
@@ -220,9 +220,9 @@ void RVM_Boot_Pgt_Crt(void)
 
     RVM_ASSERT(Cur_Addr==RVM_BOOT_PGT_AFTER);
 }
-/* End Function:RVM_Boot_Pgt_Crt *******************************************/
+/* End Function:RVM_Boot_Pgt_Crt *********************************************/
 
-/* Begin Function:RVM_Boot_Prc_Crt *******************************************
+/* Begin Function:RVM_Boot_Prc_Crt ********************************************
 Description : Create all processes at boot-time.
 Input       : None.
 Output      : None.
@@ -258,7 +258,7 @@ void RVM_Boot_Prc_Crt(void)
     
     RVM_ASSERT(Cur_Addr==RVM_BOOT_PRC_AFTER);
 }
-/* End Function:RVM_Boot_Prc_Crt ********************************************/
+/* End Function:RVM_Boot_Prc_Crt *********************************************/
 
 /* Begin Function:RVM_Boot_Thd_Crt ********************************************
 Description : Create all threads at boot-time.
@@ -424,7 +424,7 @@ void RVM_Boot_Vcap_Init(void)
 #endif
 /* End Function:RVM_Boot_Vcap_Init *******************************************/
 
-/* Begin Function:RVM_Boot_Cpt_Init ****************************************
+/* Begin Function:RVM_Boot_Cpt_Init *******************************************
 Description : Initialize the capability tables of all processes.
 Input       : None.
 Output      : None.
@@ -458,27 +458,27 @@ void RVM_Boot_Cpt_Init(void)
     }
 #endif
 
-#if(RVM_BOOT_CPT_KFUNC_NUM)
-    for(Count=0U;Count<RVM_BOOT_CPT_KFUNC_NUM;Count++)
+#if(RVM_BOOT_CPT_KFN_NUM)
+    for(Count=0U;Count<RVM_BOOT_CPT_KFN_NUM;Count++)
     {
-        RVM_ASSERT(RVM_Cpt_Kfn(RVM_Meta_Cpt_Kfunc[Count].Dst,
-                               RVM_Meta_Cpt_Kfunc[Count].Pos_Dst,
+        RVM_ASSERT(RVM_Cpt_Kfn(RVM_Meta_Cpt_Kfn[Count].Dst,
+                               RVM_Meta_Cpt_Kfn[Count].Pos_Dst,
                                RVM_BOOT_CPT,
                                RVM_BOOT_INIT_KFN,
-                               RVM_Meta_Cpt_Kfunc[Count].Start,
-                               RVM_Meta_Cpt_Kfunc[Count].End)==0);
+                               RVM_Meta_Cpt_Kfn[Count].Start,
+                               RVM_Meta_Cpt_Kfn[Count].End)==0);
         
         RVM_DBG_S("Init:Kfunc to '0x");
-        RVM_DBG_H(RVM_Meta_Cpt_Kfunc[Count].Dst);
+        RVM_DBG_H(RVM_Meta_Cpt_Kfn[Count].Dst);
         RVM_DBG_S("' position '");
-        RVM_DBG_I(RVM_Meta_Cpt_Kfunc[Count].Pos_Dst);
+        RVM_DBG_I(RVM_Meta_Cpt_Kfn[Count].Pos_Dst);
         RVM_DBG_S("'.\r\n");
     }
 #endif
 }
-/* End Function:RVM_Boot_Cpt_Init *****************************************/
+/* End Function:RVM_Boot_Cpt_Init ********************************************/
 
-/* Begin Function:RVM_Boot_Pgt_Init *****************************************
+/* Begin Function:RVM_Boot_Pgt_Init *******************************************
 Description : Initialize the page tables of all processes.
 Input       : None.
 Output      : None.
@@ -531,9 +531,125 @@ void RVM_Boot_Pgt_Init(void)
         RVM_DBG_S("].\r\n");
     }
 }
-/* End Function:RVM_Boot_Pgt_Init ******************************************/
+/* End Function:RVM_Boot_Pgt_Init ********************************************/
 
-/* Begin Function:RVM_Prc_Init ***********************************************
+/* Begin Function:RVM_Boot_Thd_Init *******************************************
+Description : Initialize the all threads.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void RVM_Boot_Thd_Init(void)
+{
+    rvm_ptr_t Count;
+    rvm_ptr_t Init_Entry_Addr;
+    rvm_ptr_t Init_Stub_Addr;
+    rvm_ptr_t Init_Stack_Addr;
+
+    RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
+    RVM_DBG_S("Init:Initializing threads.\r\n");
+    
+    for(Count=0U;Count<RVM_BOOT_THD_INIT_NUM;Count++)
+    {
+        /* Bind thread to safety daemon */
+        RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Meta_Thd_Init[Count].Thd,
+                                      RVM_Sftd_Thd_Cap,
+                                      RVM_Sftd_Sig_Cap,
+                                      RVM_Meta_Thd_Init[Count].Thd|RVM_Meta_Thd_Init[Count].Marker,
+                                      RVM_Meta_Thd_Init[Count].Prio)==0);
+        
+        /* If this is a VM user thread, set its address accordingly */
+        if(RVM_Meta_Thd_Init[Count].Reg_Base!=0U)
+        {
+            RVM_ASSERT(RVM_Thd_Hyp_Set(RVM_Meta_Thd_Init[Count].Thd,
+                                       RVM_Meta_Thd_Init[Count].Reg_Base)==0);
+        }
+        
+        /* Initialize stack with whatever we have to initialize */
+        Init_Entry_Addr=RVM_DESC_ENTRY(RVM_Meta_Thd_Init[Count].Code_Base,
+                                       RVM_Meta_Thd_Init[Count].Desc_Slot);
+        Init_Stub_Addr=RVM_DESC_STUB(RVM_Meta_Thd_Init[Count].Code_Base);
+        Init_Stack_Addr=RVM_Stack_Init(RVM_Meta_Thd_Init[Count].Stack_Base,
+                                       RVM_Meta_Thd_Init[Count].Stack_Size,
+                                       Init_Entry_Addr,
+                                       Init_Stub_Addr);
+        
+        /* Set execution info and transfer time */
+        RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Meta_Thd_Init[Count].Thd,
+                                    Init_Entry_Addr,
+                                    Init_Stack_Addr,
+                                    RVM_Meta_Thd_Init[Count].Param)==0);
+        
+        RVM_ASSERT(RVM_Thd_Time_Xfer(RVM_Meta_Thd_Init[Count].Thd,
+                                     RVM_BOOT_INIT_THD,
+                                     RVM_THD_INF_TIME)==RVM_THD_INF_TIME);
+        
+        if(RVM_Meta_Thd_Init[Count].Marker!=0U)
+            RVM_DBG_S("Init:VM thread '0x");
+        else
+            RVM_DBG_S("Init:Thread '0x");
+        RVM_DBG_H(RVM_Meta_Thd_Init[Count].Thd);
+        RVM_DBG_S("' desc 0x");
+        RVM_DBG_H(RVM_Meta_Thd_Init[Count].Desc_Slot);
+        RVM_DBG_S(" stack base 0x");
+        RVM_DBG_H(RVM_Meta_Thd_Init[Count].Stack_Base);
+        RVM_DBG_S(" size 0x");
+        RVM_DBG_H(RVM_Meta_Thd_Init[Count].Stack_Size);
+        RVM_DBG_S(" param 0x");
+        RVM_DBG_H(RVM_Meta_Thd_Init[Count].Param);
+        RVM_DBG_S(".\r\n");
+    }
+}
+/* End Function:RVM_Boot_Thd_Init ********************************************/
+
+/* Begin Function:RVM_Boot_Inv_Init *******************************************
+Description : Initialize the all invocations.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+#if(RVM_BOOT_INV_INIT_NUM!=0U)
+void RVM_Boot_Inv_Init(void)
+{
+    rvm_ptr_t Count;
+    rvm_ptr_t Init_Entry_Addr;
+    rvm_ptr_t Init_Stub_Addr;
+    rvm_ptr_t Init_Stack_Addr;
+
+    RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
+    RVM_DBG_S("Init:Initializing invocations.\r\n");
+    
+    for(Count=0U;Count<RVM_BOOT_INV_INIT_NUM;Count++)
+    {
+        Init_Entry_Addr=RVM_DESC_ENTRY(RVM_Meta_Inv_Init[Count].Code_Base,
+                                       RVM_Meta_Inv_Init[Count].Desc_Slot);
+        Init_Stub_Addr=RVM_DESC_STUB(RVM_Meta_Inv_Init[Count].Code_Base);
+        Init_Stack_Addr=RVM_Stack_Init(RVM_Meta_Inv_Init[Count].Stack_Base,
+                                       RVM_Meta_Inv_Init[Count].Stack_Size,
+                                       Init_Entry_Addr,
+                                       Init_Stub_Addr);
+                                       
+        /* These invocations always return on error */
+        RVM_ASSERT(RVM_Inv_Set(RVM_Meta_Inv_Init[Count].Inv,
+                               Init_Entry_Addr,
+                               Init_Stack_Addr,
+                               1U)==0);
+
+        RVM_DBG_S("Init:Invocation '0x");
+        RVM_DBG_H(RVM_Meta_Inv_Init[Count].Inv);
+        RVM_DBG_S("' desc 0x");
+        RVM_DBG_H(RVM_Meta_Inv_Init[Count].Desc_Slot);
+        RVM_DBG_S(" stack base 0x");
+        RVM_DBG_H(RVM_Meta_Inv_Init[Count].Stack_Base);
+        RVM_DBG_S(" size 0x");
+        RVM_DBG_H(RVM_Meta_Inv_Init[Count].Stack_Size);
+        RVM_DBG_S(".\r\n");
+    }
+}
+#endif
+/* End Function:RVM_Boot_Inv_Init ********************************************/
+
+/* Begin Function:RVM_Prc_Init ************************************************
 Description : Initialize processes.
 Input       : None.
 Output      : None.
@@ -541,6 +657,21 @@ Return      : None.
 ******************************************************************************/
 void RVM_Prc_Init(void)
 {
+    /* Check macro code validity */
+#if(RVM_ASSERT_CORRECT==0U)
+    RVM_ASSERT(RVM_VIRT_NUM==RVM_BOOT_VEP_CRT_NUM);
+    RVM_ASSERT(RVM_VIRT_NUM==RVM_BOOT_VCAP_INIT_NUM);
+    RVM_ASSERT(RVM_BOOT_CPT_CRT_NUM!=0U);
+    RVM_ASSERT(RVM_BOOT_CPT_CRT_NUM!=0U);
+    RVM_ASSERT(RVM_BOOT_PGT_CRT_NUM!=0U);
+    RVM_ASSERT(RVM_BOOT_PGT_ADD_NUM!=0U);
+    RVM_ASSERT(RVM_BOOT_PRC_CRT_NUM!=0U);
+    RVM_ASSERT(RVM_BOOT_THD_CRT_NUM!=0U);
+    RVM_ASSERT(RVM_BOOT_THD_CRT_NUM==RVM_BOOT_THD_INIT_NUM);
+    RVM_ASSERT(RVM_BOOT_INV_CRT_NUM!=0U);
+    RVM_ASSERT(RVM_BOOT_INV_CRT_NUM==RVM_BOOT_INV_INIT_NUM);
+#endif
+    
     /* Create kernel objects */
 #if(RVM_BOOT_VEP_CRT_NUM!=0U)
     RVM_Boot_Vep_Crt();
@@ -563,10 +694,14 @@ void RVM_Prc_Init(void)
     RVM_Boot_Cpt_Init();
     RVM_Boot_Pgt_Init();
     RVM_Boot_Thd_Init();
+#if(RVM_BOOT_INV_INIT_NUM!=0U)
     RVM_Boot_Inv_Init();
+#endif
     
     /* Initialize virtual machines */
+#if(RVM_VIRT_NUM!=0U)
     RVM_Virt_Crt(RVM_Virt, RVM_Vmap, RVM_VIRT_NUM);
+#endif
 }
 /* End Function:RVM_Prc_Init ************************************************/
 
@@ -696,13 +831,13 @@ void RVM_Init(void)
     RVM_Virt_Init();
 #endif
     RVM_DBG_SHS("Init:Kernel object memory base @ 0x", RVM_KOM_VA_BASE, ".\r\n");
-    RVM_DBG_SHS("Init:Start creating kernel objects @ offset 0x", RVM_KOM_BOOT_FRONTIER, ".\r\n");
+    RVM_DBG_SHS("Init:Start creating kernel objects @ offset 0x", RVM_KOM_BOOT_FRONT, ".\r\n");
     
     /* Create the startup thread in the init process, because the init thread
      * cannot block. Bind that to the processor, and let it have infinite budget.
      * after this the task will be handled by this task, and we will never return
      * to init unless there is nothing to run */
-    RVM_Daemon_Init(RVM_CAP_BOOT_FRONTIER, RVM_KOM_BOOT_FRONTIER);
+    RVM_Daemon_Init(RVM_CAP_BOOT_FRONT, RVM_KOM_BOOT_FRONT);
     RVM_DBG_S("Init:Daemon initialization done.\r\n");
     
     /* Initialize the virtual machine databases, and create whatever is needed */

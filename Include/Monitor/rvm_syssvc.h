@@ -111,7 +111,7 @@ while(0)
 #define RVM_ROUND_UP(NUM,POW)                       RVM_ROUND_DOWN((NUM)+RVM_MASK_END(POW-1U),POW)
 
 /* System service stub */
-#define RVM_CAP_OP(OP,CAPID,ARG1,ARG2,ARG3)         RVM_Svc(((OP)<<(sizeof(rvm_ptr_t)*4U))|((rvm_ptr_t)(CAPID)), \
+#define RVM_CAP_OP(OP,CID,ARG1,ARG2,ARG3)         RVM_Svc(((OP)<<(sizeof(rvm_ptr_t)*4U))|((rvm_ptr_t)(CID)), \
                                                             ((rvm_ptr_t)(ARG1)),((rvm_ptr_t)(ARG2)),((rvm_ptr_t)(ARG3)))
 #define RVM_PARAM_D_MASK                            ((RVM_ALLBITS)>>(sizeof(rvm_ptr_t)*4U))
 #define RVM_PARAM_Q_MASK                            ((RVM_ALLBITS)>>(sizeof(rvm_ptr_t)*6U))
@@ -135,9 +135,9 @@ while(0)
 #define RVM_PARAM_O0(X)                             (((rvm_ptr_t)(X))&RVM_PARAM_O_MASK)
 
 /* CID synthesis */
-#define RME_CAPID_NULL                              (1<<(sizeof(rvm_ptr_t)*4U-1U))
-#define RVM_CAPID_2L                                (1<<(sizeof(rvm_ptr_t)*2U-1U))
-#define RVM_CAPID(X,Y)                              (((X)<<(sizeof(rvm_ptr_t)*2U))|(Y)|RVM_CAPID_2L)
+#define RME_CID_NULL                                (1<<(sizeof(rvm_ptr_t)*4U-1U))
+#define RVM_CID_2L                                  (1<<(sizeof(rvm_ptr_t)*2U-1U))
+#define RVM_CID(X,Y)                                (((X)<<(sizeof(rvm_ptr_t)*2U))|(Y)|RVM_CID_2L)
 
 /* Flag synthesis */
 /* Kernel function */
@@ -146,7 +146,7 @@ while(0)
 #define RVM_KOM_FLAG(HIGH,LOW)                      ((((HIGH)>>(sizeof(rvm_ptr_t)*4U))<<(sizeof(rvm_ptr_t)*4U))| \
                                                     ((LOW)>>(sizeof(rvm_ptr_t)*4U)))
 #define RVM_KOM_SVC(HIGH,SVC)                       (((((HIGH)>>6)<<(sizeof(rvm_ptr_t)*4U+6U))>>(sizeof(rvm_ptr_t)*4U))|(SVC))
-#define RVM_KOM_CAPID(LOW,FLAGS)                    (((((LOW)>>6)<<(sizeof(rvm_ptr_t)*4U+6U))>>(sizeof(rvm_ptr_t)*4U))|(FLAGS))
+#define RVM_KOM_CID(LOW,FLAGS)                    (((((LOW)>>6)<<(sizeof(rvm_ptr_t)*4U+6U))>>(sizeof(rvm_ptr_t)*4U))|(FLAGS))
 /* Page table */
 #define RVM_PGT_SVC(NUM_ORDER,SVC)                  (((NUM_ORDER)<<(sizeof(rvm_ptr_t)<<1))|(SVC))
 #define RVM_PGT_FLAG(HIGH,LOW,FLAGS)                (((HIGH)<<(sizeof(rvm_ptr_t)*4U+4U))|((LOW)<<8)|(FLAGS))
@@ -211,9 +211,9 @@ while(0)
 /* The initial kernel memory capability */
 #define RVM_BOOT_INIT_KOM                           (5U)
 /* The initial timer endpoint */
-#define RVM_BOOT_INIT_TIMER                         (6U)
+#define RVM_BOOT_INIT_TIM                           (6U)
 /* The initial interrupt endpoint */
-#define RVM_BOOT_INIT_VECT                          (7U)
+#define RVM_BOOT_INIT_VCT                           (7U)
 /*****************************************************************************/
 /* __RVM_SYSSVC_H_DEFS__ */
 #endif

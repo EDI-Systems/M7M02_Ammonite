@@ -77,15 +77,6 @@ typedef rvm_s32_t rvm_ret_t;
 #define EXTERN                                      extern
 /* The order of bits in one CPU machine word */
 #define RVM_WORD_ORDER                              (5U)
-/* Size of kernel objects - architecture dependent */
-/* Thread */
-#define RVM_THD_WORD_SIZE                           (46U)
-/* Invocation */
-#define RVM_INV_WORD_SIZE                           (9U)
-/* Normal page directory */
-#define RVM_PGT_WORD_SIZE_NOM(NUM_ORDER)            ((((rvm_ptr_t)1)<<(NUM_ORDER))+5U)
-/* Top-level page directory */
-#define RVM_PGT_WORD_SIZE_TOP(NUM_ORDER)            (RVM_PGT_SIZE_NOM(NUM_ORDER)+5U+1U+2U*RVM_MPU_REGIONS)
 
 /* FPU type definitions */
 #define RVM_A7M_FPU_NONE                            (0U)
@@ -95,6 +86,19 @@ typedef rvm_s32_t rvm_ret_t;
 
 /* Detect floating-point coprocessor existence */
 #define RVM_COPROCESSOR_TYPE                        RVM_A7M_FPU_TYPE
+
+/* Thread size */
+#if(RVM_A7M_FPU_TYPE!=RVM_A7M_FPU_NONE)
+#define RVM_THD_WORD_SIZE                           (48U)
+#else
+#define RVM_THD_WORD_SIZE                           (32U)
+#endif
+/* Invocation size */
+#define RVM_INV_WORD_SIZE                           (9U)
+/* Normal page directory size */
+#define RVM_PGT_WORD_SIZE_NOM(NUM_ORDER)            (5U+RVM_POW2(NUM_ORDER))
+/* Top-level page directory size */
+#define RVM_PGT_WORD_SIZE_TOP(NUM_ORDER)            (1U+2U*RVM_A7M_MPU_REGIONS+RVM_PGT_WORD_SIZE_NOM(NUM_ORDER))
 
 /* ARMv7-M specific kernel function macros ***********************************/
 /* Page table entry mode which property to get */

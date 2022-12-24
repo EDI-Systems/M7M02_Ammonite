@@ -126,7 +126,7 @@ struct RVM_Meta_Cpt_Init_Struct
 };
 
 /* Capability table kernel function initialization database entry */
-struct RVM_Meta_Cpt_Kfunc_Struct
+struct RVM_Meta_Cpt_Kfn_Struct
 {
     rvm_cid_t Dst;
     rvm_cid_t Pos_Dst;
@@ -150,6 +150,30 @@ struct RVM_Meta_Pgt_Add_Struct
     rvm_ptr_t Flags;
     rvm_ptr_t Pos_Src;
     rvm_ptr_t Index;
+};
+
+/* Thread initialization database entry */
+struct RVM_Meta_Thd_Init_Struct
+{
+    rvm_cid_t Thd;
+    rvm_tid_t Marker;
+    rvm_ptr_t Code_Base;
+    rvm_ptr_t Desc_Slot;
+    rvm_ptr_t Stack_Base;
+    rvm_ptr_t Stack_Size;
+    rvm_ptr_t Param;
+    rvm_ptr_t Prio;
+    rvm_ptr_t Reg_Base;
+};
+
+/* Invocation initialization database entry */
+struct RVM_Meta_Inv_Init_Struct
+{
+    rvm_cid_t Inv;
+    rvm_ptr_t Code_Base;
+    rvm_ptr_t Desc_Slot;
+    rvm_ptr_t Stack_Base;
+    rvm_ptr_t Stack_Size;
 };
 /*****************************************************************************/
 /* __RVM_INIT_H_STRUCTS__ */
@@ -175,14 +199,30 @@ struct RVM_Meta_Pgt_Add_Struct
 /* If the header is not used in the public mode */
 #ifndef __HDR_PUBLIC_MEMBERS__
 /*****************************************************************************/
+/* Virtual machine */
+#if(RVM_VIRT_NUM!=0U)
+EXTERN struct RVM_Virt_Struct RVM_Virt[];
+EXTERN const struct RVM_Vmap_Struct RVM_Vmap[];
+#endif
 #if(RVM_BOOT_VEP_CRT_NUM!=0U)
 EXTERN struct RVM_Meta_Main_Struct RVM_Meta_Vep_Main[];
 EXTERN struct RVM_Meta_Rcv_Crt_Struct RVM_Meta_Vep_Crt[];
 #endif
+#if(RVM_BOOT_VCAP_INIT_NUM!=0U)
+EXTERN struct RVM_Meta_Vcap_Init_Struct RVM_Meta_Vcap_Init[];
+#endif
 
+/* Captbl */
 EXTERN struct RVM_Meta_Main_Struct RVM_Meta_Cpt_Main[];
 EXTERN struct RVM_Meta_Cpt_Crt_Struct RVM_Meta_Cpt_Crt[];
+#if(RVM_BOOT_CPT_INIT_NUM!=0U)
+EXTERN struct RVM_Meta_Cpt_Init_Struct RVM_Meta_Cpt_Init[];
+#endif
+#if(RVM_BOOT_CPT_KFN_NUM!=0U)
+EXTERN struct RVM_Meta_Cpt_Kfn_Struct RVM_Meta_Cpt_Kfn[];
+#endif
 
+/* Page table */
 EXTERN struct RVM_Meta_Main_Struct RVM_Meta_Pgt_Main[];
 EXTERN struct RVM_Meta_Pgt_Crt_Struct RVM_Meta_Pgt_Crt[];
 #if(RVM_BOOT_PGT_CON_NUM!=0U)
@@ -190,36 +230,28 @@ EXTERN struct RVM_Meta_Pgt_Con_Struct RVM_Meta_Pgt_Con[];
 #endif
 EXTERN struct RVM_Meta_Pgt_Add_Struct RVM_Meta_Pgt_Add[];
 
+/* Process */
 EXTERN struct RVM_Meta_Main_Struct RVM_Meta_Prc_Main[];
 EXTERN struct RVM_Meta_Prc_Crt_Struct RVM_Meta_Prc_Crt[];
 
+/* Thread */
 EXTERN struct RVM_Meta_Main_Struct RVM_Meta_Thd_Main[];
 EXTERN struct RVM_Meta_Thd_Crt_Struct RVM_Meta_Thd_Crt[];
+EXTERN struct RVM_Meta_Thd_Init_Struct RVM_Meta_Thd_Init[];
 
+/* Invocation */
 #if(RVM_BOOT_INV_CRT_NUM!=0U)
 EXTERN struct RVM_Meta_Main_Struct RVM_Meta_Inv_Main[];
 EXTERN struct RVM_Meta_Inv_Crt_Struct RVM_Meta_Inv_Crt[];
 #endif
+#if(RVM_BOOT_INV_INIT_NUM!=0U)
+EXTERN struct RVM_Meta_Inv_Init_Struct RVM_Meta_Inv_Init[];
+#endif
 
+/* Receive endpoint */
 #if(RVM_BOOT_RCV_CRT_NUM!=0U)
 EXTERN struct RVM_Meta_Main_Struct RVM_Meta_Rcv_Main[];
 EXTERN struct RVM_Meta_Rcv_Crt_Struct RVM_Meta_Rcv_Crt[];
-#endif
-
-#if(RVM_BOOT_VCAP_INIT_NUM!=0U)
-EXTERN struct RVM_Meta_Vcap_Init_Struct RVM_Meta_Vcap_Init[];
-#endif
-
-#if(RVM_BOOT_CPT_INIT_NUM!=0U)
-EXTERN struct RVM_Meta_Cpt_Init_Struct RVM_Meta_Cpt_Init[];
-#endif
-#if(RVM_BOOT_CPT_KFUNC_NUM!=0U)
-EXTERN struct RVM_Meta_Cpt_Kfunc_Struct RVM_Meta_Cpt_Kfunc[];
-#endif
-
-#if(RVM_VIRT_NUM!=0U)
-EXTERN struct RVM_Virt_Struct RVM_Virt[];
-EXTERN const struct RVM_Vmap_Struct RVM_Vmap[];
 #endif
 /*****************************************************************************/
 /* End Private Global Variables **********************************************/
@@ -250,9 +282,11 @@ static void RVM_Boot_Vcap_Init(void);
 #endif
 static void RVM_Boot_Pgt_Init(void);
 static void RVM_Boot_Cpt_Init(void);
-EXTERN void RVM_Boot_Thd_Init(void);
-EXTERN void RVM_Boot_Inv_Init(void);
-    
+static void RVM_Boot_Thd_Init(void);
+#if(RVM_BOOT_INV_INIT_NUM!=0U)
+static void RVM_Boot_Inv_Init(void);
+#endif
+
 static void RVM_Daemon_Init(rvm_cid_t Cap_Base,
                             rvm_ptr_t Kom_Base);
 static void RVM_Prc_Init(void);

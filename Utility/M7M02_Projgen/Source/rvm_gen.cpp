@@ -606,13 +606,13 @@ void Main::Reference_Check(void)
                 }
 
                 /* Check vector references */
-                for(std::unique_ptr<class Vect_Info>& Vect:Prc->Vector)
+                for(std::unique_ptr<class Vect_Info>& Vct:Prc->Vector)
                 {
-                    Vect_Iter=this->Chip->Vector_Map.find(Vect->Name);
+                    Vect_Iter=this->Chip->Vector_Map.find(Vct->Name);
                     if(Vect_Iter==this->Chip->Vector_Map.end())
-                        Main::Error("PXXXX: Vector '"+Vect->Name+"' refers to a nonexistent vector.");
-                    if(Vect_Iter->second->Number!=Vect->Number)
-                        Main::Error("PXXXX: Vector '"+Vect->Name+"' contains a wrong vector number.");
+                        Main::Error("PXXXX: Vector '"+Vct->Name+"' refers to a nonexistent vector.");
+                    if(Vect_Iter->second->Number!=Vct->Number)
+                        Main::Error("PXXXX: Vector '"+Vct->Name+"' contains a wrong vector number.");
                 }
 
                 /* Check kernel function ranges */
@@ -1314,20 +1314,20 @@ void Main::Cap_Link(void)
             for(std::unique_ptr<class Port>& Port:Prc->Port)
             {
                 Inv_Dst=this->Proj->Process_Map[Port->Process]->Invocation_Map[Port->Name];
-                Port->Capid_Global=Inv_Dst->Capid_Global;
+                Port->Cid_Global=Inv_Dst->Cid_Global;
                 Port->Macro_Global=Inv_Dst->Macro_Global;
                 Main::Info("> Port %s co-allocated global capid %lld with invocation %s.",
-                           Port->Macro_Local.c_str(),Port->Capid_Global,Port->Macro_Global.c_str());
+                           Port->Macro_Local.c_str(),Port->Cid_Global,Port->Macro_Global.c_str());
             }
 
             /* For every send endpoint, there must be a receive endpoint somewhere */
             for(std::unique_ptr<class Send>& Send:Prc->Send)
             {
                 Recv_Dst=this->Proj->Process_Map[Send->Process]->Receive_Map[Send->Name];
-                Send->Capid_Global=Recv_Dst->Capid_Global;
+                Send->Cid_Global=Recv_Dst->Cid_Global;
                 Send->Macro_Global=Recv_Dst->Macro_Global;
                 Main::Info("> Send endpoint %s co-allocated global capid %lld with invocation %s.",
-                           Send->Macro_Local.c_str(),Send->Capid_Global,Send->Macro_Global.c_str());
+                           Send->Macro_Local.c_str(),Send->Cid_Global,Send->Macro_Global.c_str());
              }
         }
     }
@@ -1371,8 +1371,8 @@ void Main::Kom_Alloc(ptr_t Init_Capsz)
 
     /* Create vectors */
     Main::Info("> Kernel vector cap front %lld kmem front 0x%llX.", Cap_Front, Kom_Front);
-    this->Proj->Kernel->Vect_Cap_Front=Cap_Front;
-    this->Proj->Kernel->Vect_Kom_Front=Kom_Front;
+    this->Proj->Kernel->Vct_Cap_Front=Cap_Front;
+    this->Proj->Kernel->Vct_Kom_Front=Kom_Front;
     /* Capability tables for containing vector endpoints */
     Cap_Front+=ROUND_DIV(this->Proj->Monitor->Vector.size(), this->Plat->Captbl_Max);
     Kom_Front+=this->Gen->Plat->Size_Cpt(this->Proj->Monitor->Vector.size());

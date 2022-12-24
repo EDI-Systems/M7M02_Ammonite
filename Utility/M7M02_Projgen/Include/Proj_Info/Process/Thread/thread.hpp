@@ -38,7 +38,7 @@ public:
     ptr_t Priority;
 
     /* Header entry address slot index */
-    ptr_t Header_Slot;
+    ptr_t Desc_Slot;
     /* The address of the stack */
     ptr_t Stack_Base;
 

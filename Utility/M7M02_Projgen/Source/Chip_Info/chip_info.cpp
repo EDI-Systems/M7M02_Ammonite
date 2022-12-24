@@ -117,13 +117,13 @@ void Chip_Info::Check(void)
                                                      "PXXXX","macro","Config");
 
         /* Check vectors - neither the name nor the number can be the same */
-        for(std::unique_ptr<class Vect_Info>& Vect:this->Vector)
-            Vect->Check();
+        for(std::unique_ptr<class Vect_Info>& Vct:this->Vector)
+            Vct->Check();
         Duplicate_Check<class Vect_Info,std::string>(this->Vector,this->Vector_Map,
-                                                     [](std::unique_ptr<class Vect_Info>& Vect)->std::string{return Vect->Name;},
+                                                     [](std::unique_ptr<class Vect_Info>& Vct)->std::string{return Vct->Name;},
                                                      "PXXXX","name","Vector");
         Duplicate_Check<class Vect_Info,ptr_t>(this->Vector,this->Vector_Number_Map,
-                                               [](std::unique_ptr<class Vect_Info>& Vect)->ptr_t{return Vect->Number;},
+                                               [](std::unique_ptr<class Vect_Info>& Vct)->ptr_t{return Vct->Number;},
                                                "PXXXX","number","Vector");
     }
     catch(std::exception& Exc)

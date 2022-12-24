@@ -37,9 +37,9 @@ public:
     /* The process that it belongs to */
     class Process* Owner;
     /* The local capid */
-    ptr_t Capid_Local;
+    ptr_t Cid_Local;
     /* The global linear capid (not the real 2-level cap) */
-    ptr_t Capid_Global;
+    ptr_t Cid_Global;
     /* The macro denoting the global capid */
     std::string Macro_Local;
     /* The macro denoting the global capid */

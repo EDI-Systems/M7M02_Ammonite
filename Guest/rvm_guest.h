@@ -126,13 +126,13 @@ Description : The header of guest user level low-level library.
 /* The init thread */
 #define RVM_BOOT_INIT_THD                           (3U)
 /* The initial kernel function capability */
-#define RVM_BOOT_INIT_KERN                          (4U)
+#define RVM_BOOT_INIT_KFN                           (4U)
 /* The initial kernel memory capability */
 #define RVM_BOOT_INIT_KOM                           (5U)
 /* The initial timer endpoint */
-#define RVM_BOOT_INIT_TIMER                         (6U)
+#define RVM_BOOT_INIT_TIM                           (6U)
 /* The initial interrupt endpoint */
-#define RVM_BOOT_INIT_VECT                          (7U)
+#define RVM_BOOT_INIT_VCT                           (7U)
 
 /* Error codes */
 /* The state is wrong */
@@ -225,7 +225,7 @@ while(0U)
 /* Coprocessor */
 #define RVM_COPROCESSOR_NONE                        (0U)
 
-#ifdef RVM_VIRT_VECT_NUM
+#ifdef RVM_VIRT_VCT_NUM
 /* Register set space */
 #define RVM_REG                                     ((volatile struct RVM_Thd_Reg*)RVM_VIRT_REG_BASE)
 /* State block space */
@@ -233,13 +233,13 @@ while(0U)
 /* Vector space (part of state block) */
 #define RVM_VCTF                                    (&(RVM_STATE->Flag))
 /* Vector bitmap size */
-#define RVM_VCTF_BITMAP                             ((RVM_VIRT_VECT_NUM+RVM_WORD_SIZE-1U)/RVM_WORD_SIZE)
+#define RVM_VCTF_BITMAP                             ((RVM_VIRT_VCT_NUM+RVM_WORD_SIZE-1U)/RVM_WORD_SIZE)
 
 /* Virtualization signal endpoints */
 /* Hypervisor signal endpoint */
 #define RVM_SIG_HYP                                 (0U)
 /* Vector signal endpoint */
-#define RVM_SIG_VECT                                (1U)
+#define RVM_SIG_VCT                                 (1U)
 
 /* Hypercalls */
 /* Print character */
@@ -249,23 +249,23 @@ while(0U)
 /* Disable interrupts */
 #define RVM_HYP_INT_DIS                             (2U)
 /* Register a physical vector */
-#define RVM_HYP_VECT_PHYS                           (3U)
+#define RVM_HYP_VCT_PHYS                            (3U)
 /* Register a event */
-#define RVM_HYP_VECT_EVT                            (4U)
+#define RVM_HYP_VCT_EVT                             (4U)
 /* Delete a virtual vector mapping */
-#define RVM_HYP_VECT_DEL                            (5U)
+#define RVM_HYP_VCT_DEL                             (5U)
 /* Lockdown current virtual vector mapping */
-#define RVM_HYP_VECT_LOCK                           (6U)
+#define RVM_HYP_VCT_LCK                             (6U)
 /* Wait for an virtual vector to come */
-#define RVM_HYP_VECT_WAIT                           (7U)
+#define RVM_HYP_VCT_WAIT                            (7U)
 /* Add a event source to send to */
 #define RVM_HYP_EVT_ADD                             (8U)
 /* Delete a event source to send to */
 #define RVM_HYP_EVT_DEL                             (9U)
 /* Send to an event */
-#define RVM_HYP_EVT_SEND                            (10U)
-/* Start and feed watchdog */
-#define RVM_HYP_WDOG_FEED                           (11U)
+#define RVM_HYP_EVT_SND                             (10U)
+/* Start and clear watchdog */
+#define RVM_HYP_WDG_CLR                             (11U)
 #endif
 /* End Defines ***************************************************************/
 
@@ -278,7 +278,7 @@ struct RVM_List
     struct RVM_List* Next;
 };
 
-#ifdef RVM_VIRT_VECT_NUM
+#ifdef RVM_VIRT_VCT_NUM
 /* Parameter */
 struct RVM_Param
 {
@@ -289,19 +289,19 @@ struct RVM_Param
 /* Interrupt flags */
 struct RVM_Vctf
 {
-    rvm_ptr_t Timer;
-    rvm_ptr_t Ctxsw;
-    rvm_ptr_t Vect[1];
+    rvm_ptr_t Tim;
+    rvm_ptr_t Ctx;
+    rvm_ptr_t Vct[1];
 };
 
 /* State block */
 struct RVM_State
 {
     /* Indicate that the vector thread is now active */
-    rvm_ptr_t Vect_Act;
+    rvm_ptr_t Vct_Act;
     /* Parameter area, one for vector, another for user */
-    struct RVM_Param Vect;
-    struct RVM_Param User;
+    struct RVM_Param Vct;
+    struct RVM_Param Usr;
     /* Interrupt flags */
     struct RVM_Vctf Flag;
 };
@@ -309,9 +309,9 @@ struct RVM_State
 /* Interrupt handlers */
 struct RVM_Handler_Struct
 {
-    void (*Timer)(void);
-    void (*Ctxsw)(void);
-    void (*Vect[RVM_VIRT_VECT_NUM])(void);
+    void (*Tim)(void);
+    void (*Ctx)(void);
+    void (*Vct[RVM_VIRT_VCT_NUM])(void);
 };
 #endif
 
@@ -331,10 +331,10 @@ struct RVM_Thd_Reg
 #undef EXTERN
 #define EXTERN
 /*****************************************************************************/
-#ifdef RVM_VIRT_VECT_NUM
+#ifdef RVM_VIRT_VCT_NUM
 static volatile struct RVM_Handler_Struct RVM_Handler;
-static volatile rvm_ptr_t RVM_Int_Enable;
-static volatile rvm_ptr_t RVM_Vect_Pend;
+static volatile rvm_ptr_t RVM_Int_Ena;
+static volatile rvm_ptr_t RVM_Vct_Pend;
 #endif
 /*****************************************************************************/
 /* End Private Global Variables **********************************************/
@@ -527,13 +527,13 @@ EXTERN rvm_ret_t RVM_Str_Print(rvm_s8_t* String);
 EXTERN rvm_ret_t RVM_Prc_Send_Evt(rvm_ptr_t Evt_Num);
 
 /* Virtual machine related - not used in normal processes */
-#ifdef RVM_VIRT_VECT_NUM
+#ifdef RVM_VIRT_VCT_NUM
 
 /* Virtual machine operations */
-EXTERN rvm_ret_t RVM_Virt_Vect_Reg(rvm_ptr_t Vect_Num,
-                                   void (*Vect)(void));
-EXTERN void RVM_Virt_Timer_Reg(void (*Timer)(void));
-EXTERN void RVM_Virt_Ctxsw_Reg(void (*Ctxsw)(void));
+EXTERN rvm_ret_t RVM_Virt_Vct_Reg(rvm_ptr_t Vect_Num,
+                                  void (*Vct)(void));
+EXTERN void RVM_Virt_Tim_Reg(void (*Tim)(void));
+EXTERN void RVM_Virt_Ctx_Reg(void (*Ctx)(void));
 EXTERN void RVM_Virt_Int_Mask(void);
 EXTERN void RVM_Virt_Int_Unmask(void);
 EXTERN void RVM_Virt_Yield(void);
@@ -550,24 +550,24 @@ EXTERN void RVM_Hyp_Putchar(char Char);
 EXTERN void RVM_Hyp_Int_Ena(void);
 EXTERN void RVM_Hyp_Int_Dis(void);
 
-EXTERN rvm_ret_t RVM_Hyp_Vect_Phys(rvm_ptr_t Phys_Num,
-                                   rvm_ptr_t Vect_Num);
-EXTERN rvm_ret_t RVM_Hyp_Vect_Evt(rvm_ptr_t Evt_Num,
+EXTERN rvm_ret_t RVM_Hyp_Vct_Phys(rvm_ptr_t Phys_Num,
                                   rvm_ptr_t Vect_Num);
-EXTERN rvm_ret_t RVM_Hyp_Vect_Del(rvm_ptr_t Vect_Num);
-EXTERN rvm_ret_t RVM_Hyp_Vect_Lock(void);
-EXTERN rvm_ret_t RVM_Hyp_Vect_Wait(void);
+EXTERN rvm_ret_t RVM_Hyp_Vct_Evt(rvm_ptr_t Evt_Num,
+                                 rvm_ptr_t Vect_Num);
+EXTERN rvm_ret_t RVM_Hyp_Vct_Del(rvm_ptr_t Vect_Num);
+EXTERN rvm_ret_t RVM_Hyp_Vct_Lck(void);
+EXTERN rvm_ret_t RVM_Hyp_Vct_Wait(void);
 
 EXTERN rvm_ret_t RVM_Hyp_Evt_Add(rvm_ptr_t Evt_Num);
 EXTERN rvm_ret_t RVM_Hyp_Evt_Del(rvm_ptr_t Evt_Num);
-EXTERN rvm_ret_t RVM_Hyp_Evt_Send(rvm_ptr_t Evt_Num);
+EXTERN rvm_ret_t RVM_Hyp_Evt_Snd(rvm_ptr_t Evt_Num);
 
-EXTERN rvm_ret_t RVM_Hyp_Wdog_Feed(void);
+EXTERN rvm_ret_t RVM_Hyp_Wdg_Clr(void);
 
 /* Vect thread dedicated */
 EXTERN void RVM_Virt_Init(void);
-EXTERN rvm_ret_t RVM_Vect_Get(void);
-EXTERN void RVM_Vect_Loop(void);
+EXTERN rvm_ret_t RVM_Vct_Get(void);
+EXTERN void RVM_Vct_Loop(void);
 #endif
 /*****************************************************************************/
 /* __RVM_GUEST__ */

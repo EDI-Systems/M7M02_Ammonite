@@ -10,7 +10,7 @@ Description : The guest OS Cortex-M wrapper.
 #include "rvm.h"
 
 #define __HDR_PRIVATE_MEMBERS__
-#include "rvm_guest_a7m.h"
+#include "rvm_guest_conf.h"
 #undef __HDR_PRIVATE_MEMBERS__
 
 #include "rvm_guest.h"

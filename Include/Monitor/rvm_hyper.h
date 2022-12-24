@@ -19,23 +19,23 @@ Description : The header of microcontroller user-level library.
 /* Disable interrupts */
 #define RVM_HYP_INT_DIS             (2U)
 /* Register a physical vector */
-#define RVM_HYP_VECT_PHYS           (3U)
+#define RVM_HYP_VCT_PHYS            (3U)
 /* Register a event */
-#define RVM_HYP_VECT_EVT            (4U)
+#define RVM_HYP_VCT_EVT             (4U)
 /* Delete a virtual vector mapping */
-#define RVM_HYP_VECT_DEL            (5U)
+#define RVM_HYP_VCT_DEL             (5U)
 /* Lockdown current virtual vector mapping */
-#define RVM_HYP_VECT_LOCK           (6U)
+#define RVM_HYP_VCT_LCK             (6U)
 /* Wait for an virtual vector to come */
-#define RVM_HYP_VECT_WAIT           (7U)
+#define RVM_HYP_VCT_WAIT            (7U)
 /* Add a event source to send to */
 #define RVM_HYP_EVT_ADD             (8U)
 /* Delete a event source to send to */
 #define RVM_HYP_EVT_DEL             (9U)
 /* Send to an event */
-#define RVM_HYP_EVT_SEND            (10U)
-/* Start and feed watchdog */
-#define RVM_HYP_WDOG_FEED           (11U)
+#define RVM_HYP_EVT_SND             (10U)
+/* Start and clear watchdog */
+#define RVM_HYP_WDG_CLR             (11U)
 
 /* Error codes */
 /* The state is wrong */
@@ -55,7 +55,7 @@ Description : The header of microcontroller user-level library.
 
 /* Size of bitmap */
 #define RVM_VPRIO_BITMAP            ((RVM_PREEMPT_VPRIO_NUM+RVM_WORD_SIZE-1U)/RVM_WORD_SIZE)
-#define RVM_EVTCAP_BITMAP           ((RVM_VIRT_EVENT_NUM+RVM_WORD_SIZE-1U)/RVM_WORD_SIZE)
+#define RVM_EVTCAP_BITMAP           ((RVM_VIRT_EVT_NUM+RVM_WORD_SIZE-1U)/RVM_WORD_SIZE)
 #define RVM_VCTF_BITMAP(X)          (((X)+RVM_WORD_SIZE-1U)/RVM_WORD_SIZE)
 
 /* States of virtual machines */
@@ -70,11 +70,11 @@ Description : The header of microcontroller user-level library.
 /* The virtual machine have its interrupt enabled */
 #define RVM_VM_INTENA               RVM_POW2(sizeof(rvm_ptr_t)*4U)
 /* The virtual machine have finished its booting */
-#define RVM_VM_BOOTDONE             (RVM_VM_INTENA<<1)
+#define RVM_VM_BOOTED               (RVM_VM_INTENA<<1)
 /* The virtual machine have its virtual vector mappings locked down */
-#define RVM_VM_VECTLOCK             (RVM_VM_BOOTDONE<<1)
+#define RVM_VM_VCTLCK               (RVM_VM_BOOTED<<1)
 /* The watchdog for this virtual machine is enabled */
-#define RVM_VM_WDOGENA              (RVM_VM_VECTLOCK<<1)
+#define RVM_VM_WDGENA               (RVM_VM_VCTLCK<<1)
     
 /* The timer wheel size */
 #define RVM_WHEEL_SIZE              (32U)
@@ -122,19 +122,19 @@ struct RVM_Param
 /* Interrupt flags */
 struct RVM_Vctf
 {
-    rvm_ptr_t Timer;
-    rvm_ptr_t Ctxsw;
-    rvm_ptr_t Vect[1];
+    rvm_ptr_t Tim;
+    rvm_ptr_t Ctx;
+    rvm_ptr_t Vct[1];
 };
 
 /* State block */
 struct RVM_State
 {
     /* Indicate that the vector thread is now active */
-    rvm_ptr_t Vect_Act;
+    rvm_ptr_t Vct_Act;
     /* Parameter area, one for vector, another for user */
-    struct RVM_Param Vect;
-    struct RVM_Param User;
+    struct RVM_Param Vct;
+    struct RVM_Param Usr;
     /* Interrupt flags */
     struct RVM_Vctf Flag;
 };
@@ -149,7 +149,7 @@ struct RVM_Map_Struct
     /* The pointer to the virtual machine to send to */
     volatile struct RVM_Virt_Struct* Virt;
     /* The virtual machine vector to send to */
-    rvm_ptr_t Vect_Num;
+    rvm_ptr_t Vct_Num;
 };
 
 /* Virtual machine scheduling data */
@@ -180,7 +180,7 @@ struct RVM_Vmap_Struct
     /* The watchdog timeout time, in hypervisor ticks */
     rvm_ptr_t Watchdog;
     /* The number of virtual vectors */
-    rvm_ptr_t Vect_Num;
+    rvm_ptr_t Vct_Num;
 
     /* Register base */
     volatile struct RVM_Thd_Reg* Reg_Base;
@@ -190,21 +190,21 @@ struct RVM_Vmap_Struct
     /* Descriptor header base address */
     rvm_ptr_t Desc_Base;
     /* Vector signal endpoint capability */
-    rvm_cid_t Vect_Sig_Cap;
+    rvm_cid_t Vct_Sig_Cap;
     
     /* Vector thread capability */
-    rvm_cid_t Vect_Thd_Cap;
+    rvm_cid_t Vct_Thd_Cap;
     /* Vector thread stack base */
-    rvm_ptr_t Vect_Stack_Base;
+    rvm_ptr_t Vct_Stack_Base;
     /* Vector thread size */
-    rvm_ptr_t Vect_Stack_Size;
+    rvm_ptr_t Vct_Stack_Size;
     
     /* User thread capability */
-    rvm_cid_t User_Thd_Cap;
+    rvm_cid_t Usr_Thd_Cap;
     /* User thread stack base */
-    rvm_ptr_t User_Stack_Base;
+    rvm_ptr_t Usr_Stack_Base;
     /* User thread size */
-    rvm_ptr_t User_Stack_Size;
+    rvm_ptr_t Usr_Stack_Size;
 };
 
 /* The virtual machine structure */
@@ -217,7 +217,7 @@ struct RVM_Virt_Struct
     /* The scheduling related information */
     struct RVM_Sched Sched;
     /* The vectors */
-    struct RVM_List Vect_Head;
+    struct RVM_List Vct_Head;
     /* ROM database */
     const struct RVM_Vmap_Struct* Map;
     /* Event source send capability table */
@@ -288,17 +288,17 @@ static volatile struct RVM_Virt_Struct* _RVM_Run_High(void);
 
 static void _RVM_Virt_Switch(volatile struct RVM_Virt_Struct* From, 
                              volatile struct RVM_Virt_Struct* To);
-static void _RVM_Virt_Vect_Send(volatile struct RVM_List* Array,
-                                rvm_ptr_t Num);
+static void _RVM_Virt_Vct_Snd(volatile struct RVM_List* Array,
+                              rvm_ptr_t Num);
 static void _RVM_Virt_Cur_Recover(void);
                                 
-static rvm_ret_t _RVM_Vect_Pend_Check(volatile struct RVM_Virt_Struct* Virt);
-static void _RVM_Vect_Flag_Set(volatile struct RVM_Virt_Struct* Virt,
-                               rvm_ptr_t Vect_Num);
+static rvm_ret_t _RVM_Vct_Pend_Check(volatile struct RVM_Virt_Struct* Virt);
+static void _RVM_Vct_Flag_Set(volatile struct RVM_Virt_Struct* Virt,
+                              rvm_ptr_t Vect_Num);
 
 static void _RVM_Wheel_Ins(volatile struct RVM_Virt_Struct* Virt,
                            rvm_ptr_t Period);
-static void _RVM_Timer_Send(volatile struct RVM_Virt_Struct* Virt);
+static void _RVM_Tim_Snd(volatile struct RVM_Virt_Struct* Virt);
 static rvm_ptr_t _RVM_Flagset_Get(volatile struct RVM_Flag* Set);
 
 #if(RVM_DEBUG_PRINT==1U)
@@ -308,19 +308,19 @@ static rvm_ret_t RVM_Hyp_Putchar(rvm_ptr_t Char);
 static rvm_ret_t RVM_Hyp_Int_Ena(void);
 static rvm_ret_t RVM_Hyp_Int_Dis(void);
 
-static rvm_ret_t RVM_Hyp_Vect_Phys(rvm_ptr_t Phys_Num,
-                                   rvm_ptr_t Vect_Num);
-static rvm_ret_t RVM_Hyp_Vect_Evt(rvm_ptr_t Evt_Num,
+static rvm_ret_t RVM_Hyp_Vct_Phys(rvm_ptr_t Phys_Num,
                                   rvm_ptr_t Vect_Num);
-static rvm_ret_t RVM_Hyp_Vect_Del(rvm_ptr_t Vect_Num);
-static rvm_ret_t RVM_Hyp_Vect_Wait(void);
-static rvm_ret_t RVM_Hyp_Vect_Lock(void);
+static rvm_ret_t RVM_Hyp_Vct_Evt(rvm_ptr_t Evt_Num,
+                                 rvm_ptr_t Vect_Num);
+static rvm_ret_t RVM_Hyp_Vct_Del(rvm_ptr_t Vect_Num);
+static rvm_ret_t RVM_Hyp_Vct_Lck(void);
+static rvm_ret_t RVM_Hyp_Vct_Wait(void);
 
 static rvm_ret_t RVM_Hyp_Evt_Add(rvm_ptr_t Evt_Num);
 static rvm_ret_t RVM_Hyp_Evt_Del(rvm_ptr_t Evt_Num);
-static rvm_ret_t RVM_Hyp_Evt_Send(rvm_ptr_t Evt_Num);
+static rvm_ret_t RVM_Hyp_Evt_Snd(rvm_ptr_t Evt_Num);
 
-static rvm_ret_t RVM_Hyp_Wdog_Feed(void);
+static rvm_ret_t RVM_Hyp_Wdg_Clr(void);
 #endif
 /*****************************************************************************/
 #define __EXTERN__
@@ -347,9 +347,9 @@ __EXTERN__ volatile rvm_ptr_t RVM_Bitmap[RVM_VPRIO_BITMAP];
 __EXTERN__ volatile struct RVM_List RVM_Run[RVM_PREEMPT_VPRIO_NUM];
 
 /* Event header */
-__EXTERN__ volatile struct RVM_List RVM_Evt[RVM_VIRT_EVENT_NUM];
+__EXTERN__ volatile struct RVM_List RVM_Evt[RVM_VIRT_EVT_NUM];
 /* Physical vector header */
-__EXTERN__ volatile struct RVM_List RVM_Phys[RVM_PHYS_VECT_NUM];
+__EXTERN__ volatile struct RVM_List RVM_Phys[RVM_PHYS_VCT_NUM];
 
 /* Mapping database */
 __EXTERN__ volatile struct RVM_List RVM_Map_Free;

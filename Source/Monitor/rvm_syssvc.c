@@ -436,7 +436,7 @@ rvm_ret_t RVM_Cpt_Kom(rvm_cid_t Cap_Cpt_Dst,
                       rvm_ptr_t Flag)
 {
     return RVM_CAP_OP(RVM_KOM_SVC(End, RVM_SVC_CPT_ADD),
-                      RVM_KOM_CAPID(Start, Flag),
+                      RVM_KOM_CID(Start, Flag),
                       RVM_PARAM_D1(Cap_Cpt_Dst)|RVM_PARAM_D0(Cap_Dst),
                       RVM_PARAM_D1(Cap_Cpt_Src)|RVM_PARAM_D0(Cap_Src),
                       RVM_KOM_FLAG(End, Start));
@@ -887,7 +887,7 @@ Input       : rvm_cid_t Cap_Thd - The capability to the thread.
                                   notifications. This signal endpoint will be
                                   sent to whenever this thread has a fault, or
                                   timeouts. This is purely optional; if it is
-                                  not needed, pass in RME_CAPID_NULL.
+                                  not needed, pass in RME_CID_NULL.
               rvm_tid_t TID - The thread ID. This is user-supplied, and the
                               kernel will not check whether there are two
                               threads that have the same TID.

@@ -2,8 +2,8 @@
 <Project>
     <Name>Test_Proj</Name>
     <Version>1.0</Version>
-	<Assert_Correct>Yes</Assert_Correct>
-	<Debug_Print>No</Debug_Print>
+	<Assert_Correct>No</Assert_Correct>
+	<Debug_Print>Yes</Debug_Print>
 	<Buildsystem>Keil</Buildsystem>
 	<Workspace_Output>./</Workspace_Output>
 	<Workspace_Overwrite>No</Workspace_Overwrite>
@@ -245,7 +245,7 @@
             <Timeslice>10</Timeslice>
             <Period>100</Period>
             <Watchdog>0</Watchdog>
-            <Vect_Num>100</Vect_Num>
+            <Vector_Num>100</Vector_Num>
 			<Guest_Type>RMP</Guest_Type>
 			<Guest_Root>../../../../M5P01_Prokaron</Guest_Root>
 			<Buildsystem>Keil</Buildsystem>

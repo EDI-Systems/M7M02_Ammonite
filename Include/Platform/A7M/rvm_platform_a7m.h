@@ -53,20 +53,24 @@ typedef unsigned char rvm_u8_t;
 #define RVM_A7M_FPU_FPV5_SP                         (2U)
 #define RVM_A7M_FPU_FPV5_DP                         (3U)
 
+/* Platform-specific includes */
+#include "rvm_platform_a7m_conf.h"
+
 /* Thread size */
-#define RVM_THD_WORD_SIZE                           (47U)
+#if(RVM_A7M_FPU_TYPE!=RVM_A7M_FPU_NONE)
+#define RVM_THD_WORD_SIZE                           (48U)
+#else
+#define RVM_THD_WORD_SIZE                           (32U)
+#endif
 /* Invocation size */
 #define RVM_INV_WORD_SIZE                           (9U)
 /* Normal page directory size */
 #define RVM_PGT_WORD_SIZE_NOM(NUM_ORDER)            (5U+RVM_POW2(NUM_ORDER))
 /* Top-level page directory size */
-#define RVM_PGT_WORD_SIZE_TOP(NUM_ORDER)            (1U+2U*RVM_A7M_MPU_REGIONS+RVM_PGT_WORD_SIZE_NOM(NUM_ORDER))
+#define RVM_PGT_WORD_SIZE_TOP(NUM_ORDER)            (1U+2U*RVM_A7M_REGION_NUM+RVM_PGT_WORD_SIZE_NOM(NUM_ORDER))
 
 #define RVM_A7M_REG(X)                              (*((volatile rvm_ptr_t*)(X)))
 #define RVM_A7M_REGB(X)                             (*((volatile rvm_u8_t*)(X)))
-
-/* Platform-specific includes */
-#include "rvm_platform_a7m_conf.h"
 
 /* Fault reasons */
 /* Debug event has occurred. The Debug Fault Status Register has been updated */
@@ -434,11 +438,11 @@ struct RVM_Exc_Struct
 EXTERN void _RVM_Entry(void);
 EXTERN void _RVM_Jmp_Stub(void);
 EXTERN rvm_ptr_t _RVM_MSB_Get(rvm_ptr_t Val); 
-EXTERN rvm_ret_t RVM_Svc(rvm_ptr_t Op_Capid,
+EXTERN rvm_ret_t RVM_Svc(rvm_ptr_t Op_Cid,
                          rvm_ptr_t Arg1,
                          rvm_ptr_t Arg2,
                          rvm_ptr_t Arg3);
-EXTERN rvm_ret_t RVM_A7M_Svc_Kfn(rvm_ptr_t Op_Capid,
+EXTERN rvm_ret_t RVM_A7M_Svc_Kfn(rvm_ptr_t Op_Cid,
                                  rvm_ptr_t ID,
                                  rvm_ptr_t* Param);
 /* Invocation */

@@ -647,13 +647,13 @@ void Gen_Tool::Kernel_Conf_Hdr(void)
     /* The granularity of kernel memory allocation, in bytes */
     Gen_Tool::Macro_Int(List, "RME_KOM_SLOT_ORDER", Kernel->Kom_Order, MACRO_REPLACE);
     /* Physical vector flag area base and its size */
-    Gen_Tool::Macro_Hex(List, "RME_RVM_PHYS_VECT_BASE", Kernel->Vctf_Base, MACRO_REPLACE);
-    Gen_Tool::Macro_Hex(List, "RME_RVM_PHYS_VECT_SIZE", Kernel->Vctf_Size, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RME_RVM_PHYS_VCTF_BASE", Kernel->Vctf_Base, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RME_RVM_PHYS_VCTF_SIZE", Kernel->Vctf_Size, MACRO_REPLACE);
     /* Shared event flag region address */
-    Gen_Tool::Macro_Hex(List, "RME_RVM_VIRT_EVENT_BASE", Kernel->Evtf_Base, MACRO_REPLACE);
-    Gen_Tool::Macro_Hex(List, "RME_RVM_VIRT_EVENT_SIZE", Kernel->Evtf_Size, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RME_RVM_VIRT_EVTF_BASE", Kernel->Evtf_Base, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RME_RVM_VIRT_EVTF_SIZE", Kernel->Evtf_Size, MACRO_REPLACE);
     /* Initial kernel object frontier limit */
-    Gen_Tool::Macro_Hex(List, "RME_RVM_KOM_BOOT_FRONTIER", Kernel->Kom_Base+Monitor->Before_Kom_Front, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RME_RVM_KOM_BOOT_FRONT", Kernel->Kom_Base+Monitor->Before_Kom_Front, MACRO_REPLACE);
 
     /* Replace platform specific macros */
     this->Plat->Kernel_Conf_Hdr(List);
@@ -697,7 +697,7 @@ void Gen_Tool::Kernel_Boot_Hdr(void)
 
     /* Vector capability tables */
     List->push_back("/* Vector endpoint capability tables */");
-    Cap_Front=Kernel->Vect_Cap_Front;
+    Cap_Front=Kernel->Vct_Cap_Front;
     for(Obj_Cnt=0;Obj_Cnt<Monitor->Vector.size();Obj_Cnt+=this->Plat->Plat->Captbl_Max)
     {
         Gen_Tool::Macro_Int(List, std::string("RME_MAIN_VCT_")+MIDS(Obj_Cnt), Cap_Front, MACRO_ADD);
@@ -708,9 +708,9 @@ void Gen_Tool::Kernel_Boot_Hdr(void)
     List->push_back("");
     List->push_back("/* Vector endpoints */");
     Obj_Cnt=0;
-    for(const class Vect_Info* Vect:Monitor->Vector)
+    for(const class Vect_Info* Vct:Monitor->Vector)
     {
-        Gen_Tool::Macro_Int(List, Vect->Macro_Global, SID(Obj_Cnt), MACRO_ADD);
+        Gen_Tool::Macro_Int(List, Vct->Macro_Global, SID(Obj_Cnt), MACRO_ADD);
         Obj_Cnt++;
     }
 
@@ -755,24 +755,24 @@ void Gen_Tool::Kernel_Boot_Src(void)
 
     /* Global variables */
     List->push_back("/* Private Global Variables **************************************************/");
-    for(const class Vect_Info* Vect:Monitor->Vector)
-        List->push_back(std::string("static struct RME_Cap_Sig* ")+Vect->Name+"_Vect_Sig;");
+    for(const class Vect_Info* Vct:Monitor->Vector)
+        List->push_back(std::string("static struct RME_Cap_Sig* ")+Vct->Name+"_Vct_Sig;");
     List->push_back("/* End Private Global Variables **********************************************/");
     List->push_back("");
 
     /* Private prototypes */
     Main::Info("> Generating private C function prototypes.");
     List->push_back("/* Private C Function Prototypes *********************************************/");
-    for(const class Vect_Info* Vect:Monitor->Vector)
-        List->push_back(std::string("extern rme_ptr_t RME_Vect_")+Vect->Name+"_User(rme_ptr_t Vect_Num);");
+    for(const class Vect_Info* Vct:Monitor->Vector)
+        List->push_back(std::string("EXTERN rme_ptr_t RME_Vct_")+Vct->Name+"_Handler(void);");
     List->push_back("/* End Private C Function Prototypes *****************************************/");
     List->push_back("");
 
     /* Public prototypes */
     Main::Info("> Generating public C function prototypes.");
     List->push_back("/* Public C Function Prototypes **********************************************/");
-    List->push_back("rme_ptr_t RME_Boot_Vect_Init(struct RME_Cap_Cpt* Cpt, rme_ptr_t Cap_Front, rme_ptr_t Kom_Front);");
-    List->push_back("rme_ptr_t RME_Boot_Vect_Handler(rme_ptr_t Vect_Num);");
+    List->push_back("rme_ptr_t RME_Boot_Vct_Init(struct RME_Cap_Cpt* Cpt, rme_ptr_t Cap_Front, rme_ptr_t Kom_Front);");
+    List->push_back("rme_ptr_t RME_Boot_Vct_Handler(rme_ptr_t Vct_Num);");
     List->push_back("/* End Public C Function Prototypes ******************************************/");
     List->push_back("");
 
@@ -780,18 +780,18 @@ void Gen_Tool::Kernel_Boot_Src(void)
     Main::Info("> Generating boot-time vector endpoint initialization routine.");
     Input.push_back("rme_ptr_t Cap_Front - The current capability table frontier.");
     Input.push_back("rme_ptr_t Kom_Front - The current kernel absolute memory frontier.");
-    Gen_Tool::Func_Head(List, "RME_Boot_Vect_Init",
+    Gen_Tool::Func_Head(List, "RME_Boot_Vct_Init",
                         "Initialize all the vector endpoints at boot-time.",
                         Input, Output, "rme_ptr_t - The kernel memory frontier after booting is all done.");
     Input.clear();
-    List->push_back("rme_ptr_t RME_Boot_Vect_Init(struct RME_Cap_Cpt* Cpt, rme_ptr_t Cap_Front, rme_ptr_t Kom_Front)");
+    List->push_back("rme_ptr_t RME_Boot_Vct_Init(struct RME_Cap_Cpt* Cpt, rme_ptr_t Cap_Front, rme_ptr_t Kom_Front)");
     List->push_back("{");
     List->push_back("    rme_ptr_t Cur_Addr;");
     List->push_back("    struct RME_Cap_Cpt* Sig_Cpt;");
     List->push_back("");
     List->push_back("    /* The address here shall match what is in the generator */");
-    List->push_back(std::string("    RME_ASSERT(Cap_Front==")+std::to_string(Kernel->Vect_Cap_Front)+"U);");
-    List->push_back(std::string("    RME_ASSERT(Kom_Front==0x")+Main::Hex(Kernel->Vect_Kom_Front+Kernel->Kom_Base)+"U);");
+    List->push_back(std::string("    RME_ASSERT(Cap_Front==")+std::to_string(Kernel->Vct_Cap_Front)+"U);");
+    List->push_back(std::string("    RME_ASSERT(Kom_Front==0x")+Main::Hex(Kernel->Vct_Kom_Front+Kernel->Kom_Base)+"U);");
     List->push_back("");
     List->push_back("    Cur_Addr=Kom_Front;");
     List->push_back("    /* Create all the vector capability tables first */");
@@ -805,53 +805,53 @@ void Gen_Tool::Kernel_Boot_Src(void)
     List->push_back("");
     List->push_back("    /* Then all the vectors */");
     Obj_Cnt=0;
-    for(const class Vect_Info* Vect:Monitor->Vector)
+    for(const class Vect_Info* Vct:Monitor->Vector)
     {
         List->push_back(std::string("    Sig_Cpt=&(RME_CAP_GETOBJ(Cpt,struct RME_Cap_Cpt*)[RME_MAIN_VCT_")+
                         MIDS(Obj_Cnt)+"]);");
-        List->push_back(std::string("    ")+Vect->Name+
-                        "_Vect_Sig=&(RME_CAP_GETOBJ(Sig_Cpt,struct RME_Cap_Sig*)["+Vect->Macro_Global+"]);");
+        List->push_back(std::string("    ")+Vct->Name+
+                        "_Vct_Sig=&(RME_CAP_GETOBJ(Sig_Cpt,struct RME_Cap_Sig*)["+Vct->Macro_Global+"]);");
         List->push_back(std::string("    RME_ASSERT(_RME_Sig_Boot_Crt(Cpt, RME_MAIN_VCT_")+
-                        MIDS(Obj_Cnt)+", "+Vect->Macro_Global+")==0U);");
+                        MIDS(Obj_Cnt)+", "+Vct->Macro_Global+")==0U);");
         Obj_Cnt++;
     }
     List->push_back("");
     List->push_back("    return Cur_Addr;");
     List->push_back("}");
-    Gen_Tool::Func_Foot(List, "RME_Boot_Vect_Init");
+    Gen_Tool::Func_Foot(List, "RME_Boot_Vct_Init");
     List->push_back("");
 
     /* Print the interrupt relaying function */
     Main::Info("> Generating interrupt relay facility.");
-    Input.push_back("rme_ptr_t Vect_Num - The vector number.");
-    Gen_Tool::Func_Head(List, "RME_Boot_Vect_Handler",
+    Input.push_back("rme_ptr_t Vct_Num - The vector number.");
+    Gen_Tool::Func_Head(List, "RME_Boot_Vct_Handler",
                         "The interrupt handler entry for all the vectors.",
                         Input, Output, "rme_ptr_t - The number of signals to send to the generic vector endpoint.");
     Input.clear();
-    List->push_back("rme_ptr_t RME_Boot_Vect_Handler(rme_ptr_t Vect_Num)");
+    List->push_back("rme_ptr_t RME_Boot_Vct_Handler(rme_ptr_t Vct_Num)");
     List->push_back("{");
-    List->push_back("    rme_ptr_t Send_Num;");
+    List->push_back("    rme_ptr_t Skip;");
     List->push_back("");
-    List->push_back("    Send_Num=0U;");
+    List->push_back("    Skip=0U;");
     List->push_back("");
-    List->push_back("    switch(Vect_Num)");
+    List->push_back("    switch(Vct_Num)");
     List->push_back("    {");
-    for(const class Vect_Info* Vect:Monitor->Vector)
+    for(const class Vect_Info* Vct:Monitor->Vector)
     {
-        List->push_back(std::string("        /* ")+Vect->Name+" */");
-        List->push_back(std::string("        case ")+std::to_string(Vect->Number)+"U: ");
+        List->push_back(std::string("        /* ")+Vct->Name+" */");
+        List->push_back(std::string("        case ")+std::to_string(Vct->Number)+"U: ");
         List->push_back("        {");
-        List->push_back(std::string("            Send_Num=RME_Vect_")+Vect->Name+"_User(Vect_Num);");
-        List->push_back(std::string("            _RME_Kern_Snd(")+Vect->Name+"_Vect_Sig);");
+        List->push_back(std::string("            Skip=RME_Vct_")+Vct->Name+"_Handler();");
+        List->push_back(std::string("            _RME_Kern_Snd(")+Vct->Name+"_Vct_Sig);");
         List->push_back("            break;");
         List->push_back("        }");
     }
     List->push_back("        default: break;");
     List->push_back("    }");
     List->push_back("");
-    List->push_back("    return Send_Num;");
+    List->push_back("    return Skip;");
     List->push_back("}");
-    Gen_Tool::Func_Foot(List, "RME_Boot_Vect_Handler");
+    Gen_Tool::Func_Foot(List, "RME_Boot_Vct_Handler");
     List->push_back("");
 
     /* Generate rme_boot.c */
@@ -908,8 +908,8 @@ void Gen_Tool::Kernel_Hook_Src(void)
     List->push_back("void RME_Reboot_Failsafe(void);");
     List->push_back("rme_ret_t RME_Hook_Kfn_Handler(rme_ptr_t Func_ID, rme_ptr_t Sub_ID, rme_ptr_t Param1, rme_ptr_t Param2);");
     /* Add all the user vector stubs */
-    for(const class Vect_Info* Vect:Monitor->Vector)
-        List->push_back(std::string("rme_ptr_t RME_Vect_")+Vect->Name+"_User(rme_ptr_t Int_Num);");
+    for(const class Vect_Info* Vct:Monitor->Vector)
+        List->push_back(std::string("rme_ptr_t RME_Vct_")+Vct->Name+"_Handler(rme_ptr_t Int_Num);");
     List->push_back("/* End Public C Function Prototypes ******************************************/");
     List->push_back("");
 
@@ -994,11 +994,10 @@ void Gen_Tool::Kernel_Handler_Src(void)
     Monitor=this->Plat->Proj->Monitor.get();
     List=std::make_unique<std::vector<std::string>>();
 
-    Input.push_back("rme_ptr_t Vect_Num - The vector number.");
-    for(const class Vect_Info* Vect:Monitor->Vector)
+    for(const class Vect_Info* Vct:Monitor->Vector)
     {
         /* Generate filename */
-        Filename=std::string("rme_handler_")+Vect->Name_Lower+".c";
+        Filename=std::string("rme_handler_")+Vct->Name_Lower+".c";
 
         /* Does the file already exist? */
         if(std::filesystem::exists(Kernel->Handler_Source_Output+Filename)==true)
@@ -1013,7 +1012,7 @@ void Gen_Tool::Kernel_Handler_Src(void)
 
         /* File header */
         Main::Info("> Generating file header.");
-        Gen_Tool::Src_Head(List, "Filename", std::string("The top-half handler file for vector ")+Vect->Name+".");
+        Gen_Tool::Src_Head(List, "Filename", std::string("The top-half handler file for vector ")+Vct->Name+".");
         List->push_back("");
 
         /* Print all header includes */
@@ -1024,21 +1023,23 @@ void Gen_Tool::Kernel_Handler_Src(void)
         /* Print all global prototypes */
         Main::Info("> Generating public C function prototypes.");
         List->push_back("/* Public C Function Prototypes **********************************************/");
-        List->push_back(std::string("rme_ptr_t RME_Vect_")+Vect->Name+"_User(rme_ptr_t Int_Num);");
+        List->push_back(std::string("rme_ptr_t RME_Vct_")+Vct->Name+"_Handler(void);");
         List->push_back("/* End Public C Function Prototypes ******************************************/");
+        List->push_back("");
 
         /* Print function body */
-        Main::Info(std::string("> Generating vector '")+Vect->Name+"' handler.");
-        Gen_Tool::Func_Head(List, std::string("RME_Vect_")+Vect->Name+"_User",
+        Main::Info(std::string("> Generating vector '")+Vct->Name+"' handler.");
+        Gen_Tool::Func_Head(List, std::string("RME_Vct_")+Vct->Name+"_Handler",
                             "The user top-half interrupt handler for vector.",
-                            Input, Output, "rme_ptr_t - Return 0 to send to the RME_BOOT_INIT_VECT, return other values to skip.");
-        List->push_back(std::string("rme_ptr_t ")+std::string("RME_Vect_")+Vect->Name+"_User(rme_ptr_t Vect_Num)\n");
+                            Input, Output, "rme_ptr_t - Return 0 to send to the RME_BOOT_INIT_VCT as well,\n"
+                            		       "            return other values to skip.");
+        List->push_back(std::string("rme_ptr_t ")+std::string("RME_Vct_")+Vct->Name+"_Handler(void)\n");
         List->push_back("{");
         List->push_back("    /* Add code here */");
         List->push_back("");
         List->push_back("    return 0;");
         List->push_back("}");
-        Gen_Tool::Func_Foot(List, std::string("RME_Vect_")+Vect->Name+"_User");
+        Gen_Tool::Func_Foot(List, std::string("RME_Vct_")+Vct->Name+"_Handler");
         List->push_back("");
 
         /* Generate rme_init.c */
@@ -1129,8 +1130,8 @@ void Gen_Tool::Kernel_Proj(void)
                      "/rme_platform_"+this->Plat->Name_Lower+"_"+Tool->Name_Lower+Tool->Suffix(TOOL_ASSEMBLER));
     Source.push_back(Kernel->Boot_Source_Output+"rme_boot.c");
     Source.push_back(Kernel->Hook_Source_Output+"rme_hook.c");
-    for(const class Vect_Info* Vect:Monitor->Vector)
-        Source.push_back(Kernel->Handler_Source_Output+"rme_handler_"+Vect->Name_Lower+".c");
+    for(const class Vect_Info* Vct:Monitor->Vector)
+        Source.push_back(Kernel->Handler_Source_Output+"rme_handler_"+Vct->Name_Lower+".c");
     /* Other process compartments, if full image generation is required */
     if(Kernel->Project_Full_Image!=0)
     {
@@ -1261,13 +1262,13 @@ void Gen_Tool::Monitor_Conf_Hdr(void)
     Gen_Tool::Macro_Int(List, "RVM_PREEMPT_VPRIO_NUM", Monitor->Virt_Prio, MACRO_REPLACE);
 
     /* Physical vector number, flag area base and its size */
-    Gen_Tool::Macro_Int(List, "RVM_PHYS_VECT_NUM", this->Plat->Chip->Vect_Num, MACRO_REPLACE);
-    Gen_Tool::Macro_Hex(List, "RVM_PHYS_VECT_BASE", Kernel->Vctf_Base, MACRO_REPLACE);
-    Gen_Tool::Macro_Hex(List, "RVM_PHYS_VECT_SIZE", Kernel->Vctf_Size, MACRO_REPLACE);
+    Gen_Tool::Macro_Int(List, "RVM_PHYS_VCT_NUM", this->Plat->Chip->Vect_Num, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RVM_PHYS_VCTF_BASE", Kernel->Vctf_Base, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RVM_PHYS_VCTF_SIZE", Kernel->Vctf_Size, MACRO_REPLACE);
     /* Virtual event number, flag area base and its size */
-    Gen_Tool::Macro_Int(List, "RVM_VIRT_EVENT_NUM", Monitor->Virt_Event, MACRO_REPLACE);
-    Gen_Tool::Macro_Hex(List, "RVM_VIRT_EVENT_BASE", Kernel->Evtf_Base, MACRO_REPLACE);
-    Gen_Tool::Macro_Hex(List, "RVM_VIRT_EVENT_SIZE", Kernel->Evtf_Size, MACRO_REPLACE);
+    Gen_Tool::Macro_Int(List, "RVM_VIRT_EVT_NUM", Monitor->Virt_Event, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RVM_VIRT_EVTF_BASE", Kernel->Evtf_Base, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RVM_VIRT_EVTF_SIZE", Kernel->Evtf_Size, MACRO_REPLACE);
     /* Maximum number of mappings allowed */
     Gen_Tool::Macro_Int(List, "RVM_VIRT_MAP_NUM", Monitor->Virt_Map, MACRO_REPLACE);
 
@@ -1281,9 +1282,9 @@ void Gen_Tool::Monitor_Conf_Hdr(void)
     Gen_Tool::Macro_Hex(List, "RVM_VCTD_STACK_BASE", Monitor->Vctd_Stack_Base, MACRO_REPLACE);
     Gen_Tool::Macro_Hex(List, "RVM_VCTD_STACK_SIZE", Monitor->Vctd_Stack_Size, MACRO_REPLACE);
     /* Initial capability frontier limit */
-    Gen_Tool::Macro_Int(List, "RVM_CAP_BOOT_FRONTIER", Monitor->Before_Cap_Front, MACRO_REPLACE);
+    Gen_Tool::Macro_Int(List, "RVM_CAP_BOOT_FRONT", Monitor->Before_Cap_Front, MACRO_REPLACE);
     /* Initial kernel memory frontier limit */
-    Gen_Tool::Macro_Int(List, "RVM_KOM_BOOT_FRONTIER", Monitor->Before_Kom_Front, MACRO_REPLACE);
+    Gen_Tool::Macro_Int(List, "RVM_KOM_BOOT_FRONT", Monitor->Before_Kom_Front, MACRO_REPLACE);
 
     /* Stack safety redundancy, in bytes - fixed to 16 words */
     Gen_Tool::Macro_Int(List, "RVM_STACK_SAFE_RDCY", 16, MACRO_REPLACE);
@@ -1298,11 +1299,11 @@ void Gen_Tool::Monitor_Conf_Hdr(void)
 /* Begin Function:Gen_Tool::Monitor_Cpt_Init **********************************
 Description : Build capability table contents.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file to add these to.
-              ptr_t Is_Kfunc - Whether this iteration is kfunc dedicated.
+              ptr_t Is_Kfn - Whether this iteration is kfunc dedicated.
 Output      : None.
 Return      : ptr_t - The number of operations.
 ******************************************************************************/
-ptr_t Gen_Tool::Monitor_Cpt_Init(std::unique_ptr<std::vector<std::string>>& List, ptr_t Is_Kfunc)
+ptr_t Gen_Tool::Monitor_Cpt_Init(std::unique_ptr<std::vector<std::string>>& List, ptr_t Is_Kfn)
 {
     ptr_t Total;
 
@@ -1310,7 +1311,7 @@ ptr_t Gen_Tool::Monitor_Cpt_Init(std::unique_ptr<std::vector<std::string>>& List
 
     for(const std::unique_ptr<class Process>& Prc:this->Plat->Proj->Process)
     {
-        if(Is_Kfunc==1)
+        if(Is_Kfn==1)
         {
             /* For native processes, initialize the slot 0 as kernel function capability for sending events to the RVM's Vctd */
             if(Prc->Type==PROCESS_NATIVE)
@@ -1320,10 +1321,10 @@ ptr_t Gen_Tool::Monitor_Cpt_Init(std::unique_ptr<std::vector<std::string>>& List
             }
 
             /* Kernel functions */
-            for(const std::unique_ptr<class Kfunc>& Kfunc:Prc->Kfunc)
+            for(const std::unique_ptr<class Kfunc>& Kfn:Prc->Kfunc)
             {
-                List->push_back(std::string("{")+Prc->Captbl->Macro_Global+", "+std::to_string(Kfunc->Capid_Local)+"U, 0x"+
-                                Main::Hex(Kfunc->Start)+"U, 0x"+Main::Hex(Kfunc->End)+"U},");
+                List->push_back(std::string("{")+Prc->Captbl->Macro_Global+", "+std::to_string(Kfn->Cid_Local)+"U, 0x"+
+                                Main::Hex(Kfn->Start)+"U, 0x"+Main::Hex(Kfn->End)+"U},");
                 Total++;
             }
         }
@@ -1332,29 +1333,29 @@ ptr_t Gen_Tool::Monitor_Cpt_Init(std::unique_ptr<std::vector<std::string>>& List
             /* Ports */
             for(std::unique_ptr<class Port>& Port:Prc->Port)
             {
-                List->push_back(std::string("{")+Prc->Captbl->Macro_Global+", "+std::to_string(Port->Capid_Local)+"U, RVM_MAIN_INV_"+
-                                MIDS(Port->Capid_Global)+", "+SIDS(Port->Capid_Global)+"U, RVM_INV_FLAG_ACT},");
+                List->push_back(std::string("{")+Prc->Captbl->Macro_Global+", "+std::to_string(Port->Cid_Local)+"U, RVM_MAIN_INV_"+
+                                MIDS(Port->Cid_Global)+", "+SIDS(Port->Cid_Global)+"U, RVM_INV_FLAG_ACT},");
                 Total++;
             }
             /* Receive endpoints */
             for(const std::unique_ptr<class Receive>& Rcv:Prc->Receive)
             {
-                List->push_back(std::string("{")+Prc->Captbl->Macro_Global+", "+std::to_string(Rcv->Capid_Local)+"U, RVM_MAIN_RCV_"+
-                                MIDS(Rcv->Capid_Global)+", "+SIDS(Rcv->Capid_Global)+"U, RVM_SIG_FLAG_SND|RVM_SIG_FLAG_RCV},");
+                List->push_back(std::string("{")+Prc->Captbl->Macro_Global+", "+std::to_string(Rcv->Cid_Local)+"U, RVM_MAIN_RCV_"+
+                                MIDS(Rcv->Cid_Global)+", "+SIDS(Rcv->Cid_Global)+"U, RVM_SIG_FLAG_SND|RVM_SIG_FLAG_RCV},");
                 Total++;
             }
             /* Send endpoints */
             for(const std::unique_ptr<class Send>& Snd:Prc->Send)
             {
-                List->push_back(std::string("{")+Prc->Captbl->Macro_Global+", "+std::to_string(Snd->Capid_Local)+"U, RVM_MAIN_RCV_"+
-                                MIDS(Snd->Capid_Global)+", "+SIDS(Snd->Capid_Global)+"U, RVM_SIG_FLAG_SND},");
+                List->push_back(std::string("{")+Prc->Captbl->Macro_Global+", "+std::to_string(Snd->Cid_Local)+"U, RVM_MAIN_RCV_"+
+                                MIDS(Snd->Cid_Global)+", "+SIDS(Snd->Cid_Global)+"U, RVM_SIG_FLAG_SND},");
                 Total++;
             }
             /* Vector endpoints */
-            for(const std::unique_ptr<class Vect_Info>& Vect:Prc->Vector)
+            for(const std::unique_ptr<class Vect_Info>& Vct:Prc->Vector)
             {
-                List->push_back(std::string("{")+Prc->Captbl->Macro_Global+", "+std::to_string(Vect->Capid_Local)+"U, RVM_MAIN_VCT_"+
-                                MIDS(Vect->Capid_Global)+", "+SIDS(Vect->Capid_Global)+"U, RVM_SIG_FLAG_RCV},");
+                List->push_back(std::string("{")+Prc->Captbl->Macro_Global+", "+std::to_string(Vct->Cid_Local)+"U, RVM_MAIN_VCT_"+
+                                MIDS(Vct->Cid_Global)+", "+SIDS(Vct->Cid_Global)+"U, RVM_SIG_FLAG_RCV},");
                 Total++;
             }
         }
@@ -1461,6 +1462,85 @@ ptr_t Gen_Tool::Monitor_Pgt_Add(std::unique_ptr<std::vector<std::string>>& List,
 }
 /* End Function:Gen_Tool::Monitor_Pgt_Add ************************************/
 
+/* Begin Function:Gen_Tool::Monitor_Thd_Init **********************************
+Description : Initialize threads.
+Input       : std::unique_ptr<std::vector<std::string>>& List - The file to add these to.
+Output      : None.
+Return      : ptr_t - The number of operations.
+******************************************************************************/
+ptr_t Gen_Tool::Monitor_Thd_Init(std::unique_ptr<std::vector<std::string>>& List)
+{
+    ptr_t Total;
+    std::string Line;
+
+    Total=0;
+
+	for(const std::unique_ptr<class Process>& Prc:this->Plat->Proj->Process)
+	{
+		for(const std::unique_ptr<class Thread>& Thd:Prc->Thread)
+		{
+			Line=std::string("{")+Thd->Macro_Global+", ";
+
+			/* The marker is non-zero only for virtual machine threads */
+			if(Prc->Type==PROCESS_VIRTUAL)
+				Line+="RVM_VIRT_TID_MARKER, ";
+			else
+				Line+="0U, ";
+
+			Line+="0x"+Main::Hex(Prc->Code_Base)+"U, ";
+			Line+=std::to_string(Thd->Desc_Slot)+"U, ";
+			Line+="0x"+Main::Hex(Thd->Stack_Base)+"U, ";
+			Line+="0x"+Main::Hex(Thd->Stack_Size)+"U, ";
+			Line+="0x"+Main::Hex(Thd->Parameter)+"U, ";
+			Line+=std::to_string(Thd->Priority)+"U, ";
+
+			/* If this process is a VM and we are dealing with its user thread, we need to have its HYP set */
+			if((Prc->Type==PROCESS_VIRTUAL)&&(Thd->Name=="Usr"))
+				Line+="0x"+Main::Hex(static_cast<class Virtual*>(Prc.get())->Reg_Base)+"U},";
+			else
+				Line+="0U},";
+
+			List->push_back(Line);
+			Total++;
+		}
+	}
+
+	return Total;
+}
+/* End Function:Gen_Tool::Monitor_Thd_Init ***********************************/
+
+/* Begin Function:Gen_Tool::Monitor_Inv_Init **********************************
+Description : Initialize invocations.
+Input       : std::unique_ptr<std::vector<std::string>>& List - The file to add these to.
+Output      : None.
+Return      : ptr_t - The number of operations.
+******************************************************************************/
+ptr_t Gen_Tool::Monitor_Inv_Init(std::unique_ptr<std::vector<std::string>>& List)
+{
+    ptr_t Total;
+    std::string Line;
+
+    Total=0;
+
+	for(const std::unique_ptr<class Process>& Prc:this->Plat->Proj->Process)
+	{
+        for(const std::unique_ptr<class Invocation>& Inv:Prc->Invocation)
+		{
+			Line=std::string("{")+Inv->Macro_Global+", ";
+			Line+="0x"+Main::Hex(Prc->Code_Base)+"U, ";
+			Line+=std::to_string(Inv->Desc_Slot)+"U, ";
+			Line+="0x"+Main::Hex(Inv->Stack_Base)+"U, ";
+			Line+="0x"+Main::Hex(Inv->Stack_Size)+"U},";
+
+			List->push_back(Line);
+			Total++;
+		}
+	}
+
+	return Total;
+}
+/* End Function:Gen_Tool::Monitor_Inv_Init ***********************************/
+
 /* Begin Function:Gen_Tool::Monitor_Boot_Hdr **********************************
 Description : Create the boot header for monitor.
 Input       : None.
@@ -1491,7 +1571,7 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
 
     /* Vector capability tables & objects */
     List->push_back("/* Vector endpoint capability tables */");
-    Cap_Front=Kernel->Vect_Cap_Front;
+    Cap_Front=Kernel->Vct_Cap_Front;
     for(Obj_Cnt=0;Obj_Cnt<Monitor->Vector.size();Obj_Cnt+=this->Plat->Plat->Captbl_Max)
     {
         Gen_Tool::Macro_Int(List, std::string("RVM_MAIN_VCT_")+MIDS(Obj_Cnt), Cap_Front, MACRO_ADD);
@@ -1499,11 +1579,11 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
     }
     List->push_back("");
     List->push_back("/* Vector endpoints */");
-    for(const class Vect_Info* Vect:Monitor->Vector)
+    for(const class Vect_Info* Vct:Monitor->Vector)
     {
-        Gen_Tool::Macro_String(List, Vect->Macro_Global,
-                               std::string("RVM_CAPID(RVM_MAIN_VCT_")+
-                               MIDS(Vect->Capid_Global)+", "+SIDS(Vect->Capid_Global)+"U)", MACRO_ADD);
+        Gen_Tool::Macro_String(List, Vct->Macro_Global,
+                               std::string("RVM_CID(RVM_MAIN_VCT_")+
+                               MIDS(Vct->Cid_Global)+", "+SIDS(Vct->Cid_Global)+"U)", MACRO_ADD);
     }
     List->push_back("");
 
@@ -1541,8 +1621,8 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
     for(const class Captbl* Cpt:Monitor->Captbl)
     {
         Gen_Tool::Macro_String(List, Cpt->Macro_Global,
-                               std::string("RVM_CAPID(RVM_MAIN_CPT_")+
-                               MIDS(Cpt->Capid_Global)+", "+SIDS(Cpt->Capid_Global)+"U)", MACRO_ADD);
+                               std::string("RVM_CID(RVM_MAIN_CPT_")+
+                               MIDS(Cpt->Cid_Global)+", "+SIDS(Cpt->Cid_Global)+"U)", MACRO_ADD);
     }
     List->push_back("");
 
@@ -1561,8 +1641,8 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
     for(const class Pgtbl* Pgt:Monitor->Pgtbl)
     {
         Gen_Tool::Macro_String(List, Pgt->Macro_Global,
-                               std::string("RVM_CAPID(RVM_MAIN_PGT_")+
-                               MIDS(Pgt->Capid_Global)+", "+SIDS(Pgt->Capid_Global)+"U)", MACRO_ADD);
+                               std::string("RVM_CID(RVM_MAIN_PGT_")+
+                               MIDS(Pgt->Cid_Global)+", "+SIDS(Pgt->Cid_Global)+"U)", MACRO_ADD);
     }
     List->push_back("");
 
@@ -1581,8 +1661,8 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
     for(const class Process* Prc:Monitor->Process)
     {
         Gen_Tool::Macro_String(List, Prc->Macro_Global,
-                               std::string("RVM_CAPID(RVM_MAIN_PRC_")+
-                               MIDS(Prc->Capid_Global)+", "+ SIDS(Prc->Capid_Global)+"U)", MACRO_ADD);
+                               std::string("RVM_CID(RVM_MAIN_PRC_")+
+                               MIDS(Prc->Cid_Global)+", "+ SIDS(Prc->Cid_Global)+"U)", MACRO_ADD);
     }
     List->push_back("");
 
@@ -1601,8 +1681,8 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
     for(const class Thread* Thd:Monitor->Thread)
     {
         Gen_Tool::Macro_String(List, Thd->Macro_Global,
-                               std::string("RVM_CAPID(RVM_MAIN_THD_")+
-                               MIDS(Thd->Capid_Global)+", "+SIDS(Thd->Capid_Global)+"U)", MACRO_ADD);
+                               std::string("RVM_CID(RVM_MAIN_THD_")+
+                               MIDS(Thd->Cid_Global)+", "+SIDS(Thd->Cid_Global)+"U)", MACRO_ADD);
     }
     List->push_back("");
 
@@ -1621,8 +1701,8 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
     for(const class Invocation* Inv:Monitor->Invocation)
     {
         Gen_Tool::Macro_String(List, Inv->Macro_Global,
-                               std::string("RVM_CAPID(RVM_MAIN_INV_")+
-                               MIDS(Inv->Capid_Global)+", "+SIDS(Inv->Capid_Global)+"U)", MACRO_ADD);
+                               std::string("RVM_CID(RVM_MAIN_INV_")+
+                               MIDS(Inv->Cid_Global)+", "+SIDS(Inv->Cid_Global)+"U)", MACRO_ADD);
     }
     List->push_back("");
 
@@ -1641,8 +1721,8 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
     for(const class Receive* Rcv:Monitor->Receive)
     {
         Gen_Tool::Macro_String(List, Rcv->Macro_Global,
-                               std::string("RVM_CAPID(RVM_MAIN_RCV_")+
-                               MIDS(Rcv->Capid_Global)+", "+SIDS(Rcv->Capid_Global)+"U)", MACRO_ADD);
+                               std::string("RVM_CID(RVM_MAIN_RCV_")+
+                               MIDS(Rcv->Cid_Global)+", "+SIDS(Rcv->Cid_Global)+"U)", MACRO_ADD);
     }
     List->push_back("");
 
@@ -1665,6 +1745,7 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
     Gen_Tool::Macro_Hex(List, "RVM_BOOT_VEP_AFTER", Monitor->Cpt_Kom_Front, MACRO_ADD);
     Gen_Tool::Macro_Int(List, "RVM_BOOT_VEP_MAIN_NUM", CTNUM(this->Plat->Proj->Virtual.size()), MACRO_ADD);
     Gen_Tool::Macro_Int(List, "RVM_BOOT_VEP_CRT_NUM", this->Plat->Proj->Virtual.size(), MACRO_ADD);
+    Gen_Tool::Macro_Int(List, "RVM_BOOT_VCAP_INIT_NUM", this->Plat->Proj->Virtual.size(), MACRO_ADD);
     List->push_back("");
 
     List->push_back("/* Cpt frontiers & number */");
@@ -1674,8 +1755,8 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
     Gen_Tool::Macro_Int(List, "RVM_BOOT_CPT_CRT_NUM", Monitor->Captbl.size(), MACRO_ADD);
     this->Cpt_Init_Total=this->Monitor_Cpt_Init(Dummy, 0);
     Gen_Tool::Macro_Int(List, "RVM_BOOT_CPT_INIT_NUM", this->Cpt_Init_Total, MACRO_ADD);
-    this->Cpt_Kfunc_Total=this->Monitor_Cpt_Init(Dummy, 1);
-    Gen_Tool::Macro_Int(List, "RVM_BOOT_CPT_KFUNC_NUM", this->Cpt_Kfunc_Total, MACRO_ADD);
+    this->Cpt_Kfn_Total=this->Monitor_Cpt_Init(Dummy, 1);
+    Gen_Tool::Macro_Int(List, "RVM_BOOT_CPT_KFN_NUM", this->Cpt_Kfn_Total, MACRO_ADD);
     List->push_back("");
 
     List->push_back("/* Pgt frontiers & number */");
@@ -1706,6 +1787,8 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
     Gen_Tool::Macro_Hex(List, "RVM_BOOT_THD_AFTER", Monitor->Inv_Kom_Front, MACRO_ADD);
     Gen_Tool::Macro_Int(List, "RVM_BOOT_THD_MAIN_NUM", CTNUM(Monitor->Thread.size()), MACRO_ADD);
     Gen_Tool::Macro_Int(List, "RVM_BOOT_THD_CRT_NUM", Monitor->Thread.size(), MACRO_ADD);
+    Gen_Tool::Macro_Int(List, "RVM_BOOT_THD_INIT_NUM", Monitor->Thread.size(), MACRO_ADD);
+    ASSERT(Monitor->Thread.size()==this->Monitor_Thd_Init(Dummy));
     List->push_back("");
 
     List->push_back("/* Invocation frontiers & number */");
@@ -1713,6 +1796,8 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
     Gen_Tool::Macro_Hex(List, "RVM_BOOT_INV_AFTER", Monitor->Rcv_Kom_Front, MACRO_ADD);
     Gen_Tool::Macro_Int(List, "RVM_BOOT_INV_MAIN_NUM", CTNUM(Monitor->Invocation.size()), MACRO_ADD);
     Gen_Tool::Macro_Int(List, "RVM_BOOT_INV_CRT_NUM", Monitor->Invocation.size(), MACRO_ADD);
+    Gen_Tool::Macro_Int(List, "RVM_BOOT_INV_INIT_NUM", Monitor->Invocation.size(), MACRO_ADD);
+    ASSERT(Monitor->Invocation.size()==this->Monitor_Inv_Init(Dummy));
     List->push_back("");
 
     List->push_back("/* Receive endpoint frontiers & number */");
@@ -1720,10 +1805,6 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
     Gen_Tool::Macro_Hex(List, "RVM_BOOT_RCV_AFTER", Monitor->After_Kom_Front, MACRO_ADD);
     Gen_Tool::Macro_Int(List, "RVM_BOOT_RCV_MAIN_NUM", CTNUM(Monitor->Receive.size()), MACRO_ADD);
     Gen_Tool::Macro_Int(List, "RVM_BOOT_RCV_CRT_NUM", Monitor->Receive.size(), MACRO_ADD);
-    List->push_back("");
-
-    List->push_back("/* Vcap initialization */");
-    Gen_Tool::Macro_Int(List, "RVM_BOOT_VCAP_INIT_NUM", this->Plat->Proj->Virtual.size(), MACRO_ADD);
     List->push_back("");
     List->push_back("/* End Defines ***************************************************************/");
     List->push_back("");
@@ -1789,12 +1870,12 @@ void Gen_Tool::Monitor_Boot_Src(void)
 
     Main::Info("> Generating public global variables.");
     List->push_back("/* Public Global Variables ***************************************************/");
-    /* Virtual machine management - don't print when no VMs exist */
+    /* Virtual machine management metadata */
     if(this->Plat->Proj->Virtual.size()!=0)
     {
-        List->push_back("/* Virtual machine management */");
-        List->push_back(std::string("struct RVM_Virt_Struct RVM_Virt[")+std::to_string(this->Plat->Proj->Virtual.size())+"];");
-        List->push_back(std::string("const struct RVM_Vmap_Struct RVM_Vmap[")+std::to_string(this->Plat->Proj->Virtual.size())+"]=");
+        List->push_back("/* Virtual machine management metadata */");
+        List->push_back("struct RVM_Virt_Struct RVM_Virt[RVM_VIRT_NUM];");
+        List->push_back("const struct RVM_Vmap_Struct RVM_Vmap[RVM_VIRT_NUM]=");
         List->push_back("{");
         Obj_Cnt=0;
         for(class Virtual* Virt:this->Plat->Proj->Virtual)
@@ -1804,13 +1885,13 @@ void Gen_Tool::Monitor_Boot_Src(void)
                             std::to_string(Virt->Timeslice)+"U, "+
                             std::to_string(Virt->Period)+"U, "+
                             std::to_string(Virt->Watchdog)+"U, "+
-                            std::to_string(Virt->Vect_Num)+"U, ");
+                            std::to_string(Virt->Vector_Num)+"U, ");
             List->push_back(std::string(" (struct RVM_Thd_Reg*)0x")+
                             Main::Hex(Virt->Reg_Base)+"U, (struct RVM_State*)0x"+
                             Main::Hex(Virt->State_Base)+"U,");
             List->push_back(std::string(" 0x")+
                             Main::Hex(Virt->State_Size)+"U, 0x"+
-                            Main::Hex(Virt->Code_Base)+"U, RVM_CAPID(RVM_MAIN_VEP_"+
+                            Main::Hex(Virt->Code_Base)+"U, RVM_CID(RVM_MAIN_VEP_"+
                             MIDS(Obj_Cnt)+", "+SIDS(Obj_Cnt)+"U),");
             List->push_back(std::string(" ")+
                             Virt->Thread[0]->Macro_Global+", 0x"+
@@ -1826,7 +1907,7 @@ void Gen_Tool::Monitor_Boot_Src(void)
         List->push_back("");
     }
 
-    /* Virtual endpoint creation metadata */
+    /* Virtual endpoint metadata */
     if(this->Plat->Proj->Virtual.size()!=0)
     {
         List->push_back("/* Virtual endpoint metadata */");
@@ -1839,106 +1920,6 @@ void Gen_Tool::Monitor_Boot_Src(void)
         for(Obj_Cnt=0;Obj_Cnt<this->Plat->Proj->Virtual.size();Obj_Cnt++)
             List->push_back(std::string("{RVM_MAIN_VEP_")+MIDS(Obj_Cnt)+", "+SIDS(Obj_Cnt)+"U},");
         List->push_back("};");
-        List->push_back("");
-    }
-
-    /* Capability table creation metadata */
-    List->push_back("/* Capability table metadata */");
-    List->push_back("const struct RVM_Meta_Main_Struct RVM_Meta_Cpt_Main[RVM_BOOT_CPT_MAIN_NUM]=");
-    List->push_back("{");
-    this->Monitor_Main_Crt(List, Monitor->Captbl.size(), "CPT");
-    List->push_back("};");
-    List->push_back("const struct RVM_Meta_Cpt_Crt_Struct RVM_Meta_Cpt_Crt[RVM_BOOT_CPT_CRT_NUM]=");
-    List->push_back("{");
-    for(const class Captbl* Cpt:Monitor->Captbl)
-    {
-        List->push_back(std::string("{RVM_MAIN_CPT_")+MIDS(Cpt->Capid_Global)+", "+
-                        SIDS(Cpt->Capid_Global)+", "+std::to_string(Cpt->Size)+"U},");
-    }
-    List->push_back("};");
-    List->push_back("");
-
-    /* Page table creation metadata */
-    List->push_back("/* Page table metadata */");
-    List->push_back("const struct RVM_Meta_Main_Struct RVM_Meta_Pgt_Main[RVM_BOOT_PGT_MAIN_NUM]=");
-    List->push_back("{");
-    this->Monitor_Main_Crt(List, Monitor->Pgtbl.size(), "PGT");
-    List->push_back("};");
-    List->push_back("const struct RVM_Meta_Pgt_Crt_Struct RVM_Meta_Pgt_Crt[RVM_BOOT_PGT_CRT_NUM]=");
-    List->push_back("{");
-    for(const class Pgtbl* Pgt:Monitor->Pgtbl)
-    {
-        List->push_back(std::string("{RVM_MAIN_PGT_")+MIDS(Pgt->Capid_Global)+", "+SIDS(Pgt->Capid_Global)+", 0x"+
-                        Main::Hex(Pgt->Base)+"U, "+std::to_string((ptr_t)(Pgt->Is_Top!=0))+"U, "+
-                        std::to_string(Pgt->Size_Order)+"U, "+std::to_string(Pgt->Num_Order)+"U},");
-    }
-    List->push_back("};");
-    List->push_back("");
-
-    /* Process creation metadata */
-    List->push_back("/* Process metadata */");
-    List->push_back("const struct RVM_Meta_Main_Struct RVM_Meta_Prc_Main[RVM_BOOT_PRC_MAIN_NUM]=");
-    List->push_back("{");
-    this->Monitor_Main_Crt(List, Monitor->Process.size(), "PRC");
-    List->push_back("};");
-    List->push_back("const struct RVM_Meta_Prc_Crt_Struct RVM_Meta_Prc_Crt[RVM_BOOT_PRC_CRT_NUM]=");
-    List->push_back("{");
-    for(const class Process* Prc:Monitor->Process)
-    {
-        List->push_back(std::string("{RVM_MAIN_PRC_")+MIDS(Prc->Capid_Global)+", "+SIDS(Prc->Capid_Global)+", "+
-                        Prc->Captbl->Macro_Global+", "+Prc->Pgtbl->Macro_Global+"},");
-    }
-    List->push_back("};");
-    List->push_back("");
-
-    /* Thread creation metadata */
-    List->push_back("/* Thread metadata */");
-    List->push_back("const struct RVM_Meta_Main_Struct RVM_Meta_Thd_Main[RVM_BOOT_THD_MAIN_NUM]=");
-    List->push_back("{");
-    this->Monitor_Main_Crt(List, Monitor->Thread.size(), "THD");
-    List->push_back("};");
-    List->push_back("const struct RVM_Meta_Thd_Crt_Struct RVM_Meta_Thd_Crt[RVM_BOOT_THD_CRT_NUM]=");
-    List->push_back("{");
-    for(const class Thread* Thd:Monitor->Thread)
-    {
-        List->push_back(std::string("{RVM_MAIN_THD_")+MIDS(Thd->Capid_Global)+", "+SIDS(Thd->Capid_Global)+", "+
-                        Thd->Owner->Macro_Global+", "+std::to_string(Thd->Priority)+"U},");
-    }
-    List->push_back("};");
-    List->push_back("");
-
-    /* Invocation creation metadata */
-    List->push_back("/* Invocation metadata */");
-    List->push_back("const struct RVM_Meta_Main_Struct RVM_Meta_Inv_Main[RVM_BOOT_INV_MAIN_NUM]=");
-    List->push_back("{");
-    this->Monitor_Main_Crt(List, Monitor->Invocation.size(), "INV");
-    List->push_back("};");
-    List->push_back("const struct RVM_Meta_Inv_Crt_Struct RVM_Meta_Inv_Crt[RVM_BOOT_INV_CRT_NUM]=");
-    List->push_back("{");
-    for(const class Invocation* Inv:Monitor->Invocation)
-    {
-        List->push_back(std::string("{RVM_MAIN_INV_")+MIDS(Inv->Capid_Global)+", "+SIDS(Inv->Capid_Global)+", "+
-                        Inv->Owner->Macro_Global+"},");
-    }
-    List->push_back("};");
-    List->push_back("");
-
-    /* Receive endpoint creation metadata */
-    List->push_back("/* Receive endpoint metadata */");
-    List->push_back("const struct RVM_Meta_Main_Struct RVM_Meta_Rcv_Main[RVM_BOOT_RCV_MAIN_NUM]=");
-    List->push_back("{");
-    this->Monitor_Main_Crt(List, Monitor->Receive.size(), "RCV");
-    List->push_back("};");
-    List->push_back("const struct RVM_Meta_Rcv_Crt_Struct RVM_Meta_Rcv_Crt[RVM_BOOT_RCV_CRT_NUM]=");
-    List->push_back("{");
-    for(const class Receive* Rcv:Monitor->Receive)
-        List->push_back(std::string("{RVM_MAIN_RCV_")+MIDS(Rcv->Capid_Global)+", "+SIDS(Rcv->Capid_Global)+"},");
-    List->push_back("};");
-    List->push_back("");
-
-    /* Virtual machine captbl initialization metadata */
-    if(this->Plat->Proj->Virtual.size()!=0)
-    {
         List->push_back("const struct RVM_Meta_Vcap_Init_Struct RVM_Meta_Vcap_Init[RVM_BOOT_VCAP_INIT_NUM]=");
         List->push_back("{");
         Obj_Cnt=0;
@@ -1951,7 +1932,20 @@ void Gen_Tool::Monitor_Boot_Src(void)
         List->push_back("");
     }
 
-    /* Capability table initialization metadata */
+    /* Capability table metadata */
+    List->push_back("/* Capability table metadata */");
+    List->push_back("const struct RVM_Meta_Main_Struct RVM_Meta_Cpt_Main[RVM_BOOT_CPT_MAIN_NUM]=");
+    List->push_back("{");
+    this->Monitor_Main_Crt(List, Monitor->Captbl.size(), "CPT");
+    List->push_back("};");
+    List->push_back("const struct RVM_Meta_Cpt_Crt_Struct RVM_Meta_Cpt_Crt[RVM_BOOT_CPT_CRT_NUM]=");
+    List->push_back("{");
+    for(const class Captbl* Cpt:Monitor->Captbl)
+    {
+        List->push_back(std::string("{RVM_MAIN_CPT_")+MIDS(Cpt->Cid_Global)+", "+
+                        SIDS(Cpt->Cid_Global)+", "+std::to_string(Cpt->Size)+"U},");
+    }
+    List->push_back("};");
     if(this->Cpt_Init_Total!=0)
     {
         List->push_back("const struct RVM_Meta_Cpt_Init_Struct RVM_Meta_Cpt_Init[RVM_BOOT_CPT_INIT_NUM]=");
@@ -1959,15 +1953,30 @@ void Gen_Tool::Monitor_Boot_Src(void)
         this->Monitor_Cpt_Init(List, 0);
         List->push_back("};");
     }
-    if(this->Cpt_Kfunc_Total!=0)
+    if(this->Cpt_Kfn_Total!=0)
     {
-        List->push_back("const struct RVM_Meta_Cpt_Kfunc_Struct RVM_Meta_Cpt_Kfunc[RVM_BOOT_CPT_KFUNC_NUM]=");
+        List->push_back("const struct RVM_Meta_Cpt_Kfn_Struct RVM_Meta_Cpt_Kfn[RVM_BOOT_CPT_KFN_NUM]=");
         List->push_back("{");
         this->Monitor_Cpt_Init(List, 1);
         List->push_back("};");
     }
+    List->push_back("");
 
-    /* Page table initialization metadata */
+    /* Page table metadata */
+    List->push_back("/* Page table metadata */");
+    List->push_back("const struct RVM_Meta_Main_Struct RVM_Meta_Pgt_Main[RVM_BOOT_PGT_MAIN_NUM]=");
+    List->push_back("{");
+    this->Monitor_Main_Crt(List, Monitor->Pgtbl.size(), "PGT");
+    List->push_back("};");
+    List->push_back("const struct RVM_Meta_Pgt_Crt_Struct RVM_Meta_Pgt_Crt[RVM_BOOT_PGT_CRT_NUM]=");
+    List->push_back("{");
+    for(const class Pgtbl* Pgt:Monitor->Pgtbl)
+    {
+        List->push_back(std::string("{RVM_MAIN_PGT_")+MIDS(Pgt->Cid_Global)+", "+SIDS(Pgt->Cid_Global)+", 0x"+
+                        Main::Hex(Pgt->Base)+"U, "+std::to_string((ptr_t)(Pgt->Is_Top!=0))+"U, "+
+                        std::to_string(Pgt->Size_Order)+"U, "+std::to_string(Pgt->Num_Order)+"U},");
+    }
+    List->push_back("};");
     if(this->Pgt_Con_Total!=0)
     {
         List->push_back("const struct RVM_Meta_Pgt_Con_Struct RVM_Meta_Pgt_Con[RVM_BOOT_PGT_CON_NUM]=");
@@ -1981,119 +1990,83 @@ void Gen_Tool::Monitor_Boot_Src(void)
     for(const class Pgtbl* Pgt:Monitor->Pgtbl)
         this->Monitor_Pgt_Add(List, Pgt, this->Plat->Plat->Wordlength);
     List->push_back("};");
+    List->push_back("");
+
+    /* Process metadata */
+    List->push_back("/* Process metadata */");
+    List->push_back("const struct RVM_Meta_Main_Struct RVM_Meta_Prc_Main[RVM_BOOT_PRC_MAIN_NUM]=");
+    List->push_back("{");
+    this->Monitor_Main_Crt(List, Monitor->Process.size(), "PRC");
+    List->push_back("};");
+    List->push_back("const struct RVM_Meta_Prc_Crt_Struct RVM_Meta_Prc_Crt[RVM_BOOT_PRC_CRT_NUM]=");
+    List->push_back("{");
+    for(const class Process* Prc:Monitor->Process)
+    {
+        List->push_back(std::string("{RVM_MAIN_PRC_")+MIDS(Prc->Cid_Global)+", "+SIDS(Prc->Cid_Global)+", "+
+                        Prc->Captbl->Macro_Global+", "+Prc->Pgtbl->Macro_Global+"},");
+    }
+    List->push_back("};");
+    List->push_back("");
+
+    /* Thread metadata */
+    List->push_back("/* Thread metadata */");
+    List->push_back("const struct RVM_Meta_Main_Struct RVM_Meta_Thd_Main[RVM_BOOT_THD_MAIN_NUM]=");
+    List->push_back("{");
+    this->Monitor_Main_Crt(List, Monitor->Thread.size(), "THD");
+    List->push_back("};");
+    List->push_back("const struct RVM_Meta_Thd_Crt_Struct RVM_Meta_Thd_Crt[RVM_BOOT_THD_CRT_NUM]=");
+    List->push_back("{");
+    for(const class Thread* Thd:Monitor->Thread)
+    {
+        List->push_back(std::string("{RVM_MAIN_THD_")+MIDS(Thd->Cid_Global)+", "+SIDS(Thd->Cid_Global)+", "+
+                        Thd->Owner->Macro_Global+", "+std::to_string(Thd->Priority)+"U},");
+    }
+    List->push_back("};");
+    List->push_back("const struct RVM_Meta_Thd_Init_Struct RVM_Meta_Thd_Init[RVM_BOOT_THD_INIT_NUM]=");
+    List->push_back("{");
+    this->Monitor_Thd_Init(List);
+    List->push_back("};");
+    List->push_back("");
+
+    /* Invocation metadata */
+    if(Monitor->Invocation.size()!=0)
+    {
+		List->push_back("/* Invocation metadata */");
+		List->push_back("const struct RVM_Meta_Main_Struct RVM_Meta_Inv_Main[RVM_BOOT_INV_MAIN_NUM]=");
+		List->push_back("{");
+		this->Monitor_Main_Crt(List, Monitor->Invocation.size(), "INV");
+		List->push_back("};");
+		List->push_back("const struct RVM_Meta_Inv_Crt_Struct RVM_Meta_Inv_Crt[RVM_BOOT_INV_CRT_NUM]=");
+		List->push_back("{");
+		for(const class Invocation* Inv:Monitor->Invocation)
+		{
+			List->push_back(std::string("{RVM_MAIN_INV_")+MIDS(Inv->Cid_Global)+", "+SIDS(Inv->Cid_Global)+", "+
+							Inv->Owner->Macro_Global+"},");
+		}
+		List->push_back("};");
+		List->push_back("const struct RVM_Meta_Inv_Init_Struct RVM_Meta_Inv_Init[RVM_BOOT_INV_INIT_NUM]=");
+		List->push_back("{");
+		this->Monitor_Inv_Init(List);
+		List->push_back("};");
+		List->push_back("");
+    }
+
+    /* Receive endpoint metadata */
+    if(Monitor->Receive.size()!=0)
+    {
+		List->push_back("/* Receive endpoint metadata */");
+		List->push_back("const struct RVM_Meta_Main_Struct RVM_Meta_Rcv_Main[RVM_BOOT_RCV_MAIN_NUM]=");
+		List->push_back("{");
+		this->Monitor_Main_Crt(List, Monitor->Receive.size(), "RCV");
+		List->push_back("};");
+		List->push_back("const struct RVM_Meta_Rcv_Crt_Struct RVM_Meta_Rcv_Crt[RVM_BOOT_RCV_CRT_NUM]=");
+		List->push_back("{");
+		for(const class Receive* Rcv:Monitor->Receive)
+			List->push_back(std::string("{RVM_MAIN_RCV_")+MIDS(Rcv->Cid_Global)+", "+SIDS(Rcv->Cid_Global)+"},");
+		List->push_back("};");
+	    List->push_back("");
+    }
     List->push_back("/* End Public Global Variables ***********************************************/");
-    List->push_back("");
-
-    Main::Info("> Generating public C function prototypes.");
-    List->push_back("/* Public C Function Prototypes **********************************************/");
-    List->push_back("void RVM_Boot_Thd_Init(void);");
-    List->push_back("void RVM_Boot_Inv_Init(void);");
-    List->push_back("/* End Public C Function Prototypes ******************************************/");
-    List->push_back("");
-
-    /* Thread initialization */
-    Main::Info("> Generating thread initialization code.");
-    Gen_Tool::Func_Head(List, "RVM_Boot_Thd_Init",
-                        "Initialize the all threads.", Input, Output, "None.");
-    List->push_back("void RVM_Boot_Thd_Init(void)");
-    List->push_back("{");
-    List->push_back("    rvm_ptr_t Init_Entry_Addr;");
-    List->push_back("    rvm_ptr_t Init_Stub_Addr;");
-    List->push_back("    rvm_ptr_t Init_Stack_Addr;");
-    List->push_back("");
-    List->push_back("    RVM_DBG_S(\"-------------------------------------------------------------------------------\\r\\n\");");
-    List->push_back("    RVM_DBG_S(\"Init:Initializing threads.\\r\\n\");");
-    for(const std::unique_ptr<class Process>& Prc:this->Plat->Proj->Process)
-    {
-        List->push_back(std::string("    /* Initializing thread for process: '")+Prc->Name+"' */");
-        for(const std::unique_ptr<class Thread>& Thd:Prc->Thread)
-        {
-            /* The marker is non-zero only for virtual machine threads */
-            if(Prc->Type==PROCESS_VIRTUAL)
-            {
-                List->push_back(std::string("    RVM_ASSERT(RVM_Thd_Sched_Bind(")+
-                                Thd->Macro_Global+", RVM_Sftd_Thd_Cap, RVM_Sftd_Sig_Cap, "+
-                                Thd->Macro_Global+"|RVM_VIRT_TID_MARKER, "+
-                                std::to_string(Thd->Priority)+"U)==0U);");
-            }
-            else
-            {
-                List->push_back(std::string("    RVM_ASSERT(RVM_Thd_Sched_Bind(")+
-                                Thd->Macro_Global+", RVM_Sftd_Thd_Cap, RVM_Sftd_Sig_Cap, "+
-                                Thd->Macro_Global+", "+
-                                std::to_string(Thd->Priority)+"U)==0U);");
-            }
-            /* If this process is a VM and we are dealing with its user thread, we need to have its HYP set */
-            if(Prc->Type==PROCESS_VIRTUAL)
-            {
-                if(Thd->Name=="User")
-                {
-                    List->push_back(std::string("    RVM_ASSERT(RVM_Thd_Hyp_Set(")+
-                                    Thd->Macro_Global+", 0x"+
-                                    Main::Hex(static_cast<class Virtual*>(Prc.get())->Reg_Base)+"U)==0U);");
-                }
-            }
-
-            List->push_back(std::string("    Init_Entry_Addr=RVM_DESC_ENTRY(0x")+
-                            Main::Hex(Prc->Code_Base)+"U, "+Main::Hex(Thd->Header_Slot)+"U);");
-            List->push_back(std::string("    Init_Stub_Addr=RVM_DESC_STUB(0x")+Main::Hex(Prc->Code_Base)+"U);");
-            List->push_back(std::string("    Init_Stack_Addr=RVM_Stack_Init(0x")+
-                            Main::Hex(Thd->Stack_Base)+"U, 0x"+
-                            Main::Hex(Thd->Stack_Size)+"U, Init_Entry_Addr, Init_Stub_Addr);");
-            List->push_back(std::string("    RVM_ASSERT(RVM_Thd_Exec_Set(")+
-                            Thd->Macro_Global+", Init_Entry_Addr, Init_Stack_Addr, 0x"+
-                            Main::Hex(Thd->Parameter)+"U)==0U);");
-            List->push_back(std::string("    RVM_ASSERT(RVM_Thd_Time_Xfer(")+
-                            Thd->Macro_Global+", RVM_BOOT_INIT_THD, RVM_THD_INF_TIME)==RVM_THD_INF_TIME);");
-            List->push_back(std::string("    RVM_DBG_S(\"Init:'")+
-                            Thd->Macro_Global+"' desc 0x"+
-                            Main::Hex(Thd->Header_Slot)+" stack base 0x"+
-                            Main::Hex(Thd->Stack_Base)+" size 0x"+
-                            Main::Hex(Thd->Stack_Size)+" param 0x"+
-                            Main::Hex(Thd->Parameter)+".\\r\\n\");");
-            List->push_back("");
-        }
-    }
-    List->push_back("}");
-    Gen_Tool::Func_Foot(List, "RVM_Boot_Thd_Init");
-    List->push_back("");
-
-    /* Invocation initialization */
-    Main::Info("> Generating invocation initialization code.");
-    Gen_Tool::Func_Head(List, "RVM_Boot_Inv_Init",
-                        "Initialize the all invocations.", Input, Output, "None.");
-    List->push_back("void RVM_Boot_Inv_Init(void)");
-    List->push_back("{");
-    List->push_back("    rvm_ptr_t Init_Entry_Addr;");
-    List->push_back("    rvm_ptr_t Init_Stub_Addr;");
-    List->push_back("    rvm_ptr_t Init_Stack_Addr;");
-    List->push_back("");
-    List->push_back("    RVM_DBG_S(\"-------------------------------------------------------------------------------\\r\\n\");");
-    List->push_back("    RVM_DBG_S(\"Init:Initializing invocations.\\r\\n\");");
-    for(const std::unique_ptr<class Process>& Prc:this->Plat->Proj->Process)
-    {
-        List->push_back(std::string("    /* Initializing invocation for process: '")+Prc->Name+"' */");
-        for(const std::unique_ptr<class Invocation>& Inv:Prc->Invocation)
-        {
-            List->push_back(std::string("    Init_Entry_Addr=RVM_DESC_ENTRY(0x")+
-                            Main::Hex(Prc->Code_Base)+"U, "+Main::Hex(Inv->Header_Slot)+"U);");
-            List->push_back(std::string("    Init_Stub_Addr=RVM_DESC_STUB(0x")+Main::Hex(Prc->Code_Base)+"U);");
-            List->push_back(std::string("    Init_Stack_Addr=RVM_Stack_Init(0x")+
-                            Main::Hex(Inv->Stack_Base)+"U, 0x"+
-                            Main::Hex(Inv->Stack_Size)+"U, Init_Entry_Addr, Init_Stub_Addr);");
-            /* We always return directly on fault for MCUs, because RVM does not do fault handling there */
-            List->push_back(std::string("    RVM_ASSERT(RVM_Inv_Set(")+
-                            Inv->Macro_Global+", Init_Entry_Addr, Init_Stack_Addr, 1U)==0U);");
-            List->push_back(std::string("    RVM_DBG_S(\"Init:'")+
-                            Inv->Macro_Global+"' desc 0x"+
-                            Main::Hex(Inv->Header_Slot)+" stack base 0x"+
-                            Main::Hex(Inv->Stack_Base)+" size 0x"+
-                            Main::Hex(Inv->Stack_Size)+".\\r\\n\");");
-            List->push_back("");
-        }
-    }
-    List->push_back("}");
-    Gen_Tool::Func_Foot(List, "RVM_Boot_Inv_Init");
     List->push_back("");
 
     /* Generate rvm_boot.c */
@@ -2344,7 +2317,7 @@ void Gen_Tool::Process_Main_Hdr(class Process* Prc)
 
     /* File header */
     Main::Info("> Generating main header.");
-    Gen_Tool::Src_Head(List, std::string("proc_")+Prc->Name_Lower+".h", "The user kernel object header.");
+    Gen_Tool::Src_Head(List, std::string("prc_")+Prc->Name_Lower+".h", "The user kernel object header.");
     List->push_back("");
 
     /* Definitions */
@@ -2355,27 +2328,27 @@ void Gen_Tool::Process_Main_Hdr(class Process* Prc)
     /* Ports */
     List->push_back("/* Ports */");
     for(const std::unique_ptr<class Port>& Port: Prc->Port)
-        Gen_Tool::Macro_Int(List, Port->Macro_Local, Port->Capid_Local, MACRO_ADD);
+        Gen_Tool::Macro_Int(List, Port->Macro_Local, Port->Cid_Local, MACRO_ADD);
     List->push_back("");
     /* Receive endpoint */
     List->push_back("/* Receive endpoints */");
     for(const std::unique_ptr<class Receive>& Rcv: Prc->Receive)
-        Gen_Tool::Macro_Int(List, Rcv->Macro_Local, Rcv->Capid_Local, MACRO_ADD);
+        Gen_Tool::Macro_Int(List, Rcv->Macro_Local, Rcv->Cid_Local, MACRO_ADD);
     List->push_back("");
     /* Send endpoint */
     List->push_back("/* Send endpoints */");
     for(const std::unique_ptr<class Send>& Send: Prc->Send)
-        Gen_Tool::Macro_Int(List, Send->Macro_Local, Send->Capid_Local, MACRO_ADD);
+        Gen_Tool::Macro_Int(List, Send->Macro_Local, Send->Cid_Local, MACRO_ADD);
     List->push_back("");
     /* Vector endpoint */
     List->push_back("/* Vector endpoints */");
-    for(const std::unique_ptr<class Vect_Info>& Vect: Prc->Vector)
-        Gen_Tool::Macro_Int(List, Vect->Macro_Local, Vect->Capid_Local, MACRO_ADD);
+    for(const std::unique_ptr<class Vect_Info>& Vct: Prc->Vector)
+        Gen_Tool::Macro_Int(List, Vct->Macro_Local, Vct->Cid_Local, MACRO_ADD);
     List->push_back("");
     /* Kernel function */
     List->push_back("/* Kernel functions */");
-    for(const std::unique_ptr<class Kfunc>& Kfunc: Prc->Kfunc)
-        Gen_Tool::Macro_Int(List, Kfunc->Macro_Local, Kfunc->Capid_Local, MACRO_ADD);
+    for(const std::unique_ptr<class Kfunc>& Kfn: Prc->Kfunc)
+        Gen_Tool::Macro_Int(List, Kfn->Macro_Local, Kfn->Cid_Local, MACRO_ADD);
     List->push_back("");
 
     /* Memory block */
@@ -2411,7 +2384,7 @@ void Gen_Tool::Process_Main_Hdr(class Process* Prc)
     {
         Virt=static_cast<const class Virtual*>(Prc);
         List->push_back("/* Virtual vector total number */");
-        Gen_Tool::Macro_Int(List, "RVM_VIRT_VECT_NUM", Virt->Vect_Num, MACRO_ADD);
+        Gen_Tool::Macro_Int(List, "RVM_VIRT_VCT_NUM", Virt->Vector_Num, MACRO_ADD);
         List->push_back("/* State block base address & size */");
         Gen_Tool::Macro_Hex(List, "RVM_VIRT_STATE_BASE", Virt->State_Base, MACRO_ADD);
         Gen_Tool::Macro_Hex(List, "RVM_VIRT_STATE_SIZE", Virt->State_Size, MACRO_ADD);
@@ -2436,7 +2409,7 @@ void Gen_Tool::Process_Main_Hdr(class Process* Prc)
     List->push_back("");
 
     /* Generate proc_xxx.h */
-    Gen_Tool::Line_Write(List, Prc->Main_Header_Output+"proc_"+Prc->Name_Lower+".h");
+    Gen_Tool::Line_Write(List, Prc->Main_Header_Output+"prc_"+Prc->Name_Lower+".h");
 
     /* Generate platform selection header */
     Main::Info("> Generating platform selection header.");
@@ -2444,7 +2417,7 @@ void Gen_Tool::Process_Main_Hdr(class Process* Prc)
     Gen_Tool::Src_Head(List, "rvm_guest_conf.h", "The guest library configuration header.");
     List->push_back("");
     List->push_back("/* Includes ******************************************************************/");
-    List->push_back(std::string("#include \"proc_")+Prc->Name_Lower+".h\"");
+    List->push_back(std::string("#include \"prc_")+Prc->Name_Lower+".h\"");
     List->push_back(std::string("#include \"")+this->Plat->Name_Upper+"/rvm_guest_"+this->Plat->Name_Lower+".h\"");
     List->push_back("/* End Includes **************************************************************/");
     List->push_back("");
@@ -2478,7 +2451,7 @@ void Gen_Tool::Process_Stub_Src(class Process* Prc)
     Input.push_back("rvm_ret_t Param - The parameter supplied by the OS.");
     for(const std::unique_ptr<class Thread>& Thd:Prc->Thread)
     {
-        Filename=std::string("proc_")+Prc->Name_Lower+"_thd_"+Thd->Name_Lower+".c";
+        Filename=std::string("prc_")+Prc->Name_Lower+"_thd_"+Thd->Name_Lower+".c";
         if(std::filesystem::exists(Prc->Main_Source_Output+Filename)==true)
         {
             /* See if we'll use forced regenerate */
@@ -2520,7 +2493,7 @@ void Gen_Tool::Process_Stub_Src(class Process* Prc)
     Input.push_back("rvm_ret_t Param - The parameter supplied by the caller.");
     for(const std::unique_ptr<class Invocation>& Inv:Prc->Invocation)
     {
-        Filename=std::string("proc_")+Prc->Name_Lower+"_inv_"+Inv->Name_Lower+".c";
+        Filename=std::string("prc_")+Prc->Name_Lower+"_inv_"+Inv->Name_Lower+".c";
         if(std::filesystem::exists(Prc->Main_Source_Output+Filename)==true)
         {
             /* See if we'll use forced regenerate */
@@ -2576,7 +2549,7 @@ void Gen_Tool::Process_Desc_Src(class Process* Prc)
     List=std::make_unique<std::vector<std::string>>();
 
     Main::Info("> Generating main source descriptor.");
-    Filename=std::string("proc_")+Prc->Name_Lower+"_desc.c";
+    Filename=std::string("prc_")+Prc->Name_Lower+"_desc.c";
     Gen_Tool::Src_Head(List, Filename, "The process descriptor header file - do not edit!.");
     List->push_back("");
 
@@ -2586,11 +2559,19 @@ void Gen_Tool::Process_Desc_Src(class Process* Prc)
 
     /* Public prototypes */
     List->push_back("/* Public C Function Prototypes **********************************************/");
-    for(const std::unique_ptr<class Thread>& Thd:Prc->Thread)
-        List->push_back(std::string("extern rvm_ret_t Thd_")+Thd->Name+"(rvm_ret_t Param);");
-    for(const std::unique_ptr<class Invocation>& Inv:Prc->Invocation)
-        List->push_back(std::string("extern rvm_ret_t Inv_")+Inv->Name+"(rvm_ret_t Param);");
-    List->push_back("extern void _RVM_Jmp_Stub(void);");
+    if(Prc->Type==PROCESS_VIRTUAL)
+    {
+        List->push_back("EXTERN rvm_ret_t Thd_Vct(rvm_ret_t Param);");
+        List->push_back("EXTERN void _RVM_Jmp_Stub(void);");
+    }
+    else
+    {
+		for(const std::unique_ptr<class Thread>& Thd:Prc->Thread)
+			List->push_back(std::string("EXTERN rvm_ret_t Thd_")+Thd->Name+"(rvm_ret_t Param);");
+		for(const std::unique_ptr<class Invocation>& Inv:Prc->Invocation)
+			List->push_back(std::string("EXTERN rvm_ret_t Inv_")+Inv->Name+"(rvm_ret_t Param);");
+		List->push_back("EXTERN void _RVM_Jmp_Stub(void);");
+    }
     List->push_back("/* End Public C Function Prototypes ******************************************/");
     List->push_back("");
 
@@ -2624,12 +2605,12 @@ void Gen_Tool::Process_Desc_Src(class Process* Prc)
         {
             if(Thd.get()==Prc->Thread[1].get())
             {
-                ASSERT(Thd->Name=="User");
+                ASSERT(Thd->Name=="Usr");
                 List->push_back(std::string("    0x")+Main::Hex(Prc->Code_Front)+"U,");
             }
             else
             {
-                ASSERT(Thd->Name=="Vect");
+                ASSERT(Thd->Name=="Vct");
                 List->push_back(std::string("    (rvm_ptr_t)Thd_")+Thd->Name+",");
             }
         }
@@ -2665,7 +2646,7 @@ void Gen_Tool::Process_Main_Src(class Process* Prc)
     List=std::make_unique<std::vector<std::string>>();
 
     Main::Info("> Generating main source.");
-    Filename=std::string("proc_")+Prc->Name_Lower+".c";
+    Filename=std::string("prc_")+Prc->Name_Lower+".c";
     Gen_Tool::Src_Head(List, Filename, "The main user stub file.");
     List->push_back("");
 
@@ -2675,7 +2656,7 @@ void Gen_Tool::Process_Main_Src(class Process* Prc)
 
     /* Global variable - The only one being the process header reference */
     List->push_back("/* Public Global Variables ***************************************************/");
-    List->push_back(std::string("extern const rvm_ptr_t RVM_Desc[")+std::to_string(Prc->Desc_Front)+"];");
+    List->push_back(std::string("EXTERN const rvm_ptr_t RVM_Desc[")+std::to_string(Prc->Desc_Front)+"];");
     List->push_back("/* End Public Global Variables ***********************************************/");
     List->push_back("");
 
@@ -2683,8 +2664,8 @@ void Gen_Tool::Process_Main_Src(class Process* Prc)
     if(Prc->Type==PROCESS_VIRTUAL)
     {
         List->push_back("/* Private C Function Prototypes *********************************************/");
-        List->push_back("rvm_ret_t Thd_Vect(rvm_ret_t Param);");
-        List->push_back("extern void _RVM_Jmp_Stub(void);");
+        List->push_back("rvm_ret_t Thd_Vct(rvm_ret_t Param);");
+        List->push_back("EXTERN void _RVM_Jmp_Stub(void);");
         List->push_back("/* End Private C Function Prototypes *****************************************/");
         List->push_back("");
     }
@@ -2705,9 +2686,9 @@ void Gen_Tool::Process_Main_Src(class Process* Prc)
     {
         Input.push_back("rvm_ret_t Param - The parameter supplied by the OS.");
         /* The vector handler thread */
-        Gen_Tool::Func_Head(List, "Thd_Vect", "The function body for vector handler.",
+        Gen_Tool::Func_Head(List, "Thd_Vct", "The function body for vector handler.",
                             Input, Output, "rvm_ret_t - Should never return.");
-        List->push_back("rvm_ret_t Thd_Vect(rvm_ret_t Param)");
+        List->push_back("rvm_ret_t Thd_Vct(rvm_ret_t Param)");
         List->push_back("{");
         List->push_back("    /* Check header validity on boot */");
         List->push_back("    RVM_ASSERT(RVM_Desc[0]==RVM_MAGIC_VIRTUAL);");
@@ -2715,11 +2696,11 @@ void Gen_Tool::Process_Main_Src(class Process* Prc)
         List->push_back("");
         List->push_back("    /* DO NOT MODIFY - THIS HIGH PRIORITY THREAD CAN RUN ON UNINITIALIZED RAM */");
         List->push_back("    RVM_Virt_Init();");
-        List->push_back("    RVM_Vect_Loop();");
+        List->push_back("    RVM_Vct_Loop();");
         List->push_back("");
         List->push_back("    return 0;");
         List->push_back("}");
-        Gen_Tool::Func_Foot(List, "Thd_Vector");
+        Gen_Tool::Func_Foot(List, "Thd_Vct");
         List->push_back("");
         Input.clear();
     }
@@ -2799,7 +2780,7 @@ void Gen_Tool::Process_Linker(class Process* Prc)
     Tool=this->Tool_Map[Prc->Toolchain];
 
     Main::Info("> Generating linker script.");
-    Prc->Linker_Filename=std::string("proc_")+Prc->Name_Lower+"_"+this->Plat->Chip->Name_Lower+Tool->Suffix(TOOL_LINKER);
+    Prc->Linker_Filename=std::string("prc_")+Prc->Name_Lower+"_"+this->Plat->Chip->Name_Lower+Tool->Suffix(TOOL_LINKER);
     Tool->Process_Linker(List, Prc);
     Gen_Tool::Line_Write(List, Prc->Linker_Output+Prc->Linker_Filename);
 }
@@ -2829,7 +2810,7 @@ void Gen_Tool::Process_Proj(class Process* Prc)
     Tool=this->Tool_Map[Prc->Toolchain];
 
     /* Does the file already exist? */
-    Prc->Project_Filename=std::string("proc_")+Prc->Name_Lower+Build->Suffix(BUILD_PROJECT);
+    Prc->Project_Filename=std::string("prc_")+Prc->Name_Lower+Build->Suffix(BUILD_PROJECT);
     if(std::filesystem::exists(Prc->Project_Output+Prc->Project_Filename)==true)
     {
         /* See if we'll use forced regenerate */
@@ -2862,15 +2843,15 @@ void Gen_Tool::Process_Proj(class Process* Prc)
     Source.push_back(Monitor->Monitor_Root+"Guest/"+this->Plat->Name+"/rvm_guest_"+this->Plat->Name_Lower+".c");
     Source.push_back(Monitor->Monitor_Root+"Guest/"+this->Plat->Name+
                      "/rvm_guest_"+this->Plat->Name_Lower+"_"+Tool->Name_Lower+Tool->Suffix(TOOL_ASSEMBLER));
-    Source.push_back(Prc->Main_Source_Output+"proc_"+Prc->Name_Lower+".c");
-    Source.push_back(Prc->Main_Source_Output+"proc_"+Prc->Name_Lower+"_desc.c");
+    Source.push_back(Prc->Main_Source_Output+"prc_"+Prc->Name_Lower+".c");
+    Source.push_back(Prc->Main_Source_Output+"prc_"+Prc->Name_Lower+"_desc.c");
     /* For native processes, add all the stub files */
     if(Prc->Type==PROCESS_NATIVE)
     {
         for(const std::unique_ptr<class Thread>& Thd:Prc->Thread)
-            Source.push_back(Prc->Main_Source_Output+"proc_"+Prc->Name_Lower+"_thd_"+Thd->Name_Lower+".c");
+            Source.push_back(Prc->Main_Source_Output+"prc_"+Prc->Name_Lower+"_thd_"+Thd->Name_Lower+".c");
         for(const std::unique_ptr<class Invocation>& Inv:Prc->Invocation)
-            Source.push_back(Prc->Main_Source_Output+"proc_"+Prc->Name_Lower+"_inv_"+Inv->Name_Lower+".c");
+            Source.push_back(Prc->Main_Source_Output+"prc_"+Prc->Name_Lower+"_inv_"+Inv->Name_Lower+".c");
     }
     /* For virtual machines, add all the VM files as well */
     else
@@ -2883,7 +2864,7 @@ void Gen_Tool::Process_Proj(class Process* Prc)
     /* Extract the linker paths */
     Main::Info("> Generating project linker paths:");
 
-    Linker.push_back(Prc->Linker_Output+"proc_"+Prc->Name_Lower+"_"+this->Plat->Chip->Name_Lower+Tool->Suffix(TOOL_LINKER));
+    Linker.push_back(Prc->Linker_Output+"prc_"+Prc->Name_Lower+"_"+this->Plat->Chip->Name_Lower+Tool->Suffix(TOOL_LINKER));
     Gen_Tool::Path_Conv(Prc->Project_Output, Linker);
 
     for(const std::string& Path:Linker)

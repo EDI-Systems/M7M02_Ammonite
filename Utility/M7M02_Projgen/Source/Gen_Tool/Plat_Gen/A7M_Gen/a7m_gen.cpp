@@ -571,7 +571,7 @@ void A7M_Gen::Kernel_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
 
     /* Fixed attributes - we will refill these with database values */
     /* Number of MPU regions available */
-    Gen_Tool::Macro_Int(List, "RME_A7M_MPU_REGIONS", this->Chip->Region, MACRO_REPLACE);
+    Gen_Tool::Macro_Int(List, "RME_A7M_REGION_NUM", this->Chip->Region, MACRO_REPLACE);
     /* What is the FPU type? */
     Gen_Tool::Macro_String(List, "RME_A7M_FPU_TYPE", std::string("RME_A7M_FPU_")+this->Chip->Attribute["FPU"], MACRO_REPLACE);
 
@@ -594,7 +594,7 @@ void A7M_Gen::Monitor_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
                         this->Proj->Monitor->Init_Stack_Base+this->Proj->Monitor->Init_Stack_Size-16, MACRO_REPLACE);
     /* Fixed attributes - we will refill these with database values */
     /* Number of MPU regions available */
-    Gen_Tool::Macro_Int(List, "RVM_A7M_MPU_REGIONS", this->Chip->Region, MACRO_REPLACE);
+    Gen_Tool::Macro_Int(List, "RVM_A7M_REGION_NUM", this->Chip->Region, MACRO_REPLACE);
     /* What is the FPU type? */
     Gen_Tool::Macro_String(List, "RVM_A7M_FPU_TYPE", std::string("RVM_A7M_FPU_")+this->Chip->Attribute["FPU"], MACRO_REPLACE);
 

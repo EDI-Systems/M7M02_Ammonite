@@ -254,57 +254,57 @@ Return      : None.
 ******************************************************************************/
 void Process::Local_Alloc(ptr_t Max)
 {
-    ptr_t Capid;
+    ptr_t Cid;
 
     try
     {
         if(this->Type==PROCESS_NATIVE)
-            Capid=NATIVE_CPT_BASE;
+            Cid=NATIVE_CPT_BASE;
         else
-            Capid=VIRTUAL_CPT_BASE;
+            Cid=VIRTUAL_CPT_BASE;
 
         for(std::unique_ptr<class Port>& Prt:this->Port)
         {
-            Prt->Capid_Local=Capid++;
+            Prt->Cid_Local=Cid++;
             Prt->Macro_Local=std::string("PRT_")+Prt->Name+"_PRC_"+Prt->Process;
             Main::Upper(Prt->Macro_Local);
-            Main::Info("> Port %s allocated local capid %lld.", Prt->Macro_Local.c_str(), Prt->Capid_Local);
+            Main::Info("> Port %s allocated local capid %lld.", Prt->Macro_Local.c_str(), Prt->Cid_Local);
         }
 
         for(std::unique_ptr<class Receive>& Rcv:this->Receive)
         {
-            Rcv->Capid_Local=Capid++;
+            Rcv->Cid_Local=Cid++;
             Rcv->Macro_Local=std::string("RCV_")+Rcv->Name;
             Main::Upper(Rcv->Macro_Local);
-            Main::Info("> Receive endpoint %s allocated local capid %lld.", Rcv->Macro_Local.c_str(), Rcv->Capid_Local);
+            Main::Info("> Receive endpoint %s allocated local capid %lld.", Rcv->Macro_Local.c_str(), Rcv->Cid_Local);
         }
 
-        for(std::unique_ptr<class Send>& Send:this->Send)
+        for(std::unique_ptr<class Send>& Snd:this->Send)
         {
-            Send->Capid_Local=Capid++;
-            Send->Macro_Local=std::string("SND_")+Send->Name+"_PRC_"+Send->Process;
-            Main::Upper(Send->Macro_Local);
-            Main::Info("> Send endpoint %s allocated local capid %lld.", Send->Macro_Local.c_str(), Send->Capid_Local);
+            Snd->Cid_Local=Cid++;
+            Snd->Macro_Local=std::string("SND_")+Snd->Name+"_PRC_"+Snd->Process;
+            Main::Upper(Snd->Macro_Local);
+            Main::Info("> Send endpoint %s allocated local capid %lld.", Snd->Macro_Local.c_str(), Snd->Cid_Local);
         }
 
-        for(std::unique_ptr<class Vect_Info>& Vect:this->Vector)
+        for(std::unique_ptr<class Vect_Info>& Vct:this->Vector)
         {
-            Vect->Capid_Local=Capid++;
-            Vect->Macro_Local=std::string("VCT_")+Vect->Name;
-            Main::Upper(Vect->Macro_Local);
-            Main::Info("> Vector endpoint %s allocated local capid %lld.", Vect->Macro_Local.c_str(), Vect->Capid_Local);
+            Vct->Cid_Local=Cid++;
+            Vct->Macro_Local=std::string("VCT_")+Vct->Name;
+            Main::Upper(Vct->Macro_Local);
+            Main::Info("> Vector endpoint %s allocated local capid %lld.", Vct->Macro_Local.c_str(), Vct->Cid_Local);
         }
 
         for(std::unique_ptr<class Kfunc>& Kfn:this->Kfunc)
         {
-        	Kfn->Capid_Local=Capid++;
+        	Kfn->Cid_Local=Cid++;
         	Kfn->Macro_Local=std::string("KFN_")+Kfn->Name;
             Main::Upper(Kfn->Macro_Local);
-            Main::Info("> Kernel function %s allocated local capid %lld.", Kfn->Macro_Local.c_str(), Kfn->Capid_Local);
+            Main::Info("> Kernel function %s allocated local capid %lld.", Kfn->Macro_Local.c_str(), Kfn->Cid_Local);
         }
 
         /* Check extra capability table sizes */
-        this->Captbl=std::make_unique<class Captbl>(Capid,Capid+this->Extra_Captbl,this);
+        this->Captbl=std::make_unique<class Captbl>(Cid,Cid+this->Extra_Captbl,this);
         if(this->Captbl->Size>Max)
             Main::Error("M1013: Total captbl capacity %lld cannot be larger than the platform limit %lld.",this->Captbl->Size,Max);
     }
@@ -323,12 +323,12 @@ Return      : None.
 ******************************************************************************/
 void Process::Global_Alloc_Captbl(std::vector<class Captbl*>& Global)
 {
-    this->Captbl->Capid_Global=Global.size();
+    this->Captbl->Cid_Global=Global.size();
     this->Captbl->Macro_Global=std::string("RVM_CPT_")+this->Name;
     Main::Upper(this->Captbl->Macro_Global);
     Global.push_back(this->Captbl.get());
     Main::Info("> Captbl %s allocated global capid %lld.",
-               this->Captbl->Macro_Global.c_str(), this->Captbl->Capid_Global);
+               this->Captbl->Macro_Global.c_str(), this->Captbl->Cid_Global);
 }
 /* End Function:Process::Global_Alloc_Captbl *********************************/
 
@@ -350,12 +350,12 @@ void Process::Global_Alloc_Pgtbl(std::vector<class Pgtbl*>& Global,
     if(Pgt->Is_Top!=0)
         Serial=0;
 
-    Pgt->Capid_Global=Global.size();
+    Pgt->Cid_Global=Global.size();
     Pgt->Macro_Global=std::string("RVM_PGT_")+this->Name+"_"+std::to_string(Serial);
     Main::Upper(Pgt->Macro_Global);
     Global.push_back(Pgt.get());
     Main::Info("> Pgt %s allocated global capid %lld.",
-               Pgt->Macro_Global.c_str(), Pgt->Capid_Global);
+               Pgt->Macro_Global.c_str(), Pgt->Cid_Global);
 
     /* Recursively do allocation */
     for(Count=0;Count<Pgt->Pgdir.size();Count++)
@@ -374,12 +374,12 @@ Return      : None.
 ******************************************************************************/
 void Process::Global_Alloc_Process(std::vector<class Process*>& Global)
 {
-    this->Capid_Global=Global.size();
+    this->Cid_Global=Global.size();
     this->Macro_Global=std::string("RVM_PRC_")+this->Name;
     Main::Upper(this->Macro_Global);
     Global.push_back(this);
     Main::Info("> Process %s allocated global capid %lld.",
-               this->Macro_Global.c_str(), this->Capid_Global);
+               this->Macro_Global.c_str(), this->Cid_Global);
 }
 /* End Function:Process::Global_Alloc_Process ********************************/
 
@@ -393,12 +393,12 @@ void Process::Global_Alloc_Thread(std::vector<class Thread*>& Global)
 {
     for(std::unique_ptr<class Thread>& Thd:this->Thread)
     {
-        Thd->Capid_Global=Global.size();
+        Thd->Cid_Global=Global.size();
         Thd->Macro_Global=std::string("RVM_THD_")+Thd->Name+"_PRC_"+this->Name;
         Main::Upper(Thd->Macro_Global);
         Global.push_back(Thd.get());
         Main::Info("> Thread %s allocated global capid %lld.",
-                   Thd->Macro_Global.c_str(), Thd->Capid_Global);
+                   Thd->Macro_Global.c_str(), Thd->Cid_Global);
     }
 }
 /* End Function:Process::Global_Alloc_Thread *********************************/
@@ -413,12 +413,12 @@ void Process::Global_Alloc_Invocation(std::vector<class Invocation*>& Global)
 {
     for(std::unique_ptr<class Invocation>& Inv:this->Invocation)
     {
-        Inv->Capid_Global=Global.size();
+        Inv->Cid_Global=Global.size();
         Inv->Macro_Global=std::string("RVM_INV_")+Inv->Name+"_PRC_"+this->Name;
         Main::Upper(Inv->Macro_Global);
         Global.push_back(Inv.get());
         Main::Info("> Invocation %s allocated global capid %lld.",
-                   Inv->Macro_Global.c_str(), Inv->Capid_Global);
+                   Inv->Macro_Global.c_str(), Inv->Cid_Global);
     }
 }
 /* End Function:Process::Global_Alloc_Invocation *****************************/
@@ -433,12 +433,12 @@ void Process::Global_Alloc_Receive(std::vector<class Receive*>& Global)
 {
     for(std::unique_ptr<class Receive>& Rcv:this->Receive)
     {
-        Rcv->Capid_Global=Global.size();
+        Rcv->Cid_Global=Global.size();
         Rcv->Macro_Global=std::string("RVM_RCV_")+Rcv->Name+"_PRC_"+this->Name;
         Main::Upper(Rcv->Macro_Global);
         Global.push_back(Rcv.get());
         Main::Info("> Receive endpoint %s allocated global capid %lld.",
-                   Rcv->Macro_Global.c_str(), Rcv->Capid_Global);
+                   Rcv->Macro_Global.c_str(), Rcv->Cid_Global);
     }
 }
 /* End Function:Process::Global_Alloc_Receive ********************************/
@@ -451,16 +451,16 @@ Return      : None.
 ******************************************************************************/
 void Process::Global_Alloc_Vector(std::vector<class Vect_Info*>& Global)
 {
-    for(std::unique_ptr<class Vect_Info>& Vect:this->Vector)
+    for(std::unique_ptr<class Vect_Info>& Vct:this->Vector)
     {
-        Vect->Capid_Global=Global.size();
-        Vect->Macro_Global=std::string("RVM_VCT_")+Vect->Name;
-        Main::Upper(Vect->Macro_Global);
-        Vect->Macro_Kernel=std::string("RME_VCT_")+Vect->Name;
-        Main::Upper(Vect->Macro_Kernel);
-        Global.push_back(Vect.get());
+        Vct->Cid_Global=Global.size();
+        Vct->Macro_Global=std::string("RVM_VCT_")+Vct->Name;
+        Main::Upper(Vct->Macro_Global);
+        Vct->Macro_Kernel=std::string("RME_VCT_")+Vct->Name;
+        Main::Upper(Vct->Macro_Kernel);
+        Global.push_back(Vct.get());
         Main::Info("> Vector endpoint %s (%s) allocated global capid %lld.",
-                   Vect->Macro_Global.c_str(), Vect->Macro_Kernel.c_str(),Vect->Capid_Global);
+                   Vct->Macro_Global.c_str(), Vct->Macro_Kernel.c_str(),Vct->Cid_Global);
     }
 }
 /* End Function:Process::Global_Alloc_Vector *********************************/
@@ -510,9 +510,9 @@ void Process::Mem_Alloc(ptr_t Wordlength, ptr_t Reg_Size, ptr_t Kom_Order)
                 Main::Error("M2300: Data section size is not big enough, unable to allocate stack.");
             this->Data_Size=Thd->Stack_Base-this->Data_Base;
             /* Allocate entry from header */
-            Thd->Header_Slot=this->Desc_Front;
+            Thd->Desc_Slot=this->Desc_Front;
             Main::Info("> Thread '%s' stack base 0x%llX size 0x%llX header slot %lld.",
-                       Thd->Name.c_str(), Thd->Stack_Base, Thd->Stack_Size, Thd->Header_Slot);
+                       Thd->Name.c_str(), Thd->Stack_Base, Thd->Stack_Size, Thd->Desc_Slot);
             this->Desc_Front++;
         }
         catch(std::exception& Exc)
@@ -533,9 +533,9 @@ void Process::Mem_Alloc(ptr_t Wordlength, ptr_t Reg_Size, ptr_t Kom_Order)
                 Main::Error("M2300: Data section size is not big enough, unable to allocate stack.");
             this->Data_Size=Inv->Stack_Base-this->Data_Base;
             /* Allocate entry from descriptor header */
-            Inv->Header_Slot=this->Desc_Front;
+            Inv->Desc_Slot=this->Desc_Front;
             Main::Info("> Invocation '%s' stack base 0x%llX size 0x%llX header slot %lld.",
-                       Inv->Name.c_str(), Inv->Stack_Base, Inv->Stack_Size, Inv->Header_Slot);
+                       Inv->Name.c_str(), Inv->Stack_Base, Inv->Stack_Size, Inv->Desc_Slot);
             this->Desc_Front++;
         }
         catch(std::exception& Exc)
@@ -557,7 +557,7 @@ void Process::Mem_Alloc(ptr_t Wordlength, ptr_t Reg_Size, ptr_t Kom_Order)
         Virt=static_cast<class Virtual*>(this);
 
         /* Vector flag space */
-        Virt->State_Size=Virtual::State_Alloc(Virt->Vect_Num, Wordlength, Kom_Order);
+        Virt->State_Size=Virtual::State_Alloc(Virt->Vector_Num, Wordlength, Kom_Order);
         Virt->State_Base=this->Data_Base+this->Data_Size-Virt->State_Size;
         Main::Info("> State block base 0x%llX size 0x%llX.", Virt->State_Base, Virt->State_Size);
         if(Virt->State_Base<=this->Data_Base)

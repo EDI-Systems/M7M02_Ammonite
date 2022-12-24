@@ -61,7 +61,7 @@ public:
 
     /* Initialization numbers - these must be remembered for generation */
     ptr_t Cpt_Init_Total;
-    ptr_t Cpt_Kfunc_Total;
+    ptr_t Cpt_Kfn_Total;
     ptr_t Pgt_Con_Total;
 
     /* void */ Gen_Tool(const std::string& Name,
@@ -104,9 +104,11 @@ public:
 
     void Monitor_Inc(std::unique_ptr<std::vector<std::string>>& List);
     void Monitor_Conf_Hdr(void);
-    ptr_t Monitor_Cpt_Init(std::unique_ptr<std::vector<std::string>>& List, ptr_t Is_Kfunc);
+    ptr_t Monitor_Cpt_Init(std::unique_ptr<std::vector<std::string>>& List, ptr_t Is_Kfn);
     ptr_t Monitor_Pgt_Con(std::unique_ptr<std::vector<std::string>>& List, const class Pgtbl* Pgt);
     ptr_t Monitor_Pgt_Add(std::unique_ptr<std::vector<std::string>>& List, const class Pgtbl* Pgt, ptr_t Init_Size_Ord);
+    ptr_t Monitor_Thd_Init(std::unique_ptr<std::vector<std::string>>& List);
+    ptr_t Monitor_Inv_Init(std::unique_ptr<std::vector<std::string>>& List);
     void Monitor_Boot_Hdr(void);
     void Monitor_Main_Crt(std::unique_ptr<std::vector<std::string>>& List, ptr_t Number, const std::string& Macro);
     void Monitor_Boot_Src(void);

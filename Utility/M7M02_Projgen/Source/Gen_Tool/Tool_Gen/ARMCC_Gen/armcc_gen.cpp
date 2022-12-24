@@ -171,7 +171,7 @@ void ARMCC_Gen::Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)
         List->push_back("");
         for(const class Process* Prc:this->Proj->Monitor->Process)
         {
-            List->push_back("; Begin Segment:PRC **********************************************************");
+            List->push_back("; Begin Segment:PROCESS *******************************************************");
             List->push_back("; Description : The .text segment of the processes/VMs. All processes/VMs need ");
             List->push_back("; to be placed here one by one; If you don't want to convert them to C and compile");
             List->push_back("; to a whole image, flash them to this address.");
@@ -184,7 +184,7 @@ void ARMCC_Gen::Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)
             List->push_back(std::string("        ")+Prc->Name_Lower+"_image.o                   (+RO)");
             List->push_back("    }");
             List->push_back("}");
-            List->push_back("; End Segment:PRC ************************************************************");
+            List->push_back("; End Segment:PROCESS *********************************************************");
             List->push_back("");
         }
     }
@@ -224,7 +224,7 @@ void ARMCC_Gen::Monitor_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back("        *.o                    (ARCH, +First)");
     List->push_back("        ; The lib code copying code");
     List->push_back("        *                      (InRoot$$Sections)");
-    List->push_back("        ; The init code section");
+    List->push_back("        ; The monitor code section");
     List->push_back("        .ANY                   (+RO)");
     List->push_back("    }");
     List->push_back("");
@@ -240,7 +240,7 @@ void ARMCC_Gen::Monitor_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back("");
     List->push_back("    }");
     List->push_back("}");
-    List->push_back("; End Segment:INIT ************************************************************");
+    List->push_back("; End Segment:MONITOR *********************************************************");
     List->push_back("");
     List->push_back("; End Of File *****************************************************************");
     List->push_back("");
@@ -283,10 +283,10 @@ void ARMCC_Gen::Process_Linker(std::unique_ptr<std::vector<std::string>>& List,
     List->push_back(std::string("DESC 0x")+Main::Hex(Prc->Code_Base)+" 0x"+Main::Hex(Header_Size));
     List->push_back("{");
     List->push_back("    ; The header segment of the process");
-    List->push_back(std::string("    PRC_DESC 0x")+Main::Hex(Prc->Code_Base)+" 0x"+Main::Hex(Header_Size));
+    List->push_back(std::string("    PROCESS_DESC 0x")+Main::Hex(Prc->Code_Base)+" 0x"+Main::Hex(Header_Size));
     List->push_back("    {");
     List->push_back("        ; Process header");
-    List->push_back(std::string("        proc_")+Prc->Name_Lower+"_desc.o         (+RO)");
+    List->push_back(std::string("        prc_")+Prc->Name_Lower+"_desc.o         (+RO)");
     List->push_back("    }");
     List->push_back("}");
     List->push_back("; End Segment:DESC ************************************************************");
@@ -294,21 +294,21 @@ void ARMCC_Gen::Process_Linker(std::unique_ptr<std::vector<std::string>>& List,
     List->push_back("; Begin Segment:PROCESS *******************************************************");
     List->push_back("; Description : The process segment, where the process executable is located at.");
     List->push_back("; *****************************************************************************");
-    List->push_back(std::string("PRC 0x")+Main::Hex(Prc->Code_Front)+" 0x"+Main::Hex(Real_Code_Size));
+    List->push_back(std::string("PROCESS 0x")+Main::Hex(Prc->Code_Front)+" 0x"+Main::Hex(Real_Code_Size));
     List->push_back("{");
     List->push_back("    ; The code segment of the process");
-    List->push_back(std::string("    CODE 0x")+Main::Hex(Prc->Code_Front)+" 0x"+Main::Hex(Real_Code_Size));
+    List->push_back(std::string("    PROCESS_CODE 0x")+Main::Hex(Prc->Code_Front)+" 0x"+Main::Hex(Real_Code_Size));
     List->push_back("    {");
     List->push_back("        ; Entry point assembly");
     List->push_back(std::string("        rvm_guest_")+this->Plat->Name_Lower+"_"+Tool_Lower+".o     (RESET, +First)");
     List->push_back("        ; The lib code copying code");
     List->push_back("        *                      (InRoot$$Sections)");
-    List->push_back("        ; The init code section");
+    List->push_back("        ; The other code sections");
     List->push_back("        .ANY                   (+RO)");
     List->push_back("    }");
     List->push_back("");
     List->push_back("    ; The data section of the process");
-    List->push_back(std::string("    DATA 0x")+Main::Hex(Prc->Data_Base)+" 0x"+Main::Hex(Prc->Data_Size));
+    List->push_back(std::string("    PROCESS_DATA 0x")+Main::Hex(Prc->Data_Base)+" 0x"+Main::Hex(Prc->Data_Size));
     List->push_back("    {");
     List->push_back("        .ANY                   (+RW +ZI)");
     List->push_back("    }");
@@ -318,14 +318,14 @@ void ARMCC_Gen::Process_Linker(std::unique_ptr<std::vector<std::string>>& List,
         List->push_back(std::string("    ARM_LIB_STACK 0x")+Main::Hex(Prc->Thread[0]->Stack_Base)+" EMPTY 0x"+Main::Hex(Prc->Thread[0]->Stack_Size));
     else
     {
-        ASSERT((Prc->Thread[0]->Name=="Vect")&&(Prc->Thread[1]->Name=="User"));
+        ASSERT((Prc->Thread[0]->Name=="Vct")&&(Prc->Thread[1]->Name=="Usr"));
         List->push_back(std::string("    ARM_LIB_STACK 0x")+Main::Hex(Prc->Thread[1]->Stack_Base)+" EMPTY 0x"+Main::Hex(Prc->Thread[1]->Stack_Size));
     }
     List->push_back("    {");
     List->push_back("");
     List->push_back("    }");
     List->push_back("}");
-    List->push_back("; End Segment:PRC ************************************************************");
+    List->push_back("; End Segment:PROCESS *********************************************************");
     List->push_back("");
     List->push_back("; End Of File *****************************************************************");
     List->push_back("");

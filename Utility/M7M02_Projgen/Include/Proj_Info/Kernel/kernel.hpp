@@ -86,8 +86,8 @@ public:
     ptr_t Evtf_Base;
     ptr_t Evtf_Size;
     /* Initial state for vector creation */
-    ptr_t Vect_Cap_Front;
-    ptr_t Vect_Kom_Front;
+    ptr_t Vct_Cap_Front;
+    ptr_t Vct_Kom_Front;
 
     /* Linker filename */
     std::string Linker_Filename;
