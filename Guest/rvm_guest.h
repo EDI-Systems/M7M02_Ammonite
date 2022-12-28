@@ -26,6 +26,7 @@ Description : The header of guest user level low-level library.
 #define RVM_ALLBITS                                 (~((rvm_ptr_t)0U))
 /* Word size settings */
 #define RVM_WORD_SIZE                               RVM_POW2(RVM_WORD_ORDER)
+#define RVM_WORD_BYTE                               (RVM_WORD_SIZE>>3)
 #define RVM_WORD_MASK                               (~(RVM_ALLBITS<<(RVM_WORD_ORDER-1U)))
 /* Apply this mask to keep START to MSB bits */
 #define RVM_MASK_START(START)                       ((RVM_ALLBITS)<<(START))
@@ -154,7 +155,7 @@ Description : The header of guest user level low-level library.
 
 #if(RVM_DEBUG_PRINT==1U)
 /* Debugging */
-#define RVM_DBG_I(INT)                              RVM_Int_Print(INT)
+#define RVM_DBG_I(INT)                              RVM_Int_Print((rvm_cnt_t)(INT))
 #define RVM_DBG_H(UINT)                             RVM_Hex_Print((rvm_ptr_t)(UINT))
 #define RVM_DBG_S(STR)                              RVM_Str_Print((rvm_s8_t*)(STR))
 #else
@@ -232,8 +233,6 @@ while(0U)
 #define RVM_STATE                                   ((volatile struct RVM_State*)RVM_VIRT_STATE_BASE)
 /* Vector space (part of state block) */
 #define RVM_VCTF                                    (&(RVM_STATE->Flag))
-/* Vector bitmap size */
-#define RVM_VCTF_BITMAP                             ((RVM_VIRT_VCT_NUM+RVM_WORD_SIZE-1U)/RVM_WORD_SIZE)
 
 /* Virtualization signal endpoints */
 /* Hypervisor signal endpoint */
@@ -286,12 +285,12 @@ struct RVM_Param
     rvm_ptr_t Param[4];
 };
 
-/* Interrupt flags */
+/* Interrupt flags - Vct in bytes */
 struct RVM_Vctf
 {
     rvm_ptr_t Tim;
     rvm_ptr_t Ctx;
-    rvm_ptr_t Vct[1];
+    rvm_u8_t Vct[16];
 };
 
 /* State block */
@@ -492,7 +491,7 @@ EXTERN rvm_ret_t RVM_Thd_Time_Xfer(rvm_cid_t Cap_Thd_Dst,
                                    rvm_cid_t Cap_Thd_Src,
                                    rvm_ptr_t Time);
 EXTERN rvm_ret_t RVM_Thd_Swt(rvm_cid_t Cap_Thd,
-                             rvm_ptr_t Full_Yield);
+                             rvm_ptr_t Is_Yield);
                              
 /* Signal operations */
 EXTERN rvm_ret_t RVM_Sig_Crt(rvm_cid_t Cap_Cpt,
@@ -524,7 +523,7 @@ EXTERN rvm_ret_t RVM_Str_Print(rvm_s8_t* String);
 #endif
 
 /* Process related */
-EXTERN rvm_ret_t RVM_Prc_Send_Evt(rvm_ptr_t Evt_Num);
+EXTERN rvm_ret_t RVM_Prc_Evt_Snd(rvm_ptr_t Evt_Num);
 
 /* Virtual machine related - not used in normal processes */
 #ifdef RVM_VIRT_VCT_NUM

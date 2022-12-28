@@ -1081,20 +1081,20 @@ Input       : rvm_cid_t Cap_Thd - The capability to the thread. If this is -1,
                                   the kernel will pickup whatever thread that
                                   has the highest priority and time to run. 
                                   2-Level. 
-              rvm_ptr_t Full_Yield - This is a flag to indicate whether this
-                                     is a full yield. If it is, the kernel will
-                                     discard all the time alloted on this
-                                     thread.
+              rvm_ptr_t Is_Yield - This is a flag to indicate whether this
+                                   is a full yield. If it is, the kernel will
+                                   discard all the time alloted on this
+                                   thread.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 rvm_ret_t RVM_Thd_Swt(rvm_cid_t Cap_Thd,
-                      rvm_ptr_t Full_Yield)
+                      rvm_ptr_t Is_Yield)
 {
     return RVM_CAP_OP(RVM_SVC_THD_SWT,
                       0,
                       Cap_Thd,
-                      Full_Yield, 
+                      Is_Yield, 
                       0U);
 }
 /* End Function:RVM_Thd_Swt **************************************************/

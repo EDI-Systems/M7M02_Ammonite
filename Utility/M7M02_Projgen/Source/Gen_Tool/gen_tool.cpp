@@ -61,6 +61,7 @@ extern "C"
 
 #include "Gen_Tool/Plat_Gen/plat_gen.hpp"
 #include "Gen_Tool/Plat_Gen/A7M_Gen/a7m_gen.hpp"
+#include "Gen_Tool/Plat_Gen/A6M_Gen/a6m_gen.hpp"
 
 #include "Gen_Tool/Build_Gen/build_gen.hpp"
 #include "Gen_Tool/Build_Gen/Keil_Gen/keil_gen.hpp"
@@ -92,6 +93,8 @@ Return      : None.
     {
         if(Name=="A7M")
             this->Plat=std::make_unique<class A7M_Gen>(Proj,Plat,Chip);
+        else if(Name=="A6M")
+        	this->Plat=std::make_unique<class A6M_Gen>(Proj,Plat,Chip);
         else
             Main::Error("PXXXX: Platform generator for '"+Name+"' is not found.");
     }
@@ -787,7 +790,8 @@ void Gen_Tool::Kernel_Boot_Src(void)
     List->push_back("rme_ptr_t RME_Boot_Vct_Init(struct RME_Cap_Cpt* Cpt, rme_ptr_t Cap_Front, rme_ptr_t Kom_Front)");
     List->push_back("{");
     List->push_back("    rme_ptr_t Cur_Addr;");
-    List->push_back("    struct RME_Cap_Cpt* Sig_Cpt;");
+    if(Monitor->Vector.size()!=0)
+    	List->push_back("    struct RME_Cap_Cpt* Sig_Cpt;");
     List->push_back("");
     List->push_back("    /* The address here shall match what is in the generator */");
     List->push_back(std::string("    RME_ASSERT(Cap_Front==")+std::to_string(Kernel->Vct_Cap_Front)+"U);");
@@ -2371,9 +2375,6 @@ void Gen_Tool::Process_Main_Hdr(class Process* Prc)
     /* The VM priority numbers */
     List->push_back("/* Total VM priority number */");
     Gen_Tool::Macro_Int(List, "RVM_PREEMPT_VPRIO_NUM", this->Plat->Proj->Monitor->Virt_Prio, MACRO_ADD);
-    /* The number of MPU regions */
-    List->push_back("/* The number of MPU regions */");
-    Gen_Tool::Macro_Int(List, "RVM_MPU_REGIONS", this->Plat->Chip->Region, MACRO_ADD);
     /* The kernel memory slot order */
     List->push_back("/* The kernel memory allocation granularity order */");
     Gen_Tool::Macro_Int(List, "RVM_KOM_SLOT_ORDER", this->Plat->Proj->Kernel->Kom_Order, MACRO_ADD);
@@ -2727,7 +2728,10 @@ void Gen_Tool::Process_Main_Src(class Process* Prc)
     List->push_back("#if(RVM_DEBUG_PRINT==1U)");
     List->push_back("void RVM_Putchar(char Char)");
     List->push_back("{");
-    List->push_back("    /* Add your own code */");
+    if(Prc->Type==PROCESS_VIRTUAL)
+    	List->push_back("    RVM_Hyp_Putchar(Char);");
+    else
+    	List->push_back("    /* Add your own code */");
     List->push_back("}");
     List->push_back("#endif");
     Gen_Tool::Func_Foot(List, "RVM_Putchar");

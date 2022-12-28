@@ -36,8 +36,8 @@ Description : The hypercall implementation file.
 
 /* Begin Function:_RVM_Run_Ins ************************************************
 Description : Set the virtual machine as ready to schedule.
-Input       : volatile struct RVM_Virt_Struct* Virt - The virtual machine to put
-                                                      into the runqueue.
+Input       : volatile struct RVM_Virt_Struct* Virt - The virtual machine to
+                                                      put into the runqueue.
 Output      : None.
 Return      : None.
 ******************************************************************************/
@@ -76,9 +76,10 @@ void _RVM_Run_Del(volatile struct RVM_Virt_Struct* Virt)
 Description : Get the highest priority ready virtual machine available.
 Input       : None.
 Output      : None.
-Return      : volatile struct RVM_Virt_Struct* Virt - The virtual machine. If all
-                                                      virtual machine have gone 
-                                                      asleep, this will be NULL.
+Return      : volatile struct RVM_Virt_Struct* Virt - The virtual machine. If 
+                                                      all virtual machine have
+                                                      gone asleep, this will be
+                                                      NULL.
 ******************************************************************************/
 #if(RVM_VIRT_NUM!=0U)
 volatile struct RVM_Virt_Struct* _RVM_Run_High(void)
@@ -102,8 +103,8 @@ volatile struct RVM_Virt_Struct* _RVM_Run_High(void)
 
 /* Begin Function:_RVM_Virt_Switch ********************************************
 Description : Switch between two virtual machines.
-Input       : volatile struct RVM_Virt_Struct* From - The source virtual machine.
-              volatile struct RVM_Virt_Struct* To - The destination virtual machine.
+Input       : volatile struct RVM_Virt_Struct* From - The source VM.
+              volatile struct RVM_Virt_Struct* To - The destination VM.
 Output      : None.
 Return      : None.
 ******************************************************************************/
@@ -114,7 +115,7 @@ void _RVM_Virt_Switch(volatile struct RVM_Virt_Struct* From,
     if(From==To)
         return;
     
-    /* Just change the thread's priorities - use x2 version to minimize delay */
+    /* Just change the thread's priorities - use 2x version to minimize delay */
     if(From!=RVM_NULL)
     {
         RVM_ASSERT(RVM_Thd_Sched_Prio2(From->Map->Usr_Thd_Cap, RVM_WAIT_PRIO,
@@ -123,8 +124,8 @@ void _RVM_Virt_Switch(volatile struct RVM_Virt_Struct* From,
     
     if(To!=RVM_NULL)
     {
-        RVM_ASSERT(RVM_Thd_Sched_Prio2(To->Map->Usr_Thd_Cap, RVM_USER_PRIO,
-                                       To->Map->Vct_Thd_Cap, RVM_VECT_PRIO)==0);
+        RVM_ASSERT(RVM_Thd_Sched_Prio2(To->Map->Usr_Thd_Cap, RVM_VUSR_PRIO,
+                                       To->Map->Vct_Thd_Cap, RVM_VVCT_PRIO)==0);
     }
 }
 #endif
@@ -150,7 +151,7 @@ rvm_ret_t _RVM_Vct_Pend_Check(volatile struct RVM_Virt_Struct* Virt)
     if(Flag->Ctx!=0U)
         return 1;
     
-    for(Count=0U;Count<RVM_VCTF_BITMAP(Virt->Map->Vct_Num);Count++)
+    for(Count=0U;Count<Virt->Map->Vct_Num;Count++)
     {
         if(Flag->Vct[Count]!=0U)
             return 1;
@@ -172,7 +173,7 @@ Return      : None.
 void _RVM_Vct_Flag_Set(volatile struct RVM_Virt_Struct* Virt,
                        rvm_ptr_t Vct_Num)
 {
-    Virt->Map->State_Base->Flag.Vct[Vct_Num>>RVM_WORD_ORDER]|=RVM_POW2(Vct_Num&RVM_WORD_MASK);
+    Virt->Map->State_Base->Flag.Vct[Vct_Num]=1U;
 }
 #endif
 /* End Function:_RVM_Vct_Flag_Set *******************************************/
@@ -211,7 +212,7 @@ rvm_ret_t RVM_Hyp_Int_Ena(void)
         if((RVM_Virt_Cur->Sched.State&RVM_VM_BOOTED)==0U)
         {
             RVM_Virt_Cur->Sched.State|=RVM_VM_BOOTED;
-            RVM_ASSERT(RVM_Thd_Sched_Prio(RVM_Virt_Cur->Map->Vct_Thd_Cap, RVM_VECT_PRIO)==0);
+            RVM_ASSERT(RVM_Thd_Sched_Prio(RVM_Virt_Cur->Map->Vct_Thd_Cap, RVM_VVCT_PRIO)==0);
         }
         RVM_Virt_Cur->Sched.State|=RVM_VM_INTENA;
         /* See if we do have excess interrupt to process. If yes, send to the endpoint now */
@@ -725,9 +726,9 @@ void _RVM_Virt_Cur_Recover(void)
     RVM_ASSERT(RVM_Thd_Sched_Free(RVM_Virt_Cur->Map->Vct_Thd_Cap)==0);
     RVM_ASSERT(RVM_Thd_Sched_Free(RVM_Virt_Cur->Map->Usr_Thd_Cap)==0);
     RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Virt_Cur->Map->Vct_Thd_Cap, RVM_Sftd_Thd_Cap, RVM_Sftd_Sig_Cap, 
-                                  RVM_Virt_Cur->Map->Vct_Thd_Cap|RVM_VIRT_TID_MARKER, RVM_VECT_PRIO)==0);
+                                  RVM_Virt_Cur->Map->Vct_Thd_Cap|RVM_VIRT_TID_MARKER, RVM_VVCT_PRIO)==0);
     RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Virt_Cur->Map->Usr_Thd_Cap, RVM_Sftd_Thd_Cap, RVM_Sftd_Sig_Cap, 
-                                  RVM_Virt_Cur->Map->Usr_Thd_Cap|RVM_VIRT_TID_MARKER, RVM_USER_PRIO)==0);
+                                  RVM_Virt_Cur->Map->Usr_Thd_Cap|RVM_VIRT_TID_MARKER, RVM_VUSR_PRIO)==0);
     
     /* Set the execution properties for virt @ position 0 */
     Init_Stack_Addr=RVM_Stack_Init(RVM_Virt_Cur->Map->Vct_Stack_Base, RVM_Virt_Cur->Map->Vct_Stack_Size,
@@ -812,7 +813,7 @@ void RVM_Sftd(void)
         if(Thd<RVM_CID_2L)
         {
             /* We know that this happened within RVM itself. Sad, cannot recover */
-            RVM_DBG_S("Sftd:Unrecoverable fault on RVM ");
+            RVM_DBG_S("Sftd:Irrecoverable fault on RVM ");
             if(Thd==RVM_Sftd_Thd_Cap)
                 RVM_DBG_S("Sftd");
 #if(RVM_VIRT_NUM!=0U)
@@ -824,7 +825,7 @@ void RVM_Sftd(void)
                 RVM_DBG_S("Vctd");
 #endif
             else
-                RVM_DBG_SIS("unrecognized thread TID ", Thd,"");
+                RVM_DBG_SHS("unrecognized thread TID 0x", Thd,"");
             
             RVM_DBG_S(". Rebooting system...\r\n");
             
@@ -836,7 +837,7 @@ void RVM_Sftd(void)
         else if((Thd&RVM_VIRT_TID_MARKER)==0U)
         {
             /* We know that this happened in a process. Still, cannot be recovered. */
-            RVM_DBG_SIS("Sftd:Unrecoverable fault on process thread TID ", Thd, ". Rebooting system...\r\n");
+            RVM_DBG_SHS("Sftd:Irrecoverable fault on process thread TID 0x", Thd, ". Rebooting system...\r\n");
             
             /* Print registers so we know how it crashed */
             RVM_ASSERT(RVM_Thd_Print_Reg(Thd)==0);

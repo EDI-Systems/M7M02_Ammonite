@@ -14,11 +14,6 @@
         <Config>
             <NVIC_Grouping>P2S6</NVIC_Grouping>
             <Systick_Value>16800</Systick_Value>
-            <XTAL>8</XTAL>
-            <PLLM>8</PLLM>
-            <PLLN>336</PLLN>
-            <PLLP>2</PLLP>
-            <PLLQ>7</PLLQ>
         </Config>
     </Chip>
     <Extmem>
@@ -43,7 +38,7 @@
         <Kern_Prio>32</Kern_Prio>
 		<Buildsystem>Keil</Buildsystem>
 		<Toolchain>ARMCC</Toolchain>
-		<Optimization>O2</Optimization>
+		<Optimization>Os</Optimization>
 		<Kernel_Root>../../../../M7M01_Eukaron</Kernel_Root>
 		<Project_Output>./Kernel/Project</Project_Output>
 		<Project_Overwrite>No</Project_Overwrite>
@@ -60,14 +55,18 @@
     <Monitor>
         <Code_Size>0x10000</Code_Size>
         <Data_Size>0x4000</Data_Size>
-        <Stack_Size>0x800</Stack_Size>
+        <Init_Stack_Size>0x800</Init_Stack_Size>
+        <Sftd_Stack_Size>0x800</Sftd_Stack_Size>
+        <Vmmd_Stack_Size>0x800</Vmmd_Stack_Size>
+        <Vctd_Stack_Size>0x800</Vctd_Stack_Size>
+        <Timd_Stack_Size>0x800</Timd_Stack_Size>
         <Extra_Captbl>32</Extra_Captbl>
         <Virt_Prio>32</Virt_Prio>
         <Virt_Event>32</Virt_Event>
         <Virt_Map>32</Virt_Map>
 		<Buildsystem>Keil</Buildsystem>
 		<Toolchain>ARMCC</Toolchain>
-        <Optimization>O2</Optimization>
+        <Optimization>Os</Optimization>
 		<Monitor_Root>../../../../M7M02_Ammonite</Monitor_Root>
 		<Project_Output>./Monitor/Project</Project_Output>
 		<Project_Overwrite>No</Project_Overwrite>
@@ -84,7 +83,7 @@
             <Extra_Captbl>9</Extra_Captbl>
 			<Buildsystem>Keil</Buildsystem>
 			<Toolchain>ARMCC</Toolchain>
-            <Optimization>O2</Optimization>
+            <Optimization>Os</Optimization>
 			<Project_Output>./Proc1/Project</Project_Output>
 			<Project_Overwrite>No</Project_Overwrite>
 			<Linker_Output>./Proc1/Project</Linker_Output>
@@ -165,7 +164,7 @@
             <Extra_Captbl>0</Extra_Captbl>
 			<Buildsystem>Keil</Buildsystem>
 			<Toolchain>ARMCC</Toolchain>
-			<Optimization>O3</Optimization>
+			<Optimization>Os</Optimization>
 			<Project_Output>./Proc2/Project</Project_Output>
 			<Project_Overwrite>No</Project_Overwrite>
 			<Linker_Output>./Proc2/Project</Linker_Output>
@@ -250,7 +249,7 @@
 			<Guest_Root>../../../../M5P01_Prokaron</Guest_Root>
 			<Buildsystem>Keil</Buildsystem>
 			<Toolchain>ARMCC</Toolchain>
-			<Optimization>O2</Optimization>
+			<Optimization>Os</Optimization>
 			<Project_Output>./Virt1/Project</Project_Output>
 			<Project_Overwrite>No</Project_Overwrite>
 			<Linker_Output>./Virt1/Project</Linker_Output>
@@ -297,5 +296,67 @@
                 </K0>
             </Kfunc>
         </V0>
+
+        <V1>
+            <Name>Virt2</Name>
+            <Extra_Captbl>0</Extra_Captbl>
+            <Vector_Stack_Size>0x400</Vector_Stack_Size>
+            <User_Stack_Size>0x400</User_Stack_Size>
+            <Priority>5</Priority>
+            <Timeslice>10</Timeslice>
+            <Period>100</Period>
+            <Watchdog>0</Watchdog>
+            <Vector_Num>100</Vector_Num>
+			<Guest_Type>RMP</Guest_Type>
+			<Guest_Root>../../../../M5P01_Prokaron</Guest_Root>
+			<Buildsystem>Keil</Buildsystem>
+			<Toolchain>ARMCC</Toolchain>
+			<Optimization>Os</Optimization>
+			<Project_Output>./Virt2/Project</Project_Output>
+			<Project_Overwrite>No</Project_Overwrite>
+			<Linker_Output>./Virt2/Project</Linker_Output>
+			<Main_Header_Output>./Virt2/Include</Main_Header_Output>
+			<Main_Source_Output>./Virt2/Source</Main_Source_Output>
+			<Main_Source_Overwrite>No</Main_Source_Overwrite>
+			<Virtual_Header_Output>./Virt2/Include</Virtual_Header_Output>
+			<Virtual_Header_Overwrite>No</Virtual_Header_Overwrite>
+			<Virtual_Source_Output>./Virt2/Source</Virtual_Source_Output>
+			<Virtual_Source_Overwrite>No</Virtual_Source_Overwrite>
+            <Memory>
+                <M0>
+                    <Name>Main_Code</Name>
+                    <Base>Auto</Base>
+                    <Size>0x8000</Size>
+                    <Type>Code</Type>
+                    <Attribute>RXBCS</Attribute>
+                </M0>
+                <M1>
+                    <Name>Main_Data</Name>
+                    <Base>Auto</Base>
+                    <Size>0x2000</Size>
+                    <Type>Data</Type>
+                    <Attribute>RWXBCS</Attribute>
+                </M1>
+            </Memory>
+            <Shmem>
+                <S0>
+                    <Name>Shared1</Name>
+                    <Attribute>RWBCS</Attribute>
+                </S0>
+            </Shmem>
+            <Send>
+                <S0>
+                    <Name>Recv1</Name>
+                    <Process>Proc1</Process>
+                </S0>
+            </Send>
+            <Kfunc>
+                <K0>
+                    <Name>Kfunc1</Name>
+                    <Start>0x100</Start>
+                    <End>0x200</End>
+                </K0>
+            </Kfunc>
+        </V1>
     </Virtual>
 </Project>

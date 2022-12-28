@@ -56,7 +56,6 @@ Description : The header of microcontroller user-level library.
 /* Size of bitmap */
 #define RVM_VPRIO_BITMAP            ((RVM_PREEMPT_VPRIO_NUM+RVM_WORD_SIZE-1U)/RVM_WORD_SIZE)
 #define RVM_EVTCAP_BITMAP           ((RVM_VIRT_EVT_NUM+RVM_WORD_SIZE-1U)/RVM_WORD_SIZE)
-#define RVM_VCTF_BITMAP(X)          (((X)+RVM_WORD_SIZE-1U)/RVM_WORD_SIZE)
 
 /* States of virtual machines */
 #define RVM_VM_STATE(X)             ((X)&0xFFU)
@@ -119,12 +118,13 @@ struct RVM_Param
     rvm_ptr_t Param[4];
 };
 
-/* Interrupt flags */
+/* Interrupt flags - this is designed as a byte array to avoid some architecture's
+ * missing atomics. Maybe in the future we can use these as a counting slot as well */
 struct RVM_Vctf
 {
     rvm_ptr_t Tim;
     rvm_ptr_t Ctx;
-    rvm_ptr_t Vct[1];
+    rvm_u8_t Vct[16];
 };
 
 /* State block */

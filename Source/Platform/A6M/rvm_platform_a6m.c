@@ -1,26 +1,26 @@
 /******************************************************************************
-Filename    : rvm_platform_a7m.c
+Filename    : rvm_platform_a6m.c
 Author      : pry
 Date        : 26/06/2017
 Licence     : The Unlicense; see LICENSE for details.
-Description : The Cortex-M system library platform specific header.
+Description : The ARMv6-M system library platform specific header.
 ******************************************************************************/
 
 /* Includes ******************************************************************/
 #include "rvm.h"
 
 #define __HDR_DEFS__
-#include "Platform/A7M/rvm_platform_a7m.h"
+#include "Platform/A6M/rvm_platform_a6m.h"
 #include "Monitor/rvm_syssvc.h"
 #undef __HDR_DEFS__
 
 #define __HDR_STRUCTS__
-#include "Platform/A7M/rvm_platform_a7m.h"
+#include "Platform/A6M/rvm_platform_a6m.h"
 #include "Monitor/rvm_syssvc.h"
 #undef __HDR_STRUCTS__
 
 /* Private include */
-#include "Platform/A7M/rvm_platform_a7m.h"
+#include "Platform/A6M/rvm_platform_a6m.h"
 
 #define __HDR_PUBLIC_MEMBERS__
 #include "Monitor/rvm_syssvc.h"
@@ -37,7 +37,7 @@ Return      : rvm_ptr_t - Always 0.
 #if(RVM_DEBUG_PRINT==1U)
 rvm_ptr_t RVM_Putchar(char Char)
 {
-    RVM_A7M_PUTCHAR(Char);
+    RVM_A6M_PUTCHAR(Char);
     return 0;
 }
 #endif
@@ -70,11 +70,11 @@ rvm_ptr_t RVM_Stack_Init(rvm_ptr_t Stack_Base,
                          rvm_ptr_t Stub_Addr)
 
 {
-    struct RVM_A7M_Ret_Stack* Stack_Ptr;
+    struct RVM_A6M_Ret_Stack* Stack_Ptr;
     
-    Stack_Ptr=(struct RVM_A7M_Ret_Stack*)(Stack_Base+Stack_Size-
+    Stack_Ptr=(struct RVM_A6M_Ret_Stack*)(Stack_Base+Stack_Size-
                                           RVM_STACK_SAFE_RDCY*sizeof(rvm_ptr_t)-
-                                          sizeof(struct RVM_A7M_Ret_Stack));
+                                          sizeof(struct RVM_A6M_Ret_Stack));
     Stack_Ptr->R12=0U;
     Stack_Ptr->LR=0U;
     Stack_Ptr->PC=Stub_Addr|0x01U;
@@ -98,7 +98,7 @@ void RVM_Idle(void)
 }
 /* End Function:RVM_Idle *****************************************************/
 
-/* Begin Function:RVM_A7M_Kfn_Act *********************************************
+/* Begin Function:RVM_A6M_Kfn_Act *********************************************
 Description : Activate kernel functions that must use ARMv7-M specific calling
               convention to pass extra parameters.
 Input       : rvm_cid_t Cap_Kfn - The capability to the kernel capability. 2-Level.
@@ -108,16 +108,16 @@ Input       : rvm_cid_t Cap_Kfn - The capability to the kernel capability. 2-Lev
 Output      : rvm_ptr_t* Param - The return values, stored in an array of size 6.
 Return      : rvm_ret_t - If successful, 0; else a negative value.
 ******************************************************************************/
-rvm_ret_t RVM_A7M_Kfn_Act(rvm_cid_t Cap_Kfn,
+rvm_ret_t RVM_A6M_Kfn_Act(rvm_cid_t Cap_Kfn,
                           rvm_ptr_t Func_ID,
                           rvm_ptr_t Sub_ID,
                           rvm_ptr_t* Param)
 {
-    return RVM_A7M_Svc_Kfn((RVM_SVC_KFN<<(sizeof(rvm_ptr_t)*4U))|((rvm_ptr_t)Cap_Kfn),
+    return RVM_A6M_Svc_Kfn((RVM_SVC_KFN<<(sizeof(rvm_ptr_t)*4U))|((rvm_ptr_t)Cap_Kfn),
                            RVM_PARAM_D1(Sub_ID)|RVM_PARAM_D0(Func_ID),
                            Param);
 }
-/* End Function:RVM_A7M_Kfn_Act **********************************************/
+/* End Function:RVM_A6M_Kfn_Act **********************************************/
 
 /* Begin Function:RVM_Thd_Print_Exc *******************************************
 Description : Print the exact reason of the fault.
@@ -128,56 +128,7 @@ Return      : None.
 void RVM_Thd_Print_Exc(rvm_tid_t TID)
 {
 #if(RVM_DEBUG_PRINT==1U)
-    rvm_ptr_t Exc;
-    rvm_ptr_t Param[6];
-    
-    Param[0]=RVM_A7M_KFN_DEBUG_ERR_GET_CAUSE;
-    RVM_ASSERT(RVM_A7M_Kfn_Act(RVM_BOOT_INIT_KFN, 
-                               RVM_KFN_DEBUG_EXC_GET,
-                               (rvm_ptr_t)TID,
-                               Param)==0);
-    Exc=Param[0];
-    
-    if((Exc&RVM_A7M_HFSR_DEBUGEVT)!=0U)
-        RVM_DBG_S("Sftd:Debug event.\r\n");
-    if((Exc&RVM_A7M_HFSR_FORCED)!=0U)
-        RVM_DBG_S("Sftd:Configurable-priority exception escalated to HardFault.\r\n");
-    if((Exc&RVM_A7M_HFSR_VECTTBL)!=0U)
-        RVM_DBG_S("Sftd:Vector table read fault.\r\n");
-    if((Exc&RVM_A7M_UFSR_DIVBYZERO)!=0U)
-        RVM_DBG_S("Sftd:Divide by zero.\r\n");
-    if((Exc&RVM_A7M_UFSR_UNALIGNED)!=0U)
-        RVM_DBG_S("Sftd:Unaligned load/store access.\r\n");
-    if((Exc&RVM_A7M_UFSR_NOCP)!=0U)
-        RVM_DBG_S("Sftd:No such coprocessor.\r\n");
-    if((Exc&RVM_A7M_UFSR_INVPC)!=0U)
-        RVM_DBG_S("Sftd:Invalid vector return LR or PC value.\r\n");
-    if((Exc&RVM_A7M_UFSR_INVSTATE)!=0U)
-        RVM_DBG_S("Sftd:Attempt to enter an invalid instruction set (ARM) state.\r\n");
-    if((Exc&RVM_A7M_UFSR_UNDEFINSTR)!=0U)
-        RVM_DBG_S("Sftd:Invalid IT or related instruction.\r\n");
-    if((Exc&RVM_A7M_BFSR_LSPERR)!=0U)
-        RVM_DBG_S("Sftd:Bus fault during FP lazy stacking.\r\n");
-    if((Exc&RVM_A7M_BFSR_STKERR)!=0U)
-        RVM_DBG_S("Sftd:Derived bus fault on exception entry.\r\n");
-    if((Exc&RVM_A7M_BFSR_UNSTKERR)!=0U)
-        RVM_DBG_S("Sftd:Derived bus fault on exception return.\r\n");
-    if((Exc&RVM_A7M_BFSR_IMPRECISERR)!=0U)
-        RVM_DBG_S("Sftd:Imprecise data access error.\r\n");
-    if((Exc&RVM_A7M_BFSR_PRECISERR)!=0U)
-        RVM_DBG_S("Sftd:Precise data access error.\r\n");
-    if((Exc&RVM_A7M_BFSR_IBUSERR)!=0U)
-        RVM_DBG_S("Sftd:Bus fault on instruction prefetch.\r\n");
-    if((Exc&RVM_A7M_MFSR_MLSPERR)!=0U)
-        RVM_DBG_S("Sftd:Memory management fault during FP lazy state preservation.\r\n");
-    if((Exc&RVM_A7M_MFSR_MSTKERR)!=0U)
-        RVM_DBG_S("Sftd:Derived memory management fault on exception entry.\r\n");
-    if((Exc&RVM_A7M_MFSR_MUNSTKERR)!=0U)
-        RVM_DBG_S("Sftd:Derived memory management fault on exception return.\r\n");
-    if((Exc&RVM_A7M_MFSR_DACCVIOL)!=0U)
-        RVM_DBG_S("Sftd:Data access violation.\r\n");
-    if((Exc&RVM_A7M_MFSR_IACCVIOL)!=0U)
-        RVM_DBG_S("Sftd:Instruction access violation.\r\n");
+    RVM_DBG_S("Sftd:Unknown cause - ARMv6-M does not support fault handling.\r\n");
 #endif
 }
 /* End Function:RVM_Thd_Print_Exc ********************************************/
@@ -192,93 +143,79 @@ rvm_ret_t RVM_Thd_Print_Reg(rvm_cid_t Cap_Thd)
 {
 #if(RVM_DEBUG_PRINT==1U)
     rvm_ptr_t Param[6];
-    struct RVM_A7M_Ret_Stack* Stack;
+    struct RVM_A6M_Ret_Stack* Stack;
     
     /* Print all registers that we can see */
-    Param[0]=RVM_A7M_KFN_DEBUG_REG_MOD_R4_GET;
-    RVM_ASSERT(RVM_A7M_Kfn_Act(RVM_BOOT_INIT_KFN, 
+    Param[0]=RVM_A6M_KFN_DEBUG_REG_MOD_R4_GET;
+    RVM_ASSERT(RVM_A6M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_REG_MOD,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
     RVM_DBG_SHS("Sftd:R4:0x",Param[0],"\r\n");
     
-    Param[0]=RVM_A7M_KFN_DEBUG_REG_MOD_R5_GET;
-    RVM_ASSERT(RVM_A7M_Kfn_Act(RVM_BOOT_INIT_KFN, 
+    Param[0]=RVM_A6M_KFN_DEBUG_REG_MOD_R5_GET;
+    RVM_ASSERT(RVM_A6M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_REG_MOD,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
     RVM_DBG_SHS("Sftd:R5:0x",Param[0],"\r\n");
     
-    Param[0]=RVM_A7M_KFN_DEBUG_REG_MOD_R6_GET;
-    RVM_ASSERT(RVM_A7M_Kfn_Act(RVM_BOOT_INIT_KFN, 
+    Param[0]=RVM_A6M_KFN_DEBUG_REG_MOD_R6_GET;
+    RVM_ASSERT(RVM_A6M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_REG_MOD,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
     RVM_DBG_SHS("Sftd:R6:0x",Param[0],"\r\n");
     
-    Param[0]=RVM_A7M_KFN_DEBUG_REG_MOD_R7_GET;
-    RVM_ASSERT(RVM_A7M_Kfn_Act(RVM_BOOT_INIT_KFN, 
+    Param[0]=RVM_A6M_KFN_DEBUG_REG_MOD_R7_GET;
+    RVM_ASSERT(RVM_A6M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_REG_MOD,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
     RVM_DBG_SHS("Sftd:R7:0x",Param[0],"\r\n");
     
-    Param[0]=RVM_A7M_KFN_DEBUG_REG_MOD_R8_GET;
-    RVM_ASSERT(RVM_A7M_Kfn_Act(RVM_BOOT_INIT_KFN, 
+    Param[0]=RVM_A6M_KFN_DEBUG_REG_MOD_R8_GET;
+    RVM_ASSERT(RVM_A6M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_REG_MOD,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
     RVM_DBG_SHS("Sftd:R8:0x",Param[0],"\r\n");
     
-    Param[0]=RVM_A7M_KFN_DEBUG_REG_MOD_R9_GET;
-    RVM_ASSERT(RVM_A7M_Kfn_Act(RVM_BOOT_INIT_KFN, 
+    Param[0]=RVM_A6M_KFN_DEBUG_REG_MOD_R9_GET;
+    RVM_ASSERT(RVM_A6M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_REG_MOD,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
     RVM_DBG_SHS("Sftd:R9:0x",Param[0],"\r\n");
     
-    Param[0]=RVM_A7M_KFN_DEBUG_REG_MOD_R10_GET;
-    RVM_ASSERT(RVM_A7M_Kfn_Act(RVM_BOOT_INIT_KFN, 
+    Param[0]=RVM_A6M_KFN_DEBUG_REG_MOD_R10_GET;
+    RVM_ASSERT(RVM_A6M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_REG_MOD,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
     RVM_DBG_SHS("Sftd:R10:0x",Param[0],"\r\n");
     
-    Param[0]=RVM_A7M_KFN_DEBUG_REG_MOD_R11_GET;
-    RVM_ASSERT(RVM_A7M_Kfn_Act(RVM_BOOT_INIT_KFN, 
+    Param[0]=RVM_A6M_KFN_DEBUG_REG_MOD_R11_GET;
+    RVM_ASSERT(RVM_A6M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_REG_MOD,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
     RVM_DBG_SHS("Sftd:R11:0x",Param[0],"\r\n");
     
-    Param[0]=RVM_A7M_KFN_DEBUG_REG_MOD_SP_GET;
-    RVM_ASSERT(RVM_A7M_Kfn_Act(RVM_BOOT_INIT_KFN, 
+    Param[0]=RVM_A6M_KFN_DEBUG_REG_MOD_SP_GET;
+    RVM_ASSERT(RVM_A6M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_REG_MOD,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
     RVM_DBG_SHS("Sftd:SP:0x",Param[0],"\r\n");
-    Stack=(struct RVM_A7M_Ret_Stack*)Param[0];
+    Stack=(struct RVM_A6M_Ret_Stack*)Param[0];
     
-    Param[0]=RVM_A7M_KFN_DEBUG_REG_MOD_LR_GET;
-    RVM_ASSERT(RVM_A7M_Kfn_Act(RVM_BOOT_INIT_KFN, 
+    Param[0]=RVM_A6M_KFN_DEBUG_REG_MOD_LR_GET;
+    RVM_ASSERT(RVM_A6M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_REG_MOD,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
     RVM_DBG_SHS("Sftd:LR:0x",Param[0],"\r\n");
-
-    Param[0]=RVM_A7M_KFN_DEBUG_ERR_GET_CAUSE;
-    RVM_ASSERT(RVM_A7M_Kfn_Act(RVM_BOOT_INIT_KFN, 
-                               RVM_KFN_DEBUG_EXC_GET,
-                               (rvm_ptr_t)Cap_Thd,
-                               Param)==0);
-    RVM_DBG_SHS("Sftd:Cause:0x",Param[0],"\r\n");
-    
-    Param[0]=RVM_A7M_KFN_DEBUG_ERR_GET_ADDR;
-    RVM_ASSERT(RVM_A7M_Kfn_Act(RVM_BOOT_INIT_KFN, 
-                               RVM_KFN_DEBUG_EXC_GET,
-                               (rvm_ptr_t)Cap_Thd,
-                               Param)==0);
-    RVM_DBG_SHS("Sftd:Addr:0x",Param[0],"\r\n");
 
     /* We know where SP is, but we are not sure whether accessing SP in RVM
      * will cause issues. We assume that the user program will not fiddle

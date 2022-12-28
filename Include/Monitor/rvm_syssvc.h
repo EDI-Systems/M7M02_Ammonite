@@ -25,7 +25,7 @@ Description : The header of MPU-based user level low-level library.
 
 #if(RVM_DEBUG_PRINT==1U)
 /* Debug prints */
-#define RVM_DBG_I(INT)                              RVM_Int_Print(INT)
+#define RVM_DBG_I(INT)                              RVM_Int_Print((rvm_cnt_t)(INT))
 #define RVM_DBG_H(UINT)                             RVM_Hex_Print((rvm_ptr_t)(UINT))
 #define RVM_DBG_S(STR)                              RVM_Str_Print((rvm_s8_t*)(STR))
 #else
@@ -421,7 +421,7 @@ __EXTERN__ rvm_ret_t RVM_Thd_Time_Xfer(rvm_cid_t Cap_Thd_Dst,
                                        rvm_cid_t Cap_Thd_Src,
                                        rvm_ptr_t Time);
 __EXTERN__ rvm_ret_t RVM_Thd_Swt(rvm_cid_t Cap_Thd,
-                                 rvm_ptr_t Full_Yield);
+                                 rvm_ptr_t Is_Yield);
                                  
 /* Signal operations */
 __EXTERN__ rvm_ret_t RVM_Sig_Crt(rvm_cid_t Cap_Cpt,

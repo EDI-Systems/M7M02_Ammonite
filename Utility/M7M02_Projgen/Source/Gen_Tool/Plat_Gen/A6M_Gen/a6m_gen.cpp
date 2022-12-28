@@ -1,5 +1,5 @@
 /******************************************************************************
-Filename    : a7m_gen.cpp
+Filename    : a6m_gen.cpp
 Author      : pry
 Date        : 12/07/2019
 Licence     : LGPL v3+; see COPYING for details.
@@ -30,7 +30,7 @@ extern "C"
 #include "Proj_Info/Process/process.hpp"
 #include "Gen_Tool/Gen_Tool.hpp"
 #include "Gen_Tool/Plat_Gen/plat_gen.hpp"
-#include "Gen_Tool/Plat_Gen/A7M_Gen/a7m_gen.hpp"
+#include "Gen_Tool/Plat_Gen/A6M_Gen/a6m_gen.hpp"
 #undef __HDR_DEFS__
 
 #define __HDR_CLASSES__
@@ -58,21 +58,21 @@ extern "C"
 
 #include "Gen_Tool/Gen_Tool.hpp"
 #include "Gen_Tool/Plat_Gen/plat_gen.hpp"
-#include "Gen_Tool/Plat_Gen/A7M_Gen/a7m_gen.hpp"
+#include "Gen_Tool/Plat_Gen/A6M_Gen/a6m_gen.hpp"
 #undef __HDR_STRUCTS__
 /* End Includes **************************************************************/
 namespace RVM_GEN
 {
-/* Begin Function:A7M_Gen::A7M_Gen ********************************************
-Description : Generator for the ARMv7-M platform.
+/* Begin Function:A6M_Gen::A6M_Gen ********************************************
+Description : Generator for the ARMv6-M platform.
 Input       : class Proj_Info* Proj - The project information.
               class Plat_Info* Plat - The platform information.
               class Chip_Info* Chip - The chip information.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ A7M_Gen::A7M_Gen(class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip):
-Plat_Gen("A7M", Proj, Plat, Chip)
+/* void */ A6M_Gen::A6M_Gen(class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip):
+Plat_Gen("A6M", Proj, Plat, Chip)
 {
     try
     {
@@ -80,35 +80,35 @@ Plat_Gen("A7M", Proj, Plat, Chip)
     }
     catch(std::exception& Exc)
     {
-        Main::Error(std::string("ARMv7-M (A7M) generator:\n")+Exc.what());
+        Main::Error(std::string("ARMv7-M (A6M) generator:\n")+Exc.what());
     }
 }
-/* End Function:A7M_Gen::A7M_Gen *********************************************/
+/* End Function:A6M_Gen::A6M_Gen *********************************************/
 
-/* Begin Function:A7M_Gen::Compatible_Get *************************************
+/* Begin Function:A6M_Gen::Compatible_Get *************************************
 Description : Extract compatible generator options.
 Input       : ptr_t Base - The memory base address.
               ptr_t Size - The memory size.
 Output      : None.
 Return      : ptr_t - The computed alignment.
 ******************************************************************************/
-void A7M_Gen::Compatible_Get(std::vector<std::tuple<std::string,std::string,std::string>>& List)
+void A6M_Gen::Compatible_Get(std::vector<std::tuple<std::string,std::string,std::string>>& List)
 {
     List.push_back(std::make_tuple("Keil","ARMCC","Native"));
     List.push_back(std::make_tuple("Makefile","GCC","Native"));
     List.push_back(std::make_tuple("Keil","ARMCC","RMP"));
     List.push_back(std::make_tuple("Makefile","GCC","RMP"));
 }
-/* End Function:A7M_Gen::Compatible_Get **************************************/
+/* End Function:A6M_Gen::Compatible_Get **************************************/
 
-/* Begin Function:A7M_Gen::Mem_Align ******************************************
+/* Begin Function:A6M_Gen::Mem_Align ******************************************
 Description : Memory aligner for the ARMv7-M platform.
 Input       : ptr_t Base - The memory base address.
               ptr_t Size - The memory size.
 Output      : None.
 Return      : ptr_t - The computed alignment.
 ******************************************************************************/
-ptr_t A7M_Gen::Mem_Align(ptr_t Base, ptr_t Size)
+ptr_t A6M_Gen::Mem_Align(ptr_t Base, ptr_t Size)
 {
     ptr_t Align;
 
@@ -117,11 +117,11 @@ ptr_t A7M_Gen::Mem_Align(ptr_t Base, ptr_t Size)
         /* Check all sensitive memory block allocation */
         if(Base!=MEM_AUTO)
         {
-            if((Base%A7M_MEM_ALIGN)!=0)
+            if((Base%A6M_MEM_ALIGN)!=0)
                 Main::Error("A0100: Static memory base address not properly aligned.");
         }
 
-        if((Size%A7M_MEM_ALIGN)!=0)
+        if((Size%A6M_MEM_ALIGN)!=0)
             Main::Error("A0100: Memory size not properly aligned.");
 
         /* This memory's start address is not designated yet. Decide its size after
@@ -129,30 +129,30 @@ ptr_t A7M_Gen::Mem_Align(ptr_t Base, ptr_t Size)
         if(Base==MEM_AUTO)
         {
 
-            /* For ARMv7-M, the minimum granularity is 1/8 of the nearest power of 2 for the size */
+             /* For ARMv7-M, the minimum granularity is 1/8 of the nearest power of 2 for the size */
             Align=1;
             while(Align<Size)
                 Align<<=1;
         }
         else
-            Align=A7M_MEM_ALIGN;
+            Align=A6M_MEM_ALIGN;
 
         return Align;
     }
     catch(std::exception& Exc)
     {
-        Main::Error(std::string("ARMv7-M (A7M) generator:\n")+Exc.what());
+        Main::Error(std::string("ARMv6-M (A6M) generator:\n")+Exc.what());
     }
 }
-/* End Function:A7M_Gen::Mem_Align *******************************************/
+/* End Function:A6M_Gen::Mem_Align *******************************************/
 
-/* Begin Function:A7M_Gen::Pgt_Total_Order **********************************
+/* Begin Function:A6M_Gen::Pgt_Total_Order **********************************
 Description : Get the total order and the start address of the page table.
 Input       : std::vector<std::unique_ptr<class Mem_Info>>& List - The memory block list.
 Output      : ptr_t* Base - The base address of this page table.
 Return      : ptr_t - The total order of the page table.
 ******************************************************************************/
-ptr_t A7M_Gen::Pgt_Total_Order(std::vector<std::unique_ptr<class Mem_Info>>& List, ptr_t* Base)
+ptr_t A6M_Gen::Pgt_Total_Order(std::vector<std::unique_ptr<class Mem_Info>>& List, ptr_t* Base)
 {
     /* Start is inclusive, end is exclusive */
     ptr_t Start;
@@ -183,7 +183,7 @@ ptr_t A7M_Gen::Pgt_Total_Order(std::vector<std::unique_ptr<class Mem_Info>>& Lis
     }
 
     /* If the total order less than 8, we wish to extend that to 8, because if we are smaller than
-     * this it makes no sense. ARMv7-M MPU only allows subregions for regions more than 256 bytes */
+     * this it makes no sense. ARMv6-M MPU only allows subregions for regions more than 256 bytes */
     if(Total_Order<8)
         Total_Order=8;
 
@@ -195,9 +195,9 @@ ptr_t A7M_Gen::Pgt_Total_Order(std::vector<std::unique_ptr<class Mem_Info>>& Lis
 
     return Total_Order;
 }
-/* End Function:A7M_Gen::Pgt_Total_Order ***********************************/
+/* End Function:A6M_Gen::Pgt_Total_Order ***********************************/
 
-/* Begin Function:A7M_Gen::Pgt_Num_Order ************************************
+/* Begin Function:A6M_Gen::Pgt_Num_Order ************************************
 Description : Get the number order of the page table.
 Input       : std::vector<std::unique_ptr<class Mem_Info>>& List - The memory block list.
               ptr_t Total_Order - The total order of the page table.
@@ -205,7 +205,7 @@ Input       : std::vector<std::unique_ptr<class Mem_Info>>& List - The memory bl
 Output      : None.
 Return      : ptr_t - The number order of the page table.
 ******************************************************************************/
-ptr_t A7M_Gen::Pgt_Num_Order(std::vector<std::unique_ptr<class Mem_Info>>& List,
+ptr_t A6M_Gen::Pgt_Num_Order(std::vector<std::unique_ptr<class Mem_Info>>& List,
                                ptr_t Total_Order, ptr_t Base)
 {
     ptr_t Num_Order;
@@ -291,16 +291,16 @@ ptr_t A7M_Gen::Pgt_Num_Order(std::vector<std::unique_ptr<class Mem_Info>>& List,
 
     return Num_Order;
 }
-/* End Function:A7M_Gen::Pgt_Num_Order *************************************/
+/* End Function:A6M_Gen::Pgt_Num_Order *************************************/
 
-/* Begin Function:A7M_Gen::Page_Map *******************************************
+/* Begin Function:A6M_Gen::Page_Map *******************************************
 Description : Map pages into the page table as we can.
 Input       : std::vector<std::unique_ptr<class Mem>>& List - The memory block list.
               std::unique_ptr<class Pgtbl>& Pgt - The current page table.
 Output      : std::unique_ptr<class Pgtbl>& Pgt - The updated current page table.
 Return      : None.
 ******************************************************************************/
-void A7M_Gen::Page_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
+void A6M_Gen::Page_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
                        std::unique_ptr<class Pgtbl>& Pgt)
 {
     ptr_t Attr;
@@ -372,9 +372,9 @@ void A7M_Gen::Page_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
         }
     }
 }
-/* End Function:A7M_Gen::Page_Map ********************************************/
+/* End Function:A6M_Gen::Page_Map ********************************************/
 
-/* Begin Function:A7M_Gen::Pgdir_Map ******************************************
+/* Begin Function:A6M_Gen::Pgdir_Map ******************************************
 Description : Map page directories into the page table.
 Input       : std::vector<std::unique_ptr<class Mem>>& List - The memory block list.
               class Process* Owner - The owner process of this kernel object.
@@ -383,7 +383,7 @@ Output      : std::unique_ptr<class Pgtbl>& Pgt - The updated current page table
               ptr_t& Total_Static - The total number of static regions used.
 Return      : None.
 ******************************************************************************/
-void A7M_Gen::Pgdir_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
+void A6M_Gen::Pgdir_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
                         class Process* Owner, std::unique_ptr<class Pgtbl>& Pgt, ptr_t& Total_Static)
 {
     ptr_t Base;
@@ -434,9 +434,9 @@ void A7M_Gen::Pgdir_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
         }
     }
 }
-/* End Function:A7M_Gen::Pgdir_Map *******************************************/
+/* End Function:A6M_Gen::Pgdir_Map *******************************************/
 
-/* Begin Function:A7M_Gen::Pgt_Gen ******************************************
+/* Begin Function:A6M_Gen::Pgt_Gen ******************************************
 Description : Recursively construct the page table for the ARMv7-M port.
 Input       : std::vector<std::unique_ptr<class Mem_Info>>& - The list containing
                                                               memory segments to fit
@@ -451,7 +451,7 @@ Return      : std::unique_ptr<class Pgtbl> - The page table structure returned. 
                                              error is encountered, it will directly
                                              error out.
 ******************************************************************************/
-std::unique_ptr<class Pgtbl> A7M_Gen::Pgt_Gen(std::vector<std::unique_ptr<class Mem_Info>>& List,
+std::unique_ptr<class Pgtbl> A6M_Gen::Pgt_Gen(std::vector<std::unique_ptr<class Mem_Info>>& List,
                                                 class Process* Owner, ptr_t Total_Max, ptr_t& Total_Static)
 {
     ptr_t Base;
@@ -471,7 +471,7 @@ std::unique_ptr<class Pgtbl> A7M_Gen::Pgt_Gen(std::vector<std::unique_ptr<class 
     /* Size order */
     Size_Order=Total_Order-Num_Order;
 
-    /* Page table attributes are in fact not used in A7M, we always set to full attributes */
+    /* Page table attributes are in fact not used in A6M, we always set to full attributes */
     Pgt=std::make_unique<class Pgtbl>(Base, Size_Order, Num_Order, MEM_FULL, Owner);
     Main::Info("> Creating pgdir base 0x%llX size order %lld num order %lld.",Base,Size_Order,Num_Order);
     /* Map in all pages */
@@ -491,132 +491,119 @@ std::unique_ptr<class Pgtbl> A7M_Gen::Pgt_Gen(std::vector<std::unique_ptr<class 
 
     return Pgt;
 }
-/* End Function:A7M::Gen_Pgt ***********************************************/
+/* End Function:A6M::Gen_Pgt ***********************************************/
 
-/* Begin Function:A7M_Gen::Raw_Pgt ******************************************
+/* Begin Function:A6M_Gen::Raw_Pgt ******************************************
 Description : Query the size of page table given the parameters.
 Input       : ptr_t Num_Order - The number order.
               ptr_t Is_Top - Whether this is a top-level.
 Output      : None.
 Return      : ptr_t - The size in bytes.
 ******************************************************************************/
-ptr_t A7M_Gen::Raw_Pgt(ptr_t Num_Order, ptr_t Is_Top)
+ptr_t A6M_Gen::Raw_Pgt(ptr_t Num_Order, ptr_t Is_Top)
 {
     if(Is_Top!=0)
-        return A7M_RAW_PGT_SIZE_TOP(Num_Order, this->Chip->Region);
+        return A6M_RAW_PGT_SIZE_TOP(Num_Order, this->Chip->Region);
     else
-        return A7M_RAW_PGT_SIZE_NOM(Num_Order);
+        return A6M_RAW_PGT_SIZE_NOM(Num_Order);
 }
-/* End Function:A7M_Gen::Size_Pgt ******************************************/
+/* End Function:A6M_Gen::Size_Pgt ******************************************/
 
-/* Begin Function:A7M_Gen::Raw_Thread *****************************************
+/* Begin Function:A6M_Gen::Raw_Thread *****************************************
 Description : Query the size of thread.
 Input       : None
 Output      : None.
 Return      : ptr_t - The size in bytes.
 ******************************************************************************/
-ptr_t A7M_Gen::Raw_Thread(void)
+ptr_t A6M_Gen::Raw_Thread(void)
 {
-    if(this->Chip->Attribute["FPU"]=="None")
-        return A7M_RAW_THD_SIZE;
-    else
-        return A7M_RAW_THD_FPU_SIZE;
+    return A6M_RAW_THD_SIZE;
 }
-/* End Function:A7M_Gen::Raw_Thread ******************************************/
+/* End Function:A6M_Gen::Raw_Thread ******************************************/
 
-/* Begin Function:A7M_Gen::Raw_Invocation *************************************
+/* Begin Function:A6M_Gen::Raw_Invocation *************************************
 Description : Query the size of a invocation.
 Input       : None
 Output      : None.
 Return      : ptr_t - The size in bytes.
 ******************************************************************************/
-ptr_t A7M_Gen::Raw_Invocation(void)
+ptr_t A6M_Gen::Raw_Invocation(void)
 {
-    return A7M_RAW_INV_SIZE;
+    return A6M_RAW_INV_SIZE;
 }
-/* End Function:A7M_Gen::Raw_Invocation **************************************/
+/* End Function:A6M_Gen::Raw_Invocation **************************************/
 
-/* Begin Function:A7M_Gen::Raw_Register ***************************************
+/* Begin Function:A6M_Gen::Raw_Register ***************************************
 Description : Query the size of the register set.
 Input       : None.
 Output      : None.
 Return      : ptr_t - The size in bytes.
 ******************************************************************************/
-ptr_t A7M_Gen::Raw_Register(void)
+ptr_t A6M_Gen::Raw_Register(void)
 {
-    if(this->Chip->Attribute["FPU"]=="None")
-        return A7M_RAW_REG_SIZE;
-    else
-        return A7M_RAW_REG_FPU_SIZE;
+    return A6M_RAW_REG_SIZE;
 }
-/* End Function:A7M_Gen::Raw_Register ****************************************/
+/* End Function:A6M_Gen::Raw_Register ****************************************/
 
-/* Begin Function:A7M_Gen::Kernel_Conf_Hdr ************************************
+/* Begin Function:A6M_Gen::Kernel_Conf_Hdr ************************************
 Description : Replace kernel configuration header macros.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The input file.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The modified file.
 Return      : None.
 ******************************************************************************/
-void A7M_Gen::Kernel_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
+void A6M_Gen::Kernel_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
 {
     /* Init process's first thread's entry point address */
-    Gen_Tool::Macro_Hex(List, "RME_A7M_INIT_ENTRY",PRC_DESC_ALIGN(this->Proj->Monitor->Code_Base+8*4)|0x01, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RME_A6M_INIT_ENTRY",PRC_DESC_ALIGN(this->Proj->Monitor->Code_Base+8*4)|0x01, MACRO_REPLACE);
     /* Init process's first thread's stack address */
-    Gen_Tool::Macro_Hex(List, "RME_A7M_INIT_STACK",
+    Gen_Tool::Macro_Hex(List, "RME_A6M_INIT_STACK",
                         this->Proj->Monitor->Init_Stack_Base+this->Proj->Monitor->Init_Stack_Size-16, MACRO_REPLACE);
     /* What is the NVIC priority grouping? */
-    Gen_Tool::Macro_String(List,"RME_A7M_NVIC_GROUPING",
-                           std::string("RME_A7M_NVIC_GROUPING_")+this->Proj->Chip->Config["NVIC_Grouping"], MACRO_REPLACE);
+    Gen_Tool::Macro_String(List,"RME_A6M_NVIC_GROUPING",
+                           std::string("RME_A6M_NVIC_GROUPING_")+this->Proj->Chip->Config["NVIC_Grouping"], MACRO_REPLACE);
     /* What is the Systick value? - (usually) 10ms per tick */
-    Gen_Tool::Macro_String(List, "RME_A7M_SYSTICK_VAL", this->Proj->Chip->Config["Systick_Value"], MACRO_REPLACE);
+    Gen_Tool::Macro_String(List, "RME_A6M_SYSTICK_VAL", this->Proj->Chip->Config["Systick_Value"], MACRO_REPLACE);
 
     /* Fixed attributes - we will refill these with database values */
     /* Number of MPU regions available */
-    Gen_Tool::Macro_Int(List, "RME_A7M_REGION_NUM", this->Chip->Region, MACRO_REPLACE);
-    /* What is the FPU type? */
-    Gen_Tool::Macro_String(List, "RME_A7M_FPU_TYPE", std::string("RME_A7M_FPU_")+this->Chip->Attribute["FPU"], MACRO_REPLACE);
+    Gen_Tool::Macro_Int(List, "RME_A6M_REGION_NUM", this->Chip->Region, MACRO_REPLACE);
 
     /* CPU & Endianness currently unused */
 }
-/* End Function:A7M_Gen::Kernel_Conf_Hdr *************************************/
+/* End Function:A6M_Gen::Kernel_Conf_Hdr *************************************/
 
-/* Begin Function:A7M_Gen::Monitor_Conf_Hdr ***********************************
+/* Begin Function:A6M_Gen::Monitor_Conf_Hdr ***********************************
 Description : Replace monitor configuration header macros.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The input file.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The modified file.
 Return      : None.
 ******************************************************************************/
-void A7M_Gen::Monitor_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
+void A6M_Gen::Monitor_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
 {
     /* Init process's first thread's entry point address */
-    Gen_Tool::Macro_Hex(List, "RVM_A7M_INIT_ENTRY",PRC_DESC_ALIGN(this->Proj->Monitor->Code_Base+8*4)|0x01, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RVM_A6M_INIT_ENTRY",PRC_DESC_ALIGN(this->Proj->Monitor->Code_Base+8*4)|0x01, MACRO_REPLACE);
     /* Init process's first thread's stack address */
-    Gen_Tool::Macro_Hex(List, "RVM_A7M_INIT_STACK",
+    Gen_Tool::Macro_Hex(List, "RVM_A6M_INIT_STACK",
                         this->Proj->Monitor->Init_Stack_Base+this->Proj->Monitor->Init_Stack_Size-16, MACRO_REPLACE);
     /* Fixed attributes - we will refill these with database values */
     /* Number of MPU regions available */
-    Gen_Tool::Macro_Int(List, "RVM_A7M_REGION_NUM", this->Chip->Region, MACRO_REPLACE);
-    /* What is the FPU type? */
-    Gen_Tool::Macro_String(List, "RVM_A7M_FPU_TYPE", std::string("RVM_A7M_FPU_")+this->Chip->Attribute["FPU"], MACRO_REPLACE);
+    Gen_Tool::Macro_Int(List, "RVM_A6M_REGION_NUM", this->Chip->Region, MACRO_REPLACE);
 
     /* CPU & Endianness currently unused */
 }
-/* End Function:A7M_Gen::Monitor_Conf_Hdr ************************************/
+/* End Function:A6M_Gen::Monitor_Conf_Hdr ************************************/
 
-/* Begin Function:A7M_Gen::Process_Main_Hdr ***********************************
+/* Begin Function:A6M_Gen::Process_Main_Hdr ***********************************
 Description : Replace process main header macros.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The input file.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The modified file.
 Return      : None.
 ******************************************************************************/
-void A7M_Gen::Process_Main_Hdr(std::unique_ptr<std::vector<std::string>>& List)
+void A6M_Gen::Process_Main_Hdr(std::unique_ptr<std::vector<std::string>>& List)
 {
-    /* What is the FPU type? */
-    Gen_Tool::Macro_String(List, "RVM_A7M_FPU_TYPE", std::string("RVM_A7M_FPU_")+this->Chip->Attribute["FPU"], MACRO_ADD);
-
     /* CPU & Endianness currently unused */
 }
-/* End Function:A7M_Gen::Process_Main_Hdr ************************************/
+/* End Function:A6M_Gen::Process_Main_Hdr ************************************/
 }
 /* End Of File ***************************************************************/
 

@@ -1085,20 +1085,20 @@ Input       : rvm_cid_t Cap_Thd - The capability to the thread. If this is -1,
                                   the kernel will pickup whatever thread that
                                   has the highest priority and time to run. 
                                   2-Level. 
-              rvm_ptr_t Full_Yield - This is a flag to indicate whether this
-                                     is a full yield. If it is, the kernel will
-                                     discard all the time alloted on this
-                                     thread.
+              rvm_ptr_t Is_Yield - This is a flag to indicate whether this
+                                   is a full yield. If it is, the kernel will
+                                   discard all the time alloted on this
+                                   thread.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 rvm_ret_t RVM_Thd_Swt(rvm_cid_t Cap_Thd,
-                      rvm_ptr_t Full_Yield)
+                      rvm_ptr_t Is_Yield)
 {
     return RVM_CAP_OP(RVM_SVC_THD_SWT,
                       0,
                       Cap_Thd,
-                      Full_Yield, 
+                      Is_Yield, 
                       0U);
 }
 /* End Function:RVM_Thd_Swt **************************************************/
@@ -1300,17 +1300,17 @@ rvm_ret_t RVM_Kfn_Act(rvm_cid_t Cap_Kfn,
 }
 /* End Function:RVM_Kfn_Act **************************************************/
 
-/* Begin Function:RVM_Prc_Send_Evt ********************************************
+/* Begin Function:RVM_Prc_Evt_Snd *********************************************
 Description : Send to an event source from a process.
 Input       : rvm_ptr_t Evt_Num - The number to send to.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
-rvm_ret_t RVM_Prc_Send_Evt(rvm_ptr_t Evt_Num)
+rvm_ret_t RVM_Prc_Evt_Snd(rvm_ptr_t Evt_Num)
 {
     return RVM_Kfn_Act(0, RVM_KFN_EVT_LOCAL_TRIG, 0U, Evt_Num, 0U);
 }
-/* End Function:RVM_Prc_Send_Evt *********************************************/
+/* End Function:RVM_Prc_Evt_Snd **********************************************/
 
 /* Begin Function:RVM_Virt_Init ***********************************************
 Description : Initialize virtual machine related RVM library.
@@ -1680,19 +1680,18 @@ rvm_ret_t RVM_Vct_Get(void)
     
     /* See which one is ready, and pick it */
     Pos=-1;
-    for(Count=RVM_VCTF_BITMAP-1;Count>=0;Count--)
+    for(Count=RVM_VIRT_VCT_NUM-1;Count>=0;Count--)
     {
         if(RVM_VCTF->Vct[Count]==0U)
             continue;
         
-        Pos=(rvm_cnt_t)_RVM_MSB_Get(RVM_VCTF->Vct[Count]);
-        Pos+=(Count<<RVM_WORD_ORDER);
+        Pos=Count;
         break;
     }
 
-    /* Now kill the bit */
+    /* Now kill the byte */
     if(Pos>=0)
-        RVM_Fetch_And(&(RVM_VCTF->Vct[Count]), ~RVM_POW2(Pos));
+        RVM_VCTF->Vct[Pos]=0U;
     
     return Pos;
 }

@@ -98,7 +98,7 @@ typedef rvm_s32_t rvm_ret_t;
 /* Normal page directory size */
 #define RVM_PGT_WORD_SIZE_NOM(NUM_ORDER)            (5U+RVM_POW2(NUM_ORDER))
 /* Top-level page directory size */
-#define RVM_PGT_WORD_SIZE_TOP(NUM_ORDER)            (1U+2U*RVM_A7M_MPU_REGIONS+RVM_PGT_WORD_SIZE_NOM(NUM_ORDER))
+#define RVM_PGT_WORD_SIZE_TOP(NUM_ORDER)            (1U+2U*RVM_A7M_REGION_NUM+RVM_PGT_WORD_SIZE_NOM(NUM_ORDER))
 
 /* ARMv7-M specific kernel function macros ***********************************/
 /* Page table entry mode which property to get */
@@ -305,24 +305,22 @@ struct RVM_Exc_Struct
 
 /* Public C Function Prototypes **********************************************/
 /*****************************************************************************/
-extern void RVM_Putchar(char Char);
+EXTERN void RVM_Putchar(char Char);
 
-extern rvm_ret_t RVM_Svc(rvm_ptr_t Op_Capid,
+EXTERN rvm_ret_t RVM_Svc(rvm_ptr_t Op_Capid,
                          rvm_ptr_t Arg1,
                          rvm_ptr_t Arg2,
                          rvm_ptr_t Arg3);
-extern rvm_ret_t RVM_A7M_Svc_Kfn(rvm_ptr_t Op_Capid,
+EXTERN rvm_ret_t RVM_A7M_Svc_Kfn(rvm_ptr_t Op_Capid,
                                  rvm_ptr_t ID,
                                  rvm_ptr_t* Param);
 /* Invocation */
-extern rvm_ret_t RVM_Inv_Act(rvm_cid_t Cap_Inv,
+EXTERN rvm_ret_t RVM_Inv_Act(rvm_cid_t Cap_Inv,
                              rvm_ptr_t Param,
                              rvm_ptr_t* Retval);
-extern rvm_ret_t RVM_Inv_Ret(rvm_ptr_t Retval);
+EXTERN rvm_ret_t RVM_Inv_Ret(rvm_ptr_t Retval);
 
-extern rvm_ptr_t RVM_Fetch_And(volatile rvm_ptr_t* Ptr,
-                               rvm_ptr_t Operand);
-extern rvm_ptr_t _RVM_MSB_Get(rvm_ptr_t Val);
+EXTERN rvm_ptr_t _RVM_MSB_Get(rvm_ptr_t Val);
 
 EXTERN rvm_ret_t RVM_A7M_Kfn_Act(rvm_cid_t Cap_Kfn,
                                  rvm_ptr_t Func_ID,

@@ -764,7 +764,11 @@ void Main::Mem_Align(void)
             this->Gen->Plat->Mem_Align(MEM_AUTO,this->Proj->Kernel->Stack_Size);
             this->Gen->Plat->Mem_Align(this->Proj->Monitor->Code_Base,this->Proj->Monitor->Code_Size);
             this->Gen->Plat->Mem_Align(this->Proj->Monitor->Data_Base,this->Proj->Monitor->Data_Size);
-            this->Gen->Plat->Mem_Align(MEM_AUTO,this->Proj->Monitor->Stack_Size);
+            this->Gen->Plat->Mem_Align(MEM_AUTO,this->Proj->Monitor->Init_Stack_Size);
+            this->Gen->Plat->Mem_Align(MEM_AUTO,this->Proj->Monitor->Sftd_Stack_Size);
+            this->Gen->Plat->Mem_Align(MEM_AUTO,this->Proj->Monitor->Vmmd_Stack_Size);
+            this->Gen->Plat->Mem_Align(MEM_AUTO,this->Proj->Monitor->Vctd_Stack_Size);
+            this->Gen->Plat->Mem_Align(MEM_AUTO,this->Proj->Monitor->Timd_Stack_Size);
         }
         catch(std::exception& Exc)
         {

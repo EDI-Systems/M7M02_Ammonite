@@ -107,18 +107,21 @@ Description : Allocate the memory for state space. State space is like
               };
               struct RVM_Vctf
               {
-                  rvm_ptr_t Timer;
-                  rvm_ptr_t Ctxsw;
-                  rvm_ptr_t Vect[1];
+                  rvm_ptr_t Tim;
+                  rvm_ptr_t Ctx;
+                  rvm_u8_t Vct[16];
               };
               struct RVM_State
               {
-                  rvm_ptr_t Vect_Act;
-                  struct RVM_Param Vect;
-                  struct RVM_Param User;
+                  rvm_ptr_t Vct_Act;
+                  struct RVM_Param Vct;
+                  struct RVM_Param Usr;
                   struct RVM_Vctf Flag;
               };
-              Each bit corresponds to a single vector. The whole struct will repeat twice.
+              Each byte corresponds to a single vector. The reason why we design
+              this as a byte array is that some architectures lack atomics, so
+              we cannot flip a bit atomically with Fetch_And. Even on architectures
+              that have such atomics, this design makes porting easier.
 Input       : ptr_t Source - The source number.
               ptr_t Wordlength - The processor wordlength.
               ptr_t Kom_Order - The kernel memory alignment order of 2.
@@ -129,7 +132,7 @@ ptr_t Virtual::State_Alloc(ptr_t Source, ptr_t Wordlength, ptr_t Kom_Order)
 {
     ptr_t Raw;
 
-    Raw=(1+5+5+2+ROUND_DIV(Source, Wordlength))*(Wordlength/8);
+    Raw=(1+5+5+2)*(Wordlength/8)+Source;
 
     return ROUND_UP_POW2(Raw, Kom_Order);
 }

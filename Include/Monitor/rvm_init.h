@@ -23,14 +23,14 @@ Description : The header of microcontroller user-level library.
  * 0       : Inactive virtual machine
  */
 /* Priority of threads */
-#define RVM_SFTD_PRIO            (RVM_PREEMPT_PRIO_NUM-1U)
-#define RVM_TIMD_PRIO            (4U)
-#define RVM_VMMD_PRIO            (4U)
-#define RVM_VCTD_PRIO            (4U)
-#define RVM_VECT_PRIO            (3U)
-#define RVM_USER_PRIO            (2U)
-#define RVM_INIT_PRIO            (1U)
-#define RVM_WAIT_PRIO            (0U)
+#define RVM_SFTD_PRIO               (RVM_PREEMPT_PRIO_NUM-1U)
+#define RVM_TIMD_PRIO               (4U)
+#define RVM_VMMD_PRIO               (4U)
+#define RVM_VCTD_PRIO               (4U)
+#define RVM_VVCT_PRIO               (3U)
+#define RVM_VUSR_PRIO               (2U)
+#define RVM_INIT_PRIO               (1U)
+#define RVM_WAIT_PRIO               (0U)
 /*****************************************************************************/
 /* __RVM_INIT_H_DEFS__ */
 #endif

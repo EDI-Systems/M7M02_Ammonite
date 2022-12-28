@@ -160,17 +160,22 @@ void Keil_Gen::Raw_Proj(std::unique_ptr<std::vector<std::string>>& List,
         Main::Error("A0700: Internal processor type error.");
 
     /* FPU Type */
-    FPU_Type=this->Chip->Attribute["FPU"];
-    if(FPU_Type=="None")
-        FPU_Type="";
-    else if(FPU_Type=="FPV4_SP")
-        FPU_Type="FPU2";
-    else if(FPU_Type=="FPV5_SP")
-        FPU_Type=="FPU3(SFPU)";
-    else if(FPU_Type=="FPV5_DP")
-        FPU_Type=="FPU3(DFPU)";
+    if((this->Chip->Attribute["CPU"]=="CM0")||(this->Chip->Attribute["CPU"]=="CM0P"))
+    	FPU_Type="";
     else
-        Main::Error("A0701: Internal FPU type error.");
+    {
+		FPU_Type=this->Chip->Attribute["FPU"];
+		if(FPU_Type=="None")
+			FPU_Type="";
+		else if(FPU_Type=="FPV4_SP")
+			FPU_Type="FPU2";
+		else if(FPU_Type=="FPV5_SP")
+			FPU_Type=="FPU3(SFPU)";
+		else if(FPU_Type=="FPV5_DP")
+			FPU_Type=="FPU3(DFPU)";
+		else
+			Main::Error("A0701: Internal FPU type error.");
+    }
 
     /* Endianness */
     Endian=this->Chip->Attribute["Endian"];
@@ -205,6 +210,10 @@ void Keil_Gen::Raw_Proj(std::unique_ptr<std::vector<std::string>>& List,
         Opt_Level=3;
     else if(Optimization=="O3")
         Opt_Level=4;
+    else if(Optimization=="Of")
+        Opt_Level=5;
+    else if(Optimization=="Os")
+        Opt_Level=7;
     else
         Main::Error("A0702: Internal optimization level error.");
 
@@ -480,8 +489,8 @@ void Keil_Gen::Process_Proj(std::unique_ptr<std::vector<std::string>>& List,
     this->Raw_Proj(List,
                    After1,                                  /* After 1 */
                    After2,                                  /* After 2 */
-                   Prc->Name,                              /* Target */
-                   Prc->Optimization,                      /* Optimization */
+                   Prc->Name,                              	/* Target */
+                   Prc->Optimization,                      	/* Optimization */
                    Include,                                 /* Include */
                    Source,                                  /* Source */
                    Linker[0],                               /* Linker */
