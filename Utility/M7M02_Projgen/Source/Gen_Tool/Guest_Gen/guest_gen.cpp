@@ -53,7 +53,7 @@ Return      : None.
     }
     catch(std::exception& Exc)
     {
-        Main::Error(std::string("Toolchain generator:\n")+Exc.what());
+        Main::Error(std::string("Guest generator:\n")+Exc.what());
     }
 }
 /* End Function:Guest_Gen::Guest_Gen *****************************************/

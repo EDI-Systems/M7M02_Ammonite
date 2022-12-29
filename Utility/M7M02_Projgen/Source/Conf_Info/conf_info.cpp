@@ -55,7 +55,7 @@ Return      : None.
         else if(Temp=="Choice")
             this->Type=CONFIG_CHOICE;
         else
-            Main::Error("D0104: Type is malformed.");
+            Main::Error("XXXXX: Type is malformed.");
 
         /* Macro */
         this->Macro=Main::XML_Get_String(Root,"Macro","DXXXX","DXXXX");
@@ -91,15 +91,15 @@ void Conf_Info::Check(void)
         if(this->Type==CONFIG_RANGE)
         {
             if(this->Range.size()!=2)
-                Main::Error("D0110: Range typed option cannot have more or less than two ends specified.");
+                Main::Error("XXXXX: Range typed option cannot have more or less than two ends specified.");
             try
             {
                 if(std::stoull(this->Range[0],0,0)>=std::stoull(this->Range[1],0,0))
-                    Main::Error("D0112: No room for value.");
+                    Main::Error("XXXXX: No room for value.");
             }
             catch(std::exception& Exc)
             {
-                Main::Error(std::string("D0111: Starting point or ending point conversion failure.\n")+Exc.what());
+                Main::Error(std::string("XXXXX: Starting point or ending point conversion failure.\n")+Exc.what());
             }
         }
     }
@@ -128,19 +128,19 @@ void Conf_Info::Project_Config_Mark(const std::string & Name, const std::string&
         if(this->Type==CONFIG_RANGE)
         {
             if(std::stoull(Value,0,0)<std::stoull(this->Range[0],0,0))
-                Main::Error("D0112: Range type config is less than the range lower bound.");
+                Main::Error("XXXXX: Range type config is less than the range lower bound.");
             if(std::stoull(Value,0,0)>std::stoull(this->Range[1],0,0))
-                Main::Error("D0112: Range type config is greater than the range upper bound.");
+                Main::Error("XXXXX: Range type config is greater than the range upper bound.");
         }
         else
         {
             if(std::find(this->Range.begin(),this->Range.end(),Value)==this->Range.end())
-                Main::Error("D0112: Choice type config is not in the allowed list.");
+                Main::Error("XXXXX: Choice type config is not in the allowed list.");
         }
 
         /* Mark as configured */
         if(this->Is_Configured!=0)
-            Main::Error("D0112: Duplicate configs exist in the project config file.");
+            Main::Error("XXXXX: Duplicate configs exist in the project config file.");
         this->Is_Configured=1;
     }
     catch(std::exception& Exc)

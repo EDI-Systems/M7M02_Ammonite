@@ -96,7 +96,7 @@ Return      : None.
         else if(Name=="A6M")
         	this->Plat=std::make_unique<class A6M_Gen>(Proj,Plat,Chip);
         else
-            Main::Error("PXXXX: Platform generator for '"+Name+"' is not found.");
+            Main::Error("XXXXX: Platform generator for '"+Name+"' is not found.");
     }
     catch(std::exception& Exc)
     {
@@ -125,7 +125,7 @@ void  Gen_Tool::Build_Load(const std::string& Name)
         else if(Name=="Makefile")
             Build=std::make_unique<class Makefile_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
         else
-            Main::Error("PXXXX: Buildsystem generator for '"+Name+"' is not found.");
+            Main::Error("XXXXX: Buildsystem generator for '"+Name+"' is not found.");
 
         this->Build_Map.insert(std::make_pair(Name,Build.get()));
         this->Build.push_back(std::move(Build));
@@ -157,7 +157,7 @@ void  Gen_Tool::Tool_Load(const std::string& Name)
         else if(Name=="GCC")
             Tool=std::make_unique<class GCC_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
         else
-            Main::Error("PXXXX: Toolchain generator for '"+Name+"' is not found.");
+            Main::Error("XXXXX: Toolchain generator for '"+Name+"' is not found.");
 
         this->Tool_Map.insert(std::make_pair(Name,Tool.get()));
         this->Tool.push_back(std::move(Tool));
@@ -187,7 +187,7 @@ void  Gen_Tool::Guest_Load(const std::string& Name)
         if(Name=="RMP")
             Guest=std::make_unique<class RMP_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
         else
-            Main::Error("PXXXX: Guest generator for '"+Name+"' is not found.");
+            Main::Error("XXXXX: Guest generator for '"+Name+"' is not found.");
 
         this->Guest_Map.insert(std::make_pair(Name,Guest.get()));
         this->Guest.push_back(std::move(Guest));
@@ -220,12 +220,12 @@ std::unique_ptr<std::vector<std::string>> Gen_Tool::Line_Read(const std::string&
         List=std::make_unique<std::vector<std::string>>();
         Buf=(char*)malloc(BUF_SIZE);
         if(Buf==nullptr)
-            Main::Error("PXXXX: Cannot read source file '%s'.",Path.c_str());
+            Main::Error("XXXXX: Cannot read source file '%s'.",Path.c_str());
 
         /* Read using text mode */
         File=fopen(Path.c_str(), "r");
         if(File==nullptr)
-            Main::Error("PXXXX: Cannot read source file '%s'.",Path.c_str());
+            Main::Error("XXXXX: Cannot read source file '%s'.",Path.c_str());
 
         while(1)
         {
@@ -273,7 +273,7 @@ void Gen_Tool::Line_Write(std::unique_ptr<std::vector<std::string>>& List, const
         File=nullptr;
         File=fopen(Path.c_str(), "w");
         if(File==nullptr)
-            Main::Error("PXXXX: Cannot read source file '%s'.",Path.c_str());
+            Main::Error("XXXXX: Cannot read source file '%s'.",Path.c_str());
 
         for(const std::string& Line:*List)
             fprintf(File,"%s\n",Line.c_str());
@@ -804,7 +804,7 @@ void Gen_Tool::Kernel_Boot_Src(void)
         Cpt_Size=CTSIZE(Monitor->Vector.size(), Obj_Cnt);
         List->push_back(std::string("    RME_ASSERT(_RME_Cpt_Boot_Crt(Cpt, RME_BOOT_CPT, RME_MAIN_VCT_")+
                         MIDS(Obj_Cnt)+", Cur_Addr, "+std::to_string(Cpt_Size)+"U)==0U);");
-        List->push_back(std::string("    Cur_Addr+=RME_KOTBL_ROUND(RME_CPT_SIZE(")+std::to_string(Cpt_Size)+"U));");
+        List->push_back(std::string("    Cur_Addr+=RME_KOM_ROUND(RME_CPT_SIZE(")+std::to_string(Cpt_Size)+"U));");
     }
     List->push_back("");
     List->push_back("    /* Then all the vectors */");
@@ -1606,7 +1606,7 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
             Cap_Front++;
         }
         if(Cap_Front!=Monitor->Cpt_Cap_Front)
-            Main::Error("G1000: Virtual machine capability table computation failure.");
+            Main::Error("XXXXX: Virtual machine capability table computation failure.");
         List->push_back("");
     }
 
@@ -1619,7 +1619,7 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
         Cap_Front++;
     }
     if(Cap_Front!=Monitor->Pgt_Cap_Front)
-        Main::Error("G1000: Cpt capability table computation failure.");
+        Main::Error("XXXXX: Cpt capability table computation failure.");
     List->push_back("");
     List->push_back("/* Process capability tables */");
     for(const class Captbl* Cpt:Monitor->Captbl)
@@ -1639,7 +1639,7 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
         Cap_Front++;
     }
     if(Cap_Front!=Monitor->Prc_Cap_Front)
-        Main::Error("G1000: Pgt capability table computation failure.");
+        Main::Error("XXXXX: Pgt capability table computation failure.");
     List->push_back("");
     List->push_back("/* Process page tables */");
     for(const class Pgtbl* Pgt:Monitor->Pgtbl)
@@ -1659,7 +1659,7 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
         Cap_Front++;
     }
     if(Cap_Front!=Monitor->Thd_Cap_Front)
-        Main::Error("G1000: Process capability table computation failure.");
+        Main::Error("XXXXX: Process capability table computation failure.");
     List->push_back("");
     List->push_back("/* Processes */");
     for(const class Process* Prc:Monitor->Process)
@@ -1679,7 +1679,7 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
         Cap_Front++;
     }
     if(Cap_Front!=Monitor->Inv_Cap_Front)
-        Main::Error("G1000: Thread capability table computation failure.");
+        Main::Error("XXXXX: Thread capability table computation failure.");
     List->push_back("");
     List->push_back("/* Threads */");
     for(const class Thread* Thd:Monitor->Thread)
@@ -1699,7 +1699,7 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
         Cap_Front++;
     }
     if(Cap_Front!=Monitor->Rcv_Cap_Front)
-        Main::Error("G1000: Invocation capability table computation failure.");
+        Main::Error("XXXXX: Invocation capability table computation failure.");
     List->push_back("");
     List->push_back("/* Invocations */");
     for(const class Invocation* Inv:Monitor->Invocation)
@@ -1719,7 +1719,7 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
         Cap_Front++;
     }
     if(Cap_Front!=Monitor->After_Cap_Front)
-        Main::Error("Receive endpoint:\nG1000: Internal capability table computation failure.");
+        Main::Error("XXXXX: Receive endpoint capability table computation failure.");
     List->push_back("");
     List->push_back("/* Receive endpoints */");
     for(const class Receive* Rcv:Monitor->Receive)

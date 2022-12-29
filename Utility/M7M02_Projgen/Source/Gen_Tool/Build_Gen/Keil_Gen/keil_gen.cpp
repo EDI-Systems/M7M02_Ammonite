@@ -91,7 +91,7 @@ std::string Keil_Gen::Suffix(ptr_t Type)
     else if(Type==BUILD_WORKSPACE)
         return ".uvmpw";
     else
-        Main::Error("AXXXX: File type not recognized.");
+        Main::Error("XXXXX: File type not recognized.");
 }
 /* End Function:Keil_Gen::Suffix *********************************************/
 
@@ -157,7 +157,7 @@ void Keil_Gen::Raw_Proj(std::unique_ptr<std::vector<std::string>>& List,
         Dlloption="-pCM7";
     }
     else
-        Main::Error("A0700: Internal processor type error.");
+        Main::Error("XXXXX: Internal processor type error.");
 
     /* FPU Type */
     if((this->Chip->Attribute["CPU"]=="CM0")||(this->Chip->Attribute["CPU"]=="CM0P"))
@@ -174,7 +174,7 @@ void Keil_Gen::Raw_Proj(std::unique_ptr<std::vector<std::string>>& List,
 		else if(FPU_Type=="FPV5_DP")
 			FPU_Type=="FPU3(DFPU)";
 		else
-			Main::Error("A0701: Internal FPU type error.");
+			Main::Error("XXXXX: Internal FPU type error.");
     }
 
     /* Endianness */
@@ -184,7 +184,7 @@ void Keil_Gen::Raw_Proj(std::unique_ptr<std::vector<std::string>>& List,
     else if(Endian=="Big")
         Endian="EBIG";
     else
-        Main::Error("A0702: Internal endianness error.");
+        Main::Error("XXXXX: Internal endianness error.");
 
     /* Decide device */
     if(this->Chip->Name.find("STM32")!=std::string::npos)
@@ -215,7 +215,7 @@ void Keil_Gen::Raw_Proj(std::unique_ptr<std::vector<std::string>>& List,
     else if(Optimization=="Os")
         Opt_Level=7;
     else
-        Main::Error("A0702: Internal optimization level error.");
+        Main::Error("XXXXX: Internal optimization level error.");
 
     /* Construct include paths */
     for(const std::string& Inc:Include)

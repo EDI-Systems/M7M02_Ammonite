@@ -115,7 +115,7 @@ void Plat_Info::Project_Config_Mark_Check(void)
         for(std::unique_ptr<class Conf_Info>& Conf:this->Config)
         {
             if(Conf->Is_Configured==0)
-                Main::Error("PXXXX: Config '"+Conf->Name+"' in project is not configured.");
+                Main::Error("XXXXX: Config '"+Conf->Name+"' in project is not configured.");
         }
     }
     catch(std::exception& Exc)

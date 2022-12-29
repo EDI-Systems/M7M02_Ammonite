@@ -96,14 +96,14 @@ void Chip_Info::Check(void)
     {
         /* Check chip regions */
         if((this->Region==0)&&((this->Iregion==0)||(this->Dregion==0)))
-            Main::Error("PXXXX: Chip must have more than one MPU region for instruction and data.");
+            Main::Error("XXXXX: Chip must have more than one MPU region for instruction and data.");
 
         /* Check chip memory */
         for(std::unique_ptr<class Mem_Info>& Mem:this->Memory)
         {
             Mem->Check();
             if(Mem->Base==MEM_AUTO)
-                Main::Error("PXXXX: On-chip memory must have a concrete base address.");
+                Main::Error("XXXXX: On-chip memory must have a concrete base address.");
         }
 
         /* Check configs - neither the name nor the macro can be the same */
@@ -149,7 +149,7 @@ void Chip_Info::Project_Config_Mark_Check(void)
         for(std::unique_ptr<class Conf_Info>& Conf:this->Config)
         {
             if(Conf->Is_Configured==0)
-                Main::Error("PXXXX: Config '"+Conf->Name+"' in project is not configured.");
+                Main::Error("XXXXX: Config '"+Conf->Name+"' in project is not configured.");
         }
     }
     catch(std::exception& Exc)

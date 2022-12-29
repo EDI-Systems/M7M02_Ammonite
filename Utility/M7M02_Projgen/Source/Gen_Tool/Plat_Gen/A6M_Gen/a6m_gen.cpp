@@ -80,7 +80,7 @@ Plat_Gen("A6M", Proj, Plat, Chip)
     }
     catch(std::exception& Exc)
     {
-        Main::Error(std::string("ARMv7-M (A6M) generator:\n")+Exc.what());
+        Main::Error(std::string("ARMv6-M (A6M) generator:\n")+Exc.what());
     }
 }
 /* End Function:A6M_Gen::A6M_Gen *********************************************/
@@ -118,11 +118,11 @@ ptr_t A6M_Gen::Mem_Align(ptr_t Base, ptr_t Size)
         if(Base!=MEM_AUTO)
         {
             if((Base%A6M_MEM_ALIGN)!=0)
-                Main::Error("A0100: Static memory base address not properly aligned.");
+                Main::Error("XXXXX: Static memory base address not properly aligned.");
         }
 
         if((Size%A6M_MEM_ALIGN)!=0)
-            Main::Error("A0100: Memory size not properly aligned.");
+            Main::Error("XXXXX: Memory size not properly aligned.");
 
         /* This memory's start address is not designated yet. Decide its size after
          * alignment and calculate its start address alignment granularity */
@@ -464,7 +464,7 @@ std::unique_ptr<class Pgtbl> A6M_Gen::Pgt_Gen(std::vector<std::unique_ptr<class 
     Total_Order=this->Pgt_Total_Order(List, &Base);
     /* See if this will violate the extension limit */
     if(Total_Order>Total_Max)
-        Main::Error("A0201: Memory segment too small, cannot find a reasonable placement.");
+        Main::Error("XXXXX: Memory segment too small, cannot find a reasonable placement.");
 
     /* Number order */
     Num_Order=this->Pgt_Num_Order(List, Total_Order, Base);

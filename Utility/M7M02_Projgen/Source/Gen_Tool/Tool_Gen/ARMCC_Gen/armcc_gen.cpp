@@ -91,7 +91,7 @@ std::string ARMCC_Gen::Suffix(ptr_t Type)
     else if(Type==TOOL_ASSEMBLER)
         return ".s";
     else
-        Main::Error("AXXXX: File type not recognized.");
+        Main::Error("XXXXX: File type not recognized.");
 }
 /* End Function:ARMCC_Gen::Suffix ********************************************/
 

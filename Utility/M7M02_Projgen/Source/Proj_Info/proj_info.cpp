@@ -79,7 +79,7 @@ Return      : None.
 
         /* Chip */
         if((XML_Child(Root,(xml_s8_t*)"Chip",&Temp)<0)||(Temp==0))
-            Main::Error("T1600: 'Property' section is missing.");
+            Main::Error("XXXXX: 'Property' section is missing.");
         this->Chip=std::make_unique<class Chip>(Temp);
 
         /* Extra memory segments - not necessarily exist */
@@ -89,12 +89,12 @@ Return      : None.
 
         /* Kernel-related info */
         if((XML_Child(Root,(xml_s8_t*)"Kernel",&Temp)<0)||(Temp==0))
-            Main::Error("T1600: 'Kernel' section is missing.");
+            Main::Error("XXXXX: 'Kernel' section is missing.");
         this->Kernel=std::make_unique<class Kernel>(Temp);
 
         /* VMM-related info */
         if((XML_Child(Root,(xml_s8_t*)"Monitor",&Temp)<0)||(Temp==0))
-            Main::Error("T1600: 'Monitor' section is missing.");
+            Main::Error("XXXXX: 'Monitor' section is missing.");
         this->Monitor=std::make_unique<class Monitor>(Temp,
                                                       this->Kernel->Code_Base+this->Kernel->Code_Size,
                                                       this->Kernel->Data_Base+this->Kernel->Data_Size);
@@ -132,14 +132,14 @@ void Proj_Info::Check(void)
         for(std::unique_ptr<class Mem_Info>& Mem:this->Extmem)
         {
             if(Mem->Base==MEM_AUTO)
-                Main::Error("PXXXX: Externally mounted memory must have a concrete base address.");
+                Main::Error("XXXXX: Externally mounted memory must have a concrete base address.");
         }
 
         /* Shared memory must have names, and they cannot be the same */
         for(std::unique_ptr<class Mem_Info>& Mem:this->Shmem)
         {
             if(Mem->Name=="")
-                Main::Error("PXXXX: Shared memory declaration must contain a name.");
+                Main::Error("XXXXX: Shared memory declaration must contain a name.");
             Mem->Check();
             switch(Mem->Type)
             {
@@ -158,7 +158,7 @@ void Proj_Info::Check(void)
 
         /* Must at least have one process; then check each process */
         if(this->Process.empty())
-            Main::Error("PXXXX: The project contains no process.");
+            Main::Error("XXXXX: The project contains no process.");
 
         /* Check for duplicate process names */
         Duplicate_Check<class Process,std::string>(this->Process,this->Process_Map,

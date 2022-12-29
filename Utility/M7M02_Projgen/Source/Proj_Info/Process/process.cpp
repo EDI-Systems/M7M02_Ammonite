@@ -133,7 +133,7 @@ void Process::Check(void)
     {
         /* Check memory layout */
         if(this->Memory.empty())
-            Main::Error("PXXXX: The process contains no memory segments.");
+            Main::Error("XXXXX: The process contains no memory segments.");
 
         /* Classify memory - regular memory does not have name duplication requirements */
         for(std::unique_ptr<class Mem_Info>& Mem:this->Memory)
@@ -151,13 +151,13 @@ void Process::Check(void)
         /* Every process must have at least one code and data segment, and they must be static.
          * The primary code segment allow RXS, the primary data segment must allow RWS */
         if(this->Memory_Code.empty())
-            Main::Error("P0331: No primary code section exists.");
+            Main::Error("XXXXX: No primary code section exists.");
         if(this->Memory_Data.empty())
-            Main::Error("P0332: No primary data section exists.");
+            Main::Error("XXXXX: No primary data section exists.");
         if((this->Memory_Code[0]->Attr&MEM_CODE_PRIME)!=MEM_CODE_PRIME)
-            Main::Error("P0333: Primary code section does not have RXS attribute.");
+            Main::Error("XXXXX: Primary code section does not have RXS attribute.");
         if((this->Memory_Data[0]->Attr&MEM_DATA_PRIME)!=MEM_DATA_PRIME)
-            Main::Error("P0334: Primary data section does not have RWS attribute.");
+            Main::Error("XXXXX: Primary data section does not have RWS attribute.");
 
         /* Make sure process memory declarations do not overlap */
         Mem_Info::Overlap_Check(this->Memory_Code,this->Memory_Data,this->Memory_Device,"Process memory");
@@ -171,44 +171,44 @@ void Process::Check(void)
         }
         Duplicate_Check<class Mem_Info,std::string>(this->Shmem,this->Shmem_Map,
                                                     [](std::unique_ptr<class Mem_Info>& Mem)->std::string{return Mem->Name;},
-                                                    "PXXXX","name","Shmem");
+                                                    "XXXXX","name","Shmem");
 
         /* All normal processes shall have at least one thread */
         if((this->Type==PROCESS_NATIVE)&&(this->Thread.empty()))
-            Main::Error("P0335: No thread exists in native process.");
+            Main::Error("XXXXX: No thread exists in native process.");
 
         /* Check threads */
         Duplicate_Check<class Thread,std::string>(this->Thread,this->Thread_Map,
                                                   [](std::unique_ptr<class Thread>& Thd)->std::string{return Thd->Name;},
-                                                  "PXXXX","name","Thread");
+                                                  "XXXXX","name","Thread");
 
         /* Check invocations */
         Duplicate_Check<class Invocation,std::string>(this->Invocation,this->Invocation_Map,
                                                       [](std::unique_ptr<class Invocation>& Inv)->std::string{return Inv->Name;},
-                                                      "PXXXX","name","Invocation");
+                                                      "XXXXX","name","Invocation");
 
         /* Check ports - both process and name must be the same for duplication */
         Duplicate_Check<class Port,std::string>(this->Port,this->Port_Map,
                                                 [](std::unique_ptr<class Port>& Port)->std::string{return Port->Process+"_"+Port->Name;},
-                                                "PXXXX","process/name pair","Port");
+                                                "XXXXX","process/name pair","Port");
 
         /* Check receive endpoints */
         Duplicate_Check<class Receive,std::string>(this->Receive,this->Receive_Map,
                                                    [](std::unique_ptr<class Receive>& Recv)->std::string{return Recv->Name;},
-                                                   "PXXXX","name","Receive");
+                                                   "XXXXX","name","Receive");
 
         /* Check send endpoints - both process and name must be the same for duplication */
         Duplicate_Check<class Send,std::string>(this->Send,this->Send_Map,
                                                 [](std::unique_ptr<class Send>& Send)->std::string{return Send->Process+"_"+Send->Name;},
-                                                "PXXXX","process/name pair","Send");
+                                                "XXXXX","process/name pair","Send");
 
         /* Check vectors - neither the name nor the number can be the same */
         Duplicate_Check<class Vect_Info,std::string>(this->Vector,this->Vector_Map,
                                                      [](std::unique_ptr<class Vect_Info>& Vect)->std::string{return Vect->Name;},
-                                                     "PXXXX","name","Vector");
+                                                     "XXXXX","name","Vector");
         Duplicate_Check<class Vect_Info,ptr_t>(this->Vector,this->Vector_Number_Map,
                                                [](std::unique_ptr<class Vect_Info>& Vect)->ptr_t{return Vect->Number;},
-                                               "PXXXX","number","Vector");
+                                               "XXXXX","number","Vector");
     }
     catch(std::exception& Exc)
     {
@@ -306,7 +306,7 @@ void Process::Local_Alloc(ptr_t Max)
         /* Check extra capability table sizes */
         this->Captbl=std::make_unique<class Captbl>(Cid,Cid+this->Extra_Captbl,this);
         if(this->Captbl->Size>Max)
-            Main::Error("M1013: Total captbl capacity %lld cannot be larger than the platform limit %lld.",this->Captbl->Size,Max);
+            Main::Error("XXXXX: Total captbl capacity %lld cannot be larger than the platform limit %lld.",this->Captbl->Size,Max);
     }
     catch(std::exception& Exc)
     {
@@ -507,7 +507,7 @@ void Process::Mem_Alloc(ptr_t Wordlength, ptr_t Reg_Size, ptr_t Kom_Order)
             Thd->Stack_Size=ROUND_UP_POW2(Thd->Stack_Size,Kom_Order);
             Thd->Stack_Base=this->Data_Base+this->Data_Size-Thd->Stack_Size;
             if(Thd->Stack_Base<=this->Data_Base)
-                Main::Error("M2300: Data section size is not big enough, unable to allocate stack.");
+                Main::Error("XXXXX: Data section size is not big enough, unable to allocate stack.");
             this->Data_Size=Thd->Stack_Base-this->Data_Base;
             /* Allocate entry from header */
             Thd->Desc_Slot=this->Desc_Front;
@@ -530,7 +530,7 @@ void Process::Mem_Alloc(ptr_t Wordlength, ptr_t Reg_Size, ptr_t Kom_Order)
             Inv->Stack_Size=ROUND_UP_POW2(Inv->Stack_Size,Kom_Order);
             Inv->Stack_Base=this->Data_Base+this->Data_Size-Inv->Stack_Size;
             if(Inv->Stack_Base<=this->Data_Base)
-                Main::Error("M2300: Data section size is not big enough, unable to allocate stack.");
+                Main::Error("XXXXX: Data section size is not big enough, unable to allocate stack.");
             this->Data_Size=Inv->Stack_Base-this->Data_Base;
             /* Allocate entry from descriptor header */
             Inv->Desc_Slot=this->Desc_Front;
@@ -561,7 +561,7 @@ void Process::Mem_Alloc(ptr_t Wordlength, ptr_t Reg_Size, ptr_t Kom_Order)
         Virt->State_Base=this->Data_Base+this->Data_Size-Virt->State_Size;
         Main::Info("> State block base 0x%llX size 0x%llX.", Virt->State_Base, Virt->State_Size);
         if(Virt->State_Base<=this->Data_Base)
-            Main::Error("M2301: Data section size is not big enough, unable to allocate virtual machine interrupt flags.");
+            Main::Error("XXXXX: Data section size is not big enough, unable to allocate virtual machine interrupt flags.");
         this->Data_Size=Virt->State_Base-this->Data_Base;
 
         /* Register space */
@@ -569,7 +569,7 @@ void Process::Mem_Alloc(ptr_t Wordlength, ptr_t Reg_Size, ptr_t Kom_Order)
         Virt->Reg_Base=this->Data_Base+this->Data_Size-Virt->Reg_Size;
         Main::Info("> Register base 0x%llX size 0x%llX.", Virt->Reg_Base, Virt->Reg_Size);
         if(Virt->Reg_Base<=this->Data_Base)
-            Main::Error("M2303: Data section size is not big enough, unable to allocate virtual machine registers.");
+            Main::Error("XXXXX: Data section size is not big enough, unable to allocate virtual machine registers.");
         this->Data_Size=Virt->Reg_Base-this->Data_Base;
     }
 

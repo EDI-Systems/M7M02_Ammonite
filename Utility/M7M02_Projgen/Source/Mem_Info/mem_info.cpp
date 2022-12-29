@@ -80,7 +80,7 @@ Return      : None.
             else if(Temp=="Device")
                 this->Type=MEM_DEVICE;
             else
-                Main::Error("P0510: Type is malformed.");
+                Main::Error("XXXXX: Type is malformed.");
         }
 
         /* Attribute */
@@ -93,7 +93,7 @@ Return      : None.
         if(Temp.rfind('X')!=std::string::npos)
             this->Attr|=MEM_EXECUTE;
         if(this->Attr==0)
-            Main::Error("P0510: Attribute does not allow any access and is malformed.");
+            Main::Error("XXXXX: Attribute does not allow any access and is malformed.");
         if(Temp.rfind('B')!=std::string::npos)
             this->Attr|=MEM_BUFFER;
         if(Temp.rfind('C')!=std::string::npos)
@@ -178,12 +178,12 @@ void Mem_Info::Check(void)
         if(this->Reference==MEM_DECL)
         {
             if(this->Size==0)
-                Main::Error("P0504: Size cannot be zero.");
+                Main::Error("XXXXX: Size cannot be zero.");
             if(this->Size>0x100000000ULL)
-                Main::Error("P0505: Size is out of bound.");
+                Main::Error("XXXXX: Size is out of bound.");
 
             if((this->Type==MEM_DEVICE)&&(this->Base==MEM_AUTO))
-                Main::Error("P0507: Device-type memory cannot be automatically allocated.");
+                Main::Error("XXXXX: Device-type memory cannot be automatically allocated.");
         }
     }
     catch(std::exception& Exc)
@@ -247,7 +247,7 @@ void Mem_Info::Overlap_Check(const std::vector<class Mem_Info*>& Code,
         {
             if((All[Count]->Base+All[Count]->Size)>All[Count+1]->Base)
             {
-                Main::Error("PXXXX: %s '%s' base 0x%llX size 0x%llX overlapped with '%s' base 0x%llX size 0x%llX.",
+                Main::Error("XXXXX: %s '%s' base 0x%llX size 0x%llX overlapped with '%s' base 0x%llX size 0x%llX.",
                             Type.c_str(),All[Count]->Name.c_str(),All[Count]->Base,All[Count]->Size,
                             All[Count+1]->Name.c_str(),All[Count+1]->Base,All[Count+1]->Size);
             }

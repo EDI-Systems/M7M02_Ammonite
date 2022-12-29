@@ -67,7 +67,7 @@ std::string Makefile_Gen::Suffix(ptr_t Type)
     if(Type==BUILD_PROJECT)
         return "";
     else
-        Main::Error("AXXXX: File type not recognized.");
+        Main::Error("XXXXX: File type not recognized.");
 }
 /* End Function:Makefile_Gen::Suffix *****************************************/
 

@@ -138,12 +138,12 @@ void Main::Proj_Parse(void)
         /* Read in the whole project file */
         File=fopen(this->Input.c_str(),"r");
         if(File==nullptr)
-            Main::Error(std::string("T1001: '")+this->Input+"': No such project file or cannot be opened.");
+            Main::Error(std::string("XXXXX: '")+this->Input+"': No such project file or cannot be opened.");
         this->Buffer[fread(this->Buffer,1,MAX_FILE_SIZE,File)]='\0';
         if(strlen(this->Buffer)==0)
         {
             File=nullptr;
-            Main::Error(std::string("T1002: '")+this->Input+"': Project file is empty.");
+            Main::Error(std::string("XXXXX: '")+this->Input+"': Project file is empty.");
         }
         fclose(File);
         File=nullptr;
@@ -152,14 +152,14 @@ void Main::Proj_Parse(void)
         if(XML_Parse(&Root,(xml_s8_t*)(this->Buffer))!=0)
         {
             Root=nullptr;
-            Main::Error(std::string("T1003: Project file parsing internal error."));
+            Main::Error(std::string("XXXXX: Project file parsing internal error."));
         }
         this->Proj=std::make_unique<class Proj_Info>(Root);
         /* We have done parsing, release the parsing tree */
         if(XML_Del(Root)!=0)
         {
             Root=nullptr;
-            Main::Error(std::string("T1003: Project file parsing internal error."));
+            Main::Error(std::string("XXXXX: Project file parsing internal error."));
         }
     }
     catch(std::exception& Exc)
@@ -197,12 +197,12 @@ void Main::Chip_Parse(void)
         /* Read in the whole chip description file */
         File=fopen(Path.c_str(),"r");
         if(File==nullptr)
-            Main::Error(std::string("T1001: '")+Path+"': No such chip description file or cannot be opened.");
+            Main::Error(std::string("XXXXX: '")+Path+"': No such chip description file or cannot be opened.");
         this->Buffer[fread(this->Buffer,1,MAX_FILE_SIZE,File)]='\0';
         if(strlen(this->Buffer)==0)
         {
             File=nullptr;
-            Main::Error(std::string("T1002: '")+Path+"': Chip description file is empty.");
+            Main::Error(std::string("XXXXX: '")+Path+"': Chip description file is empty.");
         }
         fclose(File);
         File=nullptr;
@@ -211,14 +211,14 @@ void Main::Chip_Parse(void)
         if(XML_Parse(&Root,(xml_s8_t*)(this->Buffer))!=0)
         {
             Root=nullptr;
-            Main::Error(std::string("T1003: Chip description file parsing internal error."));
+            Main::Error(std::string("XXXXX: Chip description file parsing internal error."));
         }
         this->Chip=std::make_unique<class Chip_Info>(Root);
         /* We have done parsing, release the parsing tree */
         if(XML_Del(Root)!=0)
         {
             Root=nullptr;
-            Main::Error(std::string("T1003: Chip description file parsing internal error."));
+            Main::Error(std::string("XXXXX: Chip description file parsing internal error."));
         }
     }
     catch(std::exception& Exc)
@@ -256,12 +256,12 @@ void Main::Plat_Parse(void)
         /* Read in the whole chip description file */
         File=fopen(Path.c_str(),"r");
         if(File==nullptr)
-            Main::Error(std::string("T1001: '")+Path+"': No such platform description file or cannot be opened.");
+            Main::Error(std::string("XXXXX: '")+Path+"': No such platform description file or cannot be opened.");
         this->Buffer[fread(this->Buffer,1,MAX_FILE_SIZE,File)]='\0';
         if(strlen(this->Buffer)==0)
         {
             File=nullptr;
-            Main::Error(std::string("T1002: '")+Path+"': Platform description file is empty.");
+            Main::Error(std::string("XXXXX: '")+Path+"': Platform description file is empty.");
         }
         fclose(File);
         File=nullptr;
@@ -270,14 +270,14 @@ void Main::Plat_Parse(void)
         if(XML_Parse(&Root,(xml_s8_t*)(this->Buffer))!=0)
         {
             Root=nullptr;
-            Main::Error(std::string("T1003: Platform description file parsing internal error."));
+            Main::Error(std::string("XXXXX: Platform description file parsing internal error."));
         }
         this->Plat=std::make_unique<class Plat_Info>(Root);
         /* We have done parsing, release the parsing tree */
         if(XML_Del(Root)!=0)
         {
             Root=nullptr;
-            Main::Error(std::string("T1003: Platform description file parsing internal error."));
+            Main::Error(std::string("XXXXX: Platform description file parsing internal error."));
         }
     }
     catch(std::exception& Exc)
@@ -353,39 +353,39 @@ void Main::Compatible_Check(void)
     {
         /* Check project/platform/chip compatibility */
         if((this->Proj->Chip->Platform!=this->Chip->Platform)||(this->Plat->Name!=this->Chip->Platform))
-            Main::Error("PXXXX: The project platform and the chip platform is different.");
+            Main::Error("XXXXX: The project platform and the chip platform is different.");
         if(this->Proj->Chip->Class!=this->Chip->Name)
-            Main::Error("PXXXX: The project class and the chip class is different.");
+            Main::Error("XXXXX: The project class and the chip class is different.");
         if(std::find(this->Chip->Compatible.begin(),
                      this->Chip->Compatible.end(),
                      this->Proj->Chip->Name)==this->Chip->Compatible.end())
-            Main::Error("PXXXX: The project chip is not compatible with the chip description file.");
+            Main::Error("XXXXX: The project chip is not compatible with the chip description file.");
 
         /* Check if the kernel priorities are a multiple of word size */
         if((this->Proj->Kernel->Kern_Prio%this->Plat->Wordlength)!=0)
-            Main::Error("M1000: Total number of kernel priorities must be a multiple of word size.");
+            Main::Error("XXXXX: Total number of kernel priorities must be a multiple of word size.");
 
         /* Check if the kernel memory granularity order is within range - we allow 2^3=8 bytes to 2^5=32 bytes */
         if(this->Proj->Kernel->Kom_Order<3)
-            Main::Error("M1001: Kernel memory allocation granularity order must be no less than 2^3=8 bytes.");
+            Main::Error("XXXXX: Kernel memory allocation granularity order must be no less than 2^3=8 bytes.");
         if(this->Proj->Kernel->Kom_Order>5)
-            Main::Error("M1002: Kernel memory allocation granularity order must be no more than 2^5=32 bytes.");
+            Main::Error("XXXXX: Kernel memory allocation granularity order must be no more than 2^5=32 bytes.");
 
         /* Check VMM configs */
         if(this->Proj->Virtual.empty()==false)
         {
             if(this->Proj->Monitor->Virt_Prio==0)
-                Main::Error("M1004: Virtual machine exists but the total number of virtual machine priorities is set to 0.");
+                Main::Error("XXXXX: Virtual machine exists but the total number of virtual machine priorities is set to 0.");
             if((this->Proj->Monitor->Virt_Prio%this->Plat->Wordlength)!=0)
-                Main::Error("M1005: Total number of virtual machine priorities must be a multiple of processor wordlength.");
+                Main::Error("XXXXX: Total number of virtual machine priorities must be a multiple of processor wordlength.");
             if(this->Proj->Monitor->Virt_Event==0)
-                Main::Error("M1006: Virtual machine exists but the total number of virtual event sources is set to 0.");
+                Main::Error("XXXXX: Virtual machine exists but the total number of virtual event sources is set to 0.");
             if((this->Proj->Monitor->Virt_Event%this->Plat->Wordlength)!=0)
-                Main::Error("M1007: Total number of virtual event sources must be a multiple of processor wordlength.");
+                Main::Error("XXXXX: Total number of virtual event sources must be a multiple of processor wordlength.");
             if(this->Proj->Monitor->Virt_Event>VIRT_EVENT_MAX)
-                Main::Error("M1008: Total number of virtual event sources cannot exceed %d.",VIRT_EVENT_MAX);
+                Main::Error("XXXXX: Total number of virtual event sources cannot exceed %d.",VIRT_EVENT_MAX);
             if(this->Proj->Monitor->Virt_Map<this->Proj->Monitor->Virt_Event)
-                Main::Error("M1009: Total number of virtual event to interrupt mappings cannot be smaller than the virtual event source number.");
+                Main::Error("XXXXX: Total number of virtual event to interrupt mappings cannot be smaller than the virtual event source number.");
 
         }
         /* Set all virtual machine related portion to zero because these options do not make sense anymore */
@@ -423,7 +423,7 @@ void Main::Config_Check(void)
             {
                 Iter=this->Plat->Config_Map.find(Conf.first);
                 if(Iter==this->Plat->Config_Map.end())
-                    Main::Error("PXXXX: Cannot find config '"+Conf.first+"' in platform or chip description file.");
+                    Main::Error("XXXXX: Cannot find config '"+Conf.first+"' in platform or chip description file.");
             }
             /* See if the config value falls into the range, and mark it */
             Iter->second->Project_Config_Mark(Conf.first,Conf.second);
@@ -546,14 +546,14 @@ void Main::Reference_Check(void)
             {
                 /* Check extra capability table sizes */
                 if(Prc->Extra_Captbl>this->Plat->Captbl_Max)
-                    Main::Error("M1013: Extra captbl capacity cannot be larger than the platform limit %lld.",this->Plat->Captbl_Max);
+                    Main::Error("XXXXX: Extra captbl capacity cannot be larger than the platform limit %lld.",this->Plat->Captbl_Max);
 
                 /* Check virtual machine priorities */
                 if(Prc->Type==PROCESS_VIRTUAL)
                 {
                     Virt=static_cast<class Virtual*>(Prc.get());
                     if(Virt->Priority>=this->Proj->Monitor->Virt_Prio)
-                        Main::Error("M1012: Virtual machine priority %lld must be smaller than total number of virtual machine priorities %lld.",
+                        Main::Error("XXXXX: Virtual machine priority %lld must be smaller than total number of virtual machine priorities %lld.",
                                     Virt->Priority, this->Proj->Monitor->Virt_Prio);
                 }
 
@@ -563,10 +563,10 @@ void Main::Reference_Check(void)
                     /* Check existence */
                     Shmem_Iter=this->Proj->Shmem_Map.find(Shmem->Name);
                     if(Shmem_Iter==this->Proj->Shmem_Map.end())
-                        Main::Error("PXXXX: Shared memory '"+Shmem->Name+"' does not exist.");
+                        Main::Error("XXXXX: Shared memory '"+Shmem->Name+"' does not exist.");
                     /* Check access permissions */
                     if((Shmem_Iter->second->Attr&Shmem->Attr)!=Shmem->Attr)
-                        Main::Error("PXXXX: Shared memory '"+Shmem->Name+"' contains wrong attributes.");
+                        Main::Error("XXXXX: Shared memory '"+Shmem->Name+"' contains wrong attributes.");
                 }
 
                 /* Check thread parameters if this is not a VM - VM priorities are generated so fine */
@@ -575,9 +575,9 @@ void Main::Reference_Check(void)
                     for(std::unique_ptr<class Thread>& Thd:Prc->Thread)
                     {
                         if(Thd->Priority<PRC_THD_PRIO_MIN)
-                            Main::Error("M1010: Thread '"+Thd->Name+"' priority must be bigger than service daemons' priority (4).");
+                            Main::Error("XXXXX: Thread '"+Thd->Name+"' priority must be bigger than service daemons' priority (4).");
                         else if(Thd->Priority>(this->Proj->Kernel->Kern_Prio-2))
-                            Main::Error("M1011: Thread '"+Thd->Name+"' priority must be smaller than safety daemon's priority (Kern_Prio-1).");
+                            Main::Error("XXXXX: Thread '"+Thd->Name+"' priority must be smaller than safety daemon's priority (Kern_Prio-1).");
                     }
                 }
 
@@ -587,10 +587,10 @@ void Main::Reference_Check(void)
                     /* Check process existence */
                     Prc_Iter=this->Proj->Process_Map.find(Prt->Process);
                     if(Prc_Iter==this->Proj->Process_Map.end())
-                        Main::Error("PXXXX: Port '"+Prt->Process+"."+Prt->Name+"' refers to a nonexistent process.");
+                        Main::Error("XXXXX: Port '"+Prt->Process+"."+Prt->Name+"' refers to a nonexistent process.");
                     /* Check invocation existence */
                     if(Prc_Iter->second->Invocation_Map.find(Prt->Name)==Prc_Iter->second->Invocation_Map.end())
-                        Main::Error("PXXXX: Port '"+Prt->Process+"."+Prt->Name+"' refers to a nonexistent invocation socket.");
+                        Main::Error("XXXXX: Port '"+Prt->Process+"."+Prt->Name+"' refers to a nonexistent invocation socket.");
                 }
 
                 /* Check send references */
@@ -599,10 +599,10 @@ void Main::Reference_Check(void)
                     /* Check process existence */
                     Prc_Iter=this->Proj->Process_Map.find(Snd->Process);
                     if(Prc_Iter==this->Proj->Process_Map.end())
-                        Main::Error("PXXXX: Send endpoint '"+Snd->Process+"."+Snd->Name+"' refers to a nonexistent process.");
+                        Main::Error("XXXXX: Send endpoint '"+Snd->Process+"."+Snd->Name+"' refers to a nonexistent process.");
                     /* Check receive endpoint existence */
                     if(Prc_Iter->second->Receive_Map.find(Snd->Name)==Prc_Iter->second->Receive_Map.end())
-                        Main::Error("PXXXX: Send endpoint '"+Snd->Process+"."+Snd->Name+"' refers to a nonexistent receive endpoint.");
+                        Main::Error("XXXXX: Send endpoint '"+Snd->Process+"."+Snd->Name+"' refers to a nonexistent receive endpoint.");
                 }
 
                 /* Check vector references */
@@ -610,16 +610,16 @@ void Main::Reference_Check(void)
                 {
                     Vect_Iter=this->Chip->Vector_Map.find(Vct->Name);
                     if(Vect_Iter==this->Chip->Vector_Map.end())
-                        Main::Error("PXXXX: Vector '"+Vct->Name+"' refers to a nonexistent vector.");
+                        Main::Error("XXXXX: Vector '"+Vct->Name+"' refers to a nonexistent vector.");
                     if(Vect_Iter->second->Number!=Vct->Number)
-                        Main::Error("PXXXX: Vector '"+Vct->Name+"' contains a wrong vector number.");
+                        Main::Error("XXXXX: Vector '"+Vct->Name+"' contains a wrong vector number.");
                 }
 
                 /* Check kernel function ranges */
                 for(std::unique_ptr<class Kfunc>& Kfn:Prc->Kfunc)
                 {
                     if(Kfn->End>=this->Plat->Kfunc_Max)
-                        Main::Error("PXXXX: Kernel function '%s' number range exceeded the platform limit %lld.",
+                        Main::Error("XXXXX: Kernel function '%s' number range exceeded the platform limit %lld.",
                                     Kfn->Name.c_str(),this->Plat->Kfunc_Max);
                 }
             }
@@ -701,13 +701,13 @@ void Main::Setup(void)
                      std::make_tuple(this->Proj->Kernel->Buildsystem,
                                      this->Proj->Kernel->Toolchain,
                                      "Native"))==List.end())
-            Main::Error("PXXXX: Kernel buildsystem and toolchain is incompatible with the platform.");
+            Main::Error("XXXXX: Kernel buildsystem and toolchain is incompatible with the platform.");
         /* Check monitor */
         if(std::find(List.begin(),List.end(),
                      std::make_tuple(this->Proj->Monitor->Buildsystem,
                                      this->Proj->Monitor->Toolchain,
                                      "Native"))==List.end())
-            Main::Error("PXXXX: Monitor buildsystem and toolchain is incompatible with the platform.");
+            Main::Error("XXXXX: Monitor buildsystem and toolchain is incompatible with the platform.");
         /* Check each process */
         for(std::unique_ptr<class Process>& Prc:this->Proj->Process)
         {
@@ -719,7 +719,7 @@ void Main::Setup(void)
                                  std::make_tuple(Prc->Buildsystem,
                                                  Prc->Toolchain,
                                                  "Native"))==List.end())
-                        Main::Error("PXXXX: Process buildsystem and toolchain is incompatible with the platform.");
+                        Main::Error("XXXXX: Process buildsystem and toolchain is incompatible with the platform.");
                 }
                 else
                 {
@@ -727,7 +727,7 @@ void Main::Setup(void)
                                  std::make_tuple(Prc->Buildsystem,
                                                  Prc->Toolchain,
                                                  static_cast<class Virtual*>(Prc.get())->Guest_Type))==List.end())
-                        Main::Error("PXXXX: Virtual machine buildsystem and toolchain is incompatible with the platform and guest OS.");
+                        Main::Error("XXXXX: Virtual machine buildsystem and toolchain is incompatible with the platform and guest OS.");
                 }
             }
             catch(std::exception& Exc)
@@ -832,9 +832,9 @@ void Main::Code_Alloc(void)
 
         /* Now populate the system sections - must be continuous */
         if(this->Proj->Kernel->Code->Static_Fit(this->Proj->Memory_Code)!=0)
-            throw std::runtime_error("M0001: Kernel code section is invalid, either wrong range or wrong attribute.");
+            throw std::runtime_error("XXXXX: Kernel code section is invalid, either wrong range or wrong attribute.");
         if(this->Proj->Monitor->Code->Static_Fit(this->Proj->Memory_Code)!=0)
-            throw std::runtime_error("M0002: Monitor code section is invalid, either wrong range or wrong attribute.");
+            throw std::runtime_error("XXXXX: Monitor code section is invalid, either wrong range or wrong attribute.");
 
         /* Fit all static shared memory regions, and leave the automatic ones for later */
         try
@@ -845,7 +845,7 @@ void Main::Code_Alloc(void)
                 if(Mem->Base!=MEM_AUTO)
                 {
                     if(Mem->Static_Fit(this->Proj->Memory_Code)!=0)
-                        Main::Error(std::string("M0003: Code memory '")+Mem->Name+"' is invalid, either wrong range or wrong attribute.");
+                        Main::Error(std::string("XXXXX: Code memory '")+Mem->Name+"' is invalid, either wrong range or wrong attribute.");
                 }
                 else
                     Auto.push_back(Mem);
@@ -867,7 +867,7 @@ void Main::Code_Alloc(void)
                     if(Mem->Base!=MEM_AUTO)
                     {
                         if(Mem->Static_Fit(this->Proj->Memory_Code)!=0)
-                            Main::Error(std::string("M0003: Code memory '")+Mem->Name+"' is invalid, either wrong range or wrong attribute.");
+                            Main::Error(std::string("XXXXX: Code memory '")+Mem->Name+"' is invalid, either wrong range or wrong attribute.");
                     }
                     else
                         Auto.push_back(Mem);
@@ -890,7 +890,7 @@ void Main::Code_Alloc(void)
         for(class Mem_Info* Mem:Auto)
         {
             if(Mem->Auto_Fit(this->Proj->Memory_Code)!=0)
-                Main::Error(std::string("M0004: Code memory fitter failed for automatic memory '")+Mem->Name+"'.");
+                Main::Error(std::string("XXXXX: Code memory fitter failed for automatic memory '")+Mem->Name+"'.");
             if(Mem->Name=="")
                 Main::Info("> Allocated code memory size 0x%0llX to base address 0x%0llX.",Mem->Size,Mem->Base);
             else
@@ -942,7 +942,7 @@ void Main::Data_Alloc(void)
                 if(Mem->Base!=MEM_AUTO)
                 {
                     if(Mem->Static_Fit(this->Proj->Memory_Data)!=0)
-                        Main::Error(std::string("M0003: Data memory '")+Mem->Name+"' is invalid, either wrong range or wrong attribute.");
+                        Main::Error(std::string("XXXXX: Data memory '")+Mem->Name+"' is invalid, either wrong range or wrong attribute.");
                 }
                 else
                     Auto.push_back(Mem);
@@ -964,7 +964,7 @@ void Main::Data_Alloc(void)
                     if(Mem->Base!=MEM_AUTO)
                     {
                         if(Mem->Static_Fit(this->Proj->Memory_Data)!=0)
-                            Main::Error(std::string("M0003: Data memory '")+Mem->Name+"' is invalid, either wrong range or wrong attribute.");
+                            Main::Error(std::string("XXXXX: Data memory '")+Mem->Name+"' is invalid, either wrong range or wrong attribute.");
                     }
                     else
                         Auto.push_back(Mem);
@@ -987,7 +987,7 @@ void Main::Data_Alloc(void)
         for(class Mem_Info* Mem:Auto)
         {
             if(Mem->Auto_Fit(this->Proj->Memory_Data)!=0)
-                Main::Error(std::string("M0004: Data memory fitter failed for automatic memory '")+Mem->Name+"'.");
+                Main::Error(std::string("XXXXX: Data memory fitter failed for automatic memory '")+Mem->Name+"'.");
             Main::Info("> Allocated data memory '%s' size 0x%0llX to base address 0x%0llX.",Mem->Name.c_str(),Mem->Size,Mem->Base);
         }
     }
@@ -1027,7 +1027,7 @@ void Main::Device_Alloc(void)
                 /* Device memory can't be auto */
                 ASSERT(Mem->Base!=MEM_AUTO);
                 if(Mem->Static_Fit(this->Proj->Memory_Device)!=0)
-                    Main::Error(std::string("M0003: Device memory '")+Mem->Name+"' is invalid, either wrong range or wrong attribute.");
+                    Main::Error(std::string("XXXXX: Device memory '")+Mem->Name+"' is invalid, either wrong range or wrong attribute.");
             }
         }
         catch(std::exception& Exc)
@@ -1045,7 +1045,7 @@ void Main::Device_Alloc(void)
                     /* Device memory can't be auto */
                     ASSERT(Mem->Base!=MEM_AUTO);
                     if(Mem->Static_Fit(this->Proj->Memory_Device)!=0)
-                        Main::Error(std::string("M0003: Device memory '")+Mem->Name+"' is invalid, either wrong range or wrong attribute.");
+                        Main::Error(std::string("XXXXX: Device memory '")+Mem->Name+"' is invalid, either wrong range or wrong attribute.");
                 }
             }
             catch(std::exception& Exc)
@@ -1481,7 +1481,7 @@ void Main::Kom_Alloc(ptr_t Init_Capsz)
     this->Proj->Monitor->Captbl_Size=this->Proj->Monitor->Extra_Captbl+this->Proj->Monitor->After_Cap_Front;
     if(this->Proj->Monitor->Captbl_Size>this->Plat->Captbl_Max)
     {
-        Main::Error("M2000: Monitor capability table size %lld exceeded the architectural limit %lld.",
+        Main::Error("XXXXX: Monitor capability table size %lld exceeded the architectural limit %lld.",
                     this->Proj->Monitor->Captbl_Size,this->Plat->Captbl_Max);
     }
 }
@@ -1766,7 +1766,7 @@ Return      : None.
             if(strcmp(argv[Count],"-i")==0)
             {
                 if(this->Input!="")
-                    Main::Error("C0001: More than one input file specified.");
+                    Main::Error("XXXXX: More than one input file specified.");
                 this->Input=argv[Count+1];
                 Count+=2;
             }
@@ -1778,15 +1778,15 @@ Return      : None.
                 Count+=1;
             }
             else
-                Main::Error("C0004: Unrecognized command line argument.");
+                Main::Error("XXXXX: Unrecognized command line argument.");
         }
 
         if(this->Input=="")
-            Main::Error("C0005: No input file specified.");
+            Main::Error("XXXXX: No input file specified.");
 
         this->Buffer=(char*)malloc(MAX_FILE_SIZE);
         if(this->Buffer==nullptr)
-            Main::Error(std::string("T0000: File buffer allocation failure."));
+            Main::Error(std::string("XXXXX: File buffer allocation failure."));
 
         /* Read current time */
         time(&Time_Value);

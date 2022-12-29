@@ -122,7 +122,7 @@ void Monitor::Mem_Alloc(ptr_t Kom_Order)
     this->Init_Stack_Base=this->Data_Base+this->Data_Size-this->Init_Stack_Size;
     Main::Info("> Init stack base 0x%llX size 0x%llX.", this->Init_Stack_Base, this->Init_Stack_Size);
     if(this->Init_Stack_Base<=this->Data_Base)
-        Main::Error("M2200: Monitor data section is not big enough, unable to allocate init thread stack.");
+        Main::Error("XXXXX: Monitor data section is not big enough, unable to allocate init thread stack.");
     this->Data_Size=this->Init_Stack_Base-this->Data_Base;
 
     /* Safety daemon stack section - cut out from the data section */
@@ -130,7 +130,7 @@ void Monitor::Mem_Alloc(ptr_t Kom_Order)
     this->Sftd_Stack_Base=this->Data_Base+this->Data_Size-this->Sftd_Stack_Size;
     Main::Info("> Sftd stack base 0x%llX size 0x%llX.", this->Sftd_Stack_Base, this->Sftd_Stack_Size);
     if(this->Sftd_Stack_Base<=this->Data_Base)
-        Main::Error("M2201: Monitor data section is not big enough, unable to allocate safety daemon thread stack.");
+        Main::Error("XXXXX: Monitor data section is not big enough, unable to allocate safety daemon thread stack.");
     this->Data_Size=this->Sftd_Stack_Base-this->Data_Base;
 
     /* Only do these when we are using the virtual machine portion */
@@ -141,7 +141,7 @@ void Monitor::Mem_Alloc(ptr_t Kom_Order)
         this->Vmmd_Stack_Base=this->Data_Base+this->Data_Size-this->Vmmd_Stack_Size;
         Main::Info("> Vmmd stack base 0x%llX size 0x%llX.", this->Vmmd_Stack_Base, this->Vmmd_Stack_Size);
         if(this->Vmmd_Stack_Base<=this->Data_Base)
-            Main::Error("M2202: RVM data section is not big enough, unable to allocate virtual machine monitor daemon thread stack.");
+            Main::Error("XXXXX: Monitor data section is not big enough, unable to allocate virtual machine monitor daemon thread stack.");
         this->Data_Size=this->Vmmd_Stack_Base-this->Data_Base;
 
         /* Vector daemon stack section - cut out from the data section */
@@ -149,7 +149,7 @@ void Monitor::Mem_Alloc(ptr_t Kom_Order)
         this->Vctd_Stack_Base=this->Data_Base+this->Data_Size-this->Vctd_Stack_Size;
         Main::Info("> Vctd stack base 0x%llX size 0x%llX.", this->Vctd_Stack_Base, this->Vctd_Stack_Size);
         if(this->Vctd_Stack_Base<=this->Data_Base)
-            Main::Error("M2203: RVM data section is not big enough, unable to allocate vector handling daemon stack.");
+            Main::Error("XXXXX: Monitor data section is not big enough, unable to allocate vector handling daemon stack.");
         this->Data_Size=this->Vctd_Stack_Base-this->Data_Base;
 
         /* Timer stack section - cut out from the data section */
@@ -157,7 +157,7 @@ void Monitor::Mem_Alloc(ptr_t Kom_Order)
         this->Timd_Stack_Base=this->Data_Base+this->Data_Size-this->Timd_Stack_Size;
         Main::Info("> Timd stack base 0x%llX size 0x%llX.", this->Timd_Stack_Base, this->Timd_Stack_Size);
         if(this->Timd_Stack_Base<=this->Data_Base)
-            Main::Error("M2204: RVM data section is not big enough, unable to allocate timer handling thread stack.");
+            Main::Error("XXXXX: Monitor data section is not big enough, unable to allocate timer handling thread stack.");
         this->Data_Size=this->Timd_Stack_Base-this->Data_Base;
     }
     else

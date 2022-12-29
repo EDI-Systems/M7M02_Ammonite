@@ -122,7 +122,7 @@ void Kernel::Mem_Alloc(ptr_t Kom_Front, ptr_t Vector_Num, ptr_t Event_Num, ptr_t
     this->Vctf_Base=this->Data_Base+this->Data_Size-this->Vctf_Size;
     Main::Info("> Vector flag base 0x%llX size 0x%llX.", this->Vctf_Base, this->Vctf_Size);
     if(this->Vctf_Base<=this->Data_Base)
-        Main::Error("M2100: Kernel data section is not big enough, unable to allocate vector flags.");
+        Main::Error("XXXXX: Kernel data section is not big enough, unable to allocate vector flags.");
     this->Data_Size=this->Vctf_Base-this->Data_Base;
 
     /* Event flag section - cut out from the data section */
@@ -130,7 +130,7 @@ void Kernel::Mem_Alloc(ptr_t Kom_Front, ptr_t Vector_Num, ptr_t Event_Num, ptr_t
     this->Evtf_Base=this->Data_Base+this->Data_Size-this->Evtf_Size;
     Main::Info("> Event flag base 0x%llX size 0x%llX.", this->Evtf_Base, this->Evtf_Size);
     if(this->Evtf_Base<=this->Data_Base)
-        Main::Error("M2101: Kernel data section is not big enough, unable to allocate event flags.");
+        Main::Error("XXXXX: Kernel data section is not big enough, unable to allocate event flags.");
     this->Data_Size=this->Evtf_Base-this->Data_Base;
 
     /* Stack section - cut out from the data section */
@@ -138,7 +138,7 @@ void Kernel::Mem_Alloc(ptr_t Kom_Front, ptr_t Vector_Num, ptr_t Event_Num, ptr_t
     this->Stack_Base=this->Data_Base+this->Data_Size-this->Stack_Size;
     Main::Info("> Stack base 0x%llX size 0x%llX.", this->Stack_Base, this->Stack_Size);
     if(this->Stack_Base<=this->Data_Base)
-        Main::Error("M2102: Kernel data section is not big enough, unable to allocate kernel stack.");
+        Main::Error("XXXXX: Kernel data section is not big enough, unable to allocate kernel stack.");
     this->Data_Size=this->Stack_Base-this->Data_Base;
 
     /* Kernel memory section - cut out from the data section - alignment order at least 6 */
@@ -153,7 +153,7 @@ void Kernel::Mem_Alloc(ptr_t Kom_Front, ptr_t Vector_Num, ptr_t Event_Num, ptr_t
     this->Kom_Base=ROUND_DOWN_POW2(this->Kom_Base, Real_Kom_Order);
     Main::Info("> Kom base 0x%llX size 0x%llX.", this->Kom_Base, this->Kom_Size);
     if(this->Kom_Base<=this->Data_Base)
-        Main::Error("M2103: Kernel data section is not big enough, unable to allocate kernel object memory.");
+        Main::Error("XXXXX: Kernel data section is not big enough, unable to allocate kernel object memory.");
 
     /* Kernel data section - whatever is left */
     this->Data_Size=this->Kom_Base-this->Data_Base;

@@ -98,21 +98,21 @@ Description : The header of guest user level low-level library.
 #define RVM_CPT_WORD_SIZE(NUM)                      (((rvm_ptr_t)(NUM))<<3)
 
 /* Rounded size of each object */
-#define RVM_ROUNDED(X)                              RVM_ROUND_UP(((rvm_ptr_t)(X))*sizeof(rvm_ptr_t),RVM_KOM_SLOT_ORDER)
+#define RVM_KOM_ROUND(X)                            RVM_ROUND_UP((((rvm_ptr_t)(X))*sizeof(rvm_ptr_t)),RVM_KOM_SLOT_ORDER)
 /* Capability table */
-#define RVM_CPT_SIZE(NUM)                           RVM_ROUNDED(RVM_CPT_WORD_SIZE(NUM))
+#define RVM_CPT_SIZE(NUM)                           RVM_KOM_ROUND(RVM_CPT_WORD_SIZE(NUM))
 /* Normal page directory */
-#define RVM_PGT_SIZE_NOM(NUM_ORDER)                 RVM_ROUNDED(RVM_PGT_WORD_SIZE_NOM(NUM_ORDER))
+#define RVM_PGT_SIZE_NOM(NUM_ORDER)                 RVM_KOM_ROUND(RVM_PGT_WORD_SIZE_NOM(NUM_ORDER))
 /* Top-level page directory */
-#define RVM_PGT_SIZE_TOP(NUM_ORDER)                 RVM_ROUNDED(RVM_PGT_WORD_SIZE_TOP(NUM_ORDER))
+#define RVM_PGT_SIZE_TOP(NUM_ORDER)                 RVM_KOM_ROUND(RVM_PGT_WORD_SIZE_TOP(NUM_ORDER))
 /* Process */
-#define RVM_PRC_SIZE                                RVM_ROUNDED(RVM_PRC_WORD_SIZE)
+#define RVM_PRC_SIZE                                RVM_KOM_ROUND(RVM_PRC_WORD_SIZE)
 /* Thread */
-#define RVM_THD_SIZE                                RVM_ROUNDED(RVM_THD_WORD_SIZE)
+#define RVM_THD_SIZE                                RVM_KOM_ROUND(RVM_THD_WORD_SIZE)
 /* Signal */                           
-#define RVM_SIG_SIZE                                RVM_ROUNDED(RVM_SIG_WORD_SIZE)
+#define RVM_SIG_SIZE                                RVM_KOM_ROUND(RVM_SIG_WORD_SIZE)
 /* Invocation */
-#define RVM_INV_SIZE                                RVM_ROUNDED(RVM_INV_WORD_SIZE)
+#define RVM_INV_SIZE                                RVM_KOM_ROUND(RVM_INV_WORD_SIZE)
 
 /* Round the kernel object size to the entry slot size */
 #define RVM_KOTBL_ROUND(X)                          RVM_ROUND_UP(X,RVM_KOM_SLOT_ORDER)
