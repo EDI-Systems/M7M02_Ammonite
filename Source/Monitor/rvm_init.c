@@ -79,7 +79,7 @@ rvm_ptr_t RVM_Boot_Main_Crt(const struct RVM_Meta_Main_Struct* Meta,
                                Meta[Count].Slot,
                                Cur_Addr,
                                Meta[Count].Size)==0);
-        RVM_DBG_S("Init:Main capability table '");
+        RVM_DBG_S("Init: Main capability table '");
         RVM_DBG_I(Meta[Count].Slot);
         RVM_DBG_S("' @ 0x");
         RVM_DBG_H(Cur_Addr);
@@ -106,7 +106,7 @@ void RVM_Boot_Vep_Crt(void)
     Cur_Addr=RVM_BOOT_VEP_BEFORE;
     
     RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
-    RVM_DBG_S("Init:Creating VM endpoints.\r\n");
+    RVM_DBG_S("Init: Creating VM endpoints.\r\n");
     
     /* Create the main capability tables first */
     Cur_Addr=RVM_Boot_Main_Crt(RVM_Meta_Vep_Main, RVM_BOOT_VEP_MAIN_NUM, Cur_Addr);
@@ -117,7 +117,7 @@ void RVM_Boot_Vep_Crt(void)
         RVM_ASSERT(RVM_Sig_Crt(RVM_Meta_Vep_Crt[Count].Main,
                                RVM_Meta_Vep_Crt[Count].Slot)==0U);
         
-        RVM_DBG_S("Init:VM endpoint '");
+        RVM_DBG_S("Init: VM endpoint '");
         RVM_DBG_I(RVM_Meta_Vep_Crt[Count].Main);
         RVM_DBG_S(",");
         RVM_DBG_I(RVM_Meta_Vep_Crt[Count].Slot);
@@ -143,7 +143,7 @@ void RVM_Boot_Cpt_Crt(void)
     Cur_Addr=RVM_BOOT_CPT_BEFORE;
     
     RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
-    RVM_DBG_S("Init:Creating capability tables.\r\n");
+    RVM_DBG_S("Init: Creating capability tables.\r\n");
     
     /* Create the main capability tables first */
     Cur_Addr=RVM_Boot_Main_Crt(RVM_Meta_Cpt_Main, RVM_BOOT_CPT_MAIN_NUM, Cur_Addr);
@@ -157,7 +157,7 @@ void RVM_Boot_Cpt_Crt(void)
                                Cur_Addr,
                                RVM_Meta_Cpt_Crt[Count].Size)==0U);
         
-        RVM_DBG_S("Init:Capability table '");
+        RVM_DBG_S("Init: Capability table '");
         RVM_DBG_I(RVM_Meta_Cpt_Crt[Count].Main);
         RVM_DBG_S(",");
         RVM_DBG_I(RVM_Meta_Cpt_Crt[Count].Slot);
@@ -186,7 +186,7 @@ void RVM_Boot_Pgt_Crt(void)
     Cur_Addr=RVM_BOOT_PGT_BEFORE;
     
     RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
-    RVM_DBG_S("Init:Creating page tables.\r\n");
+    RVM_DBG_S("Init: Creating page tables.\r\n");
     
 
     /* Create the main capability tables first */
@@ -204,7 +204,7 @@ void RVM_Boot_Pgt_Crt(void)
                                RVM_Meta_Pgt_Crt[Count].Size_Order,
                                RVM_Meta_Pgt_Crt[Count].Num_Order)==0);
         
-        RVM_DBG_S("Init:Page table '");
+        RVM_DBG_S("Init: Page table '");
         RVM_DBG_I(RVM_Meta_Pgt_Crt[Count].Main);
         RVM_DBG_S(",");
         RVM_DBG_I(RVM_Meta_Pgt_Crt[Count].Slot);
@@ -236,7 +236,7 @@ void RVM_Boot_Prc_Crt(void)
     Cur_Addr=RVM_BOOT_PRC_BEFORE;
     
     RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
-    RVM_DBG_S("Init:Creating processes.\r\n");
+    RVM_DBG_S("Init: Creating processes.\r\n");
     
     /* Create the main capability tables first */
     Cur_Addr=RVM_Boot_Main_Crt(RVM_Meta_Prc_Main, RVM_BOOT_PRC_MAIN_NUM, Cur_Addr);
@@ -249,7 +249,7 @@ void RVM_Boot_Prc_Crt(void)
                                RVM_Meta_Prc_Crt[Count].Cpt,
                                RVM_Meta_Prc_Crt[Count].Pgt)==0);
         
-        RVM_DBG_S("Init:Process '");
+        RVM_DBG_S("Init: Process '");
         RVM_DBG_I(RVM_Meta_Prc_Crt[Count].Main);
         RVM_DBG_S(",");
         RVM_DBG_I(RVM_Meta_Prc_Crt[Count].Slot);
@@ -274,7 +274,7 @@ void RVM_Boot_Thd_Crt(void)
     Cur_Addr=RVM_BOOT_THD_BEFORE;
     
     RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
-    RVM_DBG_S("Init:Creating threads.\r\n");
+    RVM_DBG_S("Init: Creating threads.\r\n");
     
     /* Create the main capability tables first */
     Cur_Addr=RVM_Boot_Main_Crt(RVM_Meta_Thd_Main, RVM_BOOT_THD_MAIN_NUM, Cur_Addr);
@@ -289,7 +289,7 @@ void RVM_Boot_Thd_Crt(void)
                                RVM_Meta_Thd_Crt[Count].Prio,
                                Cur_Addr)==0);
         
-        RVM_DBG_S("Init:Thread '");
+        RVM_DBG_S("Init: Thread '");
         RVM_DBG_I(RVM_Meta_Thd_Crt[Count].Main);
         RVM_DBG_S(",");
         RVM_DBG_I(RVM_Meta_Thd_Crt[Count].Slot);
@@ -319,7 +319,7 @@ void RVM_Boot_Inv_Crt(void)
     Cur_Addr=RVM_BOOT_INV_BEFORE;
     
     RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
-    RVM_DBG_S("Init:Creating invocations.\r\n");
+    RVM_DBG_S("Init: Creating invocations.\r\n");
     
     /* Create the main capability tables first */
     Cur_Addr=RVM_Boot_Main_Crt(RVM_Meta_Inv_Main, RVM_BOOT_INV_MAIN_NUM, Cur_Addr);
@@ -333,7 +333,7 @@ void RVM_Boot_Inv_Crt(void)
                                RVM_Meta_Inv_Crt[Count].Prc,
                                Cur_Addr)==0);
         
-        RVM_DBG_S("Init:Invocation '");
+        RVM_DBG_S("Init: Invocation '");
         RVM_DBG_I(RVM_Meta_Inv_Crt[Count].Main);
         RVM_DBG_S(",");
         RVM_DBG_I(RVM_Meta_Inv_Crt[Count].Slot);
@@ -364,7 +364,7 @@ void RVM_Boot_Rcv_Crt(void)
     Cur_Addr=RVM_BOOT_RCV_BEFORE;
     
     RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
-    RVM_DBG_S("Init:Creating receive endpoints.\r\n");
+    RVM_DBG_S("Init: Creating receive endpoints.\r\n");
     
     /* Create the main capability tables first */
     Cur_Addr=RVM_Boot_Main_Crt(RVM_Meta_Rcv_Main, RVM_BOOT_RCV_MAIN_NUM, Cur_Addr);
@@ -375,7 +375,7 @@ void RVM_Boot_Rcv_Crt(void)
         RVM_ASSERT(RVM_Sig_Crt(RVM_Meta_Rcv_Crt[Count].Main,
                                RVM_Meta_Rcv_Crt[Count].Slot)==0);
         
-        RVM_DBG_S("Init:Receive endpoint '");
+        RVM_DBG_S("Init: Receive endpoint '");
         RVM_DBG_I(RVM_Meta_Rcv_Crt[Count].Main);
         RVM_DBG_S(",");
         RVM_DBG_I(RVM_Meta_Rcv_Crt[Count].Slot);
@@ -399,7 +399,7 @@ void RVM_Boot_Vcap_Init(void)
     rvm_ptr_t Count;
 
     RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
-    RVM_DBG_S("Init:Initializing VM capability tables.\r\n");
+    RVM_DBG_S("Init: Initializing VM capability tables.\r\n");
 
     for(Count=0U;Count<RVM_BOOT_VCAP_INIT_NUM;Count++)
     {
@@ -407,7 +407,7 @@ void RVM_Boot_Vcap_Init(void)
         RVM_ASSERT(RVM_Cpt_Add(RVM_Meta_Vcap_Init[Count].Cpt,
                                0U,
                                RVM_BOOT_CPT,
-                               RVM_Vmmd_Sig_Cap,
+                               RVM_Hypd_Sig_Cap,
                                RVM_SIG_FLAG_SND)==0);
         
         RVM_ASSERT(RVM_Cpt_Add(RVM_Meta_Vcap_Init[Count].Cpt,
@@ -416,7 +416,7 @@ void RVM_Boot_Vcap_Init(void)
                                RVM_Meta_Vcap_Init[Count].Vep_Slot,
                                RVM_SIG_FLAG_SND|RVM_SIG_FLAG_RCV)==0);
         
-        RVM_DBG_S("Init:VM send endpoints to captbl '0x");
+        RVM_DBG_S("Init: VM send endpoints to captbl '0x");
         RVM_DBG_H(RVM_Meta_Vcap_Init[Count].Cpt);
         RVM_DBG_S("' at position 0 and 1.\r\n"); 
     }
@@ -435,7 +435,7 @@ void RVM_Boot_Cpt_Init(void)
     rvm_ptr_t Count;
     
     RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
-    RVM_DBG_S("Init:Initializing process capability tables.\r\n");
+    RVM_DBG_S("Init: Initializing process capability tables.\r\n");
 
 #if(RVM_BOOT_CPT_INIT_NUM!=0U)
     for(Count=0U;Count<RVM_BOOT_CPT_INIT_NUM;Count++)
@@ -446,7 +446,7 @@ void RVM_Boot_Cpt_Init(void)
                                RVM_Meta_Cpt_Init[Count].Pos_Src,
                                RVM_Meta_Cpt_Init[Count].Flag)==0);
         
-        RVM_DBG_S("Init:Cap to '0x");
+        RVM_DBG_S("Init: Cap to '0x");
         RVM_DBG_H(RVM_Meta_Cpt_Init[Count].Dst);
         RVM_DBG_S("' position '");
         RVM_DBG_I(RVM_Meta_Cpt_Init[Count].Pos_Dst);
@@ -468,7 +468,7 @@ void RVM_Boot_Cpt_Init(void)
                                RVM_Meta_Cpt_Kfn[Count].Start,
                                RVM_Meta_Cpt_Kfn[Count].End)==0);
         
-        RVM_DBG_S("Init:Kfunc to '0x");
+        RVM_DBG_S("Init: Kfunc to '0x");
         RVM_DBG_H(RVM_Meta_Cpt_Kfn[Count].Dst);
         RVM_DBG_S("' position '");
         RVM_DBG_I(RVM_Meta_Cpt_Kfn[Count].Pos_Dst);
@@ -489,7 +489,7 @@ void RVM_Boot_Pgt_Init(void)
     rvm_ptr_t Count;
 
     RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
-    RVM_DBG_S("Init:Initializing page tables.\r\n");
+    RVM_DBG_S("Init: Initializing page tables.\r\n");
 
 #if(RVM_BOOT_PGT_CON_NUM!=0U)
     /* Construct tree */
@@ -500,7 +500,7 @@ void RVM_Boot_Pgt_Init(void)
                                RVM_Meta_Pgt_Con[Count].Child,
                                RVM_PGT_ALL_PERM)==0);
         
-        RVM_DBG_S("Init:Constructed child '0x");
+        RVM_DBG_S("Init: Constructed child '0x");
         RVM_DBG_H(RVM_Meta_Pgt_Con[Count].Child);
         RVM_DBG_S("' into parent '0x");
         RVM_DBG_H(RVM_Meta_Pgt_Con[Count].Parent);
@@ -520,7 +520,7 @@ void RVM_Boot_Pgt_Init(void)
                                RVM_Meta_Pgt_Add[Count].Pos_Src,
                                RVM_Meta_Pgt_Add[Count].Index)==0);
         
-        RVM_DBG_S("Init:Added page to table '0x");
+        RVM_DBG_S("Init: Added page to table '0x");
         RVM_DBG_H(RVM_Meta_Pgt_Add[Count].Pgt_Dst);
         RVM_DBG_S("' position '0x");
         RVM_DBG_H(RVM_Meta_Pgt_Add[Count].Pos_Dst);
@@ -547,7 +547,7 @@ void RVM_Boot_Thd_Init(void)
     rvm_ptr_t Init_Stack_Addr;
 
     RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
-    RVM_DBG_S("Init:Initializing threads.\r\n");
+    RVM_DBG_S("Init: Initializing threads.\r\n");
     
     for(Count=0U;Count<RVM_BOOT_THD_INIT_NUM;Count++)
     {
@@ -585,9 +585,9 @@ void RVM_Boot_Thd_Init(void)
                                      RVM_THD_INF_TIME)==RVM_THD_INF_TIME);
         
         if(RVM_Meta_Thd_Init[Count].Marker!=0U)
-            RVM_DBG_S("Init:VM thread '0x");
+            RVM_DBG_S("Init: VM thread '0x");
         else
-            RVM_DBG_S("Init:Thread '0x");
+            RVM_DBG_S("Init: Thread '0x");
         RVM_DBG_H(RVM_Meta_Thd_Init[Count].Thd);
         RVM_DBG_S("' desc 0x");
         RVM_DBG_H(RVM_Meta_Thd_Init[Count].Desc_Slot);
@@ -617,7 +617,7 @@ void RVM_Boot_Inv_Init(void)
     rvm_ptr_t Init_Stack_Addr;
 
     RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
-    RVM_DBG_S("Init:Initializing invocations.\r\n");
+    RVM_DBG_S("Init: Initializing invocations.\r\n");
     
     for(Count=0U;Count<RVM_BOOT_INV_INIT_NUM;Count++)
     {
@@ -635,7 +635,7 @@ void RVM_Boot_Inv_Init(void)
                                Init_Stack_Addr,
                                1U)==0);
 
-        RVM_DBG_S("Init:Invocation '0x");
+        RVM_DBG_S("Init: Invocation '0x");
         RVM_DBG_H(RVM_Meta_Inv_Init[Count].Inv);
         RVM_DBG_S("' desc 0x");
         RVM_DBG_H(RVM_Meta_Inv_Init[Count].Desc_Slot);
@@ -730,19 +730,19 @@ void RVM_Daemon_Init(rvm_cid_t Cap_Base,
     /* Safety daemon initialization - highest priority as always */
     RVM_Sftd_Sig_Cap=Cap_Front++;
     RVM_ASSERT(RVM_Sig_Crt(RVM_BOOT_CPT, RVM_Sftd_Sig_Cap)==0);
-    RVM_DBG_SIS("Init:Created safety daemon fault endpoint '",RVM_Sftd_Sig_Cap,"'.\r\n");
+    RVM_DBG_SIS("Init: Created safety daemon fault endpoint '",RVM_Sftd_Sig_Cap,"'.\r\n");
     
     RVM_Sftd_Thd_Cap=Cap_Front++;
     RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_CPT, RVM_BOOT_INIT_KOM, RVM_Sftd_Thd_Cap,
                            RVM_BOOT_INIT_PRC, RVM_SFTD_PRIO, Kom_Front)>=0);
-    RVM_DBG_SISHS("Init:Created safety daemon '",RVM_Sftd_Thd_Cap,"' @ 0x",Kom_Front,".\r\n");
+    RVM_DBG_SISHS("Init: Created safety daemon '",RVM_Sftd_Thd_Cap,"' @ 0x",Kom_Front,".\r\n");
     Kom_Front+=RVM_THD_SIZE;
     
     RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Sftd_Thd_Cap, RVM_BOOT_INIT_THD, RVM_Sftd_Sig_Cap, RVM_Sftd_Thd_Cap, RVM_PREEMPT_PRIO_NUM-1U)==0);
     RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Sftd_Thd_Cap, (rvm_ptr_t)RVM_Sftd, 
                                 RVM_Stack_Init(RVM_SFTD_STACK_BASE, RVM_SFTD_STACK_SIZE,
                                                (rvm_ptr_t)RVM_Sftd, (rvm_ptr_t)_RVM_Jmp_Stub),0U)==0);
-    RVM_DBG_S("Init:Safety daemon initialization complete.\r\n");
+    RVM_DBG_S("Init: Safety daemon initialization complete.\r\n");
 
     /* Don't bother boot these daemons if we do not have virtual machines installed at all */
 #if(RVM_VIRT_NUM!=0U)
@@ -750,44 +750,44 @@ void RVM_Daemon_Init(rvm_cid_t Cap_Base,
     RVM_Timd_Thd_Cap=Cap_Front++;
     RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_CPT, RVM_BOOT_INIT_KOM, RVM_Timd_Thd_Cap,
                            RVM_BOOT_INIT_PRC, RVM_TIMD_PRIO, Kom_Front)>=0);
-    RVM_DBG_SISHS("Init:Created timer daemon '",RVM_Timd_Thd_Cap,"' @ 0x",Kom_Front,".\r\n");
+    RVM_DBG_SISHS("Init: Created timer daemon '",RVM_Timd_Thd_Cap,"' @ 0x",Kom_Front,".\r\n");
     Kom_Front+=RVM_THD_SIZE;
     
     RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Timd_Thd_Cap, RVM_Sftd_Thd_Cap, RVM_Sftd_Sig_Cap, RVM_Timd_Thd_Cap, RVM_TIMD_PRIO)==0);
     RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Timd_Thd_Cap, (rvm_ptr_t)RVM_Timd, 
                                 RVM_Stack_Init(RVM_TIMD_STACK_BASE, RVM_TIMD_STACK_SIZE,
                                                (rvm_ptr_t)RVM_Timd, (rvm_ptr_t)_RVM_Jmp_Stub),0)==0);
-    RVM_DBG_S("Init:Timer daemon initialization complete.\r\n");
+    RVM_DBG_S("Init: Timer daemon initialization complete.\r\n");
 
     /* VMM daemon initialization - main priority */
-    RVM_Vmmd_Sig_Cap=Cap_Front++;
-    RVM_ASSERT(RVM_Sig_Crt(RVM_BOOT_CPT, RVM_Vmmd_Sig_Cap)==0);
-    RVM_DBG_SIS("Init:Created virtual machine monitor endpoint '",RVM_Vmmd_Sig_Cap,"'.\r\n");
+    RVM_Hypd_Sig_Cap=Cap_Front++;
+    RVM_ASSERT(RVM_Sig_Crt(RVM_BOOT_CPT, RVM_Hypd_Sig_Cap)==0);
+    RVM_DBG_SIS("Init: Created virtual machine monitor endpoint '",RVM_Hypd_Sig_Cap,"'.\r\n");
     
-    RVM_Vmmd_Thd_Cap=Cap_Front++;
-    RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_CPT, RVM_BOOT_INIT_KOM, RVM_Vmmd_Thd_Cap,
+    RVM_Hypd_Thd_Cap=Cap_Front++;
+    RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_CPT, RVM_BOOT_INIT_KOM, RVM_Hypd_Thd_Cap,
                            RVM_BOOT_INIT_PRC, RVM_VMMD_PRIO, Kom_Front)>=0);
-    RVM_DBG_SISHS("Init:Created virtual machine monitor daemon '",RVM_Vmmd_Thd_Cap,"' @ 0x",Kom_Front,".\r\n");
+    RVM_DBG_SISHS("Init: Created virtual machine monitor daemon '",RVM_Hypd_Thd_Cap,"' @ 0x",Kom_Front,".\r\n");
     Kom_Front+=RVM_THD_SIZE;
     
-    RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Vmmd_Thd_Cap, RVM_Sftd_Thd_Cap, RVM_Sftd_Sig_Cap, RVM_Vmmd_Thd_Cap, RVM_VMMD_PRIO)==0);
-    RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Vmmd_Thd_Cap, (rvm_ptr_t)RVM_Vmmd, 
+    RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Hypd_Thd_Cap, RVM_Sftd_Thd_Cap, RVM_Sftd_Sig_Cap, RVM_Hypd_Thd_Cap, RVM_VMMD_PRIO)==0);
+    RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Hypd_Thd_Cap, (rvm_ptr_t)RVM_Hypd, 
                                 RVM_Stack_Init(RVM_VMMD_STACK_BASE, RVM_VMMD_STACK_SIZE,
-                                               (rvm_ptr_t)RVM_Vmmd, (rvm_ptr_t)_RVM_Jmp_Stub),0)==0);
-    RVM_DBG_S("Init:Virtual machine monitor daemon initialization complete.\r\n");
+                                               (rvm_ptr_t)RVM_Hypd, (rvm_ptr_t)_RVM_Jmp_Stub),0)==0);
+    RVM_DBG_S("Init: Virtual machine monitor daemon initialization complete.\r\n");
 
     /* Interrupt relaying daemon initialization - main priority */
     RVM_Vctd_Thd_Cap=Cap_Front++;
     RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_CPT, RVM_BOOT_INIT_KOM, RVM_Vctd_Thd_Cap,
                            RVM_BOOT_INIT_PRC, RVM_VCTD_PRIO, Kom_Front)>=0);
-    RVM_DBG_SISHS("Init:Created vector handling daemon '",RVM_Vctd_Thd_Cap,"' @ 0x",Kom_Front,".\r\n");
+    RVM_DBG_SISHS("Init: Created vector handling daemon '",RVM_Vctd_Thd_Cap,"' @ 0x",Kom_Front,".\r\n");
     Kom_Front+=RVM_THD_SIZE;
     
     RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Vctd_Thd_Cap, RVM_Sftd_Thd_Cap, RVM_Sftd_Sig_Cap, RVM_Vctd_Thd_Cap, RVM_VCTD_PRIO)==0);
     RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Vctd_Thd_Cap, (rvm_ptr_t)RVM_Vctd, 
                                 RVM_Stack_Init(RVM_VCTD_STACK_BASE, RVM_VCTD_STACK_SIZE,
                                                (rvm_ptr_t)RVM_Vctd, (rvm_ptr_t)_RVM_Jmp_Stub),0)==0);
-    RVM_DBG_S("Init:Vector handling daemon initialization complete.\r\n");
+    RVM_DBG_S("Init: Vector handling daemon initialization complete.\r\n");
 #endif
 }
 /* End Function:RVM_Daemon_Init **********************************************/
@@ -823,25 +823,25 @@ void RVM_Init(void)
 
     /* Raise our own priority to the top of the system */
     RVM_ASSERT(RVM_Thd_Sched_Prio(RVM_BOOT_INIT_THD, RVM_PREEMPT_PRIO_NUM-1U)==0);
-    RVM_DBG_S("Init:Preparation - priority raised.\r\n");
+    RVM_DBG_S("Init: Preparation - priority raised.\r\n");
     
     /* Initialize RVM database */
 #if(RVM_VIRT_NUM!=0U)
     RVM_Virt_Init();
 #endif
-    RVM_DBG_SHS("Init:Kernel object memory base @ 0x", RVM_KOM_VA_BASE, ".\r\n");
-    RVM_DBG_SHS("Init:Start creating kernel objects @ offset 0x", RVM_KOM_BOOT_FRONT, ".\r\n");
+    RVM_DBG_SHS("Init: Kernel object memory base @ 0x", RVM_KOM_VA_BASE, ".\r\n");
+    RVM_DBG_SHS("Init: Start creating kernel objects @ offset 0x", RVM_KOM_BOOT_FRONT, ".\r\n");
     
     /* Create the startup thread in the init process, because the init thread
      * cannot block. Bind that to the processor, and let it have infinite budget.
      * after this the task will be handled by this task, and we will never return
      * to init unless there is nothing to run */
     RVM_Daemon_Init(RVM_CAP_BOOT_FRONT, RVM_KOM_BOOT_FRONT);
-    RVM_DBG_S("Init:Daemon initialization done.\r\n");
+    RVM_DBG_S("Init: Daemon initialization done.\r\n");
     
     /* Initialize the virtual machine databases, and create whatever is needed */
     RVM_Prc_Init();
-    RVM_DBG_S("Init:Process initialization done.\r\n");
+    RVM_DBG_S("Init: Process initialization done.\r\n");
     RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
     
     /* Delegate timeslice to safety daemon, and make it work - we should stop here
@@ -850,13 +850,13 @@ void RVM_Init(void)
     RVM_ASSERT(RVM_Thd_Time_Xfer(RVM_Sftd_Thd_Cap, RVM_BOOT_INIT_THD, RVM_THD_INF_TIME)==RVM_THD_INF_TIME);
 #if(RVM_VIRT_NUM!=0U)
     RVM_ASSERT(RVM_Thd_Time_Xfer(RVM_Timd_Thd_Cap, RVM_BOOT_INIT_THD, RVM_THD_INF_TIME)==RVM_THD_INF_TIME);
-    RVM_ASSERT(RVM_Thd_Time_Xfer(RVM_Vmmd_Thd_Cap, RVM_BOOT_INIT_THD, RVM_THD_INF_TIME)==RVM_THD_INF_TIME);
+    RVM_ASSERT(RVM_Thd_Time_Xfer(RVM_Hypd_Thd_Cap, RVM_BOOT_INIT_THD, RVM_THD_INF_TIME)==RVM_THD_INF_TIME);
     RVM_ASSERT(RVM_Thd_Time_Xfer(RVM_Vctd_Thd_Cap, RVM_BOOT_INIT_THD, RVM_THD_INF_TIME)==RVM_THD_INF_TIME);
 #endif
-    RVM_DBG_S("Init:Daemon time budget initialization complete.\r\n");
+    RVM_DBG_S("Init: Daemon time budget initialization complete.\r\n");
     
     /* Put our priority to the lowest in system - this should get everything else running */
-    RVM_DBG_S("Init:Job finished - lowering priority.\r\n");
+    RVM_DBG_S("Init: Job finished - lowering priority.\r\n");
     RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
     RVM_ASSERT(RVM_Thd_Sched_Prio(RVM_BOOT_INIT_THD, RVM_INIT_PRIO)==0);
 

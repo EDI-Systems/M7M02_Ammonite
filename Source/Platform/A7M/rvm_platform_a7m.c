@@ -139,45 +139,45 @@ void RVM_Thd_Print_Exc(rvm_tid_t TID)
     Exc=Param[0];
     
     if((Exc&RVM_A7M_HFSR_DEBUGEVT)!=0U)
-        RVM_DBG_S("Sftd:Debug event.\r\n");
+        RVM_DBG_S("Sftd: Debug event.\r\n");
     if((Exc&RVM_A7M_HFSR_FORCED)!=0U)
-        RVM_DBG_S("Sftd:Configurable-priority exception escalated to HardFault.\r\n");
+        RVM_DBG_S("Sftd: Configurable-priority exception escalated to HardFault.\r\n");
     if((Exc&RVM_A7M_HFSR_VECTTBL)!=0U)
-        RVM_DBG_S("Sftd:Vector table read fault.\r\n");
+        RVM_DBG_S("Sftd: Vector table read fault.\r\n");
     if((Exc&RVM_A7M_UFSR_DIVBYZERO)!=0U)
-        RVM_DBG_S("Sftd:Divide by zero.\r\n");
+        RVM_DBG_S("Sftd: Divide by zero.\r\n");
     if((Exc&RVM_A7M_UFSR_UNALIGNED)!=0U)
-        RVM_DBG_S("Sftd:Unaligned load/store access.\r\n");
+        RVM_DBG_S("Sftd: Unaligned load/store access.\r\n");
     if((Exc&RVM_A7M_UFSR_NOCP)!=0U)
-        RVM_DBG_S("Sftd:No such coprocessor.\r\n");
+        RVM_DBG_S("Sftd: No such coprocessor.\r\n");
     if((Exc&RVM_A7M_UFSR_INVPC)!=0U)
-        RVM_DBG_S("Sftd:Invalid vector return LR or PC value.\r\n");
+        RVM_DBG_S("Sftd: Invalid vector return LR or PC value.\r\n");
     if((Exc&RVM_A7M_UFSR_INVSTATE)!=0U)
-        RVM_DBG_S("Sftd:Attempt to enter an invalid instruction set (ARM) state.\r\n");
+        RVM_DBG_S("Sftd: Attempt to enter an invalid instruction set (ARM) state.\r\n");
     if((Exc&RVM_A7M_UFSR_UNDEFINSTR)!=0U)
-        RVM_DBG_S("Sftd:Invalid IT or related instruction.\r\n");
+        RVM_DBG_S("Sftd: Invalid IT or related instruction.\r\n");
     if((Exc&RVM_A7M_BFSR_LSPERR)!=0U)
-        RVM_DBG_S("Sftd:Bus fault during FP lazy stacking.\r\n");
+        RVM_DBG_S("Sftd: Bus fault during FP lazy stacking.\r\n");
     if((Exc&RVM_A7M_BFSR_STKERR)!=0U)
-        RVM_DBG_S("Sftd:Derived bus fault on exception entry.\r\n");
+        RVM_DBG_S("Sftd: Derived bus fault on exception entry.\r\n");
     if((Exc&RVM_A7M_BFSR_UNSTKERR)!=0U)
-        RVM_DBG_S("Sftd:Derived bus fault on exception return.\r\n");
+        RVM_DBG_S("Sftd: Derived bus fault on exception return.\r\n");
     if((Exc&RVM_A7M_BFSR_IMPRECISERR)!=0U)
-        RVM_DBG_S("Sftd:Imprecise data access error.\r\n");
+        RVM_DBG_S("Sftd: Imprecise data access error.\r\n");
     if((Exc&RVM_A7M_BFSR_PRECISERR)!=0U)
-        RVM_DBG_S("Sftd:Precise data access error.\r\n");
+        RVM_DBG_S("Sftd: Precise data access error.\r\n");
     if((Exc&RVM_A7M_BFSR_IBUSERR)!=0U)
-        RVM_DBG_S("Sftd:Bus fault on instruction prefetch.\r\n");
+        RVM_DBG_S("Sftd: Bus fault on instruction prefetch.\r\n");
     if((Exc&RVM_A7M_MFSR_MLSPERR)!=0U)
-        RVM_DBG_S("Sftd:Memory management fault during FP lazy state preservation.\r\n");
+        RVM_DBG_S("Sftd: Memory management fault during FP lazy state preservation.\r\n");
     if((Exc&RVM_A7M_MFSR_MSTKERR)!=0U)
-        RVM_DBG_S("Sftd:Derived memory management fault on exception entry.\r\n");
+        RVM_DBG_S("Sftd: Derived memory management fault on exception entry.\r\n");
     if((Exc&RVM_A7M_MFSR_MUNSTKERR)!=0U)
-        RVM_DBG_S("Sftd:Derived memory management fault on exception return.\r\n");
+        RVM_DBG_S("Sftd: Derived memory management fault on exception return.\r\n");
     if((Exc&RVM_A7M_MFSR_DACCVIOL)!=0U)
-        RVM_DBG_S("Sftd:Data access violation.\r\n");
+        RVM_DBG_S("Sftd: Data access violation.\r\n");
     if((Exc&RVM_A7M_MFSR_IACCVIOL)!=0U)
-        RVM_DBG_S("Sftd:Instruction access violation.\r\n");
+        RVM_DBG_S("Sftd: Instruction access violation.\r\n");
 #endif
 }
 /* End Function:RVM_Thd_Print_Exc ********************************************/
@@ -200,63 +200,63 @@ rvm_ret_t RVM_Thd_Print_Reg(rvm_cid_t Cap_Thd)
                                RVM_KFN_DEBUG_REG_MOD,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
-    RVM_DBG_SHS("Sftd:R4:0x",Param[0],"\r\n");
+    RVM_DBG_SHS("Sftd: R4:0x",Param[0],"\r\n");
     
     Param[0]=RVM_A7M_KFN_DEBUG_REG_MOD_R5_GET;
     RVM_ASSERT(RVM_A7M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_REG_MOD,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
-    RVM_DBG_SHS("Sftd:R5:0x",Param[0],"\r\n");
+    RVM_DBG_SHS("Sftd: R5:0x",Param[0],"\r\n");
     
     Param[0]=RVM_A7M_KFN_DEBUG_REG_MOD_R6_GET;
     RVM_ASSERT(RVM_A7M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_REG_MOD,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
-    RVM_DBG_SHS("Sftd:R6:0x",Param[0],"\r\n");
+    RVM_DBG_SHS("Sftd: R6:0x",Param[0],"\r\n");
     
     Param[0]=RVM_A7M_KFN_DEBUG_REG_MOD_R7_GET;
     RVM_ASSERT(RVM_A7M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_REG_MOD,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
-    RVM_DBG_SHS("Sftd:R7:0x",Param[0],"\r\n");
+    RVM_DBG_SHS("Sftd: R7:0x",Param[0],"\r\n");
     
     Param[0]=RVM_A7M_KFN_DEBUG_REG_MOD_R8_GET;
     RVM_ASSERT(RVM_A7M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_REG_MOD,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
-    RVM_DBG_SHS("Sftd:R8:0x",Param[0],"\r\n");
+    RVM_DBG_SHS("Sftd: R8:0x",Param[0],"\r\n");
     
     Param[0]=RVM_A7M_KFN_DEBUG_REG_MOD_R9_GET;
     RVM_ASSERT(RVM_A7M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_REG_MOD,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
-    RVM_DBG_SHS("Sftd:R9:0x",Param[0],"\r\n");
+    RVM_DBG_SHS("Sftd: R9:0x",Param[0],"\r\n");
     
     Param[0]=RVM_A7M_KFN_DEBUG_REG_MOD_R10_GET;
     RVM_ASSERT(RVM_A7M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_REG_MOD,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
-    RVM_DBG_SHS("Sftd:R10:0x",Param[0],"\r\n");
+    RVM_DBG_SHS("Sftd: R10:0x",Param[0],"\r\n");
     
     Param[0]=RVM_A7M_KFN_DEBUG_REG_MOD_R11_GET;
     RVM_ASSERT(RVM_A7M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_REG_MOD,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
-    RVM_DBG_SHS("Sftd:R11:0x",Param[0],"\r\n");
+    RVM_DBG_SHS("Sftd: R11:0x",Param[0],"\r\n");
     
     Param[0]=RVM_A7M_KFN_DEBUG_REG_MOD_SP_GET;
     RVM_ASSERT(RVM_A7M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_REG_MOD,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
-    RVM_DBG_SHS("Sftd:SP:0x",Param[0],"\r\n");
+    RVM_DBG_SHS("Sftd: SP:0x",Param[0],"\r\n");
     Stack=(struct RVM_A7M_Ret_Stack*)Param[0];
     
     Param[0]=RVM_A7M_KFN_DEBUG_REG_MOD_LR_GET;
@@ -264,21 +264,21 @@ rvm_ret_t RVM_Thd_Print_Reg(rvm_cid_t Cap_Thd)
                                RVM_KFN_DEBUG_REG_MOD,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
-    RVM_DBG_SHS("Sftd:LR:0x",Param[0],"\r\n");
+    RVM_DBG_SHS("Sftd: LR:0x",Param[0],"\r\n");
 
     Param[0]=RVM_A7M_KFN_DEBUG_ERR_GET_CAUSE;
     RVM_ASSERT(RVM_A7M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_EXC_GET,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
-    RVM_DBG_SHS("Sftd:Cause:0x",Param[0],"\r\n");
+    RVM_DBG_SHS("Sftd: Cause:0x",Param[0],"\r\n");
     
     Param[0]=RVM_A7M_KFN_DEBUG_ERR_GET_ADDR;
     RVM_ASSERT(RVM_A7M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_EXC_GET,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
-    RVM_DBG_SHS("Sftd:Addr:0x",Param[0],"\r\n");
+    RVM_DBG_SHS("Sftd: Addr:0x",Param[0],"\r\n");
 
     /* We know where SP is, but we are not sure whether accessing SP in RVM
      * will cause issues. We assume that the user program will not fiddle
@@ -286,14 +286,14 @@ rvm_ret_t RVM_Thd_Print_Reg(rvm_cid_t Cap_Thd)
      * always print the stack trace, though this is quite dangerous. When 
      * developing products, this register printing function will be disabled
      * anyway and thus does not cause security breaches. */
-    RVM_DBG_SHS("Sftd:Stack-R0:0x",Stack->R0,"\r\n");
-    RVM_DBG_SHS("Sftd:Stack-R1:0x",Stack->R1,"\r\n");
-    RVM_DBG_SHS("Sftd:Stack-R2:0x",Stack->R2,"\r\n");
-    RVM_DBG_SHS("Sftd:Stack-R3:0x",Stack->R3,"\r\n");
-    RVM_DBG_SHS("Sftd:Stack-R12:0x",Stack->R12,"\r\n");
-    RVM_DBG_SHS("Sftd:Stack-LR:0x",Stack->LR,"\r\n");
-    RVM_DBG_SHS("Sftd:Stack-PC:0x",Stack->PC,"\r\n");
-    RVM_DBG_SHS("Sftd:Stack-XPSR:0x",Stack->XPSR,"\r\n");
+    RVM_DBG_SHS("Sftd: Stack-R0:0x",Stack->R0,"\r\n");
+    RVM_DBG_SHS("Sftd: Stack-R1:0x",Stack->R1,"\r\n");
+    RVM_DBG_SHS("Sftd: Stack-R2:0x",Stack->R2,"\r\n");
+    RVM_DBG_SHS("Sftd: Stack-R3:0x",Stack->R3,"\r\n");
+    RVM_DBG_SHS("Sftd: Stack-R12:0x",Stack->R12,"\r\n");
+    RVM_DBG_SHS("Sftd: Stack-LR:0x",Stack->LR,"\r\n");
+    RVM_DBG_SHS("Sftd: Stack-PC:0x",Stack->PC,"\r\n");
+    RVM_DBG_SHS("Sftd: Stack-XPSR:0x",Stack->XPSR,"\r\n");
     
 #endif
     return 0;

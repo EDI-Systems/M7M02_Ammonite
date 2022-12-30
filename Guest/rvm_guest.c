@@ -1321,8 +1321,8 @@ Return      : None.
 #ifdef RVM_VIRT_VCT_NUM
 void RVM_Virt_Init(void)
 {
-    /* Clear all VM-related flags and registration tables */
-    RVM_Int_Ena=0U;
+    /* Interrupt masked on boot, no vector pending */
+    RVM_Int_Mask=1U;
     RVM_Vct_Pend=0U;
     
     /* Clean up all shared global variables */
@@ -1379,7 +1379,7 @@ void RVM_Virt_Ctx_Reg(void (*Ctx)(void))
     RVM_Handler.Ctx=Ctx;
 }
 #endif
-/* End Function:RVM_Virt_Ctx_Reg *****&&**************************************/
+/* End Function:RVM_Virt_Ctx_Reg *********************************************/
 
 /* Begin Function:RVM_Virt_Int_Mask *******************************************
 Description : Mask interrupts; this does not stop the interrupt delivery, but will
@@ -1391,7 +1391,7 @@ Return      : None.
 #ifdef RVM_VIRT_VCT_NUM
 void RVM_Virt_Int_Mask(void)
 {
-    RVM_Int_Ena=0U;
+    RVM_Int_Mask=1U;
 }
 #endif
 /* End Function:RVM_Virt_Int_Mask ********************************************/
@@ -1405,7 +1405,7 @@ Return      : None.
 #ifdef RVM_VIRT_VCT_NUM
 void RVM_Virt_Int_Unmask(void)
 {
-    RVM_Int_Ena=1U;
+    RVM_Int_Mask=0U;
     /* Trigger interrupt processing if there are pending ones */
     if(RVM_Vct_Pend!=0U)
     {
@@ -1431,7 +1431,7 @@ void RVM_Virt_Yield(void)
     /* We send a new trigger if the interrupt is not masked and we are not in interrupt */
     if(RVM_STATE->Vct_Act==0U)
     {
-        if(RVM_Int_Ena!=0U)
+        if(RVM_Int_Mask==0U)
             RVM_ASSERT(RVM_Sig_Snd(RVM_SIG_VCT)==0);
         else
             RVM_Vct_Pend=1U;
@@ -1507,7 +1507,7 @@ Return      : None.
 void RVM_Hyp_Int_Ena(void)
 {
     /* Must be successful */
-    RVM_Int_Ena=1U;
+    RVM_Int_Mask=0U;
     RVM_Hyp(RVM_HYP_INT_ENA, 0U, 0U, 0U, 0U);
 }
 #endif
@@ -1525,7 +1525,7 @@ void RVM_Hyp_Int_Dis(void)
 {
     /* Must be successful */
     RVM_Hyp(RVM_HYP_INT_DIS, 0U, 0U, 0U, 0U);
-    RVM_Int_Ena=0U;
+    RVM_Int_Mask=1U;
 }
 #endif
 /* End Function:RVM_Hyp_Int_Dis **********************************************/
@@ -1675,7 +1675,7 @@ rvm_ret_t RVM_Vct_Get(void)
     rvm_cnt_t Pos;
     
     /* See if interrupt enabled */
-    if(RVM_Int_Ena==0U)
+    if(RVM_Int_Mask!=0U)
         return -1;
     
     /* See which one is ready, and pick it */
@@ -1708,7 +1708,7 @@ Return      : None.
 #ifdef RVM_VIRT_VCT_NUM
 void RVM_Vct_Loop(void)
 {
-    rvm_cnt_t Vect_Num;
+    rvm_cnt_t Vct_Num;
     
     while(1)
     {
@@ -1716,7 +1716,7 @@ void RVM_Vct_Loop(void)
         RVM_ASSERT(RVM_Sig_Rcv(RVM_SIG_VCT, RVM_RCV_BM)>=0);
         
         /* Only try to get interrupts if we didn't mask it */
-        if(RVM_Int_Ena!=0U)
+        if(RVM_Int_Mask==0U)
         {
             /* Indicate vector execution mode active */
             RVM_STATE->Vct_Act=1U;
@@ -1725,13 +1725,13 @@ void RVM_Vct_Loop(void)
             RVM_Vct_Pend=0U;
 
             /* Look for interrupts to handle from the first */
-            Vect_Num=RVM_Vct_Get();
+            Vct_Num=RVM_Vct_Get();
             /* Handle the vector here - the vectors are tail-chained */
-            while(Vect_Num>=0)
+            while(Vct_Num>=0)
             {
-                if(RVM_Handler.Vct[Vect_Num]!=RVM_NULL)
-                    RVM_Handler.Vct[Vect_Num]();
-                Vect_Num=RVM_Vct_Get();
+                if(RVM_Handler.Vct[Vct_Num]!=RVM_NULL)
+                    RVM_Handler.Vct[Vct_Num]();
+                Vct_Num=RVM_Vct_Get();
             }
             
             /* We have handled all vectors. Now handle timer vectors */

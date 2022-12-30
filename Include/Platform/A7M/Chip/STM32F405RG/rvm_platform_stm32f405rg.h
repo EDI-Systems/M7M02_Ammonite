@@ -26,12 +26,12 @@ Description: The configuration file for STM32F405RG. The values listed here shou
 
 /* Physical vector number, flag area base and its size */
 #define RVM_PHYS_VCT_NUM                                (82U)
-#define RVM_PHYS_VCT_BASE                               (0x10007C00U)
-#define RVM_PHYS_VCT_SIZE                               (0x200U)
+#define RVM_PHYS_VCTF_BASE                              (0x10007C00U)
+#define RVM_PHYS_VCTF_SIZE                              (0x200U)
 /* Virtual event number, flag area base and its size */
 #define RVM_VIRT_EVT_NUM                                (10U)
-#define RVM_VIRT_EVT_BASE                               (0x10007E00U)
-#define RVM_VIRT_EVT_SIZE                               (0x200U)
+#define RVM_VIRT_EVTF_BASE                              (0x10007E00U)
+#define RVM_VIRT_EVTF_SIZE                              (0x200U)
 /* Maximum number of mappings allowed */
 #define RVM_VIRT_MAP_NUM                                (64U)
 
@@ -48,8 +48,6 @@ Description: The configuration file for STM32F405RG. The values listed here shou
 #define RVM_A7M_REGION_NUM                              (8U)
 /* What is the FPU type? */
 #define RVM_A7M_FPU_TYPE                                (RVM_A7M_FPU_FPV4_SP)
-
-/* Fixed info ****************************************************************/
 
 /* Syslib configurations *****************************************************/
 /* Stack redundancy */

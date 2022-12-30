@@ -26,7 +26,7 @@ namespace RVM_GEN
  * For processes,
  * [0] is the event send kernel capability,
  * For virtual machines,
- * [0] is the Vmmd hypercall endpoint,
+ * [0] is the Hypd hypercall endpoint,
  * [1] is the Vctd vector endpoint. */
 #define NATIVE_CPT_BASE        	(1)
 #define VIRTUAL_CPT_BASE		(2)

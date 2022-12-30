@@ -313,8 +313,8 @@ __EXTERN__ rvm_cid_t RVM_Sftd_Sig_Cap;
 
 #if(RVM_VIRT_NUM!=0U)
 __EXTERN__ rvm_cid_t RVM_Timd_Thd_Cap;
-__EXTERN__ rvm_cid_t RVM_Vmmd_Thd_Cap;
-__EXTERN__ rvm_cid_t RVM_Vmmd_Sig_Cap;
+__EXTERN__ rvm_cid_t RVM_Hypd_Thd_Cap;
+__EXTERN__ rvm_cid_t RVM_Hypd_Sig_Cap;
 __EXTERN__ rvm_cid_t RVM_Vctd_Thd_Cap;
 #endif
 /*****************************************************************************/

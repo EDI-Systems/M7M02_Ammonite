@@ -369,7 +369,7 @@ __EXTERN__ void RVM_Virt_Crt(struct RVM_Virt_Struct* Virt,
                              rvm_ptr_t Virt_Num);
 /* VM daemons */
 __EXTERN__ void RVM_Timd(void);
-__EXTERN__ void RVM_Vmmd(void);
+__EXTERN__ void RVM_Hypd(void);
 __EXTERN__ void RVM_Vctd(void);
 #endif
 

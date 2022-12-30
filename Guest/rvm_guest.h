@@ -332,7 +332,7 @@ struct RVM_Thd_Reg
 /*****************************************************************************/
 #ifdef RVM_VIRT_VCT_NUM
 static volatile struct RVM_Handler_Struct RVM_Handler;
-static volatile rvm_ptr_t RVM_Int_Ena;
+static volatile rvm_ptr_t RVM_Int_Mask;
 static volatile rvm_ptr_t RVM_Vct_Pend;
 #endif
 /*****************************************************************************/

@@ -41,7 +41,7 @@ public:
     /* RVM stack size for all five daemons */
     ptr_t Init_Stack_Size;
     ptr_t Sftd_Stack_Size;
-    ptr_t Vmmd_Stack_Size;
+    ptr_t Hypd_Stack_Size;
     ptr_t Vctd_Stack_Size;
     ptr_t Timd_Stack_Size;
     /* Extra capability table size */
@@ -94,7 +94,7 @@ public:
     /* Safety daemon stack */
     ptr_t Sftd_Stack_Base;
     /* VMM daemon stack - currently unused */
-    ptr_t Vmmd_Stack_Base;
+    ptr_t Hypd_Stack_Base;
     /* Vector daemon stack - currently unused */
     ptr_t Vctd_Stack_Base;
     /* Timer daemon stack - currently unused */

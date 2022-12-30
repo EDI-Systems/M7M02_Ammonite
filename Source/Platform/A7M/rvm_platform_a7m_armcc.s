@@ -40,7 +40,7 @@ __initial_sp
                         ; All four daemons
                         IMPORT              RVM_Sftd
                         IMPORT              RVM_Timd
-                        IMPORT              RVM_Vmmd
+                        IMPORT              RVM_Hypd
                         IMPORT              RVM_Vctd
 ;/* End Imports **************************************************************/
 
@@ -50,7 +50,7 @@ __initial_sp
                         DCD                 __main              ; Init thread entry
                         DCD                 RVM_Sftd            ; All four daemons
                         DCD                 RVM_Timd
-                        DCD                 RVM_Vmmd
+                        DCD                 RVM_Hypd
                         DCD                 RVM_Vctd
                         DCD                 _RVM_Jmp_Stub       ; Jump stub
                         NOP                                     ; Catch something in the middle

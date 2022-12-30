@@ -57,7 +57,7 @@
         <Data_Size>0x4000</Data_Size>
         <Init_Stack_Size>0x800</Init_Stack_Size>
         <Sftd_Stack_Size>0x800</Sftd_Stack_Size>
-        <Vmmd_Stack_Size>0x800</Vmmd_Stack_Size>
+        <Hypd_Stack_Size>0x800</Hypd_Stack_Size>
         <Vctd_Stack_Size>0x800</Vctd_Stack_Size>
         <Timd_Stack_Size>0x800</Timd_Stack_Size>
         <Extra_Captbl>32</Extra_Captbl>

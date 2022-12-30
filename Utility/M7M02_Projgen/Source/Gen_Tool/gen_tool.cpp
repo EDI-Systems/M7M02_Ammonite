@@ -649,14 +649,17 @@ void Gen_Tool::Kernel_Conf_Hdr(void)
     Gen_Tool::Macro_Int(List, "RME_PREEMPT_PRIO_NUM", Kernel->Kern_Prio, MACRO_REPLACE);
     /* The granularity of kernel memory allocation, in bytes */
     Gen_Tool::Macro_Int(List, "RME_KOM_SLOT_ORDER", Kernel->Kom_Order, MACRO_REPLACE);
-    /* Physical vector flag area base and its size */
+    /* Physical vector number, flag area base and its size */
+    Gen_Tool::Macro_Int(List, "RME_RVM_PHYS_VCT_NUM", this->Plat->Chip->Vect_Num, MACRO_REPLACE);
     Gen_Tool::Macro_Hex(List, "RME_RVM_PHYS_VCTF_BASE", Kernel->Vctf_Base, MACRO_REPLACE);
     Gen_Tool::Macro_Hex(List, "RME_RVM_PHYS_VCTF_SIZE", Kernel->Vctf_Size, MACRO_REPLACE);
-    /* Shared event flag region address */
+    /* Virtual event number, flag area base and its size */
+    Gen_Tool::Macro_Int(List, "RME_RVM_VIRT_EVT_NUM", Monitor->Virt_Event, MACRO_REPLACE);
     Gen_Tool::Macro_Hex(List, "RME_RVM_VIRT_EVTF_BASE", Kernel->Evtf_Base, MACRO_REPLACE);
     Gen_Tool::Macro_Hex(List, "RME_RVM_VIRT_EVTF_SIZE", Kernel->Evtf_Size, MACRO_REPLACE);
     /* Initial kernel object frontier limit */
-    Gen_Tool::Macro_Hex(List, "RME_RVM_KOM_BOOT_FRONT", Kernel->Kom_Base+Monitor->Before_Kom_Front, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RME_RVM_CAP_BOOT_FRONT", Monitor->Before_Cap_Front, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RME_RVM_KOM_BOOT_FRONT", Monitor->Before_Kom_Front, MACRO_REPLACE);
 
     /* Replace platform specific macros */
     this->Plat->Kernel_Conf_Hdr(List);
@@ -1281,14 +1284,14 @@ void Gen_Tool::Monitor_Conf_Hdr(void)
     Gen_Tool::Macro_Hex(List, "RVM_SFTD_STACK_SIZE", Monitor->Sftd_Stack_Size, MACRO_REPLACE);
     Gen_Tool::Macro_Hex(List, "RVM_TIMD_STACK_BASE", Monitor->Timd_Stack_Base, MACRO_REPLACE);
     Gen_Tool::Macro_Hex(List, "RVM_TIMD_STACK_SIZE", Monitor->Timd_Stack_Size, MACRO_REPLACE);
-    Gen_Tool::Macro_Hex(List, "RVM_VMMD_STACK_BASE", Monitor->Vmmd_Stack_Base, MACRO_REPLACE);
-    Gen_Tool::Macro_Hex(List, "RVM_VMMD_STACK_SIZE", Monitor->Vmmd_Stack_Size, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RVM_VMMD_STACK_BASE", Monitor->Hypd_Stack_Base, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RVM_VMMD_STACK_SIZE", Monitor->Hypd_Stack_Size, MACRO_REPLACE);
     Gen_Tool::Macro_Hex(List, "RVM_VCTD_STACK_BASE", Monitor->Vctd_Stack_Base, MACRO_REPLACE);
     Gen_Tool::Macro_Hex(List, "RVM_VCTD_STACK_SIZE", Monitor->Vctd_Stack_Size, MACRO_REPLACE);
     /* Initial capability frontier limit */
     Gen_Tool::Macro_Int(List, "RVM_CAP_BOOT_FRONT", Monitor->Before_Cap_Front, MACRO_REPLACE);
     /* Initial kernel memory frontier limit */
-    Gen_Tool::Macro_Int(List, "RVM_KOM_BOOT_FRONT", Monitor->Before_Kom_Front, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RVM_KOM_BOOT_FRONT", Monitor->Before_Kom_Front, MACRO_REPLACE);
 
     /* Stack safety redundancy, in bytes - fixed to 16 words */
     Gen_Tool::Macro_Int(List, "RVM_STACK_SAFE_RDCY", 16, MACRO_REPLACE);

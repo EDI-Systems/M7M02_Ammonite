@@ -783,7 +783,7 @@ void RVM_Sftd(void)
 {
     rvm_tid_t Thd;
     
-    RVM_DBG_S("Sftd:Safety guard daemon initialization complete.\r\n");
+    RVM_DBG_S("Sftd: Safety guard daemon initialization complete.\r\n");
 
     /* Main cycle - recover faults if possible */
     while(1)
@@ -797,7 +797,7 @@ void RVM_Sftd(void)
         if(((Thd&RVM_THD_FAULT_FLAG)==0)||(Thd<0))
         {
             /* Hang the machine because this error is unrecoverable */
-            RVM_DBG_SHS("Sftd:Intangible fault on return value 0x", (rvm_ptr_t)Thd, ". Shutting down system...\r\n");
+            RVM_DBG_SHS("Sftd: Intangible fault on return value 0x", (rvm_ptr_t)Thd, ". Shutting down system...\r\n");
             RVM_ASSERT(0);
         }
         
@@ -813,14 +813,14 @@ void RVM_Sftd(void)
         if(Thd<RVM_CID_2L)
         {
             /* We know that this happened within RVM itself. Sad, cannot recover */
-            RVM_DBG_S("Sftd:Irrecoverable fault on RVM ");
+            RVM_DBG_S("Sftd: Irrecoverable fault on RVM ");
             if(Thd==RVM_Sftd_Thd_Cap)
                 RVM_DBG_S("Sftd");
 #if(RVM_VIRT_NUM!=0U)
             else if(Thd==RVM_Timd_Thd_Cap)
                 RVM_DBG_S("Timd");
-            else if(Thd==RVM_Vmmd_Thd_Cap)
-                RVM_DBG_S("Vmmd");
+            else if(Thd==RVM_Hypd_Thd_Cap)
+                RVM_DBG_S("Hypd");
             else if(Thd==RVM_Vctd_Thd_Cap)
                 RVM_DBG_S("Vctd");
 #endif
@@ -837,7 +837,7 @@ void RVM_Sftd(void)
         else if((Thd&RVM_VIRT_TID_MARKER)==0U)
         {
             /* We know that this happened in a process. Still, cannot be recovered. */
-            RVM_DBG_SHS("Sftd:Irrecoverable fault on process thread TID 0x", Thd, ". Rebooting system...\r\n");
+            RVM_DBG_SHS("Sftd: Irrecoverable fault on process thread TID 0x", Thd, ". Rebooting system...\r\n");
             
             /* Print registers so we know how it crashed */
             RVM_ASSERT(RVM_Thd_Print_Reg(Thd)==0);
@@ -850,7 +850,7 @@ void RVM_Sftd(void)
 #if(RVM_VIRT_NUM!=0U)
             Thd&=~RVM_VIRT_TID_MARKER;
             /* This must have happened in the current virtual machine */
-            RVM_DBG_S("Sftd:Recoverable fault in virtual machine ");
+            RVM_DBG_S("Sftd: Recoverable fault in virtual machine ");
             RVM_DBG_S(RVM_Virt_Cur->Map->Name);
 
             if(Thd==RVM_Virt_Cur->Map->Vct_Thd_Cap)
@@ -863,17 +863,17 @@ void RVM_Sftd(void)
             RVM_DBG_S(". Recovering...\r\n");
             
             /* Also print registers so that the user can debug. This is abnormal anyway */
-            RVM_DBG_S("Sftd:Vector handling thread register set:\r\n");
+            RVM_DBG_S("Sftd: Vector handling thread register set:\r\n");
             RVM_ASSERT(RVM_Thd_Print_Reg(RVM_Virt_Cur->Map->Vct_Thd_Cap)==0);
-            RVM_DBG_S("Sftd:User program thread register set:\r\n");
+            RVM_DBG_S("Sftd: User program thread register set:\r\n");
             RVM_ASSERT(RVM_Thd_Print_Reg(RVM_Virt_Cur->Map->Usr_Thd_Cap)==0);
 
             /* Actually reboot the virtual machine */
             _RVM_Virt_Cur_Recover();
             
-            RVM_DBG_S("Sftd:Recovered.\r\n");
+            RVM_DBG_S("Sftd: Recovered.\r\n");
 #else
-            RVM_DBG_S("Sftd:Fault on virtual machine but no virtual machine exists. Rebooting system...\r\n");
+            RVM_DBG_S("Sftd: Fault on virtual machine but no virtual machine exists. Rebooting system...\r\n");
             RVM_ASSERT(0);
 #endif
         }
@@ -894,7 +894,7 @@ void RVM_Timd(void)
     volatile struct RVM_List* Slot;
     volatile struct RVM_List* Trav;
 
-    RVM_DBG_S("Timd:Timer relaying daemon initialization complete.\r\n");
+    RVM_DBG_S("Timd: Timer relaying daemon initialization complete.\r\n");
 
     /* We will receive a timer interrupt every tick here */
     while(1)
@@ -905,7 +905,7 @@ void RVM_Timd(void)
         /* Notify daemon passes if the debugging output is enabled */
 #if(RVM_DEBUG_PRINT==1U)
         if((RVM_Tick%10000U)==0U)
-            RVM_DBG_S("Timd:Timer daemon passed 10000 ticks.\r\n");
+            RVM_DBG_S("Timd: Timer daemon passed 10000 ticks.\r\n");
 #endif
         
         /* See if we need to process the timer wheel to deliver timer interrupts to virtual machines */
@@ -951,20 +951,20 @@ void RVM_Timd(void)
                 if(RVM_Virt_Cur->Sched.Watchdog_Left==0U)   
                 {
                     /* Watchdog timeout - seek to reboot the VM */
-                    RVM_DBG_S("Timd:Watchdog overflow in virtual machine ");
+                    RVM_DBG_S("Timd: Watchdog overflow in virtual machine ");
                     RVM_DBG_S(RVM_Virt_Cur->Map->Name);
                     RVM_DBG_S(". Recovering...\r\n");
                     
                     /* Also print registers so that the user can debug. This is abnormal anyway */
-                    RVM_DBG_S("Timd:Vector handling thread register set:\r\n");
+                    RVM_DBG_S("Timd: Vector handling thread register set:\r\n");
                     RVM_ASSERT(RVM_Thd_Print_Reg(RVM_Virt_Cur->Map->Vct_Thd_Cap)==0);
-                    RVM_DBG_S("Timd:User program thread register set:\r\n");
+                    RVM_DBG_S("Timd: User program thread register set:\r\n");
                     RVM_ASSERT(RVM_Thd_Print_Reg(RVM_Virt_Cur->Map->Usr_Thd_Cap)==0);
 
                     /* Actually reboot the virtual machine */
                     _RVM_Virt_Cur_Recover();
                     
-                    RVM_DBG_S("Timd:Recovered.\r\n");
+                    RVM_DBG_S("Timd: Recovered.\r\n");
                 }
                 else
                     RVM_Virt_Cur->Sched.Watchdog_Left--;
@@ -982,27 +982,27 @@ void RVM_Timd(void)
 #endif
 /* End Function:RVM_Timd *****************************************************/
 
-/* Begin Function:RVM_Vmmd ****************************************************
+/* Begin Function:RVM_Hypd ****************************************************
 Description : The virtual machine monitor daemon for hypercall handling.
 Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
 #if(RVM_VIRT_NUM!=0U)
-void RVM_Vmmd(void)
+void RVM_Hypd(void)
 {
     rvm_ptr_t Number;
     volatile rvm_ptr_t* Param;
     volatile struct RVM_State* State;
     volatile struct RVM_Param* Arg;
     
-    RVM_DBG_S("Vmmd:Hypercall handling daemon initialization complete.\r\n");
+    RVM_DBG_S("Hypd: Hypercall handling daemon initialization complete.\r\n");
     
     /* Main cycle */
     while(1U)
     {
         /* Blocking multi receive */
-        RVM_ASSERT(RVM_Sig_Rcv(RVM_Vmmd_Sig_Cap, RVM_RCV_BM)>=0);
+        RVM_ASSERT(RVM_Sig_Rcv(RVM_Hypd_Sig_Cap, RVM_RCV_BM)>=0);
         
         /* See if the vector is active */
         State=RVM_Virt_Cur->Map->State_Base;
@@ -1015,7 +1015,7 @@ void RVM_Vmmd(void)
         Number=Arg->Number;
         Param=Arg->Param;
         
-        /* RVM_DBG_SIS("Vmmd:Hypercall ",Number," called.\r\n"); */
+        /* RVM_DBG_SIS("Hypd: Hypercall ",Number," called.\r\n"); */
             
         switch(Number)
         {
@@ -1092,11 +1092,11 @@ void RVM_Vmmd(void)
             default:break;
         }
         
-        /* RVM_DBG_SIS("Vmmd:Hypercall ",Number," processed.\r\n"); */
+        /* RVM_DBG_SIS("Hypd: Hypercall ",Number," processed.\r\n"); */
     }
 }
 #endif
-/* End Function:RVM_Vmmd *****************************************************/
+/* End Function:RVM_Hypd *****************************************************/
 
 /* Begin Function:_RVM_Flagset_Get ********************************************
 Description : Get the physical vector source or event source from the interrupt
@@ -1143,11 +1143,11 @@ void RVM_Vctd(void)
     volatile struct RVM_Flag* Evtf_Set1;
     
     Vctf_Set0=RVM_FLAG_SET(RVM_PHYS_VCTF_BASE, RVM_PHYS_VCTF_SIZE, 0U);
-    Vctf_Set1=RVM_FLAG_SET(RVM_PHYS_VCTF_BASE, RVM_PHYS_VCT_SIZE, 1U);
+    Vctf_Set1=RVM_FLAG_SET(RVM_PHYS_VCTF_BASE, RVM_PHYS_VCTF_SIZE, 1U);
     Evtf_Set0=RVM_FLAG_SET(RVM_VIRT_EVTF_BASE, RVM_VIRT_EVTF_SIZE, 0U);
     Evtf_Set1=RVM_FLAG_SET(RVM_VIRT_EVTF_BASE, RVM_VIRT_EVTF_SIZE, 1U);
     
-    RVM_DBG_S("Vctd:Vector handling daemon initialization complete.\r\n");
+    RVM_DBG_S("Vctd: Vector handling daemon initialization complete.\r\n");
     
     /* Main cycle - keep getting vectors and passing them to virtual machines */
     while(1U)
@@ -1295,7 +1295,7 @@ void RVM_Virt_Crt(struct RVM_Virt_Struct* Virt,
         RVM_Clear(Virt[Count].Evt_Cap, RVM_EVTCAP_BITMAP*sizeof(rvm_ptr_t));
 
         /* Print log */
-        RVM_DBG_S("Vmmd: Created VM ");
+        RVM_DBG_S("Hypd:  Created VM ");
         RVM_DBG_S(Vmap[Count].Name);
         RVM_DBG_S(" control block 0x");
         RVM_DBG_H((rvm_ptr_t)&Virt[Count]);

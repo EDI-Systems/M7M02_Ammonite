@@ -766,7 +766,7 @@ void Main::Mem_Align(void)
             this->Gen->Plat->Mem_Align(this->Proj->Monitor->Data_Base,this->Proj->Monitor->Data_Size);
             this->Gen->Plat->Mem_Align(MEM_AUTO,this->Proj->Monitor->Init_Stack_Size);
             this->Gen->Plat->Mem_Align(MEM_AUTO,this->Proj->Monitor->Sftd_Stack_Size);
-            this->Gen->Plat->Mem_Align(MEM_AUTO,this->Proj->Monitor->Vmmd_Stack_Size);
+            this->Gen->Plat->Mem_Align(MEM_AUTO,this->Proj->Monitor->Hypd_Stack_Size);
             this->Gen->Plat->Mem_Align(MEM_AUTO,this->Proj->Monitor->Vctd_Stack_Size);
             this->Gen->Plat->Mem_Align(MEM_AUTO,this->Proj->Monitor->Timd_Stack_Size);
         }
