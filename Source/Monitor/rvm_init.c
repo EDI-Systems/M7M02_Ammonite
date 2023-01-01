@@ -74,7 +74,7 @@ rvm_ptr_t RVM_Boot_Main_Crt(const struct RVM_Meta_Main_Struct* Meta,
     /* Create all the capability table capability tables first */
     for(Count=0U;Count<Number;Count++)
     {
-        RVM_ASSERT(RVM_Cpt_Crt(RVM_BOOT_CPT,
+        RVM_ASSERT(RVM_Cpt_Crt(RVM_BOOT_INIT_CPT,
                                RVM_BOOT_INIT_KOM,
                                Meta[Count].Slot,
                                Cur_Addr,
@@ -140,16 +140,16 @@ void RVM_Boot_Cpt_Crt(void)
     rvm_ptr_t Count;
     rvm_ptr_t Cur_Addr;
 
-    Cur_Addr=RVM_BOOT_CPT_BEFORE;
+    Cur_Addr=RVM_BOOT_INIT_CPT_BEFORE;
     
     RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
     RVM_DBG_S("Init: Creating capability tables.\r\n");
     
     /* Create the main capability tables first */
-    Cur_Addr=RVM_Boot_Main_Crt(RVM_Meta_Cpt_Main, RVM_BOOT_CPT_MAIN_NUM, Cur_Addr);
+    Cur_Addr=RVM_Boot_Main_Crt(RVM_Meta_Cpt_Main, RVM_BOOT_INIT_CPT_MAIN_NUM, Cur_Addr);
 
     /* Then the capability tables themselves */
-    for(Count=0U;Count<RVM_BOOT_CPT_CRT_NUM;Count++)
+    for(Count=0U;Count<RVM_BOOT_INIT_CPT_CRT_NUM;Count++)
     {
         RVM_ASSERT(RVM_Cpt_Crt(RVM_Meta_Cpt_Crt[Count].Main,
                                RVM_BOOT_INIT_KOM,
@@ -168,7 +168,7 @@ void RVM_Boot_Cpt_Crt(void)
         Cur_Addr+=RVM_CPT_SIZE(RVM_Meta_Cpt_Crt[Count].Size);
     }
 
-    RVM_ASSERT(Cur_Addr==RVM_BOOT_CPT_AFTER);
+    RVM_ASSERT(Cur_Addr==RVM_BOOT_INIT_CPT_AFTER);
 }
 /* End Function:RVM_Boot_Cpt_Crt *********************************************/
 
@@ -183,17 +183,17 @@ void RVM_Boot_Pgt_Crt(void)
     rvm_ptr_t Count;
     rvm_ptr_t Cur_Addr;
 
-    Cur_Addr=RVM_BOOT_PGT_BEFORE;
+    Cur_Addr=RVM_BOOT_INIT_PGT_BEFORE;
     
     RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
     RVM_DBG_S("Init: Creating page tables.\r\n");
     
 
     /* Create the main capability tables first */
-    Cur_Addr=RVM_Boot_Main_Crt(RVM_Meta_Pgt_Main, RVM_BOOT_PGT_MAIN_NUM, Cur_Addr);
+    Cur_Addr=RVM_Boot_Main_Crt(RVM_Meta_Pgt_Main, RVM_BOOT_INIT_PGT_MAIN_NUM, Cur_Addr);
 
     /* Then the page tables themselves */
-    for(Count=0U;Count<RVM_BOOT_PGT_CRT_NUM;Count++)
+    for(Count=0U;Count<RVM_BOOT_INIT_PGT_CRT_NUM;Count++)
     {
         RVM_ASSERT(RVM_Pgt_Crt(RVM_Meta_Pgt_Crt[Count].Main,
                                RVM_BOOT_INIT_KOM,
@@ -218,7 +218,7 @@ void RVM_Boot_Pgt_Crt(void)
             Cur_Addr+=RVM_PGT_SIZE_NOM(RVM_Meta_Pgt_Crt[Count].Num_Order);
     }
 
-    RVM_ASSERT(Cur_Addr==RVM_BOOT_PGT_AFTER);
+    RVM_ASSERT(Cur_Addr==RVM_BOOT_INIT_PGT_AFTER);
 }
 /* End Function:RVM_Boot_Pgt_Crt *********************************************/
 
@@ -387,6 +387,45 @@ void RVM_Boot_Rcv_Crt(void)
 #endif
 /* End Function:RVM_Boot_Rcv_Crt *********************************************/
 
+/* Begin Function:RVM_Boot_Kobj_Crt *******************************************
+Description : Create kernel objects at boot-time.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void RVM_Boot_Kobj_Crt(void)
+{
+    /* Check macro code validity */
+#if(RVM_ASSERT_CORRECT==0U)
+    RVM_ASSERT(RVM_VIRT_NUM==RVM_BOOT_VEP_CRT_NUM);
+    RVM_ASSERT(RVM_VIRT_NUM==RVM_BOOT_VCAP_INIT_NUM);
+    RVM_ASSERT(RVM_BOOT_INIT_CPT_CRT_NUM!=0U);
+    RVM_ASSERT(RVM_BOOT_INIT_CPT_CRT_NUM!=0U);
+    RVM_ASSERT(RVM_BOOT_INIT_PGT_CRT_NUM!=0U);
+    RVM_ASSERT(RVM_BOOT_INIT_PGT_ADD_NUM!=0U);
+    RVM_ASSERT(RVM_BOOT_PRC_CRT_NUM!=0U);
+    RVM_ASSERT(RVM_BOOT_THD_CRT_NUM!=0U);
+    RVM_ASSERT(RVM_BOOT_THD_CRT_NUM==RVM_BOOT_THD_INIT_NUM);
+    RVM_ASSERT(RVM_BOOT_INV_CRT_NUM==RVM_BOOT_INV_INIT_NUM);
+#endif
+    
+    /* Create kernel objects */
+#if(RVM_BOOT_VEP_CRT_NUM!=0U)
+    RVM_Boot_Vep_Crt();
+#endif
+    RVM_Boot_Cpt_Crt();
+    RVM_Boot_Pgt_Crt();
+    RVM_Boot_Prc_Crt();
+    RVM_Boot_Thd_Crt();
+#if(RVM_BOOT_INV_CRT_NUM!=0U)
+    RVM_Boot_Inv_Crt();
+#endif
+#if(RVM_BOOT_RCV_CRT_NUM!=0U)
+    RVM_Boot_Rcv_Crt();
+#endif
+}
+/* End Function:RVM_Boot_Kobj_Crt ********************************************/
+
 /* Begin Function:RVM_Boot_Vcap_Init ******************************************
 Description : Initialize all VM capability table special contents.
 Input       : None.
@@ -406,7 +445,7 @@ void RVM_Boot_Vcap_Init(void)
         /* Setup system call send endpoint at capability table location 0 */
         RVM_ASSERT(RVM_Cpt_Add(RVM_Meta_Vcap_Init[Count].Cpt,
                                0U,
-                               RVM_BOOT_CPT,
+                               RVM_BOOT_INIT_CPT,
                                RVM_Hypd_Sig_Cap,
                                RVM_SIG_FLAG_SND)==0);
         
@@ -437,8 +476,8 @@ void RVM_Boot_Cpt_Init(void)
     RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
     RVM_DBG_S("Init: Initializing process capability tables.\r\n");
 
-#if(RVM_BOOT_CPT_INIT_NUM!=0U)
-    for(Count=0U;Count<RVM_BOOT_CPT_INIT_NUM;Count++)
+#if(RVM_BOOT_INIT_CPT_INIT_NUM!=0U)
+    for(Count=0U;Count<RVM_BOOT_INIT_CPT_INIT_NUM;Count++)
     {
         RVM_ASSERT(RVM_Cpt_Add(RVM_Meta_Cpt_Init[Count].Dst,
                                RVM_Meta_Cpt_Init[Count].Pos_Dst,
@@ -458,12 +497,12 @@ void RVM_Boot_Cpt_Init(void)
     }
 #endif
 
-#if(RVM_BOOT_CPT_KFN_NUM)
-    for(Count=0U;Count<RVM_BOOT_CPT_KFN_NUM;Count++)
+#if(RVM_BOOT_INIT_CPT_KFN_NUM)
+    for(Count=0U;Count<RVM_BOOT_INIT_CPT_KFN_NUM;Count++)
     {
         RVM_ASSERT(RVM_Cpt_Kfn(RVM_Meta_Cpt_Kfn[Count].Dst,
                                RVM_Meta_Cpt_Kfn[Count].Pos_Dst,
-                               RVM_BOOT_CPT,
+                               RVM_BOOT_INIT_CPT,
                                RVM_BOOT_INIT_KFN,
                                RVM_Meta_Cpt_Kfn[Count].Start,
                                RVM_Meta_Cpt_Kfn[Count].End)==0);
@@ -491,9 +530,9 @@ void RVM_Boot_Pgt_Init(void)
     RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
     RVM_DBG_S("Init: Initializing page tables.\r\n");
 
-#if(RVM_BOOT_PGT_CON_NUM!=0U)
+#if(RVM_BOOT_INIT_PGT_CON_NUM!=0U)
     /* Construct tree */
-    for(Count=0U;Count<RVM_BOOT_PGT_CON_NUM;Count++)
+    for(Count=0U;Count<RVM_BOOT_INIT_PGT_CON_NUM;Count++)
     {
         RVM_ASSERT(RVM_Pgt_Con(RVM_Meta_Pgt_Con[Count].Parent,
                                RVM_Meta_Pgt_Con[Count].Position,
@@ -511,12 +550,12 @@ void RVM_Boot_Pgt_Init(void)
 #endif
 
     /* Map pages */
-    for(Count=0U;Count<RVM_BOOT_PGT_ADD_NUM;Count++)
+    for(Count=0U;Count<RVM_BOOT_INIT_PGT_ADD_NUM;Count++)
     {
         RVM_ASSERT(RVM_Pgt_Add(RVM_Meta_Pgt_Add[Count].Pgt_Dst,
                                RVM_Meta_Pgt_Add[Count].Pos_Dst,
                                RVM_Meta_Pgt_Add[Count].Flags,
-                               RVM_BOOT_PGT,
+                               RVM_BOOT_INIT_PGT,
                                RVM_Meta_Pgt_Add[Count].Pos_Src,
                                RVM_Meta_Pgt_Add[Count].Index)==0);
         
@@ -649,43 +688,14 @@ void RVM_Boot_Inv_Init(void)
 #endif
 /* End Function:RVM_Boot_Inv_Init ********************************************/
 
-/* Begin Function:RVM_Prc_Init ************************************************
-Description : Initialize processes.
+/* Begin Function:RVM_Boot_Kobj_Init ******************************************
+Description : Initialize kernel objects at boot-time.
 Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void RVM_Prc_Init(void)
+void RVM_Boot_Kobj_Init(void)
 {
-    /* Check macro code validity */
-#if(RVM_ASSERT_CORRECT==0U)
-    RVM_ASSERT(RVM_VIRT_NUM==RVM_BOOT_VEP_CRT_NUM);
-    RVM_ASSERT(RVM_VIRT_NUM==RVM_BOOT_VCAP_INIT_NUM);
-    RVM_ASSERT(RVM_BOOT_CPT_CRT_NUM!=0U);
-    RVM_ASSERT(RVM_BOOT_CPT_CRT_NUM!=0U);
-    RVM_ASSERT(RVM_BOOT_PGT_CRT_NUM!=0U);
-    RVM_ASSERT(RVM_BOOT_PGT_ADD_NUM!=0U);
-    RVM_ASSERT(RVM_BOOT_PRC_CRT_NUM!=0U);
-    RVM_ASSERT(RVM_BOOT_THD_CRT_NUM!=0U);
-    RVM_ASSERT(RVM_BOOT_THD_CRT_NUM==RVM_BOOT_THD_INIT_NUM);
-    RVM_ASSERT(RVM_BOOT_INV_CRT_NUM==RVM_BOOT_INV_INIT_NUM);
-#endif
-    
-    /* Create kernel objects */
-#if(RVM_BOOT_VEP_CRT_NUM!=0U)
-    RVM_Boot_Vep_Crt();
-#endif
-    RVM_Boot_Cpt_Crt();
-    RVM_Boot_Pgt_Crt();
-    RVM_Boot_Prc_Crt();
-    RVM_Boot_Thd_Crt();
-#if(RVM_BOOT_INV_CRT_NUM!=0U)
-    RVM_Boot_Inv_Crt();
-#endif
-#if(RVM_BOOT_RCV_CRT_NUM!=0U)
-    RVM_Boot_Rcv_Crt();
-#endif
-
     /* Initialize kernel objects */
 #if(RVM_BOOT_VCAP_INIT_NUM!=0U)
     RVM_Boot_Vcap_Init();
@@ -696,13 +706,29 @@ void RVM_Prc_Init(void)
 #if(RVM_BOOT_INV_INIT_NUM!=0U)
     RVM_Boot_Inv_Init();
 #endif
+}
+/* End Function:RVM_Boot_Kobj_Init *******************************************/
+
+/* Begin Function:RVM_Prc_Init ************************************************
+Description : Initialize processes.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void RVM_Prc_Init(void)
+{
+    /* Create kernel objects */
+    RVM_Boot_Kobj_Crt();
+    
+    /* Initialize kernel objects */
+    RVM_Boot_Kobj_Init();
     
     /* Initialize virtual machines */
 #if(RVM_VIRT_NUM!=0U)
     RVM_Virt_Crt(RVM_Virt, RVM_Vmap, RVM_VIRT_NUM);
 #endif
 }
-/* End Function:RVM_Prc_Init ************************************************/
+/* End Function:RVM_Prc_Init *************************************************/
 
 /* Begin Function:RVM_Daemon_Init *********************************************
 Description : Initialize the daemons. These daemons include four ones:
@@ -729,11 +755,11 @@ void RVM_Daemon_Init(rvm_cid_t Cap_Base,
     
     /* Safety daemon initialization - highest priority as always */
     RVM_Sftd_Sig_Cap=Cap_Front++;
-    RVM_ASSERT(RVM_Sig_Crt(RVM_BOOT_CPT, RVM_Sftd_Sig_Cap)==0);
+    RVM_ASSERT(RVM_Sig_Crt(RVM_BOOT_INIT_CPT, RVM_Sftd_Sig_Cap)==0);
     RVM_DBG_SIS("Init: Created safety daemon fault endpoint '",RVM_Sftd_Sig_Cap,"'.\r\n");
     
     RVM_Sftd_Thd_Cap=Cap_Front++;
-    RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_CPT, RVM_BOOT_INIT_KOM, RVM_Sftd_Thd_Cap,
+    RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_INIT_CPT, RVM_BOOT_INIT_KOM, RVM_Sftd_Thd_Cap,
                            RVM_BOOT_INIT_PRC, RVM_SFTD_PRIO, Kom_Front)>=0);
     RVM_DBG_SISHS("Init: Created safety daemon '",RVM_Sftd_Thd_Cap,"' @ 0x",Kom_Front,".\r\n");
     Kom_Front+=RVM_THD_SIZE;
@@ -748,7 +774,7 @@ void RVM_Daemon_Init(rvm_cid_t Cap_Base,
 #if(RVM_VIRT_NUM!=0U)
     /* Timer daemon initialization - main priority */
     RVM_Timd_Thd_Cap=Cap_Front++;
-    RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_CPT, RVM_BOOT_INIT_KOM, RVM_Timd_Thd_Cap,
+    RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_INIT_CPT, RVM_BOOT_INIT_KOM, RVM_Timd_Thd_Cap,
                            RVM_BOOT_INIT_PRC, RVM_TIMD_PRIO, Kom_Front)>=0);
     RVM_DBG_SISHS("Init: Created timer daemon '",RVM_Timd_Thd_Cap,"' @ 0x",Kom_Front,".\r\n");
     Kom_Front+=RVM_THD_SIZE;
@@ -761,11 +787,11 @@ void RVM_Daemon_Init(rvm_cid_t Cap_Base,
 
     /* VMM daemon initialization - main priority */
     RVM_Hypd_Sig_Cap=Cap_Front++;
-    RVM_ASSERT(RVM_Sig_Crt(RVM_BOOT_CPT, RVM_Hypd_Sig_Cap)==0);
+    RVM_ASSERT(RVM_Sig_Crt(RVM_BOOT_INIT_CPT, RVM_Hypd_Sig_Cap)==0);
     RVM_DBG_SIS("Init: Created virtual machine monitor endpoint '",RVM_Hypd_Sig_Cap,"'.\r\n");
     
     RVM_Hypd_Thd_Cap=Cap_Front++;
-    RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_CPT, RVM_BOOT_INIT_KOM, RVM_Hypd_Thd_Cap,
+    RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_INIT_CPT, RVM_BOOT_INIT_KOM, RVM_Hypd_Thd_Cap,
                            RVM_BOOT_INIT_PRC, RVM_VMMD_PRIO, Kom_Front)>=0);
     RVM_DBG_SISHS("Init: Created virtual machine monitor daemon '",RVM_Hypd_Thd_Cap,"' @ 0x",Kom_Front,".\r\n");
     Kom_Front+=RVM_THD_SIZE;
@@ -778,7 +804,7 @@ void RVM_Daemon_Init(rvm_cid_t Cap_Base,
 
     /* Interrupt relaying daemon initialization - main priority */
     RVM_Vctd_Thd_Cap=Cap_Front++;
-    RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_CPT, RVM_BOOT_INIT_KOM, RVM_Vctd_Thd_Cap,
+    RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_INIT_CPT, RVM_BOOT_INIT_KOM, RVM_Vctd_Thd_Cap,
                            RVM_BOOT_INIT_PRC, RVM_VCTD_PRIO, Kom_Front)>=0);
     RVM_DBG_SISHS("Init: Created vector handling daemon '",RVM_Vctd_Thd_Cap,"' @ 0x",Kom_Front,".\r\n");
     Kom_Front+=RVM_THD_SIZE;
@@ -836,7 +862,7 @@ void RVM_Init(void)
      * cannot block. Bind that to the processor, and let it have infinite budget.
      * after this the task will be handled by this task, and we will never return
      * to init unless there is nothing to run */
-    RVM_Daemon_Init(RVM_CAP_BOOT_FRONT, RVM_KOM_BOOT_FRONT);
+    RVM_Daemon_Init(RVM_CPT_BOOT_FRONT, RVM_KOM_BOOT_FRONT);
     RVM_DBG_S("Init: Daemon initialization done.\r\n");
     
     /* Initialize the virtual machine databases, and create whatever is needed */

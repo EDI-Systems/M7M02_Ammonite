@@ -60,33 +60,40 @@ Kobj(this)
         /* The type of this process is by default a native process */
         this->Type=Type;
         /* Name */
-        this->Name=Main::XML_Get_String(Root,"Name","DXXXX","DXXXX");
+        this->Name=Main::XML_Get_String(Root, "Name", "DXXXX", "DXXXX");
         Name_Gen(this);
         /* Extra_Captbl */
-        this->Extra_Captbl=Main::XML_Get_Number(Root,"Extra_Captbl","DXXXX","DXXXX");
+        this->Extra_Captbl=Main::XML_Get_Number(Root, "Extra_Captbl", "DXXXX", "DXXXX");
 
         /* Build */
-        this->Buildsystem=Main::XML_Get_String(Root,"Buildsystem","DXXXX","DXXXX");
+        this->Buildsystem=Main::XML_Get_String(Root, "Buildsystem", "DXXXX", "DXXXX");
         /* Toolchain */
-        this->Toolchain=Main::XML_Get_String(Root,"Toolchain","DXXXX","DXXXX");
+        this->Toolchain=Main::XML_Get_String(Root, "Toolchain", "DXXXX", "DXXXX");
         /* Optimization */
-        this->Optimization=Main::XML_Get_String(Root,"Optimization","DXXXX","DXXXX");
+        this->Optimization=Main::XML_Get_String(Root, "Optimization", "DXXXX", "DXXXX");
         /* Project_Output */
-        this->Project_Output=Main::XML_Get_String(Root,"Project_Output","DXXXX","DXXXX");
+        this->Project_Output=Main::XML_Get_String(Root, "Project_Output", "DXXXX", "DXXXX");
         Main::Dir_Fixup(this->Project_Output);
         /* Project_Overwrite */
-        this->Project_Overwrite=Main::XML_Get_Yesno(Root,"Project_Overwrite","DXXXX","DXXXX");
+        this->Project_Overwrite=Main::XML_Get_Yesno(Root, "Project_Overwrite", "DXXXX", "DXXXX");
         /* Linker_Output */
-        this->Linker_Output=Main::XML_Get_String(Root,"Linker_Output","DXXXX","DXXXX");
+        this->Linker_Output=Main::XML_Get_String(Root, "Linker_Output", "DXXXX", "DXXXX");
         Main::Dir_Fixup(this->Linker_Output);
         /* Main_Header_Output */
-        this->Main_Header_Output=Main::XML_Get_String(Root,"Main_Header_Output","DXXXX","DXXXX");
+        this->Main_Header_Output=Main::XML_Get_String(Root, "Main_Header_Output", "DXXXX", "DXXXX");
         Main::Dir_Fixup(this->Main_Header_Output);
         /* Main_Source_Output */
-        this->Main_Source_Output=Main::XML_Get_String(Root,"Main_Source_Output","DXXXX","DXXXX");
+        this->Main_Source_Output=Main::XML_Get_String(Root, "Main_Source_Output", "DXXXX", "DXXXX");
         Main::Dir_Fixup(this->Main_Source_Output);
-        /* Main_Source_Output */
-        this->Main_Source_Overwrite=Main::XML_Get_Yesno(Root,"Main_Source_Overwrite","DXXXX","DXXXX");
+        /* These are present only if the process is native */
+        if(Type==PROCESS_NATIVE)
+        {
+            /* Entry_Source_Output */
+            this->Entry_Source_Output=Main::XML_Get_String(Root, "Entry_Source_Output", "DXXXX", "DXXXX");
+            Main::Dir_Fixup(this->Entry_Source_Output);
+            /* Entry_Source_Overwrite */
+        	this->Entry_Source_Overwrite=Main::XML_Get_Yesno(Root, "Entry_Source_Overwrite", "DXXXX", "DXXXX");
+        }
 
         /* Memory */
         Trunk_Parse_Param<class Mem_Info, class Mem_Info, ptr_t>(Root,"Memory",this->Memory,MEM_DECL,"DXXXX","DXXXX");
@@ -304,7 +311,7 @@ void Process::Local_Alloc(ptr_t Max)
         }
 
         /* Check extra capability table sizes */
-        this->Captbl=std::make_unique<class Captbl>(Cid,Cid+this->Extra_Captbl,this);
+        this->Captbl=std::make_unique<class Captbl>(Cid, Cid+this->Extra_Captbl,this);
         if(this->Captbl->Size>Max)
             Main::Error("XXXXX: Total captbl capacity %lld cannot be larger than the platform limit %lld.",this->Captbl->Size,Max);
     }

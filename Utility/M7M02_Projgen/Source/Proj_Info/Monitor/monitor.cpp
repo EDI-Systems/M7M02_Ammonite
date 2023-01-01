@@ -56,9 +56,9 @@ Return      : None.
         /* Stack size */
         this->Init_Stack_Size=Main::XML_Get_Number(Root,"Init_Stack_Size","DXXXX","DXXXX");
         this->Sftd_Stack_Size=Main::XML_Get_Number(Root,"Sftd_Stack_Size","DXXXX","DXXXX");
-        this->Hypd_Stack_Size=Main::XML_Get_Number(Root,"Hypd_Stack_Size","DXXXX","DXXXX");
         this->Vctd_Stack_Size=Main::XML_Get_Number(Root,"Vctd_Stack_Size","DXXXX","DXXXX");
         this->Timd_Stack_Size=Main::XML_Get_Number(Root,"Timd_Stack_Size","DXXXX","DXXXX");
+        this->Hypd_Stack_Size=Main::XML_Get_Number(Root,"Hypd_Stack_Size","DXXXX","DXXXX");
         /* Extra_Captbl */
         this->Extra_Captbl=Main::XML_Get_Number(Root,"Extra_Captbl","DXXXX","DXXXX");
         /* Virtual machine priorities */

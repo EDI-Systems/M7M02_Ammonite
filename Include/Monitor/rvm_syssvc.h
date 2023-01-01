@@ -199,9 +199,9 @@ while(0)
 
 /* Initial capability layout - same across all architectures */
 /* The capability table of the init process */
-#define RVM_BOOT_CPT                                (0U)
+#define RVM_BOOT_INIT_CPT                                (0U)
 /* The top-level page table of the init process - always full memory access */
-#define RVM_BOOT_PGT                                (1U)
+#define RVM_BOOT_INIT_PGT                                (1U)
 /* The init process */
 #define RVM_BOOT_INIT_PRC                           (2U)
 /* The init thread */

@@ -67,9 +67,11 @@ public:
     std::string Linker_Output;
     /* Main header folder */
     std::string Main_Header_Output;
-    /* Main source folder/overwrite */
+    /* Main source folder */
     std::string Main_Source_Output;
-    ptr_t Main_Source_Overwrite;
+    /* Entry source folder - native process only */
+    std::string Entry_Source_Output;
+    ptr_t Entry_Source_Overwrite;
 
     /* Memory trunk information */
     std::vector<std::unique_ptr<class Mem_Info>> Memory;

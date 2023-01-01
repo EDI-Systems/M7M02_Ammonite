@@ -145,7 +145,7 @@ void RMP_Gen::Process_Virt_Hdr(class Virtual* Virt)
 /* End Function:RMP_Gen::Process_Virt_Hdr ************************************/
 
 /* Begin Function:RMP_Gen::Process_Virt_Src ***********************************
-Description : Create the configuration header for VMs.
+Description : Create the configuration source for VMs.
 Input       : class Virtual* Virt - The process to generate for.
               class Tool_Gen* Tool - The toolchain to use.
 Output      : None.

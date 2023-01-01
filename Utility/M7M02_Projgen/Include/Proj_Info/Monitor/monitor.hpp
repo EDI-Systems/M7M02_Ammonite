@@ -41,9 +41,9 @@ public:
     /* RVM stack size for all five daemons */
     ptr_t Init_Stack_Size;
     ptr_t Sftd_Stack_Size;
-    ptr_t Hypd_Stack_Size;
     ptr_t Vctd_Stack_Size;
     ptr_t Timd_Stack_Size;
+    ptr_t Hypd_Stack_Size;
     /* Extra capability table size */
     ptr_t Extra_Captbl;
     /* Virtual machine priorities */

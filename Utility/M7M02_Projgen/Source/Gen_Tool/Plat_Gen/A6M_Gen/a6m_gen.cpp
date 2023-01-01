@@ -437,7 +437,7 @@ void A6M_Gen::Pgdir_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
 /* End Function:A6M_Gen::Pgdir_Map *******************************************/
 
 /* Begin Function:A6M_Gen::Pgt_Gen ******************************************
-Description : Recursively construct the page table for the ARMv7-M port.
+Description : Recursively construct the page table for the ARMv6-M port.
 Input       : std::vector<std::unique_ptr<class Mem_Info>>& - The list containing
                                                               memory segments to fit
                                                               into this level (and below).
@@ -452,7 +452,7 @@ Return      : std::unique_ptr<class Pgtbl> - The page table structure returned. 
                                              error out.
 ******************************************************************************/
 std::unique_ptr<class Pgtbl> A6M_Gen::Pgt_Gen(std::vector<std::unique_ptr<class Mem_Info>>& List,
-                                                class Process* Owner, ptr_t Total_Max, ptr_t& Total_Static)
+                                              class Process* Owner, ptr_t Total_Max, ptr_t& Total_Static)
 {
     ptr_t Base;
     ptr_t Num_Order;
@@ -465,6 +465,13 @@ std::unique_ptr<class Pgtbl> A6M_Gen::Pgt_Gen(std::vector<std::unique_ptr<class 
     /* See if this will violate the extension limit */
     if(Total_Order>Total_Max)
         Main::Error("XXXXX: Memory segment too small, cannot find a reasonable placement.");
+
+    /* Make sure the list only contain static mappings - ARMv6-M does not allow dynamic mappings */
+    for(const std::unique_ptr<class Mem_Info>& Mem:List)
+    {
+    	if((Mem->Attr&MEM_STATIC)==0)
+            Main::Error("XXXXX: ARMv6-M does not allow dynamic page mappings.");
+    }
 
     /* Number order */
     Num_Order=this->Pgt_Num_Order(List, Total_Order, Base);

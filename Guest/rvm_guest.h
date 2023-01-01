@@ -119,9 +119,9 @@ Description : The header of guest user level low-level library.
 
 /* Initial capability layout - same across all architectures */
 /* The capability table of the init process */
-#define RVM_BOOT_CPT                                (0U)
+#define RVM_BOOT_INIT_CPT                                (0U)
 /* The top-level page table of the init process - always full memory access */
-#define RVM_BOOT_PGT                                (1U)
+#define RVM_BOOT_INIT_PGT                                (1U)
 /* The init process */
 #define RVM_BOOT_INIT_PRC                           (2U)
 /* The init thread */
@@ -366,6 +366,7 @@ EXTERN void RVM_List_Ins(struct RVM_List* New,
                          struct RVM_List* Next);
                          
 /* Capability table operations */
+#ifndef RVM_VIRT_VCT_NUM
 EXTERN rvm_ret_t RVM_Cpt_Crt(rvm_cid_t Cap_Cpt_Crt,
                              rvm_cid_t Cap_Kom, 
                              rvm_cid_t Cap_Cpt,
@@ -402,13 +403,6 @@ EXTERN rvm_ret_t RVM_Cpt_Kom(rvm_cid_t Cap_Cpt_Dst,
                              rvm_ptr_t Flag);
 EXTERN rvm_ret_t RVM_Cpt_Rem(rvm_cid_t Cap_Cpt_Rem,
                              rvm_cid_t Cap_Rem);
-                                
-/* Kernel function operations */
-EXTERN rvm_ret_t RVM_Kfn_Act(rvm_cid_t Cap_Kfn,
-                             rvm_ptr_t Func_ID,
-                             rvm_ptr_t Sub_ID,
-                             rvm_ptr_t Param1,
-                             rvm_ptr_t Param2);
                               
 /* Page table operations */
 EXTERN rvm_ret_t RVM_Pgt_Crt(rvm_cid_t Cap_Cpt,
@@ -498,10 +492,19 @@ EXTERN rvm_ret_t RVM_Sig_Crt(rvm_cid_t Cap_Cpt,
                              rvm_cid_t Cap_Sig);
 EXTERN rvm_ret_t RVM_Sig_Del(rvm_cid_t Cap_Cpt,
                              rvm_cid_t Cap_Sig);
+#endif
 EXTERN rvm_ret_t RVM_Sig_Snd(rvm_cid_t Cap_Sig);
 EXTERN rvm_ret_t RVM_Sig_Rcv(rvm_cid_t Cap_Sig,
                              rvm_ptr_t Option);
-                             
+
+/* Kernel function operations */
+EXTERN rvm_ret_t RVM_Kfn_Act(rvm_cid_t Cap_Kfn,
+                             rvm_ptr_t Func_ID,
+                             rvm_ptr_t Sub_ID,
+                             rvm_ptr_t Param1,
+                             rvm_ptr_t Param2);
+
+#ifndef RVM_VIRT_VCT_NUM
 /* Invocation operations */
 EXTERN rvm_ret_t RVM_Inv_Crt(rvm_cid_t Cap_Cpt,
                              rvm_cid_t Cap_Kom, 
@@ -514,6 +517,7 @@ EXTERN rvm_ret_t RVM_Inv_Set(rvm_cid_t Cap_Inv,
                              rvm_ptr_t Entry,
                              rvm_ptr_t Stack,
                              rvm_ptr_t Is_Exc_Ret);
+#endif
 
 #if(RVM_DEBUG_PRINT==1U)
 /* Debugging helpers */
@@ -522,8 +526,10 @@ EXTERN rvm_ret_t RVM_Hex_Print(rvm_ptr_t Uint);
 EXTERN rvm_ret_t RVM_Str_Print(rvm_s8_t* String);
 #endif
 
+#ifndef RVM_VIRT_VCT_NUM
 /* Process related */
 EXTERN rvm_ret_t RVM_Prc_Evt_Snd(rvm_ptr_t Evt_Num);
+#endif
 
 /* Virtual machine related - not used in normal processes */
 #ifdef RVM_VIRT_VCT_NUM

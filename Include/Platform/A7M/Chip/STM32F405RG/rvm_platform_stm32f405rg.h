@@ -35,10 +35,14 @@ Description: The configuration file for STM32F405RG. The values listed here shou
 /* Maximum number of mappings allowed */
 #define RVM_VIRT_MAP_NUM                                (64U)
 
-/* Initial kernel object capability limit */
-#define RVM_CAP_BOOT_FRONT                              (9U)
-/* Initial kernel object memory limit */
-#define RVM_KOM_BOOT_FRONT                              (0x400U)
+/* Size of initial capability table */
+#define RVM_INIT_CPT_SIZE                               (52U)
+/* Initial kernel object frontier limit */
+#define RVM_CPT_BOOT_FRONT                              (9U)
+#define RVM_KOM_BOOT_FRONT                              (0x1000U)
+/* Post-boot kernel object frontier limit */
+#define RVM_CPT_DONE_FRONT                              (18U)
+#define RVM_KOM_DONE_FRONT                              (0x1800U)
 
 /* Init process's first thread's entry point address */
 #define RVM_A7M_INIT_ENTRY                              (0x08004000U|0x01U)

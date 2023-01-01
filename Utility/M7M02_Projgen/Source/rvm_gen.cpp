@@ -14,7 +14,7 @@ Description : The configuration generator for the MCU ports. This does not
                   their size is not allowed. 
                4. Generate memory map. This places all the memory segments into
                   the memory map, and determines their specific size, etc.
-               5. Generate the page tables. This will actually perform the mempry mapping.
+               5. Generate the page tables. This will actually perform the memory mapping.
                6. Allocate local and global linear capability IDs for all kernel objects.
                7. Set up the folder structure of the project so that the port-specific
                   generators can directly use them.
@@ -929,9 +929,9 @@ void Main::Data_Alloc(void)
 
         /* Now populate the system sections - must be continuous */
         if(this->Proj->Kernel->Data->Static_Fit(this->Proj->Memory_Data)!=0)
-            Main::Error("M0001: Kernel data section is invalid, either wrong range or wrong attribute.");
+            Main::Error("XXXXX: Kernel data section is invalid, either wrong range or wrong attribute.");
         if(this->Proj->Monitor->Data->Static_Fit(this->Proj->Memory_Data)!=0)
-            Main::Error("M0002: Monitor data section is invalid, either wrong range or wrong attribute.");
+            Main::Error("XXXXX: Monitor data section is invalid, either wrong range or wrong attribute.");
 
         /* Fit all static shared memory regions, and leave the automatic ones for later */
         try
@@ -1124,7 +1124,7 @@ void Main::Shmem_Add(void)
 
                 /* Copy everything over to the final memory list so that we can operate on that list */
                 for(std::unique_ptr<class Mem_Info>& Mem:Prc->Memory)
-                    Prc->Memory_All.push_back(std::make_unique<class Mem_Info>(Mem.get(),Mem->Attr));
+                    Prc->Memory_All.push_back(std::make_unique<class Mem_Info>(Mem.get(), Mem->Attr));
             }
             catch(std::exception& Exc)
             {
@@ -1524,8 +1524,8 @@ void Main::Obj_Alloc(void)
             {
                 Main::Info("Allocating memory for process '%s'.",Prc->Name.c_str());
                 Prc->Mem_Alloc(this->Plat->Wordlength,
-                                this->Gen->Plat->Size_Register(),
-                                this->Proj->Kernel->Kom_Order);
+                               this->Gen->Plat->Size_Register(),
+                               this->Proj->Kernel->Kom_Order);
             }
             catch(std::exception& Exc)
             {
@@ -1671,16 +1671,21 @@ void Main::Process_Gen(void)
 
             /* Generate process main source */
             Main::Info("Generating process main source.");
-            this->Gen->Process_Stub_Src(Prc.get());
             this->Gen->Process_Desc_Src(Prc.get());
             this->Gen->Process_Main_Src(Prc.get());
 
             /* If this process is a virtual machine, generate VM configuration header as well */
             if(Prc->Type==PROCESS_VIRTUAL)
             {
-                Main::Info("Generating virtual machine configuration header.");
+                Main::Info("Generating virtual machine configuration file.");
                 this->Gen->Process_Virt_Hdr(static_cast<class Virtual*>(Prc.get()));
                 this->Gen->Process_Virt_Src(static_cast<class Virtual*>(Prc.get()));
+            }
+            /* Generate process entry source */
+            else
+            {
+                Main::Info("Generating process entry source.");
+                this->Gen->Process_Entry_Src(Prc.get());
             }
 
             /* Generate monitor linker script */

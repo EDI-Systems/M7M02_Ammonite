@@ -110,6 +110,9 @@ Return      : None.
 /* Begin Function:Kernel::Mem_Alloc *******************************************
 Description : Allocate the memory for kernel itself.
 Input       : ptr_t Kom_Front - The current kernel memory frontier.
+              ptr_t Vector_Num - The number of physical vectors.
+              ptr_t Event_Num - The number of event sources.
+              ptr_t Wordlength - The processor wordlength.
 Output      : None.
 Return      : None.
 ******************************************************************************/

@@ -50,9 +50,9 @@
         <Data_Size>0x1800</Data_Size>
         <Init_Stack_Size>0x100</Init_Stack_Size>
         <Sftd_Stack_Size>0x100</Sftd_Stack_Size>
-        <Hypd_Stack_Size>0x400</Hypd_Stack_Size>
         <Vctd_Stack_Size>0x400</Vctd_Stack_Size>
         <Timd_Stack_Size>0x400</Timd_Stack_Size>
+        <Hypd_Stack_Size>0x400</Hypd_Stack_Size>
         <Extra_Captbl>32</Extra_Captbl>
         <Virt_Prio>32</Virt_Prio>
         <Virt_Event>32</Virt_Event>
@@ -82,7 +82,8 @@
 			<Linker_Output>./Proc1/Project</Linker_Output>
 			<Main_Header_Output>./Proc1/Include</Main_Header_Output>
 			<Main_Source_Output>./Proc1/Source</Main_Source_Output>
-			<Main_Source_Overwrite>No</Main_Source_Overwrite>
+			<Entry_Source_Output>./Proc1/Source</Entry_Source_Output>
+			<Entry_Source_Overwrite>No</Entry_Source_Overwrite>
             <Memory>
                 <M0>
                     <Name>P1_Code</Name>
@@ -147,7 +148,6 @@
 			<Linker_Output>./Virt1/Project</Linker_Output>
 			<Main_Header_Output>./Virt1/Include</Main_Header_Output>
 			<Main_Source_Output>./Virt1/Source</Main_Source_Output>
-			<Main_Source_Overwrite>No</Main_Source_Overwrite>
 			<Virtual_Header_Output>./Virt1/Include</Virtual_Header_Output>
 			<Virtual_Header_Overwrite>No</Virtual_Header_Overwrite>
 			<Virtual_Source_Output>./Virt1/Source</Virtual_Source_Output>

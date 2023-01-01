@@ -215,17 +215,17 @@ EXTERN struct RVM_Meta_Vcap_Init_Struct RVM_Meta_Vcap_Init[];
 /* Captbl */
 EXTERN struct RVM_Meta_Main_Struct RVM_Meta_Cpt_Main[];
 EXTERN struct RVM_Meta_Cpt_Crt_Struct RVM_Meta_Cpt_Crt[];
-#if(RVM_BOOT_CPT_INIT_NUM!=0U)
+#if(RVM_BOOT_INIT_CPT_INIT_NUM!=0U)
 EXTERN struct RVM_Meta_Cpt_Init_Struct RVM_Meta_Cpt_Init[];
 #endif
-#if(RVM_BOOT_CPT_KFN_NUM!=0U)
+#if(RVM_BOOT_INIT_CPT_KFN_NUM!=0U)
 EXTERN struct RVM_Meta_Cpt_Kfn_Struct RVM_Meta_Cpt_Kfn[];
 #endif
 
 /* Page table */
 EXTERN struct RVM_Meta_Main_Struct RVM_Meta_Pgt_Main[];
 EXTERN struct RVM_Meta_Pgt_Crt_Struct RVM_Meta_Pgt_Crt[];
-#if(RVM_BOOT_PGT_CON_NUM!=0U)
+#if(RVM_BOOT_INIT_PGT_CON_NUM!=0U)
 EXTERN struct RVM_Meta_Pgt_Con_Struct RVM_Meta_Pgt_Con[];
 #endif
 EXTERN struct RVM_Meta_Pgt_Add_Struct RVM_Meta_Pgt_Add[];
@@ -289,6 +289,8 @@ static void RVM_Boot_Inv_Init(void);
 
 static void RVM_Daemon_Init(rvm_cid_t Cap_Base,
                             rvm_ptr_t Kom_Base);
+static void RVM_Boot_Kobj_Crt(void);
+static void RVM_Boot_Kobj_Init(void);
 static void RVM_Prc_Init(void);
 
 EXTERN void RVM_Boot_Pre_Init(void);
