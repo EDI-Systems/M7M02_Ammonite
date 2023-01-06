@@ -1,0 +1,431 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-02-09 02:17+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../Source/About_Dialog/about_dialog.cpp:63
+msgid "(C) Copyright WindIOT Co.,Ltd. All rights reserved."
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:381 ../Source/sdm_dl.cpp:382 ../Source/sdm_dl.cpp:383
+#: ../Source/sdm_dl.cpp:387
+msgid "(Incompatible)"
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3017
+msgid "."
+msgstr ""
+
+#: ../Source/About_Dialog/about_dialog.cpp:44
+msgid "About Program"
+msgstr ""
+
+#: ../Source/Menu_Bar/Help_Menu/help_menu.cpp:54
+msgid "About Program(&A)"
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2297
+msgid "Address"
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:232 ../Source/sdm_dl.cpp:240 ../Source/sdm_dl.cpp:248
+#: ../Source/sdm_dl.cpp:256
+msgid "Allow"
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:253
+msgid "Allow Future Debugging"
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2692
+msgid "Analog input number"
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:187 ../Source/sdm_dl.cpp:192
+msgid "Application Image"
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2699
+msgid "Application image is valid."
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3065
+msgid "Attempting next download in 5s."
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:276
+msgid "Auto Download"
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:273
+msgid "Beep When Complete"
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3026
+msgid "Bootloader version"
+msgstr ""
+
+#: ../Source/About_Dialog/about_dialog.cpp:68
+msgid ""
+"By using this software service, you agree to the EULA located at the root "
+"folder of the installation."
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:282
+msgid "Calibrate Clock"
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:221
+msgid "Calibrate Clock When Downloading"
+msgstr ""
+
+#: ../Source/Menu_Bar/Help_Menu/help_menu.cpp:60
+msgid "Check for Updates(&U)"
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:1958
+msgid "Checking firmware consistency."
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2008
+msgid "Checking hardware configuration."
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2121
+#: ../Source/Download_Daemon/download_daemon.cpp:3084
+msgid "Clock calibration failed."
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3080
+msgid "Clock calibration successful."
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3158
+msgid "Clock calibration timed out."
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2697
+msgid "Clock input number"
+msgstr ""
+
+#: ../Source/About_Dialog/about_dialog.cpp:74
+msgid "Confirm"
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:1935
+msgid "Connecting to module."
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2298
+msgid "Data"
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:279
+msgid "Detect Hardware"
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3138
+msgid "Detect timed out."
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3104
+msgid "Detection firmware load failed."
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3095
+msgid "Detection firmware load successful."
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3167
+msgid "Detection firmware load timed out."
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:233 ../Source/sdm_dl.cpp:241 ../Source/sdm_dl.cpp:249
+#: ../Source/sdm_dl.cpp:257
+msgid "Disallow"
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:269
+msgid "Download Actions"
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:208
+msgid "Download Options"
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3061
+msgid "Download failed."
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3057
+msgid "Download successful."
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3147
+msgid "Download timed out."
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2110
+msgid "Download verification failed."
+msgstr ""
+
+#: ../Source/Menu_Bar/Help_Menu/help_menu.cpp:48
+msgid "Downloader Manual(&D)"
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2204
+msgid "Downloading detection firmware."
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2085
+msgid "Downloading program."
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3098
+msgid "Each key must be held for more than one second."
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:1441
+msgid "Erasing flash."
+msgstr ""
+
+#: ../Include/sdm_dl.hpp:70
+msgid "Error"
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:1352 ../Source/sdm_dl.cpp:1364
+msgid "Execution abort."
+msgstr ""
+
+#: ../Include/sdm_dl.hpp:68
+msgid "Fatal"
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:188
+msgid "File Path"
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2096
+msgid "Finishing download."
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3023
+msgid "Firmware version"
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:1347 ../Source/sdm_dl.cpp:1365
+msgid "Floating point error."
+msgstr ""
+
+#: ../Source/Menu_Bar/Help_Menu/help_menu.cpp:44
+msgid "Hardware Manual(&H)"
+msgstr ""
+
+#: ../Source/Menu_Bar/menu_bar.cpp:39
+msgid "Help(&H)"
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:1349 ../Source/sdm_dl.cpp:1366
+msgid "Illegal instruction."
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:202
+msgid "Image Information"
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:245
+msgid "Late Clock Calibration"
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:229
+msgid "Late Remote Pairing"
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:237
+msgid "Late Serial Configuration"
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2821
+msgid "Loading application."
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:1338 ../Source/sdm_dl.cpp:1363
+msgid "Memory access error."
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:817
+msgid "Module detected"
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:217 ../Source/sdm_dl.cpp:225
+msgid "No"
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3045
+msgid "No project target module detected."
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2373
+msgid "No valid module detected."
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:191 ../Source/sdm_dl.cpp:757
+msgid "Open File"
+msgstr ""
+
+#: ../Source/About_Dialog/about_dialog.cpp:65
+msgid "Other names may be trademarks of their respective owners."
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3097
+msgid "Please press all keys on the remote control one by one."
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2824
+msgid "Preparing programming operation."
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2862
+msgid "Preparing remote detection."
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3020
+msgid "Product identifier"
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:1465
+#: ../Source/Download_Daemon/download_daemon.cpp:1504
+msgid "Programming flash."
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3017
+msgid "Project target module detected on port"
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2694
+msgid "Remote address length"
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2695
+msgid "Remote data length"
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2693
+msgid "Remote input number"
+msgstr ""
+
+#: ../Source/About_Dialog/about_dialog.cpp:69
+msgid "See EULA_XX.txt for details of terms."
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2696
+msgid "Serial input number"
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2698
+msgid "Serial output number"
+msgstr ""
+
+#: ../Include/sdm_dl.hpp:82
+msgid "SmarTock (TM) Smart Delay Module Standalone Downloader"
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:288 ../Source/sdm_dl.cpp:656
+msgid "Start Download"
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:285 ../Source/sdm_dl.cpp:653
+msgid "Start Remote Detection"
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3096
+msgid "Starting remote detection."
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:264
+msgid "Status Log"
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:672
+msgid "Stop Download"
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:685
+msgid "Stop Remote Detection"
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2691
+msgid "Target module"
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:758
+msgid "The application image file might be corrupted."
+msgstr ""
+
+#: ../Source/About_Dialog/about_dialog.cpp:66
+msgid ""
+"This program and its components is protected by copyright law and "
+"international treaties."
+msgstr ""
+
+#: ../Source/Menu_Bar/Help_Menu/help_menu.cpp:68
+msgid "Trigger Exception(&T)"
+msgstr ""
+
+#: ../Source/About_Dialog/about_dialog.cpp:67
+msgid ""
+"Unauthorized reproduction or distribution of this program, or any portion of "
+"it may result in severe civil and criminal penalties."
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:1245
+msgid "Unhandled exception"
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:1353 ../Source/sdm_dl.cpp:1367
+msgid "Unknown error."
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:387
+msgid "Unknown module"
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2059
+msgid "Updating firmware."
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:213
+msgid "Verify After Downloading"
+msgstr ""
+
+#: ../Source/About_Dialog/about_dialog.cpp:62
+msgid "Version:"
+msgstr ""
+
+#: ../Source/About_Dialog/about_dialog.cpp:64
+msgid ""
+"WindIOT and the WindIOT logo are registered trademarks of the WindIOT Co.,"
+"Ltd."
+msgstr ""
+
+#: ../Source/Download_Daemon/download_daemon.cpp:1941
+msgid "Writing configuration data."
+msgstr ""
+
+#: ../Source/sdm_dl.cpp:216 ../Source/sdm_dl.cpp:224
+msgid "Yes"
+msgstr ""

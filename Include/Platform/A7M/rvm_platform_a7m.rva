@@ -12,14 +12,12 @@
             <Macro>RME_A7M_NVIC_GROUPING</Macro>
             <Type>Choice</Type>
             <Range>P0S8,P1S7,P2S6,P3S5,P4S4,P5S3,P6S2,P7S1</Range>
-            <Display>#A7M_NVIC_GROUPING</Display>
         </C0>
         <C1>
             <Name>Systick_Value</Name>
             <Macro>RME_A7M_SYSTICK_VALUE</Macro>
             <Type>Range</Type>
             <Range>100,16777215</Range>
-            <Display>#A7M_SYSTICK_VALUE</Display>
         </C1>
     </Config>
 </Platform>

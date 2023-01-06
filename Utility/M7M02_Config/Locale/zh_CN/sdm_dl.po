@@ -1,0 +1,438 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-02-09 02:17+0800\n"
+"PO-Revision-Date: 2022-02-09 02:17+0800\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 3.0.1\n"
+
+#: ../Source/About_Dialog/about_dialog.cpp:63
+msgid "(C) Copyright WindIOT Co.,Ltd. All rights reserved."
+msgstr "（C）微风科技有限公司。所有权利保留。"
+
+#: ../Source/sdm_dl.cpp:381 ../Source/sdm_dl.cpp:382 ../Source/sdm_dl.cpp:383
+#: ../Source/sdm_dl.cpp:387
+msgid "(Incompatible)"
+msgstr "（不兼容）"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3017
+msgid "."
+msgstr "。"
+
+#: ../Source/About_Dialog/about_dialog.cpp:44
+msgid "About Program"
+msgstr "关于本程序"
+
+#: ../Source/Menu_Bar/Help_Menu/help_menu.cpp:54
+msgid "About Program(&A)"
+msgstr "关于本程序(&A)"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2297
+msgid "Address"
+msgstr "地址"
+
+#: ../Source/sdm_dl.cpp:232 ../Source/sdm_dl.cpp:240 ../Source/sdm_dl.cpp:248
+#: ../Source/sdm_dl.cpp:256
+msgid "Allow"
+msgstr "允许"
+
+#: ../Source/sdm_dl.cpp:253
+msgid "Allow Future Debugging"
+msgstr "允许未来调试"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2692
+msgid "Analog input number"
+msgstr "模拟输入数量"
+
+#: ../Source/sdm_dl.cpp:187 ../Source/sdm_dl.cpp:192
+msgid "Application Image"
+msgstr "应用程序映像"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2699
+msgid "Application image is valid."
+msgstr "应用程序映像有效。"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3065
+msgid "Attempting next download in 5s."
+msgstr "5秒后尝试再次下载。"
+
+#: ../Source/sdm_dl.cpp:276
+msgid "Auto Download"
+msgstr "自动下载"
+
+#: ../Source/sdm_dl.cpp:273
+msgid "Beep When Complete"
+msgstr "完成后播放提示音"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3026
+msgid "Bootloader version"
+msgstr "自举程序版本"
+
+#: ../Source/About_Dialog/about_dialog.cpp:68
+msgid ""
+"By using this software service, you agree to the EULA located at the root "
+"folder of the installation."
+msgstr "使用本软件即表示您同意接受位于安装根目录的最终用户许可条款（EULA）。"
+
+#: ../Source/sdm_dl.cpp:282
+msgid "Calibrate Clock"
+msgstr "校准时钟"
+
+#: ../Source/sdm_dl.cpp:221
+msgid "Calibrate Clock When Downloading"
+msgstr "下载时校准时钟"
+
+#: ../Source/Menu_Bar/Help_Menu/help_menu.cpp:60
+msgid "Check for Updates(&U)"
+msgstr "检查更新(&U)"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:1958
+msgid "Checking firmware consistency."
+msgstr "正在检查固件完整性。"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2008
+msgid "Checking hardware configuration."
+msgstr "正在检查硬件配置。"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2121
+#: ../Source/Download_Daemon/download_daemon.cpp:3084
+msgid "Clock calibration failed."
+msgstr "时钟校准失败。"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3080
+msgid "Clock calibration successful."
+msgstr "时钟校准成功。"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3158
+msgid "Clock calibration timed out."
+msgstr "时钟校准超时。"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2697
+msgid "Clock input number"
+msgstr "时钟输入数量"
+
+#: ../Source/About_Dialog/about_dialog.cpp:74
+msgid "Confirm"
+msgstr "确认"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:1935
+msgid "Connecting to module."
+msgstr "正在连接到模块。"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2298
+msgid "Data"
+msgstr "数据"
+
+#: ../Source/sdm_dl.cpp:279
+msgid "Detect Hardware"
+msgstr "探测硬件型号"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3138
+msgid "Detect timed out."
+msgstr "探测超时。"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3104
+msgid "Detection firmware load failed."
+msgstr "探测固件下载失败。"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3095
+msgid "Detection firmware load successful."
+msgstr "探测固件下载成功。"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3167
+msgid "Detection firmware load timed out."
+msgstr "探测固件下载超时。"
+
+#: ../Source/sdm_dl.cpp:233 ../Source/sdm_dl.cpp:241 ../Source/sdm_dl.cpp:249
+#: ../Source/sdm_dl.cpp:257
+msgid "Disallow"
+msgstr "不允许"
+
+#: ../Source/sdm_dl.cpp:269
+msgid "Download Actions"
+msgstr "下载动作"
+
+#: ../Source/sdm_dl.cpp:208
+msgid "Download Options"
+msgstr "下载选项"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3061
+msgid "Download failed."
+msgstr "下载失败。"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3057
+msgid "Download successful."
+msgstr "下载成功。"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3147
+msgid "Download timed out."
+msgstr "下载超时。"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2110
+msgid "Download verification failed."
+msgstr "下载校验失败。"
+
+#: ../Source/Menu_Bar/Help_Menu/help_menu.cpp:48
+msgid "Downloader Manual(&D)"
+msgstr "下载器使用手册(&S)"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2204
+msgid "Downloading detection firmware."
+msgstr "正在下载探测固件。"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2085
+msgid "Downloading program."
+msgstr "正在下载程序。"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3098
+msgid "Each key must be held for more than one second."
+msgstr "每个按键都必须持续按下超过1秒。"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:1441
+msgid "Erasing flash."
+msgstr "正在擦除闪存。"
+
+#: ../Include/sdm_dl.hpp:70
+msgid "Error"
+msgstr "错误"
+
+#: ../Source/sdm_dl.cpp:1352 ../Source/sdm_dl.cpp:1364
+msgid "Execution abort."
+msgstr "执行中止。"
+
+#: ../Include/sdm_dl.hpp:68
+msgid "Fatal"
+msgstr "致命"
+
+#: ../Source/sdm_dl.cpp:188
+msgid "File Path"
+msgstr "文件路径"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2096
+msgid "Finishing download."
+msgstr "正在完成下载。"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3023
+msgid "Firmware version"
+msgstr "固件版本"
+
+#: ../Source/sdm_dl.cpp:1347 ../Source/sdm_dl.cpp:1365
+msgid "Floating point error."
+msgstr "浮点错误。"
+
+#: ../Source/Menu_Bar/Help_Menu/help_menu.cpp:44
+msgid "Hardware Manual(&H)"
+msgstr "硬件使用手册(&H)"
+
+#: ../Source/Menu_Bar/menu_bar.cpp:39
+msgid "Help(&H)"
+msgstr "帮助(&H)"
+
+#: ../Source/sdm_dl.cpp:1349 ../Source/sdm_dl.cpp:1366
+msgid "Illegal instruction."
+msgstr "非法指令。"
+
+#: ../Source/sdm_dl.cpp:202
+msgid "Image Information"
+msgstr "映像信息"
+
+#: ../Source/sdm_dl.cpp:245
+msgid "Late Clock Calibration"
+msgstr "后时钟校准"
+
+#: ../Source/sdm_dl.cpp:229
+msgid "Late Remote Pairing"
+msgstr "后遥控对码"
+
+#: ../Source/sdm_dl.cpp:237
+msgid "Late Serial Configuration"
+msgstr "后串口配置"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2821
+msgid "Loading application."
+msgstr "正在加载应用程序。"
+
+#: ../Source/sdm_dl.cpp:1338 ../Source/sdm_dl.cpp:1363
+msgid "Memory access error."
+msgstr "内存访问错误。"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:817
+msgid "Module detected"
+msgstr "探测到模块"
+
+#: ../Source/sdm_dl.cpp:217 ../Source/sdm_dl.cpp:225
+msgid "No"
+msgstr "否"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3045
+msgid "No project target module detected."
+msgstr "没有探测到工程目标模块。"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2373
+msgid "No valid module detected."
+msgstr "没有探测到有效模块。"
+
+#: ../Source/sdm_dl.cpp:191 ../Source/sdm_dl.cpp:757
+msgid "Open File"
+msgstr "打开文件"
+
+#: ../Source/About_Dialog/about_dialog.cpp:65
+msgid "Other names may be trademarks of their respective owners."
+msgstr "其他名称可能是其各自所有者的商标。"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3097
+msgid "Please press all keys on the remote control one by one."
+msgstr "请依次按下遥控器上的所有按键。"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2824
+msgid "Preparing programming operation."
+msgstr "正在准备下载操作。"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2862
+msgid "Preparing remote detection."
+msgstr "正在准备遥控探测。"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3020
+msgid "Product identifier"
+msgstr "产品标识符"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:1465
+#: ../Source/Download_Daemon/download_daemon.cpp:1504
+msgid "Programming flash."
+msgstr "正在编程闪存。"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3017
+msgid "Project target module detected on port"
+msgstr "工程目标模块连接于端口"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2694
+msgid "Remote address length"
+msgstr "遥控地址长度"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2695
+msgid "Remote data length"
+msgstr "遥控数据长度"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2693
+msgid "Remote input number"
+msgstr "遥控输入数量"
+
+#: ../Source/About_Dialog/about_dialog.cpp:69
+msgid "See EULA_XX.txt for details of terms."
+msgstr "有关条款的详细信息，请参阅EULA_XX.txt。"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2696
+msgid "Serial input number"
+msgstr "串口输入数量"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2698
+msgid "Serial output number"
+msgstr "串口输出数量"
+
+#: ../Include/sdm_dl.hpp:82
+msgid "SmarTock (TM) Smart Delay Module Standalone Downloader"
+msgstr "SmarTock(TM) 智能延时模块独立下载器"
+
+#: ../Source/sdm_dl.cpp:288 ../Source/sdm_dl.cpp:656
+msgid "Start Download"
+msgstr "开始下载"
+
+#: ../Source/sdm_dl.cpp:285 ../Source/sdm_dl.cpp:653
+msgid "Start Remote Detection"
+msgstr "开始遥控探测"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:3096
+msgid "Starting remote detection."
+msgstr "正在开始遥控探测。"
+
+#: ../Source/sdm_dl.cpp:264
+msgid "Status Log"
+msgstr "状态日志"
+
+#: ../Source/sdm_dl.cpp:672
+msgid "Stop Download"
+msgstr "停止下载"
+
+#: ../Source/sdm_dl.cpp:685
+msgid "Stop Remote Detection"
+msgstr "停止遥控探测"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2691
+msgid "Target module"
+msgstr "目标模块"
+
+#: ../Source/sdm_dl.cpp:758
+msgid "The application image file might be corrupted."
+msgstr "应用程序映像可能已经损坏。"
+
+#: ../Source/About_Dialog/about_dialog.cpp:66
+msgid ""
+"This program and its components is protected by copyright law and "
+"international treaties."
+msgstr "本程序及其组件受版权法和国际条约的保护。"
+
+#: ../Source/Menu_Bar/Help_Menu/help_menu.cpp:68
+msgid "Trigger Exception(&T)"
+msgstr "触发异常(&T)"
+
+#: ../Source/About_Dialog/about_dialog.cpp:67
+msgid ""
+"Unauthorized reproduction or distribution of this program, or any portion of "
+"it may result in severe civil and criminal penalties."
+msgstr "未经授权复制或分发本程序或其任何部分可能会导致严重的民事和刑事处罚。"
+
+#: ../Source/sdm_dl.cpp:1245
+msgid "Unhandled exception"
+msgstr "未处理异常"
+
+#: ../Source/sdm_dl.cpp:1353 ../Source/sdm_dl.cpp:1367
+msgid "Unknown error."
+msgstr "未知错误。"
+
+#: ../Source/sdm_dl.cpp:387
+msgid "Unknown module"
+msgstr "未知模块"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:2059
+msgid "Updating firmware."
+msgstr "正在更新固件。"
+
+#: ../Source/sdm_dl.cpp:213
+msgid "Verify After Downloading"
+msgstr "下载后校验"
+
+#: ../Source/About_Dialog/about_dialog.cpp:62
+msgid "Version:"
+msgstr "版本："
+
+#: ../Source/About_Dialog/about_dialog.cpp:64
+msgid ""
+"WindIOT and the WindIOT logo are registered trademarks of the WindIOT Co.,"
+"Ltd."
+msgstr "微风科技和微风科技标志是微风科技有限公司的注册商标。"
+
+#: ../Source/Download_Daemon/download_daemon.cpp:1941
+msgid "Writing configuration data."
+msgstr "正在写入配置数据。"
+
+#: ../Source/sdm_dl.cpp:216 ../Source/sdm_dl.cpp:224
+msgid "Yes"
+msgstr "是"
+
+#~ msgid "Clear Status Log"
+#~ msgstr "清除状态日志"
+
+#~ msgid "Serial Port Selection"
+#~ msgstr "串口选择"

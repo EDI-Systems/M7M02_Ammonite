@@ -1,0 +1,16 @@
+doxygen/doxygen_new_line_after_brief=true
+doxygen/doxygen_use_brief_tag=false
+doxygen/doxygen_use_javadoc_tags=true
+doxygen/doxygen_use_pre_tag=false
+doxygen/doxygen_use_structural_commands=false
+eclipse.preferences.version=1
+environment/project/cdt.managedbuild.config.gnu.cross.exe.release.634843262/MINGW_HOME/delimiter=;
+environment/project/cdt.managedbuild.config.gnu.cross.exe.release.634843262/MINGW_HOME/operation=replace
+environment/project/cdt.managedbuild.config.gnu.cross.exe.release.634843262/MINGW_HOME/value=C\:\\mingw64\\mingw32
+environment/project/cdt.managedbuild.config.gnu.cross.exe.release.634843262/PATH/delimiter=;
+environment/project/cdt.managedbuild.config.gnu.cross.exe.release.634843262/PATH/operation=replace
+environment/project/cdt.managedbuild.config.gnu.cross.exe.release.634843262/PATH/value=${MINGW_HOME}\\bin;${MSYS_HOME}\\bin;${MSYS_HOME}\\usr\\bin;C\:/Program Files/Java/jdk1.8.0_131/bin/../jre/bin/server;C\:/Program Files/Java/jdk1.8.0_131/bin/../jre/bin;C\:/Program Files/Java/jdk1.8.0_131/bin/../jre/lib/amd64;C\:\\Windows\\system32;C\:\\Windows;C\:\\Windows\\System32\\Wbem;C\:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C\:\\Windows\\System32\\OpenSSH\\;C\:\\Program Files\\Java\\jdk1.8.0_131\\bin;C\:\\Program Files\\Git\\cmd;C\:\\mingw64\\mingw32\\bin;D\:\\InstallFolder\\HI_TECH\\PICC\\9.83\\bin;C\:\\Program Files\\Java\\jdk1.8.0_131\\jre\\bin;C\:\\wxWidgets-3.1.3;C\:\\Users\\14836\\AppData\\Local\\Programs\\Python\\Python38-32\\Scripts\\;C\:\\Users\\14836\\AppData\\Local\\Programs\\Python\\Python38-32\\;C\:\\Users\\14836\\AppData\\Local\\Microsoft\\WindowsApps;C\:\\Users\\14836\\AppData\\Local\\BypassRuntm;C\:\\PyCharm\\bin;;D\:\\UnZipFolder\\eclipse
+environment/project/cdt.managedbuild.config.gnu.cross.exe.release.634843262/append=true
+environment/project/cdt.managedbuild.config.gnu.cross.exe.release.634843262/appendContributed=true
+environment/project/cdt.managedbuild.config.gnu.mingw.exe.release.133070221/append=true
+environment/project/cdt.managedbuild.config.gnu.mingw.exe.release.133070221/appendContributed=true
