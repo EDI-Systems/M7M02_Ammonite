@@ -8,7 +8,7 @@ Description : Help menu class implementation.
 
 /* Includes ******************************************************************/
 #define __HDR_DEFS__
-#include "sdm_dl.hpp"
+#include "rvm_cfg.hpp"
 #undef __HDR_DEFS__
 
 #include "wx/wx.h"
@@ -24,7 +24,7 @@ Description : Help menu class implementation.
 #undef __HDR_DEFS__
 
 #define __HDR_CLASSES__
-#include "sdm_dl.hpp"
+#include "rvm_cfg.hpp"
 #include "Menu_Bar/Help_Menu/help_menu.hpp"
 #include "About_Dialog/about_dialog.hpp"
 #undef __HDR_CLASSES__
@@ -41,17 +41,17 @@ Return      : None.
 {
     try
     {
-        this->Hardware_Manual=new wxMenuItem(this,wxID_ANY,sT("Hardware Manual(&H)"));
-        this->Append(this->Hardware_Manual);
-        this->Bind(wxEVT_MENU,&Help_Menu::On_Hardware_Manual,this,this->Hardware_Manual->GetId());
+        this->Kernel_Manual=new wxMenuItem(this,wxID_ANY,_("Kernel Manual(&K)"));
+        this->Append(this->Kernel_Manual);
+        this->Bind(wxEVT_MENU,&Help_Menu::On_Kernel_Manual,this,this->Kernel_Manual->GetId());
 
-        this->Downloader_Manual=new wxMenuItem(this,wxID_ANY,sT("Downloader Manual(&D)"));
-        this->Append(this->Downloader_Manual);
-        this->Bind(wxEVT_MENU,&Help_Menu::On_Downloader_Manual,this,this->Downloader_Manual->GetId());
+        this->Monitor_Manual=new wxMenuItem(this,wxID_ANY,_("Monitor Manual(&M)"));
+        this->Append(this->Monitor_Manual);
+        this->Bind(wxEVT_MENU,&Help_Menu::On_Monitor_Manual,this,this->Monitor_Manual->GetId());
 #ifndef OEM_NEUTRAL
         this->AppendSeparator();
 
-        this->About_Program=new wxMenuItem(this,wxID_ANY,sT("About Program(&A)"));
+        this->About_Program=new wxMenuItem(this,wxID_ANY,_("About Program(&A)"));
         this->Append(this->About_Program);
         this->Bind(wxEVT_MENU,&Help_Menu::On_About_Program,this,this->About_Program->GetId());
 #endif
@@ -59,7 +59,7 @@ Return      : None.
 #ifdef DEBUG
         this->AppendSeparator();
 
-        this->Error_Trigger=new wxMenuItem(this,wxID_ANY,sT("Trigger Exception(&T)"));
+        this->Error_Trigger=new wxMenuItem(this,wxID_ANY,_("Trigger Exception(&T)"));
         this->Append(this->Error_Trigger);
         this->Bind(wxEVT_MENU,&Help_Menu::On_Error_Trigger,this,this->Error_Trigger->GetId());
 #endif
@@ -79,8 +79,8 @@ Return      : None.
 ******************************************************************************/
 /* void */ Help_Menu::~Help_Menu(void)
 {
-    this->Unbind(wxEVT_MENU,&Help_Menu::On_Hardware_Manual,this);
-    this->Unbind(wxEVT_MENU,&Help_Menu::On_Downloader_Manual,this);
+    this->Unbind(wxEVT_MENU,&Help_Menu::On_Kernel_Manual,this);
+    this->Unbind(wxEVT_MENU,&Help_Menu::On_Monitor_Manual,this);
 #ifndef OEM_NEUTRAL
     this->Unbind(wxEVT_MENU,&Help_Menu::On_About_Program,this);
 #endif
@@ -90,31 +90,43 @@ Return      : None.
 }
 /* End Function:Help_Menu::~Help_Menu ****************************************/
 
-/* Begin Function:Help_Menu::On_Hardware_Manual *******************************
-Description : wxEVT_MENU handler for 'Hardware_Manual'.
+/* Begin Function:Help_Menu::State_Set ****************************************
+Description : Set the current UI state, and decide what controls are usable.
+Input       : ptr_t Type - The state type.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Help_Menu::State_Set(ptr_t Type)
+{
+    /* Always enable all */
+}
+/* End Function:Help_Menu::State_Set *****************************************/
+
+/* Begin Function:Help_Menu::On_Kernel_Manual *********************************
+Description : wxEVT_MENU handler for 'Kernel_Manual'.
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Help_Menu::On_Hardware_Manual(class wxCommandEvent& Event)
+void Help_Menu::On_Kernel_Manual(class wxCommandEvent& Event)
 {
-    wxLogDebug("Help_Menu::On_Hardware_Manual");
-    Main::Manual_Open("Hardware");
+    wxLogDebug("Help_Menu::On_Kernel_Manual");
+    Main::Manual_Open("Kernel");
 }
 /* End Function:Help_Menu::On_Hardware_Manual ********************************/
 
-/* Begin Function:Help_Menu::On_Downloader_Manual *****************************
-Description : wxEVT_MENU handler for 'Downloader Manual'.
+/* Begin Function:Help_Menu::On_Monitor_Manual ********************************
+Description : wxEVT_MENU handler for 'Monitor Manual'.
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Help_Menu::On_Downloader_Manual(class wxCommandEvent& Event)
+void Help_Menu::On_Monitor_Manual(class wxCommandEvent& Event)
 {
-    wxLogDebug("Help_Menu::On_Downloader_Manual");
-    Main::Manual_Open("Downloader");
+    wxLogDebug("Help_Menu::On_Monitor_Manual");
+    Main::Manual_Open("Monitor");
 }
-/* End Function:Help_Menu::On_Downloader_Manual ******************************/
+/* End Function:Help_Menu::On_Monitor_Manual *********************************/
 
 /* Begin Function:Help_Menu::On_About_Program *********************************
 Description : wxEVT_MENU handler for 'About Program'.

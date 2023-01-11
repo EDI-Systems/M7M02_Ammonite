@@ -3,9 +3,15 @@
     <Name>A6M</Name>
     <Version>1.0</Version>
     <Wordlength>32</Wordlength>
-    <Guest>RMP</Guest>
     <Buildsystem>Keil,Makefile</Buildsystem>
     <Toolchain>ARMCC,GCC</Toolchain>
+    <Guest>RMP</Guest>
+    <Compatible>
+        <C0>Keil,ARMCC,Native</C0>
+        <C1>Keil,ARMCC,RMP</C1>
+        <C2>Makefile,GCC,Native</C2>
+        <C3>Makefile,GCC,RMP</C3>
+    </Compatible>
     <Config>
         <C0>
             <Name>NVIC_Grouping</Name>

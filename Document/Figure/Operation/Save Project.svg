@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/PR-SVG-20010719/DTD/svg10.dtd">
+<svg width="5cm" height="5cm" viewBox="400 240 100 99" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <line style="fill: none; fill-opacity:0; stroke-width: 2.35099e-037; stroke: #ffffff" x1="400" y1="240" x2="500" y2="240"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 2.35099e-037; stroke: #ffffff" x1="400" y1="240" x2="400" y2="340"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 2.35099e-037; stroke: #ffffff" x1="400" y1="340" x2="500" y2="340"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 2.35099e-037; stroke: #ffffff" x1="500" y1="240" x2="500" y2="340"/>
+  <g>
+    <polygon style="fill: #f0a3f0" points="424,244 496,244 496,336 404,336 404,264 "/>
+    <polygon style="fill: none; fill-opacity:0; stroke-width: 4; stroke: #000000" points="424,244 496,244 496,336 404,336 404,264 "/>
+  </g>
+  <g>
+    <rect style="fill: #bfbfbf" x="428" y="244" width="44" height="28"/>
+    <rect style="fill: none; fill-opacity:0; stroke-width: 4; stroke: #000000" x="428" y="244" width="44" height="28"/>
+  </g>
+  <g>
+    <rect style="fill: #bfbfbf" x="424" y="292" width="52" height="44"/>
+    <rect style="fill: none; fill-opacity:0; stroke-width: 4; stroke: #000000" x="424" y="292" width="52" height="44"/>
+  </g>
+  <g>
+    <rect style="fill: #8b6914" x="456" y="248" width="4" height="16"/>
+    <rect style="fill: none; fill-opacity:0; stroke-width: 4; stroke: #8b6914" x="456" y="248" width="4" height="16"/>
+  </g>
+  <g>
+    <rect style="fill: #ffa0a3" x="424" y="292" width="52" height="16"/>
+    <rect style="fill: none; fill-opacity:0; stroke-width: 4; stroke: #000000" x="424" y="292" width="52" height="16"/>
+  </g>
+</svg>

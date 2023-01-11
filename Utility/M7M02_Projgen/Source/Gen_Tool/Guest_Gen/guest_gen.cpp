@@ -12,6 +12,7 @@ extern "C"
 #include "xml.h"
 }
 
+#include "set"
 #include "map"
 #include "string"
 #include "memory"

@@ -28,12 +28,7 @@ namespace RVM_CFG
 
 /* Status bar second box size */
 #define STATUS_FIRST_WIDTH                  (-1)
-#define STATUS_SECOND_WIDTH                 (400)
-
-#define GAUGE_WIDTH                         (STATUS_SECOND_WIDTH+30)
-#define GAUGE_HEIGHT                        (18)
-
-#define STATUS_TIMER_ID                     (5969)
+#define STATUS_SECOND_WIDTH                 (100)
 /*****************************************************************************/
 /* __STATUS_BAR_HPP_DEFS__ */
 #endif
@@ -50,13 +45,19 @@ class Status_Bar:public wxStatusBar
 {
 public:
     class wxWindow* Parent;
-    class wxGauge* Status_Gauge;
+    class wxStaticText* Memory;
     class wxStaticText* Version;
+
+    class wxTimer* Timer;
 
     Status_Bar(class wxWindow* Parent);
     ~Status_Bar(void);
 
+    void State_Set(ptr_t Type);
+
+    /* Event handlers */
     void On_Size(class wxSizeEvent& Event);
+    void On_Timer(class wxTimerEvent& event);
 };
 /*****************************************************************************/
 /* __STATUS_BAR_HPP_CLASSES__ */

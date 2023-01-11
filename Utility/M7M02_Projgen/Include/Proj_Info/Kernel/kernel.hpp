@@ -30,6 +30,8 @@ namespace RVM_GEN
 class Kernel
 {
 public:
+    /* Kernel source root folder for reference */
+    std::string Kernel_Root;
     /* RME code section base/size */
     ptr_t Code_Base;
     ptr_t Code_Size;
@@ -53,13 +55,11 @@ public:
     std::string Toolchain;
     /* Compiler optimization level */
     std::string Optimization;
-    /* Kernel source root folder for reference */
-    std::string Kernel_Root;
+    /* Whether the kernel project will generate a full image (process partitions included) */
+    ptr_t Full_Image;
     /* Project output folder/overwrite */
     std::string Project_Output;
     ptr_t Project_Overwrite;
-    /* Whether the kernel project will generate a full image (so that process partitions are linked together) */
-    ptr_t Project_Full_Image;
     /* Linker output folder */
     std::string Linker_Output;
     /* Configuration header output folder */

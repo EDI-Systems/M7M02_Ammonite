@@ -44,10 +44,16 @@ public:
     ptr_t Kfunc_Max;
     /* Compatible guest list */
     std::vector<std::string> Guest;
+    std::set<std::string> Guest_Set;
     /* Compatible buildsystem list */
     std::vector<std::string> Buildsystem;
+    std::set<std::string> Buildsystem_Set;
     /* Compatible buildsystem list */
     std::vector<std::string> Toolchain;
+    std::set<std::string> Toolchain_Set;
+
+    /* Compatibility information */
+    std::vector<std::unique_ptr<class Compatible>> Compatible;
 
     /* Platform-specific configuration information */
     std::vector<std::unique_ptr<class Conf_Info>> Config;
@@ -58,6 +64,10 @@ public:
 
     void Check(void);
 
+    void Compatible_Check(const std::string& Name,
+                          const std::string& Buildsystem,
+                          const std::string& Toolchain,
+                          const std::string& Guest);
     void Project_Config_Mark_Check(void);
 };
 /*****************************************************************************/

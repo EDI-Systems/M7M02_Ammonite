@@ -95,6 +95,7 @@ public:
 
     std::string Input;
     static ptr_t Verbose;
+    static ptr_t Mock;
 
     /* XML database */
     std::unique_ptr<class Proj_Info> Proj;
@@ -102,7 +103,7 @@ public:
     std::unique_ptr<class Plat_Info> Plat;
     std::unique_ptr<class Gen_Tool> Gen;
 
-    Main(int argc, char* argv[]);
+    /* void */ Main(int argc, char* argv[]);
 
     void Proj_Parse(void);
     void Plat_Parse(void);
@@ -142,21 +143,21 @@ public:
     void Workspace_Gen(void);
     void Report_Gen(void);
 
-    static std::string XML_Get_String(xml_node_t* Root, const char* Name,
-                                      const char* Errno0, const char* Errno1);
-    static ptr_t XML_Get_Number(xml_node_t* Root, const char* Name,
-                                const char* Errno0, const char* Errno1);
-    static ptr_t XML_Get_Yesno(xml_node_t* Root, const char* Name,
-                               const char* Errno0, const char* Errno1);
-    static void XML_Get_CSV(xml_node_t* Root, const char* Name,
+    static std::string XML_Get_String(xml_node_t* Root, const std::string& Name,
+                                      const std::string& Errno0, const std::string& Errno1);
+    static ptr_t XML_Get_Number(xml_node_t* Root, const std::string& Name,
+                                const std::string& Errno0, const std::string& Errno1);
+    static ptr_t XML_Get_Yesno(xml_node_t* Root, const std::string& Name,
+                               const std::string& Errno0, const std::string& Errno1);
+    static void XML_Get_CSV(xml_node_t* Root, const std::string& Name,
                             std::vector<std::string>& Vector,
-                            const char* Errno0, const char* Errno1);
-    static void XML_Get_KVP(xml_node_t* Root, const char* Name,
+                            const std::string& Errno0, const std::string& Errno1);
+    static void XML_Get_KVP(xml_node_t* Root, const std::string& Name,
                             std::map<std::string,std::string>& Map,
-                            const char* Errno0, const char* Errno1);
+                            const std::string& Errno0, const std::string& Errno1);
 
-    static void Idtfr_Check(const std::string& Idtfr, const char* Name,
-                            const char* Errno0, const char* Errno1);
+    static void Idtfr_Check(const std::string& Idtfr, const std::string& Name,
+                            const std::string& Errno0, const std::string& Errno1);
     static void Dir_Fixup(std::string& Dir);
 
     static std::string Hex(ptr_t Number);
@@ -253,6 +254,19 @@ void Duplicate_Check(std::vector<std::unique_ptr<ELEM>>& Vect,
             Map.insert(std::pair<FIELD,ELEM*>(Key,Var.get()));
         else
             Main::Error(std::string(Errno)+": Duplicate "+Field+" '"+To_String(Key)+"' found in '"+Section+"' section.");
+    }
+}
+
+template <typename STRING>
+void Duplicate_Check(std::vector<STRING>& Vect, std::set<STRING>& Set,
+                     const std::string& Errno, const std::string& Field, const std::string& Section)
+{
+    for(STRING& Var:Vect)
+    {
+        if(Set.find(Var)==Set.end())
+            Set.insert(Var);
+        else
+            Main::Error(std::string(Errno)+": Duplicate "+Field+" '"+To_String(Var)+"' found in '"+Section+"' section.");
     }
 }
 /*****************************************************************************/

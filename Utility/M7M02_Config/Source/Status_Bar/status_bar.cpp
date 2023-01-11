@@ -15,7 +15,7 @@ extern "C"
 }
 
 #define __HDR_DEFS__
-#include "sdm_dl.hpp"
+#include "rvm_cfg.hpp"
 #undef __HDR_DEFS__
 
 #include "wx/wx.h"
@@ -34,7 +34,7 @@ extern "C"
 #undef __HDR_DEFS__
 
 #define __HDR_CLASSES__
-#include "sdm_dl.hpp"
+#include "rvm_cfg.hpp"
 #include "Status_Bar/status_bar.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/
@@ -49,7 +49,12 @@ Return      : None.
 /* void */ Status_Bar::Status_Bar(class wxWindow *Parent):
 wxStatusBar(Parent,wxID_ANY)
 {
-    static const s32_t Widths[2]={STATUS_FIRST_WIDTH,I2P(STATUS_SECOND_WIDTH)};
+    static const s32_t Widths[3]=
+    {
+            STATUS_FIRST_WIDTH,
+            I2P(STATUS_SECOND_WIDTH),
+            I2P(STATUS_SECOND_WIDTH)
+    };
 
     try
     {
@@ -58,13 +63,17 @@ wxStatusBar(Parent,wxID_ANY)
         this->SetFieldsCount(STATUS_BAR_SIZE);
         this->SetStatusWidths(STATUS_BAR_SIZE, Widths);
 
-        this->Status_Gauge=new class wxGauge(this,wxID_ANY,GAUGE_MAX_COUNT,wxDefaultPosition,wxDefaultSize,wxGA_HORIZONTAL|wxGA_SMOOTH);
-        this->Status_Gauge->SetSize(I2P(GAUGE_WIDTH), I2P(GAUGE_HEIGHT));
-        this->Status_Gauge->Show(true);
-
         this->Version=new wxStaticText(this,wxID_ANY,SOFTWARE_VERSION,wxDefaultPosition,wxDefaultSize);
+        this->Memory=new wxStaticText(this,wxID_ANY,wxT("kB: 0"),wxDefaultPosition,wxDefaultSize);
 
+        /* Timer for updating memory info every 1s */
+        this->Timer=new class wxTimer(this);
+#ifndef DEBUG
+        this->Timer->Start(1000);
+#endif
+        /* Our own events */
         this->Bind(wxEVT_SIZE,&Status_Bar::On_Size,this,this->GetId());
+        this->Bind(wxEVT_TIMER,&Status_Bar::On_Timer,this,this->Timer->GetId());
     }
     catch(std::exception& Exc)
     {
@@ -81,9 +90,27 @@ Return      : None.
 ******************************************************************************/
 /* void */ Status_Bar::~Status_Bar(void)
 {
+#ifndef DEBUG
+    this->Timer->Stop();
+#endif
     this->Unbind(wxEVT_SIZE,&Status_Bar::On_Size,this);
+    this->Unbind(wxEVT_TIMER,&Status_Bar::On_Timer,this);
+    delete this->Timer;
 }
 /* End Function:Status_Bar::~Status_Bar **************************************/
+
+/* Begin Function:Status_Bar::State_Set ***************************************
+Description : Set the current UI state, and decide what controls are usable.
+Input       : ptr_t Type - The state type.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Status_Bar::State_Set(ptr_t Type)
+{
+    /* Always enable all */
+    this->Refresh();
+}
+/* End Function:Status_Bar::State_Set ****************************************/
 
 /* Begin Function:Status_Bar::On_Size *****************************************
 Description : wxEVT_SIZE handler.
@@ -94,17 +121,43 @@ Return      : None.
 void Status_Bar::On_Size(class wxSizeEvent& Event)
 {
     pos_t Frame_Width;
-    pos_t Bar_Height;
 
     Frame_Width=this->Parent->GetSize().GetWidth();
-    Bar_Height=this->GetSize().GetHeight();
 
-    this->Status_Gauge->SetPosition(wxPoint(Frame_Width-I2P(STATUS_SECOND_WIDTH)-I2P(40),(Bar_Height-I2P(GAUGE_HEIGHT))/2+1));
     this->Version->SetPosition(wxPoint(0,I2P(4)));
+    this->Memory->SetPosition(wxPoint(Frame_Width-I2P(STATUS_SECOND_WIDTH)-I2P(30),I2P(4)));
 
     Event.Skip();
 }
 /* End Function:Status_Bar::On_Size ******************************************/
+
+/* Begin Function:Status_Bar::On_Timer ****************************************
+Description : wxEVT_TIMER handler. This will get the memory usage.
+Input       : class wxTimerEvent& Event - The event.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Status_Bar::On_Timer(class wxTimerEvent& Event)
+{
+    u32_t Kb;
+    char Buf[64];
+
+#ifdef _WIN32
+    PROCESS_MEMORY_COUNTERS Mem;
+
+    GetProcessMemoryInfo(GetCurrentProcess(),&Mem,sizeof(Mem));
+    Kb=Mem.PagefileUsage/1024;
+#else
+
+#endif
+
+    sprintf(Buf,"kB: %u ", Kb);
+    this->Memory->SetLabel(Buf);
+
+    wxLogDebug("Status_Bar::On_Timer");
+    Event.Skip();
+}
+/* End Function:Status_Bar::On_Timer *****************************************/
 }
 /* End Of File ***************************************************************/
 

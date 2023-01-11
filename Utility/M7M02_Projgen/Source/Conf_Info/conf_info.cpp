@@ -8,17 +8,18 @@ Description : The configuration option info class. This class is responsible for
 ******************************************************************************/
 
 /* Includes ******************************************************************/
+extern "C"
+{
+#include "xml.h"
+}
+
+#include "set"
 #include "map"
 #include "string"
 #include "memory"
 #include "vector"
 #include "stdexcept"
 #include "algorithm"
-
-extern "C"
-{
-#include "xml.h"
-}
 
 #define __HDR_DEFS__
 #include "rvm_gen.hpp"

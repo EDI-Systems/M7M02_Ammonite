@@ -6,6 +6,12 @@
     <Guest>RMP</Guest>
     <Buildsystem>Keil,Makefile</Buildsystem>
     <Toolchain>ARMCC,GCC</Toolchain>
+    <Compatible>
+        <C0>Keil,ARMCC,Native</C0>
+        <C1>Keil,ARMCC,RMP</C1>
+        <C2>Makefile,GCC,Native</C2>
+        <C3>Makefile,GCC,RMP</C3>
+    </Compatible>
     <Config>
         <C0>
             <Name>NVIC_Grouping</Name>

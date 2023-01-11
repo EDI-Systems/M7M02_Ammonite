@@ -13,8 +13,8 @@ extern "C"
 #include "string.h"
 }
 
-#include "map"
 #include "set"
+#include "map"
 #include "string"
 #include "memory"
 #include "vector"
@@ -1149,7 +1149,7 @@ void Gen_Tool::Kernel_Proj(void)
     for(const class Vect_Info* Vct:Monitor->Vector)
         Source.push_back(Kernel->Handler_Source_Output+"rme_handler_"+Vct->Name_Lower+".c");
     /* Other process compartments, if full image generation is required */
-    if(Kernel->Project_Full_Image!=0)
+    if(Kernel->Full_Image!=0)
     {
         Source.push_back(Monitor->Project_Output+"monitor_image.c");
         for(const std::unique_ptr<class Process>& Prc:this->Plat->Proj->Process)

@@ -7,17 +7,18 @@ Description : The virtual machine monitor class.
 ******************************************************************************/
 
 /* Includes ******************************************************************/
+extern "C"
+{
+#include "xml.h"
+}
+
+#include "set"
 #include "map"
 #include "string"
 #include "memory"
 #include "vector"
 #include "stdexcept"
 #include "algorithm"
-
-extern "C"
-{
-#include "xml.h"
-}
 
 #define __HDR_DEFS__
 #include "rvm_gen.hpp"
@@ -45,6 +46,9 @@ Return      : None.
 {
     try
     {
+        /* Monitor_Root */
+        this->Monitor_Root=Main::XML_Get_String(Root,"Monitor_Root","DXXXX","DXXXX");
+        Main::Dir_Fixup(this->Monitor_Root);
         /* Code base/size */
         this->Code_Base=Code_Base;
         this->Code_Size=Main::XML_Get_Number(Root,"Code_Size","DXXXX","DXXXX");
@@ -74,9 +78,6 @@ Return      : None.
         this->Toolchain=Main::XML_Get_String(Root,"Toolchain","DXXXX","DXXXX");
         /* Optimization */
         this->Optimization=Main::XML_Get_String(Root,"Optimization","DXXXX","DXXXX");
-        /* Monitor_Root */
-        this->Monitor_Root=Main::XML_Get_String(Root,"Monitor_Root","DXXXX","DXXXX");
-        Main::Dir_Fixup(this->Monitor_Root);
         /* Project_Output */
         this->Project_Output=Main::XML_Get_String(Root,"Project_Output","DXXXX","DXXXX");
         Main::Dir_Fixup(this->Project_Output);

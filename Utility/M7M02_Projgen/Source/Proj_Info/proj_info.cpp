@@ -7,17 +7,18 @@ Description : The project information main class.
 ******************************************************************************/
 
 /* Includes ******************************************************************/
+extern "C"
+{
+#include "xml.h"
+}
+
+#include "set"
 #include "map"
 #include "string"
 #include "memory"
 #include "vector"
 #include "algorithm"
 #include "stdexcept"
-
-extern "C"
-{
-#include "xml.h"
-}
 
 #define __HDR_DEFS__
 #include "rvm_gen.hpp"

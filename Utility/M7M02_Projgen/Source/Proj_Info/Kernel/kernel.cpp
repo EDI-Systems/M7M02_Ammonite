@@ -7,17 +7,18 @@ Description : The kernel configuration class.
 ******************************************************************************/
 
 /* Includes ******************************************************************/
+extern "C"
+{
+#include "xml.h"
+}
+
+#include "set"
 #include "map"
 #include "string"
 #include "memory"
 #include "vector"
 #include "stdexcept"
 #include "algorithm"
-
-extern "C"
-{
-#include "xml.h"
-}
 
 #define __HDR_DEFS__
 #include "rvm_gen.hpp"
@@ -44,6 +45,9 @@ Return      : None.
 {
     try
     {
+        /* Source_Root */
+        this->Kernel_Root=Main::XML_Get_String(Root,"Kernel_Root","DXXXX","DXXXX");
+        Main::Dir_Fixup(this->Kernel_Root);
         /* Code base/size */
         this->Code_Base=Main::XML_Get_Number(Root,"Code_Base","DXXXX","DXXXX");
         this->Code_Size=Main::XML_Get_Number(Root,"Code_Size","DXXXX","DXXXX");
@@ -67,16 +71,13 @@ Return      : None.
         this->Toolchain=Main::XML_Get_String(Root,"Toolchain","DXXXX","DXXXX");
         /* Optimization */
         this->Optimization=Main::XML_Get_String(Root,"Optimization","DXXXX","DXXXX");
-        /* Kernel_Root */
-        this->Kernel_Root=Main::XML_Get_String(Root,"Kernel_Root","DXXXX","DXXXX");
-        Main::Dir_Fixup(this->Kernel_Root);
+        /* Full_Image */
+        this->Full_Image=Main::XML_Get_Yesno(Root,"Full_Image","DXXXX","DXXXX");
         /* Project_Output */
         this->Project_Output=Main::XML_Get_String(Root,"Project_Output","DXXXX","DXXXX");
         Main::Dir_Fixup(this->Project_Output);
         /* Project_Overwrite */
         this->Project_Overwrite=Main::XML_Get_Yesno(Root,"Project_Overwrite","DXXXX","DXXXX");
-        /* Project_Full_Image */
-        this->Project_Full_Image=Main::XML_Get_Yesno(Root,"Project_Full_Image","DXXXX","DXXXX");
         /* Linker_Output */
         this->Linker_Output=Main::XML_Get_String(Root,"Linker_Output","DXXXX","DXXXX");
         Main::Dir_Fixup(this->Linker_Output);

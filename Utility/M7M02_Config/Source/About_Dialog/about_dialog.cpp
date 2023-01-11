@@ -8,13 +8,13 @@ Description : About information dialog implementation.
 
 /* Includes ******************************************************************/
 #define __HDR_DEFS__
-#include "sdm_dl.hpp"
+#include "rvm_cfg.hpp"
 #undef __HDR_DEFS__
 
 #include "wx/wx.h"
 #include "wx/xml/xml.h"
 
-#include "Images/company_logo.xpm"
+#include "Image/company_logo.xpm"
 
 #include "map"
 #include "set"
@@ -28,7 +28,7 @@ Description : About information dialog implementation.
 #undef __HDR_DEFS__
 
 #define __HDR_CLASSES__
-#include "sdm_dl.hpp"
+#include "rvm_cfg.hpp"
 #include "About_Dialog/about_dialog.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/
@@ -41,7 +41,7 @@ Output      : None.
 Return      : None.
 ******************************************************************************/
 /* void */ About_Dialog::About_Dialog(class wxWindow* Parent):
-wxDialog(Parent,wxID_ANY,sT("About Program"),wxDefaultPosition,I2P(wxSize(512,600)),wxDEFAULT_DIALOG_STYLE)
+wxDialog(Parent,wxID_ANY,_("About Program"),wxDefaultPosition,I2P(wxSize(512,600)),wxDEFAULT_DIALOG_STYLE)
 {
     this->Center();
 
@@ -59,19 +59,19 @@ wxDialog(Parent,wxID_ANY,sT("About Program"),wxDefaultPosition,I2P(wxSize(512,60
         this->Content_Sizer->AddStretchSpacer(1);
         this->Text=new class wxTextCtrl(this,wxID_ANY,
                                         SOFTWARE_NAME+"\n"+
-                                        sT("Version:")+" "+SOFTWARE_VERSION+"\n"+
-                                        sT("(C) Copyright WindIOT Co.,Ltd. All rights reserved.")+"\n\n"+
-                                        sT("WindIOT and the WindIOT logo are registered trademarks of the WindIOT Co.,Ltd.")+"\n"+
-                                        sT("Other names may be trademarks of their respective owners.")+"\n\n"+
-                                        sT("This program and its components is protected by copyright law and international treaties.")+"\n"+
-                                        sT("Unauthorized reproduction or distribution of this program, or any portion of it may result in severe civil and criminal penalties.")+"\n\n"+
-                                        sT("By using this software service, you agree to the EULA located at the root folder of the installation.")+"\n"+
-                                        sT("See EULA_XX.txt for details of terms."),
+                                        _("Version:")+" "+SOFTWARE_VERSION+"\n"+
+                                        _("(C) Copyright WindIOT Co.,Ltd. All rights reserved.")+"\n\n"+
+                                        _("WindIOT and the WindIOT logo are registered trademarks of the WindIOT Co.,Ltd.")+"\n"+
+                                        _("Other names may be trademarks of their respective owners.")+"\n\n"+
+                                        _("This program and its components is protected by copyright law and international treaties.")+"\n"+
+                                        _("Unauthorized reproduction or distribution of this program, or any portion of it may result in severe civil and criminal penalties.")+"\n\n"+
+                                        _("By using this software service, you agree to the EULA located at the root folder of the installation.")+"\n"+
+                                        _("See EULA_XX.txt for details of terms."),
                                         wxDefaultPosition,wxDefaultSize,wxTE_MULTILINE|wxTE_READONLY|wxTE_NO_VSCROLL);
         this->Content_Sizer->Add(this->Text,100,wxEXPAND);
         this->Content_Sizer->AddStretchSpacer(1);
 
-        this->Confirm=new class wxButton(this,wxID_ANY,sT("Confirm"));
+        this->Confirm=new class wxButton(this,wxID_ANY,_("Confirm"));
         this->Bind(wxEVT_BUTTON,&About_Dialog::On_Confirm,this,this->Confirm->GetId());
 
         this->Main_Sizer->Add(this->Content_Sizer,100,wxEXPAND);

@@ -40,8 +40,8 @@ namespace RVM_CFG
 class Help_Menu:public wxMenu
 {
 public:
-    class wxMenuItem* Hardware_Manual;
-    class wxMenuItem* Downloader_Manual;
+    class wxMenuItem* Kernel_Manual;
+    class wxMenuItem* Monitor_Manual;
     class wxMenuItem* About_Program;
     class wxMenuItem* Quit;
 #ifdef DEBUG
@@ -51,8 +51,10 @@ public:
     /* void */ Help_Menu(void);
     /* void */ ~Help_Menu(void);
 
-    void On_Hardware_Manual(class wxCommandEvent& Event);
-    void On_Downloader_Manual(class wxCommandEvent& Event);
+    void State_Set(ptr_t Type);
+
+    void On_Kernel_Manual(class wxCommandEvent& Event);
+    void On_Monitor_Manual(class wxCommandEvent& Event);
     void On_About_Program(class wxCommandEvent& Event);
     void On_Quit(class wxCommandEvent& Event);
 #ifdef DEBUG

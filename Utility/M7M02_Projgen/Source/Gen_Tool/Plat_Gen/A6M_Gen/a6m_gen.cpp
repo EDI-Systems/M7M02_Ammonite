@@ -13,6 +13,7 @@ extern "C"
 #include "xml.h"
 }
 
+#include "set"
 #include "map"
 #include "string"
 #include "memory"
@@ -84,22 +85,6 @@ Plat_Gen("A6M", Proj, Plat, Chip)
     }
 }
 /* End Function:A6M_Gen::A6M_Gen *********************************************/
-
-/* Begin Function:A6M_Gen::Compatible_Get *************************************
-Description : Extract compatible generator options.
-Input       : ptr_t Base - The memory base address.
-              ptr_t Size - The memory size.
-Output      : None.
-Return      : ptr_t - The computed alignment.
-******************************************************************************/
-void A6M_Gen::Compatible_Get(std::vector<std::tuple<std::string,std::string,std::string>>& List)
-{
-    List.push_back(std::make_tuple("Keil","ARMCC","Native"));
-    List.push_back(std::make_tuple("Makefile","GCC","Native"));
-    List.push_back(std::make_tuple("Keil","ARMCC","RMP"));
-    List.push_back(std::make_tuple("Makefile","GCC","RMP"));
-}
-/* End Function:A6M_Gen::Compatible_Get **************************************/
 
 /* Begin Function:A6M_Gen::Mem_Align ******************************************
 Description : Memory aligner for the ARMv7-M platform.

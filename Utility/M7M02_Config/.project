@@ -24,16 +24,4 @@
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>Source/firmware.c</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/C4G02_Firmware/firmware.c</locationURI>
-		</link>
-		<link>
-			<name>Source/pbfs.c</name>
-			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/M5P02_Minion/File/PBFS/pbfs.c</locationURI>
-		</link>
-	</linkedResources>
 </projectDescription>

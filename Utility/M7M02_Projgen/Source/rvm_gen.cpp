@@ -62,6 +62,7 @@ extern "C"
 #endif
 }
 
+#include "set"
 #include "map"
 #include "list"
 #include "string"
@@ -102,6 +103,7 @@ extern "C"
 #include "Proj_Info/Process/Kfunc/kfunc.hpp"
 #include "Proj_Info/Process/Virtual/virtual.hpp"
 #include "Chip_Info/chip_info.hpp"
+#include "Plat_Info/Compatible/compatible.hpp"
 #include "Plat_Info/plat_info.hpp"
 #include "Conf_Info/conf_info.hpp"
 #include "Vect_Info/vect_info.hpp"
@@ -117,6 +119,7 @@ namespace RVM_GEN
 {
 /* Global Variables **********************************************************/
 ptr_t Main::Verbose=0;
+ptr_t Main::Mock=0;
 std::string Main::Time;
 /* End Global Variables ******************************************************/
 
@@ -669,8 +672,6 @@ Return      : None.
 ******************************************************************************/
 void Main::Setup(void)
 {
-    std::vector<std::tuple<std::string,std::string,std::string>> List;
-
     try
     {
         /* Load platform toolset */
@@ -693,47 +694,19 @@ void Main::Setup(void)
         for(class Virtual* Virt:this->Proj->Virtual)
             this->Gen->Guest_Load(Virt->Guest_Type);
 
-        /* For each compartment, make sure the generation is supported by the
-         * platform/buildsystem/toolchain/guest of choice. */
-        this->Gen->Plat->Compatible_Get(List);
         /* Check kernel */
-        if(std::find(List.begin(),List.end(),
-                     std::make_tuple(this->Proj->Kernel->Buildsystem,
-                                     this->Proj->Kernel->Toolchain,
-                                     "Native"))==List.end())
-            Main::Error("XXXXX: Kernel buildsystem and toolchain is incompatible with the platform.");
+        this->Plat->Compatible_Check("Kernel", this->Proj->Kernel->Buildsystem, this->Proj->Kernel->Toolchain, "Native");
         /* Check monitor */
-        if(std::find(List.begin(),List.end(),
-                     std::make_tuple(this->Proj->Monitor->Buildsystem,
-                                     this->Proj->Monitor->Toolchain,
-                                     "Native"))==List.end())
-            Main::Error("XXXXX: Monitor buildsystem and toolchain is incompatible with the platform.");
+        this->Plat->Compatible_Check("Monitor", this->Proj->Kernel->Buildsystem, this->Proj->Kernel->Toolchain, "Native");
         /* Check each process */
         for(std::unique_ptr<class Process>& Prc:this->Proj->Process)
         {
-            try
-            {
-                if(Prc->Type==PROCESS_NATIVE)
-                {
-                    if(std::find(List.begin(),List.end(),
-                                 std::make_tuple(Prc->Buildsystem,
-                                                 Prc->Toolchain,
-                                                 "Native"))==List.end())
-                        Main::Error("XXXXX: Process buildsystem and toolchain is incompatible with the platform.");
-                }
-                else
-                {
-                    if(std::find(List.begin(),List.end(),
-                                 std::make_tuple(Prc->Buildsystem,
-                                                 Prc->Toolchain,
-                                                 static_cast<class Virtual*>(Prc.get())->Guest_Type))==List.end())
-                        Main::Error("XXXXX: Virtual machine buildsystem and toolchain is incompatible with the platform and guest OS.");
-                }
-            }
-            catch(std::exception& Exc)
-            {
-                Main::Error(std::string("Process:\n")+Exc.what());
-            }
+            if(Prc->Type==PROCESS_NATIVE)
+                this->Plat->Compatible_Check(std::string("Process '")+Prc->Name+"'",
+                                             Prc->Buildsystem, Prc->Toolchain, "Native");
+            else
+                this->Plat->Compatible_Check(std::string("Virtual machine '")+Prc->Name+"'",
+                                             Prc->Buildsystem, Prc->Toolchain, static_cast<class Virtual*>(Prc.get())->Guest_Type);
         }
     }
     catch(std::exception& Exc)
@@ -1782,6 +1755,13 @@ Return      : None.
                 Main::Info("Verbose output mode enabled.");
                 Count+=1;
             }
+            /* Mock mode */
+            else if(strcmp(argv[Count],"-m")==0)
+            {
+                Main::Mock=1;
+                Main::Info("Mock generation mode enabled.");
+                Count+=1;
+            }
             else
                 Main::Error("XXXXX: Unrecognized command line argument.");
         }
@@ -1813,54 +1793,63 @@ Return      : None.
 /* Begin Function:Main::XML_Get_String ****************************************
 Description : Get strings from the XML entry.
 Input       : xml_node_t* Root - The pointer to the root node.
-              const char* Name - The entry to look for.
-              const char* Errno0 - The error number 0.
-              const char* Errno1 - The error number 1.
+              const std::string& Name - The entry to look for.
+              const std::string& Errno0 - The error number 0.
+              const std::string& Errno1 - The error number 1.
 Output      : None.
 Return      : std::string - The string extracted.
 ******************************************************************************/
-std::string Main::XML_Get_String(xml_node_t* Root, const char* Name,
-                                 const char* Errno0, const char* Errno1)
+std::string Main::XML_Get_String(xml_node_t* Root, const std::string& Name,
+                                 const std::string& Errno0, const std::string& Errno1)
 {
     xml_node_t* Temp;
 
-    if((XML_Child(Root,(xml_s8_t*)Name,&Temp)<0)||(Temp==0))
-        Main::Error(std::string(Errno0)+": '"+Name+"' section is missing.");
-    if(Temp->XML_Val_Len==0)
-        Main::Error(std::string(Errno1)+": '"+Name+"' section is empty.");
-    return std::string(Temp->XML_Val,(int)Temp->XML_Val_Len);
+    if(Name=="")
+    {
+        if(Root->XML_Val_Len==0)
+            Main::Error(Errno1+": Root section is empty.");
+        return std::string(Root->XML_Val,(int)Root->XML_Val_Len);
+    }
+    else
+    {
+        if((XML_Child(Root, (xml_s8_t*)Name.c_str(), &Temp)<0)||(Temp==0))
+            Main::Error(Errno0+": '"+Name+"' section is missing.");
+        if(Temp->XML_Val_Len==0)
+            Main::Error(Errno1+": '"+Name+"' section is empty.");
+        return std::string(Temp->XML_Val,(int)Temp->XML_Val_Len);
+    }
 }
 /* End Function:Main::XML_Get_String *****************************************/
 
 /* Begin Function:Main::XML_Get_Number ****************************************
 Description : Get numbers from the XML entry.
 Input       : xml_node_t* Root - The pointer to the root node.
-              const char* Name - The entry to look for.
-              const char* Errno0 - The error number 0.
-              const char* Errno1 - The error number 1.
+              const std::string& Name - The entry to look for.
+              const std::string& Errno0 - The error number 0.
+              const std::string& Errno1 - The error number 1.
 Output      : None.
 Return      : ptr_t - The number extracted.
 ******************************************************************************/
-ptr_t Main::XML_Get_Number(xml_node_t* Root, const char* Name,
-                           const char* Errno0, const char* Errno1)
+ptr_t Main::XML_Get_Number(xml_node_t* Root, const std::string& Name,
+                           const std::string& Errno0, const std::string& Errno1)
 {
-    return std::stoull(Main::XML_Get_String(Root,Name,Errno0,Errno1),0,0);
+    return std::stoull(Main::XML_Get_String(Root, Name, Errno0, Errno1), 0, 0);
 }
 /* End Function:Main::XML_Get_Number *****************************************/
 
 /* Begin Function:Main::XML_Get_Yesno ****************************************
 Description : Get strings from the XML entry.
 Input       : xml_node_t* Root - The pointer to the root node.
-              const char* Name - The entry to look for.
-              const char* Errno0 - The error number 0.
-              const char* Errno1 - The error number 1.
+              const std::string& Name - The entry to look for.
+              const std::string& Errno0 - The error number 0.
+              const std::string& Errno1 - The error number 1.
 Output      : None.
 Return      : std::string - The string extracted.
 ******************************************************************************/
-ptr_t Main::XML_Get_Yesno(xml_node_t* Root, const char* Name,
-                          const char* Errno0, const char* Errno1)
+ptr_t Main::XML_Get_Yesno(xml_node_t* Root, const std::string& Name,
+                          const std::string& Errno0, const std::string& Errno1)
 {
-    if(Main::XML_Get_String(Root,Name,Errno0,Errno1)=="Yes")
+    if(Main::XML_Get_String(Root, Name, Errno0, Errno1)=="Yes")
         return 1;
 
     return 0;
@@ -1870,15 +1859,15 @@ ptr_t Main::XML_Get_Yesno(xml_node_t* Root, const char* Name,
 /* Begin Function:Main::XML_Get_CSV *******************************************
 Description : Get comma-separated values from the XML entry.
 Input       : xml_node_t* Root - The pointer to the root node.
-              const char* Name - The entry to look for.
-              const char* Errno0 - The error number 0.
-              const char* Errno1 - The error number 1.
+              const std::string& Name - The entry to look for.
+              const std::string& Errno0 - The error number 0.
+              const std::string& Errno1 - The error number 1.
 Output      : std::vector<std::string>& Vector - The CSV extracted.
 Return      : None.
 ******************************************************************************/
-void Main::XML_Get_CSV(xml_node_t* Root, const char* Name,
+void Main::XML_Get_CSV(xml_node_t* Root, const std::string& Name,
                        std::vector<std::string>& Vector,
-                       const char* Errno0, const char* Errno1)
+                       const std::string& Errno0, const std::string& Errno1)
 {
     cnt_t Pivot;
     ptr_t Begin;
@@ -1886,7 +1875,7 @@ void Main::XML_Get_CSV(xml_node_t* Root, const char* Name,
     std::string Temp;
     std::string Push;
 
-    Temp=Main::XML_Get_String(Root,Name,Errno0,Errno1);
+    Temp=Main::XML_Get_String(Root, Name, Errno0, Errno1);
     do
     {
         /* Split the element */
@@ -1895,7 +1884,7 @@ void Main::XML_Get_CSV(xml_node_t* Root, const char* Name,
             Push=Temp;
         else
         {
-            Push=Temp.substr(0,Pivot);
+            Push=Temp.substr(0, Pivot);
             Temp=Temp.substr(Pivot+1);
         }
         /* Strip the whitespaces */
@@ -1903,7 +1892,7 @@ void Main::XML_Get_CSV(xml_node_t* Root, const char* Name,
         if(Begin!=std::string::npos)
         {
             End=Push.find_last_not_of(" \t\v");
-            Vector.push_back(Push.substr(Begin,End-Begin+1));
+            Vector.push_back(Push.substr(Begin, End-Begin+1));
         }
     }
     while(Pivot>=0);
@@ -1913,29 +1902,29 @@ void Main::XML_Get_CSV(xml_node_t* Root, const char* Name,
 /* Begin Function:Main::XML_Get_KVP *******************************************
 Description : Get key-value pairs from the XML entry.
 Input       : xml_node_t* Root - The pointer to the root node.
-              const char* Name - The entry to look for.
-              const char* Errno0 - The error number 0.
-              const char* Errno1 - The error number 1.
+              const std::string& Name - The entry to look for.
+              const std::string& Errno0 - The error number 0.
+              const std::string& Errno1 - The error number 1.
 Output      : std::map<std::string,std::string>& Map - The key-value pairs.
 Return      : None.
 ******************************************************************************/
-void Main::XML_Get_KVP(xml_node_t* Root, const char* Name,
+void Main::XML_Get_KVP(xml_node_t* Root, const std::string& Name,
                        std::map<std::string,std::string>& Map,
-                       const char* Errno0, const char* Errno1)
+                       const std::string& Errno0, const std::string& Errno1)
 {
     xml_node_t* Trunk;
     xml_node_t* Temp;
 
-    if((XML_Child(Root,(xml_s8_t*)Name,&Trunk)<0)||(Trunk==0))
-        Main::Error(std::string(Errno0)+": '"+Name+"' section is missing.");
-    if(XML_Child(Trunk,0,&Temp)<0)
-        Main::Error(std::string(Errno1)+": '"+Name+"' section parsing internal error.");
+    if((XML_Child(Root, (xml_s8_t*)Name.c_str(), &Trunk)<0)||(Trunk==0))
+        Main::Error(Errno0+": '"+Name+"' section is missing.");
+    if(XML_Child(Trunk, 0, &Temp)<0)
+        Main::Error(Errno1+": '"+Name+"' section parsing internal error.");
     while(Temp!=nullptr)
     {
-        Map.insert(std::make_pair(std::string(Temp->XML_Tag,(int)Temp->XML_Tag_Len),
-                                  std::string(Temp->XML_Val,(int)Temp->XML_Val_Len)));
-        if(XML_Child(Trunk,(xml_s8_t*)"",&Temp)<0)
-            Main::Error(std::string(Errno1)+": '"+Name+"' section parsing internal error.");
+        Map.insert(std::make_pair(std::string(Temp->XML_Tag, (int)Temp->XML_Tag_Len),
+                                  std::string(Temp->XML_Val, (int)Temp->XML_Val_Len)));
+        if(XML_Child(Trunk, (xml_s8_t*)"", &Temp)<0)
+            Main::Error(Errno1+": '"+Name+"' section parsing internal error.");
     }
 }
 /* End Function:Main::XML_Get_KVP *******************************************/
@@ -1944,26 +1933,26 @@ void Main::XML_Get_KVP(xml_node_t* Root, const char* Name,
 Description : Check if the identifier supplied is valid. Valid identifiers must
               contain. If not, we throw an error.
 Input       : const std::string& Idtfr - The identifier.
-              const char* Name - The section name.
-              const char* Errno0 - The first error number.
-              const char* Errno1 - The second error number.
+              const std::string& Name - The section name.
+              const std::string& Errno0 - The first error number.
+              const std::string& Errno1 - The second error number.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Main::Idtfr_Check(const std::string& Idtfr, const char* Name,
-                       const char* Errno0, const char* Errno1)
+void Main::Idtfr_Check(const std::string& Idtfr, const std::string& Name,
+                       const std::string& Errno0, const std::string& Errno1)
 {
     /* This can't be empty, we should have checked this field before in XML_Get_String */
     ASSERT(Idtfr.length()!=0);
     if((Idtfr[0]>='0')&&(Idtfr[0]<='9'))
-        Main::Error(std::string(Errno0)+": '"+Name+"' section begins with a number.");
+        Main::Error(Errno0+": '"+Name+"' section begins with a number.");
     for(const char& Char:Idtfr)
     {
         if(((Char<'a')||(Char>'z'))&&
            ((Char<'A')||(Char>'Z'))&&
            ((Char<'0')||(Char>'9'))&&
            (Char!='_'))
-        Main::Error(std::string(Errno1)+": '"+Name+"' section contains an invalid character.");
+        Main::Error(Errno1+": '"+Name+"' section contains an invalid character.");
     }
 }
 /* End Function:Main::Idtfr_Check ********************************************/
@@ -2239,10 +2228,13 @@ int main(int argc, char* argv[])
         Main->Obj_Alloc();
 
 /* Phase 4: Produce output ***************************************************/
-        Main->Kernel_Gen();
-        Main->Monitor_Gen();
-        Main->Process_Gen();
-        Main->Workspace_Gen();
+        if(Main::Mock==0)
+        {
+            Main->Kernel_Gen();
+            Main->Monitor_Gen();
+            Main->Process_Gen();
+            Main->Workspace_Gen();
+        }
         Main->Report_Gen();
     }
     catch(std::exception& Exc)

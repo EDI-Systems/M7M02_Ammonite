@@ -12,6 +12,7 @@ extern "C"
 #include "xml.h"
 }
 
+#include "set"
 #include "map"
 #include "string"
 #include "memory"
@@ -437,7 +438,7 @@ void Keil_Gen::Monitor_Proj(std::unique_ptr<std::vector<std::string>>& List,
     std::string After2;
     std::vector<std::string> Bincopy;
 
-    if(this->Proj->Kernel->Project_Full_Image!=0)
+    if(this->Proj->Kernel->Full_Image!=0)
     {
         Bincopy.push_back(this->Proj->Monitor->Monitor_Root+"Utility/M7M02_Bincopy/bincopy.exe");
         Gen_Tool::Path_Conv(this->Proj->Monitor->Project_Output, Bincopy);
@@ -478,7 +479,7 @@ void Keil_Gen::Process_Proj(std::unique_ptr<std::vector<std::string>>& List,
     std::string After2;
     std::vector<std::string> Bincopy;
 
-    if(this->Proj->Kernel->Project_Full_Image!=0)
+    if(this->Proj->Kernel->Full_Image!=0)
     {
         Bincopy.push_back(this->Proj->Monitor->Monitor_Root+"Utility/M7M02_Bincopy/bincopy.exe");
         Gen_Tool::Path_Conv(Prc->Project_Output, Bincopy);

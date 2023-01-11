@@ -8,7 +8,7 @@ Description : Menu bar class implementation.
 
 /* Includes ******************************************************************/
 #define __HDR_DEFS__
-#include "sdm_dl.hpp"
+#include "rvm_cfg.hpp"
 #undef __HDR_DEFS__
 
 #include "wx/wx.h"
@@ -18,7 +18,9 @@ Description : Menu bar class implementation.
 #undef __HDR_DEFS__
 
 #define __HDR_CLASSES__
-#include "sdm_dl.hpp"
+#include "rvm_cfg.hpp"
+#include "Menu_Bar/File_Menu/file_menu.hpp"
+#include "Menu_Bar/Tool_Menu/tool_menu.hpp"
 #include "Menu_Bar/Help_Menu/help_menu.hpp"
 #include "Menu_Bar/menu_bar.hpp"
 #undef __HDR_CLASSES__
@@ -35,8 +37,14 @@ Return      : None.
 {
     try
     {
+        this->File=new File_Menu();
+        this->Append(this->File, _("File(&F)"));
+
+        this->Tool=new Tool_Menu();
+        this->Append(this->Tool, _("Tool(&T)"));
+
         this->Help=new Help_Menu();
-        this->Append(this->Help, sT("Help(&H)"));
+        this->Append(this->Help, _("Help(&H)"));
     }
     catch(std::exception& Exc)
     {
@@ -44,6 +52,22 @@ Return      : None.
     }
 }
 /* End Function:Menu_Bar::Menu_Bar *******************************************/
+
+/* Begin Function:Menu_Bar::State_Set *****************************************
+Description : Set the current UI state, and decide what controls are usable.
+Input       : ptr_t Type - The state type.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Menu_Bar::State_Set(ptr_t Type)
+{
+    this->File->State_Set(Type);
+    this->Tool->State_Set(Type);
+    this->Help->State_Set(Type);
+
+    this->Refresh();
+}
+/* End Function:Menu_Bar::State_Set ******************************************/
 }
 /* End Of File ***************************************************************/
 

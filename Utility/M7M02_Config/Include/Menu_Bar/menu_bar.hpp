@@ -40,15 +40,8 @@ namespace RVM_CFG
 class Menu_Bar:public wxMenuBar
 {
 public:
-    class Project_Menu* Project;
     class File_Menu* File;
-    class Edit_Menu* Edit;
-    class View_Menu* View;
-    class Wiring_Menu* Wiring;
-    class Element_Menu* Element;
     class Tool_Menu* Tool;
-    class Connect_Menu* Connect;
-    class Setting_Menu* Setting;
     class Help_Menu* Help;
 
     /* void */ Menu_Bar(void);

@@ -28,6 +28,7 @@
         </S0>
     </Shmem>
     <Kernel>
+		<Kernel_Root>../../../../M7M01_Eukaron</Kernel_Root>
         <Code_Base>0x08000000</Code_Base>
         <Code_Size>0x10000</Code_Size>
         <Data_Base>0x10000000</Data_Base>
@@ -39,10 +40,9 @@
 		<Buildsystem>Keil</Buildsystem>
 		<Toolchain>ARMCC</Toolchain>
 		<Optimization>Os</Optimization>
-		<Kernel_Root>../../../../M7M01_Eukaron</Kernel_Root>
+		<Full_Image>Yes</Full_Image>
 		<Project_Output>./Kernel/Project</Project_Output>
 		<Project_Overwrite>No</Project_Overwrite>
-		<Project_Full_Image>Yes</Project_Full_Image>
 		<Linker_Output>./Kernel/Project</Linker_Output>
 		<Config_Header_Output>./Kernel/Include</Config_Header_Output>
 		<Boot_Header_Output>./Kernel/Include</Boot_Header_Output>
@@ -53,6 +53,7 @@
 		<Handler_Source_Overwrite>No</Handler_Source_Overwrite>
     </Kernel>
     <Monitor>
+		<Monitor_Root>../../../../M7M02_Ammonite</Monitor_Root>
         <Code_Size>0x10000</Code_Size>
         <Data_Size>0x4000</Data_Size>
         <Init_Stack_Size>0x800</Init_Stack_Size>
@@ -67,7 +68,6 @@
 		<Buildsystem>Keil</Buildsystem>
 		<Toolchain>ARMCC</Toolchain>
         <Optimization>Os</Optimization>
-		<Monitor_Root>../../../../M7M02_Ammonite</Monitor_Root>
 		<Project_Output>./Monitor/Project</Project_Output>
 		<Project_Overwrite>No</Project_Overwrite>
 		<Linker_Output>./Monitor/Project</Linker_Output>

@@ -12,6 +12,7 @@ extern "C"
 #include "xml.h"
 }
 
+#include "set"
 #include "map"
 #include "string"
 #include "memory"
@@ -152,8 +153,8 @@ void ARMCC_Gen::Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back("}");
     List->push_back("; End Segment:KERNEL **********************************************************");
     List->push_back("");
-    /* See if the kernel project needs to generate full image */
-    if(this->Proj->Kernel->Project_Full_Image!=0)
+    /* See if the kernel project needs to generate a full image */
+    if(this->Proj->Kernel->Full_Image!=0)
     {
         List->push_back("; Begin Segment:MONITOR *******************************************************");
         List->push_back("; Description : The .text segment of process MONITOR, which is the first process");

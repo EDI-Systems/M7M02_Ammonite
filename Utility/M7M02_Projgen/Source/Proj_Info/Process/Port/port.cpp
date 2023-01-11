@@ -7,16 +7,17 @@ Description : The port class.
 ******************************************************************************/
 
 /* Includes ******************************************************************/
+extern "C"
+{
+#include "xml.h"
+}
+
+#include "set"
 #include "map"
 #include "string"
 #include "memory"
 #include "vector"
 #include "stdexcept"
-
-extern "C"
-{
-#include "xml.h"
-}
 
 #define __HDR_DEFS__
 #include "rvm_gen.hpp"

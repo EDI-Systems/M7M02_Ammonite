@@ -56,9 +56,6 @@ namespace RVM_CFG
 #define wxUSE_LOG_DEBUG                     (0)
 #endif
 
-/* Built-in standalone translator */
-#define sT(X)                               RVM_CFG_App::Translate(X)
-
 /* Throw error, and rescue some unsaved files */
 #define ASSERT(X,STR) \
 do \
@@ -68,9 +65,9 @@ do \
         class wxMessageDialog* Dialog; \
         std::string String; \
         /* Display the info pointer to what have failed, both pop-up and logging */ \
-        String=std::string(__FILE__)+":"+std::to_string(__LINE__)+" - "+__FUNC__+":"+__DATE__+"\n"+sT("Fatal")+": "+(STR); \
+        String=std::string(__FILE__)+":"+std::to_string(__LINE__)+" - "+__FUNC__+":"+__DATE__+"\n"+_("Fatal")+": "+(STR); \
         wxLogDebug(String.c_str()); \
-        Dialog=new wxMessageDialog(nullptr,String.c_str(),sT("Error"),wxOK|wxICON_ERROR); \
+        Dialog=new wxMessageDialog(nullptr,String.c_str(),_("Error"),wxOK|wxICON_ERROR); \
         Dialog->ShowModal(); \
         exit(-1); \
     } \
@@ -81,11 +78,8 @@ while(0)
 
 /* Software version - increase only */
 #define FIRMWARE_VERSION                    (0x0101)
-#define SOFTWARE_VERSION                    ("R1T1-0000-20220826")
-#define SOFTWARE_NAME                       sT("SmarTock (TM) Smart Delay Module Standalone Downloader")
-
-/* Neutral/OEM options */
-/* #define OEM_NEUTRAL */
+#define SOFTWARE_VERSION                    ("R3T1-0000-20230110")
+#define SOFTWARE_NAME                       _("RVM Virtual Machine Monitor Config Generator")
 
 /* Option yes/no */
 #define OPTION_NO                           (0)
@@ -96,93 +90,30 @@ while(0)
 #define TIME_HMS                            (1)
 #define TIME_DATE_HMS                       (2)
 
-/* Actions */
-#define ACTION_NONE                         (0)
-#define ACTION_DOWNLOAD                     (1)
-#define ACTION_REMOTE                       (2)
-#define ACTION_DETECT                       (3)
-#define ACTION_CLOCK                        (4)
-
-/* Count */
-/* Status gauge count */
-#define GAUGE_MIN_COUNT                     (0)
-#define GAUGE_MAX_COUNT                     (100)
-
 /* Message box types */
 #define MSGBOX_ERROR                        (0)
 #define MSGBOX_WARN                         (1)
 #define MSGBOX_INFO                         (2)
 #define MSGBOX_ASK                          (3)
 
+/* State Types */
+#define STATE_UI                            (0)
+#define STATE_SAVE                          (1)
+
+/* UI states */
+#define UI_NONE                             (0)
+#define UI_PROJ                             (1)
+
+/* Save states */
+#define SAVE_NONE                           (0)
+#define SAVE_CUR                            (1)
+
 /* Power of 2 */
 #define POW2(X)                             (1UL<<(X))
-/* Bit/byte conversions */
-#define BCD2BIN(X)                          (((X)>>4)*10+((X)&0xF))
-#define BIN2BCD(X)                          ((((X)/10)<<4)|((X)%10))
-#define BITLEN(X)                           (((X)+7)>>3)
-#define U16R(X)                             (((X)[0]<<8)|(X)[1])
-#define U32R(X)                             ((((u32_t)(X)[0])<<24)|((X)[1]<<16)|((X)[2]<<8)|(X)[3])
-#define U16W(X,V) \
-do \
-{ \
-    (X)[0]=(V)>>8; \
-    (X)[1]=(V)&0xFF; \
-} \
-while(0)
-
-#define U32W(X,V) \
-do \
-{ \
-    (X)[0]=(V)>>24; \
-    (X)[1]=((V)>>16)&0xFF; \
-    (X)[2]=((V)>>8)&0xFF; \
-    (X)[3]=(V)&0xFF; \
-} \
-while(0)
-
-/* 1-bit continuous bitfield */
-#define BYTE1(B,X)                          ((B)[(X)>>3])
-#define SHIFT1(X)                           ((X)&7)
-#define BIT1(X)                             POW2(SHIFT1(X))
-#define MASK1                               (1)
-#define READ1(B,X)                          ((BYTE1(B,X)&BIT1(X))!=0)
-#define WRITE1(B,X,V)                       ((V)?(BYTE1(B,X)|=BIT1(X)):(BYTE1(B,X)&=~BIT1(X)))
-
-/* 2-bit continuous bitfield */
-#define BYTE2(B,X)                          ((B)[(X)>>2])
-#define SHIFT2(X)                           (((X)&3)<<1)
-#define BIT2(X,N)                           POW2(SHIFT2(X)+(N))
-#define MASK2                               (3)
-#define READ2(B,X,N)                        ((BYTE2(B,X)&BIT2(X,N))!=0)
-#define WRITE2(B,X,N,V)                     ((V)?(BYTE2(B,X)|=BIT2(X,N)):(BYTE2(B,X)&=~BIT2(X,N)))
-
-/* 4-bit continuous bitfield */
-#define BYTE4(X)                            ((B)[(X)>>1])
-#define SHIFT4(X)                           (((X)&1)<<2)
-#define BIT4(X,N)                           POW2(SHIFT4(X)+(N))
-#define MASK4                               (0xF)
-#define READ4(B,X,N)                        ((BYTE4(B,X)&BIT4(X,N))!=0)
-#define WRITE4(B,X,N,V)                     ((V)?(BYTE4(B,X)|=BIT4(X,N)):(BYTE4(B,X)&=~BIT4(X,N)))
 
 /* Panels */
 #define OUTPUT_INFO                         (0)
 #define OUTPUT_STATUS                       (1)
-
-/* Product ID */
-#define PRODID_C2S0404                      (0x2404)
-#define PRODID_C2S0405                      (0x2405)
-#define PRODID_C4G0202                      (0x4202)
-#define PRODID_C4G0203                      (0x4203)
-#define PRODID_C4G0204                      (0x4204)
-#define PRODID_C4G0205                      (0x4205)
-#define PRODID_C4G0206                      (0x4206)
-#define PRODID_C4G0212                      (0x4212)
-#define PRODID_C4G0218                      (0x4218)
-
-/* Other product IDs that may be returned but we don't care */
-#define PRODID_C4G0101                      (0x4101)
-#define PRODID_C4G0102                      (0x4102)
-#define PRODID_C4G0103                      (0x4103)
 
 /* High-DPI support (premature) */
 #ifndef HIGH_DPI_DISABLE
@@ -215,66 +146,26 @@ public:
     /* Executable path */
     static std::string Exe_Folder;
 
-    /* Action state */
-    static ptr_t Action_State;
+    /* Application states */
+    static ptr_t UI_State;
+    static ptr_t Save_State;
 
-    /* Exit flag */
-    static ptr_t Exit_Flag;
-
-    /* Auto-download timer - will be started for 5 seconds each time we finish downloading */
-    static class wxTimer* Auto_Timer;
-    /* The timer for remote detection scanning */
-    static class wxTimer* Remote_Timer;
+    /* Project information - need to be manually deleted */
+    static class Proj_Info* Proj;
 
 	/* Lower-level classes */
     static class Menu_Bar* Menu_Bar;
-    static class wxPanel* Panel;
-    static class wxBoxSizer* Panel_Sizer;
-    static class wxBoxSizer* Border_Sizer;
-    static class wxBoxSizer* Main_Sizer;
-
-    static class wxStaticBoxSizer* File_Sizer;
-    static class wxStaticText* File_Label;
-    static class wxFilePickerCtrl* File_Picker;
-
-    static class wxFlexGridSizer* Grid_Sizer;
-
-    static class wxStaticBoxSizer* Info_Sizer;
-    static class wxTextCtrl* Info_Text;
-
-    static class wxStaticBoxSizer* Option_Sizer;
-    static class wxFlexGridSizer* Option_Grid_Sizer;
-    static class wxStaticText* Verify_After_Download_Label;
-    static class wxChoice* Verify_After_Download_Choice;
-    static class wxStaticText* Calib_When_Download_Label;
-    static class wxChoice* Calib_When_Download_Choice;
-    static class wxStaticText* Late_Remote_Pair_Label;
-    static class wxChoice* Late_Remote_Pair_Choice;
-    static class wxStaticText* Late_Serial_Config_Label;
-    static class wxChoice* Late_Serial_Config_Choice;
-    static class wxStaticText* Late_Clock_Calib_Label;
-    static class wxChoice* Late_Clock_Calib_Choice;
-    static class wxStaticText* Allow_Debug_Label;
-    static class wxChoice* Allow_Debug_Choice;
-
-    static class wxStaticBoxSizer* Status_Sizer;
-    static class wxTextCtrl* Status_Text;
-
-    static class wxStaticBoxSizer* Action_Sizer;
-    static class wxFlexGridSizer* Action_Grid_Sizer;
-    static class wxCheckBox* Auto_Download;
-    static class wxCheckBox* Beep_When_Complete;
-    static class wxButton* Detect_Hardware;
-    static class wxButton* Calib_Clock;
-    static class wxButton* Toggle_Remote_Detect;
-    static class wxButton* Toggle_Download;
-
+    static class Tool_Bar* Tool_Bar;
+    static class wxPanel* App_Panel;
+    static class wxBoxSizer* App_Sizer;
+    static class wxBoxSizer* Config_Sizer;
+    static class Config_Tree* Config;
+    static class wxBoxSizer* Option_Sizer;
+    static class Option_Notebook* Option;
+    static class Output_Notebook* Output;
     static class Status_Bar* Status_Bar;
 
     static class About_Dialog* About_Dialog;
-
-    /* Pre-loaded daemons */
-    static class Download_Daemon* Download_Daemon;
 
     /* void */ Main(void);
     /* void */ ~Main(void);
@@ -294,18 +185,19 @@ public:
     static void Output_Clear(ptr_t Panel);
     static void Gauge_Update(ptr_t Pos);
 
+    /* Project operations */
+    void Proj_New(const std::string& Path);
+    void Proj_Open(const std::string& Path);
+    void Proj_Close(void);
+    void Proj_Save(void);
+    void Proj_Save_As(const std::string& Path);
+
     /* Manuals */
     static void Manual_Open(const std::string& Manual);
 
-    static void State_Set(ptr_t State);
+    static void State_Update(ptr_t Type);
+    static void State_Set(ptr_t Type, ptr_t State);
 
-    void On_Auto_Timer(class wxTimerEvent& Event);
-    void On_Remote_Timer(class wxTimerEvent& Event);
-    void On_File_Picker(class wxFileDirPickerEvent& Event);
-    void On_Calib_Clock(class wxCommandEvent& Event);
-    void On_Detect_Hardware(class wxCommandEvent& Event);
-    void On_Toggle_Remote_Detect(class wxCommandEvent& Event);
-    void On_Toggle_Download(class wxCommandEvent& Event);
     void On_Close_Window(class wxCloseEvent& Event);
 };
 
@@ -313,17 +205,13 @@ public:
 class RVM_CFG_App:public wxApp
 {
 public:
-    /* Self-contained locale - not using external translator */
-    static ptr_t Locale;
-
+    /* Locale */
+    class wxLocale* Locale;
     /* Main class */
     static class Main* Main;
 
     /* Self-contained translation */
     int Locale_Set(void);
-    static class wxString Translate(const char* Input);
-    static class wxString Translate(const std::string& Input);
-    static class wxString Translate(const class wxString& Input);
 
     virtual bool OnInit(void) final override;
     virtual bool OnExceptionInMainLoop(void) final override;
