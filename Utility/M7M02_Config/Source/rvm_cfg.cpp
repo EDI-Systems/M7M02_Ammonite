@@ -19,6 +19,7 @@ extern "C"
 }
 
 #include "set"
+#include "map"
 #include "atomic"
 #include "thread"
 #include "memory"
@@ -31,7 +32,6 @@ extern "C"
 
 #include "wx/wx.h"
 #include "wx/xml/xml.h"
-#include "wx/aui/auibook.h"
 #include "wx/notebook.h"
 #include "wx/grid.h"
 #include "wx/print.h"
@@ -90,6 +90,13 @@ extern "C"
 #include "Tool_Bar/tool_bar.hpp"
 
 #include "About_Dialog/about_dialog.hpp"
+
+#include "Proj_Info/Chip/chip.hpp"
+#include "Proj_Info/Kernel/kernel.hpp"
+#include "Proj_Info/Monitor/monitor.hpp"
+#include "Proj_Info/Process/process.hpp"
+#include "Proj_Info/Process/Virtual/virtual.hpp"
+#include "Proj_Info/proj_info.hpp"
 #undef __HDR_CLASSES__
 /* End Includes **************************************************************/
 namespace RVM_CFG
@@ -304,6 +311,389 @@ ret_t Main::Msgbox_Show(class wxWindow* Parent, ptr_t Type,
     return Ret;
 }
 /* End Function:Main::Msgbox_Show ********************************************/
+
+/* Begin Function:Main::Idtfr_Check *******************************************
+Description : Check if the name is good or not.
+Input       : const std::string& Name - The name to check.
+Output      : None.
+Return      : ret_t - If valid, 0; else -1.
+******************************************************************************/
+ret_t Main::Idtfr_Check(const std::string& Name)
+{
+    if(Name=="")
+        return -1;
+    if((Name[0]>='0')&&(Name[0]<='9'))
+        return -1;
+    if(Name.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_")!=Name.npos)
+        return -1;
+
+    return 0;
+}
+/* End Function:Main::Idtfr_Check ********************************************/
+
+/* Begin Function:Main::Simple_Load *******************************************
+Description : Save a simple node. This includes the name only.
+Input       : class wxXmlNode* Parent - The parent node.
+              const std::string& Expect - The label to expect.
+Output      : None.
+Return      : class wxXmlNode* - The node found with that name.
+******************************************************************************/
+class wxXmlNode* Main::Simple_Load(class wxXmlNode* Parent, const std::string& Expect)
+{
+    class wxXmlNode* Child;
+
+    /* Find the child with the expected name, and return the string */
+    for(Child=Parent->GetChildren();Child!=nullptr;Child=Child->GetNext())
+    {
+        if(Child->GetName()==Expect)
+            return Child;
+    }
+
+    throw std::runtime_error(Expect+": No such label found.");
+}
+/* End Function:Main::Simple_Load ********************************************/
+
+/* Begin Function:Main::Text_Load *********************************************
+Description : Load a text node. This includes the name and its content. Will
+              throw exceptions if the name is not what is expected, or it contains
+              nothing at all.
+Input       : class wxXmlNode* Parent - The parent node.
+              const std::string& Expect - The label to expect.
+Output      : None.
+Return      : std::string - The content returned.
+******************************************************************************/
+std::string Main::Text_Load(class wxXmlNode* Parent, const std::string& Expect)
+{
+    class wxXmlNode* Text;
+
+    Text=Main::Simple_Load(Parent,Expect)->GetChildren();
+    if(Text==nullptr)
+        return "";
+    if(Text->GetType()!=wxXML_TEXT_NODE)
+        throw std::runtime_error(Expect+": Label does not contain any text.");
+
+    return std::string(Text->GetContent());
+}
+/* End Function:Main::Text_Load **********************************************/
+
+/* Begin Function:Main::Yesno_Load ********************************************
+Description : Load a yes/no node, and return the parsed value directly.
+Input       : class wxXmlNode* Parent - The parent node.
+              const std::string& Expect - The label to expect.
+Output      : None.
+Return      : ptr_t - The option result.
+******************************************************************************/
+ptr_t Main::Yesno_Load(class wxXmlNode* Parent, const std::string& Expect)
+{
+    std::string Temp;
+
+    Temp=Main::Text_Load(Parent, Expect);
+
+    if(Temp=="Yes")
+        return OPTION_YES;
+    else if(Temp=="No")
+        return OPTION_NO;
+
+    throw std::runtime_error(Expect+": Label contains something else.");
+}
+/* End Function:Main::Yesno_Load *********************************************/
+
+/* Begin Function:Main::Num_Load **********************************************
+Description : Load a number node. This includes the name and its content. Will
+              throw exceptions if the name is not what is expected, or it contains
+              nothing at all.
+Input       : class wxXmlNode* Parent - The parent node.
+              const std::string& Expect - The label to expect.
+Output      : None.
+Return      : ptr_t - The content returned.
+******************************************************************************/
+ptr_t Main::Num_Load(class wxXmlNode* Parent, const std::string& Expect)
+{
+    class wxXmlNode* Text;
+
+    Text=Main::Simple_Load(Parent,Expect)->GetChildren();
+    if(Text==nullptr)
+        throw std::runtime_error(Expect+": Label does not contain any number.");
+    if(Text->GetType()!=wxXML_TEXT_NODE)
+        throw std::runtime_error(Expect+": Label does not contain any number.");
+
+    /* see if this is a number */
+    return std::stoull(std::string(Text->GetContent()),nullptr,0);
+}
+/* End Function:Main::Num_Load ***********************************************/
+
+/* Begin Function:Main::Pair_Load *********************************************
+Description : Load a key-value pair node. This includes many subnodes.
+Input       : class wxXmlNode* Parent - The parent node.
+              const std::string& Expect - The label to expect.
+Output      : std::map<std::string, std::string>& Map - The key-value pairs.
+Return      : ptr_t - The content returned.
+******************************************************************************/
+void Main::Pair_Load(class wxXmlNode* Parent, const std::string& Expect,
+                     std::map<std::string, std::string>& Map)
+{
+    class wxXmlNode* Child;
+    class wxXmlNode* Text;
+    std::string Key;
+    std::string Value;
+
+    Child=Main::Simple_Load(Parent,Expect)->GetChildren();
+    if(Child==nullptr)
+        throw std::runtime_error(Expect+": Main label does not contain any pairs.");
+    if(Child->GetType()!=wxXML_ELEMENT_NODE)
+        throw std::runtime_error(Expect+": Main label does not contain any sublabels.");
+
+    /* Handle sublabels */
+    do
+    {
+        /* See if the child exists in the map */
+        Key=Child->GetName();
+        if(Map.find(Key)!=Map.end())
+            throw std::runtime_error(Expect+": One of the sublabels have duplicates.");
+        /* See if the child contains anything valid */
+        Text=Child->GetChildren();
+        if(Text->GetType()!=wxXML_TEXT_NODE)
+            throw std::runtime_error(Expect+": One of the sublabels does not contain any content.");
+        Value=Text->GetContent();
+
+        Map.insert(std::make_pair(Key,Value));
+
+        /* Next child */
+        Child=Child->GetNext();
+    }
+    while(Child!=nullptr);
+}
+/* End Function:Main::Pair_Load **********************************************/
+
+/* Begin Function:Main::Opt_Load **********************************************
+Description : Load a optimization level node.
+Input       : class wxXmlNode* Parent - The parent node.
+              const std::string& Expect - The label to expect.
+Output      : None.
+Return      : ptr_t - The content returned.
+******************************************************************************/
+ptr_t Main::Opt_Load(class wxXmlNode* Parent, const std::string& Expect)
+{
+    std::string Temp;
+
+    Temp=Main::Text_Load(Parent,Expect);
+
+    if(Temp=="O0")
+        return OPTIMIZATION_O0;
+    else if(Temp=="O1")
+        return OPTIMIZATION_O1;
+    else if(Temp=="O2")
+        return OPTIMIZATION_O2;
+    else if(Temp=="O3")
+        return OPTIMIZATION_O3;
+    else if(Temp=="Of")
+        return OPTIMIZATION_OF;
+    else if(Temp=="Os")
+        return OPTIMIZATION_OS;
+    else
+        throw std::runtime_error(Expect+": Optimization level unrecognized.");
+
+    return OPTIMIZATION_O0;
+}
+/* End Function:Main::Opt_Load ***********************************************/
+
+/* Begin Function:Main::CSV_Read **********************************************
+Description : Split a CSV into an array.
+Input       : const std::string& Input - The CSV sequence.
+Output      : std::vector<std::string>& Output - The splitted content.
+Return      : None.
+******************************************************************************/
+void Main::CSV_Read(const std::string& Input, std::vector<std::string>& Output)
+{
+    cnt_t Pivot;
+    ptr_t Begin;
+    ptr_t End;
+    std::string Temp;
+    std::string Push;
+
+    Temp=Input;
+
+    do
+    {
+        /* Split the element */
+        Pivot=Temp.find_first_of(",");
+        if(Pivot<0)
+            Push=Temp;
+        else
+        {
+            Push=Temp.substr(0, Pivot);
+            Temp=Temp.substr(Pivot+1);
+        }
+        /* Strip the whitespaces */
+        Begin=Push.find_first_not_of(" \t\v");
+        if(Begin!=std::string::npos)
+        {
+            End=Push.find_last_not_of(" \t\v");
+            Output.push_back(Push.substr(Begin, End-Begin+1));
+        }
+    }
+    while(Pivot>=0);
+}
+/* End Function:Main::CSV_Read ***********************************************/
+
+/* Begin Function:Main::Simple_Save *******************************************
+Description : Save a simple node. This includes the name only.
+Input       : class wxXmlNode* Parent - The parent node.
+              const std::string& Name - The name of the label.
+Output      : None.
+Return      : class wxXmlNode* - The node added.
+******************************************************************************/
+class wxXmlNode* Main::Simple_Save(class wxXmlNode* Parent, const std::string& Name)
+{
+    class wxXmlNode* Temp_N;
+    class wxXmlNode* Temp_C;
+
+    /* Add to content - null node helps to preserve the pair even if it is empty */
+    Temp_N=new wxXmlNode(nullptr,wxXML_ELEMENT_NODE,Name);
+    Temp_C=new wxXmlNode(wxXML_TEXT_NODE,wxEmptyString,"");
+    /* Add in this way so that the sequence is preserved */
+    Temp_N->AddChild(Temp_C);
+    Parent->AddChild(Temp_N);
+
+    return Temp_N;
+}
+/* End Function:Main::Simple_Save ********************************************/
+
+/* Begin Function:Main::Text_Save *********************************************
+Description : Save a text node. This includes the name and its content.
+Input       : class wxXmlNode* Parent - The parent node.
+              const std::string& Name - The name of the label.
+              const std::string& Content - The content of the label.
+Output      : None.
+Return      : class wxXmlNode* - The node added.
+******************************************************************************/
+class wxXmlNode* Main::Text_Save(class wxXmlNode* Parent,
+                                 const std::string& Name, const std::string& Content)
+{
+    class wxXmlNode* Temp_N;
+    class wxXmlNode* Temp_C;
+
+    /* Add to content */
+    Temp_N=new wxXmlNode(nullptr,wxXML_ELEMENT_NODE,Name);
+    Temp_C=new wxXmlNode(wxXML_TEXT_NODE,wxEmptyString,Content);
+    /* Add in this way so that the sequence is preserved */
+    Temp_N->AddChild(Temp_C);
+    Parent->AddChild(Temp_N);
+
+    return Temp_N;
+}
+/* End Function:Main::Text_Save **********************************************/
+
+/* Begin Function:Main::Hex_Save **********************************************
+Description : Save a hex node. This includes the name and its content.
+Input       : class wxXmlNode* Parent - The parent node.
+              const std::string& Name - The name of the label.
+              ptr_t Padding - The zeros needed for padding it.
+              ptr_t Content - The content of the label.
+Output      : None.
+Return      : class wxXmlNode* - The node added.
+******************************************************************************/
+class wxXmlNode* Main::Hex_Save(class wxXmlNode* Parent,
+                                const std::string& Name, ptr_t Padding, ptr_t Content)
+{
+    char Cmd[16];
+    char Buf[64];
+
+    /* Convert to hex according to command */
+    sprintf(Cmd,"0x%%0%llullX",Padding);
+    sprintf(Buf,Cmd,Content);
+
+    return Main::Text_Save(Parent,Name,Buf);
+}
+/* End Function:Main::Text_Save **********************************************/
+
+/* Begin Function:Main::Yesno_Save ********************************************
+Description : Save a yes/no node. The filling is internally processed.
+Input       : class wxXmlNode* Parent - The parent node.
+              const std::string& Name - The name of the label.
+              ptr_t Yesno - The yes/no option.
+Output      : None.
+Return      : class wxXmlNode* - The node added.
+******************************************************************************/
+class wxXmlNode* Main::Yesno_Save(class wxXmlNode* Parent, const std::string& Name, ptr_t Yesno)
+{
+    if(Yesno==OPTION_YES)
+        return Main::Text_Save(Parent,Name,"Yes");
+    else if(Yesno==OPTION_NO)
+        return Main::Text_Save(Parent,Name,"No");
+    else
+        ASSERT(0,std::string("The node'")+Name+"' does not contain a valid yes/no value.");
+}
+/* End Function:Main::Yesno_Save *********************************************/
+
+/* Begin Function:Main::Num_Save **********************************************
+Description : Save a number node. This includes the name and its content.
+Input       : class wxXmlNode* Parent - The parent node.
+              const std::string& Name - The name of the label.
+              ptr_t Content - The content of the label.
+Output      : None.
+Return      : class wxXmlNode* - The node added.
+******************************************************************************/
+class wxXmlNode* Main::Num_Save(class wxXmlNode* Parent,
+                                const std::string& Name, ptr_t Content)
+{
+    return Main::Text_Save(Parent,Name,std::to_string(Content));
+}
+/* End Function:Main::Num_Save ***********************************************/
+
+/* Begin Function:Main::Pair_Save *********************************************
+Description : Save a key-value pair node. This includes many subnodes.
+Input       : class wxXmlNode* Parent - The parent node.
+              const std::string& Name - The name of the label.
+              const std::map<std::string, std::string>& Map - The content of the pairs.
+Output      : None.
+Return      : class wxXmlNode* - The node added.
+******************************************************************************/
+class wxXmlNode* Main::Pair_Save(class wxXmlNode* Parent,
+                                 const std::string& Name,
+                                 const std::map<std::string, std::string>& Map)
+{
+    class wxXmlNode* Child;
+
+    /* Create main node */
+    Child=new wxXmlNode(nullptr,wxXML_ELEMENT_NODE,Name);
+    /* Save subnodes maintaining the order */
+    for(const std::pair<const std::string, std::string>& Pair:Map)
+        Main::Text_Save(Child,Pair.first,Pair.second);
+    /* Add to parent */
+    Parent->AddChild(Child);
+
+    return Child;
+}
+/* End Function:Main::Pair_Save **********************************************/
+
+/* Begin Function:Main::Opt_Save **********************************************
+Description : Save a optimization level node.
+Input       : class wxXmlNode* Parent - The parent node.
+              const std::string& Name - The name of the label.
+              ptr_t Content - The content of the label.
+Output      : None.
+Return      : class wxXmlNode* - The node added.
+******************************************************************************/
+class wxXmlNode* Main::Opt_Save(class wxXmlNode* Parent,
+                                const std::string& Name, ptr_t Content)
+{
+    std::string Temp;
+
+    switch(Content)
+    {
+        case OPTIMIZATION_O0:Temp="O0";break;
+        case OPTIMIZATION_O1:Temp="O1";break;
+        case OPTIMIZATION_O2:Temp="O2";break;
+        case OPTIMIZATION_O3:Temp="O3";break;
+        case OPTIMIZATION_OF:Temp="Of";break;
+        case OPTIMIZATION_OS:Temp="Os";break;
+        default:ASSERT(0,std::string("The node'")+Name+"' does not contain a valid optimization level.");
+    }
+
+    return Main::Text_Save(Parent,Name,Temp);
+}
+/* End Function:Main::Opt_Save ***********************************************/
 
 ///* Begin Function:Main::Output_Update *****************************************
 //Description : Update the output panel.

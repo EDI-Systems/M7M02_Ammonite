@@ -13,9 +13,10 @@ namespace RVM_GEN
 #ifndef __MEM_INFO_HPP_DEFS__
 #define __MEM_INFO_HPP_DEFS__
 /*****************************************************************************/
-/* Reference or concrete */
-#define MEM_DECL            0
-#define MEM_REF             1
+/* Physical block or reference */
+#define MEM_PHYS            0
+#define MEM_PSEG            1
+#define MEM_SSEG            2
 
 /* Memory type - Code, Data, Device */
 #define MEM_CODE            0
@@ -71,7 +72,7 @@ namespace RVM_GEN
 class Mem_Info
 {
 public:
-    /* A reference or a declaration */
+    /* Physical memory or segment allocation */
     ptr_t Reference;
     /* The name of the memory trunk */
     std::string Name;

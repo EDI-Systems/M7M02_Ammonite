@@ -67,7 +67,7 @@ Return      : None.
         /* Attribute */
         Main::XML_Get_KVP(Root,"Attribute",this->Attribute,"DXXXX","DXXXX");
         /* Memory */
-        Trunk_Parse_Param<class Mem_Info,class Mem_Info,ptr_t>(Root,"Memory",this->Memory,MEM_DECL,"DXXXX","DXXXX");
+        Trunk_Parse_Param<class Mem_Info,class Mem_Info,ptr_t>(Root,"Memory",this->Memory,MEM_PHYS,"DXXXX","DXXXX");
         /* Config */
         Trunk_Parse<class Conf_Info,class Conf_Info>(Root,"Config",this->Config,"DXXXX","DXXXX");
         /* Vector */
@@ -101,11 +101,7 @@ void Chip_Info::Check(void)
 
         /* Check chip memory */
         for(std::unique_ptr<class Mem_Info>& Mem:this->Memory)
-        {
             Mem->Check();
-            if(Mem->Base==MEM_AUTO)
-                Main::Error("XXXXX: On-chip memory must have a concrete base address.");
-        }
 
         /* Check configs - neither the name nor the macro can be the same */
         for(std::unique_ptr<class Conf_Info>& Conf:this->Config)

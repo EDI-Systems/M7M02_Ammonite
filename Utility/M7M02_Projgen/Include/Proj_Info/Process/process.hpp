@@ -80,8 +80,8 @@ public:
     std::vector<class Mem_Info*> Memory_Device;
 
     /* Shared memory trunk information */
-    std::vector<std::unique_ptr<class Mem_Info>> Shmem;
-    std::map<std::string,class Mem_Info*> Shmem_Map;
+    std::vector<std::unique_ptr<class Shmem>> Shmem;
+    std::map<std::string,class Shmem*> Shmem_Map;
 
     /* Combined memory information */
     std::vector<std::unique_ptr<class Mem_Info>> Memory_All;

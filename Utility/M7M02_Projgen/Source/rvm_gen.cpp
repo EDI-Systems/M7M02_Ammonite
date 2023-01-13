@@ -1,5 +1,5 @@
 /******************************************************************************
-Filename    : RVM_GEN.cpp
+Filename    : rvm_gen.cpp
 Author      : pry
 Date        : 20/04/2019
 Licence     : LGPL v3+; see COPYING for details.
@@ -93,6 +93,7 @@ extern "C"
 #include "Proj_Info/Monitor/monitor.hpp"
 #include "Proj_Info/Kobj/kobj.hpp"
 #include "Proj_Info/Process/process.hpp"
+#include "Proj_Info/Process/Shmem/shmem.hpp"
 #include "Proj_Info/Process/Captbl/captbl.hpp"
 #include "Proj_Info/Process/Pgtbl/pgtbl.hpp"
 #include "Proj_Info/Process/Thread/thread.hpp"
@@ -537,7 +538,7 @@ Return      : None.
 void Main::Reference_Check(void)
 {
     class Virtual* Virt;
-    std::map<std::string,class Mem_Info*>::iterator Shmem_Iter;
+    std::map<std::string,class Mem_Info*>::iterator Shm_Iter;
     std::map<std::string,class Process*>::iterator Prc_Iter;
     std::map<std::string,class Vect_Info*>::iterator Vect_Iter;
 
@@ -561,15 +562,15 @@ void Main::Reference_Check(void)
                 }
 
                 /* Check shared memory references */
-                for(std::unique_ptr<class Mem_Info>& Shmem:Prc->Shmem)
+                for(std::unique_ptr<class Shmem>& Shm:Prc->Shmem)
                 {
                     /* Check existence */
-                    Shmem_Iter=this->Proj->Shmem_Map.find(Shmem->Name);
-                    if(Shmem_Iter==this->Proj->Shmem_Map.end())
-                        Main::Error("XXXXX: Shared memory '"+Shmem->Name+"' does not exist.");
+                    Shm_Iter=this->Proj->Shmem_Map.find(Shm->Name);
+                    if(Shm_Iter==this->Proj->Shmem_Map.end())
+                        Main::Error("XXXXX: Shared memory '"+Shm->Name+"' does not exist.");
                     /* Check access permissions */
-                    if((Shmem_Iter->second->Attr&Shmem->Attr)!=Shmem->Attr)
-                        Main::Error("XXXXX: Shared memory '"+Shmem->Name+"' contains wrong attributes.");
+                    if((Shm_Iter->second->Attr&Shm->Attr)!=Shm->Attr)
+                        Main::Error("XXXXX: Shared memory '"+Shm->Name+"' contains wrong attributes.");
                 }
 
                 /* Check thread parameters if this is not a VM - VM priorities are generated so fine */
@@ -1077,13 +1078,13 @@ void Main::Shmem_Add(void)
             try
             {
                 /* Link the shared memory blocks with references in processes, and add result to private memory pool */
-                for(std::unique_ptr<class Mem_Info>& Ref:Prc->Shmem)
+                for(std::unique_ptr<class Shmem>& Shm:Prc->Shmem)
                 {
                     /* Find the shared memory block declared in the project */
-                    Mem=this->Proj->Shmem_Map.find(Ref->Name);
+                    Mem=this->Proj->Shmem_Map.find(Shm->Name);
                     ASSERT(Mem!=this->Proj->Shmem_Map.end());
                     /* Check attributes then populate */
-                    Temp=std::make_unique<class Mem_Info>(Mem->second,Ref->Attr);
+                    Temp=std::make_unique<class Mem_Info>(Mem->second,Shm->Attr);
                     Temp->Is_Shared=1;
                     switch(Temp->Type)
                     {

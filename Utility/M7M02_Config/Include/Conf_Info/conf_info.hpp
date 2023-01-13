@@ -1,19 +1,19 @@
 /******************************************************************************
-Filename    : chip.hpp
+Filename    : conf_info.hpp
 Author      : pry
 Date        : 13/01/2023
 License     : Proprietary; confidential.
-Description : Chip class header.
+Description : Configuration class header.
 ******************************************************************************/
 
 /* Defines *******************************************************************/
 #ifdef __HDR_DEFS__
-#ifndef __CHIP_HPP_TYPES__
-#define __CHIP_HPP_TYPES__
+#ifndef __CONF_INFO_TYPES__
+#define __CONF_INFO_TYPES__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __CHIP_HPP_TYPES__ */
+/* __CONF_INFO_TYPES__ */
 #endif
 /* __HDR_DEFS__ */
 #endif
@@ -21,12 +21,13 @@ Description : Chip class header.
 namespace RVM_CFG
 {
 #ifdef __HDR_DEFS__
-#ifndef __CHIP_HPP_DEFS__
-#define __CHIP_HPP_DEFS__
+#ifndef __CONF_INFO_DEFS__
+#define __CONF_INFO_DEFS__
 /*****************************************************************************/
-
+#define CONFIG_CHOICE       0
+#define CONFIG_RANGE        1
 /*****************************************************************************/
-/* __CHIP_HPP_DEFS__ */
+/* __CONF_INFO_DEFS__ */
 #endif
 /* __HDR_DEFS__ */
 #endif
@@ -34,29 +35,28 @@ namespace RVM_CFG
 
 /* Classes *******************************************************************/
 #ifdef __HDR_CLASSES__
-#ifndef __CHIP_HPP_CLASSES__
-#define __CHIP_HPP_CLASSES__
+#ifndef __CONF_INFO_CLASSES__
+#define __CONF_INFO_CLASSES__
 /*****************************************************************************/
-class Chip
+class Conf_Info
 {
 public:
-    /* Platform name */
-    std::string Platform;
-    /* Chip class */
-    std::string Class;
-    /* Exact chip name */
+    /* Config name */
     std::string Name;
-    /* The configuration option values */
-    std::map<std::string,std::string> Config;
+    /* Macro name */
+    std::string Macro;
+    /* Config type */
+    ptr_t Type;
+    /* Range values */
+    std::vector<std::string> Range;
+    /* Default setting */
+    std::string Default;
 
-    /* void */ Chip(const std::string& Name, const class Chip_Info* Chip);
-    /* void */ Chip(class wxXmlNode* Node);
-    /* void */ ~Chip(void);
-
-    void Save(class wxXmlNode* Parent);
+    /* void */ Conf_Info(class wxXmlNode* Node);
+    /* void */ ~Conf_Info(void);
 };
 /*****************************************************************************/
-/* __CHIP_HPP_CLASSES__ */
+/* __CONF_INFO_CLASSES__ */
 #endif
 /* __HDR_CLASSES__ */
 #endif

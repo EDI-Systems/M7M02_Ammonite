@@ -31,6 +31,7 @@ extern "C"
 #include "Proj_Info/proj_info.hpp"
 #include "Proj_Info/Kobj/kobj.hpp"
 #include "Proj_Info/Process/process.hpp"
+#include "Proj_Info/Process/Shmem/shmem.hpp"
 #include "Proj_Info/Process/Captbl/captbl.hpp"
 #include "Proj_Info/Process/Pgtbl/pgtbl.hpp"
 #include "Proj_Info/Process/Thread/thread.hpp"
@@ -97,9 +98,9 @@ Kobj(this)
         }
 
         /* Memory */
-        Trunk_Parse_Param<class Mem_Info, class Mem_Info, ptr_t>(Root,"Memory",this->Memory,MEM_DECL,"DXXXX","DXXXX");
+        Trunk_Parse_Param<class Mem_Info, class Mem_Info, ptr_t>(Root,"Memory",this->Memory,MEM_PSEG,"DXXXX","DXXXX");
         /* Shmem */
-        Trunk_Parse_Param<class Mem_Info, class Mem_Info, ptr_t>(Root,"Shmem",this->Shmem,MEM_REF,"DXXXX","DXXXX");
+        Trunk_Parse<class Shmem, class Shmem>(Root,"Shmem",this->Shmem,"DXXXX","DXXXX");
         /* Send */
         Trunk_Parse_Param<class Send, class Send>(Root,"Send",this->Send,this,"DXXXX","DXXXX");
         /* These are present only if the process is native */
@@ -171,15 +172,11 @@ void Process::Check(void)
         Mem_Info::Overlap_Check(this->Memory_Code,this->Memory_Data,this->Memory_Device,"Process memory");
 
         /* Check shared memory references */
-        for(std::unique_ptr<class Mem_Info>& Mem:this->Shmem)
-        {
-            if(Mem->Name=="")
-                Main::Error("Shared memory reference must contain a name.");
-            Mem->Check();
-        }
-        Duplicate_Check<class Mem_Info,std::string>(this->Shmem,this->Shmem_Map,
-                                                    [](std::unique_ptr<class Mem_Info>& Mem)->std::string{return Mem->Name;},
-                                                    "XXXXX","name","Shmem");
+        for(std::unique_ptr<class Shmem>& Shm:this->Shmem)
+            Shm->Check();
+        Duplicate_Check<class Shmem,std::string>(this->Shmem,this->Shmem_Map,
+                                                 [](std::unique_ptr<class Shmem>& Shm)->std::string{return Shm->Name;},
+                                                 "XXXXX","name","Shmem");
 
         /* All normal processes shall have at least one thread */
         if((this->Type==PROCESS_NATIVE)&&(this->Thread.empty()))

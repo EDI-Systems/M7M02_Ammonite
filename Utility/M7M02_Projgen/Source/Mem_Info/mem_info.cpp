@@ -47,6 +47,8 @@ Return      : None.
 
     try
     {
+        this->Reference=Reference;
+
         /* Name - not necessarily exist */
         try
         {
@@ -59,30 +61,26 @@ Return      : None.
         }
         Name_Gen(this);
 
-        this->Reference=Reference;
-        if(Reference==MEM_DECL)
-        {
-            /* Base */
-            Temp=Main::XML_Get_String(Root,"Base","DXXXX","DXXXX");
-            if(Temp=="Auto")
-                this->Base=MEM_AUTO;
-            else
-                this->Base=std::stoull(Temp,0,0);
+        /* Base */
+        Temp=Main::XML_Get_String(Root,"Base","DXXXX","DXXXX");
+        if(Temp=="Auto")
+            this->Base=MEM_AUTO;
+        else
+            this->Base=std::stoull(Temp,0,0);
 
-            /* Size */
-            this->Size=Main::XML_Get_Number(Root,"Size","DXXXX","DXXXX");
+        /* Size */
+        this->Size=Main::XML_Get_Number(Root,"Size","DXXXX","DXXXX");
 
-            /* Type */
-            Temp=Main::XML_Get_String(Root,"Type","DXXXX","DXXXX");
-            if(Temp=="Code")
-                this->Type=MEM_CODE;
-            else if(Temp=="Data")
-                this->Type=MEM_DATA;
-            else if(Temp=="Device")
-                this->Type=MEM_DEVICE;
-            else
-                Main::Error("XXXXX: Type is malformed.");
-        }
+        /* Type */
+        Temp=Main::XML_Get_String(Root,"Type","DXXXX","DXXXX");
+        if(Temp=="Code")
+            this->Type=MEM_CODE;
+        else if(Temp=="Data")
+            this->Type=MEM_DATA;
+        else if(Temp=="Device")
+            this->Type=MEM_DEVICE;
+        else
+            Main::Error("XXXXX: Type is malformed.");
 
         /* Attribute */
         this->Attr=0;
@@ -154,7 +152,8 @@ Return      : None.
 ******************************************************************************/
 /* void */ Mem_Info::Mem_Info(const std::string& Name, ptr_t Base, ptr_t Size, ptr_t Type, ptr_t Attr)
 {
-    this->Reference=MEM_DECL;
+    /* Default to private segment reference */
+    this->Reference=MEM_PSEG;
     this->Name=Name;
     Name_Gen(this);
     this->Base=Base;
@@ -176,14 +175,21 @@ void Mem_Info::Check(void)
 {
     try
     {
-        if(this->Reference==MEM_DECL)
-        {
-            if(this->Size==0)
-                Main::Error("XXXXX: Size cannot be zero.");
-            if(this->Size>0x100000000ULL)
-                Main::Error("XXXXX: Size is out of bound.");
+        /* Shared memory must have a name */
+        if((this->Reference==MEM_SSEG)&&(this->Name==""))
+            Main::Error("XXXXX: Shared memory must have a name.");
 
-            if((this->Type==MEM_DEVICE)&&(this->Base==MEM_AUTO))
+        if(this->Size==0)
+            Main::Error("XXXXX: Size cannot be zero.");
+
+        if(this->Size>0x100000000ULL)
+            Main::Error("XXXXX: Size is out of bound.");
+
+        if(this->Base==MEM_AUTO)
+        {
+            if(this->Reference==MEM_PHYS)
+                Main::Error("XXXXX: Physical memory must have a concrete base address.");
+            if(this->Type==MEM_DEVICE)
                 Main::Error("XXXXX: Device-type memory cannot be automatically allocated.");
         }
     }

@@ -12,12 +12,18 @@ Description : Help menu class implementation.
 #undef __HDR_DEFS__
 
 #include "wx/wx.h"
+#include "wx/xml/xml.h"
+
 #ifdef WIN32
 #include "wx/msw/registry.h"
 #include "shlobj.h"
 #include "sddl.h"
 #include "winreg.h"
 #endif
+
+#include "map"
+#include "memory"
+#include "vector"
 
 #define __HDR_DEFS__
 #include "Menu_Bar/Help_Menu/help_menu.hpp"

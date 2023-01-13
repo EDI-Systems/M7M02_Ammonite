@@ -33,9 +33,9 @@
 		<Buildsystem>Keil</Buildsystem>
 		<Toolchain>ARMCC</Toolchain>
 		<Optimization>Os</Optimization>
+		<Full_Image>Yes</Full_Image>
 		<Project_Output>./Kernel/Project</Project_Output>
 		<Project_Overwrite>No</Project_Overwrite>
-		<Project_Full_Image>Yes</Project_Full_Image>
 		<Linker_Output>./Kernel/Project</Linker_Output>
 		<Config_Header_Output>./Kernel/Include</Config_Header_Output>
 		<Boot_Header_Output>./Kernel/Include</Boot_Header_Output>

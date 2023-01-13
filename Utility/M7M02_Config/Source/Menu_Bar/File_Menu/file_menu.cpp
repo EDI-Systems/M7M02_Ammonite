@@ -15,13 +15,13 @@ Description : File menu class implementation.
 #include "wx/xml/xml.h"
 #include "wx/splitter.h"
 
-#include "set"
-#include "map"
-#include "memory"
-
 #include "Image/new_proj_small.xpm"
 #include "Image/open_proj_small.xpm"
 #include "Image/save_proj_small.xpm"
+
+#include "set"
+#include "map"
+#include "memory"
 
 #define __HDR_DEFS__
 #include "Menu_Bar/File_Menu/file_menu.hpp"

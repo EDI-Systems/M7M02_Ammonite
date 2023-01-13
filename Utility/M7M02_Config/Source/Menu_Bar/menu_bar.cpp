@@ -12,6 +12,11 @@ Description : Menu bar class implementation.
 #undef __HDR_DEFS__
 
 #include "wx/wx.h"
+#include "wx/xml/xml.h"
+
+#include "map"
+#include "memory"
+#include "vector"
 
 #define __HDR_DEFS__
 #include "Menu_Bar/menu_bar.hpp"

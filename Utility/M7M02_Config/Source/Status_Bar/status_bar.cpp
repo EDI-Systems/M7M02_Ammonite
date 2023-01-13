@@ -19,6 +19,9 @@ extern "C"
 #undef __HDR_DEFS__
 
 #include "wx/wx.h"
+#include "wx/xml/xml.h"
+
+#include "map"
 #include "memory"
 
 extern "C"

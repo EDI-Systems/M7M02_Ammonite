@@ -1,5 +1,5 @@
 /******************************************************************************
-Filename    : chip.hpp
+Filename    : default.hpp
 Author      : pry
 Date        : 13/01/2023
 License     : Proprietary; confidential.
@@ -8,12 +8,12 @@ Description : Chip class header.
 
 /* Defines *******************************************************************/
 #ifdef __HDR_DEFS__
-#ifndef __CHIP_HPP_TYPES__
-#define __CHIP_HPP_TYPES__
+#ifndef __DEFAULT_HPP_TYPES__
+#define __DEFAULT_HPP_TYPES__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __CHIP_HPP_TYPES__ */
+/* __DEFAULT_HPP_TYPES__ */
 #endif
 /* __HDR_DEFS__ */
 #endif
@@ -21,12 +21,12 @@ Description : Chip class header.
 namespace RVM_CFG
 {
 #ifdef __HDR_DEFS__
-#ifndef __CHIP_HPP_DEFS__
-#define __CHIP_HPP_DEFS__
+#ifndef __DEFAULT_HPP_DEFS__
+#define __DEFAULT_HPP_DEFS__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __CHIP_HPP_DEFS__ */
+/* __DEFAULT_HPP_DEFS__ */
 #endif
 /* __HDR_DEFS__ */
 #endif
@@ -34,29 +34,36 @@ namespace RVM_CFG
 
 /* Classes *******************************************************************/
 #ifdef __HDR_CLASSES__
-#ifndef __CHIP_HPP_CLASSES__
-#define __CHIP_HPP_CLASSES__
+#ifndef __DEFAULT_HPP_CLASSES__
+#define __DEFAULT_HPP_CLASSES__
 /*****************************************************************************/
-class Chip
+class Default
 {
 public:
-    /* Platform name */
-    std::string Platform;
-    /* Chip class */
-    std::string Class;
-    /* Exact chip name */
-    std::string Name;
-    /* The configuration option values */
-    std::map<std::string,std::string> Config;
+    /* Default build options */
+    std::string Buildsystem;
+    std::string Toolchain;
+    ptr_t Optimization;
 
-    /* void */ Chip(const std::string& Name, const class Chip_Info* Chip);
-    /* void */ Chip(class wxXmlNode* Node);
-    /* void */ ~Chip(void);
+    /* Kernel size options */
+    ptr_t Kernel_Code_Size;
+    ptr_t Kernel_Data_Size;
+    ptr_t Kernel_Stack_Size;
 
-    void Save(class wxXmlNode* Parent);
+    /* Monitor size options */
+    ptr_t Monitor_Code_Size;
+    ptr_t Monitor_Data_Size;
+    ptr_t Init_Stack_Size;
+    ptr_t Sftd_Stack_Size;
+    ptr_t Vctd_Stack_Size;
+    ptr_t Timd_Stack_Size;
+    ptr_t Hypd_Stack_Size;
+
+    /* void */ Default(class wxXmlNode* Node);
+    /* void */ ~Default(void);
 };
 /*****************************************************************************/
-/* __CHIP_HPP_CLASSES__ */
+/* __DEFAULT_HPP_CLASSES__ */
 #endif
 /* __HDR_CLASSES__ */
 #endif

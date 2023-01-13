@@ -37,7 +37,7 @@ namespace RVM_CFG
 #ifndef __OPTION_NOTEBOOK_HPP_CLASSES__
 #define __OPTION_NOTEBOOK_HPP_CLASSES__
 /*****************************************************************************/
-class Option_Notebook:public wxAuiNotebook
+class Option_Notebook:public wxNotebook
 {
 public:
 
@@ -45,9 +45,6 @@ public:
     /* void */ ~Option_Notebook(void);
 
     void State_Set(ptr_t Type);
-
-    void On_Sheet_Prechange(class wxAuiNotebookEvent& Event);
-    void On_Sheet_Change(class wxAuiNotebookEvent& Event);
 };
 /*****************************************************************************/
 /* __OPTION_NOTEBOOK_HPP_CLASSES__ */

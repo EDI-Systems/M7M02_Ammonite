@@ -128,6 +128,14 @@ while(0)
 #define F2P(X)                              (X)
 #define P2F(X)                              (X)
 #endif
+
+/* Optimization level */
+#define OPTIMIZATION_O0                     (0)
+#define OPTIMIZATION_O1                     (1)
+#define OPTIMIZATION_O2                     (2)
+#define OPTIMIZATION_O3                     (3)
+#define OPTIMIZATION_OF                     (4)
+#define OPTIMIZATION_OS                     (5)
 /*****************************************************************************/
 /* __RVM_CFG_HPP_DEFS__ */
 #endif
@@ -180,10 +188,36 @@ public:
     /* Message box popper */
     static ret_t Msgbox_Show(class wxWindow* Parent, ptr_t Type,
                              const class wxString& Caption, const class wxString& Text);
+    /* Identifier checking */
+    static ret_t Idtfr_Check(const std::string& Name);
 
+    /* Field saving/extraction generics */
+    static class wxXmlNode* Simple_Load(class wxXmlNode* Parent, const std::string& Expect);
+    static std::string Text_Load(class wxXmlNode* Node, const std::string& Expect);
+    static ptr_t Yesno_Load(class wxXmlNode* Parent, const std::string& Expect);
+    static ptr_t Num_Load(class wxXmlNode* Node, const std::string& Expect);
+    static void Pair_Load(class wxXmlNode* Parent, const std::string& Expect,
+                          std::map<std::string, std::string>& Map);
+    static ptr_t Opt_Load(class wxXmlNode* Node, const std::string& Expect);
+    static void CSV_Read(const std::string& Input, std::vector<std::string>& Output);
+
+    static class wxXmlNode* Simple_Save(class wxXmlNode* Parent, const std::string& Name);
+    static class wxXmlNode* Text_Save(class wxXmlNode* Parent,
+                                      const std::string& Name, const std::string& Content);
+    static class wxXmlNode* Hex_Save(class wxXmlNode* Parent,
+                                     const std::string& Name, ptr_t Padding, ptr_t Content);
+    static class wxXmlNode* Yesno_Save(class wxXmlNode* Parent, const std::string& Name, ptr_t Yesno);
+    static class wxXmlNode* Num_Save(class wxXmlNode* Parent,
+                                     const std::string& Name, ptr_t Content);
+    static class wxXmlNode* Pair_Save(class wxXmlNode* Parent,
+                                      const std::string& Name,
+                                      const std::map<std::string, std::string>& Map);
+    static class wxXmlNode* Opt_Save(class wxXmlNode* Parent,
+                                     const std::string& Name, ptr_t Content);
+
+    /* Output notebook updates */
     static void Output_Update(std::vector<std::string>& Reply,ptr_t Panel,ptr_t Append);
     static void Output_Clear(ptr_t Panel);
-    static void Gauge_Update(ptr_t Pos);
 
     /* Project operations */
     void Proj_New(const std::string& Path);
@@ -221,6 +255,105 @@ public:
     static void OnSystemFatalException(int Exc);
 #endif
 };
+
+/* Begin Template:Trunk_Load **************************************************
+Description : Load a trunk of data from XML. This is the base version.
+Input       : class wxXmlNode* Root - The root node for the elements.
+              const std::string& Prefix - The expected prefix of the elements.
+Output      : std::vector<std::unique_ptr<ELEM>>& Vect - The vector to fill in.
+Return      : None.
+******************************************************************************/
+template <typename ELEM>
+void Trunk_Load(class wxXmlNode* Root, const std::string& Prefix, std::vector<std::unique_ptr<ELEM>>& Vect)
+{
+    class wxXmlNode* Temp;
+    cnt_t Count;
+
+    Count=0;
+    for(Temp=Root->GetChildren();Temp!=nullptr;Temp=Temp->GetNext())
+    {
+        if(Temp->GetName()!=(Prefix+std::to_string(Count)))
+            wxLogDebug("Prefix sequence is incorrect. This is not a hard error.");
+        Vect.push_back(std::make_unique<ELEM>(Temp));
+        Count++;
+    }
+}
+/* End Template:Trunk_Load ***************************************************/
+
+/* Begin Template:Trunk_Load **************************************************
+Description : Load a trunk of data from XML. This accepts a type into the constructor.
+Input       : class wxXmlNode* Root - The root node for the elements.
+              const std::string& Prefix - The expected prefix of the elements.
+              ptr_t Type - The type of the elements. Passed into the constructor.
+Output      : std::vector<std::unique_ptr<ELEM>>& Vect - The vector to fill in.
+Return      : None.
+******************************************************************************/
+template <typename ELEM>
+void Trunk_Load(class wxXmlNode* Root, const std::string& Prefix, std::vector<std::unique_ptr<ELEM>>& Vect, ptr_t Type)
+{
+    class wxXmlNode* Temp;
+    cnt_t Count;
+
+    Count=0;
+    for(Temp=Root->GetChildren();Temp!=nullptr;Temp=Temp->GetNext())
+    {
+        if(Temp->GetName()!=(Prefix+std::to_string(Count)))
+            wxLogDebug("Prefix sequence is incorrect. This is not a hard error.");
+        Vect.push_back(std::make_unique<ELEM>(Temp,Type));
+        Count++;
+    }
+}
+/* End Template:Trunk_Load ***************************************************/
+
+/* Begin Template:Trunk_Load **************************************************
+Description : Load a trunk of data from XML. This accepts a type into the constructor,
+              and allows construction of derived classes.
+Input       : class wxXmlNode* Root - The root node for the elements.
+              const std::string& Prefix - The expected prefix of the elements.
+              ptr_t Type - The type of the elements. Passed into the constructor.
+Output      : std::vector<std::unique_ptr<ELEM>>& Vect - The vector to fill in.
+Return      : None.
+******************************************************************************/
+template <typename BASE,typename DERIVED>
+void Trunk_Load(class wxXmlNode* Root, const std::string& Prefix, std::vector<std::unique_ptr<BASE>>& Vect, ptr_t Type)
+{
+    class wxXmlNode* Temp;
+    cnt_t Count;
+
+    Count=0;
+    for(Temp=Root->GetChildren();Temp!=nullptr;Temp=Temp->GetNext())
+    {
+        if(Temp->GetName()!=(Prefix+std::to_string(Count)))
+            wxLogDebug("Prefix sequence is incorrect. This is not a hard error.");
+        Vect.push_back(std::make_unique<DERIVED>(Temp,Type));
+        Count++;
+    }
+}
+/* End Template:Trunk_Load ***************************************************/
+
+/* Begin Template:Trunk_Save **************************************************
+Description : Save a trunk of data to XML.
+Input       : class wxXmlNode* Root - The root node for the elements.
+              const std::string& Prefix - The expected prefix of the elements.
+              std::vector<std::unique_ptr<ELEM>>& Vect - The vector to save.
+Output      : None.
+Return      : None.
+******************************************************************************/
+template <typename ELEM>
+void Trunk_Save(class wxXmlNode* Root, const std::string& Prefix, std::vector<std::unique_ptr<ELEM>>& Vect)
+{
+    class wxXmlNode* Temp;
+    cnt_t Count;
+
+    Count=0;
+    for(std::unique_ptr<ELEM>& Elem:Vect)
+    {
+        Temp=Main::Simple_Save(Root,Prefix+std::to_string(Count));
+        Elem->Save(Temp);
+        Count++;
+    }
+}
+/* End Template:Trunk_Save ***************************************************/
 /*****************************************************************************/
 /* __RVM_CFG_HPP_CLASSES__ */
 #endif

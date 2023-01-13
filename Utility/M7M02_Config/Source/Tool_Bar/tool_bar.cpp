@@ -12,6 +12,7 @@ Description : Build toolbar class implementation.
 #undef __HDR_DEFS__
 
 #include "wx/wx.h"
+#include "wx/xml/xml.h"
 #include "wx/grid.h"
 
 #include "Image/new_proj.xpm"
@@ -20,6 +21,7 @@ Description : Build toolbar class implementation.
 #include "Image/generate.xpm"
 #include "Image/validate.xpm"
 
+#include "map"
 #include "memory"
 #include "vector"
 

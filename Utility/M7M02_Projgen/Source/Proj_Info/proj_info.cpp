@@ -35,6 +35,7 @@ extern "C"
 #include "Proj_Info/Monitor/monitor.hpp"
 #include "Proj_Info/Kobj/kobj.hpp"
 #include "Proj_Info/Process/process.hpp"
+#include "Proj_Info/Process/Shmem/shmem.hpp"
 #include "Proj_Info/Process/Captbl/captbl.hpp"
 #include "Proj_Info/Process/Pgtbl/pgtbl.hpp"
 #include "Proj_Info/Process/Thread/thread.hpp"
@@ -84,9 +85,9 @@ Return      : None.
         this->Chip=std::make_unique<class Chip>(Temp);
 
         /* Extra memory segments - not necessarily exist */
-        Trunk_Parse_Param<class Mem_Info,class Mem_Info,ptr_t>(Root,"Extmem",this->Extmem,MEM_DECL,"DXXXX","DXXXX");
+        Trunk_Parse_Param<class Mem_Info,class Mem_Info,ptr_t>(Root,"Extmem",this->Extmem,MEM_PHYS,"DXXXX","DXXXX");
         /* Shared memory segments - not necessarily exist */
-        Trunk_Parse_Param<class Mem_Info,class Mem_Info,ptr_t>(Root,"Shmem",this->Shmem,MEM_DECL,"DXXXX","DXXXX");
+        Trunk_Parse_Param<class Mem_Info,class Mem_Info,ptr_t>(Root,"Shmem",this->Shmem,MEM_SSEG,"DXXXX","DXXXX");
 
         /* Kernel-related info */
         if((XML_Child(Root,(xml_s8_t*)"Kernel",&Temp)<0)||(Temp==0))
@@ -129,18 +130,13 @@ void Proj_Info::Check(void)
 {
     try
     {
-        /* External memory must have start addresses allocated */
+        /* External memory checks */
         for(std::unique_ptr<class Mem_Info>& Mem:this->Extmem)
-        {
-            if(Mem->Base==MEM_AUTO)
-                Main::Error("XXXXX: Externally mounted memory must have a concrete base address.");
-        }
+            Mem->Check();
 
-        /* Shared memory must have names, and they cannot be the same */
+        /* Shared memory checks */
         for(std::unique_ptr<class Mem_Info>& Mem:this->Shmem)
         {
-            if(Mem->Name=="")
-                Main::Error("XXXXX: Shared memory declaration must contain a name.");
             Mem->Check();
             switch(Mem->Type)
             {
