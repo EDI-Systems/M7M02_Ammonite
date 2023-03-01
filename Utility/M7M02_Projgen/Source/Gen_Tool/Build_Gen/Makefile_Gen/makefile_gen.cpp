@@ -170,9 +170,9 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
         else if (FPU_Type == "FPV4_SP")
             FPU_Type = "fpv4-sp-d16";
         else if (FPU_Type == "FPV5_SP")
-            FPU_Type == "fpv5-sp-d16";
+            FPU_Type = "fpv5-sp-d16";
         else if (FPU_Type == "FPV5_DP")
-            FPU_Type == "fpv5-dp-d16";
+            FPU_Type = "fpv5-dp-d16";
         else
             Main::Error("XXXXX: Internal FPU type error.");
     }

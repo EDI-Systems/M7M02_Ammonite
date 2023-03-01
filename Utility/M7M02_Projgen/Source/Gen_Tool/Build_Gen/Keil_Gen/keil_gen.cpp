@@ -171,9 +171,9 @@ void Keil_Gen::Raw_Proj(std::unique_ptr<std::vector<std::string>>& List,
 		else if(FPU_Type=="FPV4_SP")
 			FPU_Type="FPU2";
 		else if(FPU_Type=="FPV5_SP")
-			FPU_Type=="FPU3(SFPU)";
+			FPU_Type="FPU3(SFPU)";
 		else if(FPU_Type=="FPV5_DP")
-			FPU_Type=="FPU3(DFPU)";
+			FPU_Type="FPU3(DFPU)";
 		else
 			Main::Error("XXXXX: Internal FPU type error.");
     }
