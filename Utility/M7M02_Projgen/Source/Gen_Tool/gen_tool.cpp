@@ -2210,10 +2210,11 @@ void Gen_Tool::Monitor_Proj(void)
     Tool=this->Tool_Map[Monitor->Toolchain];
 
     /* Does the file already exist? */
-    if(Build->Name == "Keil")
-        Monitor->Project_Filename=std::string("monitor")+Build->Suffix(BUILD_PROJECT);
-    else if(Build->Name == "Makefile")
+    if(Build->Name == "Makefile")
         Monitor->Project_Filename = std::string("Makefile") + Build->Suffix(BUILD_PROJECT);
+    else
+        Monitor->Project_Filename=std::string("monitor")+Build->Suffix(BUILD_PROJECT);
+        
     if(std::filesystem::exists(Monitor->Project_Output+Monitor->Project_Filename)==true)
     {
         /* See if we'll use forced regenerate */
@@ -2833,10 +2834,11 @@ void Gen_Tool::Process_Proj(class Process* Prc)
     Tool=this->Tool_Map[Prc->Toolchain];
 
     /* Does the file already exist? */
-    if(Build->Name == "Keil")
+    if(Build->Name == "Makefile")
+        Prc->Project_Filename = std::string("Makefile") + Build->Suffix(BUILD_PROJECT);
+    else
         Prc->Project_Filename=std::string("prc_")+Prc->Name_Lower+Build->Suffix(BUILD_PROJECT);
-    else if(Build->Name == "Makefile")
-        Prc->Project_Filename = std::string("Makefile")+ Build->Suffix(BUILD_PROJECT);
+        
     if(std::filesystem::exists(Prc->Project_Output+Prc->Project_Filename)==true)
     {
         /* See if we'll use forced regenerate */
