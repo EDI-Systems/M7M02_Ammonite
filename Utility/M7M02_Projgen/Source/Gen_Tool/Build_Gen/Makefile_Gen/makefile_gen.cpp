@@ -168,11 +168,11 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
         if (FPU_Type == "None")
             FPU_Type = "";
         else if (FPU_Type == "FPV4_SP")
-            FPU_Type = "FPU2";
+            FPU_Type = "fpv4-sp-d16";
         else if (FPU_Type == "FPV5_SP")
-            FPU_Type == "FPU3(SFPU)";
+            FPU_Type == "fpv5-sp-d16";
         else if (FPU_Type == "FPV5_DP")
-            FPU_Type == "FPU3(DFPU)";
+            FPU_Type == "fpv5-dp-d16";
         else
             Main::Error("XXXXX: Internal FPU type error.");
     }
@@ -238,7 +238,14 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
     List->push_back("BIN = $(CP) -O binary -S");
     List->push_back("");
     List->push_back(std::string("CPU = -mcpu=") + CPU_Type);
-    List->push_back("MCU = $(CPU) -mthumb ");
+    if (FPU_Type != "")
+    {
+        List->push_back(std::string("FPU = -mfpu=") + FPU_Type);
+        List->push_back("FLOAT-ABI = -mfloat-abi=hard");
+        List->push_back("MCU = $(CPU) -mthumb $(FPU) $(FLOAT-ABI)");
+    }
+    else
+        List->push_back("MCU = $(CPU) -mthumb ");
     List->push_back(std::string("C_DEFS = -D") + Device);
     List->push_back("");
     List->push_back("ASFLAGS = $(MCU) $(OPT) -Wall -fdata-sections -ffunction-sections");
