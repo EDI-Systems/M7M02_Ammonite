@@ -25,6 +25,8 @@ Description : The Cortex-M user-level assembly scheduling support of the RVM
     .global             RVM_Inv_Ret
     /* System call gate */
     .global             RVM_Svc
+    /*Kernel function system call gate*/
+    .global        RVM_A7M_Svc_Kfn
     /* Get the MSB in a word */
     .global             _RVM_MSB_Get
 /* End Exports ***************************************************************/
@@ -175,6 +177,45 @@ _RVM_MSB_Get:
     SUB                 R0,R1
     BX                  LR
 /* End Function:_RVM_MSB_Get ************************************************/
+
+/* Begin Function:RVM_A7M_Svc_Kfn ********************************************
+Description : Trigger a system call. This is ARMv7-M specific, and does not expand
+              to other architectures, and is only used for kernel functions.
+              This specially crafted system call allows up to 8 parameters to
+              be passed and returned.
+Input       : R0 - rvm_ptr_t Num - The system call number/other information.
+              R1 - rvm_ptr_t ID - The func ID and sub ID of the kernel function call.
+              R2 - rvm_ptr_t Args[6] - Array of 6 arguments.
+Output      : R2 - rvm_ptr_t Args[6] - Array of 6 return values.
+Return      : R0 - rvm_ret_t - The system call return value.*****************************************************************************/
+    .thumb_func
+RVM_A7M_Svc_Kfn:        
+                        PUSH                {R4-R12}            //; Save registers
+                        MOV                 R4, R0              //; Pass parameters
+                        MOV                 R5, R1
+                        MOV                 R12, R2             //; Pass extra parameters
+                        LDR                 R6, [R12,#0x00]
+                        LDR                 R7, [R12,#0x04]
+                        LDR                 R8, [R12,#0x08]
+                        LDR                 R9, [R12,#0x0C]
+                        LDR                 R10, [R12,#0x10]
+                        LDR                 R11, [R12,#0x14]
+                                    
+                        SVC                 #0x00               //; System call
+                        ISB
+                                    
+                        MOV                 R0, R4              //; System call return value
+                        STR                 R6, [R12,#0x00]     //; Extra return values
+                        STR                 R7, [R12,#0x04]
+                        STR                 R8, [R12,#0x08]
+                        STR                 R9, [R12,#0x0C]
+                        STR                 R10, [R12,#0x10]
+                        STR                 R11, [R12,#0x14]
+                        
+                        POP                 {R4-R12}             //; Restore registers
+                        BX                  LR
+                        
+/* End Function:RVM_A7M_Svc_Kfn *********************************************/
 
     .end
 /* End Of File **************************************************************/

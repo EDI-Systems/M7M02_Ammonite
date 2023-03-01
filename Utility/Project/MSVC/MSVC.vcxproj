@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\M5P02_Minion\Serdes\XML\xml.c" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Chip_Info\chip_info.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Conf_Info\conf_info.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Gen_Tool\Build_Gen\build_gen.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Gen_Tool\Build_Gen\Keil_Gen\keil_gen.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Gen_Tool\Build_Gen\Makefile_Gen\makefile_gen.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Gen_Tool\gen_tool.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Gen_Tool\Guest_Gen\guest_gen.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Gen_Tool\Guest_Gen\RMP_Gen\rmp_gen.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Gen_Tool\Plat_Gen\A6M_Gen\a6m_gen.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Gen_Tool\Plat_Gen\A7M_Gen\a7m_gen.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Gen_Tool\Plat_Gen\plat_gen.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Gen_Tool\Tool_Gen\ARMCC_Gen\armcc_gen.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Gen_Tool\Tool_Gen\GCC_Gen\gcc_gen.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Gen_Tool\Tool_Gen\tool_gen.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Mem_Info\mem_info.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Plat_Info\Compatible\compatible.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Plat_Info\plat_info.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Proj_Info\Chip\chip.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Proj_Info\Kernel\kernel.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Proj_Info\Kobj\kobj.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Proj_Info\Monitor\monitor.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Proj_Info\Process\Captbl\captbl.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Proj_Info\Process\Invocation\invocation.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Proj_Info\Process\Kfunc\kfunc.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Proj_Info\Process\Pgtbl\pgtbl.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Proj_Info\Process\Port\port.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Proj_Info\Process\process.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Proj_Info\Process\Receive\receive.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Proj_Info\Process\Send\send.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Proj_Info\Process\Shmem\shmem.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Proj_Info\Process\Thread\thread.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Proj_Info\Process\Virtual\virtual.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Proj_Info\proj_info.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\rvm_gen.cpp" />
+    <ClCompile Include="..\..\M7M02_Projgen\Source\Vect_Info\vect_info.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Chip_Info\chip_info.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Conf_Info\conf_info.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Gen_Tool\Build_Gen\build_gen.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Gen_Tool\Build_Gen\Keil_Gen\keil_gen.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Gen_Tool\Build_Gen\Makefile_Gen\makefile_gen.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Gen_Tool\gen_tool.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Gen_Tool\Guest_Gen\guest_gen.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Gen_Tool\Guest_Gen\RMP_Gen\rmp_gen.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Gen_Tool\Plat_Gen\A6M_Gen\a6m_gen.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Gen_Tool\Plat_Gen\A7M_Gen\a7m_gen.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Gen_Tool\Plat_Gen\plat_gen.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Gen_Tool\Tool_Gen\ARMCC_Gen\armcc_gen.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Gen_Tool\Tool_Gen\GCC_Gen\gcc_gen.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Gen_Tool\Tool_Gen\tool_gen.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Mem_Info\mem_info.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Plat_Info\Compatible\compatible.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Plat_Info\plat_info.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Proj_Info\Chip\chip.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Proj_Info\Kernel\kernel.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Proj_Info\Kobj\kobj.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Proj_Info\Monitor\monitor.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Proj_Info\Process\Captbl\captbl.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Proj_Info\Process\Invocation\invocation.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Proj_Info\Process\Kfunc\kfunc.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Proj_Info\Process\Pgtbl\pgtbl.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Proj_Info\Process\Port\port.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Proj_Info\Process\process.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Proj_Info\Process\Receive\receive.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Proj_Info\Process\Send\send.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Proj_Info\Process\Shmem\shmem.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Proj_Info\Process\Thread\thread.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Proj_Info\Process\Virtual\virtual.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Proj_Info\proj_info.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\rvm_gen.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\Vect_Info\vect_info.hpp" />
+    <ClInclude Include="..\..\M7M02_Projgen\Include\xml_conf.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{30227581-07eb-4693-8fb3-9d28656ba83a}</ProjectGuid>
+    <RootNamespace>MSVC</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>..\..\M7M02_Projgen\Include;..\..\..\..\M5P02_Minion\Serdes\XML;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

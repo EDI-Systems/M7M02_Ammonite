@@ -29,6 +29,8 @@ RVM_Int_Stack:
     .global             RVM_Int_Stack
     /* The interrupt handling routine receive endpoint */ 
     .global             RVM_Int_Rcv
+    /* System call gate*/
+    .global             RVM_Svc
     /* Get the MSB in the word */
     .global             RVM_MSB_Get  
     /* Yield the processor, trigger the PendSV */
@@ -42,17 +44,19 @@ RVM_Int_Stack:
     .global             _RVM_Entry
     /* The kernel function calling stub */
     .global             _RVM_Kern
+    /* The jump stub and entry stub*/
+    .global             _RVM_Jmp_Stub
 /* End Exports ***************************************************************/
 
 /* Begin Imports *************************************************************/
     /* The RVM image header */
-    .global             RVM_Img
+    .extern       RVM_Img
     /* The real entry */
     .global             main
 /* End Imports ***************************************************************/
 
 /* Begin Global Variable *****************************************************/
-    .long               RVM_Img
+    //.long               RVM_Img
 /* End Global Variable *******************************************************/
 
 /* Begin Function:RVM_Entry ***************************************************
@@ -243,6 +247,46 @@ _RVM_Kern:
     POP                 {R4-R7}             /* Manual recovering */
     BX                  LR                  /* Return from the call */
 /* End Function:_RVM_Kern ****************************************************/
+
+/* Begin Function:_RVM_Jmp_Stub **********************************************
+Description : The user level stub for thread creation.
+Input       : R4 - rvm_ptr_t Entry - The entry address.
+              R5 - rvm_ptr_t Stack - The stack address that we are using now.
+Output      : None.
+Return      : None.
+*****************************************************************************/
+	.thumb_func
+_RVM_Jmp_Stub:           
+                        SUB                 SP, #0x40           //; Protect the stack
+                        MOV                 R0, R5
+                        BX                  R4                  //; Branch to the entry
+/* End Function:_RVM_Jmp_Stub ***********************************************/
+
+/* Begin Function:RVM_Svc ****************************************************
+Description : Trigger a system call.
+Input       : R0 - rvm_ptr_t Num - The system call number/other information.
+              R1 - rvm_ptr_t Param1 - Argument 1.
+              R2 - rvm_ptr_t Param2 - Argument 2.
+              R3 - rvm_ptr_t Param3 - Argument 3.
+Output      : None.
+Return      : None.
+*****************************************************************************/
+	.thumb_func
+RVM_Svc:                
+                        PUSH                {R4-R7}             // Save registers
+                        MOV                 R4, R0              // Pass parameters
+                        MOV                 R5, R1
+                        MOV                 R6, R2
+                        MOV                 R7, R3
+                                    
+                        SVC                 #0x00               // System call
+                        ISB
+                                    
+                        MOV                 R0, R4              // Return value
+                        POP                 {R4-R7}             // Restore registers
+                        BX                  LR
+/* End Function:RVM_Svc *****************************************************/
+
 
     .end
 /* End Of File ***************************************************************/
