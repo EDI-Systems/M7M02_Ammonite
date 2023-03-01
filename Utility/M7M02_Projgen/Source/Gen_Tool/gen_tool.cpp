@@ -1114,10 +1114,10 @@ void Gen_Tool::Kernel_Proj(void)
     Tool=this->Tool_Map[Kernel->Toolchain];
 
     /* Does the file already exist? */
-    if(Build->Name == "Keil")
-        Kernel->Project_Filename=std::string("kernel")+Build->Suffix(BUILD_PROJECT);
-    else if (Build->Name == "Makefile")
+    if(Build->Name == "Makefile")
         Kernel->Project_Filename = std::string("Makefile") + Build->Suffix(BUILD_PROJECT);
+    else
+        Kernel->Project_Filename = std::string("kernel")+Build->Suffix(BUILD_PROJECT);     
     if(std::filesystem::exists(Kernel->Project_Output+Kernel->Project_Filename)==true)
     {
         /* See if we'll use forced regenerate */
