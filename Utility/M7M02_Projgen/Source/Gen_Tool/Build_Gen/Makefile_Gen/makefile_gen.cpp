@@ -206,6 +206,7 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
     List->push_back("DEBUG = 1");
     List->push_back(std::string("OPT = -") + Optimization);
     List->push_back("");
+    /* The path of out */
     List->push_back(std::string("BUILD_DIR = ./Objects"));
     List->push_back("");
 
@@ -227,6 +228,8 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
             List->push_back(std::string("ASM_SOURCES += ") + Src);
     }
     List->push_back("");
+    /* The tool chain */
+    /* Only the tool chain of ARM architecture is supported. If other architectures need to be supported,this part needs to be modified */
     List->push_back("PREFIX = arm-none-eabi-");
     List->push_back("CC = $(PREFIX)gcc");
     List->push_back("AS = $(PREFIX)gcc -x assembler-with-cpp");
@@ -238,6 +241,8 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
     List->push_back("BIN = $(CP) -O binary -S");
     List->push_back("");
     List->push_back(std::string("CPU = -mcpu=") + CPU_Type);
+    /* Whether floating point operation unit is supported */
+    /* "-mthumb" represents the T32 instruction set. If another instruction set architecture is used, the parameters here need to be changed */
     if (FPU_Type != "")
     {
         List->push_back(std::string("FPU = -mfpu=") + FPU_Type);
@@ -246,7 +251,8 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
     }
     else
         List->push_back("MCU = $(CPU) -mthumb ");
-    List->push_back(std::string("C_DEFS = -D") + Device);
+    /* Some compilation options */
+    List->push_back(std::string("C_DEFS = -D") + Device);   /*macro definition*/
     List->push_back("");
     List->push_back("ASFLAGS = $(MCU) $(OPT) -Wall -fdata-sections -ffunction-sections");
     List->push_back("CFLAGS += $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections");
