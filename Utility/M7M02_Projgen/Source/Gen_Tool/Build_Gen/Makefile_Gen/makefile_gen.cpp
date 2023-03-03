@@ -321,10 +321,7 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
     List->push_back("mkdir:");
     List->push_back("\t$(shell if [ ! -e $(BUILD_DIR) ];then mkdir -p $(BUILD_DIR); fi)");
     List->push_back("clean:");
-    List->push_back("\t-rm -fR $(BUILD_DIR)*.o");
-    List->push_back("\t-rm -fR $(BUILD_DIR)*.d");
-    List->push_back("\t-rm -fR $(BUILD_DIR)*.lst");
-    List->push_back("\t-rm -fR $(BUILD_DIR)*.map");
+    List->push_back("\t-rm -fR $(BUILD_DIR)*");
     List->push_back("");
     List->push_back("-include $(wildcard $(BUILD_DIR)/*.d)");
     List->push_back("");
