@@ -1528,7 +1528,6 @@ void Main::Kernel_Gen(void)
         Main::Info("Creating kernel directories.");
         std::filesystem::create_directories(this->Proj->Kernel->Project_Output);
         std::filesystem::create_directories(this->Proj->Kernel->Linker_Output);
-        std::filesystem::create_directories(this->Proj->Kernel->Linker_Output + "/Objects");
         std::filesystem::create_directories(this->Proj->Kernel->Config_Header_Output);
         std::filesystem::create_directories(this->Proj->Kernel->Boot_Header_Output);
         std::filesystem::create_directories(this->Proj->Kernel->Boot_Source_Output);
@@ -1582,7 +1581,6 @@ void Main::Monitor_Gen(void)
         Main::Info("Creating monitor directories.");
         std::filesystem::create_directories(this->Proj->Monitor->Project_Output);
         std::filesystem::create_directories(this->Proj->Monitor->Linker_Output);
-        std::filesystem::create_directories(this->Proj->Monitor->Linker_Output + "/Objects");
         std::filesystem::create_directories(this->Proj->Monitor->Config_Header_Output);
         std::filesystem::create_directories(this->Proj->Monitor->Boot_Header_Output);
         std::filesystem::create_directories(this->Proj->Monitor->Boot_Source_Output);
@@ -1633,7 +1631,6 @@ void Main::Process_Gen(void)
             Main::Info("Creating directories for process '%s'.", Prc->Name.c_str());
             std::filesystem::create_directories(Prc->Project_Output);
             std::filesystem::create_directories(Prc->Linker_Output);
-            std::filesystem::create_directories(Prc->Linker_Output + "/Objects");
             std::filesystem::create_directories(Prc->Main_Header_Output);
             std::filesystem::create_directories(Prc->Main_Source_Output);
             if(Prc->Type==PROCESS_VIRTUAL)

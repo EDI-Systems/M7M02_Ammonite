@@ -207,7 +207,7 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
     List->push_back(std::string("OPT = -") + Optimization);
     List->push_back("");
     /* The path of out */
-    List->push_back(std::string("BUILD_DIR = ./Objects"));
+    List->push_back(std::string("BUILD_DIR = Objects/"));
     List->push_back("");
 
     /* Construct include paths */
@@ -273,16 +273,16 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
     List->push_back("");
     if (Target.find("Kernel") != std::string::npos)
     {
-        List->push_back("all: subsystem $(OBJECTS) $(STARTUP_OBJECTS) $(TARGET).elf $(TARGET).hex $(TARGET).bin");
+        List->push_back("all: mkdir clean subsystem $(OBJECTS) $(STARTUP_OBJECTS) $(TARGET).elf $(TARGET).hex $(TARGET).bin");
         List->push_back("\t-mv $(TEMP) $(BUILD_DIR)");
         List->push_back("");
         List->push_back("subsystem:");
-        List->push_back("\tcd ../../Monitor/Project && $(MAKE)");
+        List->push_back("\tcd ../../Monitor/Project && $(MAKE) -f monitor");
         for (const std::unique_ptr<class Process>& Prc : this->Proj->Process)
         {
             try
             {
-                List->push_back(std::string("\tcd ../../") + Prc->Name + "/Project && $(MAKE)");
+                List->push_back(std::string("\tcd ../../") + Prc->Name + "/Project && $(MAKE) -f" + " prc_" + Prc-> Name_Lower);
             }
             catch (std::exception& Exc)
             {
@@ -292,7 +292,7 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
     }
     else
     {
-        List->push_back("all: $(OBJECTS) $(STARTUP_OBJECTS) $(TARGET).elf $(TARGET).hex $(TARGET).bin");
+        List->push_back("all: mkdir clean $(OBJECTS) $(STARTUP_OBJECTS) $(TARGET).elf $(TARGET).hex $(TARGET).bin");
         List->push_back("\t-mv $(TEMP) $(BUILD_DIR)");
         List->push_back("\t" + After1);
         List->push_back("\t" + After2);
@@ -308,7 +308,7 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
     List->push_back("\t$(AS) -c $(ASFLAGS) $< -o $@");
     List->push_back("\t-mv $@  $(BUILD_DIR)");
     List->push_back("");
-    List->push_back("$(TARGET).elf: $(OBJECTS) $(STARTUP_OBJECTS) Makefile");
+    List->push_back("$(TARGET).elf: $(OBJECTS) $(STARTUP_OBJECTS)");
     List->push_back("\t$(CC) $(OUTPUT_OBJ) $(LDFLAGS) -o $@");
     List->push_back("\t$(SZ) $@");
     List->push_back("");
@@ -318,8 +318,13 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
     List->push_back("%.bin: %.elf");
     List->push_back("\t$(BIN) $< $@");
     List->push_back("");
+    List->push_back("mkdir:");
+    List->push_back("\t$(shell if [ ! -e $(BUILD_DIR) ];then mkdir -p $(BUILD_DIR); fi)");
     List->push_back("clean:");
-    List->push_back("\t-rm -fR $(BUILD_DIR)");
+    List->push_back("\t-rm -fR $(BUILD_DIR)*.o");
+    List->push_back("\t-rm -fR $(BUILD_DIR)*.d");
+    List->push_back("\t-rm -fR $(BUILD_DIR)*.lst");
+    List->push_back("\t-rm -fR $(BUILD_DIR)*.map");
     List->push_back("");
     List->push_back("-include $(wildcard $(BUILD_DIR)/*.d)");
     List->push_back("");
