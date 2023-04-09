@@ -4,7 +4,7 @@
     <Version>1.0</Version>
 	<Assert_Correct>No</Assert_Correct>
 	<Debug_Print>Yes</Debug_Print>
-	<Buildsystem>makefile</Buildsystem>
+	<Buildsystem>Makefile</Buildsystem>
 	<Workspace_Output>./</Workspace_Output>
 	<Workspace_Overwrite>No</Workspace_Overwrite>
     <Chip>

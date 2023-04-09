@@ -116,7 +116,6 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
     const std::vector<std::string>& Source,
     const std::string& Linker, const std::string& Linker_Misc)
 {
-    ptr_t Opt_Level;
     std::string CPU_Type;
     std::string FPU_Type;
     std::string Endian;
@@ -125,16 +124,16 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
     std::string Include_Path;
 
     /* CPU Type */
-    CPU_Type = this->Chip->Attribute["CPU"];
-    if (CPU_Type == "CM0")
+    CPU_Type=this->Chip->Attribute["CPU"];
+    if(CPU_Type=="CM0")
     {
         CPU_Type = "Cortex-M0";
         Dlloption = "-pCM0";
     }
-    else if (CPU_Type == "CM0P")
+    else if(CPU_Type=="CM0P")
     {
-        CPU_Type = "Cortex-M0+";
-        Dlloption = "-pCM0+";
+        CPU_Type ="Cortex-M0+";
+        Dlloption ="-pCM0+";
     }
     else if (CPU_Type == "CM1")
     {
@@ -194,8 +193,8 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
             Device = this->Chip->Name;
         else
         {
-            Device = this->Proj->Chip->Name.substr(0, 9);
-            Device += 'xx';
+            Device=this->Proj->Chip->Name.substr(0, 9);
+            Device+="xx";
         }
     }
     else
@@ -229,7 +228,8 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
     }
     List->push_back("");
     /* The tool chain */
-    /* Only the tool chain of ARM architecture is supported. If other architectures need to be supported,this part needs to be modified */
+    /* Only the tool chain of ARM architecture is supported. If other architectures
+     * need to be supported,this part needs to be modified */
     List->push_back("PREFIX = arm-none-eabi-");
     List->push_back("CC = $(PREFIX)gcc");
     List->push_back("AS = $(PREFIX)gcc -x assembler-with-cpp");
@@ -242,7 +242,8 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
     List->push_back("");
     List->push_back(std::string("CPU = -mcpu=") + CPU_Type);
     /* Whether floating point operation unit is supported */
-    /* "-mthumb" represents the T32 instruction set. If another instruction set architecture is used, the parameters here need to be changed */
+    /* "-mthumb" represents the T32 instruction set. If another instruction set
+     * architecture is used, the parameters here need to be changed */
     if (FPU_Type != "")
     {
         List->push_back(std::string("FPU = -mfpu=") + FPU_Type);
@@ -446,7 +447,7 @@ Return      : None.
 void Makefile_Gen::Workspace_Proj(std::unique_ptr<std::vector<std::string>>& List,
                                   const std::vector<std::string>& Project)
 {
-
+    // Generate a big makefile project covering the rest.
 }
 /* End Function:Makefile_Gen::Workspace_Proj *********************************/
 }
