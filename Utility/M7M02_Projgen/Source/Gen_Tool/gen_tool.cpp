@@ -1473,6 +1473,7 @@ ptr_t Gen_Tool::Monitor_Pgt_Add(std::unique_ptr<std::vector<std::string>>& List,
         List->push_back(std::string("{")+Pgt->Macro_Global+", 0x"+Main::Hex(Count)+"U,");
         List->push_back(std::string(" ")+Flags+",");
         List->push_back(std::string(" 0x")+Main::Hex(Pos_Src)+"U, 0x"+Main::Hex(Index)+"U},");
+        Flags.clear();
         Total++;
     }
 
