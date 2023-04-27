@@ -545,7 +545,10 @@ Return      : None.
 void A7M_Gen::Kernel_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
 {
     /* Init process's first thread's entry point address */
-    Gen_Tool::Macro_Hex(List, "RME_A7M_INIT_ENTRY",PRC_DESC_ALIGN(this->Proj->Monitor->Code_Base+8*4)|0x01, MACRO_REPLACE);
+    if (Proj->Buildsystem == "Makefile")
+        Gen_Tool::Macro_Hex(List, "RME_A7M_INIT_ENTRY",PRC_DESC_ALIGN(this->Proj->Monitor->Code_Base)|0x01, MACRO_REPLACE);
+    else
+        Gen_Tool::Macro_Hex(List, "RME_A7M_INIT_ENTRY",PRC_DESC_ALIGN(this->Proj->Monitor->Code_Base+8*4)|0x01, MACRO_REPLACE);
     /* Init process's first thread's stack address */
     Gen_Tool::Macro_Hex(List, "RME_A7M_INIT_STACK",
                         this->Proj->Monitor->Init_Stack_Base+this->Proj->Monitor->Init_Stack_Size-16, MACRO_REPLACE);
@@ -574,7 +577,10 @@ Return      : None.
 void A7M_Gen::Monitor_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
 {
     /* Init process's first thread's entry point address */
-    Gen_Tool::Macro_Hex(List, "RVM_A7M_INIT_ENTRY",PRC_DESC_ALIGN(this->Proj->Monitor->Code_Base+8*4)|0x01, MACRO_REPLACE);
+    if(Proj->Buildsystem == "Makefile")
+        Gen_Tool::Macro_Hex(List, "RVM_A7M_INIT_ENTRY", PRC_DESC_ALIGN(this->Proj->Monitor->Code_Base)|0x01, MACRO_REPLACE);
+    else
+        Gen_Tool::Macro_Hex(List, "RVM_A7M_INIT_ENTRY",PRC_DESC_ALIGN(this->Proj->Monitor->Code_Base+8*4)|0x01, MACRO_REPLACE);
     /* Init process's first thread's stack address */
     Gen_Tool::Macro_Hex(List, "RVM_A7M_INIT_STACK",
                         this->Proj->Monitor->Init_Stack_Base+this->Proj->Monitor->Init_Stack_Size-16, MACRO_REPLACE);

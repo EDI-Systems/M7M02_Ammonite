@@ -4,7 +4,7 @@
     <Version>1.0</Version>
 	<Assert_Correct>No</Assert_Correct>
 	<Debug_Print>Yes</Debug_Print>
-	<Buildsystem>Keil</Buildsystem>
+	<Buildsystem>Makefile</Buildsystem>
 	<Workspace_Output>./</Workspace_Output>
 	<Workspace_Overwrite>No</Workspace_Overwrite>
     <Chip>
@@ -44,9 +44,9 @@
         <Extra_Kom>0x1000</Extra_Kom>
         <Kom_Order>4</Kom_Order>
         <Kern_Prio>32</Kern_Prio>
-		<Buildsystem>Keil</Buildsystem>
-		<Toolchain>ARMCC</Toolchain>
-        <Optimization>O2</Optimization>
+		<Buildsystem>Makefile</Buildsystem>
+		<Toolchain>GCC</Toolchain>
+		<Optimization>O2</Optimization>
 		<Full_Image>Yes</Full_Image>
 		<Project_Output>./Kernel/Project</Project_Output>
 		<Project_Overwrite>No</Project_Overwrite>
@@ -73,8 +73,8 @@
         <Virt_Prio>32</Virt_Prio>
         <Virt_Event>32</Virt_Event>
         <Virt_Map>128</Virt_Map>
-		<Buildsystem>Keil</Buildsystem>
-		<Toolchain>ARMCC</Toolchain>
+		<Buildsystem>Makefile</Buildsystem>
+		<Toolchain>GCC</Toolchain>
 		<Project_Output>./Monitor/Project</Project_Output>
 		<Project_Overwrite>No</Project_Overwrite>
 		<Linker_Output>./Monitor/Project</Linker_Output>
@@ -88,8 +88,8 @@
         <P0>
             <Name>Proc1</Name>
             <Extra_Captbl>9</Extra_Captbl>
-			<Buildsystem>Keil</Buildsystem>
-			<Toolchain>ARMCC</Toolchain>
+			<Buildsystem>Makefile</Buildsystem>
+			<Toolchain>GCC</Toolchain>
             <Optimization>O2</Optimization>
 			<Project_Output>./Proc1/Project</Project_Output>
 			<Project_Overwrite>No</Project_Overwrite>
@@ -153,7 +153,7 @@
             </Port>
             <Receive>
                 <R0>
-                     <Name>Recv1</Name>
+                    <Name>Recv1</Name>
                 </R0>
             </Receive>
             <Send>
@@ -171,9 +171,9 @@
         <P1>
             <Name>Proc2</Name>
             <Extra_Captbl>0</Extra_Captbl>
-			<Buildsystem>Keil</Buildsystem>
-			<Toolchain>ARMCC</Toolchain>
-            <Optimization>O3</Optimization>
+			<Buildsystem>Makefile</Buildsystem>
+			<Toolchain>GCC</Toolchain>
+			<Optimization>O3</Optimization>
 			<Project_Output>./Proc2/Project</Project_Output>
 			<Project_Overwrite>No</Project_Overwrite>
 			<Linker_Output>./Proc2/Project</Linker_Output>
@@ -221,7 +221,7 @@
             </Port>
             <Receive>
                 <R0>
-                    <Name>Recv1</Name>
+                     <Name>Recv1</Name>
                 </R0>
             </Receive>
             <Send>
@@ -258,9 +258,9 @@
             <Vector_Num>100</Vector_Num>
 			<Guest_Type>RMP</Guest_Type>
 			<Guest_Root>../../../../M5P01_Prokaron</Guest_Root>
-			<Buildsystem>Keil</Buildsystem>
-			<Toolchain>ARMCC</Toolchain>
-            <Optimization>O2</Optimization>
+			<Buildsystem>Makefile</Buildsystem>
+			<Toolchain>GCC</Toolchain>
+			<Optimization>O2</Optimization>
 			<Project_Output>./Virt1/Project</Project_Output>
 			<Project_Overwrite>No</Project_Overwrite>
 			<Linker_Output>./Virt1/Project</Linker_Output>

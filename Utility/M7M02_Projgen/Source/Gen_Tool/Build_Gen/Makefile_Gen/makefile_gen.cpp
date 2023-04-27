@@ -57,399 +57,503 @@ extern "C"
 /* End Includes **************************************************************/
 namespace RVM_GEN
 {
-/* Begin Function:Makefile_Gen::Makefile_Gen **********************************
-Description : Generator for the makefiles.
-Input       : class Proj_Info* Proj - The project information.
-              class Plat_Info* Plat - The platform information.
-              class Chip_Info* Chip - The chip information.
-Input       : None.
-Output      : None.
-Return      : None.
-******************************************************************************/
-/* void */ Makefile_Gen::Makefile_Gen(class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip):
-Build_Gen("Makefile", Proj, Plat, Chip)
-{
-    try
+    /* Begin Function:Makefile_Gen::Makefile_Gen **********************************
+    Description : Generator for the makefiles.
+    Input       : class Proj_Info* Proj - The project information.
+                  class Plat_Info* Plat - The platform information.
+                  class Chip_Info* Chip - The chip information.
+    Input       : None.
+    Output      : None.
+    Return      : None.
+    ******************************************************************************/
+    /* void */ Makefile_Gen::Makefile_Gen(class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip) :
+        Build_Gen("Makefile", Proj, Plat, Chip)
     {
-
-    }
-    catch(std::exception& Exc)
-    {
-        Main::Error(std::string("Makefile generator:\n")+Exc.what());
-    }
-}
-/* End Function:Makefile_Gen::Makefile_Gen ***********************************/
-
-/* Begin Function:Makefile_Gen::Suffix ****************************************
-Description : Returns suffix for a given type of file.
-Input       : ptr_t Type - The file type.
-Output      : None.
-Return      : std::string - The file suffix.
-******************************************************************************/
-std::string Makefile_Gen::Suffix(ptr_t Type)
-{
-    if(Type==BUILD_PROJECT)
-        return "";
-    else
-        Main::Error("XXXXX: File type not recognized.");
-}
-/* End Function:Makefile_Gen::Suffix *****************************************/
-
-/* Begin Function:Makefile_Gen::Makefile_Proj *****************************************
-Description : Generate the keil project for ARMv7-M.
-Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
-              const std::string& After1 - The first command to run after compilation.
-              const std::string& After2 - The second command to run after compilation.
-              const std::string& Target - The target name.
-              ptr_t Optimization - The optimization level chosen.
-              const std::vector<std::string>& Include - The include paths.
-              const std::vector<std::string>& Source - The source file paths.
-              const std::string& Linker - The linker script (scatter file) path.
-              const std::string& Linker_Misc - The linker miscellaneous control string.
-Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
-Return      : None.
-******************************************************************************/
-void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List,
-    const std::string& After1, const std::string& After2,
-    const std::string& Target, const std::string& Optimization,
-    const std::vector<std::string>& Include,
-    const std::vector<std::string>& Source,
-    const std::string& Linker, const std::string& Linker_Misc)
-{
-    std::string CPU_Type;
-    std::string FPU_Type;
-    std::string Endian;
-    std::string Dlloption;
-    std::string Device;
-    std::string Include_Path;
-
-    /* CPU Type */
-    CPU_Type=this->Chip->Attribute["CPU"];
-    if(CPU_Type=="CM0")
-    {
-        CPU_Type = "Cortex-M0";
-        Dlloption = "-pCM0";
-    }
-    else if(CPU_Type=="CM0P")
-    {
-        CPU_Type ="Cortex-M0+";
-        Dlloption ="-pCM0+";
-    }
-    else if (CPU_Type == "CM1")
-    {
-        CPU_Type = "Cortex-M1";
-        Dlloption = "-pCM1";
-    }
-    else if (CPU_Type == "CM3")
-    {
-        CPU_Type = "Cortex-M3";
-        Dlloption = "-pCM3";
-    }
-    else if (CPU_Type == "CM4")
-    {
-        CPU_Type = "Cortex-M4";
-        Dlloption = "-pCM4";
-    }
-    else if (CPU_Type == "CM7")
-    {
-        CPU_Type = "Cortex-M7";
-        Dlloption = "-pCM7";
-    }
-    else
-        Main::Error("XXXXX: Internal processor type error.");
-
-    /* FPU Type */
-    if ((this->Chip->Attribute["CPU"] == "CM0") || (this->Chip->Attribute["CPU"] == "CM0P"))
-        FPU_Type = "";
-    else
-    {
-        FPU_Type = this->Chip->Attribute["FPU"];
-        if (FPU_Type == "None")
-            FPU_Type = "";
-        else if (FPU_Type == "FPV4_SP")
-            FPU_Type = "fpv4-sp-d16";
-        else if (FPU_Type == "FPV5_SP")
-            FPU_Type = "fpv5-sp-d16";
-        else if (FPU_Type == "FPV5_DP")
-            FPU_Type = "fpv5-dp-d16";
-        else
-            Main::Error("XXXXX: Internal FPU type error.");
-    }
-
-    /* Endianness */
-    Endian = this->Chip->Attribute["Endian"];
-    if (Endian == "Little")
-        Endian = "ELITTLE";
-    else if (Endian == "Big")
-        Endian = "EBIG";
-    else
-        Main::Error("XXXXX: Internal endianness error.");
-
-    /* Decide device */
-    if (this->Chip->Name.find("STM32") != std::string::npos)
-    {
-        /* Except for STM32F1, all STM32s end with suffix, and the last number is substituted with 'x' */
-        if (this->Chip->Name.find("STM32F1") != std::string::npos)
-            Device = this->Chip->Name;
-        else
+        try
         {
-            Device=this->Proj->Chip->Name.substr(0, 9);
-            Device+="xx";
+
+        }
+        catch (std::exception& Exc)
+        {
+            Main::Error(std::string("Makefile generator:\n") + Exc.what());
         }
     }
-    else
-        Device = this->Proj->Chip->Name;
+    /* End Function:Makefile_Gen::Makefile_Gen ***********************************/
 
-    List->push_back(std::string("TARGET = ") + Target);
-    List->push_back("");
-    List->push_back("DEBUG = 1");
-    List->push_back(std::string("OPT = -") + Optimization);
-    List->push_back("");
-    /* The path of out */
-    List->push_back(std::string("BUILD_DIR = Objects/"));
-    List->push_back("");
+    /* Begin Function:Makefile_Gen::Suffix ****************************************
+    Description : Returns suffix for a given type of file.
+    Input       : ptr_t Type - The file type.
+    Output      : None.
+    Return      : std::string - The file suffix.
+    ******************************************************************************/
+    std::string Makefile_Gen::Suffix(ptr_t Type)
+    {
+        if (Type == BUILD_PROJECT || Type == BUILD_WORKSPACE)
+            return "";
+        else
+            Main::Error("XXXXX: File type not recognized.");
+    }
+    /* End Function:Makefile_Gen::Suffix *****************************************/
 
-    /* Construct include paths */
-    for (const std::string& Inc : Include)
-        List->push_back(std::string("C_INCLUDES += -I ") + Inc);
-    List->push_back("");
-    /* Construct source paths */
-    for (const std::string& Src : Source)
+    /* Begin Function:Makefile_Gen::Makefile_Proj *****************************************
+    Description : Generate the keil project for ARMv7-M.
+    Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
+                  const std::string& After1 - The first command to run after compilation.
+                  const std::string& After2 - The second command to run after compilation.
+                  const std::string& Target - The target name.
+                  ptr_t Optimization - The optimization level chosen.
+                  const std::vector<std::string>& Include - The include paths.
+                  const std::vector<std::string>& Source - The source file paths.
+                  const std::string& Linker - The linker script (scatter file) path.
+                  const std::string& Linker_Misc - The linker miscellaneous control string.
+    Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
+    Return      : None.
+    ******************************************************************************/
+    void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List,
+        const std::string& After,
+        const std::string& Target, const std::string& Optimization,
+        const std::vector<std::string>& Include,
+        const std::vector<std::string>& Source,
+        const std::string& Linker)
     {
-        if (Src.back() == 'c')
-            List->push_back(std::string("C_SOURCES += ") + Src );
-    }
-    List->push_back("");
-    /* Construct startup file paths */
-    for (const std::string& Src : Source)
-    {
-        if (Src.back() != 'c')
-            List->push_back(std::string("ASM_SOURCES += ") + Src);
-    }
-    List->push_back("");
-    /* The tool chain */
-    /* Only the tool chain of ARM architecture is supported. If other architectures
-     * need to be supported,this part needs to be modified */
-    List->push_back("PREFIX = arm-none-eabi-");
-    List->push_back("CC = $(PREFIX)gcc");
-    List->push_back("AS = $(PREFIX)gcc -x assembler-with-cpp");
-    List->push_back("CP = $(PREFIX)objcopy");
-    List->push_back("SZ = $(PREFIX)size");
-    List->push_back("");
-    List->push_back("");
-    List->push_back("HEX = $(CP) -O ihex");
-    List->push_back("BIN = $(CP) -O binary -S");
-    List->push_back("");
-    List->push_back(std::string("CPU = -mcpu=") + CPU_Type);
-    /* Whether floating point operation unit is supported */
-    /* "-mthumb" represents the T32 instruction set. If another instruction set
-     * architecture is used, the parameters here need to be changed */
-    if (FPU_Type != "")
-    {
-        List->push_back(std::string("FPU = -mfpu=") + FPU_Type);
-        List->push_back("FLOAT-ABI = -mfloat-abi=hard");
-        List->push_back("MCU = $(CPU) -mthumb $(FPU) $(FLOAT-ABI)");
-    }
-    else
-        List->push_back("MCU = $(CPU) -mthumb ");
-    /* Some compilation options */
-    List->push_back(std::string("C_DEFS = -D") + Device);   /*macro definition*/
-    List->push_back("");
-    List->push_back("ASFLAGS = $(MCU) $(OPT) -Wall -fdata-sections -ffunction-sections");
-    List->push_back("CFLAGS += $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections");
-    List->push_back("CFLAGS += -MMD -MP -MF\"$(@:%.o=%.d)\"");
-    List->push_back("");
-    List->push_back(std::string("LDSCRIPT = ") + Linker);
-    List->push_back("LIBS = -lc -lm -lnosys");
-    List->push_back("LDFLAGS = $(MCU) -specs=nano.specs -T$(LDSCRIPT) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections");
-    List->push_back("");
-    List->push_back("SRC_RAW = $(wildcard $(C_SOURCES))");
-    List->push_back("OBJECTS = $(SRC_RAW:%.c=%.o)");
-    List->push_back("TEMP = $(SRC_RAW:%.c=%.d)");
-    List->push_back("");
-    List->push_back("STARTUP_RAW = $(wildcard $(ASM_SOURCES))");
-    List->push_back("STARTUP_OBJECTS = $(STARTUP_RAW:%.s=%.o)");
-    List->push_back("");
-    List->push_back("OUTPUT_OBJ = Objects/*.o");
-    List->push_back("");
-    if (Target.find("Kernel") != std::string::npos)
-    {
-        List->push_back("all: mkdir clean subsystem $(OBJECTS) $(STARTUP_OBJECTS) $(TARGET).elf $(TARGET).hex $(TARGET).bin");
-        List->push_back("\t-mv $(TEMP) $(BUILD_DIR)");
+        ptr_t Opt_Level;
+        std::string CPU_Type;
+        std::string FPU_Type;
+        std::string Endian;
+        std::string Dlloption;
+        std::string Device;
+        std::string Include_Path;
+
+        /* CPU Type */
+        CPU_Type = this->Chip->Attribute["CPU"];
+        if (CPU_Type=="CM0")
+        {
+            CPU_Type="cortex-m0";
+            Dlloption="-pCM0";
+        }
+        else if (CPU_Type=="CM0P")
+        {
+            CPU_Type="cortex-m0+";
+            Dlloption="-pCM0+";
+        }
+        else if (CPU_Type=="CM1")
+        {
+            CPU_Type="cortex-m1";
+            Dlloption="-pCM1";
+        }
+        else if (CPU_Type=="CM3")
+        {
+            CPU_Type="cortex-m3";
+            Dlloption="-pCM3";
+        }
+        else if (CPU_Type=="CM4")
+        {
+            CPU_Type="Cortex-M4";
+            Dlloption="-pCM4";
+        }
+        else if (CPU_Type=="CM7")
+        {
+            CPU_Type="Cortex-M7";
+            Dlloption="-pCM7";
+        }
+        else
+            Main::Error("XXXXX: Internal processor type error.");
+
+        /* FPU Type */
+        if ((this->Chip->Attribute["CPU"]=="CM0")||(this->Chip->Attribute["CPU"]=="CM0P"))
+            FPU_Type = "";
+        else
+        {
+            FPU_Type=this->Chip->Attribute["FPU"];
+            if (FPU_Type=="None")
+                FPU_Type="";
+            else if (FPU_Type=="FPV4_SP")
+                FPU_Type="fpv4-sp-d16";
+            else if (FPU_Type=="FPV5_SP")
+                FPU_Type = "fpv5-sp-d16";
+            else if (FPU_Type=="FPV5_DP")
+                FPU_Type="fpv5-d16";
+            else
+                Main::Error("XXXXX: Internal FPU type error.");
+        }
+
+        /* Endianness */
+        Endian = this->Chip->Attribute["Endian"];
+        if (Endian=="Little")
+            Endian="ELITTLE";
+        else if (Endian=="Big")
+            Endian="EBIG";
+        else
+            Main::Error("XXXXX: Internal endianness error.");
+
+        /* Decide device */
+        if (this->Chip->Name.find("STM32")!=std::string::npos)
+        {
+            /* Except for STM32F1, all STM32s end with suffix, and the last number is substituted with 'x' */
+            if (this->Chip->Name.find("STM32F1")!=std::string::npos)
+                Device = this->Chip->Name;
+            else
+            {
+                Device=this->Proj->Chip->Name.substr(0, 9);
+                Device+="xx";
+            }
+        }
+        else
+            Device = this->Proj->Chip->Name;
+        List->push_back("###################################################################################");
+        List->push_back(std::string("# Filename    : ") + Target);
+        List->push_back(std::string("# Author      : ") + CODE_AUTHOR);
+        List->push_back(std::string("# Date        : ") + Main::Time);
+        List->push_back(std::string("# Licence     : ") + CODE_LICENSE);
+        List->push_back("# Description : Generic Makefile (based on gcc). This file is intended");
+        List->push_back(std::string("#              to be used with ") + this->Chip->Name + ", and the GNU toolchain.");
+        List->push_back("###################################################################################");
         List->push_back("");
-        List->push_back("subsystem:");
-        List->push_back("\tcd ../../Monitor/Project && $(MAKE) -f monitor");
+        List->push_back("");
+        List->push_back(std::string("TARGET=")+Target);
+        List->push_back("");
+        List->push_back("DEBUG = 1");
+        List->push_back(std::string("OPT=-")+Optimization);
+        List->push_back("");
+        /* The path of out */
+        List->push_back(std::string("BUILD_DIR=Objects"));
+        List->push_back("");
+        /* Include user files */
+        List->push_back("#Include user files");
+        List->push_back(std::string("include ")+Target+ std::string("_usr"));
+        List->push_back("");
+        List->push_back("");
+        /* Construct include paths */
+        for (const std::string& Inc : Include)
+            List->push_back(std::string("C_INCLUDES+=-I") + Inc);
+        List->push_back("");
+        /* Construct source paths */
+        for (const std::string& Src : Source)
+        {
+            if (Src.back()=='c')
+                List->push_back(std::string("C_SOURCES+=") + Src);
+        }
+        List->push_back("");
+        /* Construct startup file paths */
+        for (const std::string& Src : Source)
+        {
+            if (Src.back()!='c')
+                List->push_back(std::string("ASM_SOURCES+=") + Src);
+        }
+        List->push_back("");
+        List->push_back("");
+        /* The tool chain */
+        /* Only the tool chain of ARM architecture is supported. If other architectures need to be supported,this part needs to be modified */
+        List->push_back("PREFIX=arm-none-eabi-");
+        List->push_back("# The gcc compiler bin path can be either defined in make command via GCC_PATH variable (> make GCC_PATH=xxx)");
+        List->push_back("# either it can be added to the PATH environment variable.");
+        List->push_back("ifdef GCC_PATH");
+        List->push_back("CC=$(GCC_PATH)/$(PREFIX)gcc");
+        List->push_back("AS=$(GCC_PATH)/$(PREFIX)gcc -x assembler-with-cpp");
+        List->push_back("CP=$(GCC_PATH)/$(PREFIX)objcopy");
+        List->push_back("SZ=$(GCC_PATH)/$(PREFIX)size");
+        List->push_back("else");
+        List->push_back("CC=$(PREFIX)gcc");
+        List->push_back("AS=$(PREFIX)gcc -x assembler-with-cpp");
+        List->push_back("CP=$(PREFIX)objcopy");
+        List->push_back("SZ=$(PREFIX)size");
+        List->push_back("endif");
+        List->push_back("");
+        List->push_back("");
+        List->push_back("HEX=$(CP) -O ihex");
+        List->push_back("BIN=$(CP) -O binary -S");
+        List->push_back("");
+        List->push_back("");
+        List->push_back("");
+        List->push_back("#######################################");
+        List->push_back("# CFLAGS");
+        List->push_back("#######################################");
+        List->push_back(std::string("CPU=-mcpu=") + CPU_Type);
+        /* Whether floating point operation unit is supported */
+        /* "-mthumb" represents the T32 instruction set. If another instruction set architecture is used, the parameters here need to be changed */
+        if (FPU_Type != "")
+        {
+            List->push_back(std::string("FPU=-mfpu=") + FPU_Type);
+            List->push_back("FLOAT-ABI=-mfloat-abi=hard");
+            List->push_back("MCU=$(CPU) -mthumb $(FPU) $(FLOAT-ABI)");
+        }
+        else
+            List->push_back("MCU=$(CPU) -mthumb ");
+        /* Some compilation options */
+        List->push_back(std::string("C_DEFS=-D") + Device);   /*macro definition*/
+        List->push_back("");
+        List->push_back("ASFLAGS=$(MCU) $(OPT) -Wall -fdata-sections -ffunction-sections");
+        List->push_back("");
+        List->push_back("CFLAGS+=$(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections");
+        List->push_back("");
+        List->push_back("");
+        List->push_back("ifeq ($(DEBUG), 1)");
+        List->push_back("CFLAGS += -g -gdwarf-2");
+        List->push_back("endif");
+        List->push_back("");
+        List->push_back("# Generate dependency information");
+        List->push_back("CFLAGS+=-MMD -MP -MF\"$(@:%.o=%.d)\"");
+        List->push_back("");
+        List->push_back("");
+        List->push_back("#######################################");
+        List->push_back("# LDFLAGS");
+        List->push_back("#######################################");
+        List->push_back("# link script");
+        List->push_back(std::string("LDSCRIPT=") + Linker);
+        List->push_back("LIBS=-lc -lm -lnosys");
+        List->push_back("LDFLAGS=$(MCU) -specs=nano.specs -T$(LDSCRIPT) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections");
+        List->push_back("");
+        List->push_back("#######################################");
+        List->push_back("# build the application");
+        List->push_back("#######################################");
+        List->push_back("# list of objects");
+        List->push_back("SRC_RAW=$(wildcard $(C_SOURCES))");
+        List->push_back("OBJECTS=$(SRC_RAW:%.c=%.o)");
+        List->push_back("TEMP=$(SRC_RAW:%.c=%.d)");
+        List->push_back("");
+        List->push_back("STARTUP_RAW=$(wildcard $(ASM_SOURCES))");
+        List->push_back("STARTUP_OBJECTS=$(STARTUP_RAW:%.s=%.o)");
+        List->push_back("");
+        List->push_back("OUTPUT_OBJ=Objects/*.o");
+        List->push_back("");
+        List->push_back("# default action: build all");
+        if (Target.find("Kernel") != std::string::npos)
+        {
+            List->push_back("all:mkdir $(OBJECTS) $(STARTUP_OBJECTS) $(TARGET).elf $(TARGET).hex $(TARGET).bin");
+            List->push_back("\t-mv $(TEMP) $(BUILD_DIR)");
+            List->push_back("");
+            List->push_back("");
+        }
+        else
+        {
+            List->push_back("all: mkdir $(OBJECTS) $(STARTUP_OBJECTS) $(TARGET).elf $(TARGET).hex $(TARGET).bin");
+            List->push_back("\t-mv $(TEMP) $(BUILD_DIR)");
+            List->push_back("\t" + After);
+        }
+
+        List->push_back("%.o:%.c");
+        List->push_back("\t$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@");
+        List->push_back("\t-mv $@  $(BUILD_DIR)");
+        List->push_back("");
+        List->push_back("%.o:%.s");
+        List->push_back("\t$(AS) -c $(ASFLAGS) $< -o $@");
+        List->push_back("\t-mv $@  $(BUILD_DIR)");
+        List->push_back("");
+        List->push_back("$(TARGET).elf:$(OBJECTS) $(STARTUP_OBJECTS)");
+        List->push_back("\t$(CC) $(OUTPUT_OBJ) $(LDFLAGS) -o $@");
+        List->push_back("\t-mv $@  $(BUILD_DIR)");
+        List->push_back("\t$(SZ) $(BUILD_DIR)/$@");
+        List->push_back("");
+        List->push_back("%.hex:$(BUILD_DIR)/%.elf");
+        List->push_back("\t$(HEX) $< $@");
+        List->push_back("\t-mv $@  $(BUILD_DIR)");
+        List->push_back("");
+        List->push_back("%.bin:$(BUILD_DIR)/%.elf");
+        List->push_back("\t$(BIN) $< $@");
+        List->push_back("\t-mv $@  $(BUILD_DIR)");
+        List->push_back("");
+        List->push_back("mkdir:");
+        List->push_back("\t$(shell if [ ! -e $(BUILD_DIR) ];then mkdir -p $(BUILD_DIR); fi)");
+        List->push_back("");
+        List->push_back("#######################################");
+        List->push_back("# clean up");
+        List->push_back("#######################################");
+        List->push_back("clean:");
+        List->push_back("\t-rm -fR $(BUILD_DIR)");
+        List->push_back("");
+        List->push_back("");
+        List->push_back("#######################################");
+        List->push_back("# dependencies");
+        List->push_back("#######################################");
+        List->push_back("-include $(wildcard $(BUILD_DIR)/*.d)");
+        List->push_back("");
+        List->push_back("# *** EOF ***");
+    }
+    /* End Function:Makefile_Gen::Makefile_Proj ************************************/
+    /* Begin Function:Makefile_Gen::Kernel_Proj ***********************************
+    Description : Generate kernel project.
+    Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
+                  const std::vector<std::string>& Include - The include file list.
+                  const std::vector<std::string>& Source - The source file list.
+                  const std::vector<std::string>& Source - The linker script file list.
+    Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
+    Output      : None.
+    Return      : None.
+    ******************************************************************************/
+    void Makefile_Gen::Kernel_Proj(std::unique_ptr<std::vector<std::string>>& List,
+        const std::vector<std::string>& Include,
+        const std::vector<std::string>& Source,
+        const std::vector<std::string>& Linker)
+    {
+        /* Generate Makefile that are used to users */
+        List->push_back("### Used for users to add header files, source files, and assembly files£¬");
+        List->push_back("### which will be included in the Makefile file used for compilation.");
+        List->push_back("");
+        List->push_back("C_INCLUDES+=");
+        List->push_back("");
+        List->push_back("C_SOURCES+=");
+        List->push_back("");
+        List->push_back("ASM_SOURCES+=");
+        Gen_Tool::Line_Write(List, "./Kernel/Project/Kernel_usr");
+        List->clear(); 
+
+        /* Generate a Makefile for compiling system code */
+        this->Makefile_Proj(List,
+            "",                                      /* After */
+            "Kernel",                                /* Target */
+            this->Proj->Kernel->Optimization,        /* Optimization */
+            Include,                                 /* Include */
+            Source,                                  /* Source */
+            Linker[0]                               /* Linker */
+        );
+    }
+    /* End Function:Makefile_Gen::Kernel_Proj ************************************/
+
+    /* Begin Function:Makefile_Gen::Monitor_Proj **********************************
+    Description : Generate monitor project.
+    Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
+                  const std::vector<std::string>& Include - The include file list.
+                  const std::vector<std::string>& Source - The source file list.
+                  const std::vector<std::string>& Source - The linker script file list.
+    Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
+    Output      : None.
+    Return      : None.
+    ******************************************************************************/
+    void Makefile_Gen::Monitor_Proj(std::unique_ptr<std::vector<std::string>>& List,
+        const std::vector<std::string>& Include,
+        const std::vector<std::string>& Source,
+        const std::vector<std::string>& Linker)
+    {
+        std::string After;
+        std::vector<std::string> Bincopy;
+
+        if (this->Proj->Kernel->Full_Image != 0)
+        {
+            Bincopy.push_back(this->Proj->Monitor->Monitor_Root + "Utility/M7M02_Bincopy/bincopy.exe");
+            Gen_Tool::Path_Conv(this->Proj->Monitor->Project_Output, Bincopy);
+            //After1 = "fromelf.exe --binCombined -o \"$L@L.bin\" \"#L\"";
+            After = Bincopy[0] + " -i $(BUILD_DIR)/$(TARGET).bin -o ./monitor_image.c";
+        }
+        /* Generate makefile that are used to users */
+        List->push_back("### Used for users to add header files, source files, and assembly files£¬");
+        List->push_back("### which will be included in the Makefile file used for compilation.");
+        List->push_back("");
+        List->push_back("C_INCLUDES+=");
+        List->push_back("");
+        List->push_back("C_SOURCES+=");
+        List->push_back("");
+        List->push_back("ASM_SOURCES+=");
+        Gen_Tool::Line_Write(List, "./Monitor/Project/Monitor_usr");
+        List->clear();
+
+        /* Generate a Makefile for compiling system code */
+        this->Makefile_Proj(List,
+            After,                                  /* After */
+            "Monitor",                               /* Target */
+            this->Proj->Monitor->Optimization,       /* Optimization */
+            Include,                                 /* Include */
+            Source,                                  /* Source */
+            Linker[0]                               /* Linker */
+        );
+    }
+    /* End Function:Makefile_Gen::Monitor_Proj ***********************************/
+
+    /* Begin Function:Makefile_Gen::Process_Proj **********************************
+    Description : Generate process project.
+    Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
+                  const std::vector<std::string>& Include - The include file list.
+                  const std::vector<std::string>& Source - The source file list.
+                  const std::vector<std::string>& Source - The linker script file list.
+                  const class Process* Prc - The process to generate for.
+    Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
+    Output      : None.
+    Return      : None.
+    ******************************************************************************/
+    void Makefile_Gen::Process_Proj(std::unique_ptr<std::vector<std::string>>& List,
+        const std::vector<std::string>& Include,
+        const std::vector<std::string>& Source,
+        const std::vector<std::string>& Linker,
+        const class Process* Prc)
+    {
+        std::string After;
+        std::vector<std::string> Bincopy;
+
+        if (this->Proj->Kernel->Full_Image != 0)
+        {
+            Bincopy.push_back(this->Proj->Monitor->Monitor_Root + "Utility/M7M02_Bincopy/bincopy.exe");
+            Gen_Tool::Path_Conv(Prc->Project_Output, Bincopy);
+            //After1 = "fromelf.exe --binCombined -o \"$L@L.bin\" \"#L\"";
+            After = Bincopy[0] + " -i $(BUILD_DIR)/$(TARGET).bin -o ./" + Prc->Name_Lower + "_image.c";
+        }
+        /* Generate makefile that are used to users */
+        List->push_back("### Used for users to add header files, source files, and assembly files£¬");
+        List->push_back("### which will be included in the Makefile file used for compilation.");
+        List->push_back("");
+        List->push_back("C_INCLUDES+=");
+        List->push_back("");
+        List->push_back("C_SOURCES+=");
+        List->push_back("");
+        List->push_back("ASM_SOURCES+=");
+        Gen_Tool::Line_Write(List, "./" + Prc->Name + "/Project/"+ Prc->Name +"_usr");
+        List->clear();
+
+        /* Generate a Makefile for compiling system code */
+        this->Makefile_Proj(List,
+            After,                                  /* After */
+            Prc->Name,                               /* Target */
+            Prc->Optimization,                       /* Optimization */
+            Include,                                 /* Include */
+            Source,                                  /* Source */
+            Linker[0]                              /* Linker */
+        );
+    }
+    /* End Function:Makefile_Gen::Process_Proj ***********************************/
+
+    /* Begin Function:Makefile_Gen::Workspace_Proj ********************************
+    Description : Generate workspace project.
+    Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
+                  const std::vector<std::string>& Project - The project file list.
+    Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
+    Output      : None.
+    Return      : None.
+    ******************************************************************************/
+    void Makefile_Gen::Workspace_Proj(std::unique_ptr<std::vector<std::string>>& List,
+        const std::vector<std::string>& Project)
+    {
+        /* Generate Makefiles for the project, enter various file directories, and compile their Makefiles */
+        List->push_back(std::string("all:"));
+        List->push_back(std::string("\tcd Monitor/Project && $(MAKE) -f monitor"));
         for (const std::unique_ptr<class Process>& Prc : this->Proj->Process)
         {
             try
             {
-                List->push_back(std::string("\tcd ../../") + Prc->Name + "/Project && $(MAKE) -f" + " prc_" + Prc-> Name_Lower);
+                List->push_back(std::string("\tcd ") + Prc->Name + "/Project && $(MAKE) -f" + " prc_" + Prc->Name_Lower);
             }
             catch (std::exception& Exc)
             {
-                Main::Error(std::string("Process '") + Prc->Name + "' project generation:\n" + Exc.what());
+                Main::Error(std::string("Process \"") + Prc->Name + "\" project generation : \n" + Exc.what());
             }
         }
-    }
-    else
-    {
-        List->push_back("all: mkdir clean $(OBJECTS) $(STARTUP_OBJECTS) $(TARGET).elf $(TARGET).hex $(TARGET).bin");
-        List->push_back("\t-mv $(TEMP) $(BUILD_DIR)");
-        List->push_back("\t" + After1);
-        List->push_back("\t" + After2);
-    }
-    List->push_back("");
-    List->push_back("");
+        List->push_back(std::string("\tcd Kernel/Project && $(MAKE) -f kernel"));
 
-    List->push_back("%.o: %.c");
-    List->push_back("\t$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@");
-    List->push_back("\t-mv $@  $(BUILD_DIR)");
-    List->push_back("");
-    List->push_back("%.o: %.s");
-    List->push_back("\t$(AS) -c $(ASFLAGS) $< -o $@");
-    List->push_back("\t-mv $@  $(BUILD_DIR)");
-    List->push_back("");
-    List->push_back("$(TARGET).elf: $(OBJECTS) $(STARTUP_OBJECTS)");
-    List->push_back("\t$(CC) $(OUTPUT_OBJ) $(LDFLAGS) -o $@");
-    List->push_back("\t$(SZ) $@");
-    List->push_back("");
-    List->push_back("%.hex: %.elf");
-    List->push_back("\t$(HEX) $< $@");
-    List->push_back("");
-    List->push_back("%.bin: %.elf");
-    List->push_back("\t$(BIN) $< $@");
-    List->push_back("");
-    List->push_back("mkdir:");
-    List->push_back("\t$(shell if [ ! -e $(BUILD_DIR) ];then mkdir -p $(BUILD_DIR); fi)");
-    List->push_back("clean:");
-    List->push_back("\t-rm -fR $(BUILD_DIR)*");
-    List->push_back("");
-    List->push_back("-include $(wildcard $(BUILD_DIR)/*.d)");
-    List->push_back("");
-}
-/* End Function:Makefile_Gen::Makefile_Proj ******************************************/
-
-/* Begin Function:Makefile_Gen::Kernel_Proj ***********************************
-Description : Generate kernel project.
-Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
-              const std::vector<std::string>& Include - The include file list.
-              const std::vector<std::string>& Source - The source file list.
-              const std::vector<std::string>& Source - The linker script file list.
-Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Makefile_Gen::Kernel_Proj(std::unique_ptr<std::vector<std::string>>& List,
-                               const std::vector<std::string>& Include,
-                               const std::vector<std::string>& Source,
-                               const std::vector<std::string>& Linker)
-{
-    this->Makefile_Proj(List,
-                        "",                                      /* After 1 */
-                        "",                                      /* After 2 */
-                        "Kernel",                                /* Target */
-                        this->Proj->Kernel->Optimization,        /* Optimization */
-                        Include,                                 /* Include */
-                        Source,                                  /* Source */
-                        Linker[0],                               /* Linker */
-                        "");
-}
-/* End Function:Makefile_Gen::Kernel_Proj ************************************/
-
-/* Begin Function:Makefile_Gen::Monitor_Proj **********************************
-Description : Generate monitor project.
-Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
-              const std::vector<std::string>& Include - The include file list.
-              const std::vector<std::string>& Source - The source file list.
-              const std::vector<std::string>& Source - The linker script file list.
-Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Makefile_Gen::Monitor_Proj(std::unique_ptr<std::vector<std::string>>& List,
-                                const std::vector<std::string>& Include,
-                                const std::vector<std::string>& Source,
-                                const std::vector<std::string>& Linker)
-{
-    std::string After1;
-    std::string After2;
-    std::vector<std::string> Bincopy;
-
-    if (this->Proj->Kernel->Full_Image != 0)
-    {
-        Bincopy.push_back(this->Proj->Monitor->Monitor_Root + "Utility/M7M02_Bincopy/bincopy.exe");
-        Gen_Tool::Path_Conv(this->Proj->Monitor->Project_Output, Bincopy);
-        //After1 = "fromelf.exe --binCombined -o \"$L@L.bin\" \"#L\"";
-        After2 = Bincopy[0] + " -i $(TARGET).bin -o ./monitor_image.c";
+        /* Clean Compilation Results */
+        List->push_back(std::string("clean:"));
+        List->push_back(std::string("\tcd Monitor/Project && $(MAKE) clean -f monitor"));
+        for (const std::unique_ptr<class Process>& Prc : this->Proj->Process)
+        {
+            try
+            {
+                List->push_back(std::string("\tcd ") + Prc->Name + "/Project && $(MAKE) clean -f" + " prc_" + Prc->Name_Lower);
+            }
+            catch (std::exception& Exc)
+            {
+                Main::Error(std::string("Process \"") + Prc->Name + "\" project generation : \n" + Exc.what());
+            }
+        }
+        List->push_back(std::string("\tcd Kernel/Project && $(MAKE) clean -f kernel"));
     }
 
-    this->Makefile_Proj(List,
-        After2,                                  /* After 1 */
-        "",                                      /* After 2 */
-        "Monitor",                               /* Target */
-        this->Proj->Monitor->Optimization,       /* Optimization */
-        Include,                                 /* Include */
-        Source,                                  /* Source */
-        Linker[0],                               /* Linker */
-        "");                                     /* Linker_Misc */
-}
-/* End Function:Makefile_Gen::Monitor_Proj ***********************************/
-
-/* Begin Function:Makefile_Gen::Process_Proj **********************************
-Description : Generate process project.
-Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
-              const std::vector<std::string>& Include - The include file list.
-              const std::vector<std::string>& Source - The source file list.
-              const std::vector<std::string>& Source - The linker script file list.
-              const class Process* Prc - The process to generate for.
-Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Makefile_Gen::Process_Proj(std::unique_ptr<std::vector<std::string>>& List,
-                            const std::vector<std::string>& Include,
-                            const std::vector<std::string>& Source,
-                            const std::vector<std::string>& Linker,
-                            const class Process* Prc)
-{
-    std::string After1;
-    std::string After2;
-    std::vector<std::string> Bincopy;
-
-    if (this->Proj->Kernel->Full_Image != 0)
-    {
-        Bincopy.push_back(this->Proj->Monitor->Monitor_Root + "Utility/M7M02_Bincopy/bincopy.exe");
-        Gen_Tool::Path_Conv(Prc->Project_Output, Bincopy);
-        //After1 = "fromelf.exe --binCombined -o \"$L@L.bin\" \"#L\"";
-        After2 = Bincopy[0] + " -i $(TARGET).bin -o ./" + Prc->Name_Lower + "_image.c";
-    }
-
-    this->Makefile_Proj(List,
-        After2,                                  /* After 1 */
-        "",                                      /* After 2 */
-        Prc->Name,                               /* Target */
-        Prc->Optimization,                       /* Optimization */
-        Include,                                 /* Include */
-        Source,                                  /* Source */
-        Linker[0],                               /* Linker */
-        "--keep=*_desc");                        /* Linker_Misc */
-}
-/* End Function:Makefile_Gen::Process_Proj ***********************************/
-
-/* Begin Function:Makefile_Gen::Workspace_Proj ********************************
-Description : Generate workspace project.
-Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
-              const std::vector<std::string>& Project - The project file list.
-Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Makefile_Gen::Workspace_Proj(std::unique_ptr<std::vector<std::string>>& List,
-                                  const std::vector<std::string>& Project)
-{
-    // Generate a big makefile project covering the rest.
-}
-/* End Function:Makefile_Gen::Workspace_Proj *********************************/
+    /* End Function:Makefile_Gen::Workspace_Proj *********************************/
 }
 /* End Of File ***************************************************************/
 
