@@ -12,8 +12,7 @@
         <Class>STM32L071CB</Class>
         <Name>STM32L071CBT6</Name>
         <Config>
-            <NVIC_Grouping>P2S6</NVIC_Grouping>
-            <Systick_Value>3200</Systick_Value>
+            <Systick_Value>320000</Systick_Value>
         </Config>
     </Chip>
     <Extmem>
@@ -23,10 +22,10 @@
     <Kernel>
 		<Kernel_Root>../../../../M7M01_Eukaron</Kernel_Root>
         <Code_Base>0x08000000</Code_Base>
-        <Code_Size>0x8000</Code_Size>
+        <Code_Size>0xC000</Code_Size>
         <Data_Base>0x20000000</Data_Base>
-        <Data_Size>0x2000</Data_Size>
-        <Stack_Size>0x400</Stack_Size>
+        <Data_Size>0x1800</Data_Size>
+        <Stack_Size>0x800</Stack_Size>
         <Extra_Kom>0x0</Extra_Kom>
         <Kom_Order>4</Kom_Order>
         <Kern_Prio>32</Kern_Prio>
@@ -47,13 +46,11 @@
     </Kernel>
     <Monitor>
 		<Monitor_Root>../../../../M7M02_Ammonite</Monitor_Root>
-        <Code_Size>0x6000</Code_Size>
-        <Data_Size>0x1800</Data_Size>
+        <Code_Size>0x8000</Code_Size>
+        <Data_Size>0x1000</Data_Size>
         <Init_Stack_Size>0x100</Init_Stack_Size>
         <Sftd_Stack_Size>0x100</Sftd_Stack_Size>
-        <Vctd_Stack_Size>0x400</Vctd_Stack_Size>
-        <Timd_Stack_Size>0x400</Timd_Stack_Size>
-        <Hypd_Stack_Size>0x400</Hypd_Stack_Size>
+        <Vmmd_Stack_Size>0x400</Vmmd_Stack_Size>
         <Extra_Captbl>32</Extra_Captbl>
         <Virt_Prio>32</Virt_Prio>
         <Virt_Event>32</Virt_Event>
@@ -131,8 +128,8 @@
         <V0>
             <Name>Virt1</Name>
             <Extra_Captbl>0</Extra_Captbl>
-            <Vector_Stack_Size>0x100</Vector_Stack_Size>
-            <User_Stack_Size>0x100</User_Stack_Size>
+            <Vector_Stack_Size>0x400</Vector_Stack_Size>
+            <User_Stack_Size>0x400</User_Stack_Size>
             <Priority>5</Priority>
             <Timeslice>10</Timeslice>
             <Period>100</Period>
@@ -156,17 +153,31 @@
                 <M0>
                     <Name>V_Code</Name>
                     <Base>Auto</Base>
-                    <Size>0x2000</Size>
+                    <Size>0x8000</Size>
                     <Type>Code</Type>
                     <Attribute>RXBCS</Attribute>
                 </M0>
                 <M1>
                     <Name>V_Data</Name>
                     <Base>Auto</Base>
-                    <Size>0x800</Size>
+                    <Size>0x2000</Size>
                     <Type>Data</Type>
                     <Attribute>RWBCS</Attribute>
                 </M1>
+                <M2>
+                    <Name>Main_Device</Name>
+                    <Base>0xE0000000</Base>
+                    <Size>0x20000000</Size>
+                    <Type>Device</Type>
+                    <Attribute>RWS</Attribute>
+                </M2>
+                <M3>
+                    <Name>Main_Device2</Name>
+                    <Base>0x40000000</Base>
+                    <Size>0x20000000</Size>
+                    <Type>Device</Type>
+                    <Attribute>RWS</Attribute>
+                </M3>
             </Memory>
             <Shmem>
             </Shmem>
@@ -177,6 +188,11 @@
                 </S0>
             </Send>
             <Kfunc>
+                <K0>
+                    <Name>Int_Local_Mod</Name>
+                    <Start>0xF100</Start>
+                    <End>0xF100</End>
+                </K0>
             </Kfunc>
         </V0>
     </Virtual>

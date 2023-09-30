@@ -774,6 +774,7 @@ void Gen_Tool::Kernel_Boot_Src(void)
     List->push_back("/* Private C Function Prototypes *********************************************/");
     for(const class Vect_Info* Vct:Monitor->Vector)
         List->push_back(std::string("EXTERN rme_ptr_t RME_Vct_")+Vct->Name+"_Handler(void);");
+    List->push_back("EXTERN rme_ptr_t RME_Spurious_Handler(rme_ptr_t Vct_Num);");
     List->push_back("/* End Private C Function Prototypes *****************************************/");
     List->push_back("");
 
@@ -847,6 +848,7 @@ void Gen_Tool::Kernel_Boot_Src(void)
     List->push_back("");
     List->push_back("    switch(Vct_Num)");
     List->push_back("    {");
+    /* Registered handlers */
     for(const class Vect_Info* Vct:Monitor->Vector)
     {
         List->push_back(std::string("        /* ")+Vct->Name+" */");
@@ -857,11 +859,23 @@ void Gen_Tool::Kernel_Boot_Src(void)
         List->push_back("            break;");
         List->push_back("        }");
     }
-    List->push_back("        default: Endp=RME_NULL; break;");
+    /* Spurious handler */
+    List->push_back("        /* Spurious */");
+    List->push_back("        default: ");
+    List->push_back("        {");
+    List->push_back("            Send=RME_Spurious_Handler(Vct_Num);");
+    List->push_back("            Endp=RME_NULL;");
+    List->push_back("            break;");
+    List->push_back("        }");
     List->push_back("    }");
     List->push_back("");
     List->push_back("    if(Endp==RME_NULL)");
-    List->push_back("	     return 0U;");
+    List->push_back("    {");
+    List->push_back("        if(Send==RME_RVM_VCT_SIG_NONE)");
+    List->push_back("	         return 0U;");
+    List->push_back("        else");
+    List->push_back("	         return 1U;");
+    List->push_back("    }");
     List->push_back("");
     List->push_back("    switch(Send)");
     List->push_back("    {");
@@ -926,6 +940,7 @@ void Gen_Tool::Kernel_Hook_Src(void)
     List->push_back("void RME_Boot_Pre_Init(void);");
     List->push_back("void RME_Boot_Post_Init(void);");
     List->push_back("void RME_Reboot_Failsafe(void);");
+    List->push_back("rme_ptr_t RME_Spurious_Handler(rme_ptr_t Vct_Num);");
     List->push_back("rme_ret_t RME_Hook_Kfn_Handler(rme_ptr_t Func_ID, rme_ptr_t Sub_ID, rme_ptr_t Param1, rme_ptr_t Param2);");
     List->push_back("/* End Public C Function Prototypes ******************************************/");
     List->push_back("");
@@ -954,6 +969,32 @@ void Gen_Tool::Kernel_Hook_Src(void)
     Gen_Tool::Func_Foot(List, "RME_Boot_Post_Init");
     List->push_back("");
 
+    /* Rebooting */
+    Main::Info("> Generating reboot fail-safe handler.");
+    Gen_Tool::Func_Head(List, "RME_Reboot_Failsafe",
+                        "User-modifiable pre-rebooting failsafe sequence.",
+                        Input, Output, "None.");
+    List->push_back("void RME_Reboot_Failsafe(void)");
+    List->push_back("{");
+    List->push_back("    /* Add code here */");
+    List->push_back("}");
+    Gen_Tool::Func_Foot(List, "RME_Reboot_Failsafe");
+    List->push_back("");
+
+    /* Spurious interrupt handling */
+    Main::Info("> Generating spurious interrupt handler.");
+    Input.push_back("rme_ptr_t Vct_Num - The vector number.");
+    Gen_Tool::Func_Head(List, "RME_Spurious_Handler",
+                        "User-modifiable pre-rebooting failsafe sequence.",
+                        Input, Output, "rme_ptr_t - Decides what endpoints to send to (see manual).");
+    List->push_back("rme_ptr_t RME_Spurious_Handler(rme_ptr_t Vct_Num)");
+    List->push_back("{");
+    List->push_back("    /* Add code here */");
+    List->push_back("    return RME_RVM_VCT_SIG_NONE;");
+    List->push_back("}");
+    Gen_Tool::Func_Foot(List, "RME_Spurious_Handler");
+    List->push_back("");
+
     /* Kernel function processing */
     Main::Info("> Generating kernel function handler hook.");
     Input.push_back("rme_ptr_t Func_ID - The function ID.");
@@ -970,18 +1011,6 @@ void Gen_Tool::Kernel_Hook_Src(void)
     List->push_back("    return RME_ERR_KFN_FAIL;");
     List->push_back("}");
     Gen_Tool::Func_Foot(List, "RME_Hook_Kfn_Handler");
-    List->push_back("");
-
-    /* Rebooting */
-    Main::Info("> Generating reboot fail-safe handler.");
-    Gen_Tool::Func_Head(List, "RME_Reboot_Failsafe",
-                        "User-modifiable pre-rebooting failsafe sequence.",
-                        Input, Output, "None.");
-    List->push_back("void RME_Reboot_Failsafe(void)");
-    List->push_back("{");
-    List->push_back("    /* Add code here */");
-    List->push_back("}");
-    Gen_Tool::Func_Foot(List, "RME_Reboot_Failsafe");
     List->push_back("");
 
     /* Generate rme_init.c */
@@ -1291,12 +1320,8 @@ void Gen_Tool::Monitor_Conf_Hdr(void)
     /* Stack base and size of the daemon threads, in bytes */
     Gen_Tool::Macro_Hex(List, "RVM_SFTD_STACK_BASE", Monitor->Sftd_Stack_Base, MACRO_REPLACE);
     Gen_Tool::Macro_Hex(List, "RVM_SFTD_STACK_SIZE", Monitor->Sftd_Stack_Size, MACRO_REPLACE);
-    Gen_Tool::Macro_Hex(List, "RVM_TIMD_STACK_BASE", Monitor->Timd_Stack_Base, MACRO_REPLACE);
-    Gen_Tool::Macro_Hex(List, "RVM_TIMD_STACK_SIZE", Monitor->Timd_Stack_Size, MACRO_REPLACE);
-    Gen_Tool::Macro_Hex(List, "RVM_VMMD_STACK_BASE", Monitor->Hypd_Stack_Base, MACRO_REPLACE);
-    Gen_Tool::Macro_Hex(List, "RVM_VMMD_STACK_SIZE", Monitor->Hypd_Stack_Size, MACRO_REPLACE);
-    Gen_Tool::Macro_Hex(List, "RVM_VCTD_STACK_BASE", Monitor->Vctd_Stack_Base, MACRO_REPLACE);
-    Gen_Tool::Macro_Hex(List, "RVM_VCTD_STACK_SIZE", Monitor->Vctd_Stack_Size, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RVM_VMMD_STACK_BASE", Monitor->Vmmd_Stack_Base, MACRO_REPLACE);
+    Gen_Tool::Macro_Hex(List, "RVM_VMMD_STACK_SIZE", Monitor->Vmmd_Stack_Size, MACRO_REPLACE);
     /* Initial kernel object frontier limit */
     Gen_Tool::Macro_Int(List, "RVM_CPT_BOOT_FRONT", Monitor->Before_Cap_Front, MACRO_REPLACE);
     Gen_Tool::Macro_Hex(List, "RVM_KOM_BOOT_FRONT", Monitor->Before_Kom_Front, MACRO_REPLACE);
@@ -1607,7 +1632,7 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
     List->push_back("");
 
     /* These are reserved for RVM kernel objects */
-    List->push_back("/* 4 threads and 2 endpoints for RVM */");
+    List->push_back("/* 2 threads and 1 endpoint for RVM */");
     List->push_back("");
 
     /* Virual machine endpoint capability tables */
@@ -1634,7 +1659,7 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
         Cap_Front++;
     }
     if(Cap_Front!=Monitor->Pgt_Cap_Front)
-        Main::Error("XXXXX: Cpt capability table computation failure.");
+        Main::Error("XXXXX: Capability table capability table computation failure.");
     List->push_back("");
     List->push_back("/* Process capability tables */");
     for(const class Captbl* Cpt:Monitor->Captbl)
@@ -1654,7 +1679,7 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
         Cap_Front++;
     }
     if(Cap_Front!=Monitor->Prc_Cap_Front)
-        Main::Error("XXXXX: Pgt capability table computation failure.");
+        Main::Error("XXXXX: Page table capability table computation failure.");
     List->push_back("");
     List->push_back("/* Process page tables */");
     for(const class Pgtbl* Pgt:Monitor->Pgtbl)

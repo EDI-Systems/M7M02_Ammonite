@@ -38,12 +38,10 @@ public:
     ptr_t Data_Base;
     ptr_t Data_Size;
     std::unique_ptr<class Mem_Info> Data;
-    /* RVM stack size for all five daemons */
+    /* RVM stack size for all three daemons */
     ptr_t Init_Stack_Size;
     ptr_t Sftd_Stack_Size;
-    ptr_t Vctd_Stack_Size;
-    ptr_t Timd_Stack_Size;
-    ptr_t Hypd_Stack_Size;
+    ptr_t Vmmd_Stack_Size;
     /* Extra capability table size */
     ptr_t Extra_Captbl;
     /* Virtual machine priorities */
@@ -93,12 +91,8 @@ public:
     ptr_t Init_Stack_Base;
     /* Safety daemon stack */
     ptr_t Sftd_Stack_Base;
-    /* VMM daemon stack - currently unused */
-    ptr_t Hypd_Stack_Base;
-    /* Vector daemon stack - currently unused */
-    ptr_t Vctd_Stack_Base;
-    /* Timer daemon stack - currently unused */
-    ptr_t Timd_Stack_Base;
+    /* VMM daemon stack */
+    ptr_t Vmmd_Stack_Base;
     /* Initial state for RVM setup */
     ptr_t Before_Cap_Front;
     ptr_t Before_Kom_Front;

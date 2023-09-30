@@ -24,9 +24,7 @@ Description : The header of microcontroller user-level library.
  */
 /* Priority of threads */
 #define RVM_SFTD_PRIO               (RVM_PREEMPT_PRIO_NUM-1U)
-#define RVM_TIMD_PRIO               (4U)
-#define RVM_VMMD_PRIO               (4U)
-#define RVM_VCTD_PRIO               (4U)
+#define RVM_MAIN_PRIO               (4U)
 #define RVM_VVCT_PRIO               (3U)
 #define RVM_VUSR_PRIO               (2U)
 #define RVM_INIT_PRIO               (1U)
@@ -314,10 +312,7 @@ __EXTERN__ rvm_cid_t RVM_Sftd_Thd_Cap;
 __EXTERN__ rvm_cid_t RVM_Sftd_Sig_Cap;
 
 #if(RVM_VIRT_NUM!=0U)
-__EXTERN__ rvm_cid_t RVM_Timd_Thd_Cap;
-__EXTERN__ rvm_cid_t RVM_Hypd_Thd_Cap;
-__EXTERN__ rvm_cid_t RVM_Hypd_Sig_Cap;
-__EXTERN__ rvm_cid_t RVM_Vctd_Thd_Cap;
+__EXTERN__ rvm_cid_t RVM_Vmmd_Thd_Cap;
 #endif
 /*****************************************************************************/
 

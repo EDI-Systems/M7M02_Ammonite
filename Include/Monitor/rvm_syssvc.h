@@ -203,17 +203,15 @@ while(0)
 /* The top-level page table of the init process - always full memory access */
 #define RVM_BOOT_INIT_PGT                                (1U)
 /* The init process */
-#define RVM_BOOT_INIT_PRC                           (2U)
+#define RVM_BOOT_INIT_PRC                                (2U)
 /* The init thread */
-#define RVM_BOOT_INIT_THD                           (3U)
+#define RVM_BOOT_INIT_THD                                (3U)
 /* The initial kernel function capability */
-#define RVM_BOOT_INIT_KFN                           (4U)
+#define RVM_BOOT_INIT_KFN                                (4U)
 /* The initial kernel memory capability */
-#define RVM_BOOT_INIT_KOM                           (5U)
-/* The initial timer endpoint */
-#define RVM_BOOT_INIT_TIM                           (6U)
+#define RVM_BOOT_INIT_KOM                                (5U)
 /* The initial interrupt endpoint */
-#define RVM_BOOT_INIT_VCT                           (7U)
+#define RVM_BOOT_INIT_VCT                                (6U)
 /*****************************************************************************/
 /* __RVM_SYSSVC_H_DEFS__ */
 #endif

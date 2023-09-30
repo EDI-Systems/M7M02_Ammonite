@@ -13,7 +13,7 @@
         <Name>STM32F767IGT6</Name>
         <Config>
             <NVIC_Grouping>P2S6</NVIC_Grouping>
-            <Systick_Value>21600</Systick_Value>
+            <Systick_Value>2160000</Systick_Value>
         </Config>
     </Chip>
     <Extmem>
@@ -63,11 +63,9 @@
 		<Monitor_Root>../../../../M7M02_Ammonite</Monitor_Root>
         <Code_Size>0x10000</Code_Size>
         <Data_Size>0x10000</Data_Size>
-        <Init_Stack_Size>0x1000</Init_Stack_Size>
-        <Sftd_Stack_Size>0x1000</Sftd_Stack_Size>
-        <Vctd_Stack_Size>0x1000</Vctd_Stack_Size>
-        <Timd_Stack_Size>0x1000</Timd_Stack_Size>
-        <Hypd_Stack_Size>0x1000</Hypd_Stack_Size>
+        <Init_Stack_Size>0x200</Init_Stack_Size>
+        <Sftd_Stack_Size>0x800</Sftd_Stack_Size>
+        <Vmmd_Stack_Size>0x1000</Vmmd_Stack_Size>
         <Extra_Captbl>32</Extra_Captbl>
         <Optimization>O2</Optimization>
         <Virt_Prio>32</Virt_Prio>
@@ -120,13 +118,6 @@
                     <Type>Data</Type>
                     <Attribute>RWBCS</Attribute>
                 </M2>
-                <M3>
-                    <Name>Main_Device</Name>
-                    <Base>0xF0000000</Base>
-                    <Size>0x10000</Size>
-                    <Type>Device</Type>
-                    <Attribute>RWS</Attribute>
-                </M3>
             </Memory>
             <Shmem>
                 <S0>
@@ -231,10 +222,6 @@
                 </S0>
             </Send>
             <Vector>
-                <V0>
-                    <Name>TIM2</Name>
-                    <Number>28</Number>
-                </V0>
             </Vector>
             <Kfunc>
                 <K0>
@@ -285,6 +272,20 @@
                     <Type>Data</Type>
                     <Attribute>RWXBCS</Attribute>
                 </M1>
+                <M2>
+                    <Name>Main_Device</Name>
+                    <Base>0xE0000000</Base>
+                    <Size>0x20000000</Size>
+                    <Type>Device</Type>
+                    <Attribute>RWS</Attribute>
+                </M2>
+                <M3>
+                    <Name>Main_Device2</Name>
+                    <Base>0x40000000</Base>
+                    <Size>0x20000000</Size>
+                    <Type>Device</Type>
+                    <Attribute>RWS</Attribute>
+                </M3>
             </Memory>
             <Shmem>
                 <S0>
@@ -301,9 +302,9 @@
             </Send>
             <Kfunc>
                 <K0>
-                    <Name>Kfunc1</Name>
-                    <Start>0x100</Start>
-                    <End>0x200</End>
+                    <Name>Int_Local_Mod</Name>
+                    <Start>0xF100</Start>
+                    <End>0xF100</End>
                 </K0>
             </Kfunc>
         </V0>

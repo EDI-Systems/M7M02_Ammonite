@@ -181,6 +181,7 @@ Description : Allocate the memory for vector/event flags. Flags are always like
               struct Flag
               {
                     ptr_t Lock;
+                    ptr_t Fast;
                     ptr_t Group;
                     ptr_t Flag[1];
               };
@@ -195,7 +196,9 @@ ptr_t Proj_Info::Flag_Alloc(ptr_t Source, ptr_t Wordlength, ptr_t Kom_Order)
 {
     ptr_t Raw;
 
-    Raw=(ROUND_DIV(Source,Wordlength)+2)*(Wordlength/8);
+    Raw=(ROUND_DIV(Source,Wordlength)+3)*(Wordlength/8);
+
+    /* Repeat the struct twice */
     return ROUND_UP_POW2(Raw,Kom_Order)*2;
 }
 /* End Function:Proj_Info::Flag_Alloc ****************************************/

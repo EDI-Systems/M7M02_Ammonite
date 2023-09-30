@@ -39,9 +39,7 @@ __initial_sp
                         IMPORT              __main
                         ; All four daemons
                         IMPORT              RVM_Sftd
-                        IMPORT              RVM_Timd
-                        IMPORT              RVM_Hypd
-                        IMPORT              RVM_Vctd
+                        IMPORT              RVM_Vmmd
 ;/* End Imports **************************************************************/
 
 ;/* Begin Entry List *********************************************************/
@@ -49,11 +47,11 @@ __initial_sp
                         DCD                 0x00000006          ; Six entries specified
                         DCD                 __main              ; Init thread entry
                         DCD                 RVM_Sftd            ; All four daemons
-                        DCD                 RVM_Timd
-                        DCD                 RVM_Hypd
-                        DCD                 RVM_Vctd
+                        DCD                 RVM_Vmmd
                         DCD                 _RVM_Jmp_Stub       ; Jump stub
                         NOP                                     ; Catch something in the middle
+                        NOP
+                        NOP
                         NOP
                         NOP
                         NOP

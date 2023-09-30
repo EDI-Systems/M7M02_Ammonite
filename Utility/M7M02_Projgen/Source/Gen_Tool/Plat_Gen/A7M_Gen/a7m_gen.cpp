@@ -113,11 +113,14 @@ ptr_t A7M_Gen::Mem_Align(ptr_t Base, ptr_t Size)
          * alignment and calculate its start address alignment granularity */
         if(Base==MEM_AUTO)
         {
-
             /* For ARMv7-M, the minimum granularity is 1/8 of the nearest power of 2 for the size */
             Align=1;
             while(Align<Size)
                 Align<<=1;
+
+            Align>>=3;
+            if(Align<A7M_MEM_ALIGN)
+            	Align=A7M_MEM_ALIGN;
         }
         else
             Align=A7M_MEM_ALIGN;
@@ -556,7 +559,7 @@ void A7M_Gen::Kernel_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
     Gen_Tool::Macro_String(List,"RME_A7M_NVIC_GROUPING",
                            std::string("RME_A7M_NVIC_GROUPING_")+this->Proj->Chip->Config["NVIC_Grouping"], MACRO_REPLACE);
     /* What is the Systick value? - (usually) 10ms per tick */
-    Gen_Tool::Macro_String(List, "RME_A7M_SYSTICK_VAL", this->Proj->Chip->Config["Systick_Value"], MACRO_REPLACE);
+    Gen_Tool::Macro_String(List, "RME_A7M_SYSTICK_VAL", this->Proj->Chip->Config["Systick_Value"]+"U", MACRO_REPLACE);
 
     /* Fixed attributes - we will refill these with database values */
     /* Number of MPU regions available */

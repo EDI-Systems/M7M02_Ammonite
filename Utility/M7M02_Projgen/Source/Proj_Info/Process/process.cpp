@@ -116,9 +116,9 @@ Kobj(this)
             Trunk_Parse_Param<class Receive, class Receive>(Root,"Receive",this->Receive,this,"DXXXX","DXXXX");
             /* Vector */
             Trunk_Parse_Param<class Vect_Info, class Vect_Info>(Root,"Vector",this->Vector,this,"DXXXX","DXXXX");
-            /* Kfunc */
-            Trunk_Parse_Param<class Kfunc, class Kfunc>(Root,"Kfunc",this->Kfunc,this,"DXXXX","DXXXX");
         }
+        /* Kfunc */
+        Trunk_Parse_Param<class Kfunc, class Kfunc>(Root,"Kfunc",this->Kfunc,this,"DXXXX","DXXXX");
     }
     catch(std::exception& Exc)
     {
@@ -234,19 +234,19 @@ Type            Local                           Global
 -------------------------------------------------------------------------------
 Process         -                               RVM_PRC_<PRC>
 -------------------------------------------------------------------------------
-Pgt           -                               RVM_PGT_<PRC>_#
+Pgt           -                               	RVM_PGT_<PRC>_#
 -------------------------------------------------------------------------------
-Cpt          -                               RVM_CPT_<PRC>
+Cpt          -                               	RVM_CPT_<PRC>
 -------------------------------------------------------------------------------
 Thread          -                               RVM_THD_<THD>_PRC_<PRC>
 -------------------------------------------------------------------------------
 Invocation      -                               RVM_INV_<INV>_PRC_<PRC>
 -------------------------------------------------------------------------------
-Port            PRT_<PRT>_PRC_<PRC>           (Inherit invocation name)
+Port            PRT_<PRT>_PRC_<PRC>           	(Inherit invocation name)
 -------------------------------------------------------------------------------
 Receive         RCV_<RCV>                       RVM_RCV_<RCV>_PRC_<PRC>
 -------------------------------------------------------------------------------
-Send            SND_<SND>_PRC_<PRC>           (Inherit receive endpoint name)
+Send            SND_<SND>_PRC_<PRC>          	(Inherit receive endpoint name)
 -------------------------------------------------------------------------------
 Vector          VCT_<VCT>                       RVM_VCT_<VCT> (RVM)
                                                 RME_VCT_<VCT> (RME)

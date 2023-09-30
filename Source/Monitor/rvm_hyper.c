@@ -450,8 +450,6 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 #if(RVM_VIRT_NUM!=0U)
 rvm_ret_t RVM_Hyp_Vct_Wait(void)
 {
-    volatile struct RVM_Virt_Struct* Next;
-    
     /* See if it have interrupt disabled */
     if((RVM_Virt_Cur->Sched.State&RVM_VM_INTENA)==0U)
         return RVM_ERR_STATE;
@@ -460,10 +458,8 @@ rvm_ret_t RVM_Hyp_Vct_Wait(void)
     RVM_VM_STATE_SET(RVM_Virt_Cur->Sched.State,RVM_VM_WAITING);
     _RVM_Run_Del(RVM_Virt_Cur);
     
-    /* The next could be zero, which means that there are no VM running now */
-    Next=_RVM_Run_High();
-    _RVM_Virt_Switch(RVM_Virt_Cur, Next);
-    RVM_Virt_Cur=Next;
+    /* Need a context switch, someone went to sleep */
+    RVM_Switch=1U;
     
     return 0;
 }
@@ -579,7 +575,8 @@ void _RVM_Virt_Vct_Snd(volatile struct RVM_List* Array,
         Trav=Trav->Next;
     }
 
-    /* We do not reschedule here because we will reschedule when all are sent */
+    /* May need a context switch, someone received an interrupt */
+    RVM_Switch=1U;
 }
 #endif
 /* End Function:_RVM_Virt_Vct_Snd ********************************************/
@@ -593,9 +590,8 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 #if(RVM_VIRT_NUM!=0U)
 rvm_ret_t RVM_Hyp_Evt_Snd(rvm_ptr_t Evt_Num)
 {
-    volatile rvm_ptr_t* Slot;
     rvm_ptr_t Value;
-    volatile struct RVM_Virt_Struct* Virt;
+    volatile rvm_ptr_t* Slot;
     
     /* See if the number is overrange */
     if(Evt_Num>=RVM_VIRT_EVT_NUM)
@@ -611,15 +607,6 @@ rvm_ret_t RVM_Hyp_Evt_Snd(rvm_ptr_t Evt_Num)
     
     /* Send to that event */
     _RVM_Virt_Vct_Snd(RVM_Evt, Evt_Num);
-    
-    /* Only when we have something of a higher priority do we need to reschedule */
-    Virt=_RVM_Run_High();
-    RVM_ASSERT(Virt!=RVM_NULL);
-    if(Virt->Map->Prio>RVM_Virt_Cur->Map->Prio)
-    {
-        _RVM_Virt_Switch(RVM_Virt_Cur, Virt);
-        RVM_Virt_Cur=Virt;
-    }
     
     return 0;
 }
@@ -703,8 +690,9 @@ void _RVM_Tim_Snd(volatile struct RVM_Virt_Struct* Virt)
     /* Send interrupt to it, if its interrupts are enabled */
     if((Virt->Sched.State&RVM_VM_INTENA)!=0)
         RVM_ASSERT(RVM_Sig_Snd(Virt->Map->Vct_Sig_Cap)==0);
-    
-    /* No reschedule here because we will reschedule when all timer interrupts are sent */
+
+    /* Context switch needed, someone received a timer interrupt */
+    RVM_Switch=1U;
 }
 #endif
 /* End Function:_RVM_Tim_Snd *************************************************/
@@ -769,12 +757,16 @@ void _RVM_Virt_Cur_Recover(void)
     /* Reinsert this into the wheel */
     RVM_List_Del(RVM_Virt_Cur->Delay.Prev, RVM_Virt_Cur->Delay.Next);
     _RVM_Wheel_Ins(RVM_Virt_Cur,RVM_Virt_Cur->Map->Period);
+
+    /* Context switch needed, someone is rebooted */
+    RVM_Switch=1U;
 }
 #endif
 /* End Function:_RVM_Virt_Cur_Recover ****************************************/
 
 /* Begin Function:RVM_Sftd ****************************************************
 Description : The safety daemon against system partial or total failures.
+              This runs as a separate thread.
 Input       : None.
 Output      : None.
 Return      : None.
@@ -817,12 +809,8 @@ void RVM_Sftd(void)
             if(Thd==RVM_Sftd_Thd_Cap)
                 RVM_DBG_S("Sftd");
 #if(RVM_VIRT_NUM!=0U)
-            else if(Thd==RVM_Timd_Thd_Cap)
-                RVM_DBG_S("Timd");
-            else if(Thd==RVM_Hypd_Thd_Cap)
-                RVM_DBG_S("Hypd");
-            else if(Thd==RVM_Vctd_Thd_Cap)
-                RVM_DBG_S("Vctd");
+            else if(Thd==RVM_Vmmd_Thd_Cap)
+                RVM_DBG_S("Vmmd");
 #endif
             else
                 RVM_DBG_SHS("unrecognized thread TID 0x", Thd,"");
@@ -871,6 +859,9 @@ void RVM_Sftd(void)
             /* Actually reboot the virtual machine */
             _RVM_Virt_Cur_Recover();
             
+            /* Trigger the context switch ASAP */
+            RVM_ASSERT(RVM_Sig_Snd(RVM_BOOT_INIT_VCT)==0);
+            
             RVM_DBG_S("Sftd: Recovered.\r\n");
 #else
             RVM_DBG_S("Sftd: Fault on virtual machine but no virtual machine exists. Rebooting system...\r\n");
@@ -880,223 +871,6 @@ void RVM_Sftd(void)
     }
 }
 /* End Function:RVM_Sftd *****************************************************/
-
-/* Begin Function:RVM_Timd ****************************************************
-Description : The timer daemon for timer interrupt handling and time accounting.
-Input       : None.
-Output      : None.
-Return      : None.
-******************************************************************************/
-#if(RVM_VIRT_NUM!=0U)
-void RVM_Timd(void)
-{
-    volatile struct RVM_Virt_Struct* Virt;
-    volatile struct RVM_List* Slot;
-    volatile struct RVM_List* Trav;
-
-    RVM_DBG_S("Timd: Timer relaying daemon initialization complete.\r\n");
-
-    /* We will receive a timer interrupt every tick here */
-    while(1)
-    {
-        RVM_ASSERT(RVM_Sig_Rcv(RVM_BOOT_INIT_TIM, RVM_RCV_BS)>=0);
-        RVM_Tick++;
-        
-        /* Notify daemon passes if the debugging output is enabled */
-#if(RVM_DEBUG_PRINT==1U)
-        if((RVM_Tick%10000U)==0U)
-            RVM_DBG_S("Timd: Timer daemon passed 10000 ticks.\r\n");
-#endif
-        
-        /* See if we need to process the timer wheel to deliver timer interrupts to virtual machines */
-        Slot=&(RVM_Wheel[RVM_Tick%RVM_WHEEL_SIZE]);
-        Trav=Slot->Next;
-        while(Trav!=Slot)
-        {
-            Virt=RVM_DLY2VM(Trav);
-            Trav=Trav->Next;
-            /* If the value is more than this, then it means that the time have
-             * already passed and we have to process this */
-            if((RVM_Tick-Virt->Sched.Period_Timeout)>=(RVM_ALLBITS>>1))
-                break;
-            
-            /* This VM should be processed, place it at the new position */
-            RVM_List_Del(Virt->Delay.Prev, Virt->Delay.Next);
-            _RVM_Wheel_Ins(Virt, Virt->Map->Period);
-            
-            /* Send special timer interrupt to it */
-            _RVM_Tim_Snd(Virt);
-        }
-        
-        /* If there is at least one virtual machine working, check slices and watchdog */
-        if(RVM_Virt_Cur!=0U)
-        {
-            /* Is the timeslices exhausted? */
-            if(RVM_Virt_Cur->Sched.Slice_Left==0U)   
-            {
-                RVM_Virt_Cur->Sched.Slice_Left=RVM_Virt_Cur->Map->Slice;
-                /* Place it at the end of the run queue */
-                RVM_List_Del(RVM_Virt_Cur->Head.Prev,RVM_Virt_Cur->Head.Next);
-                RVM_List_Ins(&(RVM_Virt_Cur->Head),
-                             RVM_Run[RVM_Virt_Cur->Map->Prio].Prev,
-                             &(RVM_Run[RVM_Virt_Cur->Map->Prio]));
-            }
-            else
-                RVM_Virt_Cur->Sched.Slice_Left--;
-            
-            /* Is the watchdog enabled for this virtual machine? */
-            if((RVM_Virt_Cur->Sched.State&RVM_VM_WDGENA)!=0U)
-            {
-                /* Is the watchdog timeout? */
-                if(RVM_Virt_Cur->Sched.Watchdog_Left==0U)   
-                {
-                    /* Watchdog timeout - seek to reboot the VM */
-                    RVM_DBG_S("Timd: Watchdog overflow in virtual machine ");
-                    RVM_DBG_S(RVM_Virt_Cur->Map->Name);
-                    RVM_DBG_S(". Recovering...\r\n");
-                    
-                    /* Also print registers so that the user can debug. This is abnormal anyway */
-                    RVM_DBG_S("Timd: Vector handling thread register set:\r\n");
-                    RVM_ASSERT(RVM_Thd_Print_Reg(RVM_Virt_Cur->Map->Vct_Thd_Cap)==0);
-                    RVM_DBG_S("Timd: User program thread register set:\r\n");
-                    RVM_ASSERT(RVM_Thd_Print_Reg(RVM_Virt_Cur->Map->Usr_Thd_Cap)==0);
-
-                    /* Actually reboot the virtual machine */
-                    _RVM_Virt_Cur_Recover();
-                    
-                    RVM_DBG_S("Timd: Recovered.\r\n");
-                }
-                else
-                    RVM_Virt_Cur->Sched.Watchdog_Left--;
-            }
-        }
-        
-        /* There must at least be a virtual machine that is active. We mandate the switch
-         * even under the same priority level because the current VM has just been moved to
-         * the end of the runqueue, and we need to round-robin */
-        Virt=_RVM_Run_High();
-        _RVM_Virt_Switch(RVM_Virt_Cur, Virt);
-        RVM_Virt_Cur=Virt;
-    }
-}
-#endif
-/* End Function:RVM_Timd *****************************************************/
-
-/* Begin Function:RVM_Hypd ****************************************************
-Description : The virtual machine monitor daemon for hypercall handling.
-Input       : None.
-Output      : None.
-Return      : None.
-******************************************************************************/
-#if(RVM_VIRT_NUM!=0U)
-void RVM_Hypd(void)
-{
-    rvm_ptr_t Number;
-    volatile rvm_ptr_t* Param;
-    volatile struct RVM_State* State;
-    volatile struct RVM_Param* Arg;
-    
-    RVM_DBG_S("Hypd: Hypercall handling daemon initialization complete.\r\n");
-    
-    /* Main cycle */
-    while(1U)
-    {
-        /* Blocking multi receive */
-        RVM_ASSERT(RVM_Sig_Rcv(RVM_Hypd_Sig_Cap, RVM_RCV_BM)>=0);
-        
-        /* See if the vector is active */
-        State=RVM_Virt_Cur->Map->State_Base;
-        if(State->Vct_Act!=0U)
-            Arg=&(State->Vct);
-        else
-            Arg=&(State->Usr);
-
-        /* Extract parameters */
-        Number=Arg->Number;
-        Param=Arg->Param;
-        
-        /* RVM_DBG_SIS("Hypd: Hypercall ",Number," called.\r\n"); */
-            
-        switch(Number)
-        {
-#if(RVM_DEBUG_PRINT==1U)
-            /* Debug hypercalls */
-            case RVM_HYP_PUTCHAR:
-            {
-                Param[0]=(rvm_ptr_t)RVM_Hyp_Putchar(Param[0]);      /* rvm_ptr_t Char */
-                break;
-            }
-#endif
-            /* Interrupt hypercalls */
-            case RVM_HYP_INT_ENA:
-            {
-                Param[0]=(rvm_ptr_t)RVM_Hyp_Int_Ena();
-                break;
-            }
-            case RVM_HYP_INT_DIS:
-            {
-                Param[0]=(rvm_ptr_t)RVM_Hyp_Int_Dis();
-                break;
-            }
-            /* Virtual vector hypercalls */
-            case RVM_HYP_VCT_PHYS:
-            {
-                Param[0]=(rvm_ptr_t)RVM_Hyp_Vct_Phys(Param[0],      /* rvm_ptr_t Phys_Num */
-                                                     Param[1]);     /* rvm_ptr_t Vct_Num */
-                break;
-            }
-            case RVM_HYP_VCT_EVT:
-            {
-                Param[0]=(rvm_ptr_t)RVM_Hyp_Vct_Evt(Param[0],       /* rvm_ptr_t Evt_Num */
-                                                    Param[1]);      /* rvm_ptr_t Vct_Num */
-                break;
-            }
-            case RVM_HYP_VCT_DEL:
-            {
-                Param[0]=(rvm_ptr_t)RVM_Hyp_Vct_Del(Param[0]);      /* rvm_ptr_t Vct_Num */
-                break;
-            }
-            case RVM_HYP_VCT_LCK:
-            {
-                Param[0]=(rvm_ptr_t)RVM_Hyp_Vct_Lck();
-                break;
-            }
-            case RVM_HYP_VCT_WAIT:
-            {
-                Param[0]=(rvm_ptr_t)RVM_Hyp_Vct_Wait();
-                break;
-            }
-            /* Event send hypercalls */
-            case RVM_HYP_EVT_ADD:
-            {
-                Param[0]=(rvm_ptr_t)RVM_Hyp_Evt_Add(Param[0]);      /* rvm_ptr_t Evt_Num */
-                break;
-            }
-            case RVM_HYP_EVT_DEL:
-            {
-                Param[0]=(rvm_ptr_t)RVM_Hyp_Evt_Del(Param[0]);      /* rvm_ptr_t Evt_Num */
-                break;
-            }
-            case RVM_HYP_EVT_SND:
-            {
-                Param[0]=(rvm_ptr_t)RVM_Hyp_Evt_Snd(Param[0]);      /* rvm_ptr_t Evt_Num */
-                break;
-            }
-            /* Watchdog hypercall */
-            case RVM_HYP_WDG_CLR:
-            {
-                Param[0]=(rvm_ptr_t)RVM_Hyp_Wdg_Clr();
-                break;
-            }
-
-            default:break;
-        }
-        
-        /* RVM_DBG_SIS("Hypd: Hypercall ",Number," processed.\r\n"); */
-    }
-}
-#endif
-/* End Function:RVM_Hypd *****************************************************/
 
 /* Begin Function:_RVM_Flagset_Get ********************************************
 Description : Get the physical vector source or event source from the interrupt
@@ -1126,56 +900,182 @@ rvm_ptr_t _RVM_Flagset_Get(volatile struct RVM_Flag* Set)
 #endif
 /* End Function:_RVM_Flagset_Get *********************************************/
 
-/* Begin Function:RVM_Vctd ****************************************************
-Description : The vector daemon for interrupt handling.
+/* Begin Function:RVM_Vmmd ****************************************************
+Description : The system daemon for timer tick processing, interrupt handling 
+              and hypercalls. This only exists when there are virtual machines
+              installed.
+              It contains three logical daemons to handle different events, which
+              are Hypd for hypercalls, Vctd for interrupts, and Timd for timer
+              ticks respectively.
 Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
 #if(RVM_VIRT_NUM!=0U)
-void RVM_Vctd(void)
+void RVM_Vmmd(void)
 {
-    rvm_ptr_t Num;
+    rvm_ptr_t Tick;
+    rvm_ptr_t Number;
+    volatile rvm_ptr_t* Param;
+    volatile struct RVM_State* State;
+    volatile struct RVM_Param* Arg;
+    volatile struct RVM_List* Slot;
+    volatile struct RVM_List* Trav;
     volatile struct RVM_Virt_Struct* Virt;
     volatile struct RVM_Flag* Vctf_Set0;
     volatile struct RVM_Flag* Vctf_Set1;
     volatile struct RVM_Flag* Evtf_Set0;
     volatile struct RVM_Flag* Evtf_Set1;
     
+    RVM_DBG_S("Vmmd: Monitor daemon initialization complete.\r\n");
+
+    /* Compiler will optimize these out */
     Vctf_Set0=RVM_FLAG_SET(RVM_PHYS_VCTF_BASE, RVM_PHYS_VCTF_SIZE, 0U);
     Vctf_Set1=RVM_FLAG_SET(RVM_PHYS_VCTF_BASE, RVM_PHYS_VCTF_SIZE, 1U);
     Evtf_Set0=RVM_FLAG_SET(RVM_VIRT_EVTF_BASE, RVM_VIRT_EVTF_SIZE, 0U);
     Evtf_Set1=RVM_FLAG_SET(RVM_VIRT_EVTF_BASE, RVM_VIRT_EVTF_SIZE, 1U);
-    
-    RVM_DBG_S("Vctd: Vector handling daemon initialization complete.\r\n");
-    
-    /* Main cycle - keep getting vectors and passing them to virtual machines */
+
     while(1U)
     {
-        /* Blocking multi receive */
+        /* Blocking multi receive, wait for activation signal */
         RVM_ASSERT(RVM_Sig_Rcv(RVM_BOOT_INIT_VCT, RVM_RCV_BM)>=0);
+        
+/* Hypd daemon for hypercall handling ****************************************/
+        /* See if there is an active VM to handle hypercalls */
+        if(RVM_Virt_Cur!=RVM_NULL)
+        {
+            /* See if the vector is active */
+            State=RVM_Virt_Cur->Map->State_Base;
+            if(State->Vct_Act!=0U)
+                Arg=&(State->Vct);
+            else
+                Arg=&(State->Usr);
+
+            /* Extract number and parameters - and see if such call is valid */
+            Number=Arg->Number;
+            if(Number!=RVM_HYP_INVALID)
+            {
+                Param=Arg->Param;
+                Arg->Number=RVM_HYP_INVALID;
+                
+                /* RVM_DBG_SIS("Hypd: Hypercall ",Number," called.\r\n"); */
+            
+                switch(Number)
+                {
+#if(RVM_DEBUG_PRINT==1U)
+                    /* Debug hypercalls */
+                    case RVM_HYP_PUTCHAR:
+                    {
+                        Param[0]=(rvm_ptr_t)RVM_Hyp_Putchar(Param[0]);      /* rvm_ptr_t Char */
+                        break;
+                    }
+#endif
+                    /* Interrupt hypercalls */
+                    case RVM_HYP_INT_ENA:
+                    {
+                        Param[0]=(rvm_ptr_t)RVM_Hyp_Int_Ena();
+                        break;
+                    }
+                    case RVM_HYP_INT_DIS:
+                    {
+                        Param[0]=(rvm_ptr_t)RVM_Hyp_Int_Dis();
+                        break;
+                    }
+                    /* Virtual vector hypercalls */
+                    case RVM_HYP_VCT_PHYS:
+                    {
+                        Param[0]=(rvm_ptr_t)RVM_Hyp_Vct_Phys(Param[0],      /* rvm_ptr_t Phys_Num */
+                                                             Param[1]);     /* rvm_ptr_t Vct_Num */
+                        break;
+                    }
+                    case RVM_HYP_VCT_EVT:
+                    {
+                        Param[0]=(rvm_ptr_t)RVM_Hyp_Vct_Evt(Param[0],       /* rvm_ptr_t Evt_Num */
+                                                            Param[1]);      /* rvm_ptr_t Vct_Num */
+                        break;
+                    }
+                    case RVM_HYP_VCT_DEL:
+                    {
+                        Param[0]=(rvm_ptr_t)RVM_Hyp_Vct_Del(Param[0]);      /* rvm_ptr_t Vct_Num */
+                        break;
+                    }
+                    case RVM_HYP_VCT_LCK:
+                    {
+                        Param[0]=(rvm_ptr_t)RVM_Hyp_Vct_Lck();
+                        break;
+                    }
+                    case RVM_HYP_VCT_WAIT:
+                    {
+                        Param[0]=(rvm_ptr_t)RVM_Hyp_Vct_Wait();
+                        break;
+                    }
+                    /* Event send hypercalls */
+                    case RVM_HYP_EVT_ADD:
+                    {
+                        Param[0]=(rvm_ptr_t)RVM_Hyp_Evt_Add(Param[0]);      /* rvm_ptr_t Evt_Num */
+                        break;
+                    }
+                    case RVM_HYP_EVT_DEL:
+                    {
+                        Param[0]=(rvm_ptr_t)RVM_Hyp_Evt_Del(Param[0]);      /* rvm_ptr_t Evt_Num */
+                        break;
+                    }
+                    case RVM_HYP_EVT_SND:
+                    {
+                        Param[0]=(rvm_ptr_t)RVM_Hyp_Evt_Snd(Param[0]);      /* rvm_ptr_t Evt_Num */
+                        break;
+                    }
+                    /* Watchdog hypercall */
+                    case RVM_HYP_WDG_CLR:
+                    {
+                        Param[0]=(rvm_ptr_t)RVM_Hyp_Wdg_Clr();
+                        break;
+                    }
+
+                    default:break;
+                }
+                    
+                /* RVM_DBG_SIS("Hypd: Hypercall ",Number," processed.\r\n"); */
+            }
+        }
+        
+/* Vctd daemon for interrupt relaying ****************************************/
+        /* Clear tick detector - this is for Timd, not Vctd */
+        Tick=0U;
 
         /* Vector set 0 */
         Vctf_Set0->Lock=1U;
+        /* Detect timer interrupt */
+        if(Vctf_Set0->Fast!=0U)
+        {
+            Vctf_Set0->Fast=0U;
+            Tick=1U;
+        }
+        /* Detect the rest */
         while(Vctf_Set0->Group!=0U)
         {
             /* Process the interrupts in the first group one by one */
-            Num=_RVM_Flagset_Get(Vctf_Set0);
+            Number=_RVM_Flagset_Get(Vctf_Set0);
             /* Only send if smaller than the number of physical vectors declared */
-            if(Num<RVM_PHYS_VCT_NUM)
-                _RVM_Virt_Vct_Snd(RVM_Phys, Num);
+            if(Number<RVM_PHYS_VCT_NUM)
+                _RVM_Virt_Vct_Snd(RVM_Phys, Number);
         }
         Vctf_Set0->Lock=0U;
         
         /* Vector set 1 */
         Vctf_Set1->Lock=1U;
+        if(Vctf_Set1->Fast!=0U)
+        {
+            Vctf_Set1->Fast=0U;
+            Tick=1U;
+        }
         while(Vctf_Set1->Group!=0U)
         {
             /* Process the interrupts in the first group one by one */
-            Num=_RVM_Flagset_Get(Vctf_Set1);
+            Number=_RVM_Flagset_Get(Vctf_Set1);
             /* Only send if smaller than the number of physical vectors declared */
-            if(Num<RVM_PHYS_VCT_NUM)
-                _RVM_Virt_Vct_Snd(RVM_Phys, Num);
+            if(Number<RVM_PHYS_VCT_NUM)
+                _RVM_Virt_Vct_Snd(RVM_Phys, Number);
         }
         Vctf_Set1->Lock=0U;
         
@@ -1184,10 +1084,10 @@ void RVM_Vctd(void)
         while(Evtf_Set0->Group!=0U)
         {
             /* Process the interrupts in the first group one by one */
-            Num=_RVM_Flagset_Get(Evtf_Set0);
+            Number=_RVM_Flagset_Get(Evtf_Set0);
             /* Only send if smaller than the number of events declared */
-            if(Num<RVM_VIRT_EVT_NUM)
-                _RVM_Virt_Vct_Snd(RVM_Evt, Num);
+            if(Number<RVM_VIRT_EVT_NUM)
+                _RVM_Virt_Vct_Snd(RVM_Evt, Number);
         }
         Evtf_Set0->Lock=0U;
         
@@ -1196,25 +1096,110 @@ void RVM_Vctd(void)
         while(Evtf_Set1->Group!=0U)
         {
             /* Process the interrupts in the first group one by one */
-            Num=_RVM_Flagset_Get(Evtf_Set1);
+            Number=_RVM_Flagset_Get(Evtf_Set1);
             /* Only send if smaller than the number of events declared */
-            if(Num<RVM_VIRT_EVT_NUM)
-                _RVM_Virt_Vct_Snd(RVM_Evt, Num);
+            if(Number<RVM_VIRT_EVT_NUM)
+                _RVM_Virt_Vct_Snd(RVM_Evt, Number);
         }
         Evtf_Set1->Lock=0U;
         
-        /* Only when we have something of a higher priority do we need to reschedule */
-        Virt=_RVM_Run_High();
-        RVM_ASSERT(Virt!=0U);
-        if(Virt->Map->Prio>RVM_Virt_Cur->Map->Prio)
+/* Timd daemon for time tracking *********************************************/
+        /* See if there is a timer tick */
+        if(Tick!=0U)
         {
-            _RVM_Virt_Switch(RVM_Virt_Cur, Virt);
-            RVM_Virt_Cur=Virt;
+            RVM_Tick++;
+            
+            /* Notify daemon passes if the debugging output is enabled */
+#if(RVM_DEBUG_PRINT==1U)
+            if((RVM_Tick%1000U)==0U)
+                RVM_DBG_S("Timd: 1k ticks passed.\r\n");
+#endif
+            
+            /* See if we need to process the timer wheel to deliver timer interrupts to virtual machines */
+            Slot=&(RVM_Wheel[RVM_Tick%RVM_WHEEL_SIZE]);
+            Trav=Slot->Next;
+            while(Trav!=Slot)
+            {
+                Virt=RVM_DLY2VM(Trav);
+                Trav=Trav->Next;
+                /* If the value is more than this, then it means that the time have
+                 * already passed and we have to process this */
+                if((RVM_Tick-Virt->Sched.Period_Timeout)>=(RVM_ALLBITS>>1))
+                    break;
+                
+                /* This VM should be processed, place it at the new position */
+                RVM_List_Del(Virt->Delay.Prev, Virt->Delay.Next);
+                _RVM_Wheel_Ins(Virt, Virt->Map->Period);
+                
+                /* Send special timer interrupt to it */
+                _RVM_Tim_Snd(Virt);
+            }
+            
+            /* If there is at least one virtual machine working, check slices and watchdog */
+            if(RVM_Virt_Cur!=RVM_NULL)
+            {
+                /* Is the timeslices exhausted? */
+                if(RVM_Virt_Cur->Sched.Slice_Left==0U)   
+                {
+                    RVM_Virt_Cur->Sched.Slice_Left=RVM_Virt_Cur->Map->Slice;
+                    /* Place it at the end of the run queue */
+                    RVM_List_Del(RVM_Virt_Cur->Head.Prev,RVM_Virt_Cur->Head.Next);
+                    RVM_List_Ins(&(RVM_Virt_Cur->Head),
+                                 RVM_Run[RVM_Virt_Cur->Map->Prio].Prev,
+                                 &(RVM_Run[RVM_Virt_Cur->Map->Prio]));
+                    
+                    /* Context switch needed, someone exhausted a timeslice */
+                    RVM_Switch=1U;
+                }
+                else
+                    RVM_Virt_Cur->Sched.Slice_Left--;
+                
+                /* Is the watchdog enabled for this virtual machine? */
+                if((RVM_Virt_Cur->Sched.State&RVM_VM_WDGENA)!=0U)
+                {
+                    /* Is the watchdog timeout? */
+                    if(RVM_Virt_Cur->Sched.Watchdog_Left==0U)   
+                    {
+                        /* Watchdog timeout - seek to reboot the VM */
+                        RVM_DBG_S("Timd: Watchdog overflow in virtual machine ");
+                        RVM_DBG_S(RVM_Virt_Cur->Map->Name);
+                        RVM_DBG_S(". Recovering...\r\n");
+                        
+                        /* Also print registers so that the user can debug. This is abnormal anyway */
+                        RVM_DBG_S("Timd: Vector handling thread register set:\r\n");
+                        RVM_ASSERT(RVM_Thd_Print_Reg(RVM_Virt_Cur->Map->Vct_Thd_Cap)==0);
+                        RVM_DBG_S("Timd: User program thread register set:\r\n");
+                        RVM_ASSERT(RVM_Thd_Print_Reg(RVM_Virt_Cur->Map->Usr_Thd_Cap)==0);
+
+                        /* Actually reboot the virtual machine */
+                        _RVM_Virt_Cur_Recover();
+                        
+                        RVM_DBG_S("Timd: Recovered.\r\n");
+                    }
+                    else
+                        RVM_Virt_Cur->Sched.Watchdog_Left--;
+                }
+            }
+        }
+    
+        /* Check whether a reschedule is necessary */
+        if(RVM_Switch!=0U)
+        {
+            Virt=_RVM_Run_High();
+            
+            /* It doesn't matter here whether the current or the old virtual machine is
+             * RVM_NULL. If one of them is RVM_NULL, it won't equal, and if both is RVM_NULL,
+             * we're not doing anything anyway */
+            if(Virt!=RVM_Virt_Cur)
+            {
+                _RVM_Virt_Switch(RVM_Virt_Cur, Virt);
+                RVM_Virt_Cur=Virt;
+            }
         }
     }
 }
 #endif
-/* End Function:RVM_Vctd *****************************************************/
+/* End Function:RVM_Vmmd *****************************************************/
 
 /* Begin Function:RVM_Virt_Init ***********************************************
 Description : Initialize necessary virtual machine monitor database.
@@ -1226,6 +1211,8 @@ Return      : None.
 void RVM_Virt_Init(void)
 {
     rvm_ptr_t Count;
+    
+    RVM_Switch=0U;
     
     RVM_Tick=0U;
     for(Count=0U;Count<RVM_WHEEL_SIZE;Count++)
@@ -1288,14 +1275,14 @@ void RVM_Virt_Crt(struct RVM_Virt_Struct* Virt,
         RVM_ASSERT(RVM_Thd_Sched_Prio(Vmap[Count].Usr_Thd_Cap, RVM_WAIT_PRIO)==0U);
         RVM_ASSERT(RVM_Thd_Sched_Prio(Vmap[Count].Vct_Thd_Cap, RVM_WAIT_PRIO)==0U);
         
-        /* Clean up all virtual interrupt flags for this virtual machine */
+        /* Clean up all virtual interrupt flags/parameters for this virtual machine */
         RVM_Clear(Vmap[Count].State_Base, Vmap[Count].State_Size);
         
         /* Clean up all event send capabilities for this virtual machine */
         RVM_Clear(Virt[Count].Evt_Cap, RVM_EVTCAP_BITMAP*sizeof(rvm_ptr_t));
 
         /* Print log */
-        RVM_DBG_S("Hypd:  Created VM ");
+        RVM_DBG_S("Init:  Created VM ");
         RVM_DBG_S(Vmap[Count].Name);
         RVM_DBG_S(" control block 0x");
         RVM_DBG_H((rvm_ptr_t)&Virt[Count]);

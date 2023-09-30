@@ -57,12 +57,8 @@ Description: The configuration file for STM32L071Cb. The values listed here shou
 /* Daemon process stack address and size, in bytes */
 #define RVM_SFTD_STACK_BASE                             (0x20000000U)
 #define RVM_SFTD_STACK_SIZE                             (1024U)
-#define RVM_TIMD_STACK_BASE                             (0x20000000U)
-#define RVM_TIMD_STACK_SIZE                             (1024U)
 #define RVM_VMMD_STACK_BASE                             (0x20000000U)
 #define RVM_VMMD_STACK_SIZE                             (1024U)
-#define RVM_VCTD_STACK_BASE                             (0x20000000U)
-#define RVM_VCTD_STACK_SIZE                             (1024U)
 
 #define RVM_A6M_USART1_SR                               RVM_A6M_REG(0x40013800U+0x1CU)
 #define RVM_A6M_USART1_DR                               RVM_A6M_REG(0x40013800U+0x28U)

@@ -8,74 +8,76 @@ Description: The configuration file for STM32F767IG. The values listed here shou
 ******************************************************************************/
 
 /* Defines *******************************************************************/
-/* The generator must be enabled to use this */
+/* Debugging *****************************************************************/
+#define RVM_ASSERT_CORRECT                              (0U)
+#define RVM_DEBUG_PRINT                                 (1U)
 /* Kernel configurations - keep the same with the kernel *********************/
 /* The virtual memory start address for the kernel objects */
-#define RVM_KOM_VA_START                               (0x20003000)
+#define RVM_KOM_VA_BASE                                 (0x20003000U)
 /* The size of the kernel object virtual memory */
-#define RVM_KOM_SIZE                                   (0xD000)
+#define RVM_KOM_VA_SIZE                                 (0xD000U)
 /* The granularity of kernel memory allocation, order of 2 in bytes */
-#define RVM_KOM_SLOT_ORDER                             (4)
+#define RVM_KOM_SLOT_ORDER                              (4U)
 /* The maximum number of preemption priority levels in the system.
  * This parameter must be divisible by the word length - 32 is usually sufficient */
-#define RVM_MAX_PREEMPT_PRIO                            (32)
+#define RVM_PREEMPT_PRIO_NUM                            (32U)
 /* Number of virtual priorities in the system */
-#define RVM_MAX_PREEMPT_VPRIO                           (32)
-/* Number of events */
-#define RVM_EVT_NUM                                     (10)
-/* Number of mappings */
-#define RVM_MAP_NUM                                     (128)
+#define RVM_PREEMPT_VPRIO_NUM                           (32U)
 
-/* Initial kernel object capability limit */
-#define RVM_A7M_CAP_BOOT_FRONTIER                       (9)
-/* Initial kernel object memory limit */
-#define RVM_A7M_KOM_BOOT_FRONTIER                      (0x400)
-/* Number of MPU regions available */
-#define RVM_A7M_MPU_REGIONS                             (8)
+/* Physical vector number, flag area base and its size */
+#define RVM_PHYS_VCT_NUM                                (110U)
+#define RVM_PHYS_VCTF_BASE                              (0x20007C00U)
+#define RVM_PHYS_VCTF_SIZE                              (0x200U)
+/* Virtual event number, flag area base and its size */
+#define RVM_VIRT_EVT_NUM                                (10U)
+#define RVM_VIRT_EVTF_BASE                              (0x20007E00U)
+#define RVM_VIRT_EVTF_SIZE                              (0x200U)
+/* Maximum number of mappings allowed */
+#define RVM_VIRT_MAP_NUM                                (128U)
+
+/* Size of initial capability table */
+#define RVM_INIT_CPT_SIZE                               (52U)
+/* Initial kernel object frontier limit */
+#define RVM_CPT_BOOT_FRONT                              (9U)
+#define RVM_KOM_BOOT_FRONT                              (0x400U)
+/* Post-boot kernel object frontier limit */
+#define RVM_CPT_DONE_FRONT                              (18U)
+#define RVM_KOM_DONE_FRONT                              (0x1200U)
+
 /* Init process's first thread's entry point address */
-#define RVM_A7M_INIT_ENTRY                              (0x08004000|0x01)
+#define RVM_A7M_INIT_ENTRY                              (0x08004000U|0x01U)
 /* Init process's first thread's stack address */
-#define RVM_A7M_INIT_STACK                              (0x2001FFF0)
+#define RVM_A7M_INIT_STACK                              (0x2000FFF0U)
+/* Number of MPU regions available */
+#define RVM_A7M_REGION_NUM                              (8U)
 /* What is the FPU type? */
-#define RVM_A7M_FPU_TYPE                                (RVM_A7M_FPV5_DP)
-/* Interrupt flag address */
-#define RVM_A7M_VECT_FLAG_ADDR                          (0x2000FC00)
-/* Shared interrupt flag region address - always 512B memory for ARMv7-M */
-#define RVM_A7M_EVT_FLAG_ADDR                           (0x2000FE00)
-
-/* Fixed info ****************************************************************/
-/* What is the vector number excluding system vectors? */
-#define RVM_A7M_VECT_NUM                                (110)
+#define RVM_A7M_FPU_TYPE                                (RVM_A7M_FPU_FPV5_DP)
 
 /* Syslib configurations *****************************************************/
 /* Stack redundancy */
 #define RVM_STACK_SAFE_RDCY                             (0x10)
 /* Daemon process stack address and size, in bytes */
-#define RVM_SFTD_STACK_BASE                             (0x20000000)
-#define RVM_SFTD_STACK_SIZE                             (1024)
-#define RVM_TIMD_STACK_BASE                             (0x20000000)
-#define RVM_TIMD_STACK_SIZE                             (1024)
-#define RVM_VMMD_STACK_BASE                             (0x20000000)
-#define RVM_VMMD_STACK_SIZE                             (1024)
-#define RVM_VCTD_STACK_BASE                             (0x20000000)
-#define RVM_VCTD_STACK_SIZE                             (1024)
+#define RVM_SFTD_STACK_BASE                             (0x20000000U)
+#define RVM_SFTD_STACK_SIZE                             (1024U)
+#define RVM_VMMD_STACK_BASE                             (0x20000000U)
+#define RVM_VMMD_STACK_SIZE                             (1024U)
 
-/* Is debugging output enabled? */
-#define RVM_DEBUG_PRINT                                   RVM_TRUE
+#define RVM_A7M_USART1_ISR                              RVM_A7M_REG(0x4001101CU)
+#define RVM_A7M_USART1_TDR                              RVM_A7M_REG(0x40011028U)
 
-#define RVM_A7M_USART1_ISR                              RVM_A7M_REG(0x4001101C)
-#define RVM_A7M_USART1_TDR                              RVM_A7M_REG(0x40011028)
-
+#if(RVM_DEBUG_PRINT==1U)
 /* Print characters to console */
 #define RVM_A7M_PUTCHAR(CHAR) \
 do \
 { \
-    RVM_A7M_USART1_TDR=(CHAR); \
-    while((RVM_A7M_USART1_ISR&0x40)==0); \
+    RVM_A7M_USART1_TDR=(rvm_ptr_t)(CHAR); \
+    while((RVM_A7M_USART1_ISR&0x40U)==0U); \
 } \
 while(0)
+#endif
 /* End Defines ***************************************************************/
 
 /* End Of File ***************************************************************/
 
 /* Copyright (C) Evo-Devo Instrum. All rights reserved ***********************/
+

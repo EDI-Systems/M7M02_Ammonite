@@ -60,9 +60,7 @@ Return      : None.
         /* Stack size */
         this->Init_Stack_Size=Main::XML_Get_Number(Root,"Init_Stack_Size","DXXXX","DXXXX");
         this->Sftd_Stack_Size=Main::XML_Get_Number(Root,"Sftd_Stack_Size","DXXXX","DXXXX");
-        this->Vctd_Stack_Size=Main::XML_Get_Number(Root,"Vctd_Stack_Size","DXXXX","DXXXX");
-        this->Timd_Stack_Size=Main::XML_Get_Number(Root,"Timd_Stack_Size","DXXXX","DXXXX");
-        this->Hypd_Stack_Size=Main::XML_Get_Number(Root,"Hypd_Stack_Size","DXXXX","DXXXX");
+        this->Vmmd_Stack_Size=Main::XML_Get_Number(Root,"Vmmd_Stack_Size","DXXXX","DXXXX");
         /* Extra_Captbl */
         this->Extra_Captbl=Main::XML_Get_Number(Root,"Extra_Captbl","DXXXX","DXXXX");
         /* Virtual machine priorities */
@@ -138,38 +136,18 @@ void Monitor::Mem_Alloc(ptr_t Kom_Order)
     if(this->Virt_Prio!=0)
     {
         /* VMM daemon stack section - cut out from the data section */
-        this->Hypd_Stack_Size=ROUND_UP_POW2(this->Hypd_Stack_Size,Kom_Order);
-        this->Hypd_Stack_Base=this->Data_Base+this->Data_Size-this->Hypd_Stack_Size;
-        Main::Info("> Hypd stack base 0x%llX size 0x%llX.", this->Hypd_Stack_Base, this->Hypd_Stack_Size);
-        if(this->Hypd_Stack_Base<=this->Data_Base)
+        this->Vmmd_Stack_Size=ROUND_UP_POW2(this->Vmmd_Stack_Size,Kom_Order);
+        this->Vmmd_Stack_Base=this->Data_Base+this->Data_Size-this->Vmmd_Stack_Size;
+        Main::Info("> Hypd stack base 0x%llX size 0x%llX.", this->Vmmd_Stack_Base, this->Vmmd_Stack_Size);
+        if(this->Vmmd_Stack_Base<=this->Data_Base)
             Main::Error("XXXXX: Monitor data section is not big enough, unable to allocate virtual machine monitor daemon thread stack.");
-        this->Data_Size=this->Hypd_Stack_Base-this->Data_Base;
-
-        /* Vector daemon stack section - cut out from the data section */
-        this->Vctd_Stack_Size=ROUND_UP_POW2(this->Vctd_Stack_Size,Kom_Order);
-        this->Vctd_Stack_Base=this->Data_Base+this->Data_Size-this->Vctd_Stack_Size;
-        Main::Info("> Vctd stack base 0x%llX size 0x%llX.", this->Vctd_Stack_Base, this->Vctd_Stack_Size);
-        if(this->Vctd_Stack_Base<=this->Data_Base)
-            Main::Error("XXXXX: Monitor data section is not big enough, unable to allocate vector handling daemon stack.");
-        this->Data_Size=this->Vctd_Stack_Base-this->Data_Base;
-
-        /* Timer stack section - cut out from the data section */
-        this->Timd_Stack_Size=ROUND_UP_POW2(this->Timd_Stack_Size,Kom_Order);
-        this->Timd_Stack_Base=this->Data_Base+this->Data_Size-this->Timd_Stack_Size;
-        Main::Info("> Timd stack base 0x%llX size 0x%llX.", this->Timd_Stack_Base, this->Timd_Stack_Size);
-        if(this->Timd_Stack_Base<=this->Data_Base)
-            Main::Error("XXXXX: Monitor data section is not big enough, unable to allocate timer handling thread stack.");
-        this->Data_Size=this->Timd_Stack_Base-this->Data_Base;
+        this->Data_Size=this->Vmmd_Stack_Base-this->Data_Base;
     }
     else
     {
-        Main::Info("> No virtual machines exist, skipping allocation for Hypd, Vctd and Timd.");
-        this->Hypd_Stack_Base=0;
-        this->Hypd_Stack_Size=0;
-        this->Vctd_Stack_Base=0;
-        this->Vctd_Stack_Size=0;
-        this->Timd_Stack_Base=0;
-        this->Timd_Stack_Size=0;
+        Main::Info("> No virtual machines exist, skipping allocation for VMM daemon thread.");
+        this->Vmmd_Stack_Base=0;
+        this->Vmmd_Stack_Size=0;
     }
 
     /* Monitor data section - whatever is left */

@@ -12,30 +12,32 @@ Description : The header of microcontroller user-level library.
 #define __RVM_HYPER_H_DEFS__
 /*****************************************************************************/
 /* Hypercalls */
+/* No operation - operation not ready */
+#define RVM_HYP_INVALID             (0U)
 /* Print character */
-#define RVM_HYP_PUTCHAR             (0U)
+#define RVM_HYP_PUTCHAR             (1U)
 /* Enable interrupts */
-#define RVM_HYP_INT_ENA             (1U)
+#define RVM_HYP_INT_ENA             (2U)
 /* Disable interrupts */
-#define RVM_HYP_INT_DIS             (2U)
+#define RVM_HYP_INT_DIS             (3U)
 /* Register a physical vector */
-#define RVM_HYP_VCT_PHYS            (3U)
+#define RVM_HYP_VCT_PHYS            (4U)
 /* Register a event */
-#define RVM_HYP_VCT_EVT             (4U)
+#define RVM_HYP_VCT_EVT             (5U)
 /* Delete a virtual vector mapping */
-#define RVM_HYP_VCT_DEL             (5U)
+#define RVM_HYP_VCT_DEL             (6U)
 /* Lockdown current virtual vector mapping */
-#define RVM_HYP_VCT_LCK             (6U)
+#define RVM_HYP_VCT_LCK             (7U)
 /* Wait for an virtual vector to come */
-#define RVM_HYP_VCT_WAIT            (7U)
+#define RVM_HYP_VCT_WAIT            (8U)
 /* Add a event source to send to */
-#define RVM_HYP_EVT_ADD             (8U)
+#define RVM_HYP_EVT_ADD             (9U)
 /* Delete a event source to send to */
-#define RVM_HYP_EVT_DEL             (9U)
+#define RVM_HYP_EVT_DEL             (10U)
 /* Send to an event */
-#define RVM_HYP_EVT_SND             (10U)
+#define RVM_HYP_EVT_SND             (11U)
 /* Start and clear watchdog */
-#define RVM_HYP_WDG_CLR             (11U)
+#define RVM_HYP_WDG_CLR             (12U)
 
 /* Error codes */
 /* The state is wrong */
@@ -228,7 +230,11 @@ struct RVM_Virt_Struct
 /* Interrupt flags */
 struct RVM_Flag
 {
+    /* Whether this group is locked */
     rvm_ptr_t Lock;
+    /* Whether the fast interrupt group fired */
+    rvm_ptr_t Fast;
+    /* The slow interrupt group bitmap */
     rvm_ptr_t Group;
     rvm_ptr_t Flag[1024];
 };
@@ -335,6 +341,8 @@ static rvm_ret_t RVM_Hyp_Wdg_Clr(void);
 
 /*****************************************************************************/
 #if(RVM_VIRT_NUM!=0U)
+/* Context switch trigger */
+__EXTERN__ volatile rvm_ptr_t RVM_Switch;
 /* Timestamp value */
 __EXTERN__ volatile rvm_ptr_t RVM_Tick;
 /* Timer wheel - This system supports about 64 VMs maximum, thus we set the timer wheel at 32 */
@@ -368,9 +376,7 @@ __EXTERN__ void RVM_Virt_Crt(struct RVM_Virt_Struct* Virt,
                              const struct RVM_Vmap_Struct* Vmap,
                              rvm_ptr_t Virt_Num);
 /* VM daemons */
-__EXTERN__ void RVM_Timd(void);
-__EXTERN__ void RVM_Hypd(void);
-__EXTERN__ void RVM_Vctd(void);
+__EXTERN__ void RVM_Vmmd(void);
 #endif
 
 /* Generic daemons */

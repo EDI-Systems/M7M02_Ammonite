@@ -113,11 +113,14 @@ ptr_t A6M_Gen::Mem_Align(ptr_t Base, ptr_t Size)
          * alignment and calculate its start address alignment granularity */
         if(Base==MEM_AUTO)
         {
-
-             /* For ARMv7-M, the minimum granularity is 1/8 of the nearest power of 2 for the size */
+             /* For ARMv6-M, the minimum granularity is 1/8 of the nearest power of 2 for the size */
             Align=1;
             while(Align<Size)
                 Align<<=1;
+
+            Align>>=3;
+            if(Align<A6M_MEM_ALIGN)
+            	Align=A6M_MEM_ALIGN;
         }
         else
             Align=A6M_MEM_ALIGN;

@@ -59,12 +59,8 @@ Description: The configuration file for STM32F405RG. The values listed here shou
 /* Daemon process stack address and size, in bytes */
 #define RVM_SFTD_STACK_BASE                             (0x20000000U)
 #define RVM_SFTD_STACK_SIZE                             (1024U)
-#define RVM_TIMD_STACK_BASE                             (0x20000000U)
-#define RVM_TIMD_STACK_SIZE                             (1024U)
 #define RVM_VMMD_STACK_BASE                             (0x20000000U)
 #define RVM_VMMD_STACK_SIZE                             (1024U)
-#define RVM_VCTD_STACK_BASE                             (0x20000000U)
-#define RVM_VCTD_STACK_SIZE                             (1024U)
 
 #define RVM_A7M_USART1_SR                               RVM_A7M_REG(0x40011000U)
 #define RVM_A7M_USART1_DR                               RVM_A7M_REG(0x40011004U)

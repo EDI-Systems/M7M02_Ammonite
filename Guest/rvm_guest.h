@@ -119,9 +119,9 @@ Description : The header of guest user level low-level library.
 
 /* Initial capability layout - same across all architectures */
 /* The capability table of the init process */
-#define RVM_BOOT_INIT_CPT                                (0U)
+#define RVM_BOOT_INIT_CPT                           (0U)
 /* The top-level page table of the init process - always full memory access */
-#define RVM_BOOT_INIT_PGT                                (1U)
+#define RVM_BOOT_INIT_PGT                           (1U)
 /* The init process */
 #define RVM_BOOT_INIT_PRC                           (2U)
 /* The init thread */
@@ -130,10 +130,8 @@ Description : The header of guest user level low-level library.
 #define RVM_BOOT_INIT_KFN                           (4U)
 /* The initial kernel memory capability */
 #define RVM_BOOT_INIT_KOM                           (5U)
-/* The initial timer endpoint */
-#define RVM_BOOT_INIT_TIM                           (6U)
-/* The initial interrupt endpoint */
-#define RVM_BOOT_INIT_VCT                           (7U)
+/* The initial timer/interrupt endpoint */
+#define RVM_BOOT_INIT_VCT                           (6U)
 
 /* Error codes */
 /* The state is wrong */
@@ -241,30 +239,32 @@ while(0U)
 #define RVM_SIG_VCT                                 (1U)
 
 /* Hypercalls */
+/* No operation - operation not ready */
+#define RVM_HYP_INVALID                             (0U)
 /* Print character */
-#define RVM_HYP_PUTCHAR                             (0U)
+#define RVM_HYP_PUTCHAR                             (1U)
 /* Enable interrupts */
-#define RVM_HYP_INT_ENA                             (1U)
+#define RVM_HYP_INT_ENA                             (2U)
 /* Disable interrupts */
-#define RVM_HYP_INT_DIS                             (2U)
+#define RVM_HYP_INT_DIS                             (3U)
 /* Register a physical vector */
-#define RVM_HYP_VCT_PHYS                            (3U)
+#define RVM_HYP_VCT_PHYS                            (4U)
 /* Register a event */
-#define RVM_HYP_VCT_EVT                             (4U)
+#define RVM_HYP_VCT_EVT                             (5U)
 /* Delete a virtual vector mapping */
-#define RVM_HYP_VCT_DEL                             (5U)
+#define RVM_HYP_VCT_DEL                             (6U)
 /* Lockdown current virtual vector mapping */
-#define RVM_HYP_VCT_LCK                             (6U)
+#define RVM_HYP_VCT_LCK                             (7U)
 /* Wait for an virtual vector to come */
-#define RVM_HYP_VCT_WAIT                            (7U)
+#define RVM_HYP_VCT_WAIT                            (8U)
 /* Add a event source to send to */
-#define RVM_HYP_EVT_ADD                             (8U)
+#define RVM_HYP_EVT_ADD                             (9U)
 /* Delete a event source to send to */
-#define RVM_HYP_EVT_DEL                             (9U)
+#define RVM_HYP_EVT_DEL                             (10U)
 /* Send to an event */
-#define RVM_HYP_EVT_SND                             (10U)
+#define RVM_HYP_EVT_SND                             (11U)
 /* Start and clear watchdog */
-#define RVM_HYP_WDG_CLR                             (11U)
+#define RVM_HYP_WDG_CLR                             (12U)
 #endif
 /* End Defines ***************************************************************/
 

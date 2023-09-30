@@ -740,9 +740,7 @@ void Main::Mem_Align(void)
             this->Gen->Plat->Mem_Align(this->Proj->Monitor->Data_Base,this->Proj->Monitor->Data_Size);
             this->Gen->Plat->Mem_Align(MEM_AUTO,this->Proj->Monitor->Init_Stack_Size);
             this->Gen->Plat->Mem_Align(MEM_AUTO,this->Proj->Monitor->Sftd_Stack_Size);
-            this->Gen->Plat->Mem_Align(MEM_AUTO,this->Proj->Monitor->Hypd_Stack_Size);
-            this->Gen->Plat->Mem_Align(MEM_AUTO,this->Proj->Monitor->Vctd_Stack_Size);
-            this->Gen->Plat->Mem_Align(MEM_AUTO,this->Proj->Monitor->Timd_Stack_Size);
+            this->Gen->Plat->Mem_Align(MEM_AUTO,this->Proj->Monitor->Vmmd_Stack_Size);
         }
         catch(std::exception& Exc)
         {
@@ -1329,25 +1327,25 @@ void Main::Kom_Alloc(ptr_t Init_Capsz)
     ptr_t Kom_Front;
 
     /* Compute initial state when creating the vectors */
-    Cap_Front=0;
-    Kom_Front=0;
     /* Initial capability table */
-    Cap_Front++;
-    Kom_Front+=this->Gen->Plat->Size_Cpt(Init_Capsz);
+    Cap_Front=1;
+    Kom_Front=this->Gen->Plat->Size_Cpt(Init_Capsz);
     /* Initial page table - always order 0, containing all address space */
     Cap_Front++;
     Kom_Front+=this->Gen->Plat->Size_Pgt(0,1);
     /* Initial RVM process */
     Cap_Front++;
-    /* Initial kcap and kmem */
-    Cap_Front+=2;
-    /* Initial tick timer/interrupt endpoint */
-    Cap_Front+=2;
     /* Initial thread */
+    Cap_Front++;
+    /* Initial kfn */
+    Cap_Front++;
+    /* Initial kmem */
+    Cap_Front++;
+    /* Initial tick timer/interrupt/event endpoint */
     Cap_Front++;
     Kom_Front+=this->Gen->Plat->Size_Thread();
 
-    /* Create vectors */
+    /* Create capability table for vectors */
     Main::Info("> Kernel vector cap front %lld kmem front 0x%llX.", Cap_Front, Kom_Front);
     this->Proj->Kernel->Vct_Cap_Front=Cap_Front;
     this->Proj->Kernel->Vct_Kom_Front=Kom_Front;
@@ -1362,9 +1360,9 @@ void Main::Kom_Alloc(ptr_t Init_Capsz)
     /* When there are virtual machines, generate everything */
     if(this->Proj->Virtual.size()!=0)
     {
-        /* Four threads and two endpoints for RVM */
-        Cap_Front+=6;
-        Kom_Front+=4*this->Gen->Plat->Size_Thread();
+        /* Two threads (sftd/main) and one endpoint (sftd) for RVM */
+        Cap_Front+=3;
+        Kom_Front+=2*this->Gen->Plat->Size_Thread();
 
         /* Create virtual machine endpoints. These endpoints does not have names.
          * Each virtual machine have two endpoints, but only one is dedicated to
@@ -1375,7 +1373,7 @@ void Main::Kom_Alloc(ptr_t Init_Capsz)
         Cap_Front+=ROUND_DIV(this->Proj->Virtual.size(),this->Plat->Captbl_Max);
         Kom_Front+=this->Gen->Plat->Size_Cpt(this->Proj->Virtual.size());
     }
-    /* When there are no virtual machines at all, just generate one endpoint and one thread */
+    /* When there are no virtual machines at all, just generate one thread (sftd) and one endpoint (sftd) */
     else
     {
         Cap_Front+=2;
@@ -1709,7 +1707,11 @@ void Main::Report_Gen(void)
 {
     try
     {
+    	/* Report kernel code section */
 
+    	/* Report kernel total data section */
+
+    	/* Report kotbl space */
     }
     catch(std::exception& Exc)
     {

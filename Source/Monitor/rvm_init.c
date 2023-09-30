@@ -446,7 +446,7 @@ void RVM_Boot_Vcap_Init(void)
         RVM_ASSERT(RVM_Cpt_Add(RVM_Meta_Vcap_Init[Count].Cpt,
                                0U,
                                RVM_BOOT_INIT_CPT,
-                               RVM_Hypd_Sig_Cap,
+                               RVM_BOOT_INIT_VCT,
                                RVM_SIG_FLAG_SND)==0);
         
         RVM_ASSERT(RVM_Cpt_Add(RVM_Meta_Vcap_Init[Count].Cpt,
@@ -770,50 +770,19 @@ void RVM_Daemon_Init(rvm_cid_t Cap_Base,
                                                (rvm_ptr_t)RVM_Sftd, (rvm_ptr_t)_RVM_Jmp_Stub),0U)==0);
     RVM_DBG_S("Init: Safety daemon initialization complete.\r\n");
 
-    /* Don't bother boot these daemons if we do not have virtual machines installed at all */
 #if(RVM_VIRT_NUM!=0U)
-    /* Timer daemon initialization - main priority */
-    RVM_Timd_Thd_Cap=Cap_Front++;
-    RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_INIT_CPT, RVM_BOOT_INIT_KOM, RVM_Timd_Thd_Cap,
-                           RVM_BOOT_INIT_PRC, RVM_TIMD_PRIO, Kom_Front)>=0);
-    RVM_DBG_SISHS("Init: Created timer daemon '",RVM_Timd_Thd_Cap,"' @ 0x",Kom_Front,".\r\n");
+    /* VMM daemon initialization - main priority - don't boot this if we have no VM at all */
+    RVM_Vmmd_Thd_Cap=Cap_Front++;
+    RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_INIT_CPT, RVM_BOOT_INIT_KOM, RVM_Vmmd_Thd_Cap,
+                           RVM_BOOT_INIT_PRC, RVM_MAIN_PRIO, Kom_Front)>=0);
+    RVM_DBG_SISHS("Init: Created VMM daemon '",RVM_Vmmd_Thd_Cap,"' @ 0x",Kom_Front,".\r\n");
     Kom_Front+=RVM_THD_SIZE;
     
-    RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Timd_Thd_Cap, RVM_Sftd_Thd_Cap, RVM_Sftd_Sig_Cap, RVM_Timd_Thd_Cap, RVM_TIMD_PRIO)==0);
-    RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Timd_Thd_Cap, (rvm_ptr_t)RVM_Timd, 
-                                RVM_Stack_Init(RVM_TIMD_STACK_BASE, RVM_TIMD_STACK_SIZE,
-                                               (rvm_ptr_t)RVM_Timd, (rvm_ptr_t)_RVM_Jmp_Stub),0)==0);
-    RVM_DBG_S("Init: Timer daemon initialization complete.\r\n");
-
-    /* VMM daemon initialization - main priority */
-    RVM_Hypd_Sig_Cap=Cap_Front++;
-    RVM_ASSERT(RVM_Sig_Crt(RVM_BOOT_INIT_CPT, RVM_Hypd_Sig_Cap)==0);
-    RVM_DBG_SIS("Init: Created virtual machine monitor endpoint '",RVM_Hypd_Sig_Cap,"'.\r\n");
-    
-    RVM_Hypd_Thd_Cap=Cap_Front++;
-    RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_INIT_CPT, RVM_BOOT_INIT_KOM, RVM_Hypd_Thd_Cap,
-                           RVM_BOOT_INIT_PRC, RVM_VMMD_PRIO, Kom_Front)>=0);
-    RVM_DBG_SISHS("Init: Created virtual machine monitor daemon '",RVM_Hypd_Thd_Cap,"' @ 0x",Kom_Front,".\r\n");
-    Kom_Front+=RVM_THD_SIZE;
-    
-    RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Hypd_Thd_Cap, RVM_Sftd_Thd_Cap, RVM_Sftd_Sig_Cap, RVM_Hypd_Thd_Cap, RVM_VMMD_PRIO)==0);
-    RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Hypd_Thd_Cap, (rvm_ptr_t)RVM_Hypd, 
+    RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Vmmd_Thd_Cap, RVM_Sftd_Thd_Cap, RVM_Sftd_Sig_Cap, RVM_Vmmd_Thd_Cap, RVM_MAIN_PRIO)==0);
+    RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Vmmd_Thd_Cap, (rvm_ptr_t)RVM_Vmmd, 
                                 RVM_Stack_Init(RVM_VMMD_STACK_BASE, RVM_VMMD_STACK_SIZE,
-                                               (rvm_ptr_t)RVM_Hypd, (rvm_ptr_t)_RVM_Jmp_Stub),0)==0);
-    RVM_DBG_S("Init: Virtual machine monitor daemon initialization complete.\r\n");
-
-    /* Interrupt relaying daemon initialization - main priority */
-    RVM_Vctd_Thd_Cap=Cap_Front++;
-    RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_INIT_CPT, RVM_BOOT_INIT_KOM, RVM_Vctd_Thd_Cap,
-                           RVM_BOOT_INIT_PRC, RVM_VCTD_PRIO, Kom_Front)>=0);
-    RVM_DBG_SISHS("Init: Created vector handling daemon '",RVM_Vctd_Thd_Cap,"' @ 0x",Kom_Front,".\r\n");
-    Kom_Front+=RVM_THD_SIZE;
-    
-    RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Vctd_Thd_Cap, RVM_Sftd_Thd_Cap, RVM_Sftd_Sig_Cap, RVM_Vctd_Thd_Cap, RVM_VCTD_PRIO)==0);
-    RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Vctd_Thd_Cap, (rvm_ptr_t)RVM_Vctd, 
-                                RVM_Stack_Init(RVM_VCTD_STACK_BASE, RVM_VCTD_STACK_SIZE,
-                                               (rvm_ptr_t)RVM_Vctd, (rvm_ptr_t)_RVM_Jmp_Stub),0)==0);
-    RVM_DBG_S("Init: Vector handling daemon initialization complete.\r\n");
+                                               (rvm_ptr_t)RVM_Vmmd, (rvm_ptr_t)_RVM_Jmp_Stub),0)==0);
+    RVM_DBG_S("Init: Main daemon initialization complete.\r\n");
 #endif
 }
 /* End Function:RVM_Daemon_Init **********************************************/
@@ -828,24 +797,13 @@ void RVM_Init(void)
 {
     RVM_Boot_Pre_Init();
 
-    RVM_DBG_S("\r\n\r\n-------------------------------------------------------------------------------\r\n");
-    RVM_DBG_S("                               Welcome to the\r\n");
+    /* Print boot logo */
     RVM_DBG_S("\r\n");
-    RVM_DBG_S("                        ######    ###  ###  ########\r\n");
-    RVM_DBG_S("                        #######   ###  ###  ########\r\n");
-    RVM_DBG_S("                        ##    ##  ###  ###  ##\r\n");
-    RVM_DBG_S("                        ##    ##  ###  ###  ##\r\n");
-    RVM_DBG_S("                        ##    ##  ## ## ##  ##\r\n");
-    RVM_DBG_S("                        #######   ## ## ##  #######\r\n");
-    RVM_DBG_S("                        ######    ## ## ##  #######\r\n");
-    RVM_DBG_S("                        ##   ##   ## ## ##  ##\r\n");
-    RVM_DBG_S("                        ##   ##   ##    ##  ##\r\n");
-    RVM_DBG_S("                        ##    ##  ##    ##  ##\r\n");
-    RVM_DBG_S("                        ##    ##  ##    ##  ########\r\n");
-    RVM_DBG_S("                        ##    ### ##    ##  ########\r\n");
-    RVM_DBG_S("\r\n");
-    RVM_DBG_S("                    Microcontroller User-level Platform!\r\n");
-    RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
+    RVM_DBG_S("            ___  _   __ __  ___\r\n");
+    RVM_DBG_S("           / _ \\| | / //  |/  /     Feather-weight hypervisor\r\n");
+    RVM_DBG_S("          / , _/| |/ // /|_/ /      Starting boot sequence...\r\n");
+    RVM_DBG_S("         /_/|_| |___//_/  /_/\r\n");
+    RVM_DBG_S("===============================================================================\r\n");
 
     /* Raise our own priority to the top of the system */
     RVM_ASSERT(RVM_Thd_Sched_Prio(RVM_BOOT_INIT_THD, RVM_PREEMPT_PRIO_NUM-1U)==0);
@@ -870,14 +828,10 @@ void RVM_Init(void)
     RVM_DBG_S("Init: Process initialization done.\r\n");
     RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
     
-    /* Delegate timeslice to safety daemon, and make it work - we should stop here
-     * actually, and we have done operating the database, now all the work is the safety
-     * daemon's. From now on, no further kernel objects will be created anymore. */
+    /* Delegate timeslice to safety daemon and VMM daemon */
     RVM_ASSERT(RVM_Thd_Time_Xfer(RVM_Sftd_Thd_Cap, RVM_BOOT_INIT_THD, RVM_THD_INF_TIME)==RVM_THD_INF_TIME);
 #if(RVM_VIRT_NUM!=0U)
-    RVM_ASSERT(RVM_Thd_Time_Xfer(RVM_Timd_Thd_Cap, RVM_BOOT_INIT_THD, RVM_THD_INF_TIME)==RVM_THD_INF_TIME);
-    RVM_ASSERT(RVM_Thd_Time_Xfer(RVM_Hypd_Thd_Cap, RVM_BOOT_INIT_THD, RVM_THD_INF_TIME)==RVM_THD_INF_TIME);
-    RVM_ASSERT(RVM_Thd_Time_Xfer(RVM_Vctd_Thd_Cap, RVM_BOOT_INIT_THD, RVM_THD_INF_TIME)==RVM_THD_INF_TIME);
+    RVM_ASSERT(RVM_Thd_Time_Xfer(RVM_Vmmd_Thd_Cap, RVM_BOOT_INIT_THD, RVM_THD_INF_TIME)==RVM_THD_INF_TIME);
 #endif
     RVM_DBG_S("Init: Daemon time budget initialization complete.\r\n");
     

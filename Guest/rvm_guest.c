@@ -1538,16 +1538,18 @@ rvm_ret_t RVM_Hyp(rvm_ptr_t Number,
         Arg=&(RVM_STATE->Usr);
 
     /* Pass the parameters */
-    Arg->Number=Number;
     Arg->Param[0]=Param1;
     Arg->Param[1]=Param2;
     Arg->Param[2]=Param3;
     Arg->Param[3]=Param4;
     
-    /* Do the hypercall */
+    /* Set the number, do the hypercall */
+    Arg->Number=Number;
     RVM_ASSERT(RVM_Sig_Snd(RVM_SIG_HYP)==0);
     
-    /* Return the result */
+    /* Make sure the call is indeed processed */
+    RVM_ASSERT(Arg->Number==RVM_HYP_INVALID);
+    
     return (rvm_ret_t)Arg->Param[0];
 }
 #endif
@@ -1570,7 +1572,7 @@ void RVM_Hyp_Putchar(char Char)
 #endif
 /* End Function:RVM_Hyp_Putchar **********************************************/
 
-/* Begin Function:RVM_Hyp_Ena_Int *********************************************
+/* Begin Function:RVM_Hyp_Int_Ena *********************************************
 Description : Enable interrupts. This must be successful so it does not have
               a return value.
 Input       : None.
@@ -1585,7 +1587,7 @@ void RVM_Hyp_Int_Ena(void)
     RVM_Hyp(RVM_HYP_INT_ENA, 0U, 0U, 0U, 0U);
 }
 #endif
-/* End Function:RVM_Hyp_Ena_Int **********************************************/
+/* End Function:RVM_Hyp_Int_Ena **********************************************/
 
 /* Begin Function:RVM_Hyp_Int_Dis *********************************************
 Description : Disable interrupts. This must be successful so it does not have
