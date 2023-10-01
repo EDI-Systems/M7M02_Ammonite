@@ -35,8 +35,8 @@ namespace RVM_GEN
 /* Begin Function:Mem_Info::Mem_Info ******************************************
 Description : Constructor for memory information class.
 Input       : xml_node_t* Root - The node containing the memory block information.
-              ptr_t Reference - Whether this is a shared memory reference, that
-                                does not have a base and a size.
+              ptr_t Reference - Reference mode: physical, shared or private.
+                                Physical reference does not have alignment.
 Output      : None.
 Return      : None.
 ******************************************************************************/
@@ -71,6 +71,18 @@ Return      : None.
         /* Size */
         this->Size=Main::XML_Get_Number(Root,"Size","DXXXX","DXXXX");
 
+        /* Alignment (order of 2) - missing for physical declarations */
+        if(Reference==MEM_PHYS)
+        	this->Align_Order=MEM_AUTO;
+        else
+        {
+			Temp=Main::XML_Get_String(Root,"Align","DXXXX","DXXXX");
+			if(Temp=="Auto")
+				this->Align_Order=MEM_AUTO;
+			else
+				this->Align_Order=std::stoull(Temp,0,0);
+        }
+
         /* Type */
         Temp=Main::XML_Get_String(Root,"Type","DXXXX","DXXXX");
         if(Temp=="Code")
@@ -100,7 +112,7 @@ Return      : None.
         if(Temp.rfind('S')!=std::string::npos)
             this->Attr|=MEM_STATIC;
 
-        /* Alignment */
+        /* Actual alignment - will be computed */
         this->Align=0;
         this->Is_Shared=0;
     }
@@ -133,6 +145,7 @@ Return      : None.
     Name_Gen(this);
     this->Base=Block->Base;
     this->Size=Block->Size;
+    this->Align_Order=Block->Align_Order;
     this->Type=Block->Type;
     this->Attr=Attr_New;
     this->Align=Block->Align;
@@ -158,6 +171,7 @@ Return      : None.
     Name_Gen(this);
     this->Base=Base;
     this->Size=Size;
+    this->Align_Order=MEM_AUTO;
     this->Type=Type;
     this->Attr=Attr;
     this->Align=0;

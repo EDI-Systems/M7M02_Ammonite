@@ -44,7 +44,7 @@ public:
     virtual /* void */ ~Plat_Gen(void) {};
 
     /* Align memory segments */
-    virtual ptr_t Mem_Align(ptr_t Base, ptr_t Size)=0;
+    virtual ptr_t Mem_Align(ptr_t Base, ptr_t Size, ptr_t Align_Order)=0;
     virtual std::unique_ptr<class Pgtbl> Pgt_Gen(std::vector<std::unique_ptr<class Mem_Info>>& List,
                                                  class Process* Owner, ptr_t Total_Max, ptr_t& Total_Static)=0;
 

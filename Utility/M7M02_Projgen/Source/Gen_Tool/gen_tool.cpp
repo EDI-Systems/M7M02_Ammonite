@@ -2498,7 +2498,7 @@ void Gen_Tool::Process_Entry_Src(class Process* Prc)
             if(Prc->Entry_Source_Overwrite==0)
             {
                 Main::Info(std::string("> File '")+Filename+"' exists, skipping generation.");
-                return;
+                continue;
             }
         }
         Main::Info(std::string("> Generating source for thread '")+Thd->Name+"'.");
@@ -2540,7 +2540,7 @@ void Gen_Tool::Process_Entry_Src(class Process* Prc)
             if(Prc->Entry_Source_Overwrite==0)
             {
                 Main::Info(std::string("> File '")+Filename+"' exists, skipping generation.");
-                return;
+                continue;
             }
         }
         Main::Info(std::string("> Generating source for invocation '")+Inv->Name+"'.");

@@ -82,6 +82,8 @@ public:
     ptr_t Base;
     /* The size */
     ptr_t Size;
+    /* The suggested alignment, in order of 2 */
+    ptr_t Align_Order;
     /* Memory type */
     ptr_t Type;
     /* The attributes - read, write, execute, cacheable, bufferable, static */
@@ -94,7 +96,7 @@ public:
     /* Memory map - identifies sharing relationships in individual projects */
     ptr_t Is_Shared;
 
-    /* void */ Mem_Info(xml_node_t* Root, ptr_t Ref);
+    /* void */ Mem_Info(xml_node_t* Root, ptr_t Reference);
     /* void */ Mem_Info(class Mem_Info* Block, ptr_t Attr_New);
     /* void */ Mem_Info(const std::string& Name, ptr_t Base, ptr_t Size, ptr_t Type, ptr_t Attr);
 

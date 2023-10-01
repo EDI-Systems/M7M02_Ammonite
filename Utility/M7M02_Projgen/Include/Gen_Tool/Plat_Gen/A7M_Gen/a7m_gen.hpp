@@ -57,7 +57,7 @@ private:
 public:
     /* void */ A7M_Gen(class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip);
 
-    virtual ptr_t Mem_Align(ptr_t Base, ptr_t Size) final override;
+    virtual ptr_t Mem_Align(ptr_t Base, ptr_t Size, ptr_t Align_Order) final override;
     virtual std::unique_ptr<class Pgtbl> Pgt_Gen(std::vector<std::unique_ptr<class Mem_Info>>& List,
                                                    class Process* Owner, ptr_t Total_Max, ptr_t& Total_Static) final override;
 

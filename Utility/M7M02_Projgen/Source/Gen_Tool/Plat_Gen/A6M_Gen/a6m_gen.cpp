@@ -87,13 +87,14 @@ Plat_Gen("A6M", Proj, Plat, Chip)
 /* End Function:A6M_Gen::A6M_Gen *********************************************/
 
 /* Begin Function:A6M_Gen::Mem_Align ******************************************
-Description : Memory aligner for the ARMv7-M platform.
+Description : Memory aligner for the ARMv6-M platform.
 Input       : ptr_t Base - The memory base address.
               ptr_t Size - The memory size.
+              ptr_t Align_Order - The user suggested align order.
 Output      : None.
 Return      : ptr_t - The computed alignment.
 ******************************************************************************/
-ptr_t A6M_Gen::Mem_Align(ptr_t Base, ptr_t Size)
+ptr_t A6M_Gen::Mem_Align(ptr_t Base, ptr_t Size, ptr_t Align_Order)
 {
     ptr_t Align;
 
@@ -113,17 +114,35 @@ ptr_t A6M_Gen::Mem_Align(ptr_t Base, ptr_t Size)
          * alignment and calculate its start address alignment granularity */
         if(Base==MEM_AUTO)
         {
-             /* For ARMv6-M, the minimum granularity is 1/8 of the nearest power of 2 for the size */
-            Align=1;
-            while(Align<Size)
-                Align<<=1;
+        	/* Compute maximum alignment that make sense for this memory trunk */
+			Align=1;
+			while(Align<Size)
+				Align<<=1;
 
-            Align>>=3;
-            if(Align<A6M_MEM_ALIGN)
-            	Align=A6M_MEM_ALIGN;
+			/* If the user did not supply an alignment order, produce an appropriate default.
+			 * For ARMv6-M, the default is 1/8 of the nearest power of 2 for the size */
+			if(Align_Order==MEM_AUTO)
+			{
+				Align>>=3;
+				if(Align<A6M_MEM_ALIGN)
+					Align=A6M_MEM_ALIGN;
+			}
+			/* If the user supplied the alignment order, check if that order makes sense */
+			else
+			{
+				if((Align_Order>=32)||(POW2(Align_Order)>Align))
+					Main::Error("XXXXX: Alignment order too large.");
+				if(Align_Order<5)
+					Main::Error("XXXXX: Alignment order too small.");
+				Align=POW2(Align_Order);
+			}
         }
         else
+        {
             Align=A6M_MEM_ALIGN;
+            if(Align_Order!=MEM_AUTO)
+                Main::Error("XXXXX: Cannot designate fixed alignment for statically allocated memory.");
+        }
 
         return Align;
     }

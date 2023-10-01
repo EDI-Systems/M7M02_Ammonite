@@ -176,7 +176,7 @@ void RMP_Gen::Process_Virt_Src(class Virtual* Virt, class Tool_Gen* Tool)
 
     Main::Info("> Generating 'rmp_hook.c'.");
     /* This may pop up: gcc bug - ignoring copy_options, will fix in the future */
-    std::filesystem::copy(Virt->Guest_Root+"Source/Benchmark/rmp_hook_rvm.c",
+    std::filesystem::copy(Virt->Guest_Root+"Source/Hook/rmp_hook_rvm.c",
                           Virt->Virtual_Source_Output+"rmp_hook.c",
                           std::filesystem::copy_options::overwrite_existing);
 }

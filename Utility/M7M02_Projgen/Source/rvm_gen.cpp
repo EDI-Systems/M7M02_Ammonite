@@ -733,14 +733,14 @@ void Main::Mem_Align(void)
         /* Align system memory */
         try
         {
-            this->Gen->Plat->Mem_Align(this->Proj->Kernel->Code_Base,this->Proj->Kernel->Code_Size);
-            this->Gen->Plat->Mem_Align(this->Proj->Kernel->Data_Base,this->Proj->Kernel->Data_Size);
-            this->Gen->Plat->Mem_Align(MEM_AUTO,this->Proj->Kernel->Stack_Size);
-            this->Gen->Plat->Mem_Align(this->Proj->Monitor->Code_Base,this->Proj->Monitor->Code_Size);
-            this->Gen->Plat->Mem_Align(this->Proj->Monitor->Data_Base,this->Proj->Monitor->Data_Size);
-            this->Gen->Plat->Mem_Align(MEM_AUTO,this->Proj->Monitor->Init_Stack_Size);
-            this->Gen->Plat->Mem_Align(MEM_AUTO,this->Proj->Monitor->Sftd_Stack_Size);
-            this->Gen->Plat->Mem_Align(MEM_AUTO,this->Proj->Monitor->Vmmd_Stack_Size);
+            this->Gen->Plat->Mem_Align(this->Proj->Kernel->Code_Base,this->Proj->Kernel->Code_Size,MEM_AUTO);
+            this->Gen->Plat->Mem_Align(this->Proj->Kernel->Data_Base,this->Proj->Kernel->Data_Size,MEM_AUTO);
+            this->Gen->Plat->Mem_Align(MEM_AUTO,this->Proj->Kernel->Stack_Size,MEM_AUTO);
+            this->Gen->Plat->Mem_Align(this->Proj->Monitor->Code_Base,this->Proj->Monitor->Code_Size,MEM_AUTO);
+            this->Gen->Plat->Mem_Align(this->Proj->Monitor->Data_Base,this->Proj->Monitor->Data_Size,MEM_AUTO);
+            this->Gen->Plat->Mem_Align(MEM_AUTO,this->Proj->Monitor->Init_Stack_Size,MEM_AUTO);
+            this->Gen->Plat->Mem_Align(MEM_AUTO,this->Proj->Monitor->Sftd_Stack_Size,MEM_AUTO);
+            this->Gen->Plat->Mem_Align(MEM_AUTO,this->Proj->Monitor->Vmmd_Stack_Size,MEM_AUTO);
         }
         catch(std::exception& Exc)
         {
@@ -751,7 +751,7 @@ void Main::Mem_Align(void)
         try
         {
             for(std::unique_ptr<class Mem_Info>& Mem:this->Proj->Shmem)
-                Mem->Align=this->Gen->Plat->Mem_Align(Mem->Base,Mem->Size);
+                Mem->Align=this->Gen->Plat->Mem_Align(Mem->Base,Mem->Size,Mem->Align_Order);
         }
         catch(std::exception& Exc)
         {
@@ -764,11 +764,11 @@ void Main::Mem_Align(void)
             try
             {
                 for(std::unique_ptr<class Mem_Info>& Mem:Prc->Memory)
-                    Mem->Align=this->Gen->Plat->Mem_Align(Mem->Base,Mem->Size);
+                    Mem->Align=this->Gen->Plat->Mem_Align(Mem->Base,Mem->Size,Mem->Align_Order);
             }
             catch(std::exception& Exc)
             {
-                Main::Error(std::string("Process: '")+Prc->Name+"'\n"+"Private memory:n"+Exc.what());
+                Main::Error(std::string("Process: '")+Prc->Name+"'\n"+"Private memory:\n"+Exc.what());
             }
         }
     }

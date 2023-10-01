@@ -90,10 +90,11 @@ Plat_Gen("A7M", Proj, Plat, Chip)
 Description : Memory aligner for the ARMv7-M platform.
 Input       : ptr_t Base - The memory base address.
               ptr_t Size - The memory size.
+              ptr_t Align_Order - The user suggested align order.
 Output      : None.
 Return      : ptr_t - The computed alignment.
 ******************************************************************************/
-ptr_t A7M_Gen::Mem_Align(ptr_t Base, ptr_t Size)
+ptr_t A7M_Gen::Mem_Align(ptr_t Base, ptr_t Size, ptr_t Align_Order)
 {
     ptr_t Align;
 
@@ -113,17 +114,35 @@ ptr_t A7M_Gen::Mem_Align(ptr_t Base, ptr_t Size)
          * alignment and calculate its start address alignment granularity */
         if(Base==MEM_AUTO)
         {
-            /* For ARMv7-M, the minimum granularity is 1/8 of the nearest power of 2 for the size */
+        	/* Compute maximum alignment that make sense for this memory trunk */
             Align=1;
             while(Align<Size)
                 Align<<=1;
 
-            Align>>=3;
-            if(Align<A7M_MEM_ALIGN)
-            	Align=A7M_MEM_ALIGN;
+            /* If the user did not supply an alignment order, produce an appropriate default.
+             * For ARMv7-M, the default is 1/8 of the nearest power of 2 for the size */
+        	if(Align_Order==MEM_AUTO)
+        	{
+                Align>>=3;
+                if(Align<A7M_MEM_ALIGN)
+                	Align=A7M_MEM_ALIGN;
+        	}
+        	/* If the user supplied the alignment order, check if that order makes sense */
+        	else
+        	{
+				if((Align_Order>=32)||(POW2(Align_Order)>Align))
+					Main::Error("XXXXX: Alignment order too large.");
+				if(Align_Order<5)
+					Main::Error("XXXXX: Alignment order too small.");
+				Align=POW2(Align_Order);
+        	}
         }
         else
+        {
             Align=A7M_MEM_ALIGN;
+            if(Align_Order!=MEM_AUTO)
+                Main::Error("XXXXX: Cannot designate fixed alignment for statically allocated memory.");
+        }
 
         return Align;
     }
