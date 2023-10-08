@@ -794,6 +794,7 @@ Input       : rvm_cid_t Cap_Cpt - The capability to the capability table.
                                    thread. Once set, this cannot be changed.
               rvm_ptr_t Raddr - The relative virtual address to store the
                                 thread kernel object.
+              rvm_ptr_t Attr - The context attributes.
 Output      : None.
 Return      : rvm_ret_t - If successful, the Thread ID; or an error code.
 ******************************************************************************/
@@ -803,9 +804,10 @@ rvm_ret_t RVM_Thd_Crt(rvm_cid_t Cap_Cpt,
                       rvm_cid_t Cap_Thd,
                       rvm_cid_t Cap_Prc,
                       rvm_ptr_t Prio_Max,
-                      rvm_ptr_t Raddr)
+                      rvm_ptr_t Raddr,
+                      rvm_ptr_t Attr)
 {
-    return RVM_CAP_OP(RVM_SVC_THD_CRT,
+    return RVM_CAP_OP(RVM_THD_SVC(Attr,0U,RVM_SVC_THD_CRT),
                       Cap_Cpt, 
                       RVM_PARAM_D1(Cap_Kom)|RVM_PARAM_D0(Cap_Thd),
                       RVM_PARAM_D1(Cap_Prc)|RVM_PARAM_D0(Prio_Max),
@@ -813,6 +815,44 @@ rvm_ret_t RVM_Thd_Crt(rvm_cid_t Cap_Cpt,
 }
 #endif
 /* End Function:RVM_Thd_Crt **************************************************/
+
+/* Begin Function:RVM_Hyp_Crt *************************************************
+Description : Create a hypervisor-managed thread. A thread is the minimal
+              kernel-level execution unit.
+Input       : rvm_cid_t Cap_Cpt - The capability to the capability table.
+                                  2-Level.
+              rvm_cid_t Cap_Kom - The kernel memory capability.
+                                  2-Level.
+              rvm_cid_t Cap_Thd - The capability slot that you want this newly
+                                  created thread capability to be in.
+                                  1-Level.
+              rvm_cid_t Cap_Prc - The capability to the process that it is in.
+                                  2-Level.
+              rvm_ptr_t Prio_Max - The maximum priority allowed for this
+                                   thread. Once set, this cannot be changed.
+              rvm_ptr_t Raddr - The relative virtual address to store the
+                                thread kernel object.
+              rvm_ptr_t Attr - The context attributes.
+Output      : None.
+Return      : rvm_ret_t - If successful, the Thread ID; or an error code.
+******************************************************************************/
+#ifndef RVM_VIRT_VCT_NUM
+rvm_ret_t RVM_Hyp_Crt(rvm_cid_t Cap_Cpt,
+                      rvm_cid_t Cap_Kom,
+                      rvm_cid_t Cap_Thd,
+                      rvm_cid_t Cap_Prc,
+                      rvm_ptr_t Prio_Max,
+                      rvm_ptr_t Raddr,
+                      rvm_ptr_t Attr)
+{
+    return RVM_CAP_OP(RVM_THD_SVC(Attr,1U,RVM_SVC_THD_CRT),
+                      Cap_Cpt, 
+                      RVM_PARAM_D1(Cap_Kom)|RVM_PARAM_D0(Cap_Thd),
+                      RVM_PARAM_D1(Cap_Prc)|RVM_PARAM_D0(Prio_Max),
+                      Raddr);
+}
+#endif
+/* End Function:RVM_Hyp_Crt **************************************************/
 
 /* Begin Function:RVM_Thd_Del *************************************************
 Description : Delete a thread.
@@ -862,59 +902,6 @@ rvm_ret_t RVM_Thd_Exec_Set(rvm_cid_t Cap_Thd,
 #endif
 /* End Function:RVM_Thd_Exec_Set *********************************************/
 
-/* Begin Function:RVM_Thd_Hyp_Set *********************************************
-Description : Set a thread's entry point and stack. The registers will be
-              initialized with these contents.
-Input       : rvm_cid_t Cap_Thd - The capability to the thread.
-                                  2-Level.
-              rvm_ptr_t Kaddr - The kernel-accessible virtual memory address
-                                for this thread's register sets.
-Output      : None.
-Return      : rvm_ret_t - If successful, 0; or an error code.
-******************************************************************************/
-#ifndef RVM_VIRT_VCT_NUM
-rvm_ret_t RVM_Thd_Hyp_Set(rvm_cid_t Cap_Thd,
-                          rvm_ptr_t Kaddr)
-{
-    return RVM_CAP_OP(RVM_SVC_THD_HYP_SET,
-                      Cap_Thd,
-                      Kaddr,
-                      0U,
-                      0U);
-}
-#endif
-/* End Function:RVM_Thd_Hyp_Set **********************************************/
-
-/* Begin Function:RVM_Thd_Hyp_Exec_Set ****************************************
-Description : Set the thread as hypervisor-managed. This means that the thread
-              register set will be saved to somewhere that is indicated by the
-              user, instead of the kernel data structures. This also has the
-              ability to set execution context (like Exec_Set) when the Entry
-              and Stack are both non-null.
-Input       : rvm_cid_t Cap_Thd - The capability to the thread.
-                                  2-Level.
-              rvm_ptr_t Kaddr - The kernel-accessible virtual memory address
-                                for this thread's register sets.
-              rvm_ptr_t Entry - The entry address of the thread.
-              rvm_ptr_t Stack - The stack address to use for execution.
-Output      : None.
-Return      : rvm_ret_t - If successful, 0; or an error code.
-******************************************************************************/
-#ifndef RVM_VIRT_VCT_NUM
-rvm_ret_t RVM_Thd_Hyp_Exec_Set(rvm_cid_t Cap_Thd,
-                               rvm_ptr_t Kaddr,
-                               rvm_ptr_t Entry,
-                               rvm_ptr_t Stack)
-{
-    return RVM_CAP_OP(RVM_SVC_THD_HYP_SET,
-                      Cap_Thd,
-                      Kaddr,
-                      Entry,
-                      Stack);
-}
-#endif
-/* End Function:RVM_Thd_Hyp_Exec_Set *****************************************/
-
 /* Begin Function:RVM_Thd_Sched_Bind ******************************************
 Description : Set a thread's priority level, and its scheduler thread. When
               there are any state changes on this thread, a notification will
@@ -937,7 +924,7 @@ Input       : rvm_cid_t Cap_Thd - The capability to the thread.
                                   notifications. This signal endpoint will be
                                   sent to whenever this thread has a fault, or
                                   timeouts. This is purely optional; if it is
-                                  not needed, pass in RME_CAPID_NULL.
+                                  not needed, pass in RME_CID_NULL.
               rvm_tid_t TID - The thread ID. This is user-supplied, and the
                               kernel will not check whether there are two
                               threads that have the same TID.
@@ -955,11 +942,64 @@ rvm_ret_t RVM_Thd_Sched_Bind(rvm_cid_t Cap_Thd,
     return RVM_CAP_OP(RVM_SVC_THD_SCHED_BIND,
                       Cap_Thd,
                       RVM_PARAM_D1(Cap_Thd_Sched)|RVM_PARAM_D0(Cap_Sig),
-                      TID, 
-                      Prio);
+                      RVM_PARAM_D1(TID)|RVM_PARAM_D0(Prio), 
+                      RVM_NULL);
 }
 #endif
 /* End Function:RVM_Thd_Sched_Bind *******************************************/
+
+/* Begin Function:RVM_Hyp_Sched_Bind ******************************************
+Description : Set a thread's priority level, and its scheduler thread. When
+              there are any state changes on this thread, a notification will
+              be sent to its scheduler thread. If the state of the thread
+              changes for multiple times, then only the most recent state will
+              be reflected in the scheduler's receive queue.
+              The scheduler and the threads that it schedule must be on the
+              same core. When a thread wants to go from one core to another,
+              its notification to the scheduler must all be processed, and it
+              must have no scheduler notifications in itself. 
+              This must be called on the same core with the Cap_Thd_Sched, and
+              the Cap_Thd itself must be free.
+              It is impossible to set a thread's priority beyond its maximum
+              priority. 
+              This is for hypervisor-managed threads, and hence need to provide
+              a Haddr mapping address.
+Input       : rvm_cid_t Cap_Thd - The capability to the thread.
+                                  2-Level.
+              rvm_cid_t Cap_Thd_Sched - The scheduler thread.
+                                        2-Level.
+              rvm_cid_t Cap_Sig - The signal endpoint for scheduler
+                                  notifications. This signal endpoint will be
+                                  sent to whenever this thread has a fault, or
+                                  timeouts. This is purely optional; if it is
+                                  not needed, pass in RME_CID_NULL.
+              rvm_tid_t TID - The thread ID. This is user-supplied, and the
+                              kernel will not check whether there are two
+                              threads that have the same TID.
+              rvm_ptr_t Prio - The priority level, higher is more critical.
+              rvm_ptr_t Haddr - The kernel-accessible virtual memory address
+                                for this thread's register sets, only used by
+                                hypervisor-managed threads. For other threads,
+                                please pass in NULL instead.
+Output      : None.
+Return      : rvm_ret_t - If successful, 0; or an error code.
+******************************************************************************/
+#ifndef RVM_VIRT_VCT_NUM
+rvm_ret_t RVM_Hyp_Sched_Bind(rvm_cid_t Cap_Thd,
+                             rvm_cid_t Cap_Thd_Sched,
+                             rvm_cid_t Cap_Sig,
+                             rvm_tid_t TID,
+                             rvm_ptr_t Prio,
+                             rvm_ptr_t Haddr)
+{
+    return RVM_CAP_OP(RVM_SVC_THD_SCHED_BIND,
+                      Cap_Thd,
+                      RVM_PARAM_D1(Cap_Thd_Sched)|RVM_PARAM_D0(Cap_Sig),
+                      RVM_PARAM_D1(TID)|RVM_PARAM_D0(Prio), 
+                      Haddr);
+}
+#endif
+/* End Function:RVM_Hyp_Sched_Bind *******************************************/
 
 /* Begin Function:RVM_Thd_Sched_Prio ******************************************
 Description : Change a thread's priority level. This can only be called from

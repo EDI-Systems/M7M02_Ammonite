@@ -14,8 +14,8 @@ namespace RVM_GEN
 #define __PROCESS_HPP_DEFS__
 /*****************************************************************************/
 /* Process type */
-#define PROCESS_NATIVE  		(0)
-#define PROCESS_VIRTUAL  		(1)
+#define PROCESS_NATIVE          (0)
+#define PROCESS_VIRTUAL          (1)
 
 /* Magic number for native processes */
 #define MAGIC_NATIVE            (0x49535953U)
@@ -28,11 +28,11 @@ namespace RVM_GEN
  * For virtual machines,
  * [0] is the Hypd hypercall endpoint,
  * [1] is the Vctd vector endpoint. */
-#define NATIVE_CPT_BASE        	(1)
-#define VIRTUAL_CPT_BASE		(2)
+#define NATIVE_CPT_BASE            (1)
+#define VIRTUAL_CPT_BASE        (2)
 
 /* Description header alignment */
-#define PRC_DESC_ALIGN(X)      	ROUND_UP(X,16)
+#define PRC_DESC_ALIGN(X)          ROUND_UP(X,16)
 /*****************************************************************************/
 /* __PROCESS_HPP_DEFS__ */
 #endif
@@ -54,6 +54,9 @@ public:
     /* Extra capability table size */
     ptr_t Extra_Captbl;
 
+    /* Coprocessor list */
+    std::vector<std::string> Coprocessor;
+    std::set<std::string> Coprocessor_Set;
     /* Build system to use */
     std::string Buildsystem;
     /* Toolchain to use for that build system */
@@ -149,7 +152,7 @@ public:
     void Global_Alloc_Receive(std::vector<class Receive*>& Global);
     void Global_Alloc_Vector(std::vector<class Vect_Info*>& Global);
 
-    void Mem_Alloc(ptr_t Wordlength, ptr_t Reg_Size, ptr_t Kom_Order);
+    void Mem_Alloc(ptr_t Wordlength, ptr_t Hyp_Reg_Size, ptr_t Kom_Order);
 };
 /*****************************************************************************/
 /* __PROCESS_HPP_CLASSES__ */

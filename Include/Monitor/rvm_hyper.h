@@ -83,7 +83,7 @@ Description : The header of microcontroller user-level library.
 #define RVM_DLY2VM(X)               ((struct RVM_Virt_Struct*)(((rvm_ptr_t)(X))-sizeof(struct RVM_List)))
 
 /* Virtual machine thread ID identification */
-#define RVM_VIRT_TID_MARKER         ((rvm_tid_t)RVM_POW2(16U))
+#define RVM_VIRT_TID_MARKER         ((rvm_tid_t)RVM_POW2(15U))
 
 /* Communication flag set selection */
 #define RVM_FLAG_SET(B, S, N)       ((volatile struct RVM_Flag*)((B)+((S)>>1)*(N)))
@@ -93,9 +93,6 @@ Description : The header of microcontroller user-level library.
 #define RVM_DESC_MAGIC(B)           (((const struct RVM_Desc*)(B))->Magic)
 #define RVM_DESC_NUM(B)             (((const struct RVM_Desc*)(B))->Number)
 #define RVM_DESC_STUB(B)            RVM_DESC_ENTRY(B, RVM_DESC_NUM(B)-1U)
-
-/* Coprocessor */
-#define RVM_COPROCESSOR_NONE        (0U)
 /*****************************************************************************/
 /* __RVM_HYPER_H_DEFS__ */
 #endif
@@ -251,10 +248,8 @@ struct RVM_Desc
 struct RVM_Thd_Reg
 {
     struct RVM_Reg_Struct Reg;
-#if(RVM_COPROCESSOR_TYPE!=RVM_COPROCESSOR_NONE)
-    struct RVM_Cop_Struct Cop;
-#endif
     struct RVM_Exc_Struct Exc;
+    rvm_ptr_t Cop[1];
 };
 /*****************************************************************************/
 /* __RVM_HYPER_H_STRUCTS__ */

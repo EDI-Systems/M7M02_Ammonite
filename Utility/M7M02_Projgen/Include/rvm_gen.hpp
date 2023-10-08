@@ -184,6 +184,22 @@ void Name_Gen(T* This)
     Main::Upper(This->Name_Upper);
 }
 
+/* Name generation */
+template <typename T>
+void None_Filter(T& List)
+{
+    typename T::iterator Iter;
+
+    Iter=List.begin();
+    while(Iter!=List.end())
+    {
+        if(*Iter=="None")
+            Iter=List.erase(Iter);
+        else
+            Iter++;
+    }
+}
+
 /* XML trunk parsing */
 template <typename CONT, typename ELEM>
 void Trunk_Parse(xml_node_t* Root, const std::string& Section,

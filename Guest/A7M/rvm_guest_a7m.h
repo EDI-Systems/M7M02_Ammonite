@@ -79,26 +79,19 @@ typedef rvm_s32_t rvm_ret_t;
 #define RVM_WORD_ORDER                              (5U)
 
 /* FPU type definitions */
-#define RVM_A7M_FPU_NONE                            (0U)
-#define RVM_A7M_FPU_FPV4_SP                         (1U)
-#define RVM_A7M_FPU_FPV5_SP                         (2U)
-#define RVM_A7M_FPU_FPV5_DP                         (3U)
-
-/* Detect floating-point coprocessor existence */
-#define RVM_COPROCESSOR_TYPE                        RVM_A7M_FPU_TYPE
+#define RVM_A7M_ATTR_NONE                           (0U)
+#define RVM_A7M_ATTR_FPV4_SP                        (1U<<0)
+#define RVM_A7M_ATTR_FPV5_SP                        (1U<<1)
+#define RVM_A7M_ATTR_FPV5_DP                        (1U<<2)
 
 /* Thread size */
-#if(RVM_A7M_FPU_TYPE!=RVM_A7M_FPU_NONE)
-#define RVM_THD_WORD_SIZE                           (48U)
-#else
-#define RVM_THD_WORD_SIZE                           (32U)
-#endif
+#define RVM_HYP_RAW_SIZE                            ((21U)*sizeof(rvm_ptr_t))
 /* Invocation size */
-#define RVM_INV_WORD_SIZE                           (9U)
+#define RVM_INV_RAW_SIZE                            ((9U)*sizeof(rvm_ptr_t))
 /* Normal page directory size */
-#define RVM_PGT_WORD_SIZE_NOM(NUM_ORDER)            (5U+RVM_POW2(NUM_ORDER))
+#define RVM_PGT_RAW_SIZE_NOM(NUM_ORDER)             ((5U+RVM_POW2(NUM_ORDER))*sizeof(rvm_ptr_t))
 /* Top-level page directory size */
-#define RVM_PGT_WORD_SIZE_TOP(NUM_ORDER)            (1U+2U*RVM_A7M_REGION_NUM+RVM_PGT_WORD_SIZE_NOM(NUM_ORDER))
+#define RVM_PGT_RAW_SIZE_TOP(NUM_ORDER)             (((1U+2U*RVM_A7M_REGION_NUM)*sizeof(rvm_ptr_t))+RVM_PGT_RAW_SIZE_NOM(NUM_ORDER))
 
 /* ARMv7-M specific kernel function macros ***********************************/
 /* Page table entry mode which property to get */
@@ -256,11 +249,9 @@ struct RVM_Reg_Struct
     rvm_ptr_t LR;
 };
 
-
-
 /* The coprocessor register set structure. In Cortex-M, if there is a 
  * single-precision FPU, then the FPU S0-S15 is automatically pushed */
-struct RVM_Cop_Struct
+struct RVM_A7M_Cop_Struct
 {
     rvm_ptr_t S16;
     rvm_ptr_t S17;
@@ -320,8 +311,11 @@ EXTERN rvm_ret_t RVM_Inv_Act(rvm_cid_t Cap_Inv,
                              rvm_ptr_t* Retval);
 EXTERN rvm_ret_t RVM_Inv_Ret(rvm_ptr_t Retval);
 
+/* Utilities */
 EXTERN rvm_ptr_t _RVM_MSB_Get(rvm_ptr_t Val);
+EXTERN rvm_ptr_t RVM_Thd_Cop_Size(rvm_ptr_t Attr);
 
+/* Kernel functions */
 EXTERN rvm_ret_t RVM_A7M_Kfn_Act(rvm_cid_t Cap_Kfn,
                                  rvm_ptr_t Func_ID,
                                  rvm_ptr_t Sub_ID,

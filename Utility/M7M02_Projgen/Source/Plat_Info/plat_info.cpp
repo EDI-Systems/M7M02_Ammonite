@@ -49,6 +49,9 @@ Return      : None.
         Name_Gen(this);
         /* Wordlength */
         this->Wordlength=Main::XML_Get_Number(Root,"Wordlength","DXXXX","DXXXX");
+        /* Coprocessor */
+        Main::XML_Get_CSV(Root,"Coprocessor",this->Coprocessor,"DXXXX","DXXXX");
+        None_Filter(this->Coprocessor);
         /* Captbl_Max */
         this->Captbl_Max=POW2((this->Wordlength>>2)-1);
         /* Kfunc_Max */
@@ -96,6 +99,9 @@ void Plat_Info::Check(void)
         if(this->Guest.empty())
             Main::Error("XXXXX: No guest OS declarations exist.");
         Duplicate_Check<std::string>(this->Guest, this->Guest_Set, "PXXXX", "name", "Guest");
+
+        /* Check coprocessor list */
+        Duplicate_Check<std::string>(this->Coprocessor, this->Coprocessor_Set, "PXXXX", "name", "Coprocessor");
 
         /* Check compatibility data - all entries shall exist */
         for(std::unique_ptr<class Compatible>& Compat:this->Compatible)

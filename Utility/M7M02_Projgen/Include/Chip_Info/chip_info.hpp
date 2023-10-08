@@ -40,6 +40,7 @@ public:
     std::string Platform;
     /* Compatible chip list */
     std::vector<std::string> Compatible;
+    std::set<std::string> Compatible_Set;
     /* The vendor */
     std::string Vendor;
     /* The number of dual-purpose MPU regions */
@@ -48,6 +49,9 @@ public:
     ptr_t Iregion;
     /* The number of data-dedicated MPU regions */
     ptr_t Dregion;
+    /* Coprocessor hardwares */
+    std::vector<std::string> Coprocessor;
+    std::set<std::string> Coprocessor_Set;
 
     /* The platform-specific attributes to be passed to the platform-specific generator */
     std::map<std::string,std::string> Attribute;

@@ -715,8 +715,9 @@ void _RVM_Virt_Cur_Recover(void)
     RVM_ASSERT(RVM_Thd_Sched_Free(RVM_Virt_Cur->Map->Usr_Thd_Cap)==0);
     RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Virt_Cur->Map->Vct_Thd_Cap, RVM_Sftd_Thd_Cap, RVM_Sftd_Sig_Cap, 
                                   RVM_Virt_Cur->Map->Vct_Thd_Cap|RVM_VIRT_TID_MARKER, RVM_VVCT_PRIO)==0);
-    RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Virt_Cur->Map->Usr_Thd_Cap, RVM_Sftd_Thd_Cap, RVM_Sftd_Sig_Cap, 
-                                  RVM_Virt_Cur->Map->Usr_Thd_Cap|RVM_VIRT_TID_MARKER, RVM_VUSR_PRIO)==0);
+    RVM_ASSERT(RVM_Hyp_Sched_Bind(RVM_Virt_Cur->Map->Usr_Thd_Cap, RVM_Sftd_Thd_Cap, RVM_Sftd_Sig_Cap, 
+                                  RVM_Virt_Cur->Map->Usr_Thd_Cap|RVM_VIRT_TID_MARKER, RVM_VUSR_PRIO, 
+                                  (rvm_ptr_t)(RVM_Virt_Cur->Map->Reg_Base))==0);
     
     /* Set the execution properties for virt @ position 0 */
     Init_Stack_Addr=RVM_Stack_Init(RVM_Virt_Cur->Map->Vct_Stack_Base, RVM_Virt_Cur->Map->Vct_Stack_Size,
@@ -798,7 +799,7 @@ void RVM_Sftd(void)
         
         /* Print the reason of the fault */
         RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
-        RVM_Thd_Print_Exc(Thd);
+        RVM_Thd_Print_Exc(Thd&~RVM_VIRT_TID_MARKER);
 
         /* Whatever thread faults, we will need to print their registers, so we can figure out
          * what the fault is. There should be a print somewhere, but shouldn't be in the kernel. */

@@ -103,6 +103,7 @@ Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
               const std::string& After2 - The second command to run after compilation.
               const std::string& Target - The target name.
               ptr_t Optimization - The optimization level chosen.
+              const std::vector<std::string>& Coprocessor - The coprocessor options.
               const std::vector<std::string>& Include - The include paths.
               const std::vector<std::string>& Source - The source file paths.
               const std::string& Linker - The linker script (scatter file) path.
@@ -113,6 +114,7 @@ Return      : None.
 void Keil_Gen::Raw_Proj(std::unique_ptr<std::vector<std::string>>& List,
                         const std::string& After1, const std::string& After2,
                         const std::string& Target, const std::string& Optimization,
+						const std::vector<std::string>& Coprocessor,
                         const std::vector<std::string>& Include,
                         const std::vector<std::string>& Source,
                         const std::string& Linker, const std::string& Linker_Misc)
@@ -160,13 +162,13 @@ void Keil_Gen::Raw_Proj(std::unique_ptr<std::vector<std::string>>& List,
     else
         Main::Error("XXXXX: Internal processor type error.");
 
-    /* FPU Type */
-    if((this->Chip->Attribute["CPU"]=="CM0")||(this->Chip->Attribute["CPU"]=="CM0P"))
+    /* FPU Type - only one should exist for Keil uVision. We may change the logic later */
+    if(Coprocessor.empty())
     	FPU_Type="";
-    else
+    else if(Coprocessor.size()==1)
     {
-		FPU_Type=this->Chip->Attribute["FPU"];
-		if(FPU_Type=="None")
+		FPU_Type=Coprocessor[0];
+		if(FPU_Type=="NONE")
 			FPU_Type="";
 		else if(FPU_Type=="FPV4_SP")
 			FPU_Type="FPU2";
@@ -177,6 +179,8 @@ void Keil_Gen::Raw_Proj(std::unique_ptr<std::vector<std::string>>& List,
 		else
 			Main::Error("XXXXX: Internal FPU type error.");
     }
+    else
+		Main::Error("XXXXX: Internal FPU type error.");
 
     /* Endianness */
     Endian=this->Chip->Attribute["Endian"];
@@ -407,11 +411,14 @@ void Keil_Gen::Kernel_Proj(std::unique_ptr<std::vector<std::string>>& List,
                            const std::vector<std::string>& Source,
                            const std::vector<std::string>& Linker)
 {
+	std::vector<std::string> None;
+
     this->Raw_Proj(List,
                    "",                                      /* After 1 */
                    "",                                      /* After 2 */
                    "Kernel",                                /* Target */
                    this->Proj->Kernel->Optimization,        /* Optimization */
+				   None,                                    /* Coprocessor */
                    Include,                                 /* Include */
                    Source,                                  /* Source */
                    Linker[0],                               /* Linker */
@@ -437,6 +444,7 @@ void Keil_Gen::Monitor_Proj(std::unique_ptr<std::vector<std::string>>& List,
     std::string After1;
     std::string After2;
     std::vector<std::string> Bincopy;
+	std::vector<std::string> None;
 
     if(this->Proj->Kernel->Full_Image!=0)
     {
@@ -451,6 +459,7 @@ void Keil_Gen::Monitor_Proj(std::unique_ptr<std::vector<std::string>>& List,
                    After2,                                  /* After 2 */
                    "Monitor",                               /* Target */
                    this->Proj->Monitor->Optimization,       /* Optimization */
+				   None,                                    /* Coprocessor */
                    Include,                                 /* Include */
                    Source,                                  /* Source */
                    Linker[0],                               /* Linker */
@@ -492,6 +501,7 @@ void Keil_Gen::Process_Proj(std::unique_ptr<std::vector<std::string>>& List,
                    After2,                                  /* After 2 */
                    Prc->Name,                              	/* Target */
                    Prc->Optimization,                      	/* Optimization */
+				   Prc->Coprocessor,                        /* Coprocessor */
                    Include,                                 /* Include */
                    Source,                                  /* Source */
                    Linker[0],                               /* Linker */

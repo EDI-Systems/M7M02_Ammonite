@@ -68,7 +68,7 @@ Return      : None.
 }
 /* End Function:Plat_Gen::Plat_Gen *******************************************/
 
-/* Begin Function:Plat_Gen::Size_Cpt **************************************
+/* Begin Function:Plat_Gen::Size_Cpt ******************************************
 Description : Query the size of capability table given the number of slots.
 Input       : ptr_t Slot - The number of slots.
 Output      : None.
@@ -78,9 +78,9 @@ ptr_t Plat_Gen::Size_Cpt(ptr_t Slot)
 {
     return ROUND_UP_POW2(this->Plat->Wordlength*Slot,this->Proj->Kernel->Kom_Order);
 }
-/* End Function:Plat_Gen::Size_Cpt ****************************************/
+/* End Function:Plat_Gen::Size_Cpt *******************************************/
 
-/* Begin Function:Plat_Gen::Size_Pgt ****************************************
+/* Begin Function:Plat_Gen::Size_Pgt ******************************************
 Description : Query the size of page table given the parameters.
 Input       : ptr_t Num_Order - The number order.
               ptr_t Is_Top - Whether this is a top-level.
@@ -91,17 +91,22 @@ ptr_t Plat_Gen::Size_Pgt(ptr_t Num_Order, ptr_t Is_Top)
 {
     return ROUND_UP_POW2(this->Raw_Pgt(Num_Order,Is_Top),this->Proj->Kernel->Kom_Order);
 }
-/* End Function:Plat_Gen::Size_Pgt *****************************************/
+/* End Function:Plat_Gen::Size_Pgt *******************************************/
 
 /* Begin Function:Plat_Gen::Size_Thread ***************************************
 Description : Query the size of thread.
-Input       : None.
+Input       : const std::vector<std::string>& Coprocessor - The coprocessor list.
+              ptr_t Is_Hyp - Whether the thread is hypervisor managed.
 Output      : None.
 Return      : ptr_t - The size in bytes.
 ******************************************************************************/
-ptr_t Plat_Gen::Size_Thread(void)
+ptr_t Plat_Gen::Size_Thread(const std::vector<std::string>& Coprocessor,
+		                    ptr_t Is_Hyp)
 {
-    return ROUND_UP_POW2(this->Raw_Thread(),this->Proj->Kernel->Kom_Order);
+	if(Is_Hyp!=0)
+		return ROUND_UP_POW2(this->Raw_Thread(),this->Proj->Kernel->Kom_Order);
+	else
+		return ROUND_UP_POW2(this->Raw_Thread()+this->Raw_Register(Coprocessor),this->Proj->Kernel->Kom_Order);
 }
 /* End Function:Plat_Gen::Size_Thread ****************************************/
 
@@ -119,13 +124,13 @@ ptr_t Plat_Gen::Size_Invocation(void)
 
 /* Begin Function:Plat_Gen::Size_Register *************************************
 Description : Query the size of the register set.
-Input       : None.
+Input       : const std::vector<std::string>& Coprocessor - The coprocessor list.
 Output      : None.
 Return      : ptr_t - The size in bytes.
 ******************************************************************************/
-ptr_t Plat_Gen::Size_Register(void)
+ptr_t Plat_Gen::Size_Register(const std::vector<std::string>& Coprocessor)
 {
-    return ROUND_UP_POW2(this->Raw_Register(),this->Proj->Kernel->Kom_Order);
+    return ROUND_UP_POW2(this->Raw_Register(Coprocessor),this->Proj->Kernel->Kom_Order);
 }
 /* End Function:Plat_Gen::Size_Register **************************************/
 }

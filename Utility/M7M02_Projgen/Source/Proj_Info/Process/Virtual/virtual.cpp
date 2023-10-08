@@ -87,8 +87,8 @@ Process(Root,PROCESS_VIRTUAL)
         this->Vector_Num=Main::XML_Get_Number(Root,"Vector_Num","DXXXX","DXXXX");
 
         /* Handler & user thread for VM - VM does not have other threads */
-        this->Thread.push_back(std::make_unique<class Thread>("Vct", this->Vector_Stack_Size, 0, VIRT_VECTOR_PRIO, this));
-        this->Thread.push_back(std::make_unique<class Thread>("Usr", this->User_Stack_Size, 0, VIRT_USER_PRIO, this));
+        this->Thread.push_back(std::make_unique<class Thread>("Vct", 0, this->Vector_Stack_Size, 0, VIRT_VECTOR_PRIO, this));
+        this->Thread.push_back(std::make_unique<class Thread>("Usr", 1, this->User_Stack_Size, 0, VIRT_USER_PRIO, this));
     }
     catch(std::exception& Exc)
     {

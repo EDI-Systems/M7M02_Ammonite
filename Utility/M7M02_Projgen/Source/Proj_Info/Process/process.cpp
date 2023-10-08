@@ -67,6 +67,9 @@ Kobj(this)
         /* Extra_Captbl */
         this->Extra_Captbl=Main::XML_Get_Number(Root, "Extra_Captbl", "DXXXX", "DXXXX");
 
+        /* Coprocessor */
+        Main::XML_Get_CSV(Root,"Coprocessor",this->Coprocessor,"DXXXX","DXXXX");
+        None_Filter(this->Coprocessor);
         /* Build */
         this->Buildsystem=Main::XML_Get_String(Root, "Buildsystem", "DXXXX", "DXXXX");
         /* Toolchain */
@@ -140,6 +143,9 @@ void Process::Check(void)
 {
     try
     {
+        /* Check coprocessor list */
+        Duplicate_Check<std::string>(this->Coprocessor, this->Coprocessor_Set, "PXXXX", "name", "Coprocessor");
+
         /* Check memory layout */
         if(this->Memory.empty())
             Main::Error("XXXXX: The process contains no memory segments.");
@@ -480,12 +486,12 @@ Description : Allocate process memory. The header of a process is like
               };
               and the real entry point immediately follows it.
 Input       : ptr_t Wordlength - The number of bits in a word.
-              ptr_t Reg_Size - The register set size.
+              ptr_t Hyp_Reg_Size - The register set size for hypervisor-managed thread.
               ptr_t Kom_Order - The kernel memory order.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Process::Mem_Alloc(ptr_t Wordlength, ptr_t Reg_Size, ptr_t Kom_Order)
+void Process::Mem_Alloc(ptr_t Wordlength, ptr_t Hyp_Reg_Size, ptr_t Kom_Order)
 {
     class Virtual* Virt;
 
@@ -569,8 +575,8 @@ void Process::Mem_Alloc(ptr_t Wordlength, ptr_t Reg_Size, ptr_t Kom_Order)
             Main::Error("XXXXX: Data section size is not big enough, unable to allocate virtual machine interrupt flags.");
         this->Data_Size=Virt->State_Base-this->Data_Base;
 
-        /* Register space */
-        Virt->Reg_Size=ROUND_UP_POW2(Reg_Size,Kom_Order);
+        /* Register space for hypervisor-managed thread */
+        Virt->Reg_Size=ROUND_UP_POW2(Hyp_Reg_Size,Kom_Order);
         Virt->Reg_Base=this->Data_Base+this->Data_Size-Virt->Reg_Size;
         Main::Info("> Register base 0x%llX size 0x%llX.", Virt->Reg_Base, Virt->Reg_Size);
         if(Virt->Reg_Base<=this->Data_Base)

@@ -664,6 +664,13 @@ void Gen_Tool::Kernel_Conf_Hdr(void)
     Gen_Tool::Macro_Int(List, "RME_RVM_CPT_DONE_FRONT", Monitor->After_Cap_Front, MACRO_REPLACE);
     Gen_Tool::Macro_Hex(List, "RME_RVM_KOM_DONE_FRONT", Monitor->After_Kom_Front, MACRO_REPLACE);
 
+    /* Set coprocessor macros - set all of them to 0 first, then modify from there */
+    Gen_Tool::Macro_Int(List, "RME_COP_NUM", this->Plat->Proj->Chip->Coprocessor.size(), MACRO_REPLACE);
+    for(const std::string& Cop:this->Plat->Plat->Coprocessor)
+        Gen_Tool::Macro_Int(List, "RME_"+this->Plat->Name_Upper+"_COP_"+Cop, 0, MACRO_REPLACE);
+    for(const std::string& Cop:this->Plat->Proj->Chip->Coprocessor)
+        Gen_Tool::Macro_Int(List, "RME_"+this->Plat->Name_Upper+"_COP_"+Cop, 1, MACRO_REPLACE);
+
     /* Replace platform specific macros */
     this->Plat->Kernel_Conf_Hdr(List);
     /* Chip specific macros - we must be able to find it because we checked before */
@@ -1332,6 +1339,13 @@ void Gen_Tool::Monitor_Conf_Hdr(void)
     /* Stack safety redundancy, in bytes - fixed to 16 words */
     Gen_Tool::Macro_Int(List, "RVM_STACK_SAFE_RDCY", 16, MACRO_REPLACE);
 
+    /* Set coprocessor macros - set all of them to 0 first, then modify from there */
+    Gen_Tool::Macro_Int(List, "RVM_COP_NUM", this->Plat->Proj->Chip->Coprocessor.size(), MACRO_REPLACE);
+    for(const std::string& Cop:this->Plat->Plat->Coprocessor)
+        Gen_Tool::Macro_Int(List, "RVM_"+this->Plat->Name_Upper+"_COP_"+Cop, 0, MACRO_REPLACE);
+    for(const std::string& Cop:this->Plat->Proj->Chip->Coprocessor)
+        Gen_Tool::Macro_Int(List, "RVM_"+this->Plat->Name_Upper+"_COP_"+Cop, 1, MACRO_REPLACE);
+
     /* Replace platform specific macros */
     this->Plat->Monitor_Conf_Hdr(List);
     /* Write to Monitor configuration file */
@@ -1890,6 +1904,7 @@ void Gen_Tool::Monitor_Boot_Src(void)
     std::vector<std::string> Input;
     std::vector<std::string> Output;
     std::unique_ptr<std::vector<std::string>> List;
+    std::string Coprocessor;
 
     Monitor=this->Plat->Proj->Monitor.get();
     List=std::make_unique<std::vector<std::string>>();
@@ -2054,8 +2069,15 @@ void Gen_Tool::Monitor_Boot_Src(void)
     List->push_back("{");
     for(const class Thread* Thd:Monitor->Thread)
     {
+    	/* Generate coprocessor list for this thread */
+    	Coprocessor.clear();
+    	for(const std::string& Cop:Thd->Owner->Coprocessor)
+    		Coprocessor+="RVM_"+this->Plat->Name_Upper+"_ATTR_"+Cop+"|";
+    	Coprocessor+="RVM_"+this->Plat->Name_Upper+"_ATTR_NONE";
+
         List->push_back(std::string("{RVM_MAIN_THD_")+MIDS(Thd->Cid_Global)+", "+SIDS(Thd->Cid_Global)+", "+
-                        Thd->Owner->Macro_Global+", "+std::to_string(Thd->Priority)+"U},");
+                        Thd->Owner->Macro_Global+", "+std::to_string(Thd->Priority)+"U, "+
+						Coprocessor+", "+std::to_string(Thd->Is_Hyp)+"U},");
     }
     List->push_back("};");
     List->push_back("const struct RVM_Meta_Thd_Init_Struct RVM_Meta_Thd_Init[RVM_BOOT_THD_INIT_NUM]=");
@@ -2435,11 +2457,21 @@ void Gen_Tool::Process_Main_Hdr(class Process* Prc)
     }
 
     /* Assert & debugging */
+    List->push_back("/* Debugging settings */");
     Gen_Tool::Macro_Int(List, "RVM_ASSERT_CORRECT", this->Plat->Proj->Assert_Correct, MACRO_ADD);
     Gen_Tool::Macro_Int(List, "RVM_DEBUG_PRINT", this->Plat->Proj->Debug_Print, MACRO_ADD);
+    List->push_back("");
+
+    /* Set coprocessor macros - set all of them to 0 first, then modify from there */
+    List->push_back("/* Coprocessor options */");
+    Gen_Tool::Macro_Int(List, "RVM_COP_NUM", Prc->Coprocessor.size(), MACRO_REPLACE);
+    for(const std::string& Cop:this->Plat->Plat->Coprocessor)
+        Gen_Tool::Macro_Int(List, "RVM_"+this->Plat->Name_Upper+"_COP_"+Cop, 0, MACRO_REPLACE);
+    for(const std::string& Cop:Prc->Coprocessor)
+        Gen_Tool::Macro_Int(List, "RVM_"+this->Plat->Name_Upper+"_COP_"+Cop, 1, MACRO_REPLACE);
 
     /* Generate platform specific macros */
-    this->Plat->Process_Main_Hdr(List);
+    this->Plat->Process_Main_Hdr(List, Prc);
 
     List->push_back(std::string("#endif /* __PRC_")+Prc->Name_Upper+"_H__ */");
     List->push_back("/* End Defines ***************************************************************/");

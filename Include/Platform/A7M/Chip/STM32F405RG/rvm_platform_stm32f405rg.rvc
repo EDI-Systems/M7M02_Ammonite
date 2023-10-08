@@ -8,9 +8,9 @@
     <Region>8</Region>
     <Iregion>0</Iregion>
     <Dregion>0</Dregion>
+    <Coprocessor>FPV4_SP</Coprocessor>
     <Attribute>
         <CPU>CM4</CPU>
-        <FPU>FPV4_SP</FPU>
         <Endian>Little</Endian>
     </Attribute>
     <Memory>

@@ -111,7 +111,7 @@ while(0)
 #define RVM_ROUND_UP(NUM,POW)                       RVM_ROUND_DOWN((NUM)+RVM_MASK_END(POW-1U),POW)
 
 /* System service stub */
-#define RVM_CAP_OP(OP,CID,ARG1,ARG2,ARG3)         RVM_Svc(((OP)<<(sizeof(rvm_ptr_t)*4U))|((rvm_ptr_t)(CID)), \
+#define RVM_CAP_OP(OP,CID,ARG1,ARG2,ARG3)           RVM_Svc(((OP)<<(sizeof(rvm_ptr_t)*4U))|((rvm_ptr_t)(CID)), \
                                                             ((rvm_ptr_t)(ARG1)),((rvm_ptr_t)(ARG2)),((rvm_ptr_t)(ARG3)))
 #define RVM_PARAM_D_MASK                            ((RVM_ALLBITS)>>(sizeof(rvm_ptr_t)*4U))
 #define RVM_PARAM_Q_MASK                            ((RVM_ALLBITS)>>(sizeof(rvm_ptr_t)*6U))
@@ -146,7 +146,7 @@ while(0)
 #define RVM_KOM_FLAG(HIGH,LOW)                      ((((HIGH)>>(sizeof(rvm_ptr_t)*4U))<<(sizeof(rvm_ptr_t)*4U))| \
                                                     ((LOW)>>(sizeof(rvm_ptr_t)*4U)))
 #define RVM_KOM_SVC(HIGH,SVC)                       (((((HIGH)>>6)<<(sizeof(rvm_ptr_t)*4U+6U))>>(sizeof(rvm_ptr_t)*4U))|(SVC))
-#define RVM_KOM_CID(LOW,FLAGS)                    (((((LOW)>>6)<<(sizeof(rvm_ptr_t)*4U+6U))>>(sizeof(rvm_ptr_t)*4U))|(FLAGS))
+#define RVM_KOM_CID(LOW,FLAGS)                      (((((LOW)>>6)<<(sizeof(rvm_ptr_t)*4U+6U))>>(sizeof(rvm_ptr_t)*4U))|(FLAGS))
 /* Page table */
 #define RVM_PGT_SVC(NUM_ORDER,SVC)                  (((NUM_ORDER)<<(sizeof(rvm_ptr_t)<<1))|(SVC))
 #define RVM_PGT_FLAG(HIGH,LOW,FLAGS)                (((HIGH)<<(sizeof(rvm_ptr_t)*4U+4U))|((LOW)<<8)|(FLAGS))
@@ -163,27 +163,31 @@ while(0)
 #define RVM_THD_MAX_TIME                            (RVM_THD_INF_TIME)
 /* Sched rcv return value's fault flag */
 #define RVM_THD_FAULT_FLAG                          ((rvm_tid_t)RVM_POW2(sizeof(rvm_ptr_t)*8U-2U))
+/* Thread creation */
+#define RVM_THD_SVC(ATTR,IS_HYP,SVC)                (((ATTR)<<7U)|(((IS_HYP)!=0U)<<6U)|(SVC))
     
 /* Size of kernel objects */
-/* Capability table */
-#define RVM_CPT_WORD_SIZE(NUM)                      (((rvm_ptr_t)(NUM))<<3)
-
 /* Rounded size of each object */
-#define RVM_KOM_ROUND(X)                            RVM_ROUND_UP((((rvm_ptr_t)(X))*sizeof(rvm_ptr_t)),RVM_KOM_SLOT_ORDER)
+#define RVM_KOM_ROUND(X)                            RVM_ROUND_UP((rvm_ptr_t)(X),RVM_KOM_SLOT_ORDER)
+/* Capability table raw size */
+#define RVM_CPT_RAW_SIZE(NUM)                       ((((rvm_ptr_t)(NUM))<<3)*sizeof(rvm_ptr_t))
 /* Capability table */
-#define RVM_CPT_SIZE(NUM)                           RVM_KOM_ROUND(RVM_CPT_WORD_SIZE(NUM))
+#define RVM_CPT_SIZE(NUM)                           RVM_KOM_ROUND(RVM_CPT_RAW_SIZE(NUM))
 /* Normal page directory */
-#define RVM_PGT_SIZE_NOM(NUM_ORDER)                 RVM_KOM_ROUND(RVM_PGT_WORD_SIZE_NOM(NUM_ORDER))
+#define RVM_PGT_SIZE_NOM(NUM_ORDER)                 RVM_KOM_ROUND(RVM_PGT_RAW_SIZE_NOM(NUM_ORDER))
 /* Top-level page directory */
-#define RVM_PGT_SIZE_TOP(NUM_ORDER)                 RVM_KOM_ROUND(RVM_PGT_WORD_SIZE_TOP(NUM_ORDER))
-/* Process */
-#define RVM_PRC_SIZE                                RVM_KOM_ROUND(RVM_PRC_WORD_SIZE)
+#define RVM_PGT_SIZE_TOP(NUM_ORDER)                 RVM_KOM_ROUND(RVM_PGT_RAW_SIZE_TOP(NUM_ORDER))
 /* Thread */
-#define RVM_THD_SIZE                                RVM_KOM_ROUND(RVM_THD_WORD_SIZE)
-/* Signal */                           
-#define RVM_SIG_SIZE                                RVM_KOM_ROUND(RVM_SIG_WORD_SIZE)
+#if(RVM_COP_NUM!=0U)
+#define RVM_REG_RAW_SIZE(X)                         (sizeof(struct RVM_Thd_Reg)-sizeof(rvm_ptr_t)+RVM_Thd_Cop_Size(X))
+#else
+#define RVM_REG_RAW_SIZE(X)                         (sizeof(struct RVM_Thd_Reg)-sizeof(rvm_ptr_t))
+#endif
+#define RVM_HYP_SIZE                                RVM_KOM_ROUND(RVM_HYP_RAW_SIZE)
+#define RVM_REG_SIZE(X)                             RVM_KOM_ROUND(RVM_REG_RAW_SIZE(X))
+#define RVM_THD_SIZE(X)                             RVM_KOM_ROUND(RVM_HYP_RAW_SIZE+RVM_REG_RAW_SIZE(X))
 /* Invocation */
-#define RVM_INV_SIZE                                RVM_KOM_ROUND(RVM_INV_WORD_SIZE)
+#define RVM_INV_SIZE                                RVM_KOM_ROUND(RVM_INV_RAW_SIZE)
 
 /* The TLS masks */ 
 #define RVM_TLS_MASK_128B                           RVM_ROUND_DOWN(RVM_ALLBITS, 7U)
@@ -199,19 +203,19 @@ while(0)
 
 /* Initial capability layout - same across all architectures */
 /* The capability table of the init process */
-#define RVM_BOOT_INIT_CPT                                (0U)
+#define RVM_BOOT_INIT_CPT                           (0U)
 /* The top-level page table of the init process - always full memory access */
-#define RVM_BOOT_INIT_PGT                                (1U)
+#define RVM_BOOT_INIT_PGT                           (1U)
 /* The init process */
-#define RVM_BOOT_INIT_PRC                                (2U)
+#define RVM_BOOT_INIT_PRC                           (2U)
 /* The init thread */
-#define RVM_BOOT_INIT_THD                                (3U)
+#define RVM_BOOT_INIT_THD                           (3U)
 /* The initial kernel function capability */
-#define RVM_BOOT_INIT_KFN                                (4U)
+#define RVM_BOOT_INIT_KFN                           (4U)
 /* The initial kernel memory capability */
-#define RVM_BOOT_INIT_KOM                                (5U)
+#define RVM_BOOT_INIT_KOM                           (5U)
 /* The initial interrupt endpoint */
-#define RVM_BOOT_INIT_VCT                                (6U)
+#define RVM_BOOT_INIT_VCT                           (6U)
 /*****************************************************************************/
 /* __RVM_SYSSVC_H_DEFS__ */
 #endif
@@ -383,24 +387,32 @@ __EXTERN__ rvm_ret_t RVM_Thd_Crt(rvm_cid_t Cap_Cpt,
                                  rvm_cid_t Cap_Thd,
                                  rvm_cid_t Cap_Prc,
                                  rvm_ptr_t Max_Prio,
-                                 rvm_ptr_t Raddr);
+                                 rvm_ptr_t Raddr,
+                                 rvm_ptr_t Attr);
+__EXTERN__ rvm_ret_t RVM_Hyp_Crt(rvm_cid_t Cap_Cpt,
+                                 rvm_cid_t Cap_Kom,
+                                 rvm_cid_t Cap_Thd,
+                                 rvm_cid_t Cap_Prc,
+                                 rvm_ptr_t Max_Prio,
+                                 rvm_ptr_t Raddr,
+                                 rvm_ptr_t Attr);
 __EXTERN__ rvm_ret_t RVM_Thd_Del(rvm_cid_t Cap_Cpt,
                                  rvm_cid_t Cap_Thd);
 __EXTERN__ rvm_ret_t RVM_Thd_Exec_Set(rvm_cid_t Cap_Thd,
                                       rvm_ptr_t Entry,
                                       rvm_ptr_t Stack,
                                       rvm_ptr_t Param);
-__EXTERN__ rvm_ret_t RVM_Thd_Hyp_Set(rvm_cid_t Cap_Thd,
-                                     rvm_ptr_t Kaddr);
-__EXTERN__ rvm_ret_t RVM_Thd_Hyp_Exec_Set(rvm_cid_t Cap_Thd,
-                                          rvm_ptr_t Kaddr,
-                                          rvm_ptr_t Entry,
-                                          rvm_ptr_t Stack);
 __EXTERN__ rvm_ret_t RVM_Thd_Sched_Bind(rvm_cid_t Cap_Thd,
                                         rvm_cid_t Cap_Thd_Sched,
                                         rvm_cid_t Cap_Sig,
                                         rvm_tid_t TID,
                                         rvm_ptr_t Prio);
+__EXTERN__ rvm_ret_t RVM_Hyp_Sched_Bind(rvm_cid_t Cap_Thd,
+                                        rvm_cid_t Cap_Thd_Sched,
+                                        rvm_cid_t Cap_Sig,
+                                        rvm_tid_t TID,
+                                        rvm_ptr_t Prio,
+                                        rvm_ptr_t Haddr);
 __EXTERN__ rvm_ret_t RVM_Thd_Sched_Prio(rvm_cid_t Cap_Thd,
                                         rvm_ptr_t Prio);
 __EXTERN__ rvm_ret_t RVM_Thd_Sched_Prio2(rvm_cid_t Cap_Thd0,

@@ -3,8 +3,7 @@ Filename    : a6m_gen.cpp
 Author      : pry
 Date        : 12/07/2019
 Licence     : LGPL v3+; see COPYING for details.
-Description : This toolset is for ARMv7-M. Specifically, this suits Cortex-M0+,
-              Cortex-M3, Cortex-M4, Cortex-M7. For ARMv8-M, please use A8M port.
+Description : This toolset is for ARMv6-M. Specifically, this suits Cortex-M0+.
 ******************************************************************************/
 
 /* Includes ******************************************************************/
@@ -114,28 +113,28 @@ ptr_t A6M_Gen::Mem_Align(ptr_t Base, ptr_t Size, ptr_t Align_Order)
          * alignment and calculate its start address alignment granularity */
         if(Base==MEM_AUTO)
         {
-        	/* Compute maximum alignment that make sense for this memory trunk */
-			Align=1;
-			while(Align<Size)
-				Align<<=1;
+            /* Compute maximum alignment that make sense for this memory trunk */
+            Align=1;
+            while(Align<Size)
+                Align<<=1;
 
-			/* If the user did not supply an alignment order, produce an appropriate default.
-			 * For ARMv6-M, the default is 1/8 of the nearest power of 2 for the size */
-			if(Align_Order==MEM_AUTO)
-			{
-				Align>>=3;
-				if(Align<A6M_MEM_ALIGN)
-					Align=A6M_MEM_ALIGN;
-			}
-			/* If the user supplied the alignment order, check if that order makes sense */
-			else
-			{
-				if((Align_Order>=32)||(POW2(Align_Order)>Align))
-					Main::Error("XXXXX: Alignment order too large.");
-				if(Align_Order<5)
-					Main::Error("XXXXX: Alignment order too small.");
-				Align=POW2(Align_Order);
-			}
+            /* If the user did not supply an alignment order, produce an appropriate default.
+             * For ARMv6-M, the default is 1/8 of the nearest power of 2 for the size */
+            if(Align_Order==MEM_AUTO)
+            {
+                Align>>=3;
+                if(Align<A6M_MEM_ALIGN)
+                    Align=A6M_MEM_ALIGN;
+            }
+            /* If the user supplied the alignment order, check if that order makes sense */
+            else
+            {
+                if((Align_Order>=32)||(POW2(Align_Order)>Align))
+                    Main::Error("XXXXX: Alignment order too large.");
+                if(Align_Order<5)
+                    Main::Error("XXXXX: Alignment order too small.");
+                Align=POW2(Align_Order);
+            }
         }
         else
         {
@@ -443,7 +442,7 @@ void A6M_Gen::Pgdir_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
 }
 /* End Function:A6M_Gen::Pgdir_Map *******************************************/
 
-/* Begin Function:A6M_Gen::Pgt_Gen ******************************************
+/* Begin Function:A6M_Gen::Pgt_Gen ********************************************
 Description : Recursively construct the page table for the ARMv6-M port.
 Input       : std::vector<std::unique_ptr<class Mem_Info>>& - The list containing
                                                               memory segments to fit
@@ -476,7 +475,7 @@ std::unique_ptr<class Pgtbl> A6M_Gen::Pgt_Gen(std::vector<std::unique_ptr<class 
     /* Make sure the list only contain static mappings - ARMv6-M does not allow dynamic mappings */
     for(const std::unique_ptr<class Mem_Info>& Mem:List)
     {
-    	if((Mem->Attr&MEM_STATIC)==0)
+        if((Mem->Attr&MEM_STATIC)==0)
             Main::Error("XXXXX: ARMv6-M does not allow dynamic page mappings.");
     }
 
@@ -505,9 +504,9 @@ std::unique_ptr<class Pgtbl> A6M_Gen::Pgt_Gen(std::vector<std::unique_ptr<class 
 
     return Pgt;
 }
-/* End Function:A6M::Gen_Pgt ***********************************************/
+/* End Function:A6M::Gen_Pgt *************************************************/
 
-/* Begin Function:A6M_Gen::Raw_Pgt ******************************************
+/* Begin Function:A6M_Gen::Raw_Pgt ********************************************
 Description : Query the size of page table given the parameters.
 Input       : ptr_t Num_Order - The number order.
               ptr_t Is_Top - Whether this is a top-level.
@@ -521,23 +520,23 @@ ptr_t A6M_Gen::Raw_Pgt(ptr_t Num_Order, ptr_t Is_Top)
     else
         return A6M_RAW_PGT_SIZE_NOM(Num_Order);
 }
-/* End Function:A6M_Gen::Size_Pgt ******************************************/
+/* End Function:A6M_Gen::Size_Pgt ********************************************/
 
 /* Begin Function:A6M_Gen::Raw_Thread *****************************************
-Description : Query the size of thread.
-Input       : None
+Description : Query the size of the minimal thread object.
+Input       : None.
 Output      : None.
 Return      : ptr_t - The size in bytes.
 ******************************************************************************/
 ptr_t A6M_Gen::Raw_Thread(void)
 {
-    return A6M_RAW_THD_SIZE;
+    return A6M_RAW_HYP_SIZE;
 }
 /* End Function:A6M_Gen::Raw_Thread ******************************************/
 
 /* Begin Function:A6M_Gen::Raw_Invocation *************************************
 Description : Query the size of a invocation.
-Input       : None
+Input       : None.
 Output      : None.
 Return      : ptr_t - The size in bytes.
 ******************************************************************************/
@@ -549,11 +548,11 @@ ptr_t A6M_Gen::Raw_Invocation(void)
 
 /* Begin Function:A6M_Gen::Raw_Register ***************************************
 Description : Query the size of the register set.
-Input       : None.
+Input       : const std::vector<std::string>& Coprocessor - The coprocessor list.
 Output      : None.
 Return      : ptr_t - The size in bytes.
 ******************************************************************************/
-ptr_t A6M_Gen::Raw_Register(void)
+ptr_t A6M_Gen::Raw_Register(const std::vector<std::string>& Coprocessor)
 {
     return A6M_RAW_REG_SIZE;
 }
@@ -572,9 +571,7 @@ void A6M_Gen::Kernel_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
     /* Init process's first thread's stack address */
     Gen_Tool::Macro_Hex(List, "RME_A6M_INIT_STACK",
                         this->Proj->Monitor->Init_Stack_Base+this->Proj->Monitor->Init_Stack_Size-16, MACRO_REPLACE);
-    /* What is the NVIC priority grouping? */
-    Gen_Tool::Macro_String(List,"RME_A6M_NVIC_GROUPING",
-                           std::string("RME_A6M_NVIC_GROUPING_")+this->Proj->Chip->Config["NVIC_Grouping"], MACRO_REPLACE);
+    /* No NVIC grouping for ARMv6-M */
     /* What is the Systick value? - (usually) 10ms per tick */
     Gen_Tool::Macro_String(List, "RME_A6M_SYSTICK_VAL", this->Proj->Chip->Config["Systick_Value"], MACRO_REPLACE);
 
@@ -610,10 +607,12 @@ void A6M_Gen::Monitor_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
 /* Begin Function:A6M_Gen::Process_Main_Hdr ***********************************
 Description : Replace process main header macros.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The input file.
+              const class Process* Prc - The process information.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The modified file.
 Return      : None.
 ******************************************************************************/
-void A6M_Gen::Process_Main_Hdr(std::unique_ptr<std::vector<std::string>>& List)
+void A6M_Gen::Process_Main_Hdr(std::unique_ptr<std::vector<std::string>>& List,
+                               const class Process* Prc)
 {
     /* CPU & Endianness currently unused */
 }

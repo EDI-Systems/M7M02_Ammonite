@@ -50,6 +50,8 @@ Description: The configuration file for STM32L071Cb. The values listed here shou
 #define RVM_A6M_INIT_STACK                              (0x2000FFF0U)
 /* Number of MPU regions available */
 #define RVM_A6M_REGION_NUM                              (8U)
+/* What is the FPU type? - always a no */
+#define RVM_COP_NUM                                     (0U)
 
 /* Syslib configurations *****************************************************/
 /* Stack redundancy */

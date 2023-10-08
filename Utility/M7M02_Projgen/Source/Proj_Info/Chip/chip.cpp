@@ -47,6 +47,9 @@ Return      : None.
         this->Class=Main::XML_Get_String(Root,"Class","DXXXX","DXXXX");
         /* Name */
         this->Name=Main::XML_Get_String(Root,"Name","DXXXX","DXXXX");
+        /* Coprocessor */
+        Main::XML_Get_CSV(Root,"Coprocessor",this->Coprocessor,"DXXXX","DXXXX");
+        None_Filter(this->Coprocessor);
         /* Config */
         Main::XML_Get_KVP(Root,"Config",this->Config,"DXXXX","DXXXX");
     }
@@ -59,6 +62,29 @@ Return      : None.
     }
 }
 /* End Function:Chip::Chip ***************************************************/
+
+/* Begin Function:Chip::Check *************************************************
+Description : Check whether the project chip section makes sense.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Chip::Check(void)
+{
+    try
+    {
+        /* Check coprocessor list */
+        Duplicate_Check<std::string>(this->Coprocessor, this->Coprocessor_Set, "PXXXX", "name", "Coprocessor");
+    }
+    catch(std::exception& Exc)
+    {
+        if(this->Name!="")
+            Main::Error(std::string("Chip: ")+this->Name+"\n"+Exc.what());
+        else
+            Main::Error(std::string("Chip: ")+"Unknown"+"\n"+Exc.what());
+    }
+}
+/* End Function:Chip::Check **************************************************/
 }
 /* End Of File ***************************************************************/
 

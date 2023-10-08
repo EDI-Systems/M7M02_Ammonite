@@ -64,6 +64,9 @@ Return      : None.
         this->Iregion=Main::XML_Get_Number(Root,"Iregion","DXXXX","DXXXX");
         /* Dregion */
         this->Dregion=Main::XML_Get_Number(Root,"Dregion","DXXXX","DXXXX");
+        /* Coprocessor */
+        Main::XML_Get_CSV(Root,"Coprocessor",this->Coprocessor,"DXXXX","DXXXX");
+        None_Filter(this->Coprocessor);
         /* Attribute */
         Main::XML_Get_KVP(Root,"Attribute",this->Attribute,"DXXXX","DXXXX");
         /* Memory */
@@ -86,7 +89,7 @@ Return      : None.
 /* End Function:Chip_Info::Chip_Info *****************************************/
 
 /* Begin Function:Chip_Info::Check ********************************************
-Description : Check whether the project configuration makes sense.
+Description : Check whether the chip configuration makes sense.
 Input       : None.
 Output      : None.
 Return      : None.
@@ -95,9 +98,15 @@ void Chip_Info::Check(void)
 {
     try
     {
+    	/* Check compatible models */
+        Duplicate_Check<std::string>(this->Compatible, this->Compatible_Set, "PXXXX", "name", "Compatible");
+
         /* Check chip regions */
         if((this->Region==0)&&((this->Iregion==0)||(this->Dregion==0)))
-            Main::Error("XXXXX: Chip must have more than one MPU region for instruction and data.");
+            Main::Error("PXXXX: Chip must have more than one MPU region for instruction and data.");
+
+        /* Check coprocessor list */
+        Duplicate_Check<std::string>(this->Coprocessor, this->Coprocessor_Set, "PXXXX", "name", "Coprocessor");
 
         /* Check chip memory */
         for(std::unique_ptr<class Mem_Info>& Mem:this->Memory)

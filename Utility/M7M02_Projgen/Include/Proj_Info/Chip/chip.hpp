@@ -36,10 +36,15 @@ public:
     std::string Class;
     /* The vendor */
     std::string Name;
+    /* Selected coprocessors in this project */
+    std::vector<std::string> Coprocessor;
+    std::set<std::string> Coprocessor_Set;
     /* The configuration option values */
     std::map<std::string,std::string> Config;
 
     /* void */ Chip(xml_node_t* Root);
+
+    void Check(void);
 };
 /*****************************************************************************/
 /* __CHIP_HPP_CLASSES__ */

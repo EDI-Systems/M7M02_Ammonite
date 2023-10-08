@@ -51,7 +51,10 @@ Description: The configuration file for STM32F405RG. The values listed here shou
 /* Number of MPU regions available */
 #define RVM_A7M_REGION_NUM                              (8U)
 /* What is the FPU type? */
-#define RVM_A7M_FPU_TYPE                                (RVM_A7M_FPU_FPV4_SP)
+#define RVM_COP_NUM                                     (1U)
+#define RVM_A7M_COP_FPV4_SP                             (1U)
+#define RVM_A7M_COP_FPV5_SP                             (0U)
+#define RVM_A7M_COP_FPV5_DP                             (0U)
 
 /* Syslib configurations *****************************************************/
 /* Stack redundancy */

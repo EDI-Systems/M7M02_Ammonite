@@ -47,6 +47,8 @@ Kobj(Owner)
         /* Name */
         this->Name=Main::XML_Get_String(Root,"Name","DXXXX","DXXXX");
         Name_Gen(this);
+        /* Definitely not hypervisor managed when created from XML */
+        this->Is_Hyp=0;
         /* Stack Size */
         this->Stack_Size=Main::XML_Get_Number(Root,"Stack_Size","DXXXX","DXXXX");
         /* Parameter */
@@ -67,6 +69,7 @@ Kobj(Owner)
 /* Begin Function:Thread::Thread **********************************************
 Description : Constructor for thread class.
 Input       : const std::string& Name - The name of the thread.
+              ptr_t Is_Hyp - Whether this thread is hypervisor managed.
               ptr_t Stack_Size - Thread stack size.
               ptr_t Parameter - Thread start parameter.
               ptr_t Priority - Thread priority.
@@ -75,11 +78,13 @@ Output      : None.
 Return      : None.
 ******************************************************************************/
 /* void */ Thread::Thread(const std::string& Name,
-                          ptr_t Stack_Size, ptr_t Parameter, ptr_t Priority, class Process* Owner):
+		                  ptr_t Is_Hyp, ptr_t Stack_Size, ptr_t Parameter, ptr_t Priority,
+						  class Process* Owner):
 Kobj(Owner)
 {
     this->Name=Name;
     Name_Gen(this);
+    this->Is_Hyp=Is_Hyp;
     this->Stack_Size=Stack_Size;
     this->Parameter=Parameter;
     this->Priority=Priority;

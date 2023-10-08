@@ -160,26 +160,24 @@ Description : The header of the RVM user-level library. This header defines the
 /* Thread */
 /* This cap to thread allows setting its execution parameters */
 #define RVM_THD_FLAG_EXEC_SET           (1U<<0)
-/* This cap to thread allows setting its hypervisor parameters */
-#define RVM_THD_FLAG_HYP_SET            (1U<<1)
 /* This cap to thread allows setting its scheduling parameters */
-#define RVM_THD_FLAG_SCHED_CHILD        (1U<<2)
+#define RVM_THD_FLAG_SCHED_CHILD        (1U<<1)
 /* This cap to thread allows registering it as a scheduler */
-#define RVM_THD_FLAG_SCHED_PARENT       (1U<<3)
+#define RVM_THD_FLAG_SCHED_PARENT       (1U<<2)
 /* This cap to thread allows changing its priority level */
-#define RVM_THD_FLAG_SCHED_PRIO         (1U<<4)
+#define RVM_THD_FLAG_SCHED_PRIO         (1U<<3)
 /* This cap to thread allows freeing the thread from the core */
-#define RVM_THD_FLAG_SCHED_FREE         (1U<<5)
+#define RVM_THD_FLAG_SCHED_FREE         (1U<<4)
 /* This cap to thread allows getting scheduling notifications */
-#define RVM_THD_FLAG_SCHED_RCV          (1U<<6)
+#define RVM_THD_FLAG_SCHED_RCV          (1U<<5)
 /* This cap to thread allows acting as a source for time transfer */
-#define RVM_THD_FLAG_XFER_SRC           (1U<<7)
+#define RVM_THD_FLAG_XFER_SRC           (1U<<6)
 /* This cap to thread allows acting as a destination for time transfer */
-#define RVM_THD_FLAG_XFER_DST           (1U<<8)
+#define RVM_THD_FLAG_XFER_DST           (1U<<7)
 /* This cap to thread allows switching to it */
-#define RVM_THD_FLAG_SWT                (1U<<9)
+#define RVM_THD_FLAG_SWT                (1U<<8)
 /* This cap to thread allows all operations */
-#define RVM_THD_FLAG_ALL                (RVM_THD_FLAG_EXEC_SET|RVM_THD_FLAG_HYP_SET|RVM_THD_FLAG_SCHED_CHILD| \
+#define RVM_THD_FLAG_ALL                (RVM_THD_FLAG_EXEC_SET|RVM_THD_FLAG_SCHED_CHILD| \
                                          RVM_THD_FLAG_SCHED_PARENT|RVM_THD_FLAG_SCHED_PRIO|RVM_THD_FLAG_SCHED_FREE| \
                                          RVM_THD_FLAG_SCHED_RCV|RVM_THD_FLAG_XFER_SRC|RVM_THD_FLAG_XFER_DST|RVM_THD_FLAG_SWT)
 /* Signal */
@@ -394,24 +392,22 @@ Description : The header of the RVM user-level library. This header defines the
 #define RVM_SVC_THD_DEL                 (25U)
 /* Set entry&stack */
 #define RVM_SVC_THD_EXEC_SET            (26U)
-/* Set this as a hypervisor - managed thread */
-#define RVM_SVC_THD_HYP_SET             (27U)
 /* Bind to the current processor */
-#define RVM_SVC_THD_SCHED_BIND          (28U)
+#define RVM_SVC_THD_SCHED_BIND          (27U)
 /* Try to receive scheduling notifications */
-#define RVM_SVC_THD_SCHED_RCV           (29U)
+#define RVM_SVC_THD_SCHED_RCV           (28U)
 /* Signal operations *********************************************************/
 /* Create */
-#define RVM_SVC_SIG_CRT                 (30U)
+#define RVM_SVC_SIG_CRT                 (29U)
 /* Delete */
-#define RVM_SVC_SIG_DEL                 (31U)
+#define RVM_SVC_SIG_DEL                 (30U)
 /* Invocation operations *****************************************************/
 /* Create */
-#define RVM_SVC_INV_CRT                 (32U)
+#define RVM_SVC_INV_CRT                 (31U)
 /* Delete */
-#define RVM_SVC_INV_DEL                 (33U)
+#define RVM_SVC_INV_DEL                 (32U)
 /* Set entry&stack */
-#define RVM_SVC_INV_SET                 (34U)
+#define RVM_SVC_INV_SET                 (33U)
 /* End System Calls **********************************************************/
 
 /* Kernel Functions **********************************************************/

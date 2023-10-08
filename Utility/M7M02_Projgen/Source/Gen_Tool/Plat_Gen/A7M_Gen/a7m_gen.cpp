@@ -443,7 +443,7 @@ void A7M_Gen::Pgdir_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
 }
 /* End Function:A7M_Gen::Pgdir_Map *******************************************/
 
-/* Begin Function:A7M_Gen::Pgt_Gen ******************************************
+/* Begin Function:A7M_Gen::Pgt_Gen ********************************************
 Description : Recursively construct the page table for the ARMv7-M port.
 Input       : std::vector<std::unique_ptr<class Mem_Info>>& - The list containing
                                                               memory segments to fit
@@ -498,9 +498,9 @@ std::unique_ptr<class Pgtbl> A7M_Gen::Pgt_Gen(std::vector<std::unique_ptr<class 
 
     return Pgt;
 }
-/* End Function:A7M::Gen_Pgt ***********************************************/
+/* End Function:A7M::Gen_Pgt *************************************************/
 
-/* Begin Function:A7M_Gen::Raw_Pgt ******************************************
+/* Begin Function:A7M_Gen::Raw_Pgt ********************************************
 Description : Query the size of page table given the parameters.
 Input       : ptr_t Num_Order - The number order.
               ptr_t Is_Top - Whether this is a top-level.
@@ -514,26 +514,23 @@ ptr_t A7M_Gen::Raw_Pgt(ptr_t Num_Order, ptr_t Is_Top)
     else
         return A7M_RAW_PGT_SIZE_NOM(Num_Order);
 }
-/* End Function:A7M_Gen::Size_Pgt ******************************************/
+/* End Function:A7M_Gen::Size_Pgt ********************************************/
 
 /* Begin Function:A7M_Gen::Raw_Thread *****************************************
-Description : Query the size of thread.
-Input       : None
+Description : Query the size of the minimal thread object.
+Input       : None.
 Output      : None.
 Return      : ptr_t - The size in bytes.
 ******************************************************************************/
 ptr_t A7M_Gen::Raw_Thread(void)
 {
-    if(this->Chip->Attribute["FPU"]=="None")
-        return A7M_RAW_THD_SIZE;
-    else
-        return A7M_RAW_THD_FPU_SIZE;
+    return A7M_RAW_HYP_SIZE;
 }
 /* End Function:A7M_Gen::Raw_Thread ******************************************/
 
 /* Begin Function:A7M_Gen::Raw_Invocation *************************************
 Description : Query the size of a invocation.
-Input       : None
+Input       : None¡£
 Output      : None.
 Return      : ptr_t - The size in bytes.
 ******************************************************************************/
@@ -545,13 +542,13 @@ ptr_t A7M_Gen::Raw_Invocation(void)
 
 /* Begin Function:A7M_Gen::Raw_Register ***************************************
 Description : Query the size of the register set.
-Input       : None.
+Input       : const std::vector<std::string>& Coprocessor - The coprocessor list.
 Output      : None.
 Return      : ptr_t - The size in bytes.
 ******************************************************************************/
-ptr_t A7M_Gen::Raw_Register(void)
+ptr_t A7M_Gen::Raw_Register(const std::vector<std::string>& Coprocessor)
 {
-    if(this->Chip->Attribute["FPU"]=="None")
+    if(Coprocessor.empty())
         return A7M_RAW_REG_SIZE;
     else
         return A7M_RAW_REG_FPU_SIZE;
@@ -567,7 +564,7 @@ Return      : None.
 void A7M_Gen::Kernel_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
 {
     /* Init process's first thread's entry point address */
-    if (Proj->Buildsystem == "Makefile")
+    if (Proj->Buildsystem=="Makefile")
         Gen_Tool::Macro_Hex(List, "RME_A7M_INIT_ENTRY",PRC_DESC_ALIGN(this->Proj->Monitor->Code_Base)|0x01, MACRO_REPLACE);
     else
         Gen_Tool::Macro_Hex(List, "RME_A7M_INIT_ENTRY",PRC_DESC_ALIGN(this->Proj->Monitor->Code_Base+8*4)|0x01, MACRO_REPLACE);
@@ -583,8 +580,6 @@ void A7M_Gen::Kernel_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
     /* Fixed attributes - we will refill these with database values */
     /* Number of MPU regions available */
     Gen_Tool::Macro_Int(List, "RME_A7M_REGION_NUM", this->Chip->Region, MACRO_REPLACE);
-    /* What is the FPU type? */
-    Gen_Tool::Macro_String(List, "RME_A7M_FPU_TYPE", std::string("RME_A7M_FPU_")+this->Chip->Attribute["FPU"], MACRO_REPLACE);
 
     /* CPU & Endianness currently unused */
 }
@@ -609,8 +604,6 @@ void A7M_Gen::Monitor_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
     /* Fixed attributes - we will refill these with database values */
     /* Number of MPU regions available */
     Gen_Tool::Macro_Int(List, "RVM_A7M_REGION_NUM", this->Chip->Region, MACRO_REPLACE);
-    /* What is the FPU type? */
-    Gen_Tool::Macro_String(List, "RVM_A7M_FPU_TYPE", std::string("RVM_A7M_FPU_")+this->Chip->Attribute["FPU"], MACRO_REPLACE);
 
     /* CPU & Endianness currently unused */
 }
@@ -619,14 +612,13 @@ void A7M_Gen::Monitor_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
 /* Begin Function:A7M_Gen::Process_Main_Hdr ***********************************
 Description : Replace process main header macros.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The input file.
+              const class Process* Prc - The process information.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The modified file.
 Return      : None.
 ******************************************************************************/
-void A7M_Gen::Process_Main_Hdr(std::unique_ptr<std::vector<std::string>>& List)
+void A7M_Gen::Process_Main_Hdr(std::unique_ptr<std::vector<std::string>>& List,
+		                       const class Process* Prc)
 {
-    /* What is the FPU type? */
-    Gen_Tool::Macro_String(List, "RVM_A7M_FPU_TYPE", std::string("RVM_A7M_FPU_")+this->Chip->Attribute["FPU"], MACRO_ADD);
-
     /* CPU & Endianness currently unused */
 }
 /* End Function:A7M_Gen::Process_Main_Hdr ************************************/

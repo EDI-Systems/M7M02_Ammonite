@@ -24,13 +24,12 @@ namespace RVM_GEN
 #define A7M_INIT_NUM_ORD                        (0)
 
 /* A7M kernel object size */
-#define A7M_RAW_PGT_SIZE_NOM(O)               	((5+POW2(O))*4)
-#define A7M_RAW_PGT_SIZE_TOP(O, R)            	(((1+(R)*2)*4)+A7M_RAW_PGT_SIZE_NOM(O))
-#define A7M_RAW_THD_SIZE                        (0x80)
-#define A7M_RAW_THD_FPU_SIZE                    (0xC0)
-#define A7M_RAW_INV_SIZE                        (0x24)
-#define A7M_RAW_REG_SIZE                        (0x30)
-#define A7M_RAW_REG_FPU_SIZE                    (0x70)
+#define A7M_RAW_PGT_SIZE_NOM(O)                   ((5+POW2(O))*4)
+#define A7M_RAW_PGT_SIZE_TOP(O, R)                (((1+(R)*2)*4)+A7M_RAW_PGT_SIZE_NOM(O))
+#define A7M_RAW_HYP_SIZE                        (84)
+#define A7M_RAW_REG_SIZE                        (48)
+#define A7M_RAW_REG_FPU_SIZE                    (112)
+#define A7M_RAW_INV_SIZE                        (36)
 /*****************************************************************************/
 /* __A7M_GEN_HPP_DEFS__ */
 #endif
@@ -64,11 +63,11 @@ public:
     virtual ptr_t Raw_Pgt(ptr_t Size_Order, ptr_t Is_Top) final override;
     virtual ptr_t Raw_Thread(void) final override;
     virtual ptr_t Raw_Invocation(void) final override;
-    virtual ptr_t Raw_Register(void) final override;
+    virtual ptr_t Raw_Register(const std::vector<std::string>& Coprocessor) final override;
 
     virtual void Kernel_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List) final override;
     virtual void Monitor_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List) final override;
-    virtual void Process_Main_Hdr(std::unique_ptr<std::vector<std::string>>& List) final override;
+    virtual void Process_Main_Hdr(std::unique_ptr<std::vector<std::string>>& List, const class Process* Prc) final override;
 };
 /*****************************************************************************/
 /* __A7M_GEN_HPP_CLASSES__ */

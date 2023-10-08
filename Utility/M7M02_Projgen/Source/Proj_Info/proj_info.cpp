@@ -130,6 +130,9 @@ void Proj_Info::Check(void)
 {
     try
     {
+        /* Check chip configs */
+        this->Chip->Check();
+
         /* External memory checks */
         for(std::unique_ptr<class Mem_Info>& Mem:this->Extmem)
             Mem->Check();

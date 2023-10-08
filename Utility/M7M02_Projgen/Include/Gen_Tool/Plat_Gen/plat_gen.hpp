@@ -51,18 +51,18 @@ public:
     /* Get size of kernel objects */
     ptr_t Size_Cpt(ptr_t Slot);
     ptr_t Size_Pgt(ptr_t Size_Order, ptr_t Is_Top);
-    ptr_t Size_Thread(void);
+    ptr_t Size_Thread(const std::vector<std::string>& Coprocessor, ptr_t Is_Hyp);
     ptr_t Size_Invocation(void);
-    ptr_t Size_Register(void);
+    ptr_t Size_Register(const std::vector<std::string>& Coprocessor);
     /* These are to be filled by the underlying platform */
     virtual ptr_t Raw_Pgt(ptr_t Size_Order, ptr_t Is_Top)=0;
     virtual ptr_t Raw_Thread(void)=0;
     virtual ptr_t Raw_Invocation(void)=0;
-    virtual ptr_t Raw_Register(void)=0;
+    virtual ptr_t Raw_Register(const std::vector<std::string>& Coprocessor)=0;
 
     virtual void Kernel_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)=0;
     virtual void Monitor_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)=0;
-    virtual void Process_Main_Hdr(std::unique_ptr<std::vector<std::string>>& List)=0;
+    virtual void Process_Main_Hdr(std::unique_ptr<std::vector<std::string>>& List, const class Process* Prc)=0;
 };
 /*****************************************************************************/
 /* __PLAT_GEN_HPP_CLASSES__ */

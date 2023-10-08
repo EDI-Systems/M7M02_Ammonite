@@ -38,6 +38,9 @@ public:
     std::string Version;
     /* Processor word length */
     ptr_t Wordlength;
+    /* List of possible coprocessors */
+    std::vector<std::string> Coprocessor;
+    std::set<std::string> Coprocessor_Set;
     /* Capability table maximum capacity (for a single layer) */
     ptr_t Captbl_Max;
     /* Kernel function maximum number (last one not included) */

@@ -11,6 +11,7 @@
         <Platform>A7M</Platform>
         <Class>STM32F405RG</Class>
         <Name>STM32F405RGT6</Name>
+        <Coprocessor>FPV4_SP</Coprocessor>
         <Config>
             <NVIC_Grouping>P2S6</NVIC_Grouping>
             <Systick_Value>1680000</Systick_Value>
@@ -80,6 +81,7 @@
         <P0>
             <Name>Proc1</Name>
             <Extra_Captbl>9</Extra_Captbl>
+            <Coprocessor>FPV4_SP</Coprocessor>
 			<Buildsystem>Keil</Buildsystem>
 			<Toolchain>ARMCC</Toolchain>
             <Optimization>O3</Optimization>
@@ -153,6 +155,7 @@
         <P1>
             <Name>Proc2</Name>
             <Extra_Captbl>0</Extra_Captbl>
+            <Coprocessor>FPV4_SP</Coprocessor>
 			<Buildsystem>Keil</Buildsystem>
 			<Toolchain>ARMCC</Toolchain>
 			<Optimization>O3</Optimization>
@@ -228,6 +231,7 @@
         <V0>
             <Name>Virt1</Name>
             <Extra_Captbl>0</Extra_Captbl>
+            <Coprocessor>FPV4_SP</Coprocessor>
             <Vector_Stack_Size>0x400</Vector_Stack_Size>
             <User_Stack_Size>0x400</User_Stack_Size>
             <Priority>5</Priority>

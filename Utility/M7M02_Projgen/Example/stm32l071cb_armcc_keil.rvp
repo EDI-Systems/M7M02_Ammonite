@@ -11,6 +11,7 @@
         <Platform>A6M</Platform>
         <Class>STM32L071CB</Class>
         <Name>STM32L071CBT6</Name>
+        <Coprocessor>None</Coprocessor>
         <Config>
             <Systick_Value>320000</Systick_Value>
         </Config>
@@ -30,7 +31,7 @@
     <Kernel>
 		<Kernel_Root>../../../../M7M01_Eukaron</Kernel_Root>
         <Code_Base>0x08000000</Code_Base>
-        <Code_Size>0xC000</Code_Size>
+        <Code_Size>0xE000</Code_Size>
         <Data_Base>0x20000000</Data_Base>
         <Data_Size>0x1800</Data_Size>
         <Stack_Size>0x400</Stack_Size>
@@ -79,6 +80,7 @@
         <P0>
             <Name>Proc1</Name>
             <Extra_Captbl>0</Extra_Captbl>
+            <Coprocessor>None</Coprocessor>
 			<Buildsystem>Keil</Buildsystem>
 			<Toolchain>ARMCC</Toolchain>
             <Optimization>O3</Optimization>
@@ -153,6 +155,7 @@
         <P1>
             <Name>Proc2</Name>
             <Extra_Captbl>0</Extra_Captbl>
+            <Coprocessor>None</Coprocessor>
 			<Buildsystem>Keil</Buildsystem>
 			<Toolchain>ARMCC</Toolchain>
             <Optimization>O3</Optimization>
@@ -229,6 +232,7 @@
         <V0>
             <Name>Virt1</Name>
             <Extra_Captbl>0</Extra_Captbl>
+            <Coprocessor>None</Coprocessor>
             <Vector_Stack_Size>0x200</Vector_Stack_Size>
             <User_Stack_Size>0x200</User_Stack_Size>
             <Priority>5</Priority>

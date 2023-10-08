@@ -282,22 +282,50 @@ void RVM_Boot_Thd_Crt(void)
     /* Then the threads themselves */
     for(Count=0U;Count<RVM_BOOT_THD_CRT_NUM;Count++)
     {
-        RVM_ASSERT(RVM_Thd_Crt(RVM_Meta_Thd_Crt[Count].Main,
-                               RVM_BOOT_INIT_KOM,
-                               RVM_Meta_Thd_Crt[Count].Slot,
-                               RVM_Meta_Thd_Crt[Count].Prc, 
-                               RVM_Meta_Thd_Crt[Count].Prio,
-                               Cur_Addr)==0);
-        
-        RVM_DBG_S("Init: Thread '");
-        RVM_DBG_I(RVM_Meta_Thd_Crt[Count].Main);
-        RVM_DBG_S(",");
-        RVM_DBG_I(RVM_Meta_Thd_Crt[Count].Slot);
-        RVM_DBG_S("' @ 0x");
-        RVM_DBG_H(Cur_Addr);
-        RVM_DBG_S(".\r\n");
-        
-        Cur_Addr+=RVM_THD_SIZE;
+        if(RVM_Meta_Thd_Crt[Count].Is_Hyp==0U)
+        {
+            RVM_ASSERT(RVM_Thd_Crt(RVM_Meta_Thd_Crt[Count].Main,
+                                   RVM_BOOT_INIT_KOM,
+                                   RVM_Meta_Thd_Crt[Count].Slot,
+                                   RVM_Meta_Thd_Crt[Count].Prc, 
+                                   RVM_Meta_Thd_Crt[Count].Prio,
+                                   Cur_Addr,
+                                   RVM_Meta_Thd_Crt[Count].Attr)==0);
+            
+            RVM_DBG_S("Init: Thread '");
+            RVM_DBG_I(RVM_Meta_Thd_Crt[Count].Main);
+            RVM_DBG_S(",");
+            RVM_DBG_I(RVM_Meta_Thd_Crt[Count].Slot);
+            RVM_DBG_S("' @ 0x");
+            RVM_DBG_H(Cur_Addr);
+            RVM_DBG_S(" attr 0x");
+            RVM_DBG_H(RVM_Meta_Thd_Crt[Count].Attr);
+            RVM_DBG_S(".\r\n");
+            
+            Cur_Addr+=RVM_THD_SIZE(RVM_Meta_Thd_Crt[Count].Attr);
+        }
+        else
+        {
+            RVM_ASSERT(RVM_Hyp_Crt(RVM_Meta_Thd_Crt[Count].Main,
+                                   RVM_BOOT_INIT_KOM,
+                                   RVM_Meta_Thd_Crt[Count].Slot,
+                                   RVM_Meta_Thd_Crt[Count].Prc, 
+                                   RVM_Meta_Thd_Crt[Count].Prio,
+                                   Cur_Addr,
+                                   RVM_Meta_Thd_Crt[Count].Attr)==0);
+            
+            RVM_DBG_S("Init: VM thread '");
+            RVM_DBG_I(RVM_Meta_Thd_Crt[Count].Main);
+            RVM_DBG_S(",");
+            RVM_DBG_I(RVM_Meta_Thd_Crt[Count].Slot);
+            RVM_DBG_S("' @ 0x");
+            RVM_DBG_H(Cur_Addr);
+            RVM_DBG_S(" attr 0x");
+            RVM_DBG_H(RVM_Meta_Thd_Crt[Count].Attr);
+            RVM_DBG_S(".\r\n");
+            
+            Cur_Addr+=RVM_HYP_SIZE;
+        }
     }
 
     RVM_ASSERT(Cur_Addr==RVM_BOOT_THD_AFTER);
@@ -590,18 +618,23 @@ void RVM_Boot_Thd_Init(void)
     
     for(Count=0U;Count<RVM_BOOT_THD_INIT_NUM;Count++)
     {
-        /* Bind thread to safety daemon */
-        RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Meta_Thd_Init[Count].Thd,
-                                      RVM_Sftd_Thd_Cap,
-                                      RVM_Sftd_Sig_Cap,
-                                      RVM_Meta_Thd_Init[Count].Thd|RVM_Meta_Thd_Init[Count].Marker,
-                                      RVM_Meta_Thd_Init[Count].Prio)==0);
-        
-        /* If this is a VM user thread, set its address accordingly */
-        if(RVM_Meta_Thd_Init[Count].Reg_Base!=0U)
+        /* Bind thread to safety daemon - if this is a VM thread, set its address accordingly */
+        if(RVM_Meta_Thd_Init[Count].Reg_Base==0U)
         {
-            RVM_ASSERT(RVM_Thd_Hyp_Set(RVM_Meta_Thd_Init[Count].Thd,
-                                       RVM_Meta_Thd_Init[Count].Reg_Base)==0);
+            RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Meta_Thd_Init[Count].Thd,
+                                          RVM_Sftd_Thd_Cap,
+                                          RVM_Sftd_Sig_Cap,
+                                          RVM_Meta_Thd_Init[Count].Thd|RVM_Meta_Thd_Init[Count].Marker,
+                                          RVM_Meta_Thd_Init[Count].Prio)==0);
+        }
+        else
+        {
+            RVM_ASSERT(RVM_Hyp_Sched_Bind(RVM_Meta_Thd_Init[Count].Thd,
+                                          RVM_Sftd_Thd_Cap,
+                                          RVM_Sftd_Sig_Cap,
+                                          RVM_Meta_Thd_Init[Count].Thd|RVM_Meta_Thd_Init[Count].Marker,
+                                          RVM_Meta_Thd_Init[Count].Prio,
+                                          RVM_Meta_Thd_Init[Count].Reg_Base)==0);
         }
         
         /* Initialize stack with whatever we have to initialize */
@@ -636,6 +669,8 @@ void RVM_Boot_Thd_Init(void)
         RVM_DBG_H(RVM_Meta_Thd_Init[Count].Stack_Size);
         RVM_DBG_S(" param 0x");
         RVM_DBG_H(RVM_Meta_Thd_Init[Count].Param);
+        RVM_DBG_S(" haddr 0x");
+        RVM_DBG_H(RVM_Meta_Thd_Init[Count].Reg_Base);
         RVM_DBG_S(".\r\n");
     }
 }
@@ -760,25 +795,25 @@ void RVM_Daemon_Init(rvm_cid_t Cap_Base,
     
     RVM_Sftd_Thd_Cap=Cap_Front++;
     RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_INIT_CPT, RVM_BOOT_INIT_KOM, RVM_Sftd_Thd_Cap,
-                           RVM_BOOT_INIT_PRC, RVM_SFTD_PRIO, Kom_Front)>=0);
+                           RVM_BOOT_INIT_PRC, RVM_SFTD_PRIO, Kom_Front, 0U)>=0);
     RVM_DBG_SISHS("Init: Created safety daemon '",RVM_Sftd_Thd_Cap,"' @ 0x",Kom_Front,".\r\n");
-    Kom_Front+=RVM_THD_SIZE;
+    Kom_Front+=RVM_THD_SIZE(0U);
     
     RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Sftd_Thd_Cap, RVM_BOOT_INIT_THD, RVM_Sftd_Sig_Cap, RVM_Sftd_Thd_Cap, RVM_PREEMPT_PRIO_NUM-1U)==0);
     RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Sftd_Thd_Cap, (rvm_ptr_t)RVM_Sftd, 
                                 RVM_Stack_Init(RVM_SFTD_STACK_BASE, RVM_SFTD_STACK_SIZE,
-                                               (rvm_ptr_t)RVM_Sftd, (rvm_ptr_t)_RVM_Jmp_Stub),0U)==0);
+                                               (rvm_ptr_t)RVM_Sftd, (rvm_ptr_t)_RVM_Jmp_Stub), 0U)==0);
     RVM_DBG_S("Init: Safety daemon initialization complete.\r\n");
 
 #if(RVM_VIRT_NUM!=0U)
     /* VMM daemon initialization - main priority - don't boot this if we have no VM at all */
     RVM_Vmmd_Thd_Cap=Cap_Front++;
     RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_INIT_CPT, RVM_BOOT_INIT_KOM, RVM_Vmmd_Thd_Cap,
-                           RVM_BOOT_INIT_PRC, RVM_MAIN_PRIO, Kom_Front)>=0);
+                           RVM_BOOT_INIT_PRC, RVM_VMMD_PRIO, Kom_Front, 0U)>=0);
     RVM_DBG_SISHS("Init: Created VMM daemon '",RVM_Vmmd_Thd_Cap,"' @ 0x",Kom_Front,".\r\n");
-    Kom_Front+=RVM_THD_SIZE;
+    Kom_Front+=RVM_THD_SIZE(0U);
     
-    RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Vmmd_Thd_Cap, RVM_Sftd_Thd_Cap, RVM_Sftd_Sig_Cap, RVM_Vmmd_Thd_Cap, RVM_MAIN_PRIO)==0);
+    RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Vmmd_Thd_Cap, RVM_Sftd_Thd_Cap, RVM_Sftd_Sig_Cap, RVM_Vmmd_Thd_Cap, RVM_VMMD_PRIO)==0);
     RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Vmmd_Thd_Cap, (rvm_ptr_t)RVM_Vmmd, 
                                 RVM_Stack_Init(RVM_VMMD_STACK_BASE, RVM_VMMD_STACK_SIZE,
                                                (rvm_ptr_t)RVM_Vmmd, (rvm_ptr_t)_RVM_Jmp_Stub),0)==0);

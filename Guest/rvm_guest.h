@@ -92,30 +92,8 @@ Description : The header of guest user level low-level library.
 #define RVM_THD_MAX_TIME                            (RVM_THD_INF_TIME)
 /* Sched rcv return value's fault flag */
 #define RVM_THD_EXC_FLAG                            ((rvm_tid_t)RVM_POW2(sizeof(rvm_ptr_t)*8U-2U))
-    
-/* Size of kernel objects that are architecture agnostic */
-/* Capability table */
-#define RVM_CPT_WORD_SIZE(NUM)                      (((rvm_ptr_t)(NUM))<<3)
-
-/* Rounded size of each object */
-#define RVM_KOM_ROUND(X)                            RVM_ROUND_UP((((rvm_ptr_t)(X))*sizeof(rvm_ptr_t)),RVM_KOM_SLOT_ORDER)
-/* Capability table */
-#define RVM_CPT_SIZE(NUM)                           RVM_KOM_ROUND(RVM_CPT_WORD_SIZE(NUM))
-/* Normal page directory */
-#define RVM_PGT_SIZE_NOM(NUM_ORDER)                 RVM_KOM_ROUND(RVM_PGT_WORD_SIZE_NOM(NUM_ORDER))
-/* Top-level page directory */
-#define RVM_PGT_SIZE_TOP(NUM_ORDER)                 RVM_KOM_ROUND(RVM_PGT_WORD_SIZE_TOP(NUM_ORDER))
-/* Process */
-#define RVM_PRC_SIZE                                RVM_KOM_ROUND(RVM_PRC_WORD_SIZE)
-/* Thread */
-#define RVM_THD_SIZE                                RVM_KOM_ROUND(RVM_THD_WORD_SIZE)
-/* Signal */                           
-#define RVM_SIG_SIZE                                RVM_KOM_ROUND(RVM_SIG_WORD_SIZE)
-/* Invocation */
-#define RVM_INV_SIZE                                RVM_KOM_ROUND(RVM_INV_WORD_SIZE)
-
-/* Round the kernel object size to the entry slot size */
-#define RVM_KOTBL_ROUND(X)                          RVM_ROUND_UP(X,RVM_KOM_SLOT_ORDER)
+/* Thread creation */
+#define RVM_THD_SVC(ATTR,IS_HYP,SVC)                (((ATTR)<<7U)|(((IS_HYP)!=0U)<<6U)|(SVC))
 
 /* Initial capability layout - same across all architectures */
 /* The capability table of the init process */
@@ -150,6 +128,29 @@ Description : The header of guest user level low-level library.
 #define RVM_ERR_MAP                                 (-7)
 /*****************************************************************************/
 #include "rvm_guest_conf.h"
+
+/* Size of kernel objects that are architecture agnostic */
+/* Capability table */
+#define RVM_CPT_RAW_SIZE(NUM)                       ((((rvm_ptr_t)(NUM))<<3)*sizeof(rvm_ptr_t))
+/* Rounded size of each object */
+#define RVM_KOM_ROUND(X)                            RVM_ROUND_UP(((rvm_ptr_t)(X)),RVM_KOM_SLOT_ORDER)
+/* Capability table */
+#define RVM_CPT_SIZE(NUM)                           RVM_KOM_ROUND(RVM_CPT_RAW_SIZE(NUM))
+/* Normal page directory */
+#define RVM_PGT_SIZE_NOM(NUM_ORDER)                 RVM_KOM_ROUND(RVM_PGT_RAW_SIZE_NOM(NUM_ORDER))
+/* Top-level page directory */
+#define RVM_PGT_SIZE_TOP(NUM_ORDER)                 RVM_KOM_ROUND(RVM_PGT_RAW_SIZE_TOP(NUM_ORDER))
+/* Thread */
+#if(RVM_COP_NUM!=0U)
+#define RVM_REG_RAW_SIZE(X)                         (sizeof(struct RVM_Thd_Reg)-sizeof(rvm_ptr_t)+RVM_Thd_Cop_Size(X))
+#else
+#define RVM_REG_RAW_SIZE(X)                         (sizeof(struct RVM_Thd_Reg)-sizeof(rvm_ptr_t))
+#endif
+#define RVM_HYP_SIZE                                RVM_KOM_ROUND(RVM_HYP_RAW_SIZE)
+#define RVM_REG_SIZE(X)                             RVM_KOM_ROUND(RVM_REG_RAW_SIZE(X))
+#define RVM_THD_SIZE(X)                             RVM_KOM_ROUND(RVM_HYP_RAW_SIZE+RVM_REG_RAW_SIZE(X))
+/* Invocation */
+#define RVM_INV_SIZE                                RVM_KOM_ROUND(RVM_INV_RAW_SIZE)
 
 #if(RVM_DEBUG_PRINT==1U)
 /* Debugging */
@@ -220,9 +221,6 @@ do \
 } \
 while(0U)
 #endif
-
-/* Coprocessor */
-#define RVM_COPROCESSOR_NONE                        (0U)
 
 #ifdef RVM_VIRT_VCT_NUM
 /* Register set space */
@@ -317,10 +315,8 @@ struct RVM_Handler_Struct
 struct RVM_Thd_Reg
 {
     struct RVM_Reg_Struct Reg;
-#if(RVM_COPROCESSOR_TYPE!=RVM_COPROCESSOR_NONE)
-    struct RVM_Cop_Struct Cop;
-#endif
     struct RVM_Exc_Struct Exc;
+    rvm_ptr_t Cop[1];
 };
 /*****************************************************************************/
 /* End Structs ***************************************************************/
@@ -449,24 +445,32 @@ EXTERN rvm_ret_t RVM_Thd_Crt(rvm_cid_t Cap_Cpt,
                              rvm_cid_t Cap_Thd,
                              rvm_cid_t Cap_Prc,
                              rvm_ptr_t Prio_Max,
-                             rvm_ptr_t Raddr);
+                             rvm_ptr_t Raddr,
+                             rvm_ptr_t Attr);
+EXTERN rvm_ret_t RVM_Hyp_Crt(rvm_cid_t Cap_Cpt,
+                             rvm_cid_t Cap_Kom,
+                             rvm_cid_t Cap_Thd,
+                             rvm_cid_t Cap_Prc,
+                             rvm_ptr_t Prio_Max,
+                             rvm_ptr_t Raddr,
+                             rvm_ptr_t Attr);
 EXTERN rvm_ret_t RVM_Thd_Del(rvm_cid_t Cap_Cpt,
                              rvm_cid_t Cap_Thd);
 EXTERN rvm_ret_t RVM_Thd_Exec_Set(rvm_cid_t Cap_Thd,
                                   rvm_ptr_t Entry,
                                   rvm_ptr_t Stack,
                                   rvm_ptr_t Param);
-EXTERN rvm_ret_t RVM_Thd_Hyp_Set(rvm_cid_t Cap_Thd,
-                                 rvm_ptr_t Kaddr);
-EXTERN rvm_ret_t RVM_Thd_Hyp_Exec_Set(rvm_cid_t Cap_Thd,
-                                      rvm_ptr_t Kaddr,
-                                      rvm_ptr_t Entry,
-                                      rvm_ptr_t Stack);
 EXTERN rvm_ret_t RVM_Thd_Sched_Bind(rvm_cid_t Cap_Thd,
                                     rvm_cid_t Cap_Thd_Sched,
                                     rvm_cid_t Cap_Sig,
                                     rvm_tid_t TID,
                                     rvm_ptr_t Prio);
+EXTERN rvm_ret_t RVM_Hyp_Sched_Bind(rvm_cid_t Cap_Thd,
+                                    rvm_cid_t Cap_Thd_Sched,
+                                    rvm_cid_t Cap_Sig,
+                                    rvm_tid_t TID,
+                                    rvm_ptr_t Prio,
+                                    rvm_ptr_t Haddr);
 EXTERN rvm_ret_t RVM_Thd_Sched_Prio(rvm_cid_t Cap_Thd,
                                     rvm_ptr_t Prio);
 EXTERN rvm_ret_t RVM_Thd_Sched_Prio2(rvm_cid_t Cap_Thd0,

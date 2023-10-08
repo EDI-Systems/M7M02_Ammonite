@@ -37,6 +37,7 @@ public:
     void Raw_Proj(std::unique_ptr<std::vector<std::string>>& List,
                   const std::string& After1, const std::string& After2,
                   const std::string& Target, const std::string& Optimization,
+                  const std::vector<std::string>& Coprocessor,
                   const std::vector<std::string>& Include,
                   const std::vector<std::string>& Source,
                   const std::string& Linker, const std::string& Linker_Misc);

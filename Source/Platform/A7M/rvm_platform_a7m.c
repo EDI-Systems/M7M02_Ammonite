@@ -98,6 +98,21 @@ void RVM_Idle(void)
 }
 /* End Function:RVM_Idle *****************************************************/
 
+/* Begin Function:RVM_Thd_Cop_Size ********************************************
+Description : Query coprocessor register size for this CPU.
+Input       : rme_ptr_t Attr - The thread context attributes.
+Output      : None.
+Return      : rme_ptr_t - The coprocessor context size.
+******************************************************************************/
+rvm_ptr_t RVM_Thd_Cop_Size(rvm_ptr_t Attr)
+{
+    if(Attr!=RVM_A7M_ATTR_NONE)
+        return sizeof(struct RVM_A7M_Cop_Struct);
+            
+    return 0U;
+}
+/* End Function:RVM_Thd_Cop_Size *********************************************/
+
 /* Begin Function:RVM_A7M_Kfn_Act *********************************************
 Description : Activate kernel functions that must use ARMv7-M specific calling
               convention to pass extra parameters.

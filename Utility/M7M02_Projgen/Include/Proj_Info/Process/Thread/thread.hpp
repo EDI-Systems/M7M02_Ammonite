@@ -30,6 +30,8 @@ namespace RVM_GEN
 class Thread:public Kobj
 {
 public:
+    /* Whether this is hypervisor managed */
+    ptr_t Is_Hyp;
     /* The stack size of the thread */
     ptr_t Stack_Size;
     /* The parameter passed to the thread */
@@ -44,7 +46,8 @@ public:
 
     /* void */ Thread(xml_node_t* Root, class Process* Owner);
     /* void */ Thread(const std::string& Name,
-                      ptr_t Stack_Size, ptr_t Parameter, ptr_t Priority, class Process* Owner);
+                      ptr_t Is_Hyp, ptr_t Stack_Size, ptr_t Parameter, ptr_t Priority,
+                      class Process* Owner);
 };
 /*****************************************************************************/
 /* __THREAD_HPP_CLASSES__ */

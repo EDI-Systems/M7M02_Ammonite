@@ -360,10 +360,22 @@ void Main::Compatible_Check(void)
             Main::Error("XXXXX: The project platform and the chip platform is different.");
         if(this->Proj->Chip->Class!=this->Chip->Name)
             Main::Error("XXXXX: The project class and the chip class is different.");
-        if(std::find(this->Chip->Compatible.begin(),
-                     this->Chip->Compatible.end(),
-                     this->Proj->Chip->Name)==this->Chip->Compatible.end())
+    	if(this->Chip->Compatible_Set.find(this->Proj->Chip->Name)==this->Chip->Compatible_Set.end())
             Main::Error("XXXXX: The project chip is not compatible with the chip description file.");
+
+        /* Check coprocessor compatibility between the chip file and plat file */
+        for(const std::string& Cop:this->Chip->Coprocessor)
+        {
+        	if(this->Plat->Coprocessor_Set.find(Cop)==this->Plat->Coprocessor_Set.end())
+                Main::Error("XXXXX: The chip contains a coprocessor that does not exist in the platform.");
+        }
+
+        /* Check coprocessor compatibility between the project file and chip file */
+        for(const std::string& Cop:this->Proj->Chip->Coprocessor)
+        {
+        	if(this->Chip->Coprocessor_Set.find(Cop)==this->Chip->Coprocessor_Set.end())
+                Main::Error("XXXXX: The project contains a coprocessor that does not exist in the chip.");
+        }
 
         /* Check if the kernel priorities are a multiple of word size */
         if((this->Proj->Kernel->Kern_Prio%this->Plat->Wordlength)!=0)
@@ -551,6 +563,15 @@ void Main::Reference_Check(void)
                 /* Check extra capability table sizes */
                 if(Prc->Extra_Captbl>this->Plat->Captbl_Max)
                     Main::Error("XXXXX: Extra captbl capacity cannot be larger than the platform limit %lld.",this->Plat->Captbl_Max);
+
+                /* Check if the referenced coprocessors are within the list of what is declared in the chip */
+                for(const std::string& Cop:Prc->Coprocessor)
+                {
+                    if(std::find(this->Proj->Chip->Coprocessor.begin(),
+                                 this->Proj->Chip->Coprocessor.end(),
+                                 Cop)==this->Proj->Chip->Coprocessor.end())
+                        Main::Error("XXXXX: The process contains a coprocessor that does not exist in the project.");
+                }
 
                 /* Check virtual machine priorities */
                 if(Prc->Type==PROCESS_VIRTUAL)
@@ -1325,6 +1346,7 @@ void Main::Kom_Alloc(ptr_t Init_Capsz)
 {
     ptr_t Cap_Front;
     ptr_t Kom_Front;
+    std::vector<std::string> None;
 
     /* Compute initial state when creating the vectors */
     /* Initial capability table */
@@ -1337,13 +1359,13 @@ void Main::Kom_Alloc(ptr_t Init_Capsz)
     Cap_Front++;
     /* Initial thread */
     Cap_Front++;
+    Kom_Front+=this->Gen->Plat->Size_Thread(None,0);
     /* Initial kfn */
     Cap_Front++;
     /* Initial kmem */
     Cap_Front++;
     /* Initial tick timer/interrupt/event endpoint */
     Cap_Front++;
-    Kom_Front+=this->Gen->Plat->Size_Thread();
 
     /* Create capability table for vectors */
     Main::Info("> Kernel vector cap front %lld kmem front 0x%llX.", Cap_Front, Kom_Front);
@@ -1362,7 +1384,7 @@ void Main::Kom_Alloc(ptr_t Init_Capsz)
     {
         /* Two threads (sftd/main) and one endpoint (sftd) for RVM */
         Cap_Front+=3;
-        Kom_Front+=2*this->Gen->Plat->Size_Thread();
+        Kom_Front+=2*this->Gen->Plat->Size_Thread(None,0);
 
         /* Create virtual machine endpoints. These endpoints does not have names.
          * Each virtual machine have two endpoints, but only one is dedicated to
@@ -1377,7 +1399,7 @@ void Main::Kom_Alloc(ptr_t Init_Capsz)
     else
     {
         Cap_Front+=2;
-        Kom_Front+=this->Gen->Plat->Size_Thread();
+        Kom_Front+=this->Gen->Plat->Size_Thread(None,0);
 
         /* No virtual machine endpoints to create at all */
         this->Proj->Monitor->Vep_Cap_Front=Cap_Front;
@@ -1423,7 +1445,8 @@ void Main::Kom_Alloc(ptr_t Init_Capsz)
     Cap_Front+=ROUND_DIV(this->Proj->Monitor->Thread.size(),this->Plat->Captbl_Max);
     Kom_Front+=this->Gen->Plat->Size_Cpt(this->Proj->Monitor->Thread.size());
     /* Threads themselves */
-    Kom_Front+=this->Proj->Monitor->Thread.size()*this->Gen->Plat->Size_Thread();
+    for(const class Thread* Thd:this->Proj->Monitor->Thread)
+    	Kom_Front+=this->Gen->Plat->Size_Thread(Thd->Owner->Coprocessor,Thd->Is_Hyp);
 
     /* Create invocations */
     Main::Info("> Monitor invocation cap front %lld kmem front 0x%llX.", Cap_Front, Kom_Front);
@@ -1496,7 +1519,7 @@ void Main::Obj_Alloc(void)
             {
                 Main::Info("Allocating memory for process '%s'.",Prc->Name.c_str());
                 Prc->Mem_Alloc(this->Plat->Wordlength,
-                               this->Gen->Plat->Size_Register(),
+                               this->Gen->Plat->Size_Register(Prc->Coprocessor),
                                this->Proj->Kernel->Kom_Order);
             }
             catch(std::exception& Exc)
@@ -1857,7 +1880,7 @@ ptr_t Main::XML_Get_Yesno(xml_node_t* Root, const std::string& Name,
 
     return 0;
 }
-/* End Function:Main::XML_Get_String *****************************************/
+/* End Function:Main::XML_Get_Yesno ******************************************/
 
 /* Begin Function:Main::XML_Get_CSV *******************************************
 Description : Get comma-separated values from the XML entry.
@@ -1930,7 +1953,7 @@ void Main::XML_Get_KVP(xml_node_t* Root, const std::string& Name,
             Main::Error(Errno1+": '"+Name+"' section parsing internal error.");
     }
 }
-/* End Function:Main::XML_Get_KVP *******************************************/
+/* End Function:Main::XML_Get_KVP ********************************************/
 
 /* Begin Function:Main::Idtfr_Check *******************************************
 Description : Check if the identifier supplied is valid. Valid identifiers must

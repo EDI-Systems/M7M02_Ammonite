@@ -47,18 +47,20 @@ typedef unsigned char rvm_u8_t;
 #define EXTERN                                      extern
 /* The order of bits in one CPU machine word */
 #define RVM_WORD_ORDER                              (5U)
+/* FPU type definitions - keep in accordance with kernel */
+#define RVM_A6M_ATTR_NONE                           (0U)
 
 /* Platform-specific includes */
 #include "rvm_platform_a6m_conf.h"
 
 /* Thread size */
-#define RVM_THD_WORD_SIZE                           (31U)
+#define RVM_HYP_RAW_SIZE                            ((21U)*sizeof(rvm_ptr_t))
 /* Invocation size */
-#define RVM_INV_WORD_SIZE                           (9U)
+#define RVM_INV_RAW_SIZE                            ((9U)*sizeof(rvm_ptr_t))
 /* Normal page directory size */
-#define RVM_PGT_WORD_SIZE_NOM(NUM_ORDER)            (5U+RVM_POW2(NUM_ORDER))
-/* Top-level page directory size */
-#define RVM_PGT_WORD_SIZE_TOP(NUM_ORDER)            (2U*RVM_A6M_REGION_NUM+RVM_PGT_WORD_SIZE_NOM(NUM_ORDER))
+#define RVM_PGT_RAW_SIZE_NOM(NUM_ORDER)             ((5U+RVM_POW2(NUM_ORDER))*sizeof(rvm_ptr_t))
+/* Top-level page directory size - ARMv6-M are all static, no static field needed */
+#define RVM_PGT_RAW_SIZE_TOP(NUM_ORDER)             ((2U*RVM_A6M_REGION_NUM)*sizeof(rvm_ptr_t)+RVM_PGT_RAW_SIZE_NOM(NUM_ORDER))
 
 #define RVM_A6M_REG(X)                              (*((volatile rvm_ptr_t*)(X)))
 #define RVM_A6M_REGB(X)                             (*((volatile rvm_u8_t*)(X)))
@@ -113,8 +115,8 @@ typedef unsigned char rvm_u8_t;
  * instruction is issued */
 #define RVM_A6M_MFSR_IACCVIOL                       (1U<<0)
 
-/* No coprocessor */
-#define RVM_COPROCESSOR_TYPE                        RVM_COPROCESSOR_NONE
+/* ARMv6-M have no coprocessor */
+#define RVM_A6M_COP_NONE                            (0U)
 
 /* Platform-specific kernel function macros **********************************/
 /* Page table entry mode which property to get */
@@ -278,7 +280,6 @@ struct RVM_Reg_Struct
 struct RVM_Exc_Struct
 {
     rvm_ptr_t Cause;
-    rvm_ptr_t Addr;
 };
 /*****************************************************************************/
 /* __RVM_PLATFORM_A6M_H_STRUCTS__ */

@@ -24,7 +24,7 @@ Description : The header of microcontroller user-level library.
  */
 /* Priority of threads */
 #define RVM_SFTD_PRIO               (RVM_PREEMPT_PRIO_NUM-1U)
-#define RVM_MAIN_PRIO               (4U)
+#define RVM_VMMD_PRIO               (4U)
 #define RVM_VVCT_PRIO               (3U)
 #define RVM_VUSR_PRIO               (2U)
 #define RVM_INIT_PRIO               (1U)
@@ -88,6 +88,8 @@ struct RVM_Meta_Thd_Crt_Struct
     rvm_cid_t Slot;
     rvm_cid_t Prc;
     rvm_ptr_t Prio;
+    rvm_ptr_t Attr;
+    rvm_ptr_t Is_Hyp;
 };
 
 /* Invocation creation database entry */

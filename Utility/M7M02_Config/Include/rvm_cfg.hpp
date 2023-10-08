@@ -161,7 +161,7 @@ public:
     /* Project information - need to be manually deleted */
     static class Proj_Info* Proj;
 
-	/* Lower-level classes */
+    /* Lower-level classes */
     static class Menu_Bar* Menu_Bar;
     static class Tool_Bar* Tool_Bar;
     static class wxPanel* App_Panel;
