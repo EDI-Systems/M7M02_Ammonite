@@ -152,7 +152,7 @@ ptr_t A6M_Gen::Mem_Align(ptr_t Base, ptr_t Size, ptr_t Align_Order)
 }
 /* End Function:A6M_Gen::Mem_Align *******************************************/
 
-/* Begin Function:A6M_Gen::Pgt_Total_Order **********************************
+/* Begin Function:A6M_Gen::Pgt_Total_Order ************************************
 Description : Get the total order and the start address of the page table.
 Input       : std::vector<std::unique_ptr<class Mem_Info>>& List - The memory block list.
 Output      : ptr_t* Base - The base address of this page table.
@@ -201,9 +201,9 @@ ptr_t A6M_Gen::Pgt_Total_Order(std::vector<std::unique_ptr<class Mem_Info>>& Lis
 
     return Total_Order;
 }
-/* End Function:A6M_Gen::Pgt_Total_Order ***********************************/
+/* End Function:A6M_Gen::Pgt_Total_Order *************************************/
 
-/* Begin Function:A6M_Gen::Pgt_Num_Order ************************************
+/* Begin Function:A6M_Gen::Pgt_Num_Order **************************************
 Description : Get the number order of the page table.
 Input       : std::vector<std::unique_ptr<class Mem_Info>>& List - The memory block list.
               ptr_t Total_Order - The total order of the page table.
@@ -218,27 +218,30 @@ ptr_t A6M_Gen::Pgt_Num_Order(std::vector<std::unique_ptr<class Mem_Info>>& List,
     ptr_t Pivot_Cnt;
     ptr_t Pivot_Addr;
     ptr_t Cut_Apart;
-    ptr_t Mappable;
+    /* Whether the memory block is good */
+    ptr_t Uniform;
+    ptr_t Aligned;
 
     /* Can the memory segments get fully mapped in? If yes, there are two conditions
      * that must be met:
      * 1. There cannot be different access permissions in these memory segments.
      * 2. The memory start address and the size must be fully divisible by POW2(Total_Order-3). */
-    Mappable=1;
+    Uniform=1;
+    Aligned=1;
     for(std::unique_ptr<class Mem_Info>& Mem:List)
     {
         if(Mem->Attr!=List[0]->Attr)
-            Mappable=0;
+        	Uniform=0;
         if((Mem->Base%POW2(Total_Order-3))!=0)
-            Mappable=0;
+        	Aligned=0;
         if((Mem->Size%POW2(Total_Order-3))!=0)
-            Mappable=0;
-        if(Mappable==0)
+        	Aligned=0;
+        if((Uniform==0)||(Aligned==0))
             break;
     }
 
     /* Is this directly mappable? If yes, we always create page tables with 8 pages. */
-    if(Mappable!=0)
+    if((Uniform!=0)&&(Aligned!=0))
     {
         /* Yes, it is directly mappable. We choose the smallest number order, in this way
          * we have the largest size order. This will leave us plenty of chances to use huge
@@ -246,26 +249,28 @@ ptr_t A6M_Gen::Pgt_Num_Order(std::vector<std::unique_ptr<class Mem_Info>>& List,
          * as this maps in a single huge page. */
         for(Num_Order=0;Num_Order<=3;Num_Order++)
         {
-            Mappable=1;
+        	Aligned=1;
 
             for(std::unique_ptr<class Mem_Info>& Mem:List)
             {
                 if((Mem->Base%POW2(Total_Order-Num_Order))!=0)
-                    Mappable=0;
+                	Aligned=0;
                 if((Mem->Size%POW2(Total_Order-Num_Order))!=0)
-                    Mappable=0;
-                if(Mappable==0)
+                	Aligned=0;
+                if(Aligned==0)
                     break;
             }
 
-            if(Mappable!=0)
+            if(Aligned!=0)
                 break;
         }
 
         if(Num_Order>3)
-            throw std::invalid_argument("A0200: Internal number order miscalculation.");
+        	Main::Error("XXXXX: Internal number order miscalculation.");
     }
-    else
+    /* Non-uniform attributes caused this to be unmappable. Avoid cutting contiguous regions
+     * up because this can potentially increase our region usage */
+    else if(Uniform==0)
     {
         /* Not directly mappable. What's the maximum number order that do not cut things apart? */
         Cut_Apart=0;
@@ -294,10 +299,15 @@ ptr_t A6M_Gen::Pgt_Num_Order(std::vector<std::unique_ptr<class Mem_Info>>& List,
         if(Num_Order>1)
             Num_Order--;
     }
+    /* Uniform, but some is not aligned. Cut up as much as we can to reduce lower-level tables. */
+    else if(Aligned==0)
+    	Num_Order=3;
+    else
+    	Main::Error("XXXXX: Internal number order miscalculation.");
 
     return Num_Order;
 }
-/* End Function:A6M_Gen::Pgt_Num_Order *************************************/
+/* End Function:A6M_Gen::Pgt_Num_Order ***************************************/
 
 /* Begin Function:A6M_Gen::Page_Map *******************************************
 Description : Map pages into the page table as we can.

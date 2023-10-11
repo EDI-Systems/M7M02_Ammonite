@@ -1778,38 +1778,56 @@ rvm_ret_t RVM_Hyp_Wdg_Clr(void)
 /* End Function:RVM_Hyp_Wdg_Clr **********************************************/
 
 /* Begin Function:RVM_Vct_Get *************************************************
-Description : Get the interrupt number to handle. After returning the vector, clean
-              up the corresponding bit.
+Description : Get the interrupt number to handle. After returning the vector, 
+              clean up the corresponding bit, then we run the corresponding
+              interrupt vector. Note that we won't lose any pending interrupts
+              because the interrupt vector is called after the interrupt flag is
+              reset.
 Input       : None.
 Output      : None.
-Return      : rvm_ret_t - If there is interrupt pending, the interrupt number; else -1.
+Return      : rvm_ret_t - If there is interrupt pending, the number; else -1.
 ******************************************************************************/
 #ifdef RVM_VIRT_VCT_NUM
 rvm_ret_t RVM_Vct_Get(void)
 {
-    rvm_cnt_t Count;
-    rvm_cnt_t Pos;
+    rvm_ptr_t Pos;
+    rvm_ptr_t Word_Cnt;
+    rvm_ptr_t Byte_Cnt;
+    rvm_ptr_t Word;
+    rvm_u8_t* Flag;
     
     /* See if interrupt enabled */
     if(RVM_Int_Mask!=0U)
         return -1;
     
-    /* See which one is ready, and pick it */
-    Pos=-1;
-    for(Count=RVM_VIRT_VCT_NUM-1;Count>=0;Count--)
+    /* See which word is ready, and pick it */
+    for(Word_Cnt=0U;Word_Cnt<RVM_VCTF_WORD_SIZE;Word_Cnt++)
     {
-        if(RVM_VCTF->Vct[Count]==0U)
-            continue;
+        Word=RVM_VCTF->Vct[Word_Cnt];
         
-        Pos=Count;
-        break;
+        /* A word contains the activated byte */
+        if(Word!=0U)
+        {
+            Flag=(rvm_u8_t*)&Word;
+            
+            /* Find the exact byte */
+            for(Byte_Cnt=0U;Byte_Cnt<RVM_VCTF_WORD_SIZE;Byte_Cnt++)
+            {
+                if(Flag[Byte_Cnt]!=0U)
+                {
+                    Pos=(Word_Cnt<<3)+Byte_Cnt;
+                    /* Clear flag then return byte position */
+                    ((volatile rvm_u8_t*)RVM_VCTF->Vct)[Pos]=0U;
+                    return (rvm_ret_t)Pos;
+                }
+            }
+            
+            /* There must be a non-zero byte or we have an error */
+            RVM_ASSERT(0U);
+        }
     }
-
-    /* Now kill the byte */
-    if(Pos>=0)
-        RVM_VCTF->Vct[Pos]=0U;
     
-    return Pos;
+    return -1;
 }
 #endif
 /* End Function:RVM_Vct_Get **************************************************/

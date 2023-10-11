@@ -240,7 +240,7 @@
             <Timeslice>10</Timeslice>
             <Period>100</Period>
             <Watchdog>0</Watchdog>
-            <Vector_Num>100</Vector_Num>
+            <Vector_Num>10</Vector_Num>
 			<Guest_Type>RMP</Guest_Type>
 			<Guest_Root>../../../../M5P01_Prokaron</Guest_Root>
 			<Buildsystem>Keil</Buildsystem>

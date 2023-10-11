@@ -123,6 +123,7 @@ struct RVM_Vctf
 {
     rvm_ptr_t Tim;
     rvm_ptr_t Ctx;
+    /* Actual number depends on configuration */
     rvm_u8_t Vct[16];
 };
 

@@ -64,7 +64,7 @@ Description : The header of guest user level low-level library.
 #define RVM_PARAM_O0(X)                             (((rvm_ptr_t)(X))&RVM_PARAM_O_MASK)
 
 /* CID synthesis */
-#define RME_CAPID_NULL                              (1<<(sizeof(rvm_ptr_t)*4U-1U))
+#define RVM_CAPID_NULL                              (1<<(sizeof(rvm_ptr_t)*4U-1U))
 #define RVM_CAPID_2L                                (1<<(sizeof(rvm_ptr_t)*2U-1U))
 #define RVM_CAPID(X,Y)                              (((X)<<(sizeof(rvm_ptr_t)*2U))|(Y)|RVM_CAPID_2L)
 
@@ -229,6 +229,8 @@ while(0U)
 #define RVM_STATE                                   ((volatile struct RVM_State*)RVM_VIRT_STATE_BASE)
 /* Vector space (part of state block) */
 #define RVM_VCTF                                    (&(RVM_STATE->Flag))
+/* Vector space words */
+#define RVM_VCTF_WORD_SIZE                          (RVM_ROUND_UP(RVM_VIRT_VCT_NUM, RVM_WORD_ORDER-3U)/RVM_WORD_BYTE)
 
 /* Virtualization signal endpoints */
 /* Hypervisor signal endpoint */
@@ -288,7 +290,9 @@ struct RVM_Vctf
 {
     rvm_ptr_t Tim;
     rvm_ptr_t Ctx;
-    rvm_u8_t Vct[16];
+    /* Size is calculated depending on the actual number of interrupts.
+     * This field will be aligned to at least a machine word. */
+    rvm_ptr_t Vct[1];
 };
 
 /* State block */
