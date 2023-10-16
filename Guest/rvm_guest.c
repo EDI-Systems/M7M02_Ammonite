@@ -1570,6 +1570,7 @@ rvm_ret_t RVM_Hyp(rvm_ptr_t Number,
                   rvm_ptr_t Param3,
                   rvm_ptr_t Param4)
 {
+    /* Might be changed by the hypervisor */
     volatile struct RVM_Param* Arg;
 
     if(RVM_STATE->Vct_Act!=0U)
@@ -1811,7 +1812,7 @@ rvm_ret_t RVM_Vct_Get(void)
             Flag=(rvm_u8_t*)&Word;
             
             /* Find the exact byte */
-            for(Byte_Cnt=0U;Byte_Cnt<RVM_VCTF_WORD_SIZE;Byte_Cnt++)
+            for(Byte_Cnt=0U;Byte_Cnt<RVM_WORD_BYTE;Byte_Cnt++)
             {
                 if(Flag[Byte_Cnt]!=0U)
                 {

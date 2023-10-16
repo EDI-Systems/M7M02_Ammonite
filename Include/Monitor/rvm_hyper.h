@@ -147,7 +147,7 @@ struct RVM_Map_Struct
     /* The head to insert into the receiver */
     struct RVM_List Dst_Head;
     /* The pointer to the virtual machine to send to */
-    volatile struct RVM_Virt_Struct* Virt;
+    struct RVM_Virt_Struct* Virt;
     /* The virtual machine vector to send to */
     rvm_ptr_t Vct_Num;
 };
@@ -182,9 +182,9 @@ struct RVM_Vmap_Struct
     /* The number of virtual vectors */
     rvm_ptr_t Vct_Num;
 
-    /* Register base */
+    /* Register base - volatile, could be changed by the VM */
     volatile struct RVM_Thd_Reg* Reg_Base;
-    /* Parameter base & size */
+    /* Parameter base & size - volatile, could be changed by the VM */
     volatile struct RVM_State* State_Base;
     rvm_ptr_t State_Size;
     /* Descriptor header base address */
@@ -284,23 +284,23 @@ struct RVM_Thd_Reg
 /*****************************************************************************/
 #if(RVM_VIRT_NUM!=0U)
 /* Helper functions */
-static void _RVM_Run_Ins(volatile struct RVM_Virt_Struct* Virt);
-static void _RVM_Run_Del(volatile struct RVM_Virt_Struct* Virt);
-static volatile struct RVM_Virt_Struct* _RVM_Run_High(void);
+static void _RVM_Run_Ins(struct RVM_Virt_Struct* Virt);
+static void _RVM_Run_Del(struct RVM_Virt_Struct* Virt);
+static struct RVM_Virt_Struct* _RVM_Run_High(void);
 
-static void _RVM_Virt_Switch(volatile struct RVM_Virt_Struct* From, 
-                             volatile struct RVM_Virt_Struct* To);
-static void _RVM_Virt_Vct_Snd(volatile struct RVM_List* Array,
+static void _RVM_Virt_Switch(struct RVM_Virt_Struct* From, 
+                             struct RVM_Virt_Struct* To);
+static void _RVM_Virt_Vct_Snd(struct RVM_List* Array,
                               rvm_ptr_t Num);
 static void _RVM_Virt_Cur_Recover(void);
                                 
-static rvm_ret_t _RVM_Vct_Pend_Check(volatile struct RVM_Virt_Struct* Virt);
-static void _RVM_Vct_Flag_Set(volatile struct RVM_Virt_Struct* Virt,
+static rvm_ret_t _RVM_Vct_Pend_Check(struct RVM_Virt_Struct* Virt);
+static void _RVM_Vct_Flag_Set(struct RVM_Virt_Struct* Virt,
                               rvm_ptr_t Vect_Num);
 
-static void _RVM_Wheel_Ins(volatile struct RVM_Virt_Struct* Virt,
+static void _RVM_Wheel_Ins(struct RVM_Virt_Struct* Virt,
                            rvm_ptr_t Period);
-static void _RVM_Tim_Snd(volatile struct RVM_Virt_Struct* Virt);
+static void _RVM_Tim_Snd(struct RVM_Virt_Struct* Virt);
 static rvm_ptr_t _RVM_Flagset_Get(volatile struct RVM_Flag* Set);
 
 #if(RVM_DEBUG_PRINT==1U)
@@ -336,28 +336,31 @@ static rvm_ret_t RVM_Hyp_Wdg_Clr(void);
 #endif
 
 /*****************************************************************************/
+/* Everything below no longer volatile because we only have one thread VMMD for
+ * all three daemons - HYPD, VCTD and TIMD. Their shared variables are free from
+ * volatile now */
 #if(RVM_VIRT_NUM!=0U)
 /* Context switch trigger */
-__EXTERN__ volatile rvm_ptr_t RVM_Switch;
+__EXTERN__ rvm_ptr_t RVM_Switch;
 /* Timestamp value */
-__EXTERN__ volatile rvm_ptr_t RVM_Tick;
+__EXTERN__ rvm_ptr_t RVM_Tick;
 /* Timer wheel - This system supports about 64 VMs maximum, thus we set the timer wheel at 32 */
-__EXTERN__ volatile struct RVM_List RVM_Wheel[RVM_WHEEL_SIZE];
+__EXTERN__ struct RVM_List RVM_Wheel[RVM_WHEEL_SIZE];
 
 /* The current virtual machine */
-__EXTERN__ volatile struct RVM_Virt_Struct* volatile RVM_Virt_Cur;
+__EXTERN__ struct RVM_Virt_Struct* RVM_Virt_Cur;
 /* Virtual machine run queue and bitmap */
-__EXTERN__ volatile rvm_ptr_t RVM_Bitmap[RVM_VPRIO_BITMAP];
-__EXTERN__ volatile struct RVM_List RVM_Run[RVM_PREEMPT_VPRIO_NUM];
+__EXTERN__ rvm_ptr_t RVM_Bitmap[RVM_VPRIO_BITMAP];
+__EXTERN__ struct RVM_List RVM_Run[RVM_PREEMPT_VPRIO_NUM];
 
 /* Event header */
-__EXTERN__ volatile struct RVM_List RVM_Evt[RVM_VIRT_EVT_NUM];
+__EXTERN__ struct RVM_List RVM_Evt[RVM_VIRT_EVT_NUM];
 /* Physical vector header */
-__EXTERN__ volatile struct RVM_List RVM_Phys[RVM_PHYS_VCT_NUM];
+__EXTERN__ struct RVM_List RVM_Phys[RVM_PHYS_VCT_NUM];
 
 /* Mapping database */
-__EXTERN__ volatile struct RVM_List RVM_Map_Free;
-__EXTERN__ volatile struct RVM_Map_Struct RVM_Map[RVM_VIRT_MAP_NUM];
+__EXTERN__ struct RVM_List RVM_Map_Free;
+__EXTERN__ struct RVM_Map_Struct RVM_Map[RVM_VIRT_MAP_NUM];
 #endif
 /*****************************************************************************/
 

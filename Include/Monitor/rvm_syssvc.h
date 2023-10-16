@@ -236,8 +236,8 @@ while(0)
 /* Doubly-linked list */
 struct RVM_List
 {
-    volatile struct RVM_List* Prev;
-    volatile struct RVM_List* Next;
+    struct RVM_List* Prev;
+    struct RVM_List* Next;
 };
 /*****************************************************************************/
 /* __RVM_SYSSVC_H_STRUCTS__ */
@@ -290,12 +290,12 @@ struct RVM_List
 /* Public C Function Prototypes **********************************************/
 /*****************************************************************************/
 /* Doubly linked list */
-__EXTERN__ void RVM_List_Crt(volatile struct RVM_List* Head);
-__EXTERN__ void RVM_List_Del(volatile struct RVM_List* Prev,
-                             volatile struct RVM_List* Next);
-__EXTERN__ void RVM_List_Ins(volatile struct RVM_List* New,
-                             volatile struct RVM_List* Prev,
-                             volatile struct RVM_List* Next);
+__EXTERN__ void RVM_List_Crt(struct RVM_List* Head);
+__EXTERN__ void RVM_List_Del(struct RVM_List* Prev,
+                             struct RVM_List* Next);
+__EXTERN__ void RVM_List_Ins(struct RVM_List* New,
+                             struct RVM_List* Prev,
+                             struct RVM_List* Next);
                              
 /* Capability table operations */
 __EXTERN__ rvm_ret_t RVM_Cpt_Crt(rvm_cid_t Cap_Cpt_Crt,

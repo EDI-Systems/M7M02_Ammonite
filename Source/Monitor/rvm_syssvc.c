@@ -30,11 +30,11 @@ Description : The system call wrapper of RVM virtual machine monitor.
 
 /* Begin Function:RVM_List_Crt ************************************************
 Description : Create a doubly linkled list.
-Input       : volatile struct RVM_List* Head - The pointer to the list head.
+Input       : struct RVM_List* Head - The pointer to the list head.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void RVM_List_Crt(volatile struct RVM_List* Head)
+void RVM_List_Crt(struct RVM_List* Head)
 {
     Head->Prev=Head;
     Head->Next=Head;
@@ -43,13 +43,13 @@ void RVM_List_Crt(volatile struct RVM_List* Head)
 
 /* Begin Function:RVM_List_Del ************************************************
 Description : Delete a node from the doubly-linked list.
-Input       : volatile struct RVM_List* Prev - The prevoius node of the target node.
-              volatile struct RVM_List* Next - The next node of the target node.
+Input       : struct RVM_List* Prev - The prevoius node of the target node.
+              struct RVM_List* Next - The next node of the target node.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void RVM_List_Del(volatile struct RVM_List* Prev,
-                  volatile struct RVM_List* Next)
+void RVM_List_Del(struct RVM_List* Prev,
+                  struct RVM_List* Next)
 {
     Next->Prev=Prev;
     Prev->Next=Next;
@@ -58,15 +58,15 @@ void RVM_List_Del(volatile struct RVM_List* Prev,
 
 /* Begin Function:RVM_List_Ins ************************************************
 Description : Insert a node to the doubly-linked list.
-Input       : volatile struct RVM_List* New - The new node to insert.
-              volatile struct RVM_List* Prev - The previous node.
-              volatile struct RVM_List* Next - The next node.
+Input       : struct RVM_List* New - The new node to insert.
+              struct RVM_List* Prev - The previous node.
+              struct RVM_List* Next - The next node.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void RVM_List_Ins(volatile struct RVM_List* New,
-                  volatile struct RVM_List* Prev,
-                  volatile struct RVM_List* Next)
+void RVM_List_Ins(struct RVM_List* New,
+                  struct RVM_List* Prev,
+                  struct RVM_List* Next)
 {
     Next->Prev=New;
     New->Next=Next;

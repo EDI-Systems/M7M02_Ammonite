@@ -32,7 +32,7 @@
     <Kernel>
 		<Kernel_Root>../../../../M7M01_Eukaron</Kernel_Root>
         <Code_Base>0x08000000</Code_Base>
-        <Code_Size>0x10000</Code_Size>
+        <Code_Size>0x20000</Code_Size>
         <Data_Base>0x20000000</Data_Base>
         <Data_Size>0x10000</Data_Size>
         <Stack_Size>0x1000</Stack_Size>

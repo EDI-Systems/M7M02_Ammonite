@@ -17,18 +17,18 @@ namespace RVM_GEN
 #define A6M_END_LITTLE                          (0)
 #define A6M_END_BIG                             (1)
 
-/* Minimum alignment requirements for A6M */
+/* Minimum alignment requirements for A6M - for memory trunks only, not for kernel objects */
 #define A6M_MEM_ALIGN                           (0x20)
 
 #define A6M_WORD_BITS                           (32)
 #define A6M_INIT_NUM_ORD                        (0)
 
 /* A6M kernel object size */
-#define A6M_RAW_PGT_SIZE_NOM(O)                   ((5+POW2(O))*4)
-#define A6M_RAW_PGT_SIZE_TOP(O, R)                (((R)*2*4)+A6M_RAW_PGT_SIZE_NOM(O))
+#define A6M_RAW_PGT_SIZE_NOM(O)         		((4+POW2(O))*4)
+#define A6M_RAW_PGT_SIZE_TOP(O, R)         		(((R)*2*4)+A6M_RAW_PGT_SIZE_NOM(O))
 #define A6M_RAW_HYP_SIZE                        (84)
 #define A6M_RAW_REG_SIZE                        (44)
-#define A6M_RAW_INV_SIZE                        (36)
+#define A6M_RAW_INV_SIZE                        (32)
 /*****************************************************************************/
 /* __A6M_GEN_HPP_DEFS__ */
 #endif

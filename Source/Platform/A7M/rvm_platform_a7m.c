@@ -146,19 +146,13 @@ void RVM_Thd_Print_Exc(rvm_tid_t TID)
     rvm_ptr_t Exc;
     rvm_ptr_t Param[6];
     
-    Param[0]=RVM_A7M_KFN_DEBUG_ERR_GET_CAUSE;
+    Param[0]=RVM_A7M_KFN_DEBUG_ERR_CAUSE_GET;
     RVM_ASSERT(RVM_A7M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_EXC_GET,
                                (rvm_ptr_t)TID,
                                Param)==0);
     Exc=Param[0];
-    
-    if((Exc&RVM_A7M_HFSR_DEBUGEVT)!=0U)
-        RVM_DBG_S("Sftd: Debug event.\r\n");
-    if((Exc&RVM_A7M_HFSR_FORCED)!=0U)
-        RVM_DBG_S("Sftd: Configurable-priority exception escalated to HardFault.\r\n");
-    if((Exc&RVM_A7M_HFSR_VECTTBL)!=0U)
-        RVM_DBG_S("Sftd: Vector table read fault.\r\n");
+
     if((Exc&RVM_A7M_UFSR_DIVBYZERO)!=0U)
         RVM_DBG_S("Sftd: Divide by zero.\r\n");
     if((Exc&RVM_A7M_UFSR_UNALIGNED)!=0U)
@@ -281,14 +275,14 @@ rvm_ret_t RVM_Thd_Print_Reg(rvm_cid_t Cap_Thd)
                                Param)==0);
     RVM_DBG_SHS("Sftd: LR:0x",Param[0],"\r\n");
 
-    Param[0]=RVM_A7M_KFN_DEBUG_ERR_GET_CAUSE;
+    Param[0]=RVM_A7M_KFN_DEBUG_ERR_CAUSE_GET;
     RVM_ASSERT(RVM_A7M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_EXC_GET,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
     RVM_DBG_SHS("Sftd: Cause:0x",Param[0],"\r\n");
     
-    Param[0]=RVM_A7M_KFN_DEBUG_ERR_GET_ADDR;
+    Param[0]=RVM_A7M_KFN_DEBUG_ERR_ADDR_GET;
     RVM_ASSERT(RVM_A7M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_EXC_GET,
                                (rvm_ptr_t)Cap_Thd,

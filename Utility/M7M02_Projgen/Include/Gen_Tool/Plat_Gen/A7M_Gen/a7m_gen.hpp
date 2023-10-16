@@ -17,15 +17,15 @@ namespace RVM_GEN
 #define A7M_END_LITTLE                          (0)
 #define A7M_END_BIG                             (1)
 
-/* Minimum alignment requirements for A7M */
+/* Minimum alignment requirements for A7M - for memory trunks only, not for kernel objects */
 #define A7M_MEM_ALIGN                           (0x20)
 
 #define A7M_WORD_BITS                           (32)
 #define A7M_INIT_NUM_ORD                        (0)
 
 /* A7M kernel object size */
-#define A7M_RAW_PGT_SIZE_NOM(O)                   ((5+POW2(O))*4)
-#define A7M_RAW_PGT_SIZE_TOP(O, R)                (((1+(R)*2)*4)+A7M_RAW_PGT_SIZE_NOM(O))
+#define A7M_RAW_PGT_SIZE_NOM(O)             	((4+POW2(O))*4)
+#define A7M_RAW_PGT_SIZE_TOP(O, R)          	(((1+(R)*2)*4)+A7M_RAW_PGT_SIZE_NOM(O))
 #define A7M_RAW_HYP_SIZE                        (84)
 #define A7M_RAW_REG_SIZE                        (48)
 #define A7M_RAW_REG_FPU_SIZE                    (112)

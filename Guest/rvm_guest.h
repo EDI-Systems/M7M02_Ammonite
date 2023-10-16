@@ -223,9 +223,9 @@ while(0U)
 #endif
 
 #ifdef RVM_VIRT_VCT_NUM
-/* Register set space */
+/* Register set space - might be changed by hypervisor */
 #define RVM_REG                                     ((volatile struct RVM_Thd_Reg*)RVM_VIRT_REG_BASE)
-/* State block space */
+/* State block space - might be changed by hypervisor */
 #define RVM_STATE                                   ((volatile struct RVM_State*)RVM_VIRT_STATE_BASE)
 /* Vector space (part of state block) */
 #define RVM_VCTF                                    (&(RVM_STATE->Flag))

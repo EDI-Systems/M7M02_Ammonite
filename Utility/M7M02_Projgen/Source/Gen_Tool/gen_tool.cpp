@@ -1858,9 +1858,9 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
     List->push_back("");
     List->push_back("/* End Defines ***************************************************************/");
     List->push_back("");
+    Gen_Tool::Src_Foot(List);
 
     Main::Info("> Writing file.");
-    Gen_Tool::Src_Foot(List);
     Gen_Tool::Line_Write(List, Monitor->Boot_Header_Output+"rvm_boot.h");
 }
 /* End Function:Gen_Tool::Monitor_Boot_Hdr ***********************************/
@@ -2126,10 +2126,10 @@ void Gen_Tool::Monitor_Boot_Src(void)
     }
     List->push_back("/* End Public Global Variables ***********************************************/");
     List->push_back("");
+    Gen_Tool::Src_Foot(List);
 
     /* Generate rvm_boot.c */
     Main::Info("> Writing file.");
-    Gen_Tool::Src_Foot(List);
     Gen_Tool::Line_Write(List, Monitor->Boot_Source_Output+"rvm_boot.c");
 }
 /* End Function:Gen_Tool::Monitor_Boot_Src ***********************************/
@@ -2202,10 +2202,10 @@ void Gen_Tool::Monitor_Hook_Src(void)
     List->push_back("}");
     Gen_Tool::Func_Foot(List, "RVM_Boot_Post_Init");
     List->push_back("");
+    Gen_Tool::Src_Foot(List);
 
     /* Generate rme_init.c */
     Main::Info("> Writing file.");
-    Gen_Tool::Src_Foot(List);
     Gen_Tool::Line_Write(List, Monitor->Hook_Source_Output+"rvm_hook.c");
 }
 /* End Function:Gen_Tool::Monitor_Hook_Src ***********************************/
@@ -2494,7 +2494,7 @@ void Gen_Tool::Process_Main_Hdr(class Process* Prc)
     List->push_back("/* End Includes **************************************************************/");
     List->push_back("");
     Gen_Tool::Src_Foot(List);
-    List->push_back("");
+
     Gen_Tool::Line_Write(List, Prc->Main_Header_Output+"rvm_guest_conf.h");
 }
 /* End Function:Gen_Tool::Process_Main_Hdr ***********************************/
@@ -2598,7 +2598,7 @@ void Gen_Tool::Process_Entry_Src(class Process* Prc)
         Gen_Tool::Func_Foot(List, std::string("Inv_")+Inv->Name);
         List->push_back("");
         this->Src_Foot(List);
-        List->push_back("");
+
         Gen_Tool::Line_Write(List, Prc->Entry_Source_Output+Filename);
     }
     Input.clear();
@@ -2606,7 +2606,7 @@ void Gen_Tool::Process_Entry_Src(class Process* Prc)
 /* End Function:Gen_Tool::Process_Entry_Src **********************************/
 
 /* Begin Function:Gen_Tool::Process_Desc_Src **********************************
-Description : Create the descriptor header for process.
+Description : Create the descriptor source for process.
 Input       : class Process* Prc - The process to generate for.
 Output      : None.
 Return      : None.
@@ -2622,7 +2622,9 @@ void Gen_Tool::Process_Desc_Src(class Process* Prc)
 
     Main::Info("> Generating descriptor source.");
     Filename=std::string("prc_")+Prc->Name_Lower+"_desc.c";
-    Gen_Tool::Src_Head(List, Filename, "The process descriptor header file - do not edit!.");
+    Gen_Tool::Src_Head(List, Filename, "The process descriptor header file - do not edit!\n"
+    								   "              When using LTO, make sure this file is exempt from the LTO option,\n"
+    								   "              so that it be firmly linked to the head of the image!");
     List->push_back("");
 
     /* Includes */
@@ -2694,7 +2696,6 @@ void Gen_Tool::Process_Desc_Src(class Process* Prc)
     List->push_back("/* End Public Global Variables ***********************************************/");
     List->push_back("");
     Gen_Tool::Src_Foot(List);
-    List->push_back("");
 
     /* Generate proc_xxx_header.c */
     Gen_Tool::Line_Write(List, Prc->Main_Source_Output+Filename);
