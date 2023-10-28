@@ -110,13 +110,14 @@ namespace RVM_GEN
     Return      : None.
     ******************************************************************************/
     void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List,
-        const std::string& After,
-        const std::string& Target, const std::string& Optimization,
-        const std::vector<std::string>& Include,
-        const std::vector<std::string>& Source,
-        const std::string& Linker)
+									const std::string& After,
+									const std::string& Target, const std::string& Optimization,
+									const std::vector<std::string>& Coprocessor,
+									const std::vector<std::string>& Include,
+									const std::vector<std::string>& Source,
+									const std::string& Linker)
     {
-        ptr_t Opt_Level;
+//        ptr_t Opt_Level;
         std::string CPU_Type;
         std::string FPU_Type;
         std::string Endian;
@@ -160,22 +161,24 @@ namespace RVM_GEN
             Main::Error("XXXXX: Internal processor type error.");
 
         /* FPU Type */
-        if ((this->Chip->Attribute["CPU"]=="CM0")||(this->Chip->Attribute["CPU"]=="CM0P"))
-            FPU_Type = "";
-        else
+        if(Coprocessor.empty())
+        	FPU_Type="";
+        else if(Coprocessor.size()==1)
         {
-            FPU_Type=this->Chip->Attribute["FPU"];
-            if (FPU_Type=="None")
-                FPU_Type="";
-            else if (FPU_Type=="FPV4_SP")
-                FPU_Type="fpv4-sp-d16";
-            else if (FPU_Type=="FPV5_SP")
-                FPU_Type = "fpv5-sp-d16";
-            else if (FPU_Type=="FPV5_DP")
-                FPU_Type="fpv5-d16";
-            else
-                Main::Error("XXXXX: Internal FPU type error.");
+    		FPU_Type=Coprocessor[0];
+    		if(FPU_Type=="NONE")
+    			FPU_Type="";
+    		else if(FPU_Type=="FPV4_SP")
+    			FPU_Type="FPU2";
+    		else if(FPU_Type=="FPV5_SP")
+    			FPU_Type="FPU3(SFPU)";
+    		else if(FPU_Type=="FPV5_DP")
+    			FPU_Type="FPU3(DFPU)";
+    		else
+    			Main::Error("XXXXX: Internal FPU type error.");
         }
+        else
+    		Main::Error("XXXXX: Internal FPU type error.");
 
         /* Endianness */
         Endian = this->Chip->Attribute["Endian"];
@@ -397,11 +400,14 @@ namespace RVM_GEN
         Gen_Tool::Line_Write(List, "./Kernel/Project/Kernel_usr");
         List->clear(); 
 
+        std::vector<std::string> None;
+
         /* Generate a Makefile for compiling system code */
         this->Makefile_Proj(List,
             "",                                      /* After */
             "Kernel",                                /* Target */
             this->Proj->Kernel->Optimization,        /* Optimization */
+			None,									 /* Coprocessor */
             Include,                                 /* Include */
             Source,                                  /* Source */
             Linker[0]                               /* Linker */
@@ -426,6 +432,7 @@ namespace RVM_GEN
     {
         std::string After;
         std::vector<std::string> Bincopy;
+        std::vector<std::string> None;
 
         if (this->Proj->Kernel->Full_Image != 0)
         {
@@ -451,6 +458,7 @@ namespace RVM_GEN
             After,                                  /* After */
             "Monitor",                               /* Target */
             this->Proj->Monitor->Optimization,       /* Optimization */
+			None, 									/* Coprocessor */
             Include,                                 /* Include */
             Source,                                  /* Source */
             Linker[0]                               /* Linker */
@@ -477,6 +485,7 @@ namespace RVM_GEN
     {
         std::string After;
         std::vector<std::string> Bincopy;
+        std::vector<std::string> None;
 
         if (this->Proj->Kernel->Full_Image != 0)
         {
@@ -502,6 +511,7 @@ namespace RVM_GEN
             After,                                  /* After */
             Prc->Name,                               /* Target */
             Prc->Optimization,                       /* Optimization */
+			None, 									 /* Coprocessor */
             Include,                                 /* Include */
             Source,                                  /* Source */
             Linker[0]                              /* Linker */

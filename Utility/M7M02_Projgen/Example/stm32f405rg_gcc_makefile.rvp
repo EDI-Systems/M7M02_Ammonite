@@ -11,9 +11,10 @@
         <Platform>A7M</Platform>
         <Class>STM32F405RG</Class>
         <Name>STM32F405RGT6</Name>
+        <Coprocessor>FPV4_SP</Coprocessor>
         <Config>
             <NVIC_Grouping>P2S6</NVIC_Grouping>
-            <Systick_Value>16800</Systick_Value>
+            <Systick_Value>1680000</Systick_Value>
         </Config>
     </Chip>
     <Extmem>
@@ -22,7 +23,8 @@
         <S0>
             <Name>Shared1</Name>
             <Base>Auto</Base>
-            <Size>0x1000</Size>
+            <Size>0x400</Size>
+            <Align>Auto</Align>
             <Type>Data</Type>
             <Attribute>RWBCS</Attribute>
         </S0>
@@ -58,9 +60,7 @@
         <Data_Size>0x4000</Data_Size>
         <Init_Stack_Size>0x800</Init_Stack_Size>
         <Sftd_Stack_Size>0x800</Sftd_Stack_Size>
-        <Vctd_Stack_Size>0x800</Vctd_Stack_Size>
-        <Timd_Stack_Size>0x800</Timd_Stack_Size>
-        <Hypd_Stack_Size>0x800</Hypd_Stack_Size>
+        <Vmmd_Stack_Size>0x800</Vmmd_Stack_Size>
         <Extra_Captbl>32</Extra_Captbl>
         <Virt_Prio>32</Virt_Prio>
         <Virt_Event>32</Virt_Event>
@@ -81,6 +81,7 @@
         <P0>
             <Name>Proc1</Name>
             <Extra_Captbl>9</Extra_Captbl>
+            <Coprocessor>FPV4_SP</Coprocessor>
 			<Buildsystem>Makefile</Buildsystem>
 			<Toolchain>GCC</Toolchain>
             <Optimization>Os</Optimization>
@@ -96,6 +97,7 @@
                     <Name>Main_Code</Name>
                     <Base>0x08020000</Base>
                     <Size>0x8000</Size>
+                    <Align>Auto</Align>
                     <Type>Code</Type>
                     <Attribute>RXBCS</Attribute>
                 </M0>
@@ -103,28 +105,15 @@
                     <Name>Main_Data</Name>
                     <Base>0x20000000</Base>
                     <Size>0x9000</Size>
+                    <Align>Auto</Align>
                     <Type>Data</Type>
                     <Attribute>RWXBCS</Attribute>
                 </M1>
-                <M2>
-                    <Name>Extra_Data</Name>
-                    <Base>Auto</Base>
-                    <Size>0x1000</Size>
-                    <Type>Data</Type>
-                    <Attribute>RWBCS</Attribute>
-                </M2>
-                <M3>
-                    <Name>Main_Device</Name>
-                    <Base>0xF0000000</Base>
-                    <Size>0x10000</Size>
-                    <Type>Device</Type>
-                    <Attribute>RWS</Attribute>
-                </M3>
             </Memory>
             <Shmem>
                 <S0>
                     <Name>Shared1</Name>
-                    <Attribute>RBCS</Attribute>
+                    <Attribute>RWBCS</Attribute>
                 </S0>
             </Shmem>
             <Thread>
@@ -136,6 +125,10 @@
                 </T0>
             </Thread>
             <Invocation>
+                <I0>
+                    <Name>Inv1</Name>
+                    <Stack_Size>0x1000</Stack_Size>
+                </I0>
             </Invocation>
             <Port>
                 <P0>
@@ -149,20 +142,20 @@
                 </R0>
             </Receive>
             <Send>
+                <S0>
+                    <Name>Recv1</Name>
+                    <Process>Proc2</Process>
+                </S0>
             </Send>
             <Vector>
             </Vector>
             <Kfunc>
-                <K0>
-                    <Name>Kfunc1</Name>
-                    <Start>0x60</Start>
-                    <End>0x90</End>
-                </K0>
             </Kfunc>
         </P0>
         <P1>
             <Name>Proc2</Name>
             <Extra_Captbl>0</Extra_Captbl>
+            <Coprocessor>FPV4_SP</Coprocessor>
 			<Buildsystem>Makefile</Buildsystem>
 			<Toolchain>GCC</Toolchain>
 			<Optimization>Os</Optimization>
@@ -175,8 +168,10 @@
 			<Entry_Source_Overwrite>No</Entry_Source_Overwrite>
             <Memory>
                 <M0>
+                    <Name>Main_Code</Name>
                     <Base>Auto</Base>
                     <Size>0x8000</Size>
+                    <Align>Auto</Align>
                     <Type>Code</Type>
                     <Attribute>RXBCS</Attribute>
                 </M0>
@@ -184,6 +179,7 @@
                     <Name>Main_Data</Name>
                     <Base>Auto</Base>
                     <Size>0x4000</Size>
+                    <Align>Auto</Align>
                     <Type>Data</Type>
                     <Attribute>RWXBCS</Attribute>
                 </M1>
@@ -205,10 +201,14 @@
             <Invocation>
                 <I0>
                     <Name>Inv1</Name>
-                    <Stack_Size>0x200</Stack_Size>
+                    <Stack_Size>0x1000</Stack_Size>
                 </I0>
             </Invocation>
             <Port>
+                <P0>
+                    <Name>Inv1</Name>
+                    <Process>Proc1</Process>
+                </P0>
             </Port>
             <Receive>
                 <R0>
@@ -222,17 +222,8 @@
                 </S0>
             </Send>
             <Vector>
-                <V0>
-                    <Name>TIM2</Name>
-                    <Number>28</Number>
-                </V0>
             </Vector>
             <Kfunc>
-                <K0>
-                    <Name>Kfunc1</Name>
-                    <Start>0x125</Start>
-                    <End>0x126</End>
-                </K0>
             </Kfunc>
         </P1>
     </Process>
@@ -240,6 +231,7 @@
         <V0>
             <Name>Virt1</Name>
             <Extra_Captbl>0</Extra_Captbl>
+            <Coprocessor>FPV4_SP</Coprocessor>
             <Vector_Stack_Size>0x400</Vector_Stack_Size>
             <User_Stack_Size>0x400</User_Stack_Size>
             <Priority>5</Priority>
@@ -265,17 +257,27 @@
                 <M0>
                     <Name>Main_Code</Name>
                     <Base>Auto</Base>
-                    <Size>0x8000</Size>
+                    <Size>0x10000</Size>
+                    <Align>Auto</Align>
                     <Type>Code</Type>
                     <Attribute>RXBCS</Attribute>
                 </M0>
                 <M1>
                     <Name>Main_Data</Name>
                     <Base>Auto</Base>
-                    <Size>0x2000</Size>
+                    <Size>0x10000</Size>
+                    <Align>Auto</Align>
                     <Type>Data</Type>
                     <Attribute>RWXBCS</Attribute>
                 </M1>
+                <M2>
+                    <Name>Main_Device</Name>
+                    <Base>0x40000000</Base>
+                    <Size>0x20000000</Size>
+                    <Align>Auto</Align>
+                    <Type>Device</Type>
+                    <Attribute>RWS</Attribute>
+                </M2>
             </Memory>
             <Shmem>
                 <S0>
@@ -288,75 +290,18 @@
                     <Name>Recv1</Name>
                     <Process>Proc1</Process>
                 </S0>
+                <S1>
+                    <Name>Recv1</Name>
+                    <Process>Proc2</Process>
+                </S1>
             </Send>
             <Kfunc>
                 <K0>
-                    <Name>Kfunc1</Name>
-                    <Start>0x100</Start>
-                    <End>0x200</End>
+                    <Name>Int_Local_Mod</Name>
+                    <Start>0xF100</Start>
+                    <End>0xF100</End>
                 </K0>
             </Kfunc>
         </V0>
-
-        <V1>
-            <Name>Virt2</Name>
-            <Extra_Captbl>0</Extra_Captbl>
-            <Vector_Stack_Size>0x400</Vector_Stack_Size>
-            <User_Stack_Size>0x400</User_Stack_Size>
-            <Priority>5</Priority>
-            <Timeslice>10</Timeslice>
-            <Period>100</Period>
-            <Watchdog>0</Watchdog>
-            <Vector_Num>100</Vector_Num>
-			<Guest_Type>RMP</Guest_Type>
-			<Guest_Root>../../../../M5P01_Prokaron</Guest_Root>
-			<Buildsystem>Makefile</Buildsystem>
-			<Toolchain>GCC</Toolchain>
-			<Optimization>Os</Optimization>
-			<Project_Output>./Virt2/Project</Project_Output>
-			<Project_Overwrite>No</Project_Overwrite>
-			<Linker_Output>./Virt2/Project</Linker_Output>
-			<Main_Header_Output>./Virt2/Include</Main_Header_Output>
-			<Main_Source_Output>./Virt2/Source</Main_Source_Output>
-			<Virtual_Header_Output>./Virt2/Include</Virtual_Header_Output>
-			<Virtual_Header_Overwrite>No</Virtual_Header_Overwrite>
-			<Virtual_Source_Output>./Virt2/Source</Virtual_Source_Output>
-			<Virtual_Source_Overwrite>No</Virtual_Source_Overwrite>
-            <Memory>
-                <M0>
-                    <Name>Main_Code</Name>
-                    <Base>Auto</Base>
-                    <Size>0x8000</Size>
-                    <Type>Code</Type>
-                    <Attribute>RXBCS</Attribute>
-                </M0>
-                <M1>
-                    <Name>Main_Data</Name>
-                    <Base>Auto</Base>
-                    <Size>0x2000</Size>
-                    <Type>Data</Type>
-                    <Attribute>RWXBCS</Attribute>
-                </M1>
-            </Memory>
-            <Shmem>
-                <S0>
-                    <Name>Shared1</Name>
-                    <Attribute>RWBCS</Attribute>
-                </S0>
-            </Shmem>
-            <Send>
-                <S0>
-                    <Name>Recv1</Name>
-                    <Process>Proc1</Process>
-                </S0>
-            </Send>
-            <Kfunc>
-                <K0>
-                    <Name>Kfunc1</Name>
-                    <Start>0x100</Start>
-                    <End>0x200</End>
-                </K0>
-            </Kfunc>
-        </V1>
     </Virtual>
 </Project>
