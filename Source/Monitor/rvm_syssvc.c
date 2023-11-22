@@ -28,6 +28,172 @@ Description : The system call wrapper of RVM virtual machine monitor.
 #undef __HDR_PUBLIC_MEMBERS__
 /* End Includes **************************************************************/
 
+/* Begin Function:_RVM_MSB_Generic ********************************************
+Description : Find the MSB's position. This is a portable solution for all
+              processors; if your processor does not have fast built-in bit
+              manipulation support, you can resort to this when porting.
+Input       : rvm_ptr_t Value - The value to compute for.
+Output      : None.
+Return      : rvm_ptr_t - The result. 0 will be returned for 0.
+******************************************************************************/
+rvm_ptr_t _RVM_MSB_Generic(rvm_ptr_t Value)
+{
+    rvm_ptr_t Bit;
+    static const rvm_u8_t Table[256]=
+    {
+        0U, 0U, 1U, 1U, 2U, 2U, 2U, 2U, 3U, 3U, 3U, 3U, 3U, 3U, 3U, 3U,
+        4U, 4U, 4U, 4U, 4U, 4U, 4U, 4U, 4U, 4U, 4U, 4U, 4U, 4U, 4U, 4U,
+        5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U,
+        5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U,
+        6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U,
+        6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U,
+        6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U,
+        6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U,
+        7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U,
+        7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U,
+        7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U,
+        7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U,
+        7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U,
+        7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U,
+        7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U,
+        7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U
+    };
+
+#if(RVM_WORD_ORDER==4U)
+    /* 15-8 */
+    if(Value>=RVM_POW2(8U))
+    {
+        RVM_COVERAGE_MARKER();
+        Bit=8U;
+    }
+    /* 7-0 */
+    else
+    {
+        RVM_COVERAGE_MARKER();
+        Bit=0U;
+    }
+#elif(RVM_WORD_ORDER==5U)
+    /* 31-16 */
+    if(Value>=RVM_POW2(16U))
+    {
+        RVM_COVERAGE_MARKER();
+        /* 31-24 */
+        if(Value>=RVM_POW2(24U))
+        {
+            RVM_COVERAGE_MARKER();
+            Bit=24U;
+        }
+        /* 24-16 */
+        else
+        {
+            RVM_COVERAGE_MARKER();
+            Bit=16U;
+        }
+    }
+    /* 15-0 */
+    else
+    {
+        RVM_COVERAGE_MARKER();
+        /* 15-8 */
+        if(Value>=RVM_POW2(8U))
+        {
+            RVM_COVERAGE_MARKER();
+            Bit=8U;
+        }
+        /* 7-0 */
+        else
+        {
+            RVM_COVERAGE_MARKER();
+            Bit=0U;
+        }
+    }
+#elif(RVM_WORD_ORDER==6U)
+    /* 63-32 */
+    if(Value>=RVM_POW2(32U))
+    {
+        RVM_COVERAGE_MARKER();
+        /* 63-48 */
+        if(Value>=RVM_POW2(48U))
+        {
+            RVM_COVERAGE_MARKER();
+            /* 63-56 */
+            if(Value>=RVM_POW2(56U))
+            {
+                RVM_COVERAGE_MARKER();
+                Bit=56U;
+            }
+            /* 56-48 */
+            else
+            {
+                RVM_COVERAGE_MARKER();
+                Bit=48U;
+            }
+        }
+        /* 47-32 */
+        else
+        {
+            RVM_COVERAGE_MARKER();
+            /* 47-40 */
+            if(Value>=RVM_POW2(40U))
+            {
+                RVM_COVERAGE_MARKER();
+                Bit=40U;
+            }
+            /* 39-32 */
+            else
+            {
+                RVM_COVERAGE_MARKER();
+                Bit=32U;
+            }
+        }
+    }
+    /* 31-0 */
+    else
+    {
+        RVM_COVERAGE_MARKER();
+        /* 31-16 */
+        if(Value>=RVM_POW2(16U))
+        {
+            RVM_COVERAGE_MARKER();
+            /* 31-24 */
+            if(Value>=RVM_POW2(24U))
+            {
+                RVM_COVERAGE_MARKER();
+                Bit=24U;
+            }
+            /* 24-16 */
+            else
+            {
+                RVM_COVERAGE_MARKER();
+                Bit=16U;
+            }
+        }
+        /* 15-0 */
+        else
+        {
+            RVM_COVERAGE_MARKER();
+            /* 15-8 */
+            if(Value>=RVM_POW2(8U))
+            {
+                RVM_COVERAGE_MARKER();
+                Bit=8U;
+            }
+            /* 7-0 */
+            else
+            {
+                RVM_COVERAGE_MARKER();
+                Bit=0U;
+            }
+        }
+    }
+#else
+#error Generic FFS for 128-bits & above are not implemented.
+#endif
+
+    return Table[Value>>Bit]+Bit;
+}
+/* End Function:_RVM_MSB_Generic *********************************************/
+
 /* Begin Function:RVM_List_Crt ************************************************
 Description : Create a doubly linkled list.
 Input       : struct RVM_List* Head - The pointer to the list head.

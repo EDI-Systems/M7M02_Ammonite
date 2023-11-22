@@ -91,7 +91,7 @@ struct RVM_Virt_Struct* _RVM_Run_High(void)
         if(RVM_Bitmap[Count]==0U)
             continue;
         
-        Count=(rvm_cnt_t)_RVM_MSB_Get(RVM_Bitmap[Count])+(Count<<RVM_WORD_ORDER);
+        Count=(rvm_cnt_t)RVM_MSB_GET(RVM_Bitmap[Count])+(Count<<RVM_WORD_ORDER);
         return (struct RVM_Virt_Struct*)(RVM_Run[Count].Next);
     }
     
@@ -887,8 +887,8 @@ rvm_ptr_t _RVM_Flagset_Get(volatile struct RVM_Flag* Set)
     rvm_ptr_t Member;
     
     /* See which source group could possibly have any interrupts */
-    Group=_RVM_MSB_Get(Set->Group);
-    Member=_RVM_MSB_Get(Set->Flag[Group]);
+    Group=RVM_MSB_GET(Set->Group);
+    Member=RVM_MSB_GET(Set->Flag[Group]);
     
     /* Clean up the slot now */
     Set->Flag[Group]&=~RVM_POW2(Member);
@@ -1111,13 +1111,16 @@ void RVM_Vmmd(void)
         {
             RVM_Tick++;
             
-            /* Notify daemon passes if the debugging output is enabled */
+            /* Notify daemon passes if the debugging output is enabled. This
+             * should not pop-up when doing ISR-related coverage or performance
+             * tests; 100k ticks are long enough for a complete run. */
 #if(RVM_DEBUG_PRINT==1U)
-            if((RVM_Tick%1000U)==0U)
-                RVM_DBG_S("Timd: 1k ticks passed.\r\n");
+            if((RVM_Tick%100000U)==0U)
+                RVM_DBG_S("Timd: 100k ticks passed.\r\n");
 #endif
             
-            /* See if we need to process the timer wheel to deliver timer interrupts to virtual machines */
+            /* See if we need to process the timer wheel to deliver
+             * timer interrupts to virtual machines */
             Slot=&(RVM_Wheel[RVM_Tick%RVM_WHEEL_SIZE]);
             Trav=Slot->Next;
             while(Trav!=Slot)

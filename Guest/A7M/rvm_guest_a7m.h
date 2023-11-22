@@ -77,6 +77,9 @@ typedef rvm_s32_t rvm_ret_t;
 #define EXTERN                                      extern
 /* The order of bits in one CPU machine word */
 #define RVM_WORD_ORDER                              (5U)
+/* MSB/LSB extraction */
+#define RVM_MSB_GET(VAL)                            _RVM_A7M_MSB_Get(VAL)
+#define RVM_LSB_GET(VAL)                            _RVM_A7M_LSB_Get(VAL)
 
 /* FPU type definitions */
 #define RVM_A7M_ATTR_NONE                           (0U)

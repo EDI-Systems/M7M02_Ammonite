@@ -47,6 +47,8 @@ typedef unsigned char rvm_u8_t;
 #define EXTERN                                      extern
 /* The order of bits in one CPU machine word */
 #define RVM_WORD_ORDER                              (5U)
+/* Get most significant bit */
+#define RVM_MSB_GET(VAL)                            _RVM_MSB_Generic(VAL)
 /* FPU type definitions - keep in accordance with kernel */
 #define RVM_A6M_ATTR_NONE                           (0U)
 
@@ -264,7 +266,7 @@ typedef rvm_s32_t rvm_ret_t;
 #define __HDR_DEFS__
 #undef __HDR_DEFS__
 /*****************************************************************************/
-struct RVM_A6M_Ret_Stack
+struct RVM_A6M_Stack
 {
     rvm_ptr_t R0;
     rvm_ptr_t R1;

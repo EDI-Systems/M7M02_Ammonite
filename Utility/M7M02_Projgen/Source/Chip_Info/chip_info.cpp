@@ -58,6 +58,8 @@ Return      : None.
         Main::XML_Get_CSV(Root,"Compatible",this->Compatible,"DXXXX","DXXXX");
         /* Vendor */
         this->Vendor=Main::XML_Get_String(Root,"Vendor","DXXXX","DXXXX");
+        /* Vector */
+        this->Vector=Main::XML_Get_Number(Root,"Vector","DXXXX","DXXXX");
         /* Region */
         this->Region=Main::XML_Get_Number(Root,"Region","DXXXX","DXXXX");
         /* Iregion */
@@ -73,10 +75,6 @@ Return      : None.
         Trunk_Parse_Param<class Mem_Info,class Mem_Info,ptr_t>(Root,"Memory",this->Memory,MEM_PHYS,"DXXXX","DXXXX");
         /* Config */
         Trunk_Parse<class Conf_Info,class Conf_Info>(Root,"Config",this->Config,"DXXXX","DXXXX");
-        /* Vector */
-        Trunk_Parse_Param<class Vect_Info,class Vect_Info>(Root,"Vector",this->Vector,nullptr,"DXXXX","DXXXX");
-        /* Vector number */
-        this->Vect_Num=this->Vector.back()->Number+1;
     }
     catch(std::exception& Exc)
     {
@@ -121,16 +119,6 @@ void Chip_Info::Check(void)
         Duplicate_Check<class Conf_Info,std::string>(this->Config,this->Config_Macro_Map,
                                                      [](std::unique_ptr<class Conf_Info>& Conf)->std::string{return Conf->Macro;},
                                                      "PXXXX","macro","Config");
-
-        /* Check vectors - neither the name nor the number can be the same */
-        for(std::unique_ptr<class Vect_Info>& Vct:this->Vector)
-            Vct->Check();
-        Duplicate_Check<class Vect_Info,std::string>(this->Vector,this->Vector_Map,
-                                                     [](std::unique_ptr<class Vect_Info>& Vct)->std::string{return Vct->Name;},
-                                                     "PXXXX","name","Vector");
-        Duplicate_Check<class Vect_Info,ptr_t>(this->Vector,this->Vector_Number_Map,
-                                               [](std::unique_ptr<class Vect_Info>& Vct)->ptr_t{return Vct->Number;},
-                                               "PXXXX","number","Vector");
     }
     catch(std::exception& Exc)
     {

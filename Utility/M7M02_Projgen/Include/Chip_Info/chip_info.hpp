@@ -43,6 +43,8 @@ public:
     std::set<std::string> Compatible_Set;
     /* The vendor */
     std::string Vendor;
+    /* The number of interrupt vectors */
+    ptr_t Vector;
     /* The number of dual-purpose MPU regions */
     ptr_t Region;
     /* The number of instruction-dedicated MPU regions */
@@ -61,11 +63,6 @@ public:
     std::vector<std::unique_ptr<class Conf_Info>> Config;
     std::map<std::string,class Conf_Info*> Config_Map;
     std::map<std::string,class Conf_Info*> Config_Macro_Map;
-    /* Interrupt vector information */
-    ptr_t Vect_Num;
-    std::vector<std::unique_ptr<class Vect_Info>> Vector;
-    std::map<std::string,class Vect_Info*> Vector_Map;
-    std::map<ptr_t,class Vect_Info*> Vector_Number_Map;
 
     /* void */ Chip_Info(xml_node_t* Root);
 

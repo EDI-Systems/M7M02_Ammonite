@@ -5,38 +5,36 @@
 ;Description : The assembly portion of the RVM guest library for ARMv7-M.
 ;*****************************************************************************/
 
-;/* Begin Header *************************************************************/
-                        ;The align is "(2^3)/8=1(Byte)." In fact it does not take effect.            
-                        AREA                RESET, CODE, READONLY, ALIGN=3
-                                    
-                        THUMB
-                        REQUIRE8
-                        PRESERVE8
-;/* End Header ***************************************************************/
+;/* Begin Import *************************************************************/
+    IMPORT              __main
+;/* End Import ***************************************************************/
 
-;/* Begin Imports ************************************************************/
-                        IMPORT              __main
-;/* End Imports **************************************************************/
+;/* Begin Export *************************************************************/
+    ;Entry point
+    EXPORT              _RVM_A7M_Entry
+    ;Triggering an invocation
+    EXPORT              RVM_Inv_Act
+    ;Returning from an invocation
+    EXPORT              RVM_Inv_Ret
+    ;System call gate
+    EXPORT              RVM_Svc
+    ;Kernel function system call gate
+    EXPORT              RVM_A7M_Svc_Kfn
+    ;The jump stub and entry stub
+    EXPORT              _RVM_Jmp_Stub
+;/* End Export ***************************************************************/
 
-;/* Begin Exports ************************************************************/
-                        ; Triggering an invocation
-                        EXPORT              RVM_Inv_Act
-                        ; Returning from an invocation
-                        EXPORT              RVM_Inv_Ret
-                        ; System call gate
-                        EXPORT              RVM_Svc
-                        ; Kernel function system call gate
-                        EXPORT              RVM_A7M_Svc_Kfn
-                        ; Get the MSB in the word
-                        EXPORT              _RVM_MSB_Get
-                        ; The jump stub and entry stub
-                        EXPORT              _RVM_Jmp_Stub
-;/* End Exports **************************************************************/
+;/* Begin Entry **************************************************************/
+    AREA                RVM_ENTRY,CODE,READONLY,ALIGN=3
+    THUMB
+    REQUIRE8
+    PRESERVE8
 
-;/* Entry point **************************************************************/
-                        LDR                 R0, =__main
-                        BX                  R0
-;/* Entry point **************************************************************/
+_RVM_A7M_Entry          PROC
+    LDR                 R0,=__main
+    BX                  R0
+    ENDP
+;/* End Entry ****************************************************************/
 
 ;/* Begin Function:RVM_Inv_Act ************************************************
 ;Description : Activate an invocation. If the return value is not desired, pass
@@ -49,24 +47,29 @@
 ;Output      : R2 - rvm_ptr_t* Retval - The return value from the call.
 ;Return      : R0 - rvm_ptr_t - The return value of the system call itself.
 ;*****************************************************************************/
+    AREA                RVM_INV_ACT,CODE,READONLY,ALIGN=3
+    THUMB
+    REQUIRE8
+    PRESERVE8
+
 RVM_Inv_Act             PROC
-                        PUSH                {R4-R11}            ; Save registers
-                        
-                        MOV                 R4, #0x10000        ; RVM_SVC_INV_ACT
-                        ORR                 R4, R0
-                        MOV                 R5, R1              ; Parameter
-                                    
-                        SVC                 #0x00               ; System call
-                        ISB
-                                    
-                        MOV                 R0, R4              ; System call return value
-                        CMP                 R2, #0x00           ; Invocation return value
-                        IT                  NE
-                        STRNE               R5,[R2]
-                                    
-                        POP                 {R4-R11}            ; Restore registers
-                        BX                  LR
-                        ENDP
+    PUSH                {R4-R11}            ;Save registers
+    
+    MOV                 R4,#0x10000         ;RVM_SVC_INV_ACT
+    ORR                 R4,R0
+    MOV                 R5,R1               ;Parameter
+                
+    SVC                 #0x00               ;System call
+    ISB
+                
+    MOV                 R0,R4               ;System call return value
+    CMP                 R2,#0x00            ;Invocation return value
+    IT                  NE
+    STRNE               R5,[R2]
+                
+    POP                 {R4-R11}            ;Restore registers
+    BX                  LR
+    ENDP
 ;/* End Function:RVM_Inv_Act *************************************************/
 
 ;/* Begin Function:RVM_Inv_Ret ************************************************
@@ -77,16 +80,21 @@ RVM_Inv_Act             PROC
 ;Output      : None.
 ;Return      : None.
 ;*****************************************************************************/
+    AREA                RVM_INV_RET,CODE,READONLY,ALIGN=3
+    THUMB
+    REQUIRE8
+    PRESERVE8
+
 RVM_Inv_Ret             PROC
-                        MOV                 R4, #0x00           ; RVM_SVC_INV_RET
-                        MOV                 R5, R0              ; Set return value
-                                    
-                        SVC                 #0x00               ; System call
-                        ISB
-                        
-                        MOV                 R0, R4              ; If we reach here, then return failed
-                        BX                  LR
-                        ENDP
+    MOV                 R4,#0x00            ;RVM_SVC_INV_RET
+    MOV                 R5,R0               ;Set return value
+                
+    SVC                 #0x00               ;System call
+    ISB
+    
+    MOV                 R0,R4               ;If we reach here, then return failed
+    BX                  LR
+    ENDP
 ;/* End Function:RVM_Inv_Ret *************************************************/
 
 ;/* Begin Function:RVM_Svc ****************************************************
@@ -98,20 +106,25 @@ RVM_Inv_Ret             PROC
 ;Output      : None.
 ;Return      : None.
 ;*****************************************************************************/
+    AREA                RVM_SVC,CODE,READONLY,ALIGN=3
+    THUMB
+    REQUIRE8
+    PRESERVE8
+
 RVM_Svc                 PROC
-                        PUSH                {R4-R7}             ; Save registers
-                        MOV                 R4, R0              ; Pass parameters
-                        MOV                 R5, R1
-                        MOV                 R6, R2
-                        MOV                 R7, R3
-                                    
-                        SVC                 #0x00               ; System call
-                        ISB
-                                    
-                        MOV                 R0, R4              ; Return value
-                        POP                 {R4-R7}             ; Restore registers
-                        BX                  LR
-                        ENDP
+    PUSH                {R4-R7}             ;Save registers
+    MOV                 R4,R0               ;Pass parameters
+    MOV                 R5,R1
+    MOV                 R6,R2
+    MOV                 R7,R3
+                
+    SVC                 #0x00               ;System call
+    ISB
+                
+    MOV                 R0,R4               ;Return value
+    POP                 {R4-R7}             ;Restore registers
+    BX                  LR
+    ENDP
 ;/* End Function:RVM_Svc *****************************************************/
 
 ;/* Begin Function:RVM_A7M_Svc_Kfn ********************************************
@@ -125,47 +138,38 @@ RVM_Svc                 PROC
 ;Output      : R2 - rvm_ptr_t Args[6] - Array of 6 return values.
 ;Return      : R0 - rvm_ret_t - The system call return value.
 ;*****************************************************************************/
-RVM_A7M_Svc_Kfn         PROC
-                        PUSH                {R4-R12}            ; Save registers
-                        MOV                 R4, R0              ; Pass parameters
-                        MOV                 R5, R1
-                        MOV                 R12, R2             ; Pass extra parameters
-                        LDR                 R6, [R12,#0x00]
-                        LDR                 R7, [R12,#0x04]
-                        LDR                 R8, [R12,#0x08]
-                        LDR                 R9, [R12,#0x0C]
-                        LDR                 R10, [R12,#0x10]
-                        LDR                 R11, [R12,#0x14]
-                                    
-                        SVC                 #0x00               ; System call
-                        ISB
-                                    
-                        MOV                 R0, R4              ; System call return value
-                        STR                 R6, [R12,#0x00]     ; Extra return values
-                        STR                 R7, [R12,#0x04]
-                        STR                 R8, [R12,#0x08]
-                        STR                 R9, [R12,#0x0C]
-                        STR                 R10, [R12,#0x10]
-                        STR                 R11, [R12,#0x14]
-                        
-                        POP                 {R4-R12}             ; Restore registers
-                        BX                  LR
-                        ENDP
-;/* End Function:RVM_A7M_Svc_Kfn *********************************************/
+    AREA                RVM_A7M_SVC_KFN,CODE,READONLY,ALIGN=3
+    THUMB
+    REQUIRE8
+    PRESERVE8
 
-;/* Begin Function:_RVM_MSB_Get ***********************************************
-;Description : Get the MSB of the word.
-;Input       : rvm_ptr_t Val - The value.
-;Output      : None.
-;Return      : rvm_ptr_t - The MSB position.   
-;*****************************************************************************/
-_RVM_MSB_Get            PROC
-                        CLZ                 R1, R0
-                        MOV                 R0, #31
-                        SUB                 R0, R1
-                        BX                  LR
-                        ENDP
-;/* End Function:_RVM_MSB_Get ************************************************/
+RVM_A7M_Svc_Kfn         PROC
+    PUSH                {R4-R12}            ;Save registers
+    MOV                 R4,R0               ;Pass parameters
+    MOV                 R5,R1
+    MOV                 R12,R2              ;Pass extra parameters
+    LDR                 R6,[R12,#0x00]
+    LDR                 R7,[R12,#0x04]
+    LDR                 R8,[R12,#0x08]
+    LDR                 R9,[R12,#0x0C]
+    LDR                 R10,[R12,#0x10]
+    LDR                 R11,[R12,#0x14]
+                
+    SVC                 #0x00               ;System call
+    ISB
+                
+    MOV                 R0,R4               ;System call return value
+    STR                 R6,[R12,#0x00]      ;Extra return values
+    STR                 R7,[R12,#0x04]
+    STR                 R8,[R12,#0x08]
+    STR                 R9,[R12,#0x0C]
+    STR                 R10,[R12,#0x10]
+    STR                 R11,[R12,#0x14]
+    
+    POP                 {R4-R12}            ;Restore registers
+    BX                  LR
+    ENDP
+;/* End Function:RVM_A7M_Svc_Kfn *********************************************/
 
 ;/* Begin Function:_RVM_Jmp_Stub **********************************************
 ;Description : The user level stub for thread creation.
@@ -174,15 +178,19 @@ _RVM_MSB_Get            PROC
 ;Output      : None.
 ;Return      : None.
 ;*****************************************************************************/
+    AREA                _RVM_JMP_STUB,CODE,READONLY,ALIGN=3
+    THUMB
+    REQUIRE8
+    PRESERVE8
+
 _RVM_Jmp_Stub           PROC
-                        SUB                 SP, #0x40           ; Protect the stack
-                        MOV                 R0, R5
-                        BX                  R4                  ; Branch to the entry
-                        ENDP
+    SUB                 SP,#0x40            ;Protect the stack
+    MOV                 R0,R5
+    BX                  R4                  ;Branch to the entry
+    ENDP
 ;/* End Function:_RVM_Jmp_Stub ***********************************************/
-                        ALIGN
-                        END
+    ALIGN
+    END
 ;/* End Of File **************************************************************/
 
 ;/* Copyright (C) Evo-Devo Instrum. All rights reserved **********************/
-

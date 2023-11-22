@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<Platform>
+    <Name>RV32P</Name>
+    <Version>1.0</Version>
+    <Wordlength>32</Wordlength>
+    <Coprocessor>RVF,RVD</Coprocessor>
+    <Guest>RMP</Guest>
+    <Buildsystem>Makefile</Buildsystem>
+    <Toolchain>GCC</Toolchain>
+    <Compatible>
+        <C0>Makefile,GCC,Native</C0>
+        <C1>Makefile,GCC,RMP</C1>
+    </Compatible>
+    <Config>
+        <C0>
+            <Name>Ostim_Value</Name>
+            <Macro>RME_A7M_OSTIM_VALUE</Macro>
+            <Type>Range</Type>
+            <Range>100,16777215</Range>
+        </C0>
+    </Config>
+</Platform>

@@ -149,6 +149,10 @@
                 </S0>
             </Send>
             <Vector>
+                <V0>
+                    <Name>VECT2</Name>
+                    <Number>12</Number>
+                </V0>
             </Vector>
             <Kfunc>
             </Kfunc>
@@ -224,6 +228,10 @@
                 </S0>
             </Send>
             <Vector>
+                <V0>
+                    <Name>VECT1</Name>
+                    <Number>12</Number>
+                </V0>
             </Vector>
             <Kfunc>
             </Kfunc>

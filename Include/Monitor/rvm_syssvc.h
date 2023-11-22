@@ -93,6 +93,27 @@ do \
 while(0)
 #endif
 
+/* Coverage testing marker */
+/* #define RVM_COVERAGE */
+/* Test marker macro */
+#ifdef RVM_COVERAGE
+#define RVM_COVERAGE_LINES                          (8192U)
+#define RVM_COVERAGE_MARKER() \
+do \
+{ \
+    RVM_Coverage[__LINE__]++; \
+    RVM_Coverage[0U]=RVM_Coverage[__LINE__]; \
+} \
+while(0)
+#else
+#define RVM_COVERAGE_MARKER() \
+do \
+{ \
+    \
+} \
+while(0)
+#endif
+
 /* Powers of 2 */
 #define RVM_POW2(POW)                               (((rvm_ptr_t)1U)<<(POW))
 /* Bit mask/address operations */
@@ -289,6 +310,8 @@ struct RVM_List
 
 /* Public C Function Prototypes **********************************************/
 /*****************************************************************************/
+/* Bit manipulation */
+__EXTERN__ rvm_ptr_t _RVM_MSB_Generic(rvm_ptr_t Value);
 /* Doubly linked list */
 __EXTERN__ void RVM_List_Crt(struct RVM_List* Head);
 __EXTERN__ void RVM_List_Del(struct RVM_List* Prev,

@@ -648,7 +648,7 @@ void Gen_Tool::Kernel_Conf_Hdr(void)
     /* The granularity of kernel memory allocation, in bytes */
     Gen_Tool::Macro_Int(List, "RME_KOM_SLOT_ORDER", Kernel->Kom_Order, MACRO_REPLACE);
     /* Physical vector number, flag area base and its size */
-    Gen_Tool::Macro_Int(List, "RME_RVM_PHYS_VCT_NUM", this->Plat->Chip->Vect_Num, MACRO_REPLACE);
+    Gen_Tool::Macro_Int(List, "RME_RVM_PHYS_VCT_NUM", this->Plat->Chip->Vector, MACRO_REPLACE);
     Gen_Tool::Macro_Hex(List, "RME_RVM_PHYS_VCTF_BASE", Kernel->Vctf_Base, MACRO_REPLACE);
     Gen_Tool::Macro_Hex(List, "RME_RVM_PHYS_VCTF_SIZE", Kernel->Vctf_Size, MACRO_REPLACE);
     /* Virtual event number, flag area base and its size */
@@ -992,7 +992,7 @@ void Gen_Tool::Kernel_Hook_Src(void)
     Main::Info("> Generating spurious interrupt handler.");
     Input.push_back("rme_ptr_t Vct_Num - The vector number.");
     Gen_Tool::Func_Head(List, "RME_Spurious_Handler",
-                        "User-modifiable pre-rebooting failsafe sequence.",
+                        "User-modifiable spurious interrupt handler.",
                         Input, Output, "rme_ptr_t - Decides what endpoints to send to (see manual).");
     List->push_back("rme_ptr_t RME_Spurious_Handler(rme_ptr_t Vct_Num)");
     List->push_back("{");
@@ -1314,7 +1314,7 @@ void Gen_Tool::Monitor_Conf_Hdr(void)
     Gen_Tool::Macro_Int(List, "RVM_PREEMPT_VPRIO_NUM", Monitor->Virt_Prio, MACRO_REPLACE);
 
     /* Physical vector number, flag area base and its size */
-    Gen_Tool::Macro_Int(List, "RVM_PHYS_VCT_NUM", this->Plat->Chip->Vect_Num, MACRO_REPLACE);
+    Gen_Tool::Macro_Int(List, "RVM_PHYS_VCT_NUM", this->Plat->Chip->Vector, MACRO_REPLACE);
     Gen_Tool::Macro_Hex(List, "RVM_PHYS_VCTF_BASE", Kernel->Vctf_Base, MACRO_REPLACE);
     Gen_Tool::Macro_Hex(List, "RVM_PHYS_VCTF_SIZE", Kernel->Vctf_Size, MACRO_REPLACE);
     /* Virtual event number, flag area base and its size */

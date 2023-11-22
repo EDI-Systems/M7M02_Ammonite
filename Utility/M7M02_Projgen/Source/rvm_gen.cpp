@@ -553,6 +553,7 @@ void Main::Reference_Check(void)
     std::map<std::string,class Mem_Info*>::iterator Shm_Iter;
     std::map<std::string,class Process*>::iterator Prc_Iter;
     std::map<std::string,class Vect_Info*>::iterator Vect_Iter;
+    std::set<ptr_t> Vect_Set;
 
     try
     {
@@ -630,14 +631,16 @@ void Main::Reference_Check(void)
                         Main::Error("XXXXX: Send endpoint '"+Snd->Process+"."+Snd->Name+"' refers to a nonexistent receive endpoint.");
                 }
 
-                /* Check vector references */
+                /* Check vector references; name is free to designate */
                 for(std::unique_ptr<class Vect_Info>& Vct:Prc->Vector)
                 {
-                    Vect_Iter=this->Chip->Vector_Map.find(Vct->Name);
-                    if(Vect_Iter==this->Chip->Vector_Map.end())
-                        Main::Error("XXXXX: Vector '"+Vct->Name+"' refers to a nonexistent vector.");
-                    if(Vect_Iter->second->Number!=Vct->Number)
-                        Main::Error("XXXXX: Vector '"+Vct->Name+"' contains a wrong vector number.");
+                	/* See if the vector is valid */
+                	if(Vct->Number>=this->Chip->Vector)
+                        Main::Error("XXXXX: Vector '%d' refers to a nonexistent vector.",Vct->Number);
+                	/* See if it is already referenced in another process */
+                	if(Vect_Set.find(Vct->Number)!=Vect_Set.end())
+                        Main::Error("XXXXX: Vector '%d' referred to in more than one process.",Vct->Number);
+                	Vect_Set.insert(Vct->Number);
                 }
 
                 /* Check kernel function ranges */
@@ -1504,7 +1507,7 @@ void Main::Obj_Alloc(void)
          * of vectors, but the last vector number + 1 (!) */
         Main::Info("Allocating kernel memory.");
         this->Proj->Kernel->Mem_Alloc(this->Proj->Monitor->After_Kom_Front,
-                                      this->Chip->Vect_Num,
+                                      this->Chip->Vector,
                                       this->Proj->Monitor->Virt_Event,
                                       this->Plat->Wordlength);
 

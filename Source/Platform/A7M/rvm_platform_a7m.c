@@ -70,18 +70,18 @@ rvm_ptr_t RVM_Stack_Init(rvm_ptr_t Stack_Base,
                          rvm_ptr_t Stub_Addr)
 
 {
-    struct RVM_A7M_Ret_Stack* Stack_Ptr;
+    struct RVM_A7M_Stack* Ptr;
     
-    Stack_Ptr=(struct RVM_A7M_Ret_Stack*)(Stack_Base+Stack_Size-
-                                          RVM_STACK_SAFE_RDCY*sizeof(rvm_ptr_t)-
-                                          sizeof(struct RVM_A7M_Ret_Stack));
-    Stack_Ptr->R12=0U;
-    Stack_Ptr->LR=0U;
-    Stack_Ptr->PC=Stub_Addr|0x01U;
+    Ptr=(struct RVM_A7M_Stack*)(Stack_Base+Stack_Size-
+                                RVM_STACK_SAFE_RDCY*sizeof(rvm_ptr_t)-
+                                sizeof(struct RVM_A7M_Stack));
+    Ptr->R12=0U;
+    Ptr->LR=0U;
+    Ptr->PC=Stub_Addr|0x01U;
     /* Initialize the xPSR to avoid a transition to ARM state */
-    Stack_Ptr->XPSR=0x01000000U;
+    Ptr->XPSR=0x01000000U;
     
-    return (rvm_ptr_t)Stack_Ptr;
+    return (rvm_ptr_t)Ptr;
 }
 /* End Function:RVM_Stack_Init ***********************************************/
 
@@ -201,7 +201,7 @@ rvm_ret_t RVM_Thd_Print_Reg(rvm_cid_t Cap_Thd)
 {
 #if(RVM_DEBUG_PRINT==1U)
     rvm_ptr_t Param[6];
-    struct RVM_A7M_Ret_Stack* Stack;
+    struct RVM_A7M_Stack* Stack;
     
     /* Print all registers that we can see */
     Param[0]=RVM_A7M_KFN_DEBUG_REG_MOD_R4_GET;
@@ -266,7 +266,7 @@ rvm_ret_t RVM_Thd_Print_Reg(rvm_cid_t Cap_Thd)
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
     RVM_DBG_SHS("Sftd: SP:0x",Param[0],"\r\n");
-    Stack=(struct RVM_A7M_Ret_Stack*)Param[0];
+    Stack=(struct RVM_A7M_Stack*)Param[0];
     
     Param[0]=RVM_A7M_KFN_DEBUG_REG_MOD_LR_GET;
     RVM_ASSERT(RVM_A7M_Kfn_Act(RVM_BOOT_INIT_KFN, 
