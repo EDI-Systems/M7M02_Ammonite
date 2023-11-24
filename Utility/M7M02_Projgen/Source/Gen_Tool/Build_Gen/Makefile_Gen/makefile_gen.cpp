@@ -117,7 +117,6 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
 								const std::vector<std::string>& Source,
 								const std::string& Linker)
 {
-//        ptr_t Opt_Level;
 	std::string CPU_Type;
 	std::string FPU_Type;
 	std::string Endian;
@@ -384,10 +383,10 @@ void Makefile_Gen::Kernel_Proj(std::unique_ptr<std::vector<std::string>>& List,
 		"",                                      /* After */
 		"Kernel",                                /* Target */
 		this->Proj->Kernel->Optimization,        /* Optimization */
-		None,									 /* Coprocessor */
+		None,                                    /* Coprocessor */
 		Include,                                 /* Include */
 		Source,                                  /* Source */
-		Linker[0]                               /* Linker */
+		Linker[0]                                /* Linker */
 	);
 }
 /* End Function:Makefile_Gen::Kernel_Proj ************************************/
@@ -432,13 +431,13 @@ void Makefile_Gen::Monitor_Proj(std::unique_ptr<std::vector<std::string>>& List,
 
 	/* Generate a Makefile for compiling system code */
 	this->Makefile_Proj(List,
-		After,                                  /* After */
+		After,                                   /* After */
 		"Monitor",                               /* Target */
 		this->Proj->Monitor->Optimization,       /* Optimization */
-		None, 									/* Coprocessor */
+		None,                                    /* Coprocessor */
 		Include,                                 /* Include */
 		Source,                                  /* Source */
-		Linker[0]                               /* Linker */
+		Linker[0]                                /* Linker */
 	);
 }
 /* End Function:Makefile_Gen::Monitor_Proj ***********************************/
@@ -485,13 +484,13 @@ void Makefile_Gen::Process_Proj(std::unique_ptr<std::vector<std::string>>& List,
 
 	/* Generate a Makefile for compiling system code */
 	this->Makefile_Proj(List,
-		After,                                  /* After */
+		After,                                   /* After */
 		Prc->Name,                               /* Target */
 		Prc->Optimization,                       /* Optimization */
-		None, 									 /* Coprocessor */
+		None,                                    /* Coprocessor */
 		Include,                                 /* Include */
 		Source,                                  /* Source */
-		Linker[0]                              /* Linker */
+		Linker[0]                                /* Linker */
 	);
 }
 /* End Function:Makefile_Gen::Process_Proj ***********************************/
