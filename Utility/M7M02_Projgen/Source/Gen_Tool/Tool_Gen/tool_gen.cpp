@@ -6,7 +6,7 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : Generic toolchain generator port.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
+/* Include *******************************************************************/
 extern "C"
 {
 #include "xml.h"
@@ -20,19 +20,19 @@ extern "C"
 #include "stdexcept"
 #include "algorithm"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "rvm_gen.hpp"
 #include "Gen_Tool/Tool_Gen/tool_gen.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_gen.hpp"
 #include "Gen_Tool/Tool_Gen/tool_gen.hpp"
-#undef __HDR_STRUCTS__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_GEN
 {
-/* Begin Function:Tool_Gen::Tool_Gen ******************************************
+/* Function:Tool_Gen::Tool_Gen ************************************************
 Description : Generator for the toolchain.
 Input       : const std::string& Name - The toolchain name.
               class Proj_Info* Proj - The project information.

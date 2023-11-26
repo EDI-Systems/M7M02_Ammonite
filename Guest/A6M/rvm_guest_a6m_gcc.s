@@ -6,7 +6,7 @@ Description : The assembly portion of the RVM guest library for Cortex-M3/4/7.
               This file is for use with gcc.
 ******************************************************************************/
 
-/* Begin Header **************************************************************/
+/* Header ********************************************************************/
     .syntax             unified
     .thumb
 
@@ -22,7 +22,7 @@ RVM_Int_Stack:
     .align              3
 /* End Header ****************************************************************/
 
-/* Begin Exports *************************************************************/
+/* Export ********************************************************************/
     /* The user stack pointer position */
     .global             RVM_User_Stack
     /* The interrupt stack pointer position */
@@ -42,20 +42,20 @@ RVM_Int_Stack:
     .global             _RVM_Entry
     /* The kernel function calling stub */
     .global             _RVM_Kern
-/* End Exports ***************************************************************/
+/* End Export ****************************************************************/
 
-/* Begin Imports *************************************************************/
+/* Import ********************************************************************/
     /* The RVM image header */
     .global             RVM_Img
     /* The real entry */
     .global             main
-/* End Imports ***************************************************************/
+/* End Import ****************************************************************/
 
-/* Begin Global Variable *****************************************************/
+/* Global Variable ***********************************************************/
     .long               RVM_Img
 /* End Global Variable *******************************************************/
 
-/* Begin Function:RVM_Entry ***************************************************
+/* Function:RVM_Entry *********************************************************
 Description : The entry of the program, when running in an virtualized environment.
               This is also responsible for initializing the system.
 Input       : None.
@@ -102,7 +102,7 @@ clear_done:
     BX                  R0
 /* End Function:_RMP_Entry ***************************************************/
 
-/* Begin Function:RVM_MSB_Get *************************************************
+/* Function:RVM_MSB_Get *******************************************************
 Description : Get the MSB of the word.
 Input       : rvm_ptr_t Val - The value.
 Output      : None.
@@ -116,7 +116,7 @@ RVM_MSB_Get:
     BX                  LR
 /* End Function:RVM_MSB_Get **************************************************/
 
-/* Begin Function:RVM_Fetch_And ***********************************************
+/* Function:RVM_Fetch_And *****************************************************
 Description : The fetch-and-logic-and atomic instruction. Logic AND the pointer
               value with the operand, and return the value before logic AND.
 Input       : rvm_ptr_t* Ptr - The pointer to the data.
@@ -138,7 +138,7 @@ RVM_Fetch_And_Fail:
     BX                  LR
 /* End Function:RVM_Fetch_And ************************************************/
 
-/* Begin Function:RVM_Fetch_Or ************************************************
+/* Function:RVM_Fetch_Or ******************************************************
 Description : The fetch-and-logic-or atomic instruction. Logic OR the pointer
               value with the operand, and return the value before logic OR.
 Input       : rvm_ptr_t* Ptr - The pointer to the data.
@@ -160,7 +160,7 @@ RVM_Fetch_Or_Fail:
     BX                  LR
 /* End Function:RVM_Fetch_Or *************************************************/
 
-/* Begin Function:_RVM_Hypercall **********************************************
+/* Function:_RVM_Hypercall ****************************************************
 Description : The stub to make a hypercall. This is actually a RME system call(asnd).
 Input       : None.
 Output      : None.
@@ -179,7 +179,7 @@ _RVM_Hypercall:
     BX                  LR                  /* Return from the call */
 /* End Function:_RVM_Hypercall ***********************************************/
 
-/* Begin Function:RVM_Int_Rcv *************************************************
+/* Function:RVM_Int_Rcv *******************************************************
 Description : Cause the interrupt handler routine to wait on the interrupt endpoint.
 Input       : None.
 Output      : None.
@@ -199,7 +199,7 @@ RVM_Int_Rcv:
     BX                  LR                  /* Return from the call */
 /* End Function:RVM_Int_Rcv **************************************************/
 
-/* Begin Function:_RVM_Yield **************************************************
+/* Function:_RVM_Yield ********************************************************
 Description : Trigger a yield to another thread. This will actually send a interrupt
               to the interrupt thread.
 Input       : None.
@@ -219,7 +219,7 @@ _RVM_Yield:
     BX                  LR                  /* Return from the call */
 /* End Function:_RVM_Yield ***************************************************/
 
-/* Begin Function:_RVM_Kern ***************************************************
+/* Function:_RVM_Kern *********************************************************
 Description : Invoke customized kernel functions which is compiled into the RME kernel.
 Input       : rvm_cnt_t Cap_ID - The capability ID.
               rvm_ptr_t Func_ID - The function ID. The subfunction ID is also merged with it.

@@ -10,7 +10,7 @@ Description : RVM project frontend software.
               *.rvc - XML chip description file.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
+/* Include *******************************************************************/
 extern "C"
 {
 #include "stdio.h"
@@ -26,9 +26,9 @@ extern "C"
 #include "string"
 #include "algorithm"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "rvm_cfg.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
 #include "wx/wx.h"
 #include "wx/xml/xml.h"
@@ -55,11 +55,11 @@ extern "C"
 
 #include "Image/logo.xpm"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_cfg.hpp"
 
 #include "Status_Bar/status_bar.hpp"
@@ -97,8 +97,8 @@ extern "C"
 #include "Proj_Info/Process/process.hpp"
 #include "Proj_Info/Process/Virtual/virtual.hpp"
 #include "Proj_Info/proj_info.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_CFG
 {
 /* Global Variables **********************************************************/
@@ -127,7 +127,7 @@ class Status_Bar* Main::Status_Bar=nullptr;
 class About_Dialog* Main::About_Dialog=nullptr;
 /* End Global Variables ******************************************************/
 
-/* Begin Function:Main::Main **************************************************
+/* Function:Main::Main ********************************************************
 Description : Application class constructor. The frame size is 640x480.
 Input       : None.
 Output      : None.
@@ -203,7 +203,7 @@ wxFrame(nullptr,wxID_ANY,SOFTWARE_NAME,wxDefaultPosition,I2P(wxSize(1024,768)),
 }
 /* End Function:Main::Main ***************************************************/
 
-/* Begin Function:Main::~Main *************************************************
+/* Function:Main::~Main *******************************************************
 Description : Main class destructor.
 Input       : None.
 Output      : None.
@@ -215,7 +215,7 @@ Return      : None.
 }
 /* End Function:Main::~Main **************************************************/
 
-/* Begin Function:Main::Title_Set *********************************************
+/* Function:Main::Title_Set ***************************************************
 Description : Show a message box prompting that there is an error.
 Input       : const class wxString& Path - The path to append to the caption.
 Output      : None.
@@ -232,7 +232,7 @@ void Main::Title_Set(const class wxString& Path)
 }
 /* End Function:Main::Title_Set **********************************************/
 
-/* Begin Function:Main::Time_Get **********************************************
+/* Function:Main::Time_Get ****************************************************
 Description : Extract the date and time.
 Input       : const class wxString& Path - The path to append to the caption.
 Output      : None.
@@ -277,7 +277,7 @@ std::string Main::Time_Get(ptr_t Mode)
 }
 /* End Function:Main::Time_Get ***********************************************/
 
-/* Begin Function:Main::Msgbox_Show *******************************************
+/* Function:Main::Msgbox_Show *************************************************
 Description : Show a message box prompting that there is an error.
 Input       : class wxWindow* Parent - The parent window.
               ptr_t Type - The message box type.
@@ -312,7 +312,7 @@ ret_t Main::Msgbox_Show(class wxWindow* Parent, ptr_t Type,
 }
 /* End Function:Main::Msgbox_Show ********************************************/
 
-/* Begin Function:Main::Idtfr_Check *******************************************
+/* Function:Main::Idtfr_Check *************************************************
 Description : Check if the name is good or not.
 Input       : const std::string& Name - The name to check.
 Output      : None.
@@ -331,7 +331,7 @@ ret_t Main::Idtfr_Check(const std::string& Name)
 }
 /* End Function:Main::Idtfr_Check ********************************************/
 
-/* Begin Function:Main::Simple_Load *******************************************
+/* Function:Main::Simple_Load *************************************************
 Description : Save a simple node. This includes the name only.
 Input       : class wxXmlNode* Parent - The parent node.
               const std::string& Expect - The label to expect.
@@ -353,7 +353,7 @@ class wxXmlNode* Main::Simple_Load(class wxXmlNode* Parent, const std::string& E
 }
 /* End Function:Main::Simple_Load ********************************************/
 
-/* Begin Function:Main::Text_Load *********************************************
+/* Function:Main::Text_Load ***************************************************
 Description : Load a text node. This includes the name and its content. Will
               throw exceptions if the name is not what is expected, or it contains
               nothing at all.
@@ -376,7 +376,7 @@ std::string Main::Text_Load(class wxXmlNode* Parent, const std::string& Expect)
 }
 /* End Function:Main::Text_Load **********************************************/
 
-/* Begin Function:Main::Yesno_Load ********************************************
+/* Function:Main::Yesno_Load **************************************************
 Description : Load a yes/no node, and return the parsed value directly.
 Input       : class wxXmlNode* Parent - The parent node.
               const std::string& Expect - The label to expect.
@@ -398,7 +398,7 @@ ptr_t Main::Yesno_Load(class wxXmlNode* Parent, const std::string& Expect)
 }
 /* End Function:Main::Yesno_Load *********************************************/
 
-/* Begin Function:Main::Num_Load **********************************************
+/* Function:Main::Num_Load ****************************************************
 Description : Load a number node. This includes the name and its content. Will
               throw exceptions if the name is not what is expected, or it contains
               nothing at all.
@@ -422,7 +422,7 @@ ptr_t Main::Num_Load(class wxXmlNode* Parent, const std::string& Expect)
 }
 /* End Function:Main::Num_Load ***********************************************/
 
-/* Begin Function:Main::Pair_Load *********************************************
+/* Function:Main::Pair_Load ***************************************************
 Description : Load a key-value pair node. This includes many subnodes.
 Input       : class wxXmlNode* Parent - The parent node.
               const std::string& Expect - The label to expect.
@@ -465,7 +465,7 @@ void Main::Pair_Load(class wxXmlNode* Parent, const std::string& Expect,
 }
 /* End Function:Main::Pair_Load **********************************************/
 
-/* Begin Function:Main::Opt_Load **********************************************
+/* Function:Main::Opt_Load ****************************************************
 Description : Load a optimization level node.
 Input       : class wxXmlNode* Parent - The parent node.
               const std::string& Expect - The label to expect.
@@ -497,7 +497,7 @@ ptr_t Main::Opt_Load(class wxXmlNode* Parent, const std::string& Expect)
 }
 /* End Function:Main::Opt_Load ***********************************************/
 
-/* Begin Function:Main::CSV_Read **********************************************
+/* Function:Main::CSV_Read ****************************************************
 Description : Split a CSV into an array.
 Input       : const std::string& Input - The CSV sequence.
 Output      : std::vector<std::string>& Output - The splitted content.
@@ -536,7 +536,7 @@ void Main::CSV_Read(const std::string& Input, std::vector<std::string>& Output)
 }
 /* End Function:Main::CSV_Read ***********************************************/
 
-/* Begin Function:Main::Simple_Save *******************************************
+/* Function:Main::Simple_Save *************************************************
 Description : Save a simple node. This includes the name only.
 Input       : class wxXmlNode* Parent - The parent node.
               const std::string& Name - The name of the label.
@@ -559,7 +559,7 @@ class wxXmlNode* Main::Simple_Save(class wxXmlNode* Parent, const std::string& N
 }
 /* End Function:Main::Simple_Save ********************************************/
 
-/* Begin Function:Main::Text_Save *********************************************
+/* Function:Main::Text_Save ***************************************************
 Description : Save a text node. This includes the name and its content.
 Input       : class wxXmlNode* Parent - The parent node.
               const std::string& Name - The name of the label.
@@ -584,7 +584,7 @@ class wxXmlNode* Main::Text_Save(class wxXmlNode* Parent,
 }
 /* End Function:Main::Text_Save **********************************************/
 
-/* Begin Function:Main::Hex_Save **********************************************
+/* Function:Main::Hex_Save ****************************************************
 Description : Save a hex node. This includes the name and its content.
 Input       : class wxXmlNode* Parent - The parent node.
               const std::string& Name - The name of the label.
@@ -607,7 +607,7 @@ class wxXmlNode* Main::Hex_Save(class wxXmlNode* Parent,
 }
 /* End Function:Main::Text_Save **********************************************/
 
-/* Begin Function:Main::Yesno_Save ********************************************
+/* Function:Main::Yesno_Save **************************************************
 Description : Save a yes/no node. The filling is internally processed.
 Input       : class wxXmlNode* Parent - The parent node.
               const std::string& Name - The name of the label.
@@ -626,7 +626,7 @@ class wxXmlNode* Main::Yesno_Save(class wxXmlNode* Parent, const std::string& Na
 }
 /* End Function:Main::Yesno_Save *********************************************/
 
-/* Begin Function:Main::Num_Save **********************************************
+/* Function:Main::Num_Save ****************************************************
 Description : Save a number node. This includes the name and its content.
 Input       : class wxXmlNode* Parent - The parent node.
               const std::string& Name - The name of the label.
@@ -641,7 +641,7 @@ class wxXmlNode* Main::Num_Save(class wxXmlNode* Parent,
 }
 /* End Function:Main::Num_Save ***********************************************/
 
-/* Begin Function:Main::Pair_Save *********************************************
+/* Function:Main::Pair_Save ***************************************************
 Description : Save a key-value pair node. This includes many subnodes.
 Input       : class wxXmlNode* Parent - The parent node.
               const std::string& Name - The name of the label.
@@ -667,7 +667,7 @@ class wxXmlNode* Main::Pair_Save(class wxXmlNode* Parent,
 }
 /* End Function:Main::Pair_Save **********************************************/
 
-/* Begin Function:Main::Opt_Save **********************************************
+/* Function:Main::Opt_Save ****************************************************
 Description : Save a optimization level node.
 Input       : class wxXmlNode* Parent - The parent node.
               const std::string& Name - The name of the label.
@@ -695,7 +695,7 @@ class wxXmlNode* Main::Opt_Save(class wxXmlNode* Parent,
 }
 /* End Function:Main::Opt_Save ***********************************************/
 
-///* Begin Function:Main::Output_Update *****************************************
+///* Function:Main::Output_Update ***********************************************
 //Description : Update the output panel.
 //Input       : std::vector<std::string>& Reply - The replies to show.
 //              ptr_t Panel - The panel to show onto.
@@ -728,7 +728,7 @@ class wxXmlNode* Main::Opt_Save(class wxXmlNode* Parent,
 //}
 ///* End Function:Main::Output_Update ******************************************/
 //
-///* Begin Function:Main::Output_Clear ******************************************
+///* Function:Main::Output_Clear ************************************************
 //Description : Clear the output panel.
 //Input       : ptr_t Panel - The panel to clear.
 //Output      : None.
@@ -745,7 +745,7 @@ class wxXmlNode* Main::Opt_Save(class wxXmlNode* Parent,
 //}
 ///* End Function:Main::Output_Clear *******************************************/
 
-/* Begin Function:Main::Proj_New **********************************************
+/* Function:Main::Proj_New ****************************************************
 Description : Create a new file, at the location specified by the full path.
 Input       : const std::string& Path - The path, including the suffix.
 Output      : None.
@@ -757,7 +757,7 @@ void Main::Proj_New(const std::string& Path)
 }
 /* End Function:Main::Proj_New ***********************************************/
 
-/* Begin Function:Main::Proj_Open *********************************************
+/* Function:Main::Proj_Open ***************************************************
 Description : Open an existing file, at the location specified by the full path.
 Input       : const std::string& Path - The path, including the suffix.
 Output      : None.
@@ -769,7 +769,7 @@ void Main::Proj_Open(const std::string& Path)
 }
 /* End Function:Main::Proj_Open **********************************************/
 
-/* Begin Function:Main::Proj_Close ********************************************
+/* Function:Main::Proj_Close **************************************************
 Description : Close the current open file.
 Input       : None.
 Output      : None.
@@ -781,7 +781,7 @@ void Main::Proj_Close(void)
 }
 /* End Function:Main::Proj_Close *********************************************/
 
-/* Begin Function:Main::Proj_Save *********************************************
+/* Function:Main::Proj_Save ***************************************************
 Description : Save a current open file that haven't been saved.
 Input       : None.
 Output      : None.
@@ -796,7 +796,7 @@ void Main::Proj_Save(void)
 }
 /* End Function:Main::Proj_Save **********************************************/
 
-/* Begin Function:Main::Proj_Save_As ******************************************
+/* Function:Main::Proj_Save_As ************************************************
 Description : Save the current open file as another file.
 Input       : const std::string& Path - The path, including the suffix.
 Output      : None.
@@ -811,7 +811,7 @@ void Main::Proj_Save_As(const std::string& Path)
 }
 /* End Function:Main::Proj_Save_As *******************************************/
 
-/* Begin Function:Main::Manual_Open *******************************************
+/* Function:Main::Manual_Open *************************************************
 Description : Open the manual.
 Input       : const std::string& Manual - The name of the manual.
 Output      : None.
@@ -854,7 +854,7 @@ void Main::Manual_Open(const std::string& Manual)
 }
 /* End Function:Main::Manual_Open ********************************************/
 
-/* Begin Function:Main::State_Update ******************************************
+/* Function:Main::State_Update ************************************************
 Description : Update state to what it is now.
 Input       : ptr_t Type - The state type.
 Output      : None.
@@ -871,7 +871,7 @@ void Main::State_Update(ptr_t Type)
 }
 /* End Function:Main::State_Update *******************************************/
 
-/* Begin Function:Main::State_Set *********************************************
+/* Function:Main::State_Set ***************************************************
 Description : Set the current UI state, and decide what controls are usable.
 Input       : ptr_t Type - The state type.
               ptr_t State - The actual state.
@@ -893,7 +893,7 @@ void Main::State_Set(ptr_t Type, ptr_t State)
 }
 /* End Function:Main::State_Set **********************************************/
 
-/* Begin Function:Main::On_Close_Window ***************************************
+/* Function:Main::On_Close_Window *********************************************
 Description : wxEVT_CLOSE_WINDOW handler.
 Input       : class wxCloseEvent& Event - The event.
 Output      : None.
@@ -912,7 +912,7 @@ void Main::On_Close_Window(class wxCloseEvent& Event)
 }
 /* End Function:Main::On_Close_Window ****************************************/
 
-/* Begin Function:RVM_CFG_App::OnInit ******************************************
+/* Function:RVM_CFG_App::OnInit ************************************************
 Description : Entry of the application.
 Input       : None.
 Output      : None.
@@ -962,7 +962,7 @@ bool RVM_CFG_App::OnInit(void)
 }
 /* End Function:RVM_CFG_App::OnInit *******************************************/
 
-/* Begin Function:RVM_CFG_App::Locale_Set **************************************
+/* Function:RVM_CFG_App::Locale_Set ********************************************
 Description : Set locale for the whole execution environment.
 Input       : None.
 Output      : None.
@@ -1005,7 +1005,7 @@ int RVM_CFG_App::Locale_Set(void)
 }
 /* End Function:RVM_CFG_App::Locale_Set ***************************************/
 
-/* Begin Function:RVM_CFG_App::OnExceptionInMainLoop ***************************
+/* Function:RVM_CFG_App::OnExceptionInMainLoop *********************************
 Description : This will be called when there are exceptions in the main loop.
               The application will be terminated, but before the termination,
               we'll try to rescue stuff. This does not catch system-level exceptions,
@@ -1030,7 +1030,7 @@ bool RVM_CFG_App::OnExceptionInMainLoop(void)
 }
 /* End Function:RVM_CFG_App::OnExceptionInMainLoop ****************************/
 
-/* Begin Function:RVM_CFG_App::OnSystemFatalException **************************
+/* Function:RVM_CFG_App::OnSystemFatalException ********************************
 Description : Catches system-level exceptions; still try to rescue stuff.
               Note that this won't fuss when we're exiting in the release mode:
               wxWidgets ITSELF have some known bugs (i.e. loading/unloading fonts,

@@ -6,35 +6,35 @@ Licence     : The Unlicense; see LICENSE for details.
 Description : The hypercall implementation file.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
+/* Include *******************************************************************/
 #include "rvm.h"
 #include "rvm_boot.h"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "rvm_platform.h"
 #include "Monitor/rvm_syssvc.h"
 #include "Monitor/rvm_init.h"
 #include "Monitor/rvm_hyper.h"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_STRUCTS__
+#define __HDR_STRUCT__
 #include "rvm_platform.h"
 #include "Monitor/rvm_syssvc.h"
 #include "Monitor/rvm_init.h"
 #include "Monitor/rvm_hyper.h"
-#undef __HDR_STRUCTS__
+#undef __HDR_STRUCT__
 
 /* Private include */
 #include "Monitor/rvm_hyper.h"
 
-#define __HDR_PUBLIC_MEMBERS__
+#define __HDR_PUBLIC__
 #include "rvm_platform.h"
 #include "Monitor/rvm_syssvc.h"
 #include "Monitor/rvm_init.h"
-#undef __HDR_PUBLIC_MEMBERS__
-/* End Includes **************************************************************/
+#undef __HDR_PUBLIC__
+/* End Include ***************************************************************/
 
-/* Begin Function:_RVM_Run_Ins ************************************************
+/* Function:_RVM_Run_Ins ******************************************************
 Description : Set the virtual machine as ready to schedule.
 Input       : struct RVM_Virt_Struct* Virt - The virtual machine to put into 
                                              the runqueue.
@@ -52,7 +52,7 @@ void _RVM_Run_Ins(struct RVM_Virt_Struct* Virt)
 #endif
 /* End Function:_RVM_Run_Ins *************************************************/
 
-/* Begin Function:_RVM_Run_Del ************************************************
+/* Function:_RVM_Run_Del ******************************************************
 Description : Clear the virtual machine from the runqueue.
 Input       : struct RVM_Virt_Struct* Virt - The virtual machine to delete from
                                              the runqueue.
@@ -72,7 +72,7 @@ void _RVM_Run_Del(struct RVM_Virt_Struct* Virt)
 #endif
 /* End Function:_RVM_Run_Del *************************************************/
 
-/* Begin Function:_RVM_Run_High ***********************************************
+/* Function:_RVM_Run_High *****************************************************
 Description : Get the highest priority ready virtual machine available.
 Input       : None.
 Output      : None.
@@ -100,7 +100,7 @@ struct RVM_Virt_Struct* _RVM_Run_High(void)
 #endif
 /* End Function:_RVM_Run_High ************************************************/
 
-/* Begin Function:_RVM_Virt_Switch ********************************************
+/* Function:_RVM_Virt_Switch **************************************************
 Description : Switch between two virtual machines.
 Input       : struct RVM_Virt_Struct* From - The source VM.
               struct RVM_Virt_Struct* To - The destination VM.
@@ -130,7 +130,7 @@ void _RVM_Virt_Switch(struct RVM_Virt_Struct* From,
 #endif
 /* End Function:_RVM_Virt_Switch *********************************************/
 
-/* Begin Function:_RVM_Vct_Pend_Check *****************************************
+/* Function:_RVM_Vct_Pend_Check ***********************************************
 Description : Check if there is one pending vector for the virtual machine.
 Input       : struct RVM_Virt_Struct* Virt - The virtual machine to check.
 Output      : None.
@@ -161,7 +161,7 @@ rvm_ret_t _RVM_Vct_Pend_Check(struct RVM_Virt_Struct* Virt)
 #endif
 /* End Function:_RVM_Vct_Pend_Check ******************************************/
 
-/* Begin Function:_RVM_Vct_Flag_Set *******************************************
+/* Function:_RVM_Vct_Flag_Set *************************************************
 Description : Set an interrupt's flag for the virtual machine.
 Input       : struct RVM_Virt_Struct* Virt - The virtual machine to set flag for.
               rvm_ptr_t Vct_Num - The vector number to set flag for.
@@ -177,7 +177,7 @@ void _RVM_Vct_Flag_Set(struct RVM_Virt_Struct* Virt,
 #endif
 /* End Function:_RVM_Vct_Flag_Set *******************************************/
 
-/* Begin Function:RVM_Hyp_Putchar *********************************************
+/* Function:RVM_Hyp_Putchar ***************************************************
 Description : Print one character to the RVM debug console.
 Input       : rvm_ptr_t Char - The character.
 Output      : None.
@@ -192,7 +192,7 @@ rvm_ret_t RVM_Hyp_Putchar(rvm_ptr_t Char)
 #endif
 /* End Function:RVM_Hyp_Putchar **********************************************/
 
-/* Begin Function:RVM_Hyp_Int_Ena *********************************************
+/* Function:RVM_Hyp_Int_Ena ***************************************************
 Description : Enable interrupts for a virtual machine. Need to call this when
               the virtual machine fave finished all its initialization routines
               or it wouldn't be able to receive interrupts.
@@ -224,7 +224,7 @@ rvm_ret_t RVM_Hyp_Int_Ena(void)
 #endif
 /* End Function:RVM_Hyp_Int_Ena **********************************************/
 
-/* Begin Function:RVM_Hyp_Int_Dis *********************************************
+/* Function:RVM_Hyp_Int_Dis ***************************************************
 Description : Disable the interrupt for the virtual machine. All interrupts for a
               virtual machine, including the tick timer interrupt,is disabled on
               startup.
@@ -245,7 +245,7 @@ rvm_ret_t RVM_Hyp_Int_Dis(void)
 #endif
 /* End Function:RVM_Hyp_Int_Dis **********************************************/
 
-/* Begin Function:RVM_Hyp_Vct_Phys ********************************************
+/* Function:RVM_Hyp_Vct_Phys **************************************************
 Description : Register the virtual machine's virtual vector with a physical vector.
 Input       : rvm_ptr_t Phys_Num - The physical vector number.
               rvm_ptr_t Vct_Num - The virtual vector number.
@@ -310,7 +310,7 @@ rvm_ret_t RVM_Hyp_Vct_Phys(rvm_ptr_t Phys_Num,
 #endif
 /* End Function:RVM_Hyp_Vct_Phys *********************************************/
 
-/* Begin Function:RVM_Hyp_Vct_Evt *********************************************
+/* Function:RVM_Hyp_Vct_Evt ***************************************************
 Description : Register the virtual machine's virtual vector with an event channel.
 Input       : rvm_ptr_t Evt_Num - The event number.
               rvm_ptr_t Vct_Num - The virtual vector number.
@@ -375,7 +375,7 @@ rvm_ret_t RVM_Hyp_Vct_Evt(rvm_ptr_t Evt_Num,
 #endif
 /* End Function:RVM_Hyp_Vct_Evt **********************************************/
 
-/* Begin Function:RVM_Hyp_Vct_Del *********************************************
+/* Function:RVM_Hyp_Vct_Del ***************************************************
 Description : Deregister the vector of an virtual machine.
 Input       : rvm_ptr_t Vct_Num - The virtual vector to deregister.
 Output      : None.
@@ -419,7 +419,7 @@ rvm_ret_t RVM_Hyp_Vct_Del(rvm_ptr_t Vct_Num)
 #endif
 /* End Function:RVM_Hyp_Vct_Del **********************************************/
 
-/* Begin Function:RVM_Hyp_Vct_Lck *********************************************
+/* Function:RVM_Hyp_Vct_Lck ***************************************************
 Description : Lockdown the vector mapping of an virtual machine.
 Input       : None.
 Output      : None.
@@ -440,7 +440,7 @@ rvm_ret_t RVM_Hyp_Vct_Lck(void)
 #endif
 /* End Function:RVM_Hyp_Vct_Lck **********************************************/
 
-/* Begin Function:RVM_Hyp_Vct_Wait ********************************************
+/* Function:RVM_Hyp_Vct_Wait **************************************************
 Description : Set the virtual machine to sleep until a vector comes in.
 Input       : None.
 Output      : None.
@@ -465,7 +465,7 @@ rvm_ret_t RVM_Hyp_Vct_Wait(void)
 #endif
 /* End Function:RVM_Hyp_Vct_Wait *********************************************/
 
-/* Begin Function:RVM_Hyp_Evt_Add *********************************************
+/* Function:RVM_Hyp_Evt_Add ***************************************************
 Description : Add a event source's send capability to virtual machine.
 Input       : rvm_ptr_t Evt_Num - The event souce to register.
 Output      : None.
@@ -501,7 +501,7 @@ rvm_ret_t RVM_Hyp_Evt_Add(rvm_ptr_t Evt_Num)
 #endif
 /* End Function:RVM_Hyp_Evt_Add **********************************************/
 
-/* Begin Function:RVM_Hyp_Evt_Del *********************************************
+/* Function:RVM_Hyp_Evt_Del ***************************************************
 Description : Delete a event source's send capability from virtual machine.
 Input       : rvm_ptr_t Evt_Num - The event souce to deregister.
 Output      : None.
@@ -537,7 +537,7 @@ rvm_ret_t RVM_Hyp_Evt_Del(rvm_ptr_t Evt_Num)
 #endif
 /* End Function:RVM_Hyp_Evt_Del **********************************************/
 
-/* Begin Function:_RVM_Virt_Vct_Snd *******************************************
+/* Function:_RVM_Virt_Vct_Snd *************************************************
 Description : Send to all virtual machine vectors registered on this physical 
               physical interrupt channel or event.
 Input       : struct RVM_List* Array - The array containing lists of registered
@@ -580,7 +580,7 @@ void _RVM_Virt_Vct_Snd(struct RVM_List* Array,
 #endif
 /* End Function:_RVM_Virt_Vct_Snd ********************************************/
 
-/* Begin Function:RVM_Hyp_Evt_Snd *********************************************
+/* Function:RVM_Hyp_Evt_Snd ***************************************************
 Description : Send an event to the event channel.
 Input       : rvm_ptr_t Evt_Num - The event channel ID.
 Output      : None.
@@ -612,7 +612,7 @@ rvm_ret_t RVM_Hyp_Evt_Snd(rvm_ptr_t Evt_Num)
 #endif
 /* End Function:RVM_Hyp_Evt_Snd **********************************************/
 
-/* Begin Function:RVM_Hyp_Wdg_Clr *********************************************
+/* Function:RVM_Hyp_Wdg_Clr ***************************************************
 Description : Start and feed the watchdog for the current virtual machine.
 Input       : None.
 Output      : None.
@@ -634,7 +634,7 @@ rvm_ret_t RVM_Hyp_Wdg_Clr(void)
 #endif
 /* End Function:RVM_Hyp_Wdg_Clr **********************************************/
 
-/* Begin Function:_RVM_Wheel_Ins **********************************************
+/* Function:_RVM_Wheel_Ins ****************************************************
 Description : Insert one VM into the timer wheel.
 Input       : struct RVM_Virt_Struct* Virt - The virtual machine to insert.
               rvm_ptr_t Period - The period of the timer interrupt.
@@ -668,7 +668,7 @@ void _RVM_Wheel_Ins(struct RVM_Virt_Struct* Virt,
 #endif
 /* End Function:_RVM_Wheel_Ins ***********************************************/
 
-/* Begin Function:_RVM_Tim_Snd ************************************************
+/* Function:_RVM_Tim_Snd ******************************************************
 Description : Send an timer interrupt to a virtual machine.
 Input       : struct RVM_Virt_Struct* Virt - The pointer to the virtual machine.
 Output      : None.
@@ -696,7 +696,7 @@ void _RVM_Tim_Snd(struct RVM_Virt_Struct* Virt)
 #endif
 /* End Function:_RVM_Tim_Snd *************************************************/
 
-/* Begin Function:_RVM_Virt_Cur_Recover ***************************************
+/* Function:_RVM_Virt_Cur_Recover *********************************************
 Description : Recover the currently running virtual machine.
 Input       : None.
 Output      : None.
@@ -764,7 +764,7 @@ void _RVM_Virt_Cur_Recover(void)
 #endif
 /* End Function:_RVM_Virt_Cur_Recover ****************************************/
 
-/* Begin Function:RVM_Sftd ****************************************************
+/* Function:RVM_Sftd **********************************************************
 Description : The safety daemon against system partial or total failures.
               This runs as a separate thread.
 Input       : None.
@@ -872,7 +872,7 @@ void RVM_Sftd(void)
 }
 /* End Function:RVM_Sftd *****************************************************/
 
-/* Begin Function:_RVM_Flagset_Get ********************************************
+/* Function:_RVM_Flagset_Get **************************************************
 Description : Get the physical vector source or event source from the interrupt
               set. When this is called, there must be at least one vector or
               event pending in this set.
@@ -900,7 +900,7 @@ rvm_ptr_t _RVM_Flagset_Get(volatile struct RVM_Flag* Set)
 #endif
 /* End Function:_RVM_Flagset_Get *********************************************/
 
-/* Begin Function:RVM_Vmmd ****************************************************
+/* Function:RVM_Vmmd **********************************************************
 Description : The system daemon for timer tick processing, interrupt handling 
               and hypercalls. This only exists when there are virtual machines
               installed.
@@ -1206,7 +1206,7 @@ void RVM_Vmmd(void)
 #endif
 /* End Function:RVM_Vmmd *****************************************************/
 
-/* Begin Function:RVM_Virt_Init ***********************************************
+/* Function:RVM_Virt_Init *****************************************************
 Description : Initialize necessary virtual machine monitor database.
 Input       : None.
 Output      : None.
@@ -1245,7 +1245,7 @@ void RVM_Virt_Init(void)
 #endif
 /* End Function:RVM_Virt_Init ************************************************/
 
-/* Begin Function:RVM_Virt_Crt ************************************************
+/* Function:RVM_Virt_Crt ******************************************************
 Description : Set up all virtual machines according to the database.
 Input       : struct RVM_Virt_Struct* Virt - The virtual machine database.
               const struct RVM_Vmap_Struct* Vmap - The virtual machine static memory map.

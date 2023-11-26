@@ -6,25 +6,25 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The header of the ARMv7-M platform generator.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
+/* Define ********************************************************************/
 namespace RVM_GEN
 {
-#ifdef __HDR_DEFS__
-#ifndef __GCC_GEN_HPP_DEFS__
-#define __GCC_GEN_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __GCC_GEN_DEF__
+#define __GCC_GEN_DEF__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __GCC_GEN_HPP_DEFS__ */
+/* __GCC_GEN_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __GCC_GEN_HPP_CLASSES__
-#define __GCC_GEN_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __GCC_GEN_CLASS__
+#define __GCC_GEN_CLASS__
 /*****************************************************************************/
 /* GCC-specific information */
 class GCC_Gen:public Tool_Gen
@@ -40,9 +40,9 @@ public:
                                 const class Process* Prc) final override;
 };
 /*****************************************************************************/
-/* __GCC_GEN_HPP_CLASSES__ */
+/* __GCC_GEN_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

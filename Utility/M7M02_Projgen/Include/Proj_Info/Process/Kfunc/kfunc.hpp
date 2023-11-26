@@ -6,25 +6,25 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The header for the kernel function class.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
+/* Define ********************************************************************/
 namespace RVM_GEN
 {
-#ifdef __HDR_DEFS__
-#ifndef __KFUNC_HPP_DEFS__
-#define __KFUNC_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __KFUNC_DEF__
+#define __KFUNC_DEF__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __KFUNC_HPP_DEFS__ */
+/* __KFUNC_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __KFUNC_HPP_CLASSES__
-#define __KFUNC_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __KFUNC_CLASS__
+#define __KFUNC_CLASS__
 /*****************************************************************************/
 /* Kernel function information */
 class Kfunc:public Kobj
@@ -38,9 +38,9 @@ public:
     /* void */ Kfunc(xml_node_t* Root, class Process* Owner);
 };
 /*****************************************************************************/
-/* __KFUNC_HPP_CLASSES__ */
+/* __KFUNC_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

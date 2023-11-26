@@ -6,27 +6,27 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The header for the vector class.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
+/* Define ********************************************************************/
 namespace RVM_GEN
 {
-#ifdef __HDR_DEFS__
-#ifndef __VECT_INFO_HPP_DEFS__
-#define __VECT_INFO_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __VECT_INFO_DEF__
+#define __VECT_INFO_DEF__
 /*****************************************************************************/
 /* Config types */
 #define VECTOR_RANGE                (0)
 #define VECTOR_SELECT               (1)
 /*****************************************************************************/
-/* __VECT_INFO_HPP_DEFS__ */
+/* __VECT_INFO_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __VECT_INFO_HPP_CLASSES__
-#define __VECT_INFO_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __VECT_INFO_CLASS__
+#define __VECT_INFO_CLASS__
 /*****************************************************************************/
 /* The vector information */
 class Vect_Info:public Kobj
@@ -40,9 +40,9 @@ public:
     void Check(void);
 };
 /*****************************************************************************/
-/* __VECT_INFO_HPP_CLASSES__ */
+/* __VECT_INFO_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

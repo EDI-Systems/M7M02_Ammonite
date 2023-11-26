@@ -6,28 +6,28 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The header for the virtual machine processes.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
+/* Define ********************************************************************/
 namespace RVM_GEN
 {
-#ifdef __HDR_DEFS__
-#ifndef __VIRTUAL_HPP_DEFS__
-#define __VIRTUAL_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __VIRTUAL_DEF__
+#define __VIRTUAL_DEF__
 /*****************************************************************************/
 /* The priority of the vector handling thread is always 3 on all architectures */
 #define VIRT_VECTOR_PRIO        (3)
 /* The priority of the user thread is always 2 on all architectures */
 #define VIRT_USER_PRIO          (2)
 /*****************************************************************************/
-/* __VIRTUAL_HPP_DEFS__ */
+/* __VIRTUAL_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __VIRTUAL_HPP_CLASSES__
-#define __VIRTUAL_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __VIRTUAL_CLASS__
+#define __VIRTUAL_CLASS__
 /*****************************************************************************/
 /* Virtual machine info - VM is a special process type */
 class Virtual:public Process
@@ -72,9 +72,9 @@ public:
     static ptr_t State_Alloc(ptr_t Source, ptr_t Wordlength, ptr_t Kom_Order);
 };
 /*****************************************************************************/
-/* __VIRTUAL_HPP_CLASSES__ */
+/* __VIRTUAL_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

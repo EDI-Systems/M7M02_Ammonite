@@ -6,7 +6,7 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The memory block class. This contains the memory block information.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
+/* Include *******************************************************************/
 extern "C"
 {
 #include "xml.h"
@@ -22,7 +22,7 @@ extern "C"
 #include "algorithm"
 #include "filesystem"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "rvm_gen.hpp"
 #include "Conf_Info/conf_info.hpp"
 #include "Mem_Info/mem_info.hpp"
@@ -32,9 +32,9 @@ extern "C"
 #include "Gen_Tool/Build_Gen/build_gen.hpp"
 #include "Gen_Tool/Tool_Gen/tool_gen.hpp"
 #include "Gen_Tool/Guest_Gen/guest_gen.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_gen.hpp"
 #include "Plat_Info/plat_info.hpp"
 #include "Chip_Info/chip_info.hpp"
@@ -73,11 +73,11 @@ extern "C"
 
 #include "Gen_Tool/Guest_Gen/guest_gen.hpp"
 #include "Gen_Tool/Guest_Gen/RMP_Gen/rmp_gen.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_GEN
 {
-/* Begin Function:Gen_Tool::Gen_Tool ******************************************
+/* Function:Gen_Tool::Gen_Tool ************************************************
 Description : Constructor for generation tool class.
 Input       : const std::string& Name - The name of the platform.
 Input       : class Proj_Info* Proj - The project information.
@@ -105,7 +105,7 @@ Return      : None.
 }
 /* End Function:Gen_Tool::Gen_Tool *******************************************/
 
-/* Begin Function:Gen_Tool::Build_Load *****************************************
+/* Function:Gen_Tool::Build_Load ***********************************************
 Description : Load one of the buildsystems.
 Input       : const std::string& Name - The name of the buildsystem.
 Output      : None.
@@ -137,7 +137,7 @@ void  Gen_Tool::Build_Load(const std::string& Name)
 }
 /* End Function:Gen_Tool::Build_Load *****************************************/
 
-/* Begin Function:Gen_Tool::Tool_Load *****************************************
+/* Function:Gen_Tool::Tool_Load ***********************************************
 Description : Load one of the build tools.
 Input       : const std::string& Name - The name of the toolchain.
 Output      : None.
@@ -169,7 +169,7 @@ void  Gen_Tool::Tool_Load(const std::string& Name)
 }
 /* End Function:Gen_Tool::Tool_Load ******************************************/
 
-/* Begin Function:Gen_Tool::Guest_Load ****************************************
+/* Function:Gen_Tool::Guest_Load **********************************************
 Description : Load one of the guest OSes.
 Input       : const std::string& Name - The name of the guest OS.
 Output      : None.
@@ -199,7 +199,7 @@ void  Gen_Tool::Guest_Load(const std::string& Name)
 }
 /* End Function:Gen_Tool::Guest_Load *****************************************/
 
-/* Begin Function:Gen_Tool::Line_Read *****************************************
+/* Function:Gen_Tool::Line_Read ***********************************************
 Description : Read a source file to line-based buffer for further processing.
 Input       : const std::string& Path - The path to the file.
 Output      : None.
@@ -256,7 +256,7 @@ std::unique_ptr<std::vector<std::string>> Gen_Tool::Line_Read(const std::string&
 }
 /* End Function:Gen_Tool::Line_Read *******************************************/
 
-/* Begin Function:Gen_Tool::Line_Write *****************************************
+/* Function:Gen_Tool::Line_Write ***********************************************
 Description : Write a line-based buffer to destination file.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file contents.
               const std::string& Path - The path to the file.
@@ -290,7 +290,7 @@ void Gen_Tool::Line_Write(std::unique_ptr<std::vector<std::string>>& List, const
 }
 /* End Function:Gen_Tool::Line_Write *****************************************/
 
-/* Begin Function:Gen_Tool::Macro_String **************************************
+/* Function:Gen_Tool::Macro_String ********************************************
 Description : See if a macro is defined in the file, and modify it as a string.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file contents.
               const std::string& Macro - The macro name.
@@ -338,7 +338,7 @@ void Gen_Tool::Macro_String(std::unique_ptr<std::vector<std::string>>& List,
 }
 /* End Function:Gen_Tool::Macro_String ***************************************/
 
-/* Begin Function:Gen_Tool::Macro_Hex *****************************************
+/* Function:Gen_Tool::Macro_Hex ***********************************************
 Description : See if a macro is defined in the file, and modify it as a hex number.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file contents.
               const std::string& Macro - The macro name.
@@ -357,7 +357,7 @@ void Gen_Tool::Macro_Hex(std::unique_ptr<std::vector<std::string>>& List,
 }
 /* End Function:Gen_Tool::Macro_Hex ******************************************/
 
-/* Begin Function:Gen_Tool::Macro_Int *****************************************
+/* Function:Gen_Tool::Macro_Int ***********************************************
 Description : See if a macro is defined in the file, and modify it as a dec number.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file contents.
               const std::string& Macro - The macro name.
@@ -376,7 +376,7 @@ void Gen_Tool::Macro_Int(std::unique_ptr<std::vector<std::string>>& List,
 }
 /* End Function:Gen_Tool::Macro_Int ******************************************/
 
-/* Begin Function:Gen_Tool::Src_Head ******************************************
+/* Function:Gen_Tool::Src_Head ************************************************
 Description : Emit source descriptor into a source document.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The input file.
               const std::string& Name - The filename.
@@ -397,7 +397,7 @@ void Gen_Tool::Src_Head(std::unique_ptr<std::vector<std::string>>& List,
 }
 /* End Function:Gen_Tool::Src_Head *******************************************/
 
-/* Begin Function:Gen_Tool::Src_Foot ******************************************
+/* Function:Gen_Tool::Src_Foot ************************************************
 Description : Emit source footer into a source document.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The input file.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The appended file.
@@ -412,7 +412,7 @@ void Gen_Tool::Src_Foot(std::unique_ptr<std::vector<std::string>>& List)
 }
 /* End Function:Gen_Tool::Src_Foot *******************************************/
 
-/* Begin Function:Gen_Tool::Func_Head *****************************************
+/* Function:Gen_Tool::Func_Head ***********************************************
 Description : Write the description part of a C function.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The input file.
               const std::string& Name - Name of the function.
@@ -476,7 +476,7 @@ void Gen_Tool::Func_Head(std::unique_ptr<std::vector<std::string>>& List,
 }
 /* End Function:Gen_Tool::Func_Head ******************************************/
 
-/* Begin Function:Gen_Tool::Func_Foot *****************************************
+/* Function:Gen_Tool::Func_Foot ***********************************************
 Description : Write the footer part of a C function.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The input file.
               const std::string& Name - Name of the function.
@@ -501,7 +501,7 @@ void Gen_Tool::Func_Foot(std::unique_ptr<std::vector<std::string>>& List, const 
 }
 /* End Function:Gen_Tool::Func_Foot ******************************************/
 
-/* Begin Function:Gen_Tool::Path_Conv *****************************************
+/* Function:Gen_Tool::Path_Conv ***********************************************
 Description : Deduplicate all paths, and make them relative to the root path.
 Input       : const std::string& Root - The root path.
               std::vector<std::string>& List - The path list.
@@ -549,7 +549,7 @@ void Gen_Tool::Path_Conv(const std::string& Root, std::vector<std::string>& List
 }
 /* End Function:Gen_Tool::Path_Conv ******************************************/
 
-/* Begin Function:Gen_Tool::Kernel_Inc ****************************************
+/* Function:Gen_Tool::Kernel_Inc **********************************************
 Description : Write the include files for kernel.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The input file.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The appended file.
@@ -559,29 +559,29 @@ void Gen_Tool::Kernel_Inc(std::unique_ptr<std::vector<std::string>>& List)
 {
     std::string Temp;
 
-    List->push_back("/* Includes ******************************************************************/");
+    List->push_back("/* Include *******************************************************************/");
     Temp=std::string("#include \"Platform/")+this->Plat->Name+"/rme_platform_"+this->Plat->Name_Lower+".h\"";
-    List->push_back("#define __HDR_DEFS__");
+    List->push_back("#define __HDR_DEF__");
     List->push_back(Temp);
     List->push_back("#include \"Kernel/rme_kernel.h\"");
-    List->push_back("#undef __HDR_DEFS__");
+    List->push_back("#undef __HDR_DEF__");
     List->push_back("");
-    List->push_back("#define __HDR_STRUCTS__");
+    List->push_back("#define __HDR_STRUCT__");
     List->push_back(Temp);
     List->push_back("#include \"Kernel/rme_kernel.h\"");
-    List->push_back("#undef __HDR_STRUCTS__");
+    List->push_back("#undef __HDR_STRUCT__");
     List->push_back("");
-    List->push_back("#define __HDR_PUBLIC_MEMBERS__");
+    List->push_back("#define __HDR_PUBLIC__");
     List->push_back(Temp);
     List->push_back("#include \"Kernel/rme_kernel.h\"");
-    List->push_back("#undef __HDR_PUBLIC_MEMBERS__");
+    List->push_back("#undef __HDR_PUBLIC__");
     List->push_back("");
     List->push_back("#include \"rme_boot.h\"");
-    List->push_back("/* End Includes **************************************************************/");
+    List->push_back("/* End Include ***************************************************************/");
 }
 /* End Function:Gen_Tool::Kernel_Inc *****************************************/
 
-/* Begin Function:Gen_Tool::Kernel_Conf_Hdr ***********************************
+/* Function:Gen_Tool::Kernel_Conf_Hdr *****************************************
 Description : Create the platform configuration headers for kernel.
 Input       : None.
 Output      : None.
@@ -602,9 +602,9 @@ void Gen_Tool::Kernel_Conf_Hdr(void)
     Main::Info("> Generating 'rme_platform.h'.");
     Gen_Tool::Src_Head(List, "rme_platform.h", "The platform selection header.");
     List->push_back("");
-    List->push_back("/* Platform Includes *********************************************************/");
+    List->push_back("/* Platform Include **********************************************************/");
     List->push_back(std::string("#include \"Platform/")+this->Plat->Name+"/rme_platform_"+this->Plat->Name_Lower+".h\"");
-    List->push_back("/* End Platform Includes *****************************************************/");
+    List->push_back("/* End Platform Include ******************************************************/");
     List->push_back("");
     Gen_Tool::Src_Foot(List);
     Gen_Tool::Line_Write(List, Kernel->Config_Header_Output+"/rme_platform.h");
@@ -615,9 +615,9 @@ void Gen_Tool::Kernel_Conf_Hdr(void)
     List->clear();
     Gen_Tool::Src_Head(List, Filename, "The chip selection header.");
     List->push_back("");
-    List->push_back("/* Platform Includes *********************************************************/");
+    List->push_back("/* Platform Include **********************************************************/");
     List->push_back(std::string("#include \"rme_platform_")+this->Plat->Chip->Name_Lower+".h\"");
-    List->push_back("/* End Platform Includes *****************************************************/");
+    List->push_back("/* End Platform Include ******************************************************/");
     List->push_back("");
     Gen_Tool::Src_Foot(List);
     Gen_Tool::Line_Write(List, Kernel->Config_Header_Output+"rme_platform_"+this->Plat->Name_Lower+"_conf.h");
@@ -686,7 +686,7 @@ void Gen_Tool::Kernel_Conf_Hdr(void)
 }
 /* End Function:Gen_Tool::Kernel_Conf_Hdr ************************************/
 
-/* Begin Function:Gen_Tool::Kernel_Boot_Hdr ***********************************
+/* Function:Gen_Tool::Kernel_Boot_Hdr *****************************************
 Description : Create the boot header for kernel.
 Input       : None.
 Output      : None.
@@ -709,7 +709,7 @@ void Gen_Tool::Kernel_Boot_Hdr(void)
     List->push_back("");
 
     Main::Info("> Generating defines.");
-    List->push_back("/* Defines *******************************************************************/");
+    List->push_back("/* Define ********************************************************************/");
 
     /* Vector capability tables */
     List->push_back("/* Vector endpoint capability tables */");
@@ -730,7 +730,7 @@ void Gen_Tool::Kernel_Boot_Hdr(void)
         Obj_Cnt++;
     }
 
-    List->push_back("/* End Defines ***************************************************************/");
+    List->push_back("/* End Define ****************************************************************/");
     List->push_back("");
 
     Main::Info("> Writing file.");
@@ -739,7 +739,7 @@ void Gen_Tool::Kernel_Boot_Hdr(void)
 }
 /* End Function:Gen_Tool::Kernel_Boot_Hdr ************************************/
 
-/* Begin Function:Gen_Tool::Kernel_Boot_Src ***********************************
+/* Function:Gen_Tool::Kernel_Boot_Src *****************************************
 Description : Create the boot source for kernel.
 Input       : None.
 Output      : None.
@@ -770,27 +770,27 @@ void Gen_Tool::Kernel_Boot_Src(void)
     List->push_back("");
 
     /* Global variables */
-    List->push_back("/* Private Global Variables **************************************************/");
+    List->push_back("/* Private Variable **********************************************************/");
     for(const class Vect_Info* Vct:Monitor->Vector)
         List->push_back(std::string("static struct RME_Cap_Sig* ")+Vct->Name+"_Vct_Sig;");
-    List->push_back("/* End Private Global Variables **********************************************/");
+    List->push_back("/* End Private Variable ******************************************************/");
     List->push_back("");
 
     /* Private prototypes */
     Main::Info("> Generating private C function prototypes.");
-    List->push_back("/* Private C Function Prototypes *********************************************/");
+    List->push_back("/* Private Function **********************************************************/");
     for(const class Vect_Info* Vct:Monitor->Vector)
         List->push_back(std::string("EXTERN rme_ptr_t RME_Vct_")+Vct->Name+"_Handler(void);");
     List->push_back("EXTERN rme_ptr_t RME_Spurious_Handler(rme_ptr_t Vct_Num);");
-    List->push_back("/* End Private C Function Prototypes *****************************************/");
+    List->push_back("/* End Private Function ******************************************************/");
     List->push_back("");
 
     /* Public prototypes */
     Main::Info("> Generating public C function prototypes.");
-    List->push_back("/* Public C Function Prototypes **********************************************/");
+    List->push_back("/* Public Function ***********************************************************/");
     List->push_back("rme_ptr_t RME_Boot_Vct_Init(struct RME_Cap_Cpt* Cpt, rme_ptr_t Cap_Front, rme_ptr_t Kom_Front);");
     List->push_back("rme_ptr_t RME_Boot_Vct_Handler(rme_ptr_t Vct_Num);");
-    List->push_back("/* End Public C Function Prototypes ******************************************/");
+    List->push_back("/* End Public Function *******************************************************/");
     List->push_back("");
 
     /* Boot-time setup routine for the interrupt endpoints */
@@ -904,7 +904,7 @@ void Gen_Tool::Kernel_Boot_Src(void)
 }
 /* End Function:Gen_Tool::Kernel_Boot_Src ************************************/
 
-/* Begin Function:Gen_Tool::Kernel_Hook_Src ***********************************
+/* Function:Gen_Tool::Kernel_Hook_Src *****************************************
 Description : Create the hook source file for kernel.
 Input       : None.
 Output      : None.
@@ -943,13 +943,13 @@ void Gen_Tool::Kernel_Hook_Src(void)
 
     /* Print all global prototypes */
     Main::Info("> Generating public C function prototypes.");
-    List->push_back("/* Public C Function Prototypes **********************************************/");
+    List->push_back("/* Public Function ***********************************************************/");
     List->push_back("void RME_Boot_Pre_Init(void);");
     List->push_back("void RME_Boot_Post_Init(void);");
     List->push_back("void RME_Reboot_Failsafe(void);");
     List->push_back("rme_ptr_t RME_Spurious_Handler(rme_ptr_t Vct_Num);");
     List->push_back("rme_ret_t RME_Hook_Kfn_Handler(rme_ptr_t Func_ID, rme_ptr_t Sub_ID, rme_ptr_t Param1, rme_ptr_t Param2);");
-    List->push_back("/* End Public C Function Prototypes ******************************************/");
+    List->push_back("/* End Public Function *******************************************************/");
     List->push_back("");
 
     /* Preinitialization of hardware */
@@ -1027,7 +1027,7 @@ void Gen_Tool::Kernel_Hook_Src(void)
 }
 /* End Function:Gen_Tool::Kernel_Hook_Src ************************************/
 
-/* Begin Function:Gen_Tool::Kernel_Handler_Src ********************************
+/* Function:Gen_Tool::Kernel_Handler_Src **************************************
 Description : Create the handler source file for kernel. Each handler gets allocated
               a single source file in rme_handler_xxx.c¡£
 Input       : None.
@@ -1075,9 +1075,9 @@ void Gen_Tool::Kernel_Handler_Src(void)
 
         /* Print all global prototypes */
         Main::Info("> Generating public C function prototypes.");
-        List->push_back("/* Public C Function Prototypes **********************************************/");
+        List->push_back("/* Public Function ***********************************************************/");
         List->push_back(std::string("rme_ptr_t RME_Vct_")+Vct->Name+"_Handler(void);");
-        List->push_back("/* End Public C Function Prototypes ******************************************/");
+        List->push_back("/* End Public Function *******************************************************/");
         List->push_back("");
 
         /* Print function body */
@@ -1103,7 +1103,7 @@ void Gen_Tool::Kernel_Handler_Src(void)
 }
 /* End Function:Gen_Tool::Kernel_Handler_Src *********************************/
 
-/* Begin Function:Gen_Tool::Kernel_Linker *************************************
+/* Function:Gen_Tool::Kernel_Linker *******************************************
 Description : Create the linker script file for kernel.
 Input       : None.
 Output      : None.
@@ -1126,7 +1126,7 @@ void Gen_Tool::Kernel_Linker(void)
 }
 /* End Function:Gen_Tool::Kernel_Linker **************************************/
 
-/* Begin Function:Gen_Tool::Kernel_Proj ***************************************
+/* Function:Gen_Tool::Kernel_Proj *********************************************
 Description : Create the project file for kernel.
 Input       : None.
 Output      : None.
@@ -1210,7 +1210,7 @@ void Gen_Tool::Kernel_Proj(void)
 }
 /* End Function:Gen_Tool::Kernel_Proj ****************************************/
 
-/* Begin Function:Gen_Tool::Monitor_Inc ***************************************
+/* Function:Gen_Tool::Monitor_Inc *********************************************
 Description : Write the include files for monitor.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The input file.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The appended file.
@@ -1220,36 +1220,36 @@ void Gen_Tool::Monitor_Inc(std::unique_ptr<std::vector<std::string>>& List)
 {
     std::string Temp;
 
-    List->push_back("/* Includes ******************************************************************/");
+    List->push_back("/* Include *******************************************************************/");
     List->push_back("#include \"rvm.h\"");
     List->push_back("#include \"rvm_boot.h\"");
     List->push_back("");
     Temp=std::string("#include \"Platform/")+this->Plat->Name+"/rvm_platform_"+this->Plat->Name_Lower+".h\"";
-    List->push_back("#define __HDR_DEFS__");
+    List->push_back("#define __HDR_DEF__");
     List->push_back(Temp);
     List->push_back("#include \"Monitor/rvm_syssvc.h\"");
     List->push_back("#include \"Monitor/rvm_init.h\"");
     List->push_back("#include \"Monitor/rvm_hyper.h\"");
-    List->push_back("#undef __HDR_DEFS__");
+    List->push_back("#undef __HDR_DEF__");
     List->push_back("");
-    List->push_back("#define __HDR_STRUCTS__");
+    List->push_back("#define __HDR_STRUCT__");
     List->push_back(Temp);
     List->push_back("#include \"Monitor/rvm_syssvc.h\"");
     List->push_back("#include \"Monitor/rvm_init.h\"");
     List->push_back("#include \"Monitor/rvm_hyper.h\"");
-    List->push_back("#undef __HDR_STRUCTS__");
+    List->push_back("#undef __HDR_STRUCT__");
     List->push_back("");
-    List->push_back("#define __HDR_PUBLIC_MEMBERS__");
+    List->push_back("#define __HDR_PUBLIC__");
     List->push_back(Temp);
     List->push_back("#include \"Monitor/rvm_syssvc.h\"");
     List->push_back("#include \"Monitor/rvm_init.h\"");
     List->push_back("#include \"Monitor/rvm_hyper.h\"");
-    List->push_back("#undef __HDR_PUBLIC_MEMBERS__");
-    List->push_back("/* End Includes **************************************************************/");
+    List->push_back("#undef __HDR_PUBLIC__");
+    List->push_back("/* End Include ***************************************************************/");
 }
 /* End Function:Gen_Tool::Monitor_Inc ****************************************/
 
-/* Begin Function:Gen_Tool::Monitor_Conf_Hdr **********************************
+/* Function:Gen_Tool::Monitor_Conf_Hdr ****************************************
 Description : Generate the platform configuration headers for monitor.
 Input       : None.
 Output      : None.
@@ -1353,7 +1353,7 @@ void Gen_Tool::Monitor_Conf_Hdr(void)
 }
 /* End Function:Gen_Tool::Monitor_Conf_Hdr ***********************************/
 
-/* Begin Function:Gen_Tool::Monitor_Cpt_Init **********************************
+/* Function:Gen_Tool::Monitor_Cpt_Init ****************************************
 Description : Build capability table contents.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file to add these to.
               ptr_t Is_Kfn - Whether this iteration is kfunc dedicated.
@@ -1422,7 +1422,7 @@ ptr_t Gen_Tool::Monitor_Cpt_Init(std::unique_ptr<std::vector<std::string>>& List
 }
 /* End Function:Gen_Tool::Monitor_Cpt_Init ***********************************/
 
-/* Begin Function:Gen_Tool::Monitor_Pgt_Con ***********************************
+/* Function:Gen_Tool::Monitor_Pgt_Con *****************************************
 Description : Construct the page table for monitor. This will produce the desired
               final page table tree, and is recursive.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file to add these to.
@@ -1456,7 +1456,7 @@ ptr_t Gen_Tool::Monitor_Pgt_Con(std::unique_ptr<std::vector<std::string>>& List,
 }
 /* End Function:Gen_Tool::Monitor_Pgt_Con ************************************/
 
-/* Begin Function:Gen_Tool::Monitor_Pgt_Add ***********************************
+/* Function:Gen_Tool::Monitor_Pgt_Add *****************************************
 Description : Map pages into a page table. This is not recursive.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file to add these to.
               const class Pgtbl* Pgt - The page table structure.
@@ -1520,7 +1520,7 @@ ptr_t Gen_Tool::Monitor_Pgt_Add(std::unique_ptr<std::vector<std::string>>& List,
 }
 /* End Function:Gen_Tool::Monitor_Pgt_Add ************************************/
 
-/* Begin Function:Gen_Tool::Monitor_Thd_Init **********************************
+/* Function:Gen_Tool::Monitor_Thd_Init ****************************************
 Description : Initialize threads.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file to add these to.
 Output      : None.
@@ -1567,7 +1567,7 @@ ptr_t Gen_Tool::Monitor_Thd_Init(std::unique_ptr<std::vector<std::string>>& List
 }
 /* End Function:Gen_Tool::Monitor_Thd_Init ***********************************/
 
-/* Begin Function:Gen_Tool::Monitor_Inv_Init **********************************
+/* Function:Gen_Tool::Monitor_Inv_Init ****************************************
 Description : Initialize invocations.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file to add these to.
 Output      : None.
@@ -1599,7 +1599,7 @@ ptr_t Gen_Tool::Monitor_Inv_Init(std::unique_ptr<std::vector<std::string>>& List
 }
 /* End Function:Gen_Tool::Monitor_Inv_Init ***********************************/
 
-/* Begin Function:Gen_Tool::Monitor_Boot_Hdr **********************************
+/* Function:Gen_Tool::Monitor_Boot_Hdr ****************************************
 Description : Create the boot header for monitor.
 Input       : None.
 Output      : None.
@@ -1625,7 +1625,7 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
     List->push_back("");
 
     Main::Info("> Generating defines.");
-    List->push_back("/* Defines *******************************************************************/");
+    List->push_back("/* Define ********************************************************************/");
 
     /* Vector capability tables & objects */
     List->push_back("/* Vector endpoint capability tables */");
@@ -1856,7 +1856,7 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
     Gen_Tool::Macro_Int(List, "RVM_BOOT_RCV_MAIN_NUM", CTNUM(Monitor->Receive.size()), MACRO_ADD);
     Gen_Tool::Macro_Int(List, "RVM_BOOT_RCV_CRT_NUM", Monitor->Receive.size(), MACRO_ADD);
     List->push_back("");
-    List->push_back("/* End Defines ***************************************************************/");
+    List->push_back("/* End Define ****************************************************************/");
     List->push_back("");
     Gen_Tool::Src_Foot(List);
 
@@ -1865,7 +1865,7 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
 }
 /* End Function:Gen_Tool::Monitor_Boot_Hdr ***********************************/
 
-/* Begin Function:Gen_Tool::Monitor_Main_Crt **********************************
+/* Function:Gen_Tool::Monitor_Main_Crt ****************************************
 Description : Generate the main container capability tables.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file to add these to.
               ptr_t Number - The total number of slots that the captbls should have.
@@ -1888,7 +1888,7 @@ void Gen_Tool::Monitor_Main_Crt(std::unique_ptr<std::vector<std::string>>& List,
 }
 /* End Function:Gen_Tool::Monitor_Main_Crt ***********************************/
 
-/* Begin Function:Gen_Tool::Monitor_Boot_Src **********************************
+/* Function:Gen_Tool::Monitor_Boot_Src ****************************************
 Description : Create the boot source for monitor. This function is pretty lengthy,
               but it generates a single source, so we're not splitting it.
               We're using metadata for most of the initializations. For those that
@@ -1920,7 +1920,7 @@ void Gen_Tool::Monitor_Boot_Src(void)
     List->push_back("");
 
     Main::Info("> Generating public global variables.");
-    List->push_back("/* Public Global Variables ***************************************************/");
+    List->push_back("/* Public Variable ***********************************************************/");
     /* Virtual machine management metadata */
     if(this->Plat->Proj->Virtual.size()!=0)
     {
@@ -2124,7 +2124,7 @@ void Gen_Tool::Monitor_Boot_Src(void)
 		List->push_back("};");
 	    List->push_back("");
     }
-    List->push_back("/* End Public Global Variables ***********************************************/");
+    List->push_back("/* End Public Variable *******************************************************/");
     List->push_back("");
     Gen_Tool::Src_Foot(List);
 
@@ -2134,7 +2134,7 @@ void Gen_Tool::Monitor_Boot_Src(void)
 }
 /* End Function:Gen_Tool::Monitor_Boot_Src ***********************************/
 
-/* Begin Function:Gen_Tool::Monitor_Hook_Src **********************************
+/* Function:Gen_Tool::Monitor_Hook_Src ****************************************
 Description : Create the hook source file for monitor.
 Input       : None.
 Output      : None.
@@ -2173,10 +2173,10 @@ void Gen_Tool::Monitor_Hook_Src(void)
 
     /* Print all global prototypes */
     Main::Info("> Generating public C function prototypes.");
-    List->push_back("/* Public C Function Prototypes **********************************************/");
+    List->push_back("/* Public Function ***********************************************************/");
     List->push_back("void RVM_Boot_Pre_Init(void);");
     List->push_back("void RVM_Boot_Post_Init(void);");
-    List->push_back("/* End Public C Function Prototypes ******************************************/");
+    List->push_back("/* End Public Function *******************************************************/");
     List->push_back("");
 
     /* Preinitialization of hardware */
@@ -2210,7 +2210,7 @@ void Gen_Tool::Monitor_Hook_Src(void)
 }
 /* End Function:Gen_Tool::Monitor_Hook_Src ***********************************/
 
-/* Begin Function:Gen_Tool::Monitor_Linker ************************************
+/* Function:Gen_Tool::Monitor_Linker ******************************************
 Description : Create the linker script file for monitor.
 Input       : None.
 Output      : None.
@@ -2233,7 +2233,7 @@ void Gen_Tool::Monitor_Linker(void)
 }
 /* End Function:Gen_Tool::Monitor_Linker *************************************/
 
-/* Begin Function:Gen_Tool::Monitor_Proj **************************************
+/* Function:Gen_Tool::Monitor_Proj ********************************************
 Description : Create the project file for monitor.
 Input       : None.
 Output      : None.
@@ -2308,7 +2308,7 @@ void Gen_Tool::Monitor_Proj(void)
 }
 /* End Function:Gen_Tool::Monitor_Proj ***************************************/
 
-/* Begin Function:Gen_Tool::Process_Inc ***************************************
+/* Function:Gen_Tool::Process_Inc *********************************************
 Description : Write the include files for process files.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The input file.
               class Process* Prc - The process.
@@ -2318,14 +2318,14 @@ Return      : None.
 void Gen_Tool::Process_Inc(std::unique_ptr<std::vector<std::string>>& List,
                            class Process* Prc)
 {
-    List->push_back("/* Includes ******************************************************************/");
+    List->push_back("/* Include *******************************************************************/");
     List->push_back("#include \"rvm.h\"");
     List->push_back("#include \"rvm_guest.h\"");
-    List->push_back("/* End Includes **************************************************************/");
+    List->push_back("/* End Include ***************************************************************/");
 }
 /* End Function:Gen_Tool::Process_Inc ****************************************/
 
-/* Begin Function:Gen_Tool::Process_Main_Hdr_Mem ******************************
+/* Function:Gen_Tool::Process_Main_Hdr_Mem ************************************
 Description : Print memory referernce for process config header.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
               const class Mem_Info* Mem - The memory to generate for.
@@ -2358,7 +2358,7 @@ void Gen_Tool::Process_Main_Hdr_Mem(std::unique_ptr<std::vector<std::string>>& L
 }
 /* End Function:Gen_Tool::Process_Main_Hdr_Mem *******************************/
 
-/* Begin Function:Gen_Tool::Process_Main_Hdr **********************************
+/* Function:Gen_Tool::Process_Main_Hdr ****************************************
 Description : Create the main header for process.
 Input       : class Process* Prc - The process to generate for.
 Output      : None.
@@ -2379,9 +2379,9 @@ void Gen_Tool::Process_Main_Hdr(class Process* Prc)
     List->push_back("");
 
     /* Definitions */
-    List->push_back("/* Defines *******************************************************************/");
-    List->push_back(std::string("#ifndef __PRC_")+Prc->Name_Upper+"_H__");
-    List->push_back(std::string("#define __PRC_")+Prc->Name_Upper+"_H__");
+    List->push_back("/* Define ********************************************************************/");
+    List->push_back(std::string("#ifndef __PRC_")+Prc->Name_Upper+"__");
+    List->push_back(std::string("#define __PRC_")+Prc->Name_Upper+"__");
     List->push_back("");
 
     /* The capability table info */
@@ -2473,8 +2473,8 @@ void Gen_Tool::Process_Main_Hdr(class Process* Prc)
     /* Generate platform specific macros */
     this->Plat->Process_Main_Hdr(List, Prc);
 
-    List->push_back(std::string("#endif /* __PRC_")+Prc->Name_Upper+"_H__ */");
-    List->push_back("/* End Defines ***************************************************************/");
+    List->push_back(std::string("#endif /* __PRC_")+Prc->Name_Upper+"__ */");
+    List->push_back("/* End Define ****************************************************************/");
     List->push_back("");
 
     Gen_Tool::Src_Foot(List);
@@ -2488,10 +2488,10 @@ void Gen_Tool::Process_Main_Hdr(class Process* Prc)
     List->clear();
     Gen_Tool::Src_Head(List, "rvm_guest_conf.h", "The guest library configuration header.");
     List->push_back("");
-    List->push_back("/* Includes ******************************************************************/");
+    List->push_back("/* Include *******************************************************************/");
     List->push_back(std::string("#include \"prc_")+Prc->Name_Lower+".h\"");
     List->push_back(std::string("#include \"")+this->Plat->Name_Upper+"/rvm_guest_"+this->Plat->Name_Lower+".h\"");
-    List->push_back("/* End Includes **************************************************************/");
+    List->push_back("/* End Include ***************************************************************/");
     List->push_back("");
     Gen_Tool::Src_Foot(List);
 
@@ -2499,7 +2499,7 @@ void Gen_Tool::Process_Main_Hdr(class Process* Prc)
 }
 /* End Function:Gen_Tool::Process_Main_Hdr ***********************************/
 
-/* Begin Function:Gen_Tool::Process_Entry_Src *********************************
+/* Function:Gen_Tool::Process_Entry_Src ***************************************
 Description : Create the stubs for process. Each invocation and thread will
               have its own file, so there is least interference between them.
 Input       : class Process* Prc - The process to generate for.
@@ -2537,13 +2537,13 @@ void Gen_Tool::Process_Entry_Src(class Process* Prc)
         List->clear();
         Gen_Tool::Src_Head(List, Filename, std::string("The user stub file for thread '")+Thd->Name+"'.");
         List->push_back("");
-        /* Includes */
+        /* Include **/
         this->Process_Inc(List, Prc);
         List->push_back("");
         /* Private prototypes */
-        List->push_back("/* Private C Function Prototypes *********************************************/");
+        List->push_back("/* Private Function **********************************************************/");
         List->push_back(std::string("rvm_ret_t Thd_")+Thd->Name+"(rvm_ret_t Param);");
-        List->push_back("/* End Private C Function Prototypes *****************************************/");
+        List->push_back("/* End Private Function ******************************************************/");
         List->push_back("");
         /* Thread functions themselves */
         Gen_Tool::Func_Head(List, std::string("Thd_")+Thd->Name,
@@ -2579,13 +2579,13 @@ void Gen_Tool::Process_Entry_Src(class Process* Prc)
         List->clear();
         Gen_Tool::Src_Head(List, Filename, std::string("The user stub file for thread '")+Inv->Name+"'.");
         List->push_back("");
-        /* Includes */
+        /* Include **/
         this->Process_Inc(List, Prc);
         List->push_back("");
         /* Private prototypes */
-        List->push_back("/* Private C Function Prototypes *********************************************/");
+        List->push_back("/* Private Function **********************************************************/");
         List->push_back(std::string("rvm_ret_t Inv_")+Inv->Name+"(rvm_ret_t Param);");
-        List->push_back("/* End Private C Function Prototypes *****************************************/");
+        List->push_back("/* End Private Function ******************************************************/");
         List->push_back("");
         /* Thread functions themselves */
         Gen_Tool::Func_Head(List, std::string("Inv_")+Inv->Name,
@@ -2605,7 +2605,7 @@ void Gen_Tool::Process_Entry_Src(class Process* Prc)
 }
 /* End Function:Gen_Tool::Process_Entry_Src **********************************/
 
-/* Begin Function:Gen_Tool::Process_Desc_Src **********************************
+/* Function:Gen_Tool::Process_Desc_Src ****************************************
 Description : Create the descriptor source for process.
 Input       : class Process* Prc - The process to generate for.
 Output      : None.
@@ -2627,12 +2627,12 @@ void Gen_Tool::Process_Desc_Src(class Process* Prc)
     								   "              so that it be firmly linked to the head of the image!");
     List->push_back("");
 
-    /* Includes */
+    /* Include **/
     this->Process_Inc(List, Prc);
     List->push_back("");
 
     /* Public prototypes */
-    List->push_back("/* Public C Function Prototypes **********************************************/");
+    List->push_back("/* Public Function ***********************************************************/");
     if(Prc->Type==PROCESS_VIRTUAL)
     {
         List->push_back("EXTERN rvm_ret_t Thd_Vct(rvm_ret_t Param);");
@@ -2646,11 +2646,11 @@ void Gen_Tool::Process_Desc_Src(class Process* Prc)
 			List->push_back(std::string("EXTERN rvm_ret_t Inv_")+Inv->Name+"(rvm_ret_t Param);");
 		List->push_back("EXTERN void _RVM_Jmp_Stub(void);");
     }
-    List->push_back("/* End Public C Function Prototypes ******************************************/");
+    List->push_back("/* End Public Function *******************************************************/");
     List->push_back("");
 
     /* Global variables */
-    List->push_back("/* Public Global Variables ***************************************************/");
+    List->push_back("/* Public Variable ***********************************************************/");
     List->push_back(std::string("const rvm_ptr_t RVM_Desc[")+std::to_string(Prc->Desc_Front)+"]=");
     List->push_back("{");
     if(Prc->Type==PROCESS_NATIVE)
@@ -2693,7 +2693,7 @@ void Gen_Tool::Process_Desc_Src(class Process* Prc)
         List->push_back(std::string("    (rvm_ptr_t)Inv_")+Inv->Name+",");
     List->push_back("    (rvm_ptr_t)_RVM_Jmp_Stub,");
     List->push_back("};");
-    List->push_back("/* End Public Global Variables ***********************************************/");
+    List->push_back("/* End Public Variable *******************************************************/");
     List->push_back("");
     Gen_Tool::Src_Foot(List);
 
@@ -2702,7 +2702,7 @@ void Gen_Tool::Process_Desc_Src(class Process* Prc)
 }
 /* End Function:Gen_Tool::Process_Desc_Src ***********************************/
 
-/* Begin Function:Gen_Tool::Process_Main_Src **********************************
+/* Function:Gen_Tool::Process_Main_Src ****************************************
 Description : Create the main sources for process. Each invocation and thread will
               have its own file, so there is least interference between them.
 Input       : class Process* Prc - The process to generate for.
@@ -2723,34 +2723,34 @@ void Gen_Tool::Process_Main_Src(class Process* Prc)
     Gen_Tool::Src_Head(List, Filename, "The main user stub file.");
     List->push_back("");
 
-    /* Includes */
+    /* Include **/
     this->Process_Inc(List, Prc);
     List->push_back("");
 
     /* Global variable - The only one being the process header reference */
-    List->push_back("/* Public Global Variables ***************************************************/");
+    List->push_back("/* Public Variable ***********************************************************/");
     List->push_back(std::string("EXTERN const rvm_ptr_t RVM_Desc[")+std::to_string(Prc->Desc_Front)+"];");
-    List->push_back("/* End Public Global Variables ***********************************************/");
+    List->push_back("/* End Public Variable *******************************************************/");
     List->push_back("");
 
     /* Private prototypes */
     if(Prc->Type==PROCESS_VIRTUAL)
     {
-        List->push_back("/* Private C Function Prototypes *********************************************/");
+        List->push_back("/* Private Function **********************************************************/");
         List->push_back("rvm_ret_t Thd_Vct(rvm_ret_t Param);");
         List->push_back("EXTERN void _RVM_Jmp_Stub(void);");
-        List->push_back("/* End Private C Function Prototypes *****************************************/");
+        List->push_back("/* End Private Function ******************************************************/");
         List->push_back("");
     }
     else
     {
-        List->push_back("/* Public C Function Prototypes **********************************************/");
+        List->push_back("/* Public Function ***********************************************************/");
         for(const std::unique_ptr<class Thread>& Thd:Prc->Thread)
             List->push_back(std::string("extern rvm_ret_t Thd_")+Thd->Name+"(rvm_ret_t Param);");
         for(const std::unique_ptr<class Invocation>& Inv:Prc->Invocation)
             List->push_back(std::string("extern rvm_ret_t Inv_")+Inv->Name+"(rvm_ret_t Param);");
         List->push_back("extern void _RVM_Jmp_Stub(void);");
-        List->push_back("/* End Private C Function Prototypes *****************************************/");
+        List->push_back("/* End Private Function ******************************************************/");
         List->push_back("");
     }
 
@@ -2815,7 +2815,7 @@ void Gen_Tool::Process_Main_Src(class Process* Prc)
 }
 /* End Function:Gen_Tool::Process_Main_Src ***********************************/
 
-/* Begin Function:Gen_Tool::Process_Virt_Hdr **********************************
+/* Function:Gen_Tool::Process_Virt_Hdr ****************************************
 Description : Create the configuration header for VMs.
 Input       : class Virtual* Virt - The process to generate for.
 Output      : None.
@@ -2828,7 +2828,7 @@ void Gen_Tool::Process_Virt_Hdr(class Virtual* Virt)
 }
 /* End Function:Gen_Tool::Process_Virt_Hdr ***********************************/
 
-/* Begin Function:Gen_Tool::Process_Virt_Src **********************************
+/* Function:Gen_Tool::Process_Virt_Src ****************************************
 Description : Create the configuration header for VMs.
 Input       : class Virtual* Virt - The process to generate for.
 Output      : None.
@@ -2841,7 +2841,7 @@ void Gen_Tool::Process_Virt_Src(class Virtual* Virt)
 }
 /* End Function:Gen_Tool::Process_Virt_Src ***********************************/
 
-/* Begin Function:Gen_Tool::Process_Linker ************************************
+/* Function:Gen_Tool::Process_Linker ******************************************
 Description : Create the linker script file for process.
 Input       : class Process* Prc - The process to generate for.
 Output      : None.
@@ -2862,7 +2862,7 @@ void Gen_Tool::Process_Linker(class Process* Prc)
 }
 /* End Function:Gen_Tool::Process_Linker *************************************/
 
-/* Begin Function:Gen_Tool::Process_Proj **************************************
+/* Function:Gen_Tool::Process_Proj ********************************************
 Description : Create the project file for process.
 Input       : class Process* Prc - The process to generate for.
 Output      : None.
@@ -2951,7 +2951,7 @@ void Gen_Tool::Process_Proj(class Process* Prc)
 }
 /* End Function:Gen_Tool::Process_Proj ***************************************/
 
-/* Begin Function:Gen_Tool::Workspace_Proj ************************************
+/* Function:Gen_Tool::Workspace_Proj ******************************************
 Description : Create the workspace file for all projects. This generation is only
               possible when (1) all workspace projects use the same build system,
               and (2) the build system supports a workspace project.

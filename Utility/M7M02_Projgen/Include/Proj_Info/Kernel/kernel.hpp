@@ -6,25 +6,25 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The header for the process.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
+/* Define ********************************************************************/
 namespace RVM_GEN
 {
-#ifdef __HDR_DEFS__
-#ifndef __KERNEL_HPP_DEFS__
-#define __KERNEL_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __KERNEL_DEF__
+#define __KERNEL_DEF__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __KERNEL_HPP_DEFS__ */
+/* __KERNEL_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __KERNEL_HPP_CLASSES__
-#define __KERNEL_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __KERNEL_CLASS__
+#define __KERNEL_CLASS__
 /*****************************************************************************/
 /* Kernel information */
 class Kernel
@@ -99,9 +99,9 @@ public:
     void Mem_Alloc(ptr_t Kom_Front, ptr_t Vector_Num, ptr_t Event_Num, ptr_t Wordlength);
 };
 /*****************************************************************************/
-/* __KERNEL_HPP_CLASSES__ */
+/* __KERNEL_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

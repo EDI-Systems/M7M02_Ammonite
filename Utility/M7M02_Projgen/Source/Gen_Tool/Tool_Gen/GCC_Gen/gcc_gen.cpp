@@ -6,7 +6,7 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : This toolset is for GCC; generates GCC linker scripts.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
+/* Include *******************************************************************/
 extern "C"
 {
 #include "xml.h"
@@ -20,14 +20,14 @@ extern "C"
 #include "stdexcept"
 #include "algorithm"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "rvm_gen.hpp"
 #include "Gen_Tool/Tool_Gen/tool_gen.hpp"
 #include "Gen_Tool/Tool_Gen/GCC_Gen/gcc_gen.hpp"
 #include "Proj_Info/Process/process.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_gen.hpp"
 #include "Plat_Info/plat_info.hpp"
 #include "Chip_Info/chip_info.hpp"
@@ -53,11 +53,11 @@ extern "C"
 #include "Gen_Tool/gen_tool.hpp"
 #include "Gen_Tool/Tool_Gen/tool_gen.hpp"
 #include "Gen_Tool/Tool_Gen/GCC_Gen/gcc_gen.hpp"
-#undef __HDR_STRUCTS__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_GEN
 {
-/* Begin Function:GCC_Gen::GCC_Gen ********************************************
+/* Function:GCC_Gen::GCC_Gen **************************************************
 Description : Generator for the ARMv7-M platform.
 Input       : class Proj_Info* Proj - The project information.
               class Plat_Info* Plat - The platform information.
@@ -79,7 +79,7 @@ Tool_Gen("GCC", Proj, Plat, Chip)
 }
 /* End Function:GCC_Gen::GCC_Gen *********************************************/
 
-/* Begin Function:GCC_Gen::Suffix *********************************************
+/* Function:GCC_Gen::Suffix ***************************************************
 Description : Returns suffix for a given type of file.
 Input       : ptr_t Type - The file type.
 Output      : None.
@@ -96,7 +96,7 @@ std::string GCC_Gen::Suffix(ptr_t Type)
 }
 /* End Function:GCC_Gen::Suffix **********************************************/
 
-/* Begin Function:GCC_Gen::Kernel_Linker **************************************
+/* Function:GCC_Gen::Kernel_Linker ********************************************
 Description : Generate the RME linker script.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
@@ -105,186 +105,151 @@ Return      : None.
 void GCC_Gen::Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)
 {
     List->push_back("/******************************************************************************");
-    List->push_back(std::string("Filename    : rme_platform_") + this->Chip->Name_Lower + ".ld");
-    List->push_back(std::string("Author      : ") + CODE_AUTHOR);
-    List->push_back(std::string("Date        : ") + Main::Time);
-    List->push_back(std::string("Licence     : ") + CODE_LICENSE);
-    List->push_back("Description : The scatter file for ARMv7-M layout. This file is intended");
-    List->push_back(std::string("              to be used with ") + this->Chip->Name + ".");
+    List->push_back(std::string("Filename    : rme_platform_")+this->Chip->Name_Lower+".ld");
+    List->push_back(std::string("Author      : ")+CODE_AUTHOR);
+    List->push_back(std::string("Date        : ")+Main::Time);
+    List->push_back(std::string("Licence     : ")+CODE_LICENSE);
+    List->push_back("Description : The GCC linker script. This file is intended");
+    List->push_back(std::string("              to be used with ") + this->Chip->Name + ", and the GNU toolchain.");
     List->push_back("******************************************************************************/");
     List->push_back("");
-    List->push_back("/* Memory Definitions *********************************************************");
-    List->push_back("Description : This section will define the memory layout of the system.");
-    List->push_back("Component   : ORIGIN - Starting address of the memory region.");
-    List->push_back("              LENGTH - Length of the region.");
-    List->push_back(" *****************************************************************************/");
+    List->push_back("/* Memory ********************************************************************/");
     List->push_back("MEMORY");
     List->push_back("{");
-    List->push_back("    /* Kernel initalized segment */");
-    List->push_back(std::string("   KIRAM   (xrw) : ORIGIN = 0x") + Main::Hex(this->Proj->Kernel->Data_Base) + ", LENGTH = 0x" + Main::Hex(this->Proj->Kernel->Data_Size));
-    List->push_back("   /* Kernel memory segment for kernel object allocations */");
-    List->push_back(std::string("   KORAM   (xrw) : ORIGIN = 0x") + Main::Hex(this->Proj->Kernel->Kom_Base) + ", LENGTH = 0x" + Main::Hex(this->Proj->Kernel->Kom_Size));
+    List->push_back("    /* Statically allocated kernel data segment */");
+    List->push_back(std::string("    KDATA (rw) : ORIGIN = 0x")+Main::Hex(this->Proj->Kernel->Data_Base)+" , LENGTH = 0x"+Main::Hex(this->Proj->Kernel->Data_Size));
+    List->push_back("    /* Dynamically allocated kernel data segment */");
+    List->push_back(std::string("    KMEM (rw) : ORIGIN = 0x")+Main::Hex(this->Proj->Kernel->Kom_Base)+" , LENGTH = 0x"+Main::Hex(this->Proj->Kernel->Kom_Size));
     List->push_back("    /* Kernel stack segment */");
-    List->push_back(std::string("   KSRAM   (xrw) : ORIGIN = 0x") + Main::Hex(this->Proj->Kernel->Stack_Base) + ", LENGTH = 0x" + Main::Hex(this->Proj->Kernel->Stack_Size));
+    List->push_back(std::string("    KSTK (rw) : ORIGIN = 0x")+Main::Hex(this->Proj->Kernel->Stack_Base)+" , LENGTH = 0x"+Main::Hex(this->Proj->Kernel->Stack_Size));
     List->push_back("");
-    List->push_back("    /* Kernel flash segment */");
-    List->push_back(std::string("   KFLASH   (xrw) : ORIGIN = 0x") + Main::Hex(this->Proj->Kernel->Code_Base) + ", LENGTH = 0x" + Main::Hex(this->Proj->Kernel->Code_Size));
-    List->push_back("   /* Init process flash segment */");
-    List->push_back(std::string("   IFLASH   (xrw) : ORIGIN = 0x") + Main::Hex(this->Proj->Monitor->Code_Base) + ", LENGTH = 0x" + Main::Hex(this->Proj->Kernel->Code_Size));
-    List->push_back("   /* Virtual machine flash segment */");
+    List->push_back("    /* Kernel code segment */");
+    List->push_back(std::string("    KCODE (rx) : ORIGIN = 0x")+Main::Hex(this->Proj->Kernel->Code_Base)+" , LENGTH = 0x"+Main::Hex(this->Proj->Kernel->Code_Size));
+    List->push_back("    /* Monitor code segment */");
+    List->push_back(std::string("    MCODE (rx) : ORIGIN = 0x")+Main::Hex(this->Proj->Monitor->Code_Base)+" , LENGTH = 0x"+Main::Hex(this->Proj->Kernel->Code_Size));
     for (const std::unique_ptr<class Process>& Prc : this->Proj->Process)
     {
-        List->push_back(std::string("     /*  ") + Prc->Name + "_FLASH segment */");
-        List->push_back(std::string("   ") + Prc->Name + "_FLASH   (rx) : ORIGIN = 0x" + Main::Hex(Prc->Code_Base)+ ", LENGTH = 0x" + Main::Hex(Prc->Code_Size));
+        List->push_back(std::string("    /* ")+Prc->Name+" code segment */");
+        List->push_back(std::string("    ")+Prc->Name_Upper+"_CODE (rx) : ORIGIN = 0x"+Main::Hex(Prc->Code_Base)+" , LENGTH = 0x"+Main::Hex(Prc->Code_Size));
     }
     List->push_back("}");
-    List->push_back("/* End Memory Definitions ****************************************************/");
+    List->push_back("/* End Memory ****************************************************************/");
     List->push_back("");
-
-    List->push_back("/* Stack Definitions *********************************************************/");
-    List->push_back("/* The '__stack' definition is required by crt0, do not remove it. */");
-    List->push_back("__stack = ORIGIN(KSRAM) + LENGTH(KSRAM) - 0x100;");
-    List->push_back("__initial_sp = __stack;");
+    List->push_back("/* Stack *********************************************************************/");
+    List->push_back("__RME_Stack = ORIGIN(KSTK) + LENGTH(KSTK);");
     List->push_back("/* End Stack Definitions *****************************************************/");
     List->push_back("");
-
-    List->push_back("/* Entry Point Definitions ***************************************************/");
-    List->push_back("/* The entry point is informative, for debuggers and simulators,");
-    List->push_back(" * since the Cortex-M vector points to it anyway. */");
-    List->push_back("ENTRY(_start);");
-    List->push_back("/* End Entry Point Definitions ***********************************************/");
+    List->push_back("/* Entry *********************************************************************/");
+    List->push_back("ENTRY(__RME_Entry);");
+    List->push_back("/* End Entry *****************************************************************/");
     List->push_back("");
-
+    List->push_back("/* Process *******************************************************************/");
     List->push_back("SECTIONS");
     List->push_back("{");
-    List->push_back("/* Begin Section:.init_code ***************************************************");
-    List->push_back("Description : The program code for the init process, which goes to flash.");
-    List->push_back("Location    : Flash");
-    List->push_back("Component   : .text - The code segment.");
-    List->push_back("              .rodata.* - The read-only data segment.");
-    List->push_back("******************************************************************************/");
-    List->push_back(".init_code : ALIGN(4)");
+    List->push_back("/* Monitor image */");
+    List->push_back(".MONITOR_CODE : ALIGN(4)");
     List->push_back("{");
-    List->push_back("    /* Place the init process here */");
     List->push_back("    KEEP(*monitor_image.o(.text .text.*))");
     List->push_back("    KEEP(*monitor_image.o(.rodata .rodata.* .constdata .constdata.*))");
-    List->push_back("} > IFLASH");
-    List->push_back("/* End Section:.init_text ****************************************************/");
-    List->push_back("");
-    for (const std::unique_ptr<class Process>& Prc : this->Proj->Process)
+    List->push_back("} > MCODE");
+    for(const std::unique_ptr<class Process>& Prc:this->Proj->Process)
     {
-        List->push_back(std::string("/* Begin Section:.") + Prc->Name+ "_code *****************************************************");
-        List->push_back(std::string("Description : The program code for ") + Prc->Name + ", which goes to flash.");
-        List->push_back(std::string("Location    : ") + Prc->Name + " Flash");
-        List->push_back(std::string("Component   : .text - The ") + Prc->Name + " code segment.");
-        List->push_back("              .rodata.* - The read-only data segment.");
-        List->push_back("******************************************************************************/");
-        List->push_back(std::string(".")+ Prc->Name + "_code : ALIGN(4)");
-        List->push_back("{");
-        List->push_back("    /* Place all the virtual machines here */");
-        List->push_back(std::string("    KEEP(*") +Prc->Name_Lower + "_image.o(.text .text.*))");
-        List->push_back(std::string("    KEEP(*") + Prc->Name_Lower + "_image.o(.rodata .rodata.* .constdata .constdata.*))");
-        List->push_back(std::string("} > ") + Prc->Name + "_FLASH");
-        List->push_back(std::string("/* End Section:.") + Prc->Name + "_code *****************************************************");
         List->push_back("");
+        List->push_back("/* Process image */");
+        List->push_back(std::string(".")+Prc->Name_Upper+"_CODE : ALIGN(4)");
+        List->push_back("{");
+        List->push_back(std::string("    KEEP(*")+Prc->Name_Lower+"_image.o(.text .text.*))");
+        List->push_back(std::string("    KEEP(*")+Prc->Name_Lower+"_image.o(.rodata .rodata.* .constdata .constdata.*))");
+        List->push_back(std::string("} > ")+Prc->Name_Upper+"_CODE");
     }
-    List->push_back("/* Begin Section:.KERNEL_CODE ********************************************************");
-    List->push_back("Description : The program code is stored in the .text section, which goes to FLASH.");
-    List->push_back("Location    : Flash");
-    List->push_back("Component   : .text - The code segment.");
-    List->push_back("              .rodata.* - The read-only data segment.");
-    List->push_back("******************************************************************************/");
+    List->push_back("/* End Process ***************************************************************/");
+    List->push_back("");
+    List->push_back("/* Kernel ********************************************************************/");
+    List->push_back("/* Kernel code segment */");
     List->push_back(".KERNEL_CODE : ALIGN(4)");
     List->push_back("{");
-    List->push_back("    /* the startup code */");
-    List->push_back("    KEEP(*rme_platform_a7m_gcc.o(.text .text.*))");
-    List->push_back("    /* All remaining code */");
+    List->push_back("    __RME_Code_Start = .;");
+    List->push_back("    KEEP(*_gcc.o(.text.rme_vector))");
+    List->push_back("    KEEP(*_gcc.o(.text.rme_entry))");
     List->push_back("    *(.text .text.*)");
-    List->push_back("    /* Read-only data (constants) */");
     List->push_back("    *(.rodata .rodata.* .constdata .constdata.*)");
-    List->push_back("} > KFLASH");
-    List->push_back("/* End Section:.KERNEL_CODE *********************************************************/");
+    List->push_back("    __RME_Code_End = .;");
+    List->push_back("} > KCODE");
     List->push_back("");
-
-    List->push_back("/* Begin Section:.KERNEL_INIT ********************************************************");
-    List->push_back("Description : The main initialized data section. The program executes knowing that");
-    List->push_back("              the data is in the RAM but the loader puts the initial values in the");
-    List->push_back("              FLASH (inidata). It is one task of the startup to copy the initial");
-    List->push_back("              values from FLASH to RAM. The RME kernel does not really rely on the");
-    List->push_back("              data section to be initialized because it never uses preinitialized");
-    List->push_back("              global variables.");
-    List->push_back("Location    : RAM");
-    List->push_back("Component   : .data - The sections to put into the RAM.");
-    List->push_back("******************************************************************************/");
-    List->push_back("/* Used by the startup code to initialise the .data section */");
-    List->push_back("_sidata = LOADADDR(.KERNEL_INIT);");
-    List->push_back(".KERNEL_INIT : ALIGN(8192)");
+    List->push_back("/* Statically allocated kernel data segment */");
+    List->push_back("__RME_Data_Load = LOADADDR(.KERNEL_DATA);");
+    List->push_back(".KERNEL_DATA : ALIGN(4)");
     List->push_back("{");
     List->push_back("    FILL(0xFF)");
-    List->push_back("    /* This is used by the startup code to initialise the .data section */");
-    List->push_back("    _sdata = . ;        	/* STM specific definition */");
-    List->push_back("    __data_start__ = . ;");
+    List->push_back("    __RME_Data_Start = .;");
+    List->push_back("    __RME_Global = . + 0x800;");
     List->push_back("    *(.data_begin .data_begin.*)");
     List->push_back("    *(.data .data.*)");
     List->push_back("    *(.data_end .data_end.*)");
     List->push_back("    . = ALIGN(4);");
-    List->push_back("    /* This is used by the startup code to initialise the .data section */");
-    List->push_back("    _edata = . ;        	/* STM specific definition */");
-    List->push_back("    __data_end__ = . ;");
-    List->push_back("} > KIRAM AT > KFLASH");
-    List->push_back("/* End Section:.KERNEL_INIT *********************************************************/");
+    List->push_back("    __RME_Data_End = .;");
+    List->push_back("} > KDATA AT > KCODE");
     List->push_back("");
-
-    List->push_back("/* Begin Section:.KERNEL_DATA *********************************************************");
-    List->push_back("Description : The initialised-to-0 data sections. NOLOAD is used to avoid");
-    List->push_back("              the section .bss type changed to PROGBITS warning. This is the");
-    List->push_back("              main region which is placed in RAM. Actually the RME does not");
-    List->push_back("              initialize its bss because there is no such need.");
-    List->push_back("Location    : RAM");
-    List->push_back("Component   : .bss - The sections to put into the RAM, and initialized to 0.");
-    List->push_back("******************************************************************************/");
-    List->push_back(".KERNEL_DATA (NOLOAD) : ALIGN(4)");
+    List->push_back("/* Statically allocated kernel bss segment */");
+    List->push_back(".KERNEL_ZERO (NOLOAD) : ALIGN(4)");
     List->push_back("{");
-    List->push_back("    __bss_start__ = .;     	/* standard newlib definition */");
-    List->push_back("    _sbss = .;              /* STM specific definition */");
+    List->push_back("    __RME_Zero_Start = .;");
     List->push_back("    *(.bss_begin .bss_begin.*)");
     List->push_back("    *(.bss .bss.*)");
     List->push_back("    *(COMMON)");
     List->push_back("    *(.bss_end .bss_end.*)");
     List->push_back("    . = ALIGN(4);");
+    List->push_back("    __RME_Zero_End = .;");
+    List->push_back("} > KDATA");
     List->push_back("");
-    List->push_back("    __bss_end__ = .;        /* standard newlib definition */");
-    List->push_back("    _ebss = . ;             /* STM specific definition */");
-    List->push_back("} > KIRAM");
-    List->push_back("/* End Section:.KERNEL_DATA **********************************************************/");
-    List->push_back("");
-    List->push_back("/* Begin Section:.noinit ******************************************************");
-    List->push_back("Description : The uninitialised data sections. NOLOAD is used to avoid");
-    List->push_back("              the section .noinit type changed to PROGBITS warning.");
-    List->push_back("Location    : RAM");
-    List->push_back("Component   : .noinit - The sections to put into the RAM, and not initialized.");
-    List->push_back("******************************************************************************/");
-    List->push_back(".noinit (NOLOAD) : ALIGN(4)");
+    List->push_back("/* Statically allocated kernel noinit segment */");
+    List->push_back(".KERNEL_NOINIT (NOLOAD) : ALIGN(4)");
     List->push_back("{");
-    List->push_back("    _noinit = .;");
-    List->push_back("    *(.noinit .noinit.*) ");
-    List->push_back("    . = ALIGN(4) ;");
-    List->push_back("    _end_noinit = .;");
-    List->push_back("} > KIRAM");
-    List->push_back("/* Mandatory to be word aligned, _sbrk assumes this */");
-    List->push_back("PROVIDE ( end = _end_noinit ); /* was _ebss */");
-    List->push_back("PROVIDE ( _end = _end_noinit );");
-    List->push_back("PROVIDE ( __end = _end_noinit );");
-    List->push_back("PROVIDE ( __end__ = _end_noinit );");
-    List->push_back("/* End Section:.noinit *******************************************************/");
+    List->push_back("    __RME_Noinit_Start = .;");
+    List->push_back("    *(.noinit .noinit.*)");
+    List->push_back("    . = ALIGN(4);");
+    List->push_back("    __RME_Noinit_End = .;");
+    List->push_back("} > KDATA");
     List->push_back("");
-    List->push_back("/* End Of File ***************************************************************/");
+    List->push_back("/* Compatibility symbols for various architectures */");
+    List->push_back("PROVIDE(__stack = __RME_Stack);");
+    List->push_back("PROVIDE(__initial_sp = __RME_Stack);");
+    List->push_back("PROVIDE(__initial_sp$ = __RME_Stack);");
+    List->push_back("PROVIDE(__global_pointer = __RME_Global);");
+    List->push_back("PROVIDE(__global_pointer$ = __RME_Global);");
+    List->push_back("PROVIDE(__start = __RME_Entry);");
+    List->push_back("PROVIDE(_stext = __RME_Code_Start);");
+    List->push_back("PROVIDE(_etext = __RME_Code_End);");
+    List->push_back("PROVIDE(_sidata = __RME_Data_Load);");
+    List->push_back("PROVIDE(_sdata = __RME_Data_Start);");
+    List->push_back("PROVIDE(_edata = __RME_Data_End);");
+    List->push_back("PROVIDE(_sbss = __RME_Zero_Start);");
+    List->push_back("PROVIDE(_ebss = __RME_Zero_End);");
+    List->push_back("PROVIDE(_snoinit = __RME_Noinit_Start);");
+    List->push_back("PROVIDE(_enoinit = __RME_Noinit_End);");
+    List->push_back("PROVIDE(__text_start__ = __RME_Code_Start);");
+    List->push_back("PROVIDE(__text_end__ = __RME_Code_End);");
+    List->push_back("PROVIDE(__data_load__ = __RME_Data_Load);");
+    List->push_back("PROVIDE(__data_start__ = __RME_Data_Start);");
+    List->push_back("PROVIDE(__data_end__ = __RME_Data_End);");
+    List->push_back("PROVIDE(__bss_start__ = __RME_Zero_Start);");
+    List->push_back("PROVIDE(__bss_end__ = __RME_Zero_End);");
+    List->push_back("PROVIDE(__noinit_start__ = __RME_Noinit_Start);");
+    List->push_back("PROVIDE(__noinit_end__ = __RME_Noinit_End);");
+    List->push_back("PROVIDE(end = __RME_Zero_End);");
+    List->push_back("PROVIDE(_end = __RME_Zero_End);");
+    List->push_back("PROVIDE(__end = __RME_Zero_End);");
+    List->push_back("PROVIDE(__end__ = __RME_Zero_End);");
+    List->push_back("/* End Section:.noinit *******************************************************/");
     List->push_back("}");
+    List->push_back("/* End Of File ***************************************************************/");
+    List->push_back("");
     List->push_back("/* Copyright (C) Evo-Devo Instrum. All rights reserved ***********************/");
+    List->push_back("");
 }
 /* End Function:GCC_Gen::Kernel_Linker ***************************************/
 
-/* Begin Function:GCC_Gen::Monitor_Linker *************************************
+/* Function:GCC_Gen::Monitor_Linker *******************************************
 Description : Generate the RVM linker script.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
@@ -297,181 +262,119 @@ void GCC_Gen::Monitor_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back(std::string("Author      : ") + CODE_AUTHOR);
     List->push_back(std::string("Date        : ") + Main::Time);
     List->push_back(std::string("Licence     : ") + CODE_LICENSE);
-    List->push_back("Description : The scatter file for ARMv7-M layout. This file is intended");
+    List->push_back("Description : The GCC linker script. This file is intended");
     List->push_back(std::string("              to be used with ") + this->Chip->Name + ", and the GNU toolchain.");
     List->push_back("******************************************************************************/");
     List->push_back("");
-
-    List->push_back("/* Memory Definitions *********************************************************");
-    List->push_back("Description : This section will define the memory layout of the system.");
-    List->push_back("Component   : ORIGIN - Starting address of the memory region.");
-    List->push_back("              LENGTH - Length of the region.");
-    List->push_back("******************************************************************************/");
+    List->push_back("/* Memory ********************************************************************/");
     List->push_back("MEMORY");
     List->push_back("{");
     List->push_back("    /* Monitor RAM BASE and SIZE*/");
-    List->push_back(std::string("   RAM   (xrw) : ORIGIN =  0x") + Main::Hex(this->Proj->Monitor->Data_Base) + ", LENGTH = 0x" + Main::Hex(this->Proj->Monitor->Data_Size));
+    List->push_back(std::string("    DATA (rw) : ORIGIN =  0x")+Main::Hex(this->Proj->Monitor->Data_Base)+" , LENGTH = 0x" + Main::Hex(this->Proj->Monitor->Data_Size));
     List->push_back("    /* Monitor Stack BASE and SIZE*/");
-    List->push_back(std::string("   STACK_RAM   (xrw) : ORIGIN = 0x") + Main::Hex(this->Proj->Monitor->Init_Stack_Base) + ", LENGTH = 0x" + Main::Hex(this->Proj->Monitor->Init_Stack_Size));
+    List->push_back(std::string("    STK (rw) : ORIGIN = 0x")+Main::Hex(this->Proj->Monitor->Init_Stack_Base)+" , LENGTH = 0x" + Main::Hex(this->Proj->Monitor->Init_Stack_Size));
     List->push_back("    /* Monitor flash segment */");
-    List->push_back(std::string("    FLASH  (xrw)  : ORIGIN =  0x") + Main::Hex(this->Proj->Monitor->Code_Base) + ", LENGTH = 0x" + Main::Hex(this->Proj->Monitor->Code_Size));
+    List->push_back(std::string("    CODE (rx) : ORIGIN = 0x")+Main::Hex(this->Proj->Monitor->Code_Base)+" , LENGTH = 0x" + Main::Hex(this->Proj->Monitor->Code_Size));
     List->push_back("}");
-    List->push_back("/* End Memory Definitions ****************************************************/");
+    List->push_back("/* End Memory ****************************************************************/");
     List->push_back("");
-    List->push_back("");
-
-    List->push_back("/* Entry Point Definitions ***************************************************/");
-    List->push_back("ENTRY(_RVM_Entry)");
+    List->push_back("/* Stack *********************************************************************/");
+    List->push_back("__RVM_Stack = ORIGIN(STK) + LENGTH(STK);");
     List->push_back("/* End Entry Point Definitions ***********************************************/");
-
-    List->push_back("/* Highest address of the user mode stack */");
-    List->push_back("_estack = ORIGIN(STACK_RAM) + LENGTH(STACK_RAM);    /* end of RAM */");
-
+    List->push_back("");
+    List->push_back("/* Entry *********************************************************************/");
+    List->push_back("ENTRY(__RVM_Entry)");
+    List->push_back("/* End Entry *****************************************************************/");
+    List->push_back("");
+    List->push_back("/* Section *******************************************************************/");
     List->push_back("SECTIONS");
     List->push_back("{");
-    List->push_back("  /* Begin Section:.Monitor_code ***************************************************");
-    List->push_back("  Description : The program code for the init process, which goes to flash.");
-    List->push_back("  Location    : Flash");
-    List->push_back("  Component   : .text - The code segment.");
-    List->push_back("              .rodata.* - The read-only data segment.");
-    List->push_back("  ******************************************************************************/");
-    List->push_back("  .start_code : ");
-    List->push_back("  {");
-    List->push_back("      . = ALIGN(4);");
-    List->push_back("      KEEP(*rvm_platform_a7m_gcc.o(.text .text.*)) /* Startup code */");
-    List->push_back("      . = ALIGN(4);");
-    List->push_back("  } > FLASH");
-    List->push_back("");
-    List->push_back("  /* The program code and other data goes into FLASH */");
-    List->push_back("  .text :");
-    List->push_back("  {");
+    List->push_back("/* Monitor code segment */");
+    List->push_back(".MONITOR_CODE : ALIGN(4)");
+    List->push_back("{");
+    List->push_back("    __RVM_Code_Start = .;");
+    List->push_back("    KEEP(*_gcc.o(.text.rvm_header))");
+    List->push_back("    KEEP(*_gcc.o(.text.rvm_entry))");
+    List->push_back("    *(.text .text.*)");
+    List->push_back("    *(.rodata .rodata.* .constdata .constdata.*)");
     List->push_back("    . = ALIGN(4);");
-    List->push_back("    *(.text)           /* .text sections (code) */");
-    List->push_back("    *(.text*)          /* .text* sections (code) */");
-    List->push_back("    *(.glue_7)         /* glue arm to thumb code */");
-    List->push_back("    *(.glue_7t)        /* glue thumb to arm code */");
-    List->push_back("    *(.eh_frame)");
+    List->push_back("    __RVM_Code_End = .;");
+    List->push_back("} > CODE");
     List->push_back("");
-    List->push_back("    KEEP (*(.init))");
-    List->push_back("    KEEP (*(.fini))");
+    List->push_back("/* Monitor data segment */");
+    List->push_back("__RVM_Data_Load = LOADADDR(.MONITOR_DATA);");
+    List->push_back(".MONITOR_DATA : ALIGN(4)");
+    List->push_back("{");
+    List->push_back("    __RVM_Data_Start = .;");
+    List->push_back("    __RVM_Global = . + 0x800;");
+    List->push_back("    *(.data_begin .data_begin.*)");
+    List->push_back("    *(.data .data.*)");
+    List->push_back("    *(.data_end .data_end.*)");
+    List->push_back("    __RVM_Data_End = .;");
     List->push_back("    . = ALIGN(4);");
-    List->push_back("    _etext = .;        /* define a global symbols at end of code */");
-    List->push_back("  } >FLASH");
+    List->push_back("  } > DATA AT > CODE");
     List->push_back("");
-    List->push_back("  /* Constant data goes into FLASH */");
-    List->push_back("  .rodata :");
-    List->push_back("  {");
-    List->push_back("    . = ALIGN(4);");
-    List->push_back("    *(.rodata)         /* .rodata sections (constants, strings, etc.) */");
-    List->push_back("    *(.rodata*)        /* .rodata* sections (constants, strings, etc.) */");
-    List->push_back("    . = ALIGN(4);");
-    List->push_back("  } >FLASH");
-    List->push_back("");
-    List->push_back("  .ARM.extab   : { *(.ARM.extab* .gnu.linkonce.armextab.*) } >FLASH");
-    List->push_back("");
-    List->push_back("  .ARM : {");
-    List->push_back("    __exidx_start = .;");
-    List->push_back("    *(.ARM.exidx*)");
-    List->push_back("    __exidx_end = .;");
-    List->push_back("  } >FLASH");
-    List->push_back("  .preinit_array :");
-    List->push_back("  {");
-    List->push_back("    PROVIDE_HIDDEN (__preinit_array_start = .);");
-    List->push_back("    KEEP (*(.preinit_array*))");
-    List->push_back("    PROVIDE_HIDDEN (__preinit_array_end = .);");
-    List->push_back("  } >FLASH");
-    List->push_back("  .init_array :");
-    List->push_back("  {");
-    List->push_back("    PROVIDE_HIDDEN (__init_array_start = .);");
-    List->push_back("    KEEP (*(SORT(.init_array.*)))");
-    List->push_back("    KEEP (*(.init_array*))");
-    List->push_back("    PROVIDE_HIDDEN (__init_array_end = .);");
-    List->push_back("  } >FLASH");
-    List->push_back("  .fini_array :");
-    List->push_back("  {");
-    List->push_back("    PROVIDE_HIDDEN (__fini_array_start = .);");
-    List->push_back("    KEEP (*(SORT(.fini_array.*)))");
-    List->push_back("    KEEP (*(.fini_array*))");
-    List->push_back("    PROVIDE_HIDDEN (__fini_array_end = .);");
-    List->push_back("  } >FLASH");
-    List->push_back("");
-    List->push_back("/* End Section:.Monitor_code *****************************************************/");
-    List->push_back("");
-    List->push_back("");
-
-    List->push_back("/* Begin Section:.MONITOR_DATA ********************************************************");
-    List->push_back("Description : The main initialized data section. The program executes knowing that");
-    List->push_back("              the data is in the RAM but the loader puts the initial values in the");
-    List->push_back("              FLASH (inidata). It is one task of the startup to copy the initial");
-    List->push_back("              values from FLASH to RAM. The RME kernel does not really rely on the");
-    List->push_back("              data section to be initialized because it never uses preinitialized");
-    List->push_back("              global variables.");
-    List->push_back("Location    : RAM");
-    List->push_back("Component   : .MONITOR_DATA - The sections to put into the RAM.");
-    List->push_back("******************************************************************************/");
-    List->push_back("  /* used by the startup to initialize data */");
-    List->push_back("  _sidata = LOADADDR(.data);");
-    List->push_back("");
-    List->push_back("  /* Initialized data sections goes into RAM, load LMA copy after code */");
-    List->push_back("  .data : ");
-    List->push_back("  {");
-    List->push_back("     . = ALIGN(4);");
-    List->push_back("     _sdata = .;        /* create a global symbol at data start */");
-    List->push_back("     __data_start__ = _sdata;");
-    List->push_back("     *(.data)           /* .data sections */");
-    List->push_back("     *(.data*)          /* .data* sections */");
-    List->push_back("");
-    List->push_back("     . = ALIGN(4);");
-    List->push_back("    . = ALIGN(4);");
-    List->push_back("    /* This is used by the startup code to initialise the .data section */");
-    List->push_back("    _edata = .;        /* define a global symbol at data end */");
-    List->push_back("    __data_end__ = _edata;");
-    List->push_back("  } >RAM AT> FLASH");
-    List->push_back("/* End Section:.data *********************************************************/");
-    List->push_back("");
-    List->push_back("");
-
-    List->push_back("/* Begin Section:.bss *********************************************************");
-    List->push_back("Description : The initialised-to-0 data sections. NOLOAD is used to avoid");
-    List->push_back("              the section .bss type changed to PROGBITS warning. This is the");
-    List->push_back("              main region which is placed in RAM. Actually the RME does not");
-    List->push_back("              initialize its bss because there is no such need.");
-    List->push_back("Location    : RAM");
-    List->push_back("Component   : .bss - The sections to put into the RAM, and initialized to 0.");
-    List->push_back("******************************************************************************/");
-    List->push_back("  . = ALIGN(4);");
-    List->push_back("  .bss :");
-    List->push_back("  {");
-    List->push_back("    _sbss = .;         /* define a global symbol at bss start */");
-    List->push_back("    __bss_start__ = _sbss;");
+    List->push_back("/* Monitor bss segment */");
+    List->push_back(".MONITOR_ZERO : ALIGN(4)");
+    List->push_back("{");
+    List->push_back("    __RVM_Zero_Start = .;");
+    List->push_back("    *(.bss_begin .bss_begin.*)");
     List->push_back("    *(.bss .bss.*)");
-    List->push_back("    *(.bss)");
-    List->push_back("    *(.bss*)");
     List->push_back("    *(COMMON)");
+    List->push_back("    *(.bss_end .bss_end.*)");
+    List->push_back("    __RVM_Zero_End = .;");
     List->push_back("    . = ALIGN(4);");
-    List->push_back("    _ebss = .;         /* define a global symbol at bss end */");
-    List->push_back("    __bss_end__ = _ebss;");
-    List->push_back("  } >RAM");
-    List->push_back("/* End Section:.bss **********************************************************/");
+    List->push_back("} > DATA");
     List->push_back("");
+    List->push_back("/* Monitor noinit segment */");
+    List->push_back(".MONITOR_NOINIT (NOLOAD) : ALIGN(4)");
+    List->push_back("{");
+    List->push_back("    __RVM_Noinit_Start = .;");
+    List->push_back("    *(.noinit .noinit.*)");
+    List->push_back("    . = ALIGN(4);");
+    List->push_back("    __RVM_Noinit_End = .;");
+    List->push_back("} > DATA");
+    List->push_back("}");
     List->push_back("");
-    List->push_back("  /* Remove information from the standard libraries */");
-    List->push_back("  /DISCARD/ :");
-    List->push_back("  {");
-    List->push_back("    libc.a ( * ) ");
-    List->push_back("    libm.a ( * )");
-    List->push_back("    libgcc.a ( * )");
-    List->push_back("  }");
-    List->push_back("");
-    List->push_back("  .ARM.attributes 0 : { *(.ARM.attributes) }");
+    List->push_back("/* Compatibility symbols for various architectures */");
+    List->push_back("PROVIDE(__stack = __RVM_Stack);");
+    List->push_back("PROVIDE(__initial_sp = __RVM_Stack);");
+    List->push_back("PROVIDE(__initial_sp$ = __RVM_Stack);");
+    List->push_back("PROVIDE(__global_pointer = __RVM_Global);");
+    List->push_back("PROVIDE(__global_pointer$ = __RVM_Global);");
+    List->push_back("PROVIDE(__start = __RVM_Entry);");
+    List->push_back("PROVIDE(_stext = __RVM_Code_Start);");
+    List->push_back("PROVIDE(_etext = __RVM_Code_End);");
+    List->push_back("PROVIDE(_sidata = __RVM_Data_Load);");
+    List->push_back("PROVIDE(_sdata = __RVM_Data_Start);");
+    List->push_back("PROVIDE(_edata = __RVM_Data_End);");
+    List->push_back("PROVIDE(_sbss = __RVM_Zero_Start);");
+    List->push_back("PROVIDE(_ebss = __RVM_Zero_End);");
+    List->push_back("PROVIDE(_snoinit = __RVM_Noinit_Start);");
+    List->push_back("PROVIDE(_enoinit = __RVM_Noinit_End);");
+    List->push_back("PROVIDE(__text_start__ = __RVM_Code_Start);");
+    List->push_back("PROVIDE(__text_end__ = __RVM_Code_End);");
+    List->push_back("PROVIDE(__data_load__ = __RVM_Data_Load);");
+    List->push_back("PROVIDE(__data_start__ = __RVM_Data_Start);");
+    List->push_back("PROVIDE(__data_end__ = __RVM_Data_End);");
+    List->push_back("PROVIDE(__bss_start__ = __RVM_Zero_Start);");
+    List->push_back("PROVIDE(__bss_end__ = __RVM_Zero_End);");
+    List->push_back("PROVIDE(__noinit_start__ = __RVM_Noinit_Start);");
+    List->push_back("PROVIDE(__noinit_end__ = __RVM_Noinit_End);");
+    List->push_back("PROVIDE(end = __RVM_Zero_End);");
+    List->push_back("PROVIDE(_end = __RVM_Zero_End);");
+    List->push_back("PROVIDE(__end = __RVM_Zero_End);");
+    List->push_back("PROVIDE(__end__ = __RVM_Zero_End);");
+    List->push_back("/* End Section ***************************************************************/");
     List->push_back("");
     List->push_back("/* End Of File ***************************************************************/");
-    List->push_back("}");
+    List->push_back("");
     List->push_back("/* Copyright (C) Evo-Devo Instrum. All rights reserved ***********************/");
+    List->push_back("");
 }
 /* End Function:GCC_Gen::Monitor_Linker **************************************/
 
-/* Begin Function:GCC_Gen::Process_Linker *************************************
+/* Function:GCC_Gen::Process_Linker *******************************************
 Description : Generate the process linker script.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
               const class Process* Prc - The process to generate for.
@@ -494,189 +397,128 @@ void GCC_Gen::Process_Linker(std::unique_ptr<std::vector<std::string>>& List,
     List->push_back(std::string("Author      : ") + CODE_AUTHOR);
     List->push_back(std::string("Date        : ") + Main::Time);
     List->push_back(std::string("Licence     : ") + CODE_LICENSE);
-    List->push_back("Description : The scatter file for ARMv7-M layout. This file is intended");
+    List->push_back("Description : The GCC linker script. This file is intended");
     List->push_back(std::string("              to be used with ") + this->Chip->Name + ", and the GNU toolchain.");
     List->push_back("******************************************************************************/");
     List->push_back("");
-
-    List->push_back("/* Memory Definitions *********************************************************");
-    List->push_back("Description : This section will define the memory layout of the system.");
-    List->push_back("Component   : ORIGIN - Starting address of the memory region.");
-    List->push_back("              LENGTH - Length of the region.");
-    List->push_back("******************************************************************************/");
+    List->push_back("/* Memory ********************************************************************/");
     List->push_back("MEMORY");
     List->push_back("{");
-    List->push_back("    /* Process DESC_FLASH BASE and SIZE*/");
-    List->push_back(std::string("   DESC_FLASH   (xrw) : ORIGIN =  0x") + Main::Hex(Prc->Code_Base) + ", LENGTH = 0x" + Main::Hex(Header_Size));
-    List->push_back("    /* Process CODE_FLASH BASE and SIZE*/");
-    List->push_back(std::string("   CODE_FLASH   (xrw) : ORIGIN = 0x") + Main::Hex(Prc->Code_Front) + ", LENGTH = 0x" + Main::Hex(Real_Code_Size));
-    List->push_back("    /* Process RAM  segment */");
-    List->push_back(std::string("    RAM  (xrw)  : ORIGIN =  0x") + Main::Hex(Prc->Data_Base) + ", LENGTH = 0x" + Main::Hex(Prc->Data_Size));
-    List->push_back("    /* Process Stack BASE and SIZE*/");
-    if (Prc->Type == PROCESS_NATIVE)
-        List->push_back(std::string("    STACK_RAM  (xrw)  : ORIGIN =  0x") + Main::Hex(Prc->Thread[0]->Stack_Base) + ", LENGTH = 0x" + Main::Hex(Prc->Thread[0]->Stack_Size));
+    List->push_back("    /* Process data segment */");
+    List->push_back(std::string("    DATA (rw) : ORIGIN =  0x")+Main::Hex(Prc->Data_Base) + ",  LENGTH = 0x" + Main::Hex(Prc->Data_Size));
+    List->push_back("    /* Process stack segment */");
+    if(Prc->Type==PROCESS_NATIVE)
+        List->push_back(std::string("    STK (rw) : ORIGIN =  0x")+Main::Hex(Prc->Thread[0]->Stack_Base)+" , LENGTH = 0x"+Main::Hex(Prc->Thread[0]->Stack_Size));
     else
     {
-        ASSERT((Prc->Thread[0]->Name == "Vct") && (Prc->Thread[1]->Name == "Usr"));
-        List->push_back(std::string("    STACK_RAM  (xrw)  : ORIGIN =  0x") + Main::Hex(Prc->Thread[1]->Stack_Base) + ", LENGTH = 0x" + Main::Hex(Prc->Thread[1]->Stack_Size));
+        ASSERT((Prc->Thread[0]->Name=="Vct")&&(Prc->Thread[1]->Name=="Usr"));
+        List->push_back(std::string("    STK (rw) : ORIGIN =  0x")+Main::Hex(Prc->Thread[1]->Stack_Base)+" , LENGTH = 0x"+Main::Hex(Prc->Thread[1]->Stack_Size));
     }
+    List->push_back("    /* Process descriptor */");
+    List->push_back(std::string("    DESC   (r) : ORIGIN =  0x")+Main::Hex(Prc->Code_Base)+" , LENGTH = 0x"+Main::Hex(Header_Size));
+    List->push_back("    /* Process code segment */");
+    List->push_back(std::string("    CODE   (rx) : ORIGIN = 0x")+Main::Hex(Prc->Code_Front)+" , LENGTH = 0x"+Main::Hex(Real_Code_Size));
     List->push_back("}");
-    List->push_back("/* End Memory Definitions ****************************************************/");
+    List->push_back("/* End Memory ****************************************************************/");
     List->push_back("");
-    List->push_back("/* Entry Point Definitions ***************************************************/");
-    List->push_back("ENTRY(_RVM_Entry)");
+    List->push_back("/* Stack *********************************************************************/");
+    List->push_back("_RVM_Stack = ORIGIN(STK) + LENGTH(STK);");
     List->push_back("/* End Entry Point Definitions ***********************************************/");
-
-    List->push_back("/* Highest address of the user mode stack */");
-    List->push_back("_estack = ORIGIN(STACK_RAM) + LENGTH(STACK_RAM);    /* end of RAM */");
-
+    List->push_back("");
+    List->push_back("/* Entry *********************************************************************/");
+    List->push_back("ENTRY(_RVM_Entry)");
+    List->push_back("/* End Entry *****************************************************************/");
+    List->push_back("");
+    List->push_back("/* Section *******************************************************************/");
     List->push_back("SECTIONS");
     List->push_back("{");
-    List->push_back("  /* Begin Section:.PROCESS_DESC ***************************************************");
-    List->push_back("  Description : The program code for the init process, which goes to flash.");
-    List->push_back("  Location    : Flash");
-    List->push_back("  Component   : .text - The code segment.");
-    List->push_back("                .rodata.* - The read-only data segment.");
-    List->push_back("  ******************************************************************************/");
-    List->push_back("  .PROCESS_DESC : ALIGN(4)");
-    List->push_back("  {");
-    List->push_back(std::string("    KEEP(*prc_") + Prc->Name_Lower + "_desc.o(.text .text.* .data .data.* .rodata .rodata.* .constdata .constdata.*))");
-    List->push_back("  } > DESC_FLASH");
+    List->push_back("/* Process descriptor segment */");
+    List->push_back(".PROCESS_DESC : ALIGN(4)");
+    List->push_back("{");
+    List->push_back(std::string("    KEEP(*prc_") + Prc->Name_Lower + "_desc.o(.rodata .rodata.* .constdata .constdata.*))");
+    List->push_back("} > DESC");
     List->push_back("");
-    List->push_back("  /* The startup code goes first into FLASH */");
-    List->push_back("  .start_code :");
-    List->push_back("  {");
+    List->push_back("/* Process code segment */");
+    List->push_back(".PROCESS_CODE : ALIGN(4)");
+    List->push_back("{");
+    List->push_back("    _RVM_Code_Start = .;");
+    List->push_back("    KEEP(*_gcc.o(.text.rvm_entry))");
+    List->push_back("    *(.text .text.*)");
+    List->push_back("    *(.rodata .rodata.* .constdata .constdata.*)");
     List->push_back("    . = ALIGN(4);");
-    List->push_back("    KEEP(*rvm_guest_a7m_gcc.o(.text .text.*)) /* Startup code */");
+    List->push_back("    _RVM_Code_End = .;");
+    List->push_back("} > CODE");
+    List->push_back("");
+    List->push_back("/* Process data segment */");
+    List->push_back("_RVM_Data_Load = LOADADDR(.PROCESS_DATA);");
+    List->push_back(".PROCESS_DATA : ALIGN(4)");
+    List->push_back("{");
+    List->push_back("    _RVM_Data_Start = .;");
+    List->push_back("    _RVM_Global = . + 0x800;");
+    List->push_back("    *(.data_begin .data_begin.*)");
+    List->push_back("    *(.data .data.*)");
+    List->push_back("    *(.data_end .data_end.*)");
+    List->push_back("    _RVM_Data_End = .;");
     List->push_back("    . = ALIGN(4);");
-    List->push_back("  } >CODE_FLASH");
+    List->push_back("  } > DATA AT > CODE");
     List->push_back("");
-    List->push_back("  /* The program code and other data goes into FLASH */");
-    List->push_back("  .text :");
-    List->push_back("  {");
-    List->push_back("    . = ALIGN(4);");
-    List->push_back("    *(.text)           /* .text sections (code) */");
-    List->push_back("    *(.text*)          /* .text* sections (code) */");
-    List->push_back("    *(.glue_7)         /* glue arm to thumb code */");
-    List->push_back("    *(.glue_7t)        /* glue thumb to arm code */");
-    List->push_back("    *(.eh_frame)");
-    List->push_back("");
-    List->push_back("    KEEP (*(.init))");
-    List->push_back("    KEEP (*(.fini))");
-    List->push_back("    . = ALIGN(4);");
-    List->push_back("    _etext = .;        /* define a global symbols at end of code */");
-    List->push_back("  } >CODE_FLASH");
-    List->push_back("");
-    List->push_back("  /* Constant data goes into FLASH */");
-    List->push_back("  .rodata :");
-    List->push_back("  {");
-    List->push_back("    . = ALIGN(4);");
-    List->push_back("    *(.rodata)         /* .rodata sections (constants, strings, etc.) */");
-    List->push_back("    *(.rodata*)        /* .rodata* sections (constants, strings, etc.) */");
-    List->push_back("    . = ALIGN(4);");
-    List->push_back("  } >CODE_FLASH");
-    List->push_back("");
-    List->push_back("  .ARM.extab   : { *(.ARM.extab* .gnu.linkonce.armextab.*) } >CODE_FLASH");
-    List->push_back("");
-    List->push_back("  .ARM : {");
-    List->push_back("    __exidx_start = .;");
-    List->push_back("    *(.ARM.exidx*)");
-    List->push_back("    __exidx_end = .;");
-    List->push_back("  } >CODE_FLASH");
-    List->push_back("  .preinit_array     :");
-    List->push_back("  {");
-    List->push_back("    PROVIDE_HIDDEN (__preinit_array_start = .);");
-    List->push_back("    KEEP (*(.preinit_array*))");
-    List->push_back("    PROVIDE_HIDDEN (__preinit_array_end = .);");
-    List->push_back("  } >CODE_FLASH");
-    List->push_back("  .init_array :");
-    List->push_back("  {");
-    List->push_back("    PROVIDE_HIDDEN (__init_array_start = .);");
-    List->push_back("    KEEP (*(SORT(.init_array.*)))");
-    List->push_back("    KEEP (*(.init_array*))");
-    List->push_back("    PROVIDE_HIDDEN (__init_array_end = .);");
-    List->push_back("  } >CODE_FLASH");
-    List->push_back("  .fini_array :");
-    List->push_back("  {");
-    List->push_back("    PROVIDE_HIDDEN (__fini_array_start = .);");
-    List->push_back("    KEEP (*(SORT(.fini_array.*)))");
-    List->push_back("    KEEP (*(.fini_array*))");
-    List->push_back("    PROVIDE_HIDDEN (__fini_array_end = .);");
-    List->push_back("  } >CODE_FLASH");
-    List->push_back("");
-    List->push_back("/* End Section:.Monitor_code *****************************************************/");
-    List->push_back("");
-    List->push_back("");
-
-    List->push_back("/* Begin Section:.MONITOR_DATA ********************************************************");
-    List->push_back("Description : The main initialized data section. The program executes knowing that");
-    List->push_back("              the data is in the RAM but the loader puts the initial values in the");
-    List->push_back("              FLASH (inidata). It is one task of the startup to copy the initial");
-    List->push_back("              values from FLASH to RAM. The RME kernel does not really rely on the");
-    List->push_back("              data section to be initialized because it never uses preinitialized");
-    List->push_back("              global variables.");
-    List->push_back("Location    : RAM");
-    List->push_back("Component   : .MONITOR_DATA - The sections to put into the RAM.");
-    List->push_back("******************************************************************************/");
-    List->push_back("  /* used by the startup to initialize data */");
-    List->push_back("  _sidata = LOADADDR(.data);");
-    List->push_back("");
-    List->push_back("  /* Initialized data sections goes into RAM, load LMA copy after code */");
-    List->push_back("  .data : ");
-    List->push_back("  {");
-    List->push_back("     . = ALIGN(4);");
-    List->push_back("     _sdata = .;        /* create a global symbol at data start */");
-    List->push_back("     __data_start__ = _sdata;");
-    List->push_back("     *(.data)           /* .data sections */");
-    List->push_back("     *(.data*)          /* .data* sections */");
-    List->push_back("");
-    List->push_back("     . = ALIGN(4);");
-    List->push_back("    /* This is used by the startup code to initialise the .data section */");
-    List->push_back("    _edata = .;        /* define a global symbol at data end */");
-    List->push_back("    __data_end__ = _edata;");
-    List->push_back("  } >RAM AT> CODE_FLASH");
-    List->push_back("/* End Section:.data *********************************************************/");
-    List->push_back("");
-    List->push_back("");
-
-    List->push_back("/* Begin Section:.bss *********************************************************");
-    List->push_back("Description : The initialised-to-0 data sections. NOLOAD is used to avoid");
-    List->push_back("              the section .bss type changed to PROGBITS warning. This is the");
-    List->push_back("              main region which is placed in RAM. Actually the RME does not");
-    List->push_back("              initialize its bss because there is no such need.");
-    List->push_back("Location    : RAM");
-    List->push_back("Component   : .bss - The sections to put into the RAM, and initialized to 0.");
-    List->push_back("******************************************************************************/");
-    List->push_back("  . = ALIGN(4);");
-    List->push_back("  .bss :");
-    List->push_back("  {");
-    List->push_back("    _sbss = .;         /* define a global symbol at bss start */");
-    List->push_back("    __bss_start__ = _sbss;");
+    List->push_back("/* Process bss segment */");
+    List->push_back(".PROCESS_ZERO : ALIGN(4)");
+    List->push_back("{");
+    List->push_back("    _RVM_Zero_Start = .;");
+    List->push_back("    *(.bss_begin .bss_begin.*)");
     List->push_back("    *(.bss .bss.*)");
-    List->push_back("    *(.bss)");
-    List->push_back("    *(.bss*)");
     List->push_back("    *(COMMON)");
+    List->push_back("    *(.bss_end .bss_end.*)");
+    List->push_back("    _RVM_Zero_End = .;");
     List->push_back("    . = ALIGN(4);");
-    List->push_back("    _ebss = .;         /* define a global symbol at bss end */");
-    List->push_back("    __bss_end__ = _ebss;");
-    List->push_back("  } >RAM");
-    List->push_back("/* End Section:.bss **********************************************************/");
+    List->push_back("} > DATA");
     List->push_back("");
+    List->push_back("/* Process noinit segment */");
+    List->push_back(".PROCESS_NOINIT (NOLOAD) : ALIGN(4)");
+    List->push_back("{");
+    List->push_back("    _RVM_Noinit_Start = .;");
+    List->push_back("    *(.noinit .noinit.*)");
+    List->push_back("    . = ALIGN(4);");
+    List->push_back("    _RVM_Noinit_End = .;");
+    List->push_back("} > DATA");
+    List->push_back("}");
     List->push_back("");
-    List->push_back("  /* Remove information from the standard libraries */");
-    List->push_back("  /DISCARD/ :");
-    List->push_back("  {");
-    List->push_back("    libc.a ( * ) ");
-    List->push_back("    libm.a ( * )");
-    List->push_back("    libgcc.a ( * )");
-    List->push_back("  }");
-    List->push_back("");
-    List->push_back("  .ARM.attributes 0 : { *(.ARM.attributes) }");
+    List->push_back("/* Compatibility symbols for various architectures */");
+    List->push_back("PROVIDE(__stack = _RVM_Stack);");
+    List->push_back("PROVIDE(__initial_sp = _RVM_Stack);");
+    List->push_back("PROVIDE(__initial_sp$ = _RVM_Stack);");
+    List->push_back("PROVIDE(__global_pointer = _RVM_Global);");
+    List->push_back("PROVIDE(__global_pointer$ = _RVM_Global);");
+    List->push_back("PROVIDE(__start = _RVM_Entry);");
+    List->push_back("PROVIDE(_stext = _RVM_Code_Start);");
+    List->push_back("PROVIDE(_etext = _RVM_Code_End);");
+    List->push_back("PROVIDE(_sidata = _RVM_Data_Load);");
+    List->push_back("PROVIDE(_sdata = _RVM_Data_Start);");
+    List->push_back("PROVIDE(_edata = _RVM_Data_End);");
+    List->push_back("PROVIDE(_sbss = _RVM_Zero_Start);");
+    List->push_back("PROVIDE(_ebss = _RVM_Zero_End);");
+    List->push_back("PROVIDE(_snoinit = _RVM_Noinit_Start);");
+    List->push_back("PROVIDE(_enoinit = _RVM_Noinit_End);");
+    List->push_back("PROVIDE(__text_start__ = _RVM_Code_Start);");
+    List->push_back("PROVIDE(__text_end__ = _RVM_Code_End);");
+    List->push_back("PROVIDE(__data_load__ = _RVM_Data_Load);");
+    List->push_back("PROVIDE(__data_start__ = _RVM_Data_Start);");
+    List->push_back("PROVIDE(__data_end__ = _RVM_Data_End);");
+    List->push_back("PROVIDE(__bss_start__ = _RVM_Zero_Start);");
+    List->push_back("PROVIDE(__bss_end__ = _RVM_Zero_End);");
+    List->push_back("PROVIDE(__noinit_start__ = _RVM_Noinit_Start);");
+    List->push_back("PROVIDE(__noinit_end__ = _RVM_Noinit_End);");
+    List->push_back("PROVIDE(end = _RVM_Zero_End);");
+    List->push_back("PROVIDE(_end = _RVM_Zero_End);");
+    List->push_back("PROVIDE(__end = _RVM_Zero_End);");
+    List->push_back("PROVIDE(__end__ = _RVM_Zero_End);");
+    List->push_back("/* End Section ***************************************************************/");
     List->push_back("");
     List->push_back("/* End Of File ***************************************************************/");
-    List->push_back("}");
+    List->push_back("");
     List->push_back("/* Copyright (C) Evo-Devo Instrum. All rights reserved ***********************/");
-
+    List->push_back("");
 }
 /* End Function:GCC_Gen::Process_Linker **************************************/
 }

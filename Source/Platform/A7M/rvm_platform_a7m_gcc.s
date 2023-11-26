@@ -1,24 +1,30 @@
 /******************************************************************************
-Filename    : rvm_platform_cmx_asm_gcc.S
+Filename    : rvm_platform_a7m_gcc.s
 Author      : pry
 Date        : 19/01/2017
-Description : The Cortex-M user-level assembly scheduling support of the RVM
+Description : The ARMv7-M user-level assembly scheduling support of the RVM
               hypervisor. This file is intended to be used with gcc.
 ******************************************************************************/
-
-/* Begin Header **************************************************************/
-    .section            .text
-    .arch               armv7-m
-    .thumb_func
     .syntax             unified
-    .align              3
-/* End Header ****************************************************************/
+    .arch               armv7-m
+    .thumb
+/* Import ********************************************************************/
+    /* Locations provided by the linker */
+    .extern             __RVM_Stack
+    .extern             __RVM_Data_Load
+    .extern             __RVM_Data_Start
+    .extern             __RVM_Data_End
+    .extern             __RVM_Zero_Start
+    .extern             __RVM_Zero_End
+    /* The main function */
+    .extern             main
+/* End Import ****************************************************************/
 
-/* Begin Exports *************************************************************/
+/* Export ********************************************************************/
     /* User entry stub */
-    .global             _RVM_Entry
+    .global             __RVM_Entry
     /* User level stub for thread creation and synchronous invocation */
-    .global             _RVM_Jmp_Stub
+    .global             __RVM_Jmp_Stub
     /* Triggering an invocation */
     .global             RVM_Inv_Act
     /* Returning from an invocation */
@@ -26,67 +32,102 @@ Description : The Cortex-M user-level assembly scheduling support of the RVM
     /* System call gate */
     .global             RVM_Svc
     /*Kernel function system call gate*/
-    .global        RVM_A7M_Svc_Kfn
+    .global             RVM_A7M_Svc_Kfn
     /* Get the MSB in a word */
-    .global             _RVM_MSB_Get
-/* End Exports ***************************************************************/
+    .global             __RVM_A7M_MSB_Get
+/* End Export ****************************************************************/
 
-/* Begin Imports *************************************************************/
-    /* The main function. */
-    .global             main
-/* End Imports ***************************************************************/
+/* Header ********************************************************************/
+    .section            .text.rvm_header
+    .align              3
 
-/* Begin Function:_RVM_Entry **************************************************
-Description : The entry of the process.
-Input       : None.
-Output      : None.
-Return      : None.
-******************************************************************************/
+    .long               0x49535953          /* Magic number for native process */
+    .long               0x00000004          /* Four entries specified */
+    .long               __RVM_Entry         /* Init thread entry */
+    .long               RVM_Sftd            /* All four daemons */
+    .long               RVM_Vmmd
+    .long               __RVM_Jmp_Stub      /* Jump stub */
+    NOP                                     /* Catch something in the middle */
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+/* End Header ****************************************************************/
+
+/* Entry *********************************************************************/
+    .section            .text.rvm_entry
+    .align              3
+
     .thumb_func
-_RVM_Entry:
-    /* Initialize the data section */
-    LDR                 R0,=__data_start__
-    LDR                 R1,=__data_end__
-    LDR                 R2,=_sidata
-load_data:
+__RVM_Entry:
+    /* Load data section from flash to RAM */
+    LDR                 R0,=__RVM_Data_Start
+    LDR                 R1,=__RVM_Data_End
+    LDR                 R2,=__RVM_Data_Load
+__RVM_Data_Load:
     CMP                 R0,R1
-    BEQ                 load_done
-    LDR                 R3,[R2]
+    BEQ                 __RVM_Data_Done
+    LDR					R3,[R2]
     STR                 R3,[R0]
     ADD                 R0,#0x04
     ADD                 R2,#0x04
-    B                   load_data
-load_done:
-    /* Initialize the bss section */
-    LDR                 R0,=__bss_start__
-    LDR                 R1,=__bss_end__
+    B                   __RVM_Data_Load
+__RVM_Data_Done:
+    /* Clear bss zero section */
+    LDR                 R0,=__RVM_Zero_Start
+    LDR                 R1,=__RVM_Zero_End
     LDR                 R2,=0x00
-clear_bss:
+__RVM_Zero_Clear:
     CMP                 R0,R1
-    BEQ                 clear_done
+    BEQ                 __RVM_Zero_Done
     STR                 R2,[R0]
     ADD                 R0,#0x04
-    B                   clear_bss
-clear_done:
-    LDR                 R0, =main
+    B                   __RVM_Zero_Clear
+__RVM_Zero_Done:
+    LDR                 R0,=main
     BX                  R0
-/* End Function:_RVM_Entry ***************************************************/
+/* End Entry *****************************************************************/
 
-/* Begin Function:_RVM_Jmp_Stub ***********************************************
+/* Function:__RVM_Jmp_Stub ****************************************************
 Description : The user level stub for thread creation.
 Input       : R4 - rvm_ptr_t Entry - The entry address.
               R5 - rvm_ptr_t Stack - The stack address that we are using now.
 Output      : None.
 Return      : None.
 ******************************************************************************/
+    .section            .text.__rvm_jmp_stub
+    .align              3
+
     .thumb_func
-_RVM_Jmp_Stub:
+__RVM_Jmp_Stub:
     SUB                 SP,#0x40            /* In order not to destroy the stack */
     MOV                 R0,R5
     BLX                 R4                  /* Branch to the actual entry address */
-/* End Function:_RVM_Jmp_Stub ************************************************/
+/* End Function:__RVM_Jmp_Stub ***********************************************/
 
-/* Begin Function:RVM_Inv_Act ************************************************
+/* Function:__RVM_A7M_MSB_Get *************************************************
+Description : Get the MSB of the word.
+Input       : R0 - rvm_ptr_t Val - The value.
+Output      : None.
+Return      : R0 - rvm_ptr_t - The MSB position.
+******************************************************************************/
+    .section            .text.__rvm_a7m_msb_get
+    .align              3
+
+    .thumb_func
+__RVM_A7M_MSB_Get:
+    CLZ                 R1,R0
+    MOV                 R0,#31
+    SUB                 R0,R1
+    BX                  LR
+/* End Function:__RVM_A7M_MSB_Get ********************************************/
+
+/* Function:RVM_Inv_Act *******************************************************
 Description : Activate an invocation. If the return value is not desired, pass
               0 into R2. This is a default implementation that saves all general
               purpose registers and doesn't save FPU context. If you need a faster
@@ -96,48 +137,54 @@ Input       : R0 - rvm_cid_t Cap_Inv - The capability slot to the invocation stu
               R1 - rvm_ptr_t Param - The parameter for the call.
 Output      : R2 - rvm_ptr_t* Retval - The return value from the call.
 Return      : R0 - rvm_ptr_t - The return value of the system call itself.
-*****************************************************************************/
+******************************************************************************/
+    .section            .text.rvm_inv_act
+    .align              3
+
     .thumb_func
 RVM_Inv_Act:
-    PUSH                {R4-R11}            /* User-level is responsible for all clobbering */
+    PUSH                {R4-R11}            /* Save registers */
     
     MOV                 R4,#0x10000         /* RVM_SVC_INV_ACT */
     ORR                 R4,R0
     MOV                 R5,R1               /* Parameter */
-                
-    SVC                 #0x00               /* System call */
-    ISB                                     /* Instruction barrier - wait for instruction to complete */
-                
-    MOV                 R0,R4               /* This is the return value of the system call itself */
-                
-    CMP                 R2,#0x00            /* See if this return value is desired */
-    IT                  NE
-    STRNE               R5,[R2]             /* This is the return value of the invocation */
-                
-    POP                 {R4-R11}            /* Manual recovering */
-    BX                  LR                  /* Return from the call */
-/* End Function:RVM_Inv_Act *************************************************/
 
-/* Begin Function:RVM_Inv_Ret ************************************************
+    SVC                 #0x00               /* System call */
+    ISB
+
+    MOV                 R0,R4               /* System call return value */
+    CMP                 R2,#0x00            /* Invocation return value*/
+    IT                  NE
+    STRNE               R5,[R2]
+                
+    POP                 {R4-R11}            /* Restore registers */
+    BX                  LR
+/* End Function:RVM_Inv_Act **************************************************/
+
+/* Function:RVM_Inv_Ret *******************************************************
 Description : Manually return from an invocation, and set the return value to
               the old register set. This function does not need a capability
               table to work, and never returns.
 Input       : R0 - The returning result from the invocation.
 Output      : None.
 Return      : None.
-*****************************************************************************/
+******************************************************************************/
+    .section            .text.rvm_inv_act
+    .align              3
+
     .thumb_func
 RVM_Inv_Ret:
     MOV                 R4,#0x00            /* RVM_SVC_INV_RET */
-    MOV                 R5,R0               /* Set return value to the register */
+    MOV                 R5,R0               /* Set return value */
                 
     SVC                 #0x00               /* System call */
-    ISB                                     /* Instruction barrier - wait for instruction to complete */
+    ISB
                 
-    B                   .                   /* Shouldn't reach here. */
-/* End Function:RVM_Inv_Ret *************************************************/
+    MOV                 R0,R4               /* Return failed if we reach here */
+    BX                  LR
+/* End Function:RVM_Inv_Ret **************************************************/
 
-/* Begin Function:RVM_Svc ****************************************************
+/* Function:RVM_Svc ***********************************************************
 Description : Trigger a system call.
 Input       : R0 - rvm_ptr_t Num - The system call number/other information.
               R1 - rvm_ptr_t Param1 - Argument 1.
@@ -145,40 +192,27 @@ Input       : R0 - rvm_ptr_t Num - The system call number/other information.
               R3 - rvm_ptr_t Param3 - Argument 3.
 Output      : None.
 Return      : None.
-*****************************************************************************/
+******************************************************************************/
+    .section            .text.rvm_svc
+    .align              3
+
     .thumb_func
 RVM_Svc:
-    PUSH                {R4-R7}             /* Manual clobbering */
-    MOV                 R4,R0               /* Manually pass the parameters according to ARM calling convention */
-    MOV                 R5,R1               /* Pass parameters */
+    PUSH                {R4-R7}             /* Save registers */
+    MOV                 R4,R0               /* Pass parameters */
+    MOV                 R5,R1
     MOV                 R6,R2
     MOV                 R7,R3
                 
     SVC                 #0x00               /* System call */
-    ISB                                     /* Instruction barrier - wait for instruction to complete */
+    ISB
                 
-    MOV                 R0,R4               /* This is the return value */
-    POP                 {R4-R7}             /* Manual recovering */
-    BX                  LR                  /* Return from the call */
-                
-    B                   .                   /* Shouldn't reach here */
-/* End Function:RVM_Svc *****************************************************/
-
-/* Begin Function:_RVM_MSB_Get ***********************************************
-Description : Get the MSB of the word.
-Input       : R0 - rvm_ptr_t Val - The value.
-Output      : None.
-Return      : R0 - rvm_ptr_t - The MSB position.
-*****************************************************************************/
-    .thumb_func
-_RVM_MSB_Get:
-    CLZ                 R1,R0
-    MOV                 R0,#31
-    SUB                 R0,R1
+    MOV                 R0,R4               /* Return value */
+    POP                 {R4-R7}             /* Restore registers */
     BX                  LR
-/* End Function:_RVM_MSB_Get ************************************************/
+/* End Function:RVM_Svc ******************************************************/
 
-/* Begin Function:RVM_A7M_Svc_Kfn ********************************************
+/* Function:RVM_A7M_Svc_Kfn ***************************************************
 Description : Trigger a system call. This is ARMv7-M specific, and does not expand
               to other architectures, and is only used for kernel functions.
               This specially crafted system call allows up to 8 parameters to
@@ -187,38 +221,40 @@ Input       : R0 - rvm_ptr_t Num - The system call number/other information.
               R1 - rvm_ptr_t ID - The func ID and sub ID of the kernel function call.
               R2 - rvm_ptr_t Args[6] - Array of 6 arguments.
 Output      : R2 - rvm_ptr_t Args[6] - Array of 6 return values.
-Return      : R0 - rvm_ret_t - The system call return value.*****************************************************************************/
+Return      : R0 - rvm_ret_t - The system call return value.
+******************************************************************************/
+    .section            .text.rvm_a7m_svc_kfn
+    .align              3
+
     .thumb_func
 RVM_A7M_Svc_Kfn:        
-                        PUSH                {R4-R12}            //; Save registers
-                        MOV                 R4, R0              //; Pass parameters
-                        MOV                 R5, R1
-                        MOV                 R12, R2             //; Pass extra parameters
-                        LDR                 R6, [R12,#0x00]
-                        LDR                 R7, [R12,#0x04]
-                        LDR                 R8, [R12,#0x08]
-                        LDR                 R9, [R12,#0x0C]
-                        LDR                 R10, [R12,#0x10]
-                        LDR                 R11, [R12,#0x14]
-                                    
-                        SVC                 #0x00               //; System call
-                        ISB
-                                    
-                        MOV                 R0, R4              //; System call return value
-                        STR                 R6, [R12,#0x00]     //; Extra return values
-                        STR                 R7, [R12,#0x04]
-                        STR                 R8, [R12,#0x08]
-                        STR                 R9, [R12,#0x0C]
-                        STR                 R10, [R12,#0x10]
-                        STR                 R11, [R12,#0x14]
-                        
-                        POP                 {R4-R12}             //; Restore registers
-                        BX                  LR
-                        
-/* End Function:RVM_A7M_Svc_Kfn *********************************************/
+    PUSH                {R4-R12}            /* Save registers */
+    MOV                 R4,R0               /* Pass parameters */
+    MOV                 R5,R1
+    MOV                 R12,R2              /* Pass extra parameters */
+    LDR                 R6,[R12,#0x00]
+    LDR                 R7,[R12,#0x04]
+    LDR                 R8,[R12,#0x08]
+    LDR                 R9,[R12,#0x0C]
+    LDR                 R10,[R12,#0x10]
+    LDR                 R11,[R12,#0x14]
 
+    SVC                 #0x00               /* System call */
+    ISB
+
+    MOV                 R0,R4               /* System call return value */
+    STR                 R6,[R12,#0x00]      /* Extra return values */
+    STR                 R7,[R12,#0x04]
+    STR                 R8,[R12,#0x08]
+    STR                 R9,[R12,#0x0C]
+    STR                 R10,[R12,#0x10]
+    STR                 R11,[R12,#0x14]
+
+    POP                 {R4-R12}            /* Restore registers */
+    BX                  LR
+/* End Function:RVM_A7M_Svc_Kfn **********************************************/
     .end
-/* End Of File **************************************************************/
+/* End Of File ***************************************************************/
 
-/* Copyright (C) Evo-Devo Instrum. All rights reserved **********************/
+/* Copyright (C) Evo-Devo Instrum. All rights reserved ***********************/
 

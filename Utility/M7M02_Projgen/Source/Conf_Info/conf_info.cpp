@@ -7,7 +7,7 @@ Description : The configuration option info class. This class is responsible for
                  keeping configurations of particular chips.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
+/* Include *******************************************************************/
 extern "C"
 {
 #include "xml.h"
@@ -21,19 +21,19 @@ extern "C"
 #include "stdexcept"
 #include "algorithm"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "rvm_gen.hpp"
 #include "Conf_Info/conf_info.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_gen.hpp"
 #include "Conf_Info/conf_info.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_GEN
 {
-/* Begin Function:Conf_Info::Conf_Info ****************************************
+/* Function:Conf_Info::Conf_Info **********************************************
 Description : Parse the option section of a particular chip.
 Input       : xml_node_t* Root - The config section's XML node.
 Output      : None.
@@ -78,7 +78,7 @@ Return      : None.
 }
 /* End Function:Conf_Info::Conf_Info *****************************************/
 
-/* Begin Function:Conf_Info::Check ********************************************
+/* Function:Conf_Info::Check **************************************************
 Description : Check whether the chip description configuration makes sense.
 Input       : None.
 Output      : None.
@@ -114,7 +114,7 @@ void Conf_Info::Check(void)
 }
 /* End Function:Conf_Info::Check *********************************************/
 
-/* Begin Function:Conf_Info::Project_Config_Mark ******************************
+/* Function:Conf_Info::Project_Config_Mark ************************************
 Description : Confirm the the project correctly configured the config.
 Input       : const std::string& Name - The name passed in.
               const std::string& Value - The value passed in.

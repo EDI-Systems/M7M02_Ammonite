@@ -5,7 +5,7 @@
 ;Description : The ARMv6-M user-level assembly support of RVM.
 ;*****************************************************************************/
 
-;/* Begin Import *************************************************************/
+;/* Import *******************************************************************/
     ; The ARM C library entry
     IMPORT              __main
     ; All four daemons
@@ -13,7 +13,7 @@
     IMPORT              RVM_Vmmd
 ;/* End Import ***************************************************************/
 
-;/* Begin Export *************************************************************/
+;/* Export *******************************************************************/
     ; User level stub for thread creation and synchronous invocation
     EXPORT              _RVM_Jmp_Stub
     ; Triggering an invocation
@@ -26,7 +26,7 @@
     EXPORT              RVM_A6M_Svc_Kfn
 ;/* End Export ***************************************************************/
 
-;/* Begin Header *************************************************************/
+;/* Header *******************************************************************/
     AREA                RVM_HEADER,CODE,READONLY,ALIGN=3
     THUMB
     REQUIRE8
@@ -50,7 +50,7 @@
     NOP
 ;/* End Header ***************************************************************/
     
-;/* Begin Function:_RVM_Jmp_Stub **********************************************
+;/* Function:_RVM_Jmp_Stub ****************************************************
 ;Description : The user level stub for thread/invocation creation.
 ;Input       : R4 - rvm_ptr_t Entry - The entry address.
 ;              R5 - rvm_ptr_t Param - The parameter to be passed to it.
@@ -69,7 +69,7 @@ _RVM_Jmp_Stub           PROC
     ENDP
 ;/* End Function:_RVM_Jmp_Stub ***********************************************/
 
-;/* Begin Function:RVM_Inv_Act ************************************************
+;/* Function:RVM_Inv_Act ******************************************************
 ;Description : Activate an invocation. If the return value is not desired, pass
 ;              0 into R2. This is a default implementation that saves all general
 ;              purpose registers.
@@ -116,7 +116,7 @@ RVM_Inv_Act_Skip
     ENDP
 ;/* End Function:RVM_Inv_Act *************************************************/
 
-;/* Begin Function:RVM_Inv_Ret ************************************************
+;/* Function:RVM_Inv_Ret ******************************************************
 ;Description : Manually return from an invocation, and set the return value to
 ;              the old register set. This function does not need a capability
 ;              table to work, and never returns.
@@ -141,7 +141,7 @@ RVM_Inv_Ret             PROC
     ENDP
 ;/* End Function:RVM_Inv_Ret *************************************************/
 
-;/* Begin Function:RVM_Svc ****************************************************
+;/* Function:RVM_Svc **********************************************************
 ;Description : Trigger a system call.
 ;Input       : R0 - rvm_ptr_t Num - The system call number/other information.
 ;              R1 - rvm_ptr_t Param1 - Argument 1.
@@ -171,7 +171,7 @@ RVM_Svc                 PROC
     ENDP
 ;/* End Function:RVM_Svc *****************************************************/
 
-;/* Begin Function:RVM_A6M_Svc_Kfn ********************************************
+;/* Function:RVM_A6M_Svc_Kfn **************************************************
 ;Description : Trigger a system call. This is ARMv6-M specific, and does not expand
 ;              to other architectures, and is only used for kernel functions.
 ;              This specially crafted system call allows up to 8 parameters to

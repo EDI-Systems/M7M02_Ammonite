@@ -6,7 +6,7 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : This toolset is for Keil uVision build system.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
+/* Include *******************************************************************/
 extern "C"
 {
 #include "xml.h"
@@ -20,14 +20,14 @@ extern "C"
 #include "stdexcept"
 #include "algorithm"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "rvm_gen.hpp"
 #include "Gen_Tool/gen_tool.hpp"
 #include "Gen_Tool/Build_Gen/build_gen.hpp"
 #include "Gen_Tool/Build_Gen/Keil_Gen/keil_gen.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_gen.hpp"
 #include "Plat_Info/plat_info.hpp"
 #include "Chip_Info/chip_info.hpp"
@@ -53,11 +53,11 @@ extern "C"
 #include "Gen_Tool/gen_tool.hpp"
 #include "Gen_Tool/Build_Gen/build_gen.hpp"
 #include "Gen_Tool/Build_Gen/Keil_Gen/keil_gen.hpp"
-#undef __HDR_STRUCTS__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_GEN
 {
-/* Begin Function:Keil_Gen::Keil_Gen ******************************************
+/* Function:Keil_Gen::Keil_Gen ************************************************
 Description : Generator for the Keil uVision.
 Input       : class Proj_Info* Proj - The project information.
               class Plat_Info* Plat - The platform information.
@@ -79,7 +79,7 @@ Build_Gen("Keil", Proj, Plat, Chip)
 }
 /* End Function:Keil_Gen::Keil_Gen *******************************************/
 
-/* Begin Function:Keil_Gen::Suffix ********************************************
+/* Function:Keil_Gen::Suffix **************************************************
 Description : Returns suffix for a given type of file.
 Input       : ptr_t Type - The file type.
 Output      : None.
@@ -96,7 +96,7 @@ std::string Keil_Gen::Suffix(ptr_t Type)
 }
 /* End Function:Keil_Gen::Suffix *********************************************/
 
-/* Begin Function:Keil_Gen::Keil_Proj *****************************************
+/* Function:Keil_Gen::Keil_Proj ***********************************************
 Description : Generate the keil project for ARMv7-M.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
               const std::string& After1 - The first command to run after compilation.
@@ -396,7 +396,7 @@ void Keil_Gen::Raw_Proj(std::unique_ptr<std::vector<std::string>>& List,
 }
 /* End Function:Keil_Gen::Keil_Proj ******************************************/
 
-/* Begin Function:Keil_Gen::Kernel_Proj ***************************************
+/* Function:Keil_Gen::Kernel_Proj *********************************************
 Description : Generate kernel project.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
               const std::vector<std::string>& Include - The include file list.
@@ -426,7 +426,7 @@ void Keil_Gen::Kernel_Proj(std::unique_ptr<std::vector<std::string>>& List,
 }
 /* End Function:Keil_Gen::Kernel_Proj ****************************************/
 
-/* Begin Function:Keil_Gen::Monitor_Proj **************************************
+/* Function:Keil_Gen::Monitor_Proj ********************************************
 Description : Generate monitor project.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
               const std::vector<std::string>& Include - The include file list.
@@ -467,7 +467,7 @@ void Keil_Gen::Monitor_Proj(std::unique_ptr<std::vector<std::string>>& List,
 }
 /* End Function:Keil_Gen::Monitor_Proj ***************************************/
 
-/* Begin Function:Keil_Gen::Process_Proj **************************************
+/* Function:Keil_Gen::Process_Proj ********************************************
 Description : Generate process project.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
               const std::vector<std::string>& Include - The include file list.
@@ -509,7 +509,7 @@ void Keil_Gen::Process_Proj(std::unique_ptr<std::vector<std::string>>& List,
 }
 /* End Function:Keil_Gen::Process_Proj ***************************************/
 
-/* Begin Function:Keil_Gen::Workspace_Proj ************************************
+/* Function:Keil_Gen::Workspace_Proj ******************************************
 Description : Generate workspace project.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
               const std::vector<std::string>& Project - The project file list.

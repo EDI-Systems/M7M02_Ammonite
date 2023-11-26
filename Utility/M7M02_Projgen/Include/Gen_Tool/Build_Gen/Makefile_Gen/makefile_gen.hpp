@@ -6,25 +6,25 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The header of the makefile buildsystem generator.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
+/* Define ********************************************************************/
 namespace RVM_GEN
 {
-#ifdef __HDR_DEFS__
-#ifndef __MAKEFILE_GEN_HPP_DEFS__
-#define __MAKEFILE_GEN_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __MAKEFILE_GEN_DEF__
+#define __MAKEFILE_GEN_DEF__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __MAKEFILE_GEN_HPP_DEFS__ */
+/* __MAKEFILE_GEN_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __MAKEFILE_GEN_HPP_CLASSES__
-#define __MAKEFILE_GEN_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __MAKEFILE_GEN_CLASS__
+#define __MAKEFILE_GEN_CLASS__
 /*****************************************************************************/
 /* Makefile-specific information */
 class Makefile_Gen:public Build_Gen
@@ -62,9 +62,9 @@ public:
                                 const std::vector<std::string>& Project) final override;
 };
 /*****************************************************************************/
-/* __MAKEFILE_GEN_HPP_CLASSES__ */
+/* __MAKEFILE_GEN_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

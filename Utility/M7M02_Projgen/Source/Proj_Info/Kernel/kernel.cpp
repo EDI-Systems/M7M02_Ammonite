@@ -6,7 +6,7 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The kernel configuration class.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
+/* Include *******************************************************************/
 extern "C"
 {
 #include "xml.h"
@@ -20,22 +20,22 @@ extern "C"
 #include "stdexcept"
 #include "algorithm"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "rvm_gen.hpp"
 #include "Proj_Info/Kernel/kernel.hpp"
 #include "Mem_Info/mem_info.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_gen.hpp"
 #include "Proj_Info/proj_info.hpp"
 #include "Proj_Info/Kernel/kernel.hpp"
 #include "Mem_Info/mem_info.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_GEN
 {
-/* Begin Function:Kernel::Kernel **********************************************
+/* Function:Kernel::Kernel ****************************************************
 Description : Constructor for RME class.
 Input       : xml_node_t* Root - The node containing the kernel section.
 Output      : None.
@@ -108,7 +108,7 @@ Return      : None.
 }
 /* End Function:Kernel::Kernel ***********************************************/
 
-/* Begin Function:Kernel::Mem_Alloc *******************************************
+/* Function:Kernel::Mem_Alloc *************************************************
 Description : Allocate the memory for kernel itself.
 Input       : ptr_t Kom_Front - The current kernel memory frontier.
               ptr_t Vector_Num - The number of physical vectors.

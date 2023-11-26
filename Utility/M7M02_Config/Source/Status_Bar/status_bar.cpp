@@ -7,16 +7,16 @@ Description : The status bar underlying the whole window. Responsible for displa
               all types of auxiliary information.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
+/* Include *******************************************************************/
 extern "C"
 {
 #include "stdio.h"
 #include "ctype.h"
 }
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "rvm_cfg.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
 #include "wx/wx.h"
 #include "wx/xml/xml.h"
@@ -32,18 +32,18 @@ extern "C"
 #endif
 }
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "Status_Bar/status_bar.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_cfg.hpp"
 #include "Status_Bar/status_bar.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_CFG
 {
-/* Begin Function:Status_Bar::Status_Bar **************************************
+/* Function:Status_Bar::Status_Bar ********************************************
 Description : Status bar class constructor.
 Input       : class wxWindow *Parent - The parent window.
 Output      : None.
@@ -85,7 +85,7 @@ wxStatusBar(Parent,wxID_ANY)
 }
 /* End Function:Status_Bar::Status_Bar ***************************************/
 
-/* Begin Function:Status_Bar::~Status_Bar *************************************
+/* Function:Status_Bar::~Status_Bar *******************************************
 Description : Status bar class destructor.
 Input       : None.
 Output      : None.
@@ -102,7 +102,7 @@ Return      : None.
 }
 /* End Function:Status_Bar::~Status_Bar **************************************/
 
-/* Begin Function:Status_Bar::State_Set ***************************************
+/* Function:Status_Bar::State_Set *********************************************
 Description : Set the current UI state, and decide what controls are usable.
 Input       : ptr_t Type - The state type.
 Output      : None.
@@ -115,7 +115,7 @@ void Status_Bar::State_Set(ptr_t Type)
 }
 /* End Function:Status_Bar::State_Set ****************************************/
 
-/* Begin Function:Status_Bar::On_Size *****************************************
+/* Function:Status_Bar::On_Size ***********************************************
 Description : wxEVT_SIZE handler.
 Input       : class wxSizeEvent& Event - The event.
 Output      : None.
@@ -134,7 +134,7 @@ void Status_Bar::On_Size(class wxSizeEvent& Event)
 }
 /* End Function:Status_Bar::On_Size ******************************************/
 
-/* Begin Function:Status_Bar::On_Timer ****************************************
+/* Function:Status_Bar::On_Timer **********************************************
 Description : wxEVT_TIMER handler. This will get the memory usage.
 Input       : class wxTimerEvent& Event - The event.
 Output      : None.

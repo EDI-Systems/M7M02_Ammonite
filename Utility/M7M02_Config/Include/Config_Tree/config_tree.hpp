@@ -6,23 +6,23 @@ License     : Proprietary; confidential.
 Description : Config tree file header.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
-#ifdef __HDR_DEFS__
-#ifndef __CONFIG_TREE_HPP_TYPES__
-#define __CONFIG_TREE_HPP_TYPES__
+/* Define ********************************************************************/
+#ifdef __HDR_DEF__
+#ifndef __CONFIG_TREE_TYPE__
+#define __CONFIG_TREE_TYPE__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __CONFIG_TREE_HPP_TYPES__ */
+/* __CONFIG_TREE_TYPE__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
 
 namespace RVM_CFG
 {
-#ifdef __HDR_DEFS__
-#ifndef __CONFIG_TREE_HPP_DEFS__
-#define __CONFIG_TREE_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __CONFIG_TREE_DEF__
+#define __CONFIG_TREE_DEF__
 /*****************************************************************************/
 #define SELECT_DETAIL_NONE          (0)
 #define SELECT_DETAIL_KERNEL        (1)
@@ -31,16 +31,16 @@ namespace RVM_CFG
 #define SELECT_DETAIL_VIRTUAL       (4)
 #define SELECT_DETAIL_PROCESS       (5)
 /*****************************************************************************/
-/* __CONFIG_TREE_HPP_DEFS__ */
+/* __CONFIG_TREE_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __CONFIG_TREE_HPP_CLASSES__
-#define __CONFIG_TREE_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __CONFIG_TREE_CLASS__
+#define __CONFIG_TREE_CLASS__
 /*****************************************************************************/
 class Config_Info:public wxTreeItemData
 {
@@ -76,9 +76,9 @@ public:
     void On_Drag_End(class wxTreeEvent& Event);
 };
 /*****************************************************************************/
-/* __CONFIG_TREE_HPP_CLASSES__ */
+/* __CONFIG_TREE_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

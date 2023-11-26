@@ -6,7 +6,7 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The kernel object base class.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
+/* Include *******************************************************************/
 extern "C"
 {
 #include "xml.h"
@@ -19,19 +19,19 @@ extern "C"
 #include "vector"
 #include "algorithm"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "rvm_gen.hpp"
 #include "Proj_Info/Kobj/kobj.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_gen.hpp"
 #include "Proj_Info/Kobj/kobj.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_GEN
 {
-/* Begin Function:Kobj::Kobj **************************************************
+/* Function:Kobj::Kobj ********************************************************
 Description : Constructor for Kobj class.
 Input       : class Process* Owner - The owner process of this kernel object.
                                      If this is NULL, then this is just a declaration.
@@ -44,7 +44,7 @@ Return      : None.
 }
 /* End Function:Kobj::Kobj ***************************************************/
 
-/* Begin Function:Kobj::~Kobj *************************************************
+/* Function:Kobj::~Kobj *******************************************************
 Description : Pure virtual destructor (cannot be omitted).
 Input       : None.
 Output      : None.

@@ -6,7 +6,7 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : Generic platform generator port.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
+/* Include *******************************************************************/
 extern "C"
 {
 #include "xml.h"
@@ -20,16 +20,16 @@ extern "C"
 #include "stdexcept"
 #include "algorithm"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "rvm_gen.hpp"
 #include "Proj_Info/proj_info.hpp"
 #include "Plat_Info/plat_info.hpp"
 #include "Chip_Info/chip_info.hpp"
 #include "Proj_Info/Kernel/kernel.hpp"
 #include "Gen_Tool/Plat_Gen/plat_gen.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_gen.hpp"
 #include "Proj_Info/proj_info.hpp"
 #include "Proj_Info/Kobj/kobj.hpp"
@@ -37,11 +37,11 @@ extern "C"
 #include "Chip_Info/chip_info.hpp"
 #include "Proj_Info/Kernel/kernel.hpp"
 #include "Gen_Tool/Plat_Gen/plat_gen.hpp"
-#undef __HDR_STRUCTS__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_GEN
 {
-/* Begin Function:Plat_Gen::Plat_Gen ******************************************
+/* Function:Plat_Gen::Plat_Gen ************************************************
 Description : Generator for the platform.
 Input       : const std::string& Name - The platform name.
               class Proj_Info* Proj - The project information.
@@ -68,7 +68,7 @@ Return      : None.
 }
 /* End Function:Plat_Gen::Plat_Gen *******************************************/
 
-/* Begin Function:Plat_Gen::Size_Cpt ******************************************
+/* Function:Plat_Gen::Size_Cpt ************************************************
 Description : Query the size of capability table given the number of slots.
 Input       : ptr_t Slot - The number of slots.
 Output      : None.
@@ -80,7 +80,7 @@ ptr_t Plat_Gen::Size_Cpt(ptr_t Slot)
 }
 /* End Function:Plat_Gen::Size_Cpt *******************************************/
 
-/* Begin Function:Plat_Gen::Size_Pgt ******************************************
+/* Function:Plat_Gen::Size_Pgt ************************************************
 Description : Query the size of page table given the parameters.
 Input       : ptr_t Num_Order - The number order.
               ptr_t Is_Top - Whether this is a top-level.
@@ -93,7 +93,7 @@ ptr_t Plat_Gen::Size_Pgt(ptr_t Num_Order, ptr_t Is_Top)
 }
 /* End Function:Plat_Gen::Size_Pgt *******************************************/
 
-/* Begin Function:Plat_Gen::Size_Thread ***************************************
+/* Function:Plat_Gen::Size_Thread *********************************************
 Description : Query the size of thread.
 Input       : const std::vector<std::string>& Coprocessor - The coprocessor list.
               ptr_t Is_Hyp - Whether the thread is hypervisor managed.
@@ -110,7 +110,7 @@ ptr_t Plat_Gen::Size_Thread(const std::vector<std::string>& Coprocessor,
 }
 /* End Function:Plat_Gen::Size_Thread ****************************************/
 
-/* Begin Function:Plat_Gen::Size_Invocation ***********************************
+/* Function:Plat_Gen::Size_Invocation *****************************************
 Description : Query the size of invocation.
 Input       : None.
 Output      : None.
@@ -122,7 +122,7 @@ ptr_t Plat_Gen::Size_Invocation(void)
 }
 /* End Function:Plat_Gen::Size_Invocation ************************************/
 
-/* Begin Function:Plat_Gen::Size_Register *************************************
+/* Function:Plat_Gen::Size_Register *******************************************
 Description : Query the size of the register set.
 Input       : const std::vector<std::string>& Coprocessor - The coprocessor list.
 Output      : None.

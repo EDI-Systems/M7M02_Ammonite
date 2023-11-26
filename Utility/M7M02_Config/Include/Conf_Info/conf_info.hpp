@@ -6,8 +6,8 @@ License     : Proprietary; confidential.
 Description : Configuration class header.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
-#ifdef __HDR_DEFS__
+/* Define ********************************************************************/
+#ifdef __HDR_DEF__
 #ifndef __CONF_INFO_TYPES__
 #define __CONF_INFO_TYPES__
 /*****************************************************************************/
@@ -15,28 +15,28 @@ Description : Configuration class header.
 /*****************************************************************************/
 /* __CONF_INFO_TYPES__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
 
 namespace RVM_CFG
 {
-#ifdef __HDR_DEFS__
-#ifndef __CONF_INFO_DEFS__
-#define __CONF_INFO_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __CONF_INFO_DEF__
+#define __CONF_INFO_DEF__
 /*****************************************************************************/
 #define CONFIG_CHOICE       0
 #define CONFIG_RANGE        1
 /*****************************************************************************/
-/* __CONF_INFO_DEFS__ */
+/* __CONF_INFO_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __CONF_INFO_CLASSES__
-#define __CONF_INFO_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __CONF_INFO_CLASS__
+#define __CONF_INFO_CLASS__
 /*****************************************************************************/
 class Conf_Info
 {
@@ -56,9 +56,9 @@ public:
     /* void */ ~Conf_Info(void);
 };
 /*****************************************************************************/
-/* __CONF_INFO_CLASSES__ */
+/* __CONF_INFO_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

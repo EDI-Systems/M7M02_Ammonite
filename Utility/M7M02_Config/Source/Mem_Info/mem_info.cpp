@@ -6,10 +6,10 @@ License     : Proprietary; confidential.
 Description : Mem_Info information implementation.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
-#define __HDR_DEFS__
+/* Include *******************************************************************/
+#define __HDR_DEF__
 #include "rvm_cfg.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
 #include "wx/wx.h"
 #include "wx/xml/xml.h"
@@ -18,19 +18,19 @@ Description : Mem_Info information implementation.
 #include "string"
 #include "memory"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "Mem_Info/mem_info.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_cfg.hpp"
 #include "Proj_Info/proj_info.hpp"
 #include "Mem_Info/mem_info.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_CFG
 {
-/* Begin Function:Mem_Info::Mem_Info ******************************************
+/* Function:Mem_Info::Mem_Info ************************************************
 Description : Default constructor for chip information.
 Input       : const std::string& Name - The exact chip name.
               ptr_t Base - The base address.
@@ -51,7 +51,7 @@ Return      : None.
 }
 /* End Function:Mem_Info::Mem_Info *******************************************/
 
-/* Begin Function:Mem_Info::Mem_Info ******************************************
+/* Function:Mem_Info::Mem_Info ************************************************
 Description : Constructor for chip information.
 Input       : class wxXmlNode* Node - The node containing information.
 Output      : None.
@@ -112,7 +112,7 @@ Return      : None.
 }
 /* End Function:Mem_Info::Mem_Info *******************************************/
 
-/* Begin Function:Mem_Info::~Mem_Info *****************************************
+/* Function:Mem_Info::~Mem_Info ***********************************************
 Description : Destructor for chip information.
 Input       : None.
 Output      : None.
@@ -124,7 +124,7 @@ Return      : None.
 }
 /* End Function:Mem_Info::~Mem_Info ******************************************/
 
-/* Begin Function:Mem_Info::Save **********************************************
+/* Function:Mem_Info::Save ****************************************************
 Description : Save target information to XML file.
 Input       : class wxXmlNode* Parent - The parent node.
 Output      : None.

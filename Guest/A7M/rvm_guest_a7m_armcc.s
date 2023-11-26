@@ -5,13 +5,15 @@
 ;Description : The assembly portion of the RVM guest library for ARMv7-M.
 ;*****************************************************************************/
 
-;/* Begin Import *************************************************************/
+;/* Import *******************************************************************/
     IMPORT              __main
 ;/* End Import ***************************************************************/
 
-;/* Begin Export *************************************************************/
+;/* Export *******************************************************************/
     ;Entry point
-    EXPORT              _RVM_A7M_Entry
+    EXPORT              _RVM_Entry
+    ;The jump stub and entry stub
+    EXPORT              _RVM_Jmp_Stub
     ;Triggering an invocation
     EXPORT              RVM_Inv_Act
     ;Returning from an invocation
@@ -20,23 +22,40 @@
     EXPORT              RVM_Svc
     ;Kernel function system call gate
     EXPORT              RVM_A7M_Svc_Kfn
-    ;The jump stub and entry stub
-    EXPORT              _RVM_Jmp_Stub
 ;/* End Export ***************************************************************/
 
-;/* Begin Entry **************************************************************/
+;/* Entry ********************************************************************/
     AREA                RVM_ENTRY,CODE,READONLY,ALIGN=3
     THUMB
     REQUIRE8
     PRESERVE8
 
-_RVM_A7M_Entry          PROC
+_RVM_Entry              PROC
     LDR                 R0,=__main
     BX                  R0
     ENDP
 ;/* End Entry ****************************************************************/
 
-;/* Begin Function:RVM_Inv_Act ************************************************
+;/* Function:_RVM_Jmp_Stub ****************************************************
+;Description : The user level stub for thread creation.
+;Input       : R4 - rvm_ptr_t Entry - The entry address.
+;              R5 - rvm_ptr_t Stack - The stack address that we are using now.
+;Output      : None.
+;Return      : None.
+;*****************************************************************************/
+    AREA                _RVM_JMP_STUB,CODE,READONLY,ALIGN=3
+    THUMB
+    REQUIRE8
+    PRESERVE8
+
+_RVM_Jmp_Stub           PROC
+    SUB                 SP,#0x40            ;Protect the stack
+    MOV                 R0,R5
+    BX                  R4                  ;Branch to the entry
+    ENDP
+;/* End Function:_RVM_Jmp_Stub ***********************************************/
+
+;/* Function:RVM_Inv_Act ******************************************************
 ;Description : Activate an invocation. If the return value is not desired, pass
 ;              0 into R2. This is a default implementation that saves all general
 ;              purpose registers and doesn't save FPU context. If you need a faster
@@ -72,7 +91,7 @@ RVM_Inv_Act             PROC
     ENDP
 ;/* End Function:RVM_Inv_Act *************************************************/
 
-;/* Begin Function:RVM_Inv_Ret ************************************************
+;/* Function:RVM_Inv_Ret ******************************************************
 ;Description : Manually return from an invocation, and set the return value to
 ;              the old register set. This function does not need a capability
 ;              table to work, and never returns.
@@ -97,7 +116,7 @@ RVM_Inv_Ret             PROC
     ENDP
 ;/* End Function:RVM_Inv_Ret *************************************************/
 
-;/* Begin Function:RVM_Svc ****************************************************
+;/* Function:RVM_Svc **********************************************************
 ;Description : Trigger a system call.
 ;Input       : R0 - rvm_ptr_t Num - The system call number/other information.
 ;              R1 - rvm_ptr_t Param1 - Argument 1.
@@ -127,7 +146,7 @@ RVM_Svc                 PROC
     ENDP
 ;/* End Function:RVM_Svc *****************************************************/
 
-;/* Begin Function:RVM_A7M_Svc_Kfn ********************************************
+;/* Function:RVM_A7M_Svc_Kfn **************************************************
 ;Description : Trigger a system call. This is ARMv7-M specific, and does not expand
 ;              to other architectures, and is only used for kernel functions.
 ;              This specially crafted system call allows up to 8 parameters to
@@ -170,25 +189,6 @@ RVM_A7M_Svc_Kfn         PROC
     BX                  LR
     ENDP
 ;/* End Function:RVM_A7M_Svc_Kfn *********************************************/
-
-;/* Begin Function:_RVM_Jmp_Stub **********************************************
-;Description : The user level stub for thread creation.
-;Input       : R4 - rvm_ptr_t Entry - The entry address.
-;              R5 - rvm_ptr_t Stack - The stack address that we are using now.
-;Output      : None.
-;Return      : None.
-;*****************************************************************************/
-    AREA                _RVM_JMP_STUB,CODE,READONLY,ALIGN=3
-    THUMB
-    REQUIRE8
-    PRESERVE8
-
-_RVM_Jmp_Stub           PROC
-    SUB                 SP,#0x40            ;Protect the stack
-    MOV                 R0,R5
-    BX                  R4                  ;Branch to the entry
-    ENDP
-;/* End Function:_RVM_Jmp_Stub ***********************************************/
     ALIGN
     END
 ;/* End Of File **************************************************************/

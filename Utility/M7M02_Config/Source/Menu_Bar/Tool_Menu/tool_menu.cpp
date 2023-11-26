@@ -6,10 +6,10 @@ License     : Proprietary; confidential.
 Description : Tool menu class implementation.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
-#define __HDR_DEFS__
+/* Include *******************************************************************/
+#define __HDR_DEF__
 #include "rvm_cfg.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
 #include "wx/wx.h"
 #include "wx/xml/xml.h"
@@ -21,18 +21,18 @@ Description : Tool menu class implementation.
 #include "vector"
 #include "algorithm"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "Menu_Bar/Tool_Menu/tool_menu.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_cfg.hpp"
 #include "Menu_Bar/Tool_Menu/tool_menu.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_CFG
 {
-/* Begin Function:Tool_Menu::Tool_Menu ****************************************
+/* Function:Tool_Menu::Tool_Menu **********************************************
 Description : Constructor for tool menu.
 Input       : None.
 Output      : None.
@@ -73,7 +73,7 @@ Return      : None.
 }
 /* End Function:Tool_Menu::Tool_Menu *****************************************/
 
-/* Begin Function:Tool_Menu::~Tool_Menu ***************************************
+/* Function:Tool_Menu::~Tool_Menu *********************************************
 Description : Destructor for tool menu.
 Input       : None.
 Output      : None.
@@ -89,7 +89,7 @@ Return      : None.
 }
 /* End Function:Tool_Menu::~Tool_Menu ****************************************/
 
-/* Begin Function:Tool_Menu::State_Set ****************************************
+/* Function:Tool_Menu::State_Set **********************************************
 Description : Set the current UI state, and decide what controls are usable.
 Input       : ptr_t Type - The state type.
 Output      : None.
@@ -119,7 +119,7 @@ void Tool_Menu::State_Set(ptr_t Type)
 }
 /* End Function:Tool_Menu::State_Set *****************************************/
 
-/* Begin Function:Tool_Menu::On_Shm_View **************************************
+/* Function:Tool_Menu::On_Shm_View ********************************************
 Description : wxEVT_MENU handler for 'Shared Memory Viewer'.
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.
@@ -131,7 +131,7 @@ void Tool_Menu::On_Shm_View(class wxCommandEvent& Event)
 }
 /* End Function:Tool_Menu::On_Shm_View ***************************************/
 
-/* Begin Function:Tool_Menu::On_Inv_View **************************************
+/* Function:Tool_Menu::On_Inv_View ********************************************
 Description : wxEVT_MENU handler for 'Invocation Viewer'.
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.
@@ -143,7 +143,7 @@ void Tool_Menu::On_Inv_View(class wxCommandEvent& Event)
 }
 /* End Function:Tool_Menu::On_Inv_View ***************************************/
 
-/* Begin Function:Tool_Menu::On_Rcv_View **************************************
+/* Function:Tool_Menu::On_Rcv_View ********************************************
 Description : wxEVT_MENU handler for 'Receive Endpoint Viewer'.
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.
@@ -155,7 +155,7 @@ void Tool_Menu::On_Rcv_View(class wxCommandEvent& Event)
 }
 /* End Function:Tool_Menu::On_Rcv_View ***************************************/
 
-/* Begin Function:Tool_Menu::On_Generate **************************************
+/* Function:Tool_Menu::On_Generate ********************************************
 Description : wxEVT_MENU handler for 'Generate'.
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.
@@ -167,7 +167,7 @@ void Tool_Menu::On_Generate(class wxCommandEvent& Event)
 }
 /* End Function:Tool_Menu::On_Generate ***************************************/
 
-/* Begin Function:Tool_Menu::On_Validate **************************************
+/* Function:Tool_Menu::On_Validate ********************************************
 Description : wxEVT_MENU handler for 'Validate'.
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.

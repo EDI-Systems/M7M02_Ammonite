@@ -6,10 +6,10 @@ License     : Proprietary; confidential.
 Description : Menu bar class implementation.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
-#define __HDR_DEFS__
+/* Include *******************************************************************/
+#define __HDR_DEF__
 #include "rvm_cfg.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
 #include "wx/wx.h"
 #include "wx/xml/xml.h"
@@ -18,21 +18,21 @@ Description : Menu bar class implementation.
 #include "memory"
 #include "vector"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "Menu_Bar/menu_bar.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_cfg.hpp"
 #include "Menu_Bar/File_Menu/file_menu.hpp"
 #include "Menu_Bar/Tool_Menu/tool_menu.hpp"
 #include "Menu_Bar/Help_Menu/help_menu.hpp"
 #include "Menu_Bar/menu_bar.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_CFG
 {
-/* Begin Function:Menu_Bar::Menu_Bar ******************************************
+/* Function:Menu_Bar::Menu_Bar ************************************************
 Description : Constructor for menu bar.
 Input       : None.
 Output      : None.
@@ -58,7 +58,7 @@ Return      : None.
 }
 /* End Function:Menu_Bar::Menu_Bar *******************************************/
 
-/* Begin Function:Menu_Bar::State_Set *****************************************
+/* Function:Menu_Bar::State_Set ***********************************************
 Description : Set the current UI state, and decide what controls are usable.
 Input       : ptr_t Type - The state type.
 Output      : None.

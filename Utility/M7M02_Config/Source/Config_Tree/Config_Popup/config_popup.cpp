@@ -6,10 +6,10 @@ License     : Proprietary; confidential.
 Description : Config popup-menu class implementation.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
-#define __HDR_DEFS__
+/* Include *******************************************************************/
+#define __HDR_DEF__
 #include "rvm_cfg.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
 #include "wx/wx.h"
 #include "wx/xml/xml.h"
@@ -21,20 +21,20 @@ Description : Config popup-menu class implementation.
 #include "set"
 #include "memory"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "Config_Tree/Config_Popup/config_popup.hpp"
 #include "Config_Tree/config_tree.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_cfg.hpp"
 #include "Config_Tree/Config_Popup/config_popup.hpp"
 #include "Config_Tree/config_tree.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_CFG
 {
-/* Begin Function:Config_Popup::Config_Popup **************************************
+/* Function:Config_Popup::Config_Popup ********************************************
 Description : Constructor for file popup menu.
 Input       : class Config_Tree* Tree - The tree that this menu corresponds to.
 Output      : None.
@@ -71,7 +71,7 @@ Return      : None.
 }
 /* End Function:Config_Popup::Config_Popup ***********************************/
 
-/* Begin Function:Config_Popup::~Config_Popup *********************************
+/* Function:Config_Popup::~Config_Popup ***************************************
 Description : Destructor for file menu.
 Input       : None.
 Output      : None.
@@ -86,7 +86,7 @@ Return      : None.
 }
 /* End Function:Config_Popup::~Config_Popup **********************************/
 
-/* Begin Function:Config_Popup::State_Set *************************************
+/* Function:Config_Popup::State_Set *******************************************
 Description : Set the current UI state, and decide what controls are usable.
 Input       : ptr_t Type - The state type.
 Output      : None.
@@ -138,7 +138,7 @@ void Config_Popup::State_Set(ptr_t Type)
 }
 /* End Function:Config_Popup::State_Set ****************************************/
 
-/* Begin Function:Config_Popup::On_New_Item *************************************
+/* Function:Config_Popup::On_New_Item *******************************************
 Description : wxEVT_MENU handler for 'New Item'.
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.
@@ -150,7 +150,7 @@ void Config_Popup::On_New_Item(class wxCommandEvent& Event)
 }
 /* End Function:Config_Popup::On_New_File ************************************/
 
-/* Begin Function:Config_Popup::On_Delete_Item ********************************
+/* Function:Config_Popup::On_Delete_Item **************************************
 Description : wxEVT_MENU handler for 'Delete Item'.
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.
@@ -162,7 +162,7 @@ void Config_Popup::On_Delete_Item(class wxCommandEvent& Event)
 }
 /* End Function:Config_Popup::On_Delete_Item *********************************/
 
-/* Begin Function:Config_Popup::On_Generate ***********************************
+/* Function:Config_Popup::On_Generate *****************************************
 Description : wxEVT_MENU handler for 'Generate'.
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.
@@ -174,7 +174,7 @@ void Config_Popup::On_Generate(class wxCommandEvent& Event)
 }
 /* End Function:Config_Popup::On_Generate ************************************/
 
-/* Begin Function:Config_Popup::On_Validate ***********************************
+/* Function:Config_Popup::On_Validate *****************************************
 Description : wxEVT_MENU handler for 'Validate'.
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.

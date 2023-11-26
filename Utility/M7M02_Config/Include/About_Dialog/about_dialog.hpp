@@ -6,36 +6,36 @@ License     : Proprietary; confidential.
 Description : About information dialog class file header.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
-#ifdef __HDR_DEFS__
-#ifndef __ABOUT_DIALOG_HPP_TYPES__
-#define __ABOUT_DIALOG_HPP_TYPES__
+/* Define ********************************************************************/
+#ifdef __HDR_DEF__
+#ifndef __ABOUT_DIALOG_TYPE__
+#define __ABOUT_DIALOG_TYPE__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __ABOUT_DIALOG_HPP_TYPES__ */
+/* __ABOUT_DIALOG_TYPE__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
 
 namespace RVM_CFG
 {
-#ifdef __HDR_DEFS__
-#ifndef __ABOUT_DIALOG_HPP_DEFS__
-#define __ABOUT_DIALOG_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __ABOUT_DIALOG_DEF__
+#define __ABOUT_DIALOG_DEF__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __ABOUT_DIALOG_HPP_DEFS__ */
+/* __ABOUT_DIALOG_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __ABOUT_DIALOG_HPP_CLASSES__
-#define __ABOUT_DIALOG_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __ABOUT_DIALOG_CLASS__
+#define __ABOUT_DIALOG_CLASS__
 /*****************************************************************************/
 class About_Dialog:public wxDialog
 {
@@ -55,9 +55,9 @@ public:
     void On_Confirm(class wxCommandEvent& Event);
 };
 /*****************************************************************************/
-/* __ABOUT_DIALOG_HPP_CLASSES__ */
+/* __ABOUT_DIALOG_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

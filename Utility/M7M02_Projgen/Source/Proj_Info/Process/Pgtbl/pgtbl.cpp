@@ -6,7 +6,7 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The page table class.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
+/* Include *******************************************************************/
 extern "C"
 {
 #include "xml.h"
@@ -19,20 +19,20 @@ extern "C"
 #include "vector"
 #include "stdexcept"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "rvm_gen.hpp"
 #include "Proj_Info/Process/Pgtbl/pgtbl.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_gen.hpp"
 #include "Proj_Info/Kobj/kobj.hpp"
 #include "Proj_Info/Process/Pgtbl/pgtbl.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_GEN
 {
-/* Begin Function:Pgtbl::Pgtbl ************************************************
+/* Function:Pgtbl::Pgtbl ******************************************************
 Description : Constructor for Pgtbl class.
 Input       : ptr_t Base - The base address.
               ptr_t Size_Order - The size order.

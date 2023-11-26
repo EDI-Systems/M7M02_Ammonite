@@ -6,25 +6,25 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The header for the project reader.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
+/* Define ********************************************************************/
 namespace RVM_GEN
 {
-#ifdef __HDR_DEFS__
-#ifndef __PROJ_INFO_HPP_DEFS__
-#define __PROJ_INFO_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __PROJ_INFO_DEF__
+#define __PROJ_INFO_DEF__
 /*****************************************************************************/
 #define RAW_CPT_SIZE(BITS,NUM)               ((BITS)/8*8*(NUM))
 /*****************************************************************************/
-/* __PROJ_INFO_HPP_DEFS__ */
+/* __PROJ_INFO_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __PROJ_INFO_HPP_CLASSES__
-#define __PROJ_INFO_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __PROJ_INFO_CLASS__
+#define __PROJ_INFO_CLASS__
 /*****************************************************************************/
 /* For parsing and storing project information */
 class Proj_Info
@@ -83,9 +83,9 @@ public:
     static ptr_t Flag_Alloc(ptr_t Source, ptr_t Wordlength, ptr_t Kom_Order);
 };
 /*****************************************************************************/
-/* __PROJ_INFO_HPP_CLASSES__ */
+/* __PROJ_INFO_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

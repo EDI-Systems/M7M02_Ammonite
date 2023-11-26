@@ -6,7 +6,7 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The project information main class.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
+/* Include *******************************************************************/
 extern "C"
 {
 #include "xml.h"
@@ -20,14 +20,14 @@ extern "C"
 #include "algorithm"
 #include "stdexcept"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "rvm_gen.hpp"
 #include "Proj_Info/proj_info.hpp"
 #include "Proj_Info/Process/process.hpp"
 #include "Mem_Info/mem_info.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_gen.hpp"
 #include "Proj_Info/proj_info.hpp"
 #include "Proj_Info/Chip/chip.hpp"
@@ -47,11 +47,11 @@ extern "C"
 #include "Proj_Info/Process/Virtual/virtual.hpp"
 #include "Mem_Info/mem_info.hpp"
 #include "Vect_Info/vect_info.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_GEN
 {
-/* Begin Function:Proj_Info::Proj_Info ****************************************
+/* Function:Proj_Info::Proj_Info **********************************************
 Description : Constructor for project information class.
 Input       : xml_node_t* Root - The node containing the whole project.
 Output      : None.
@@ -120,7 +120,7 @@ Return      : None.
 }
 /* End Function:Proj_Info::Proj_Info *****************************************/
 
-/* Begin Function:Proj_Info::Check ********************************************
+/* Function:Proj_Info::Check **************************************************
 Description : Check whether the project configuration makes sense.
 Input       : None.
 Output      : None.
@@ -179,7 +179,7 @@ void Proj_Info::Check(void)
 }
 /* End Function:Proj_Info::Check *********************************************/
 
-/* Begin Function:Proj_Info::Flag_Alloc ***************************************
+/* Function:Proj_Info::Flag_Alloc *********************************************
 Description : Allocate the memory for vector/event flags. Flags are always like
               struct Flag
               {

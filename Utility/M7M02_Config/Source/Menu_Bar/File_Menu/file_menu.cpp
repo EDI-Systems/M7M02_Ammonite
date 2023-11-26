@@ -6,10 +6,10 @@ License     : Proprietary; confidential.
 Description : File menu class implementation.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
-#define __HDR_DEFS__
+/* Include *******************************************************************/
+#define __HDR_DEF__
 #include "rvm_cfg.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
 #include "wx/wx.h"
 #include "wx/xml/xml.h"
@@ -23,18 +23,18 @@ Description : File menu class implementation.
 #include "map"
 #include "memory"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "Menu_Bar/File_Menu/file_menu.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_cfg.hpp"
 #include "Menu_Bar/File_Menu/file_menu.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_CFG
 {
-/* Begin Function:File_Menu::File_Menu ***************************************
+/* Function:File_Menu::File_Menu *********************************************
 Description : Constructor for file menu.
 Input       : None.
 Output      : None.
@@ -76,7 +76,7 @@ Return      : None.
 }
 /* End Function:File_Menu::File_Menu *****************************************/
 
-/* Begin Function:File_Menu::~File_Menu ***************************************
+/* Function:File_Menu::~File_Menu *********************************************
 Description : Destructor for file menu.
 Input       : None.
 Output      : None.
@@ -92,7 +92,7 @@ Return      : None.
 }
 /* End Function:File_Menu::~File_Menu ****************************************/
 
-/* Begin Function:File_Menu::State_Set ****************************************
+/* Function:File_Menu::State_Set **********************************************
 Description : Set the current UI state, and decide what controls are usable.
 Input       : ptr_t Type - The state type.
 Output      : None.
@@ -129,7 +129,7 @@ void File_Menu::State_Set(ptr_t Type)
 }
 /* End Function:File_Menu::State_Set *****************************************/
 
-/* Begin Function:File_Menu::On_New_Proj **************************************
+/* Function:File_Menu::On_New_Proj ********************************************
 Description : wxEVT_MENU handler for 'New Project'.
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.
@@ -155,7 +155,7 @@ void File_Menu::On_New_Proj(class wxCommandEvent& Event)
 }
 /* End Function:File_Menu::On_New_Proj ***************************************/
 
-/* Begin Function:File_Menu::On_Open_Proj *************************************
+/* Function:File_Menu::On_Open_Proj *******************************************
 Description : wxEVT_MENU handler for 'Open Project'. double click to open, etc.
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.
@@ -181,7 +181,7 @@ void File_Menu::On_Open_Proj(class wxCommandEvent& Event)
 }
 /* End Function:File_Menu::On_Open_Proj **************************************/
 
-/* Begin Function:File_Menu::On_Close_Proj ************************************
+/* Function:File_Menu::On_Close_Proj ******************************************
 Description : wxEVT_MENU handler for 'Close Project'.
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.
@@ -194,7 +194,7 @@ void File_Menu::On_Close_Proj(class wxCommandEvent& Event)
 }
 /* End Function:File_Menu::On_Close_File *************************************/
 
-/* Begin Function:File_Menu::On_Save_File *************************************
+/* Function:File_Menu::On_Save_File *******************************************
 Description : wxEVT_MENU handler for 'Save Project'.
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.
@@ -207,7 +207,7 @@ void File_Menu::On_Save_Proj(class wxCommandEvent& Event)
 }
 /* End Function:File_Menu::On_Save_File **************************************/
 
-/* Begin Function:File_Menu::On_Save_As ***************************************
+/* Function:File_Menu::On_Save_As *********************************************
 Description : wxEVT_MENU handler for 'Save As'.
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.

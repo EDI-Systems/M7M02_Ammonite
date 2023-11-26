@@ -6,10 +6,10 @@ License     : Proprietary; confidential.
 Description : Smart delay module writer class file header.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
-#ifdef __HDR_DEFS__
-#ifndef __RVM_CFG_HPP_TYPES__
-#define __RVM_CFG_HPP_TYPES__
+/* Define ********************************************************************/
+#ifdef __HDR_DEF__
+#ifndef __RVM_CFG_TYPE__
+#define __RVM_CFG_TYPE__
 /*****************************************************************************/
 typedef char                                s8_t;
 typedef short                               s16_t;
@@ -28,16 +28,16 @@ typedef s64_t                               ret_t;
 typedef u64_t                               ptr_t;
 typedef f64_t                               flt_t;
 /*****************************************************************************/
-/* __RVM_CFG_HPP_TYPES__ */
+/* __RVM_CFG_TYPE__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
 
 namespace RVM_CFG
 {
-#ifdef __HDR_DEFS__
-#ifndef __RVM_CFG_HPP_DEFS__
-#define __RVM_CFG_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __RVM_CFG_DEF__
+#define __RVM_CFG_DEF__
 /*****************************************************************************/
 /* Debugging mode */
 #ifndef __OPTIMIZE__
@@ -137,16 +137,16 @@ while(0)
 #define OPTIMIZATION_OF                     (4)
 #define OPTIMIZATION_OS                     (5)
 /*****************************************************************************/
-/* __RVM_CFG_HPP_DEFS__ */
+/* __RVM_CFG_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __RVM_CFG_HPP_CLASSES__
-#define __RVM_CFG_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __RVM_CFG_CLASS__
+#define __RVM_CFG_CLASS__
 /*****************************************************************************/
 class Main:public wxFrame
 {
@@ -256,7 +256,7 @@ public:
 #endif
 };
 
-/* Begin Template:Trunk_Load **************************************************
+/* Template:Trunk_Load ********************************************************
 Description : Load a trunk of data from XML. This is the base version.
 Input       : class wxXmlNode* Root - The root node for the elements.
               const std::string& Prefix - The expected prefix of the elements.
@@ -280,7 +280,7 @@ void Trunk_Load(class wxXmlNode* Root, const std::string& Prefix, std::vector<st
 }
 /* End Template:Trunk_Load ***************************************************/
 
-/* Begin Template:Trunk_Load **************************************************
+/* Template:Trunk_Load ********************************************************
 Description : Load a trunk of data from XML. This accepts a type into the constructor.
 Input       : class wxXmlNode* Root - The root node for the elements.
               const std::string& Prefix - The expected prefix of the elements.
@@ -305,7 +305,7 @@ void Trunk_Load(class wxXmlNode* Root, const std::string& Prefix, std::vector<st
 }
 /* End Template:Trunk_Load ***************************************************/
 
-/* Begin Template:Trunk_Load **************************************************
+/* Template:Trunk_Load ********************************************************
 Description : Load a trunk of data from XML. This accepts a type into the constructor,
               and allows construction of derived classes.
 Input       : class wxXmlNode* Root - The root node for the elements.
@@ -331,7 +331,7 @@ void Trunk_Load(class wxXmlNode* Root, const std::string& Prefix, std::vector<st
 }
 /* End Template:Trunk_Load ***************************************************/
 
-/* Begin Template:Trunk_Save **************************************************
+/* Template:Trunk_Save ********************************************************
 Description : Save a trunk of data to XML.
 Input       : class wxXmlNode* Root - The root node for the elements.
               const std::string& Prefix - The expected prefix of the elements.
@@ -355,9 +355,9 @@ void Trunk_Save(class wxXmlNode* Root, const std::string& Prefix, std::vector<st
 }
 /* End Template:Trunk_Save ***************************************************/
 /*****************************************************************************/
-/* __RVM_CFG_HPP_CLASSES__ */
+/* __RVM_CFG_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

@@ -6,7 +6,7 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : This toolset is for ARMCC, both v5 and v6; generates ARMCC linker scripts.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
+/* Include *******************************************************************/
 extern "C"
 {
 #include "xml.h"
@@ -20,14 +20,14 @@ extern "C"
 #include "stdexcept"
 #include "algorithm"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "rvm_gen.hpp"
 #include "Proj_Info/Process/process.hpp"
 #include "Gen_Tool/Tool_Gen/tool_gen.hpp"
 #include "Gen_Tool/Tool_Gen/ARMCC_Gen/armcc_gen.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_gen.hpp"
 #include "Plat_Info/plat_info.hpp"
 #include "Chip_Info/chip_info.hpp"
@@ -53,11 +53,11 @@ extern "C"
 #include "Gen_Tool/gen_tool.hpp"
 #include "Gen_Tool/Tool_Gen/tool_gen.hpp"
 #include "Gen_Tool/Tool_Gen/ARMCC_Gen/armcc_gen.hpp"
-#undef __HDR_STRUCTS__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_GEN
 {
-/* Begin Function:ARMCC_Gen::ARMCC_Gen ****************************************
+/* Function:ARMCC_Gen::ARMCC_Gen **********************************************
 Description : Generator for the ARMv7-M platform.
 Input       : class Proj_Info* Proj - The project information.
               class Plat_Info* Plat - The platform information.
@@ -79,7 +79,7 @@ Tool_Gen("ARMCC", Proj, Plat, Chip)
 }
 /* End Function:ARMCC_Gen::ARMCC_Gen *****************************************/
 
-/* Begin Function:ARMCC_Gen::Suffix *******************************************
+/* Function:ARMCC_Gen::Suffix *************************************************
 Description : Returns suffix for a given type of file.
 Input       : ptr_t Type - The file type.
 Output      : None.
@@ -96,7 +96,7 @@ std::string ARMCC_Gen::Suffix(ptr_t Type)
 }
 /* End Function:ARMCC_Gen::Suffix ********************************************/
 
-/* Begin Function:ARMCC_Gen::Kernel_Linker ************************************
+/* Function:ARMCC_Gen::Kernel_Linker ******************************************
 Description : Generate the RME linker script.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
@@ -113,11 +113,7 @@ void ARMCC_Gen::Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back(std::string(";              to be used with ")+this->Chip->Name+".");
     List->push_back(";******************************************************************************");
     List->push_back("");
-    List->push_back(";Begin Segment:KERNEL *********************************************************");
-    List->push_back(";Description : The kernel segment, this is where the kernel of the operating");
-    List->push_back(";              system is located at. This segment also contains the .bss(ZI)");
-    List->push_back(";              for processes.");
-    List->push_back(";******************************************************************************");
+    List->push_back(";Kernel ***********************************************************************");
     List->push_back(std::string("KERNEL 0x")+Main::Hex(this->Proj->Kernel->Code_Base)+" 0x"+Main::Hex(this->Proj->Kernel->Code_Size));
     List->push_back("{");
     List->push_back("    ;Kernel code segment");
@@ -153,15 +149,12 @@ void ARMCC_Gen::Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back("");
     List->push_back("    }");
     List->push_back("}");
-    List->push_back(";End Segment:KERNEL ***********************************************************");
+    List->push_back(";End Kernel *******************************************************************");
     List->push_back("");
     /* See if the kernel project needs to generate a full image */
     if(this->Proj->Kernel->Full_Image!=0)
     {
-        List->push_back(";Begin Segment:MONITOR ********************************************************");
-        List->push_back(";Description : The .text segment of process MONITOR, which is the first process");
-        List->push_back(";              in the system, and should act as a memory manager itself.");
-        List->push_back(";******************************************************************************");
+        List->push_back(";Monitor **********************************************************************");
         List->push_back(std::string("MONITOR 0x")+Main::Hex(this->Proj->Monitor->Code_Base)+" 0x"+Main::Hex(this->Proj->Monitor->Code_Size));
         List->push_back("{");
         List->push_back("    ;Monitor image");
@@ -170,15 +163,11 @@ void ARMCC_Gen::Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)
         List->push_back("        monitor_image.o                    (+RO)");
         List->push_back("    }");
         List->push_back("}");
-        List->push_back(";End Segment:MONITOR **********************************************************");
+        List->push_back(";End Monitor ******************************************************************");
         List->push_back("");
         for(const class Process* Prc:this->Proj->Monitor->Process)
         {
-            List->push_back(";Begin Segment:PROCESS ********************************************************");
-            List->push_back(";Description : The .text segment of the processes/VMs. All processes/VMs need ");
-            List->push_back(";to be placed here one by one; If you don't want to convert them to C and compile");
-            List->push_back(";to a whole image, flash them to this address.");
-            List->push_back(";******************************************************************************");
+            List->push_back(";Process **********************************************************************");
             List->push_back(Prc->Name_Upper+" 0x"+Main::Hex(Prc->Code_Base)+" 0x"+Main::Hex(Prc->Code_Size));
             List->push_back("{");
             List->push_back("    ;Process image");
@@ -187,7 +176,7 @@ void ARMCC_Gen::Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)
             List->push_back(std::string("        ")+Prc->Name_Lower+"_image.o                   (+RO)");
             List->push_back("    }");
             List->push_back("}");
-            List->push_back(";End Segment:PROCESS **********************************************************");
+            List->push_back(";End Process ******************************************************************");
             List->push_back("");
         }
     }
@@ -198,7 +187,7 @@ void ARMCC_Gen::Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)
 }
 /* End Function:ARMCC_Gen::Kernel_Linker *************************************/
 
-/* Begin Function:ARMCC_Gen::Monitor_Linker ***********************************
+/* Function:ARMCC_Gen::Monitor_Linker *****************************************
 Description : Generate the RVM linker script.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
@@ -215,9 +204,7 @@ void ARMCC_Gen::Monitor_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back(std::string(";              to be used with ")+this->Chip->Name+".");
     List->push_back(";******************************************************************************");
     List->push_back("");
-    List->push_back(";Begin Segment:MONITOR ********************************************************");
-    List->push_back(";Description : The init segment, which contains the core of the user-level library.");
-    List->push_back(";******************************************************************************");
+    List->push_back(";Monitor **********************************************************************");
     List->push_back(std::string("MONITOR 0x")+Main::Hex(this->Proj->Monitor->Code_Base)+" 0x"+Main::Hex(this->Proj->Monitor->Code_Size));
     List->push_back("{");
     List->push_back("    ;Monitor code segment");
@@ -243,7 +230,7 @@ void ARMCC_Gen::Monitor_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back("");
     List->push_back("    }");
     List->push_back("}");
-    List->push_back(";End Segment:MONITOR **********************************************************");
+    List->push_back(";End Monitor ******************************************************************");
     List->push_back("");
     List->push_back(";End Of File ******************************************************************");
     List->push_back("");
@@ -252,7 +239,7 @@ void ARMCC_Gen::Monitor_Linker(std::unique_ptr<std::vector<std::string>>& List)
 }
 /* End Function:ARMCC_Gen::Monitor_Linker ************************************/
 
-/* Begin Function:ARMCC_Gen::Process_Linker ***********************************
+/* Function:ARMCC_Gen::Process_Linker *****************************************
 Description : Generate the process linker script.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
               const class Process* Prc - The process to generate for.
@@ -280,9 +267,7 @@ void ARMCC_Gen::Process_Linker(std::unique_ptr<std::vector<std::string>>& List,
     List->push_back(std::string(";              to be used with ")+this->Chip->Name+".");
     List->push_back(";******************************************************************************");
     List->push_back("");
-    List->push_back(";Begin Segment:DESC ***********************************************************");
-    List->push_back(";Description : The process header segment that describe process info.");
-    List->push_back(";******************************************************************************");
+    List->push_back(";Descriptor *******************************************************************");
     List->push_back(std::string("DESC 0x")+Main::Hex(Prc->Code_Base)+" 0x"+Main::Hex(Header_Size));
     List->push_back("{");
     List->push_back("    ;Process header segment");
@@ -292,11 +277,9 @@ void ARMCC_Gen::Process_Linker(std::unique_ptr<std::vector<std::string>>& List,
     List->push_back(std::string("        prc_")+Prc->Name_Lower+"_desc.o         (+RO)");
     List->push_back("    }");
     List->push_back("}");
-    List->push_back(";End Segment:DESC *************************************************************");
+    List->push_back(";End Descriptor ***************************************************************");
     List->push_back("");
-    List->push_back(";Begin Segment:PROCESS ********************************************************");
-    List->push_back(";Description : The process segment, where the process executable is located at.");
-    List->push_back(";******************************************************************************");
+    List->push_back(";Process **********************************************************************");
     List->push_back(std::string("PROCESS 0x")+Main::Hex(Prc->Code_Front)+" 0x"+Main::Hex(Real_Code_Size));
     List->push_back("{");
     List->push_back("    ;Process code segment");
@@ -328,7 +311,7 @@ void ARMCC_Gen::Process_Linker(std::unique_ptr<std::vector<std::string>>& List,
     List->push_back("");
     List->push_back("    }");
     List->push_back("}");
-    List->push_back(";End Segment:PROCESS **********************************************************");
+    List->push_back(";End Process ******************************************************************");
     List->push_back("");
     List->push_back(";End Of File ******************************************************************");
     List->push_back("");

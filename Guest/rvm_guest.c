@@ -6,15 +6,15 @@ Licence     : The Unlicense; see LICENSE for details.
 Description : The functionality wrapper for guests.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
+/* Include *******************************************************************/
 #include "rvm.h"
 
-#define __HDR_PRIVATE_MEMBERS__
+#define __HDR_PRIVATE__
 #include "rvm_guest.h"
-#undef __HDR_PRIVATE_MEMBERS__
-/* End Includes **************************************************************/
+#undef __HDR_PRIVATE__
+/* End Include ***************************************************************/
 
-/* Begin Function:RVM_Clear ***************************************************
+/* Function:RVM_Clear *********************************************************
 Description : Memset a memory area to zero. This is not fast due to byte operations;
               this is not meant for large memory.
 Input       : volatile void* Addr - The address to clear.
@@ -32,7 +32,7 @@ void RVM_Clear(volatile void* Addr,
 }
 /* End Function:RVM_Clear ****************************************************/
 
-/* Begin Function:RVM_List_Crt ************************************************
+/* Function:RVM_List_Crt ******************************************************
 Description : Create a doubly-linked list.
 Input       : struct RVM_List* Head - The pointer to the list head.
 Output      : None.
@@ -45,7 +45,7 @@ void RVM_List_Crt(struct RVM_List* Head)
 }
 /* End Function:RVM_List_Crt *************************************************/
 
-/* Begin Function:RVM_List_Del ************************************************
+/* Function:RVM_List_Del ******************************************************
 Description : Delete a node from the doubly-linked list.
 Input       : struct RVM_List* Prev - The prevoius node of the target node.
               struct RVM_List* Next - The next node of the target node.
@@ -60,7 +60,7 @@ void RVM_List_Del(struct RVM_List* Prev,
 }
 /* End Function:RVM_List_Del *************************************************/
 
-/* Begin Function:RVM_List_Ins ************************************************
+/* Function:RVM_List_Ins ******************************************************
 Description : Insert a node to the doubly-linked list.
 Input       : struct RVM_List* New - The new node to insert.
               struct RVM_List* Prev - The previous node.
@@ -79,7 +79,7 @@ void RVM_List_Ins(struct RVM_List* New,
 }
 /* End Function:RVM_List_Ins *************************************************/
 
-/* Begin Function:RVM_Int_Print ***********************************************
+/* Function:RVM_Int_Print *****************************************************
 Description : Print a signed integer on the debugging console. This integer is
               printed as decimal with sign.
 Input       : rvm_cnt_t Int - The integer to print.
@@ -157,7 +157,7 @@ rvm_cnt_t RVM_Int_Print(rvm_cnt_t Int)
 #endif
 /* End Function:RVM_Int_Print ************************************************/
 
-/* Begin Function:RVM_Hex_Print ***********************************************
+/* Function:RVM_Hex_Print *****************************************************
 Description : Print a unsigned integer on the debugging console. This integer is
               printed as hexadecimal.
 Input       : rvm_ptr_t Uint - The unsigned integer to print.
@@ -206,7 +206,7 @@ rvm_cnt_t RVM_Hex_Print(rvm_ptr_t Uint)
 #endif
 /* End Function:RVM_Hex_Print ************************************************/
 
-/* Begin Function:RVM_Str_Print ***********************************************
+/* Function:RVM_Str_Print *****************************************************
 Description : Print a string on the debugging console.
               This is only used for user-level debugging.
 Input       : rvm_s8_t* String - The string to print.
@@ -231,7 +231,7 @@ rvm_cnt_t RVM_Str_Print(rvm_s8_t* String)
 #endif
 /* End Function:RVM_Str_Print ************************************************/
 
-/* Begin Function:RVM_Cpt_Crt *************************************************
+/* Function:RVM_Cpt_Crt *******************************************************
 Description : Create a capability table.
 Input       : rvm_cid_t Cap_Cpt_Crt - The capability table that contains the 
                                       newly created cap to captbl.
@@ -264,7 +264,7 @@ rvm_ret_t RVM_Cpt_Crt(rvm_cid_t Cap_Cpt_Crt,
 #endif
 /* End Function:RVM_Cpt_Crt **************************************************/
 
-/* Begin Function:RVM_Cpt_Del *************************************************
+/* Function:RVM_Cpt_Del *******************************************************
 Description : Delete a layer of capability table. The table will be deleted
               regardless of whether there are still capabilities in it.
 Input       : rvm_cid_t Cap_Cpt_Del - The capability table that contains the
@@ -289,7 +289,7 @@ rvm_ret_t RVM_Cpt_Del(rvm_cid_t Cap_Cpt_Del,
 #endif
 /* End Function:RVM_Cpt_Del **************************************************/
 
-/* Begin Function:RVM_Cpt_Frz *************************************************
+/* Function:RVM_Cpt_Frz *******************************************************
 Description : Freeze a capability in the capability table.
 Input       : rvm_cid_t Cap_Cpt_Frz  - The capability table containing the cap
                                        to captbl for this operation.
@@ -312,7 +312,7 @@ rvm_ret_t RVM_Cpt_Frz(rvm_cid_t Cap_Cpt_Frz,
 #endif
 /* End Function:RVM_Cpt_Frz **************************************************/
 
-/* Begin Function:RVM_Cpt_Add *************************************************
+/* Function:RVM_Cpt_Add *******************************************************
 Description : Delegate capability from one capability table to another. This
               function should only be used to delegate capabilities other than
               kernel memory, kernel function and page tables.
@@ -347,7 +347,7 @@ rvm_ret_t RVM_Cpt_Add(rvm_cid_t Cap_Cpt_Dst,
 #endif
 /* End Function:RVM_Cpt_Add **************************************************/
 
-/* Begin Function:RVM_Cpt_Pgt *************************************************
+/* Function:RVM_Cpt_Pgt *******************************************************
 Description : Delegate capability from one capability table to another. This
               function should only be used to delegate page tables.
 Input       : rvm_cid_t Cap_Cpt_Dst - The capability to the destination
@@ -385,7 +385,7 @@ rvm_ret_t RVM_Cpt_Pgt(rvm_cid_t Cap_Cpt_Dst,
 #endif
 /* End Function:RVM_Cpt_Pgt **************************************************/
 
-/* Begin Function:RVM_Cpt_Kfn *************************************************
+/* Function:RVM_Cpt_Kfn *******************************************************
 Description : Delegate capability from one capability table to another. This
               function should only be used to delegate kernel functions.
 Input       : rvm_cid_t Cap_Cpt_Dst - The capability to the destination 
@@ -421,7 +421,7 @@ rvm_ret_t RVM_Cpt_Kfn(rvm_cid_t Cap_Cpt_Dst,
 #endif
 /* End Function:RVM_Cpt_Kfn **************************************************/
 
-/* Begin Function:RVM_Cpt_Kom *************************************************
+/* Function:RVM_Cpt_Kom *******************************************************
 Description : Delegate capability from one capability table to another. This
               function should only be used to delegate kernel object memories.
 Input       : rvm_cid_t Cap_Cpt_Dst - The capability to the destination 
@@ -461,7 +461,7 @@ rvm_ret_t RVM_Cpt_Kom(rvm_cid_t Cap_Cpt_Dst,
 #endif
 /* End Function:RVM_Cpt_Kom **************************************************/
 
-/* Begin Function:RVM_Cpt_Rem *************************************************
+/* Function:RVM_Cpt_Rem *******************************************************
 Description : Remove one capability from the capability table. This function
               reverts the delegation.
 Input       : rvm_cid_t Cap_Cpt_Rem - The capability to the capability table to
@@ -485,7 +485,7 @@ rvm_ret_t RVM_Cpt_Rem(rvm_cid_t Cap_Cpt_Rem,
 #endif
 /* End Function:_RVM_Cpt_Rem *************************************************/
 
-/* Begin Function:RVM_Pgt_Crt *************************************************
+/* Function:RVM_Pgt_Crt *******************************************************
 Description : Create a page table.
 Input       : rvm_cid_t Cap_Cpt - The capability table that contains the newly
                                   created cap to pgtbl.
@@ -530,7 +530,7 @@ rvm_ret_t RVM_Pgt_Crt(rvm_cid_t Cap_Cpt,
 #endif
 /* End Function:RVM_Pgt_Crt **************************************************/
 
-/* Begin Function:RVM_Pgt_Del *************************************************
+/* Function:RVM_Pgt_Del *******************************************************
 Description : Delete a page table.
 Input       : rvm_cid_t Cap_Cpt - The capability to the captbl that may contain
                                   the cap to new captbl.
@@ -554,7 +554,7 @@ rvm_ret_t RVM_Pgt_Del(rvm_cid_t Cap_Cpt,
 #endif
 /* End Function:RVM_Pgt_Del **************************************************/
 
-/* Begin Function:RVM_Pgt_Add *************************************************
+/* Function:RVM_Pgt_Add *******************************************************
 Description : Delegate a page from one page table to another. This is the only
               way to add pages to new page tables after the system boots.
 Input       : rvm_cid_t Cap_Pgt_Dst - The capability to the destination page
@@ -597,7 +597,7 @@ rvm_ret_t RVM_Pgt_Add(rvm_cid_t Cap_Pgt_Dst,
 #endif
 /* End Function:RVM_Pgt_Add **************************************************/
 
-/* Begin Function:RVM_Pgt_Rem *************************************************
+/* Function:RVM_Pgt_Rem *******************************************************
 Description : Remove a page from the page table. We are doing unmapping of a
               page.
 Input       : rvm_cid_t Cap_Pgt - The capability to the page table.
@@ -619,7 +619,7 @@ rvm_ret_t RVM_Pgt_Rem(rvm_cid_t Cap_Pgt,
 #endif
 /* End Function:RVM_Pgt_Rem **************************************************/
 
-/* Begin Function:RVM_Pgt_Con *************************************************
+/* Function:RVM_Pgt_Con *******************************************************
 Description : Map a child page table into the parent page table, to construct
               an address space tree.
 Input       : rvm_cid_t Cap_Pgt_Parent - The capability to the parent page 
@@ -648,7 +648,7 @@ rvm_ret_t RVM_Pgt_Con(rvm_cid_t Cap_Pgt_Parent,
 #endif
 /* End Function:RVM_Pgt_Con **************************************************/
 
-/* Begin Function:RVM_Pgt_Des *************************************************
+/* Function:RVM_Pgt_Des *******************************************************
 Description : Unmap a child page table from the parent page table, destructing
               the address space tree.
 Input       : rvm_cid_t Cap_Pgt_Parent - The capability to the parent page
@@ -676,7 +676,7 @@ rvm_ret_t RVM_Pgt_Des(rvm_cid_t Cap_Pgt_Parent,
 #endif
 /* End Function:RVM_Pgt_Des **************************************************/
 
-/* Begin Function:RVM_Prc_Crt *************************************************
+/* Function:RVM_Prc_Crt *******************************************************
 Description : Create a process. A process is in fact a protection domain
               associated with a set of capabilities.
 Input       : rvm_cid_t Cap_Cpt_Crt - The capability to the capability table to
@@ -709,7 +709,7 @@ rvm_ret_t RVM_Prc_Crt(rvm_cid_t Cap_Cpt_Crt,
 #endif
 /* End Function:RVM_Prc_Crt **************************************************/
 
-/* Begin Function:RVM_Prc_Del *************************************************
+/* Function:RVM_Prc_Del *******************************************************
 Description : Delete a process.
 Input       : rvm_cid_t Cap_Cpt - The capability to the capability table.
                                   2-Level.
@@ -730,7 +730,7 @@ rvm_ret_t RVM_Prc_Del(rvm_cid_t Cap_Cpt,
 #endif
 /* End Function:RVM_Prc_Del **************************************************/
 
-/* Begin Function:RVM_Prc_Cpt *************************************************
+/* Function:RVM_Prc_Cpt *******************************************************
 Description : Change a process's capability table.
 Input       : rvm_cid_t Cap_Prc - The capability to the process that have been
                                   created already.
@@ -754,7 +754,7 @@ rvm_ret_t RVM_Prc_Cpt(rvm_cid_t Cap_Prc,
 #endif
 /* End Function:RVM_Prc_Cpt **************************************************/
 
-/* Begin Function:RVM_Prc_Pgt *************************************************
+/* Function:RVM_Prc_Pgt *******************************************************
 Description : Change a process's page table.
 Input       : rvm_cid_t Cap_Prc - The capability to the process that have been
                                   created already.
@@ -778,7 +778,7 @@ rvm_ret_t RVM_Prc_Pgt(rvm_cid_t Cap_Prc,
 #endif
 /* End Function:RVM_Prc_Pgt **************************************************/
 
-/* Begin Function:RVM_Thd_Crt *************************************************
+/* Function:RVM_Thd_Crt *******************************************************
 Description : Create a thread. A thread is the minimal kernel-level execution
               unit.
 Input       : rvm_cid_t Cap_Cpt - The capability to the capability table.
@@ -816,7 +816,7 @@ rvm_ret_t RVM_Thd_Crt(rvm_cid_t Cap_Cpt,
 #endif
 /* End Function:RVM_Thd_Crt **************************************************/
 
-/* Begin Function:RVM_Hyp_Crt *************************************************
+/* Function:RVM_Hyp_Crt *******************************************************
 Description : Create a hypervisor-managed thread. A thread is the minimal
               kernel-level execution unit.
 Input       : rvm_cid_t Cap_Cpt - The capability to the capability table.
@@ -854,7 +854,7 @@ rvm_ret_t RVM_Hyp_Crt(rvm_cid_t Cap_Cpt,
 #endif
 /* End Function:RVM_Hyp_Crt **************************************************/
 
-/* Begin Function:RVM_Thd_Del *************************************************
+/* Function:RVM_Thd_Del *******************************************************
 Description : Delete a thread.
 Input       : rvm_cid_t Cap_Cpt - The capability to the capability table.
                                   2-Level.
@@ -876,7 +876,7 @@ rvm_ret_t RVM_Thd_Del(rvm_cid_t Cap_Cpt,
 #endif
 /* End Function:RVM_Thd_Del **************************************************/
 
-/* Begin Function:RVM_Thd_Exec_Set ********************************************
+/* Function:RVM_Thd_Exec_Set **************************************************
 Description : Set a thread's entry point and stack. The registers will be
               initialized with these contents.
 Input       : rvm_cid_t Cap_Thd - The capability to the thread.
@@ -902,7 +902,7 @@ rvm_ret_t RVM_Thd_Exec_Set(rvm_cid_t Cap_Thd,
 #endif
 /* End Function:RVM_Thd_Exec_Set *********************************************/
 
-/* Begin Function:RVM_Thd_Sched_Bind ******************************************
+/* Function:RVM_Thd_Sched_Bind ************************************************
 Description : Set a thread's priority level, and its scheduler thread. When
               there are any state changes on this thread, a notification will
               be sent to its scheduler thread. If the state of the thread
@@ -948,7 +948,7 @@ rvm_ret_t RVM_Thd_Sched_Bind(rvm_cid_t Cap_Thd,
 #endif
 /* End Function:RVM_Thd_Sched_Bind *******************************************/
 
-/* Begin Function:RVM_Hyp_Sched_Bind ******************************************
+/* Function:RVM_Hyp_Sched_Bind ************************************************
 Description : Set a thread's priority level, and its scheduler thread. When
               there are any state changes on this thread, a notification will
               be sent to its scheduler thread. If the state of the thread
@@ -1001,7 +1001,7 @@ rvm_ret_t RVM_Hyp_Sched_Bind(rvm_cid_t Cap_Thd,
 #endif
 /* End Function:RVM_Hyp_Sched_Bind *******************************************/
 
-/* Begin Function:RVM_Thd_Sched_Prio ******************************************
+/* Function:RVM_Thd_Sched_Prio ************************************************
 Description : Change a thread's priority level. This can only be called from
               the core that has the thread binded. Single thread version.
               This system call can cause a potential context switch.
@@ -1026,7 +1026,7 @@ rvm_ret_t RVM_Thd_Sched_Prio(rvm_cid_t Cap_Thd,
 #endif
 /* End Function:RVM_Thd_Sched_Prio *******************************************/
 
-/* Begin Function:RVM_Thd_Sched_Prio2 *****************************************
+/* Function:RVM_Thd_Sched_Prio2 ***********************************************
 Description : Change a thread's priority level. This can only be called from
               the core that has the thread binded. Double thread version.
               This system call can cause a potential context switch.
@@ -1056,7 +1056,7 @@ rvm_ret_t RVM_Thd_Sched_Prio2(rvm_cid_t Cap_Thd0,
 #endif
 /* End Function:RVM_Thd_Sched_Prio2 ******************************************/
 
-/* Begin Function:RVM_Thd_Sched_Prio3 *****************************************
+/* Function:RVM_Thd_Sched_Prio3 ***********************************************
 Description : Change a thread's priority level. This can only be called from
               the core that has the thread binded. Triple thread version.
               This system call can cause a potential context switch.
@@ -1091,7 +1091,7 @@ rvm_ret_t RVM_Thd_Sched_Prio3(rvm_cid_t Cap_Thd0,
 #endif
 /* End Function:RVM_Thd_Sched_Prio3 ******************************************/
 
-/* Begin Function:RVM_Thd_Sched_Free ******************************************
+/* Function:RVM_Thd_Sched_Free ************************************************
 Description : Free a thread from its current binding. This function can only be
               executed from the same core on with the thread.
               This system call can cause a potential context switch.
@@ -1112,7 +1112,7 @@ rvm_ret_t RVM_Thd_Sched_Free(rvm_cid_t Cap_Thd)
 #endif
 /* End Function:RVM_Thd_Sched_Free *******************************************/
 
-/* Begin Function:_RME_Thd_Sched_Rcv ******************************************
+/* Function:_RME_Thd_Sched_Rcv ************************************************
 Description : Try to receive a notification from the scheduler queue. This
               can only be called from the same core the thread is on, and is
               always non-blocking.
@@ -1137,7 +1137,7 @@ rvm_ret_t RVM_Thd_Sched_Rcv(rvm_cid_t Cap_Thd)
 #endif
 /* End Function:_RME_Thd_Sched_Rcv *******************************************/
 
-/* Begin Function:RVM_Thd_Time_Xfer *******************************************
+/* Function:RVM_Thd_Time_Xfer *************************************************
 Description : Transfer time from one thread to another. This can only be called
               from the core that the thread is on, and the the two threads
               involved in the time transfer must be on the same core.
@@ -1177,7 +1177,7 @@ rvm_ret_t RVM_Thd_Time_Xfer(rvm_cid_t Cap_Thd_Dst,
 #endif
 /* End Function:RVM_Thd_Time_Xfer ********************************************/
 
-/* Begin Function:RVM_Thd_Swt *************************************************
+/* Function:RVM_Thd_Swt *******************************************************
 Description : Switch to another thread. The thread to switch to must have the
               same preemptive priority as this thread, and have time, and not
               blocked.
@@ -1205,7 +1205,7 @@ rvm_ret_t RVM_Thd_Swt(rvm_cid_t Cap_Thd,
 #endif
 /* End Function:RVM_Thd_Swt **************************************************/
 
-/* Begin Function:RVM_Sig_Crt *************************************************
+/* Function:RVM_Sig_Crt *******************************************************
 Description : Create a signal endpoint.
 Input       : rvm_cid_t Cap_Cpt - The capability to the capability table to use
                                   for this signal.
@@ -1229,7 +1229,7 @@ rvm_ret_t RVM_Sig_Crt(rvm_cid_t Cap_Cpt,
 #endif
 /* End Function:RVM_Sig_Crt **************************************************/
 
-/* Begin Function:RVM_Sig_Del *************************************************
+/* Function:RVM_Sig_Del *******************************************************
 Description : Delete a signal endpoint.
 Input       : rvm_cid_t Cap_Cpt - The capability to the capability table to
                                   delete from.
@@ -1252,7 +1252,7 @@ rvm_ret_t RVM_Sig_Del(rvm_cid_t Cap_Cpt,
 #endif
 /* End Function:RVM_Sig_Del **************************************************/
 
-/* Begin Function:RVM_Sig_Snd ************************************************
+/* Function:RVM_Sig_Snd ******************************************************
 Description : Try to send to a signal endpoint. This system call can cause
               a potential context switch.
 Input       : rvm_cid_t Cap_Sig - The capability to the signal.
@@ -1270,7 +1270,7 @@ rvm_ret_t RVM_Sig_Snd(rvm_cid_t Cap_Sig)
 }
 /* End Function:RVM_Sig_Snd **************************************************/
 
-/* Begin Function:RVM_Sig_Rcv *************************************************
+/* Function:RVM_Sig_Rcv *******************************************************
 Description : Try to receive from a signal endpoint. The rules for signal
               endpoint receive is:
               1.If a receive endpoint have many send endpoints, everyone can
@@ -1298,7 +1298,7 @@ rvm_ret_t RVM_Sig_Rcv(rvm_cid_t Cap_Sig,
 }
 /* End Function:RVM_Sig_Rcv **************************************************/
 
-/* Begin Function:RVM_Inv_Crt *************************************************
+/* Function:RVM_Inv_Crt *******************************************************
 Description : Create a invocation stub.
 Input       : rvm_cid_t Cap_Cpt - The capability to the capability table to use
                                   for this process.
@@ -1329,7 +1329,7 @@ rvm_ret_t RVM_Inv_Crt(rvm_cid_t Cap_Cpt,
 #endif
 /* End Function:RVM_Inv_Crt **************************************************/
 
-/* Begin Function:RVM_Inv_Del *************************************************
+/* Function:RVM_Inv_Del *******************************************************
 Description : Delete an invocation stub.
 Input       : rvm_cid_t Cap_Cpt - The capability to the capability table to
                                   delete from.
@@ -1352,7 +1352,7 @@ rvm_ret_t RVM_Inv_Del(rvm_cid_t Cap_Cpt,
 #endif
 /* End Function:RVM_Inv_Del **************************************************/
 
-/* Begin Function:RVM_Inv_Set *************************************************
+/* Function:RVM_Inv_Set *******************************************************
 Description : Set an invocation stub's entry point and stack. The registers
               will be initialized with these contents.
 Input       : rvm_cid_t Cap_Inv - The capability to the invocation stub.
@@ -1381,7 +1381,7 @@ rvm_ret_t RVM_Inv_Set(rvm_cid_t Cap_Inv,
 #endif
 /* End Function:RVM_Inv_Set **************************************************/
 
-/* Begin Function:RVM_Kfn_Act *************************************************
+/* Function:RVM_Kfn_Act *******************************************************
 Description : Activate a kernel function.
 Input       : rvm_cid_t Cap_Kfn - The capability to the kernel capability.
                                   2-Level.
@@ -1412,7 +1412,7 @@ rvm_ret_t RVM_Kfn_Act(rvm_cid_t Cap_Kfn,
 }
 /* End Function:RVM_Kfn_Act **************************************************/
 
-/* Begin Function:RVM_Prc_Evt_Snd *********************************************
+/* Function:RVM_Prc_Evt_Snd ***************************************************
 Description : Send to an event source from a process.
 Input       : rvm_ptr_t Evt_Num - The number to send to.
 Output      : None.
@@ -1426,7 +1426,7 @@ rvm_ret_t RVM_Prc_Evt_Snd(rvm_ptr_t Evt_Num)
 #endif
 /* End Function:RVM_Prc_Evt_Snd **********************************************/
 
-/* Begin Function:RVM_Virt_Init ***********************************************
+/* Function:RVM_Virt_Init *****************************************************
 Description : Initialize virtual machine related RVM library.
 Input       : None
 Output      : None.
@@ -1446,7 +1446,7 @@ void RVM_Virt_Init(void)
 #endif
 /* End Function:RVM_Virt_Init ************************************************/
 
-/* Begin Function:RVM_Virt_Vct_Reg *******************************************
+/* Function:RVM_Virt_Vct_Reg *************************************************
 Description : Initialize an interrupt handler.
 Input       : rvm_ptr_t Num - The vector number to register for.
               void (*Vct)(void) - The actual vector handler, should take no
@@ -1467,7 +1467,7 @@ rvm_ret_t RVM_Virt_Vct_Reg(rvm_ptr_t Vect_Num,
 #endif
 /* End Function:RVM_Virt_Vct_Reg *********************************************/
 
-/* Begin Function:RVM_Virt_Tim_Reg ********************************************
+/* Function:RVM_Virt_Tim_Reg **************************************************
 Description : Register special timer interrupt handler.
 Input       : void (*Tim)(void) - The timer interrupt vector handler.
 Output      : None.
@@ -1481,7 +1481,7 @@ void RVM_Virt_Tim_Reg(void (*Tim)(void))
 #endif
 /* End Function:RVM_Virt_Tim_Reg *********************************************/
 
-/* Begin Function:RVM_Virt_Ctx_Reg ********************************************
+/* Function:RVM_Virt_Ctx_Reg **************************************************
 Description : Register special context switch interrupt handler.
 Input       : void (*Ctx)(void) - The context switch interrupt vector handler.
 Output      : None.
@@ -1495,7 +1495,7 @@ void RVM_Virt_Ctx_Reg(void (*Ctx)(void))
 #endif
 /* End Function:RVM_Virt_Ctx_Reg *********************************************/
 
-/* Begin Function:RVM_Virt_Int_Mask *******************************************
+/* Function:RVM_Virt_Int_Mask *************************************************
 Description : Mask interrupts; this does not stop the interrupt delivery, but will
               postpone the processing until we unmask them.
 Input       : None.
@@ -1510,7 +1510,7 @@ void RVM_Virt_Int_Mask(void)
 #endif
 /* End Function:RVM_Virt_Int_Mask ********************************************/
 
-/* Begin Function:RVM_Virt_Int_Unmask *****************************************
+/* Function:RVM_Virt_Int_Unmask ***********************************************
 Description : Unmask pending interrupts so we can process them.
 Input       : None.
 Output      : None.
@@ -1530,7 +1530,7 @@ void RVM_Virt_Int_Unmask(void)
 #endif
 /* End Function:RVM_Virt_Int_Unmask ******************************************/
 
-/* Begin Function:RVM_Virt_Yield **********************************************
+/* Function:RVM_Virt_Yield ****************************************************
 Description : Yield the current thread by triggering the context switch endpoint.
 Input       : None.
 Output      : None.
@@ -1554,7 +1554,7 @@ void RVM_Virt_Yield(void)
 #endif
 /* End Function:RVM_Virt_Yield ***********************************************/
 
-/* Begin Function:RVM_Hyp *****************************************************
+/* Function:RVM_Hyp ***********************************************************
 Description : Do a hypercall to the virtual machine.
 Input       : rvm_ptr_t Number - The hypercall number.
               rvm_ptr_t Param1 - The first parameter.
@@ -1596,7 +1596,7 @@ rvm_ret_t RVM_Hyp(rvm_ptr_t Number,
 #endif
 /* End Function:RVM_Hyp ******************************************************/
 
-/* Begin Function:RVM_Hyp_Putchar *********************************************
+/* Function:RVM_Hyp_Putchar ***************************************************
 Description : Print one character to the RVM debug console.
 Input       : char Char - The character.
 Output      : None.
@@ -1613,7 +1613,7 @@ void RVM_Hyp_Putchar(char Char)
 #endif
 /* End Function:RVM_Hyp_Putchar **********************************************/
 
-/* Begin Function:RVM_Hyp_Int_Ena *********************************************
+/* Function:RVM_Hyp_Int_Ena ***************************************************
 Description : Enable interrupts. This must be successful so it does not have
               a return value.
 Input       : None.
@@ -1630,7 +1630,7 @@ void RVM_Hyp_Int_Ena(void)
 #endif
 /* End Function:RVM_Hyp_Int_Ena **********************************************/
 
-/* Begin Function:RVM_Hyp_Int_Dis *********************************************
+/* Function:RVM_Hyp_Int_Dis ***************************************************
 Description : Disable interrupts. This must be successful so it does not have
               a return value.
 Input       : None.
@@ -1647,7 +1647,7 @@ void RVM_Hyp_Int_Dis(void)
 #endif
 /* End Function:RVM_Hyp_Int_Dis **********************************************/
 
-/* Begin Function:RVM_Hyp_Vct_Phys ********************************************
+/* Function:RVM_Hyp_Vct_Phys **************************************************
 Description : Register the virtual machine's virtual vector with a physical vector.
 Input       : rvm_ptr_t Phys_Num - The physical vector number.
               rvm_ptr_t Vct_Num - The virtual vector number.
@@ -1663,7 +1663,7 @@ rvm_ret_t RVM_Hyp_Vct_Phys(rvm_ptr_t Phys_Num,
 #endif
 /* End Function:RVM_Hyp_Vct_Phys *********************************************/
 
-/* Begin Function:RVM_Hyp_Vct_Evt *********************************************
+/* Function:RVM_Hyp_Vct_Evt ***************************************************
 Description : Register the virtual machine's virtual vector with an event channel.
 Input       : rvm_ptr_t Evt_Num - The event number.
               rvm_ptr_t Vct_Num - The virtual vector number.
@@ -1679,7 +1679,7 @@ rvm_ret_t RVM_Hyp_Vct_Evt(rvm_ptr_t Evt_Num,
 #endif
 /* End Function:RVM_Hyp_Vct_Evt **********************************************/
 
-/* Begin Function:RVM_Hyp_Vct_Del *********************************************
+/* Function:RVM_Hyp_Vct_Del ***************************************************
 Description : Deregister the vector of an virtual machine.
 Input       : rvm_ptr_t Vct_Num - The virtual vector to deregister.
 Output      : None.
@@ -1693,7 +1693,7 @@ rvm_ret_t RVM_Hyp_Vct_Del(rvm_ptr_t Vect_Num)
 #endif
 /* End Function:RVM_Hyp_Vct_Del **********************************************/
 
-/* Begin Function:RVM_Hyp_Evt_Add *********************************************
+/* Function:RVM_Hyp_Evt_Add ***************************************************
 Description : Add a event source's send capability to virtual machine.
 Input       : rvm_ptr_t Evt_Num - The event souce to register.
 Output      : None.
@@ -1707,7 +1707,7 @@ rvm_ret_t RVM_Hyp_Evt_Add(rvm_ptr_t Evt_Num)
 #endif
 /* End Function:RVM_Hyp_Evt_Add **********************************************/
 
-/* Begin Function:RVM_Hyp_Evt_Del *********************************************
+/* Function:RVM_Hyp_Evt_Del ***************************************************
 Description : Delete a event source's send capability from virtual machine.
 Input       : rvm_ptr_t Evt_Num - The event souce to deregister.
 Output      : None.
@@ -1721,7 +1721,7 @@ rvm_ret_t RVM_Hyp_Evt_Del(rvm_ptr_t Evt_Num)
 #endif
 /* End Function:RVM_Hyp_Evt_Del **********************************************/
 
-/* Begin Function:RVM_Hyp_Vct_Lck *********************************************
+/* Function:RVM_Hyp_Vct_Lck ***************************************************
 Description : Lockdown the vector mappings in the virtual machine so that it cannot
               be edited in the future.
 Input       : None.
@@ -1736,7 +1736,7 @@ rvm_ret_t RVM_Hyp_Vct_Lck(void)
 #endif
 /* End Function:RVM_Hyp_Vct_Lck **********************************************/
 
-/* Begin Function:RVM_Hyp_Vct_Wait ********************************************
+/* Function:RVM_Hyp_Vct_Wait **************************************************
 Description : Set the virtual machine to sleep until a vector comes in.
 Input       : None.
 Output      : None.
@@ -1750,7 +1750,7 @@ rvm_ret_t RVM_Hyp_Vct_Wait(void)
 #endif
 /* End Function:RVM_Hyp_Vct_Wait *********************************************/
 
-/* Begin Function:RVM_Hyp_Evt_Snd *********************************************
+/* Function:RVM_Hyp_Evt_Snd ***************************************************
 Description : Send an event to the event channel.
 Input       : rvm_ptr_t Evt_Num - The event channel ID.
 Output      : None.
@@ -1764,7 +1764,7 @@ rvm_ret_t RVM_Hyp_Evt_Snd(rvm_ptr_t Evt_Num)
 #endif
 /* End Function:RVM_Hyp_Evt_Snd **********************************************/
 
-/* Begin Function:RVM_Hyp_Wdg_Clr *********************************************
+/* Function:RVM_Hyp_Wdg_Clr ***************************************************
 Description : Start and feed the watchdog.
 Input       : None.
 Output      : None.
@@ -1778,7 +1778,7 @@ rvm_ret_t RVM_Hyp_Wdg_Clr(void)
 #endif
 /* End Function:RVM_Hyp_Wdg_Clr **********************************************/
 
-/* Begin Function:RVM_Vct_Get *************************************************
+/* Function:RVM_Vct_Get *******************************************************
 Description : Get the interrupt number to handle. After returning the vector, 
               clean up the corresponding bit, then we run the corresponding
               interrupt vector. Note that we won't lose any pending interrupts
@@ -1833,7 +1833,7 @@ rvm_ret_t RVM_Vct_Get(void)
 #endif
 /* End Function:RVM_Vct_Get **************************************************/
 
-/* Begin Function:RVM_Vct_Loop ************************************************
+/* Function:RVM_Vct_Loop ******************************************************
 Description : The interrupt handling thread's routine. This should be called by 
               the interrupt handling thread upon entering the system.
 Input       : None.

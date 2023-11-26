@@ -6,10 +6,10 @@ License     : Proprietary; confidential.
 Description : About information dialog implementation.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
-#define __HDR_DEFS__
+/* Include *******************************************************************/
+#define __HDR_DEF__
 #include "rvm_cfg.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
 #include "wx/wx.h"
 #include "wx/xml/xml.h"
@@ -23,18 +23,18 @@ Description : About information dialog implementation.
 #include "vector"
 #include "algorithm"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "About_Dialog/about_dialog.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_cfg.hpp"
 #include "About_Dialog/about_dialog.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_CFG
 {
-/* Begin Function:About_Dialog::About_Dialog **********************************
+/* Function:About_Dialog::About_Dialog ****************************************
 Description : Constructor for reference viewer dialog.
 Input       : class wxWindow* Parent - The parent window.
 Output      : None.
@@ -89,7 +89,7 @@ wxDialog(Parent,wxID_ANY,_("About Program"),wxDefaultPosition,I2P(wxSize(512,600
 }
 /* End Function:About_Dialog::About_Dialog ***********************************/
 
-/* Begin Function:About_Dialog::~About_Dialog *********************************
+/* Function:About_Dialog::~About_Dialog ***************************************
 Description : Destructor for truth table dialog.
 Input       : None.
 Output      : None.
@@ -101,7 +101,7 @@ Return      : None.
 }
 /* End Function:About_Dialog::~About_Dialog **********************************/
 
-/* Begin Function:About_Dialog::On_Confirm ************************************
+/* Function:About_Dialog::On_Confirm ******************************************
 Description : wxEVT_BUTTON handler for 'Confirm'.
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.

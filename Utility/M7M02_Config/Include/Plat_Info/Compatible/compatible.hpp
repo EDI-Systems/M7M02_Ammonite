@@ -6,36 +6,36 @@ License     : Proprietary; confidential.
 Description : Compatibility class header.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
-#ifdef __HDR_DEFS__
-#ifndef __COMPATIBLE_HPP_TYPES__
-#define __COMPATIBLE_HPP_TYPES__
+/* Define ********************************************************************/
+#ifdef __HDR_DEF__
+#ifndef __COMPATIBLE_TYPE__
+#define __COMPATIBLE_TYPE__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __COMPATIBLE_HPP_TYPES__ */
+/* __COMPATIBLE_TYPE__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
 
 namespace RVM_CFG
 {
-#ifdef __HDR_DEFS__
-#ifndef __COMPATIBLE_HPP_DEFS__
-#define __COMPATIBLE_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __COMPATIBLE_DEF__
+#define __COMPATIBLE_DEF__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __COMPATIBLE_HPP_DEFS__ */
+/* __COMPATIBLE_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __COMPATIBLE_HPP_CLASSES__
-#define __COMPATIBLE_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __COMPATIBLE_CLASS__
+#define __COMPATIBLE_CLASS__
 /*****************************************************************************/
 class Compatible
 {
@@ -49,9 +49,9 @@ public:
     /* void */ ~Compatible(void);
 };
 /*****************************************************************************/
-/* __COMPATIBLE_HPP_CLASSES__ */
+/* __COMPATIBLE_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

@@ -6,36 +6,36 @@ License     : Proprietary; confidential.
 Description : Chip class header.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
-#ifdef __HDR_DEFS__
-#ifndef __DEFAULT_HPP_TYPES__
-#define __DEFAULT_HPP_TYPES__
+/* Define ********************************************************************/
+#ifdef __HDR_DEF__
+#ifndef __DEFAULT_TYPE__
+#define __DEFAULT_TYPE__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __DEFAULT_HPP_TYPES__ */
+/* __DEFAULT_TYPE__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
 
 namespace RVM_CFG
 {
-#ifdef __HDR_DEFS__
-#ifndef __DEFAULT_HPP_DEFS__
-#define __DEFAULT_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __DEFAULT_DEF__
+#define __DEFAULT_DEF__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __DEFAULT_HPP_DEFS__ */
+/* __DEFAULT_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __DEFAULT_HPP_CLASSES__
-#define __DEFAULT_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __DEFAULT_CLASS__
+#define __DEFAULT_CLASS__
 /*****************************************************************************/
 class Default
 {
@@ -63,9 +63,9 @@ public:
     /* void */ ~Default(void);
 };
 /*****************************************************************************/
-/* __DEFAULT_HPP_CLASSES__ */
+/* __DEFAULT_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

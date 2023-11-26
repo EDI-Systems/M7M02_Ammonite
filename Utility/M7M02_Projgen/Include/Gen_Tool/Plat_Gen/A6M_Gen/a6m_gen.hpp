@@ -6,12 +6,12 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The header of the ARMv6-M platform generator.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
+/* Define ********************************************************************/
 namespace RVM_GEN
 {
-#ifdef __HDR_DEFS__
-#ifndef __A6M_GEN_HPP_DEFS__
-#define __A6M_GEN_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __A6M_GEN_DEF__
+#define __A6M_GEN_DEF__
 /*****************************************************************************/
 /* Endianness */
 #define A6M_END_LITTLE                          (0)
@@ -30,16 +30,16 @@ namespace RVM_GEN
 #define A6M_RAW_REG_SIZE                        (44)
 #define A6M_RAW_INV_SIZE                        (32)
 /*****************************************************************************/
-/* __A6M_GEN_HPP_DEFS__ */
+/* __A6M_GEN_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __A6M_GEN_HPP_CLASSES__
-#define __A6M_GEN_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __A6M_GEN_CLASS__
+#define __A6M_GEN_CLASS__
 /*****************************************************************************/
 /* A6M-specific information */
 class A6M_Gen:public Plat_Gen
@@ -69,9 +69,9 @@ public:
     virtual void Process_Main_Hdr(std::unique_ptr<std::vector<std::string>>& List, const class Process* Prc) final override;
 };
 /*****************************************************************************/
-/* __A6M_GEN_HPP_CLASSES__ */
+/* __A6M_GEN_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

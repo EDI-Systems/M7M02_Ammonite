@@ -6,25 +6,25 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The header for the port class.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
+/* Define ********************************************************************/
 namespace RVM_GEN
 {
-#ifdef __HDR_DEFS__
-#ifndef __PORT_HPP_DEFS__
-#define __PORT_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __PORT_DEF__
+#define __PORT_DEF__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __PORT_HPP_DEFS__ */
+/* __PORT_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __PORT_HPP_CLASSES__
-#define __PORT_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __PORT_CLASS__
+#define __PORT_CLASS__
 /*****************************************************************************/
 /* Port information */
 class Port:public Kobj
@@ -36,9 +36,9 @@ public:
     /* void */ Port(xml_node_t* Root, class Process* Owner);
 };
 /*****************************************************************************/
-/* __PORT_HPP_CLASSES__ */
+/* __PORT_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

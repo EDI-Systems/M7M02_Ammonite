@@ -6,36 +6,36 @@ License     : Proprietary; confidential.
 Description : Tool bar class header.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
-#ifdef __HDR_DEFS__
-#ifndef __TOOL_BAR_HPP_TYPES__
-#define __TOOL_BAR_HPP_TYPES__
+/* Define ********************************************************************/
+#ifdef __HDR_DEF__
+#ifndef __TOOL_BAR_TYPE__
+#define __TOOL_BAR_TYPE__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __TOOL_BAR_HPP_TYPES__ */
+/* __TOOL_BAR_TYPE__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
 
 namespace RVM_CFG
 {
-#ifdef __HDR_DEFS__
-#ifndef __TOOL_BAR_HPP_DEFS__
-#define __TOOL_BAR_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __TOOL_BAR_DEF__
+#define __TOOL_BAR_DEF__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __TOOL_BAR_HPP_DEFS__ */
+/* __TOOL_BAR_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __TOOL_BAR_HPP_CLASSES__
-#define __TOOL_BAR_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __TOOL_BAR_CLASS__
+#define __TOOL_BAR_CLASS__
 /*****************************************************************************/
 class Tool_Bar:public wxToolBar
 {
@@ -58,9 +58,9 @@ public:
     void On_Validate(class wxCommandEvent& Event);
 };
 /*****************************************************************************/
-/* __TOOL_BAR_HPP_CLASSES__ */
+/* __TOOL_BAR_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

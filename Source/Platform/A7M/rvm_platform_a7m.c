@@ -6,28 +6,28 @@ Licence     : The Unlicense; see LICENSE for details.
 Description : The Cortex-M system library platform specific header.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
+/* Include *******************************************************************/
 #include "rvm.h"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "Platform/A7M/rvm_platform_a7m.h"
 #include "Monitor/rvm_syssvc.h"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_STRUCTS__
+#define __HDR_STRUCT__
 #include "Platform/A7M/rvm_platform_a7m.h"
 #include "Monitor/rvm_syssvc.h"
-#undef __HDR_STRUCTS__
+#undef __HDR_STRUCT__
 
 /* Private include */
 #include "Platform/A7M/rvm_platform_a7m.h"
 
-#define __HDR_PUBLIC_MEMBERS__
+#define __HDR_PUBLIC__
 #include "Monitor/rvm_syssvc.h"
-#undef __HDR_PUBLIC_MEMBERS__
-/* End Includes **************************************************************/
+#undef __HDR_PUBLIC__
+/* End Include ***************************************************************/
 
-/* Begin Function:RVM_Putchar *************************************************
+/* Function:RVM_Putchar *******************************************************
 Description : Output a character to console. This is for user-level debugging 
               only.
 Input       : char Char - The character to print.
@@ -43,7 +43,7 @@ rvm_ptr_t RVM_Putchar(char Char)
 #endif
 /* End Function:RVM_Putchar **************************************************/
 
-/* Begin Function:RVM_Stack_Init **********************************************
+/* Function:RVM_Stack_Init ****************************************************
 Description : Initialize a thread's stack for synchronous invocation or thread 
               creation. The reason why we do not place entry address here directly
               is:
@@ -85,7 +85,7 @@ rvm_ptr_t RVM_Stack_Init(rvm_ptr_t Stack_Base,
 }
 /* End Function:RVM_Stack_Init ***********************************************/
 
-/* Begin Function:RVM_Idle ****************************************************
+/* Function:RVM_Idle **********************************************************
 Description : Put the processor into idle state.
 Input       : None.
 Output      : None.
@@ -98,7 +98,7 @@ void RVM_Idle(void)
 }
 /* End Function:RVM_Idle *****************************************************/
 
-/* Begin Function:RVM_Thd_Cop_Size ********************************************
+/* Function:RVM_Thd_Cop_Size **************************************************
 Description : Query coprocessor register size for this CPU.
 Input       : rme_ptr_t Attr - The thread context attributes.
 Output      : None.
@@ -113,7 +113,7 @@ rvm_ptr_t RVM_Thd_Cop_Size(rvm_ptr_t Attr)
 }
 /* End Function:RVM_Thd_Cop_Size *********************************************/
 
-/* Begin Function:RVM_A7M_Kfn_Act *********************************************
+/* Function:RVM_A7M_Kfn_Act ***************************************************
 Description : Activate kernel functions that must use ARMv7-M specific calling
               convention to pass extra parameters.
 Input       : rvm_cid_t Cap_Kfn - The capability to the kernel capability. 2-Level.
@@ -134,7 +134,7 @@ rvm_ret_t RVM_A7M_Kfn_Act(rvm_cid_t Cap_Kfn,
 }
 /* End Function:RVM_A7M_Kfn_Act **********************************************/
 
-/* Begin Function:RVM_Thd_Print_Exc *******************************************
+/* Function:RVM_Thd_Print_Exc *************************************************
 Description : Print the exact reason of the fault.
 Input       : rvm_tid_t TID - The thread ID.
 Output      : None.
@@ -191,7 +191,7 @@ void RVM_Thd_Print_Exc(rvm_tid_t TID)
 }
 /* End Function:RVM_Thd_Print_Exc ********************************************/
 
-/* Begin Function:RVM_Thd_Print_Reg *******************************************
+/* Function:RVM_Thd_Print_Reg *************************************************
 Description : Print the register set of a thread.
 Input       : rvm_cid_t Cap_Thd - The capability to the thread.
 Output      : None.

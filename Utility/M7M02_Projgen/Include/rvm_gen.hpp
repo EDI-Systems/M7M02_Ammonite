@@ -6,10 +6,10 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The header of the mcu tool.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
-#ifdef __HDR_DEFS__
-#ifndef __RVM_GEN_HPP_TYPES__
-#define __RVM_GEN_HPP_TYPES__
+/* Define ********************************************************************/
+#ifdef __HDR_DEF__
+#ifndef __RVM_GEN_TYPE__
+#define __RVM_GEN_TYPE__
 /*****************************************************************************/
 typedef char                                s8_t;
 typedef short                               s16_t;
@@ -25,16 +25,16 @@ typedef s32_t                               cnt_t;
 typedef s64_t                               ret_t;
 typedef u64_t                               ptr_t;
 /*****************************************************************************/
-/* __RVM_GEN_HPP_TYPES__ */
+/* __RVM_GEN_TYPE__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
 
 namespace RVM_GEN
 {
-#ifdef __HDR_DEFS__
-#ifndef __RVM_GEN_HPP_DEFS__
-#define __RVM_GEN_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __RVM_GEN_DEF__
+#define __RVM_GEN_DEF__
 /*****************************************************************************/
 /* Error asserts */
 #define ASSERT(X) \
@@ -75,16 +75,16 @@ while(0)
 /* Maximum file length allowed */
 #define MAX_FILE_SIZE                       (16*1024*1024)
 /*****************************************************************************/
-/* __RVM_GEN_HPP_DEFS__ */
+/* __RVM_GEN_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __RVM_GEN_HPP_CLASSES__
-#define __RVM_GEN_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __RVM_GEN_CLASS__
+#define __RVM_GEN_CLASS__
 /*****************************************************************************/
 /* The application instance class */
 class Main
@@ -286,9 +286,9 @@ void Duplicate_Check(std::vector<STRING>& Vect, std::set<STRING>& Set,
     }
 }
 /*****************************************************************************/
-/* __RVM_GEN_HPP_CLASSES__ */
+/* __RVM_GEN_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

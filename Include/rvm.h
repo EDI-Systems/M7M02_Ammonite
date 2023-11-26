@@ -7,9 +7,9 @@ Description : The header of the RVM user-level library. This header defines the
               error codes, operation flags and system call numbers in a generic way.
 ******************************************************************************/
 
-#ifndef __RVM_H__
-#define __RVM_H__
-/* Defines *******************************************************************/
+#ifndef __RVM__
+#define __RVM__
+/* Define ********************************************************************/
 
 /* Errors ********************************************************************/
 /* The base of capability table error */
@@ -527,9 +527,9 @@ Description : The header of the RVM user-level library. This header defines the
 /* Modify data breakpoint state */
 #define RVM_KFN_DEBUG_DBP_MOD           (0xF806U)
 /* End Kernel Functions ******************************************************/
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
-#endif /* __RVM_H__ */
+#endif /* __RVM__ */
 
 /* End Of File ***************************************************************/
 

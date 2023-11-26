@@ -6,10 +6,10 @@ License     : Proprietary; confidential.
 Description : Project information implementation.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
-#define __HDR_DEFS__
+/* Include *******************************************************************/
+#define __HDR_DEF__
 #include "rvm_cfg.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
 #include "wx/wx.h"
 #include "wx/xml/xml.h"
@@ -22,11 +22,11 @@ Description : Project information implementation.
 #include "vector"
 #include "algorithm"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "Proj_Info/proj_info.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_cfg.hpp"
 #include "Mem_Info/mem_info.hpp"
 #include "Proj_Info/Chip/chip.hpp"
@@ -35,11 +35,11 @@ Description : Project information implementation.
 #include "Proj_Info/Process/process.hpp"
 #include "Proj_Info/Process/Virtual/virtual.hpp"
 #include "Proj_Info/proj_info.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_CFG
 {
-/* Begin Function:Proj_Info::Proj_Info ****************************************
+/* Function:Proj_Info::Proj_Info **********************************************
 Description : Constructor for project information. This just creates the class.
 Input       : None.
 Output      : None.
@@ -51,7 +51,7 @@ Return      : None.
 }
 /* End Function:Proj_Info::Proj_Info *****************************************/
 
-/* Begin Function:Proj_Info::~Proj_Info ***************************************
+/* Function:Proj_Info::~Proj_Info *********************************************
 Description : Destructor for project information.
 Input       : None.
 Output      : None.
@@ -63,7 +63,7 @@ Return      : None.
 }
 /* End Function:Proj_Info::~Proj_Info ****************************************/
 
-/* Begin Function:Proj_Info::Create *******************************************
+/* Function:Proj_Info::Create *************************************************
 Description : Load the default project, and save to file. This needs to assume
               a chip name, the kernel source folder, and the monitor folder.
               The default project will have no processes, and the kernel data
@@ -84,7 +84,7 @@ ret_t Proj_Info::Create(const std::string& Path,
 }
 /* End Function:Proj_Info::Create ********************************************/
 
-/* Begin Function:Proj_Info::Load *********************************************
+/* Function:Proj_Info::Load ***************************************************
 Description : Load an existing project.
 Input       : const std::string& Path - The path.
 Output      : None.
@@ -120,7 +120,7 @@ ret_t Proj_Info::Load(const std::string& Path)
 }
 /* End Function:Proj_Info::Load **********************************************/
 
-/* Begin Function:Proj_Info::Save *********************************************
+/* Function:Proj_Info::Save ***************************************************
 Description : Save the project to disk.
 Input       : None.
 Output      : None.
@@ -147,7 +147,7 @@ ret_t Proj_Info::Save(void)
 }
 /* End Function:Proj_Info::Save **********************************************/
 
-/* Begin Function:Proj_Info::Rel_Conv *****************************************
+/* Function:Proj_Info::Rel_Conv ***********************************************
 Description : Convert absolute path to relative ones; the path is always relative
               to the project file. For those that cannot be converted (on another
               volume), we opt to leave it there. Also, all '\\' will be converted

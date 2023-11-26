@@ -6,26 +6,26 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The header for the toolchain generator class.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
+/* Define ********************************************************************/
 namespace RVM_GEN
 {
-#ifdef __HDR_DEFS__
-#ifndef __TOOL_GEN_HPP_DEFS__
-#define __TOOL_GEN_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __TOOL_GEN_DEF__
+#define __TOOL_GEN_DEF__
 /*****************************************************************************/
 #define TOOL_ASSEMBLER          (1)
 #define TOOL_LINKER             (2)
 /*****************************************************************************/
-/* __TOOL_GEN_HPP_DEFS__ */
+/* __TOOL_GEN_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __TOOL_GEN_HPP_CLASSES__
-#define __TOOL_GEN_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __TOOL_GEN_CLASS__
+#define __TOOL_GEN_CLASS__
 /*****************************************************************************/
 /* Toolchain generator information */
 class Tool_Gen
@@ -52,9 +52,9 @@ public:
                                 const class Process* Prc)=0;
 };
 /*****************************************************************************/
-/* __TOOL_GEN_HPP_CLASSES__ */
+/* __TOOL_GEN_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

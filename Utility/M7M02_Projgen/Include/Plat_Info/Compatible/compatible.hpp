@@ -6,25 +6,25 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The header for the chip class.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
+/* Define ********************************************************************/
 namespace RVM_GEN
 {
-#ifdef __HDR_DEFS__
-#ifndef __COMPATIBLE_HPP_DEFS__
-#define __COMPATIBLE_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __COMPATIBLE_DEF__
+#define __COMPATIBLE_DEF__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __COMPATIBLE_HPP_DEFS__ */
+/* __COMPATIBLE_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __COMPATIBLE_HPP_CLASSES__
-#define __COMPATIBLE_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __COMPATIBLE_CLASS__
+#define __COMPATIBLE_CLASS__
 /*****************************************************************************/
 /* Compatibility information */
 class Compatible
@@ -37,9 +37,9 @@ public:
     /* void */ Compatible(xml_node_t* Root);
 };
 /*****************************************************************************/
-/* __COMPATIBLE_HPP_CLASSES__ */
+/* __COMPATIBLE_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

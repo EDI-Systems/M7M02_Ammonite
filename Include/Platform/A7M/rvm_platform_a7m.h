@@ -6,10 +6,10 @@ Licence     : The Unlicense; see LICENSE for details.
 Description : The header of the platform dependent part.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
-#ifdef __HDR_DEFS__
-#ifndef __RVM_PLATFORM_A7M_H_DEFS__
-#define __RVM_PLATFORM_A7M_H_DEFS__
+/* Define ********************************************************************/
+#ifdef __HDR_DEF__
+#ifndef __RVM_PLATFORM_A7M_DEF__
+#define __RVM_PLATFORM_A7M_DEF__
 /*****************************************************************************/
 /* Definitions of basic types */
 /* Basic Types ***************************************************************/
@@ -290,7 +290,7 @@ typedef unsigned char rvm_u8_t;
 /* Error register read */
 #define RVM_A7M_KFN_DEBUG_ERR_CAUSE_GET             (0U)
 #define RVM_A7M_KFN_DEBUG_ERR_ADDR_GET              (1U)
-/* Begin Extended Types ******************************************************/
+/* Extended Types ************************************************************/
 #ifndef __RVM_TID_T__
 #define __RVM_TID_T__
 /* The typedef for the Thread ID */
@@ -322,21 +322,21 @@ typedef rvm_s32_t rvm_ret_t;
 #endif
 /* End Extended Types ********************************************************/
 /*****************************************************************************/
-/* __RVM_PLATFORM_A7M_H_DEFS__ */
+/* __RVM_PLATFORM_A7M_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
-/* Structs *******************************************************************/
-#ifdef __HDR_STRUCTS__
-#ifndef __RVM_PLATFORM_A7M_H_STRUCTS__
-#define __RVM_PLATFORM_A7M_H_STRUCTS__
+/* Struct ********************************************************************/
+#ifdef __HDR_STRUCT__
+#ifndef __RVM_PLATFORM_A7M_STRUCT__
+#define __RVM_PLATFORM_A7M_STRUCT__
 /* We used structs in the header */
 
 /* Use defines in these headers */
-#define __HDR_DEFS__
-#undef __HDR_DEFS__
+#define __HDR_DEF__
+#undef __HDR_DEF__
 /*****************************************************************************/
 struct RVM_A7M_Stack
 {
@@ -411,58 +411,57 @@ struct RVM_Exc_Struct
     rvm_ptr_t Addr;
 };
 /*****************************************************************************/
-/* __RVM_PLATFORM_A7M_H_STRUCTS__ */
+/* __RVM_PLATFORM_A7M_STRUCT__ */
 #endif
-/* __HDR_STRUCTS__ */
+/* __HDR_STRUCT__ */
 #endif
-/* End Structs ***************************************************************/
+/* End Struct ****************************************************************/
 
-/* Private Global Variables **************************************************/
-#if(!(defined __HDR_DEFS__||defined __HDR_STRUCTS__))
-#ifndef __RVM_PLATFORM_A7M_MEMBERS__
-#define __RVM_PLATFORM_A7M_MEMBERS__
+/* Private Variable **********************************************************/
+#if(!(defined __HDR_DEF__||defined __HDR_STRUCT__))
+#ifndef __RVM_PLATFORM_A7M_MEMBER__
+#define __RVM_PLATFORM_A7M_MEMBER__
 
 /* In this way we can use the data structures and definitions in the headers */
-#define __HDR_DEFS__
+#define __HDR_DEF__
 
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_STRUCTS__
+#define __HDR_STRUCT__
 
-#undef __HDR_STRUCTS__
+#undef __HDR_STRUCT__
 
 /* If the header is not used in the public mode */
-#ifndef __HDR_PUBLIC_MEMBERS__
+#ifndef __HDR_PUBLIC__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* End Private Global Variables **********************************************/
+/* End Private Variable ******************************************************/
 
-/* Private C Function Prototypes *********************************************/ 
+/* Private Function **********************************************************/ 
 /*****************************************************************************/
 
 /*****************************************************************************/
 #define __EXTERN__
-/* End Private C Function Prototypes *****************************************/
+/* End Private Function ******************************************************/
 
-/* Public Global Variables ***************************************************/
-/* __HDR_PUBLIC_MEMBERS__ */
+/* Public Variable ***********************************************************/
+/* __HDR_PUBLIC__ */
 #else
 #define __EXTERN__ EXTERN 
-/* __HDR_PUBLIC_MEMBERS__ */
+/* __HDR_PUBLIC__ */
 #endif
 
 /*****************************************************************************/
 
 /*****************************************************************************/
 
-/* End Public Global Variables ***********************************************/
+/* End Public Variable *******************************************************/
 
-/* Public C Function Prototypes **********************************************/
+/* Public Function ***********************************************************/
 /*****************************************************************************/
 /* Stubs in assembly */
-EXTERN void _RVM_Entry(void);
-EXTERN void _RVM_Jmp_Stub(void);
+EXTERN void __RVM_Jmp_Stub(void);
 EXTERN rvm_ptr_t __RVM_A7M_MSB_Get(rvm_ptr_t Value); 
 EXTERN rvm_ret_t RVM_Svc(rvm_ptr_t Op_Cid,
                          rvm_ptr_t Arg1,
@@ -501,11 +500,11 @@ __EXTERN__ rvm_ret_t RVM_Thd_Print_Reg(rvm_cid_t Cap_Thd);
 /*****************************************************************************/
 /* Undefine "__EXTERN__" to avoid redefinition */
 #undef __EXTERN__
-/* __RVM_PLATFORM_A7M_MEMBERS__ */
+/* __RVM_PLATFORM_A7M_MEMBER__ */
 #endif
-/* !(defined __HDR_DEFS__||defined __HDR_STRUCTS__) */
+/* !(defined __HDR_DEF__||defined __HDR_STRUCT__) */
 #endif
-/* End Public C Function Prototypes ******************************************/
+/* End Public Function *******************************************************/
 
 /* End Of File ***************************************************************/
 

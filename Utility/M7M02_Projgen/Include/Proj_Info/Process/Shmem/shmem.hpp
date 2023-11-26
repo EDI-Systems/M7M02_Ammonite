@@ -6,25 +6,25 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The header for the shared memory class.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
+/* Define ********************************************************************/
 namespace RVM_GEN
 {
-#ifdef __HDR_DEFS__
-#ifndef __SHMEM_HPP_DEFS__
-#define __SHMEM_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __SHMEM_DEF__
+#define __SHMEM_DEF__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __SHMEM_HPP_DEFS__ */
+/* __SHMEM_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __SHMEM_HPP_CLASSES__
-#define __SHMEM_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __SHMEM_CLASS__
+#define __SHMEM_CLASS__
 /*****************************************************************************/
 /* Shared memory reference information */
 class Shmem
@@ -42,9 +42,9 @@ public:
     void Check(void);
 };
 /*****************************************************************************/
-/* __SHMEM_HPP_CLASSES__ */
+/* __SHMEM_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

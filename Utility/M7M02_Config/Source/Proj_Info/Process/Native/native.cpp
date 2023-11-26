@@ -6,10 +6,10 @@ License     : Proprietary; confidential.
 Description : Native process information implementation.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
-#define __HDR_DEFS__
+/* Include *******************************************************************/
+#define __HDR_DEF__
 #include "rvm_cfg.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
 #include "wx/wx.h"
 #include "wx/xml/xml.h"
@@ -18,11 +18,11 @@ Description : Native process information implementation.
 #include "string"
 #include "memory"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "Proj_Info/Process/process.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_cfg.hpp"
 #include "Mem_Info/mem_info.hpp"
 #include "Vect_Info/vect_info.hpp"
@@ -36,11 +36,11 @@ Description : Native process information implementation.
 #include "Proj_Info/Process/Kfunc/kfunc.hpp"
 #include "Proj_Info/Process/process.hpp"
 #include "Proj_Info/Process/Native/native.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_CFG
 {
-/* Begin Function:Native::Process *********************************************
+/* Function:Native::Process ***************************************************
 Description : Default constructor for process information.
 Input       : const std::string& Name - The exact chip name.
               const std::string& Root - The root folder path.
@@ -59,7 +59,7 @@ Process(Name,PROCESS_NATIVE,Root,Plat)
 }
 /* End Function:Native::Native ***********************************************/
 
-/* Begin Function:Native::Native **********************************************
+/* Function:Native::Native ****************************************************
 Description : Constructor for process information.
 Input       : class wxXmlNode* Node - The node containing information.
               ptr_t Type - Whether this is a native process or a VM.
@@ -88,7 +88,7 @@ Process(Node, PROCESS_NATIVE)
 }
 /* End Function:Native::Native ***********************************************/
 
-/* Begin Function:Native::~Native *********************************************
+/* Function:Native::~Native ***************************************************
 Description : Destructor for process information.
 Input       : None.
 Output      : None.
@@ -100,7 +100,7 @@ Return      : None.
 }
 /* End Function:Native::~Native **********************************************/
 
-/* Begin Function:Native::Save ************************************************
+/* Function:Native::Save ******************************************************
 Description : Save process information to XML file.
 Input       : class wxXmlNode* Parent - The parent node.
 Output      : None.

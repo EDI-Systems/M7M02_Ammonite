@@ -6,12 +6,12 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The header for the generation tool class.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
+/* Define ********************************************************************/
 namespace RVM_GEN
 {
-#ifdef __HDR_DEFS__
-#ifndef __GEN_TOOL_HPP_DEFS__
-#define __GEN_TOOL_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __GEN_TOOL_DEF__
+#define __GEN_TOOL_DEF__
 /*****************************************************************************/
 #define MACRO_ADD               (0)
 #define MACRO_REPLACE           (1)
@@ -29,16 +29,16 @@ namespace RVM_GEN
                                  (this->Plat->Plat->Captbl_Max): \
                                  ((TOTAL)%(this->Plat->Plat->Captbl_Max)))
 /*****************************************************************************/
-/* __GEN_TOOL_HPP_DEFS__ */
+/* __GEN_TOOL_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __GEN_TOOL_HPP_CLASSES__
-#define __GEN_TOOL_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __GEN_TOOL_CLASS__
+#define __GEN_TOOL_CLASS__
 /*****************************************************************************/
 /* Generation toolset information */
 class Gen_Tool
@@ -130,9 +130,9 @@ public:
     void Workspace_Proj(void);
 };
 /*****************************************************************************/
-/* __GEN_TOOL_HPP_CLASSES__ */
+/* __GEN_TOOL_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

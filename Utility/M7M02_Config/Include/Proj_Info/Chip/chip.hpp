@@ -6,36 +6,36 @@ License     : Proprietary; confidential.
 Description : Chip class header.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
-#ifdef __HDR_DEFS__
-#ifndef __CHIP_HPP_TYPES__
-#define __CHIP_HPP_TYPES__
+/* Define ********************************************************************/
+#ifdef __HDR_DEF__
+#ifndef __CHIP_TYPE__
+#define __CHIP_TYPE__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __CHIP_HPP_TYPES__ */
+/* __CHIP_TYPE__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
 
 namespace RVM_CFG
 {
-#ifdef __HDR_DEFS__
-#ifndef __CHIP_HPP_DEFS__
-#define __CHIP_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __CHIP_DEF__
+#define __CHIP_DEF__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __CHIP_HPP_DEFS__ */
+/* __CHIP_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __CHIP_HPP_CLASSES__
-#define __CHIP_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __CHIP_CLASS__
+#define __CHIP_CLASS__
 /*****************************************************************************/
 class Chip
 {
@@ -56,9 +56,9 @@ public:
     void Save(class wxXmlNode* Parent);
 };
 /*****************************************************************************/
-/* __CHIP_HPP_CLASSES__ */
+/* __CHIP_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

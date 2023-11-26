@@ -6,10 +6,10 @@ License     : Proprietary; confidential.
 Description : Default option implementation.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
-#define __HDR_DEFS__
+/* Include *******************************************************************/
+#define __HDR_DEF__
 #include "rvm_cfg.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
 #include "wx/wx.h"
 #include "wx/xml/xml.h"
@@ -18,18 +18,18 @@ Description : Default option implementation.
 #include "string"
 #include "memory"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "Plat_Info/Default/default.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_cfg.hpp"
 #include "Plat_Info/Default/default.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_CFG
 {
-/* Begin Function:Default::Default ********************************************
+/* Function:Default::Default **************************************************
 Description : Constructor for chip information.
 Input       : class wxXmlNode* Node - The node containing information.
 Output      : None.
@@ -69,7 +69,7 @@ Return      : None.
 }
 /* End Function:Default::Default *********************************************/
 
-/* Begin Function:Default::~Default *******************************************
+/* Function:Default::~Default *************************************************
 Description : Destructor for chip information.
 Input       : None.
 Output      : None.

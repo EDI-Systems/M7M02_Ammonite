@@ -6,10 +6,10 @@ Licence     : The Unlicense; see LICENSE for details.
 Description : The header of microcontroller user-level library.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
-#ifdef __HDR_DEFS__
-#ifndef __RVM_INIT_H_DEFS__
-#define __RVM_INIT_H_DEFS__
+/* Define ********************************************************************/
+#ifdef __HDR_DEF__
+#ifndef __RVM_INIT_DEF__
+#define __RVM_INIT_DEF__
 /*****************************************************************************/
 /* The priority levels (assuming that the kernel have N levels):
  * (N-1)   : Safety daemon - fixed
@@ -30,21 +30,21 @@ Description : The header of microcontroller user-level library.
 #define RVM_INIT_PRIO               (1U)
 #define RVM_WAIT_PRIO               (0U)
 /*****************************************************************************/
-/* __RVM_INIT_H_DEFS__ */
+/* __RVM_INIT_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
-/* Structs *******************************************************************/
-#ifdef __HDR_STRUCTS__
-#ifndef __RVM_INIT_H_STRUCTS__
-#define __RVM_INIT_H_STRUCTS__
+/* Struct ********************************************************************/
+#ifdef __HDR_STRUCT__
+#ifndef __RVM_INIT_STRUCT__
+#define __RVM_INIT_STRUCT__
 /* We used structs in the header */
 
 /* Use defines in these headers */
-#define __HDR_DEFS__
-#undef __HDR_DEFS__
+#define __HDR_DEF__
+#undef __HDR_DEF__
 /*****************************************************************************/
 /* Main capability table creation struct */
 struct RVM_Meta_Main_Struct
@@ -176,28 +176,28 @@ struct RVM_Meta_Inv_Init_Struct
     rvm_ptr_t Stack_Size;
 };
 /*****************************************************************************/
-/* __RVM_INIT_H_STRUCTS__ */
+/* __RVM_INIT_STRUCT__ */
 #endif
-/* __HDR_STRUCTS__ */
+/* __HDR_STRUCT__ */
 #endif
-/* End Structs ***************************************************************/
+/* End Struct ****************************************************************/
 
-/* Private Global Variables **************************************************/
-#if(!(defined __HDR_DEFS__||defined __HDR_STRUCTS__))
-#ifndef __RVM_INIT_MEMBERS__
-#define __RVM_INIT_MEMBERS__
+/* Private Variable **********************************************************/
+#if(!(defined __HDR_DEF__||defined __HDR_STRUCT__))
+#ifndef __RVM_INIT_MEMBER__
+#define __RVM_INIT_MEMBER__
 
 /* In this way we can use the data structures and definitions in the headers */
-#define __HDR_DEFS__
+#define __HDR_DEF__
 
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_STRUCTS__
+#define __HDR_STRUCT__
 
-#undef __HDR_STRUCTS__
+#undef __HDR_STRUCT__
 
 /* If the header is not used in the public mode */
-#ifndef __HDR_PUBLIC_MEMBERS__
+#ifndef __HDR_PUBLIC__
 /*****************************************************************************/
 /* Virtual machine */
 #if(RVM_VIRT_NUM!=0U)
@@ -254,9 +254,9 @@ EXTERN struct RVM_Meta_Main_Struct RVM_Meta_Rcv_Main[];
 EXTERN struct RVM_Meta_Rcv_Crt_Struct RVM_Meta_Rcv_Crt[];
 #endif
 /*****************************************************************************/
-/* End Private Global Variables **********************************************/
+/* End Private Variable ******************************************************/
 
-/* Private C Function Prototypes *********************************************/ 
+/* Private Function **********************************************************/ 
 /*****************************************************************************/
 /* Creation */
 static rvm_ptr_t RVM_Boot_Main_Crt(const struct RVM_Meta_Main_Struct* Meta,
@@ -299,13 +299,13 @@ EXTERN void RVM_Boot_Post_Init(void);
 static void RVM_Init(void);
 /*****************************************************************************/
 #define __EXTERN__
-/* End Private C Function Prototypes *****************************************/
+/* End Private Function ******************************************************/
 
-/* Public Global Variables ***************************************************/
-/* __HDR_PUBLIC_MEMBERS__ */
+/* Public Variable ***********************************************************/
+/* __HDR_PUBLIC__ */
 #else
 #define __EXTERN__ EXTERN 
-/* __HDR_PUBLIC_MEMBERS__ */
+/* __HDR_PUBLIC__ */
 #endif
 
 /*****************************************************************************/
@@ -318,20 +318,20 @@ __EXTERN__ rvm_cid_t RVM_Vmmd_Thd_Cap;
 #endif
 /*****************************************************************************/
 
-/* End Public Global Variables ***********************************************/
+/* End Public Variable *******************************************************/
 
-/* Public C Function Prototypes **********************************************/
+/* Public Function ***********************************************************/
 /*****************************************************************************/
 __EXTERN__ void RVM_Clear(volatile void* Addr,
                           rvm_ptr_t Size);
 /*****************************************************************************/
 /* Undefine "__EXTERN__" to avoid redefinition */
 #undef __EXTERN__
-/* __RVM_INIT_MEMBERS__ */
+/* __RVM_INIT_MEMBER__ */
 #endif
-/* !(defined __HDR_DEFS__||defined __HDR_STRUCTS__) */
+/* !(defined __HDR_DEF__||defined __HDR_STRUCT__) */
 #endif
-/* End Public C Function Prototypes ******************************************/
+/* End Public Function *******************************************************/
 
 /* End Of File ***************************************************************/
 

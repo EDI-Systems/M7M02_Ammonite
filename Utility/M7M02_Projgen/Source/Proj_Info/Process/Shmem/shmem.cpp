@@ -6,7 +6,7 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The memory block class. This contains the memory block information.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
+/* Include *******************************************************************/
 extern "C"
 {
 #include "xml.h"
@@ -20,20 +20,20 @@ extern "C"
 #include "stdexcept"
 #include "algorithm"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "rvm_gen.hpp"
 #include "Mem_Info/mem_info.hpp"
 #include "Proj_Info/Process/Shmem/shmem.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_gen.hpp"
 #include "Proj_Info/Process/Shmem/shmem.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_GEN
 {
-/* Begin Function:Shmem::Shmem ************************************************
+/* Function:Shmem::Shmem ******************************************************
 Description : Constructor for memory information class.
 Input       : xml_node_t* Root - The node containing the memory block information.
 Output      : None.
@@ -79,7 +79,7 @@ Return      : None.
 }
 /* End Function:Shmem::Shmem *************************************************/
 
-/* Begin Function:Shmem::Check ************************************************
+/* Function:Shmem::Check ******************************************************
 Description : Check whether the shared memory block reference makes sense.
 Input       : None.
 Output      : None.

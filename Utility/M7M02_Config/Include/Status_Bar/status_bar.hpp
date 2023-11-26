@@ -6,23 +6,23 @@ Licence     : Proprietary; confidential.
 Description : Status bar class header.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
-#ifdef __HDR_DEFS__
-#ifndef __STATUS_BAR_HPP_TYPES__
-#define __STATUS_BAR_HPP_TYPES__
+/* Define ********************************************************************/
+#ifdef __HDR_DEF__
+#ifndef __STATUS_BAR_TYPE__
+#define __STATUS_BAR_TYPE__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __STATUS_BAR_HPP_TYPES__ */
+/* __STATUS_BAR_TYPE__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
 
 namespace RVM_CFG
 {
-#ifdef __HDR_DEFS__
-#ifndef __STATUS_BAR_HPP_DEFS__
-#define __STATUS_BAR_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __STATUS_BAR_DEF__
+#define __STATUS_BAR_DEF__
 /*****************************************************************************/
 #define STATUS_BAR_SIZE                     (2)
 
@@ -30,16 +30,16 @@ namespace RVM_CFG
 #define STATUS_FIRST_WIDTH                  (-1)
 #define STATUS_SECOND_WIDTH                 (100)
 /*****************************************************************************/
-/* __STATUS_BAR_HPP_DEFS__ */
+/* __STATUS_BAR_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __STATUS_BAR_HPP_CLASSES__
-#define __STATUS_BAR_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __STATUS_BAR_CLASS__
+#define __STATUS_BAR_CLASS__
 /*****************************************************************************/
 class Status_Bar:public wxStatusBar
 {
@@ -60,9 +60,9 @@ public:
     void On_Timer(class wxTimerEvent& event);
 };
 /*****************************************************************************/
-/* __STATUS_BAR_HPP_CLASSES__ */
+/* __STATUS_BAR_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

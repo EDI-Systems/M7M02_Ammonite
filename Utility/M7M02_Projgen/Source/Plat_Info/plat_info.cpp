@@ -7,7 +7,7 @@ Description : The chip information class. This class is responsible for reading
               chip parameters.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
+/* Include *******************************************************************/
 #include "set"
 #include "map"
 #include "string"
@@ -20,21 +20,21 @@ extern "C"
 #include "xml.h"
 }
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "rvm_gen.hpp"
 #include "Plat_Info/plat_info.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_gen.hpp"
 #include "Plat_Info/Compatible/compatible.hpp"
 #include "Plat_Info/plat_info.hpp"
 #include "Conf_Info/conf_info.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_GEN
 {
-/* Begin Function:Plat_Info::Plat_Info ****************************************
+/* Function:Plat_Info::Plat_Info **********************************************
 Description : Constructor for platform description class.
 Input       : xml_node_t* Root - The node containing the chip information.
 Output      : None.
@@ -79,7 +79,7 @@ Return      : None.
 }
 /* End Function:Plat_Info::Plat_Info *****************************************/
 
-/* Begin Function:Plat_Info::Check ********************************************
+/* Function:Plat_Info::Check **************************************************
 Description : Check whether the project configuration makes sense.
 Input       : None.
 Output      : None.
@@ -138,7 +138,7 @@ void Plat_Info::Check(void)
 }
 /* End Function:Plat_Info::Check *********************************************/
 
-/* Begin Function:Plat_Info::Compatible_Check *********************************
+/* Function:Plat_Info::Compatible_Check ***************************************
 Description : Check whether all configs have been set.
 Input       : const std::string& Name - The name in the error info.
               const std::string& Buildsystem - The buildsystem to check for.
@@ -164,7 +164,7 @@ void Plat_Info::Compatible_Check(const std::string& Name,
 }
 /* End Function:Plat_Info::Compatible_Check **********************************/
 
-/* Begin Function:Plat_Info::Project_Config_Mark_Check ************************
+/* Function:Plat_Info::Project_Config_Mark_Check ******************************
 Description : Check whether all configs have been set.
 Input       : None.
 Output      : None.

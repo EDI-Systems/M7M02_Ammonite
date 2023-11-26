@@ -6,7 +6,7 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The process class.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
+/* Include *******************************************************************/
 extern "C"
 {
 #include "xml.h"
@@ -20,13 +20,13 @@ extern "C"
 #include "stdexcept"
 #include "algorithm"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "rvm_gen.hpp"
 #include "Mem_Info/mem_info.hpp"
 #include "Proj_Info/Process/process.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_gen.hpp"
 #include "Proj_Info/proj_info.hpp"
 #include "Proj_Info/Kobj/kobj.hpp"
@@ -43,11 +43,11 @@ extern "C"
 #include "Proj_Info/Process/Virtual/virtual.hpp"
 #include "Mem_Info/mem_info.hpp"
 #include "Vect_Info/vect_info.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_GEN
 {
-/* Begin Function:Process::Process ********************************************
+/* Function:Process::Process **************************************************
 Description : Constructor for process class.
 Input       : xml_node_t* Root - The node containing the process information.
               ptr_t Type - The process type.
@@ -133,7 +133,7 @@ Kobj(this)
 }
 /* End Function:Process::Process *********************************************/
 
-/* Begin Function:Process::Check **********************************************
+/* Function:Process::Check ****************************************************
 Description : Check whether the process configuration makes sense.
 Input       : None.
 Output      : None.
@@ -231,7 +231,7 @@ void Process::Check(void)
 }
 /* End Function:Process::Check ***********************************************/
 
-/* Begin Function:Process::Local_Alloc ****************************************
+/* Function:Process::Local_Alloc **********************************************
 Description : Allocate local capability table. If this is a virtual machine,
               allocation always starts with 2 because the first two slots are
               reserved for other purposes. The local and global macros are:
@@ -326,7 +326,7 @@ void Process::Local_Alloc(ptr_t Max)
 }
 /* End Function:Process::Local_Alloc *****************************************/
 
-/* Begin Function:Process::Global_Alloc_Captbl ********************************
+/* Function:Process::Global_Alloc_Captbl **************************************
 Description : Allocate global capid for capability table.
 Input       : std::vector<class Captbl*>& Global - The global array.
 Output      : std::vector<class Captbl*>& Global - The updated global array.
@@ -343,7 +343,7 @@ void Process::Global_Alloc_Captbl(std::vector<class Captbl*>& Global)
 }
 /* End Function:Process::Global_Alloc_Captbl *********************************/
 
-/* Begin Function:Process::Global_Alloc_Pgtbl *********************************
+/* Function:Process::Global_Alloc_Pgtbl ***************************************
 Description : Allocate global capid for page tables.
 Input       : std::vector<class Pgtbl*>& Global - The global array.
               std::unique_ptr<class Pgtbl>& Pgt - The page table to allocate.
@@ -377,7 +377,7 @@ void Process::Global_Alloc_Pgtbl(std::vector<class Pgtbl*>& Global,
 }
 /* End Function:Process::Global_Alloc_Pgtbl **********************************/
 
-/* Begin Function:Process::Global_Alloc_Process *******************************
+/* Function:Process::Global_Alloc_Process *************************************
 Description : Allocate global capid for process.
 Input       : std::vector<class Process*>& Global - The global array.
 Output      : std::vector<class Process*>& Global - The updated global array.
@@ -394,7 +394,7 @@ void Process::Global_Alloc_Process(std::vector<class Process*>& Global)
 }
 /* End Function:Process::Global_Alloc_Process ********************************/
 
-/* Begin Function:Process::Global_Alloc_Thread ********************************
+/* Function:Process::Global_Alloc_Thread **************************************
 Description : Allocate global capid for threads.
 Input       : std::vector<class Thread*>& Global - The global array.
 Output      : std::vector<class Thread*>& Global - The updated global array.
@@ -414,7 +414,7 @@ void Process::Global_Alloc_Thread(std::vector<class Thread*>& Global)
 }
 /* End Function:Process::Global_Alloc_Thread *********************************/
 
-/* Begin Function:Process::Global_Alloc_Invocation ****************************
+/* Function:Process::Global_Alloc_Invocation **********************************
 Description : Allocate global capid for invocations.
 Input       : std::vector<class Invocation*>& Global - The global array.
 Output      : std::vector<class Invocation*>& Global - The updated global array.
@@ -434,7 +434,7 @@ void Process::Global_Alloc_Invocation(std::vector<class Invocation*>& Global)
 }
 /* End Function:Process::Global_Alloc_Invocation *****************************/
 
-/* Begin Function:Process::Global_Alloc_Receive *******************************
+/* Function:Process::Global_Alloc_Receive *************************************
 Description : Allocate global capid for receive endpoints.
 Input       : std::vector<class Receive*>& Global - The global array.
 Output      : std::vector<class Receive*>& Global - The updated global array.
@@ -454,7 +454,7 @@ void Process::Global_Alloc_Receive(std::vector<class Receive*>& Global)
 }
 /* End Function:Process::Global_Alloc_Receive ********************************/
 
-/* Begin Function:Process::Global_Alloc_Vector ********************************
+/* Function:Process::Global_Alloc_Vector **************************************
 Description : Allocate global capid for vector endpoints.
 Input       : std::vector<class Vect_Info*>& Global - The global array.
 Output      : std::vector<class Vect_Info*>& Global - The updated global array.
@@ -476,7 +476,7 @@ void Process::Global_Alloc_Vector(std::vector<class Vect_Info*>& Global)
 }
 /* End Function:Process::Global_Alloc_Vector *********************************/
 
-/* Begin Function:Process::Mem_Alloc ******************************************
+/* Function:Process::Mem_Alloc ************************************************
 Description : Allocate process memory. The header of a process is like
               struct RVM_Header
               {

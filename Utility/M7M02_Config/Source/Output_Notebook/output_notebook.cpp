@@ -6,10 +6,10 @@ License     : Proprietary; confidential.
 Description : Output notebook implementation.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
-#define __HDR_DEFS__
+/* Include *******************************************************************/
+#define __HDR_DEF__
 #include "rvm_cfg.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
 #include "wx/wx.h"
 #include "wx/xml/xml.h"
@@ -19,18 +19,18 @@ Description : Output notebook implementation.
 #include "memory"
 #include "vector"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "Output_Notebook/output_notebook.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_cfg.hpp"
 #include "Output_Notebook/output_notebook.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_CFG
 {
-/* Begin Function:Output_Notebook::Output_Notebook ****************************
+/* Function:Output_Notebook::Output_Notebook **********************************
 Description : Constructor for output notebook.
 Input       : class wxWindow* Parent - The parent panel.
 Output      : None.
@@ -57,7 +57,7 @@ wxNotebook(Parent,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxNB_BOTTOM)
 }
 /* End Function:Output_Notebook::Output_Notebook *****************************/
 
-/* Begin Function:Output_Notebook::~Output_Notebook ***************************
+/* Function:Output_Notebook::~Output_Notebook *********************************
 Description : Destructor for output notebook.
 Input       : None.
 Output      : None.
@@ -69,7 +69,7 @@ Return      : None.
 }
 /* End Function:Output_Notebook::Output_Notebook *****************************/
 
-/* Begin Function:Output_Notebook::State_Set **********************************
+/* Function:Output_Notebook::State_Set ****************************************
 Description : Set the current UI state, and decide what controls are usable.
 Input       : ptr_t Type - The state type.
 Output      : None.

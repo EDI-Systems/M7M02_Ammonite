@@ -6,14 +6,14 @@ Description : The binary to array translator. This is used to generate an array
               containing the binary of the image so it can be used by the C compiler.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
+/* Include *******************************************************************/
 #include "time.h"
 #include "stdio.h"
 #include "string.h"
 #include "stdlib.h"
-/* End Includes **************************************************************/
+/* End Include ***************************************************************/
 
-/* Defines *******************************************************************/
+/* Define ********************************************************************/
 /* Failure reporting macros */
 #define BINCOPY_FAIL(Reason) \
 { \
@@ -26,7 +26,7 @@ Description : The binary to array translator. This is used to generate an array
 		fclose(Output_File); \
 	exit(-1); \
 }
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Typedefs ******************************************************************/
 typedef char s8;
@@ -49,7 +49,7 @@ s8 Section_Name[8192];
 cnt_t Input_Size;
 /* End Global Variables ******************************************************/
 
-/* Begin Function:main ********************************************************
+/* Function:main **************************************************************
 Description : The main function.
 Input       : int argc - The number of input arguments.
               char* argv[] - The arguments.
@@ -152,7 +152,7 @@ int main(int argc, char* argv[])
 	fprintf(Output_File,"              so that it be firmly linked to the correct position of the image!\n");
 	fprintf(Output_File,"******************************************************************************/\n");
 	fprintf(Output_File,"\n");
-	fprintf(Output_File,"/* Begin Contents ************************************************************/\n");
+	fprintf(Output_File,"/* Contents ******************************************************************/\n");
     /* Print the array */
 	fprintf(Output_File,"const unsigned char %s[%d]=\n",Section_Name,Input_Size);
 	fprintf(Output_File,"{\n    ");

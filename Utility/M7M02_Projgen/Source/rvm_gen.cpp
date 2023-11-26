@@ -44,7 +44,7 @@ Description : The configuration generator for the MCU ports. This does not
               13. Report to the user that the project generation is complete.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
+/* Include *******************************************************************/
 extern "C"
 {
 #include "xml.h"
@@ -74,7 +74,7 @@ extern "C"
 #include "algorithm"
 #include "filesystem"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "rvm_gen.hpp"
 #include "Proj_Info/proj_info.hpp"
 #include "Proj_Info/Process/process.hpp"
@@ -83,9 +83,9 @@ extern "C"
 #include "Conf_Info/conf_info.hpp"
 #include "Mem_Info/mem_info.hpp"
 #include "Gen_Tool/gen_tool.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_gen.hpp"
 #include "Proj_Info/proj_info.hpp"
 #include "Proj_Info/Chip/chip.hpp"
@@ -114,8 +114,8 @@ extern "C"
 #include "Gen_Tool/Build_Gen/build_gen.hpp"
 #include "Gen_Tool/Tool_Gen/tool_gen.hpp"
 #include "Gen_Tool/Guest_Gen/guest_gen.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_GEN
 {
 /* Global Variables **********************************************************/
@@ -124,7 +124,7 @@ ptr_t Main::Mock=0;
 std::string Main::Time;
 /* End Global Variables ******************************************************/
 
-/* Begin Function:Main::Proj_Parse ********************************************
+/* Function:Main::Proj_Parse **************************************************
 Description : Parse the main project.
 Input       : None.
 Output      : None.
@@ -177,7 +177,7 @@ void Main::Proj_Parse(void)
 }
 /* End Function:Main::Proj_Parse *********************************************/
 
-/* Begin Function:Main::Chip_Parse ********************************************
+/* Function:Main::Chip_Parse **************************************************
 Description : Parse the chip configuration file.
 Input       : None.
 Output      : None.
@@ -236,7 +236,7 @@ void Main::Chip_Parse(void)
 }
 /* End Function:Main::Chip_Parse *********************************************/
 
-/* Begin Function:Main::Plat_Parse ********************************************
+/* Function:Main::Plat_Parse **************************************************
 Description : Parse the platform description file.
 Input       : None.
 Output      : None.
@@ -295,7 +295,7 @@ void Main::Plat_Parse(void)
 }
 /* End Function:Main::Plat_Parse *********************************************/
 
-/* Begin Function:Main::Parse *************************************************
+/* Function:Main::Parse *******************************************************
 Description : Parse the files.
 Input       : None.
 Output      : None.
@@ -323,7 +323,7 @@ void Main::Parse(void)
 }
 /* End Function:Main::Parse **************************************************/
 
-/* Begin Function:Main::Standalone_Check **************************************
+/* Function:Main::Standalone_Check ********************************************
 Description : Check the config files individually for early errors.
 Input       : None.
 Output      : None.
@@ -345,7 +345,7 @@ void Main::Standalone_Check(void)
 }
 /* End Function:Main::Standalone_Check ***************************************/
 
-/* Begin Function:Main::Compatible_Check **************************************
+/* Function:Main::Compatible_Check ********************************************
 Description : Check whether the description files are mutually compatible.
 Input       : None.
 Output      : None.
@@ -419,7 +419,7 @@ void Main::Compatible_Check(void)
 }
 /* End Function:Main::Compatible_Check ***************************************/
 
-/* Begin Function:Main::Config_Check ******************************************
+/* Function:Main::Config_Check ************************************************
 Description : Check whether the config are correctly configured - no more, no less.
 Input       : None.
 Output      : None.
@@ -454,7 +454,7 @@ void Main::Config_Check(void)
 }
 /* End Function:Main::Config_Check *******************************************/
 
-/* Begin Function:Main::Physical_Check ****************************************
+/* Function:Main::Physical_Check **********************************************
 Description : Check whether the physical memory will overlap with each other.
 Input       : None.
 Output      : None.
@@ -498,7 +498,7 @@ void Main::Physical_Check(void)
 }
 /* End Function:Main::Physical_Check *****************************************/
 
-/* Begin Function:Main::Static_Check ******************************************
+/* Function:Main::Static_Check ************************************************
 Description : Check whether the statically allocated memory will overlap with each other.
 Input       : None.
 Output      : None.
@@ -541,7 +541,7 @@ void Main::Static_Check(void)
 }
 /* End Function:Main::Static_Check *******************************************/
 
-/* Begin Function:Main::Reference_Check ***************************************
+/* Function:Main::Reference_Check *********************************************
 Description : Check whether the shared memory or kernel object references are valid.
 Input       : None.
 Output      : None.
@@ -664,7 +664,7 @@ void Main::Reference_Check(void)
 }
 /* End Function:Main::Reference_Check ****************************************/
 
-/* Begin Function:Main::Check *************************************************
+/* Function:Main::Check *******************************************************
 Description : Check whether the configurations make sense.
 Input       : None.
 Output      : None.
@@ -688,7 +688,7 @@ void Main::Check(void)
 }
 /* End Function:Main::Check **************************************************/
 
-/* Begin Function:Main::Setup *************************************************
+/* Function:Main::Setup *******************************************************
 Description : Load toolset used for generation. This also passes in all data
               structures they'll ever need to generate everything.
 Input       : None.
@@ -741,7 +741,7 @@ void Main::Setup(void)
 }
 /* End Function:Main::Setup **************************************************/
 
-/* Begin Function:Main::Mem_Align *********************************************
+/* Function:Main::Mem_Align ***************************************************
 Description : Align all memories that does not have a fixed start address, and
               check all memories that have an address is aligned.
 Input       : None.
@@ -803,7 +803,7 @@ void Main::Mem_Align(void)
 }
 /* End Function:Main::Mem_Align **********************************************/
 
-/* Begin Function:Main::Code_Alloc ********************************************
+/* Function:Main::Code_Alloc **************************************************
 Description : Allocate code memory.
 Input       : None.
 Output      : None.
@@ -900,7 +900,7 @@ void Main::Code_Alloc(void)
 }
 /* End Function:Main::Code_Alloc *********************************************/
 
-/* Begin Function:Main::Data_Alloc ********************************************
+/* Function:Main::Data_Alloc **************************************************
 Description : Allocate data memory.
 Input       : None.
 Output      : None.
@@ -994,7 +994,7 @@ void Main::Data_Alloc(void)
 }
 /* End Function:Main::Data_Alloc *********************************************/
 
-/* Begin Function:Main::Device_Alloc ******************************************
+/* Function:Main::Device_Alloc ************************************************
 Description : Allocate data memory.
 Input       : None.
 Output      : None.
@@ -1057,7 +1057,7 @@ void Main::Device_Alloc(void)
 }
 /* End Function:Main::Device_Alloc *******************************************/
 
-/* Begin Function:Main::Mem_Alloc *********************************************
+/* Function:Main::Mem_Alloc ***************************************************
 Description : Allocate memory to each one that still does not have a valid address.
 Input       : None.
 Output      : None.
@@ -1080,7 +1080,7 @@ void Main::Mem_Alloc(void)
 }
 /* End Function:Main::Mem_Alloc **********************************************/
 
-/* Begin Function:Main::Shmem_Add *********************************************
+/* Function:Main::Shmem_Add ***************************************************
 Description : Allocate memory to each one that still does not have a valid address.
 Input       : None.
 Output      : None.
@@ -1135,7 +1135,7 @@ void Main::Shmem_Add(void)
 }
 /* End Function:Main::Shmem_Add **********************************************/
 
-/* Begin Function:Main::Pgt_Alloc *******************************************
+/* Function:Main::Pgt_Alloc *************************************************
 Description : Allocate page tables.
 Input       : None.
 Output      : None.
@@ -1245,7 +1245,7 @@ void Main::Pgt_Alloc(void)
 }
 /* End Function:Main::Pgt_Alloc ********************************************/
 
-/* Begin Function:Main::Cap_Alloc *********************************************
+/* Function:Main::Cap_Alloc ***************************************************
 Description : Allocate capabilities for kernel objects. This includes both local and
               global capids, and also their macros.
               Each global object will reside in its own capability table.
@@ -1292,7 +1292,7 @@ void Main::Cap_Alloc(void)
 }
 /* End Function:Main::Cap_Alloc **********************************************/
 
-/* Begin Function:Main::Cap_Link **********************************************
+/* Function:Main::Cap_Link ****************************************************
 Description : Link relevant capabilities for kernel objects.
 Input       : None.
 Output      : None.
@@ -1338,7 +1338,7 @@ void Main::Cap_Link(void)
 }
 /* End Function:Main::Cap_Link ***********************************************/
 
-/* Begin Function:Main::Kom_Alloc ********************************************
+/* Function:Main::Kom_Alloc **************************************************
 Description : Get the size of the kernel memory, and generate the initial states
               for kernel object creation.
 Input       : ptr_t Init_Capsz - The initial capability table's size;
@@ -1485,7 +1485,7 @@ void Main::Kom_Alloc(ptr_t Init_Capsz)
 }
 /* End Function:Main::Kom_Alloc *********************************************/
 
-/* Begin Function:Main::Obj_Alloc *********************************************
+/* Function:Main::Obj_Alloc ***************************************************
 Description : Allocate kernel objects.
 Input       : None.
 Output      : None.
@@ -1538,7 +1538,7 @@ void Main::Obj_Alloc(void)
 }
 /* End Function:Main::Obj_Alloc **********************************************/
 
-/* Begin Function:Main::Kernel_Gen ********************************************
+/* Function:Main::Kernel_Gen **************************************************
 Description : Generate kernel project.
 Input       : None.
 Output      : None.
@@ -1591,7 +1591,7 @@ void Main::Kernel_Gen(void)
 }
 /* End Function:Main::Kernel_Gen *********************************************/
 
-/* Begin Function:Main::Monitor_Gen *******************************************
+/* Function:Main::Monitor_Gen *************************************************
 Description : Generate monitor project.
 Input       : None.
 Output      : None.
@@ -1639,7 +1639,7 @@ void Main::Monitor_Gen(void)
 }
 /* End Function:Main::Monitor_Gen ********************************************/
 
-/* Begin Function:Main::Process_Gen *******************************************
+/* Function:Main::Process_Gen *************************************************
 Description : Generate process projects.
 Input       : None.
 Output      : None.
@@ -1702,7 +1702,7 @@ void Main::Process_Gen(void)
 }
 /* End Function:Main::Process_Gen ********************************************/
 
-/* Begin Function:Main::Workspace_Gen *****************************************
+/* Function:Main::Workspace_Gen ***********************************************
 Description : Generate workspace, if required.
 Input       : None.
 Output      : None.
@@ -1723,7 +1723,7 @@ void Main::Workspace_Gen(void)
 }
 /* End Function:Main::Workspace_Gen ******************************************/
 
-/* Begin Function:Main::Report_Gen ********************************************
+/* Function:Main::Report_Gen **************************************************
 Description : Generate after report. This is currently not used.
 Input       : None.
 Output      : None.
@@ -1746,7 +1746,7 @@ void Main::Report_Gen(void)
 }
 /* End Function:Main::Report_Gen *********************************************/
 
-/* Begin Function:Main::Main **************************************************
+/* Function:Main::Main ********************************************************
 Description : Preprocess the input parameters, and generate a preprocessed
               instruction listing with all the comments stripped.
 Input       : int argc - The number of arguments.
@@ -1819,7 +1819,7 @@ Return      : None.
 }
 /* End Function:Main::Main ***************************************************/
 
-/* Begin Function:Main::XML_Get_String ****************************************
+/* Function:Main::XML_Get_String **********************************************
 Description : Get strings from the XML entry.
 Input       : xml_node_t* Root - The pointer to the root node.
               const std::string& Name - The entry to look for.
@@ -1850,7 +1850,7 @@ std::string Main::XML_Get_String(xml_node_t* Root, const std::string& Name,
 }
 /* End Function:Main::XML_Get_String *****************************************/
 
-/* Begin Function:Main::XML_Get_Number ****************************************
+/* Function:Main::XML_Get_Number **********************************************
 Description : Get numbers from the XML entry.
 Input       : xml_node_t* Root - The pointer to the root node.
               const std::string& Name - The entry to look for.
@@ -1866,7 +1866,7 @@ ptr_t Main::XML_Get_Number(xml_node_t* Root, const std::string& Name,
 }
 /* End Function:Main::XML_Get_Number *****************************************/
 
-/* Begin Function:Main::XML_Get_Yesno ****************************************
+/* Function:Main::XML_Get_Yesno **********************************************
 Description : Get strings from the XML entry.
 Input       : xml_node_t* Root - The pointer to the root node.
               const std::string& Name - The entry to look for.
@@ -1885,7 +1885,7 @@ ptr_t Main::XML_Get_Yesno(xml_node_t* Root, const std::string& Name,
 }
 /* End Function:Main::XML_Get_Yesno ******************************************/
 
-/* Begin Function:Main::XML_Get_CSV *******************************************
+/* Function:Main::XML_Get_CSV *************************************************
 Description : Get comma-separated values from the XML entry.
 Input       : xml_node_t* Root - The pointer to the root node.
               const std::string& Name - The entry to look for.
@@ -1928,7 +1928,7 @@ void Main::XML_Get_CSV(xml_node_t* Root, const std::string& Name,
 }
 /* End Function:Main::XML_Get_CSV ********************************************/
 
-/* Begin Function:Main::XML_Get_KVP *******************************************
+/* Function:Main::XML_Get_KVP *************************************************
 Description : Get key-value pairs from the XML entry.
 Input       : xml_node_t* Root - The pointer to the root node.
               const std::string& Name - The entry to look for.
@@ -1958,7 +1958,7 @@ void Main::XML_Get_KVP(xml_node_t* Root, const std::string& Name,
 }
 /* End Function:Main::XML_Get_KVP ********************************************/
 
-/* Begin Function:Main::Idtfr_Check *******************************************
+/* Function:Main::Idtfr_Check *************************************************
 Description : Check if the identifier supplied is valid. Valid identifiers must
               contain. If not, we throw an error.
 Input       : const std::string& Idtfr - The identifier.
@@ -1986,7 +1986,7 @@ void Main::Idtfr_Check(const std::string& Idtfr, const std::string& Name,
 }
 /* End Function:Main::Idtfr_Check ********************************************/
 
-/* Begin Function:Main::Dir_Fixup *********************************************
+/* Function:Main::Dir_Fixup ***************************************************
 Description : Fix up all directory paths with a lagging '/'.
 Input       : std::string& Dir - The directory path.
 Output      : std::string& Dir - The guaranteed correct directory path.
@@ -1999,7 +1999,7 @@ void Main::Dir_Fixup(std::string& Dir)
 }
 /* End Function:Main::Dir_Fixup **********************************************/
 
-/* Begin Function:Main::Hex ***************************************************
+/* Function:Main::Hex *********************************************************
 Description : Convert a number to a hex string, without 0x prefix.
 Input       : ptr_t Number - The number to convert.
 Output      : None.
@@ -2014,7 +2014,7 @@ std::string Main::Hex(ptr_t Number)
 }
 /* End Function:Main::Hex ****************************************************/
 
-/* Begin Function:Main::Upper *************************************************
+/* Function:Main::Upper *******************************************************
 Description : Convert the string to uppercase.
 Input       : std::string& Str - The string to convert.
 Output      : std::string& Str - The converted string.
@@ -2026,7 +2026,7 @@ void Main::Upper(std::string& Str)
 }
 /* End Function:Main::Upper **************************************************/
 
-/* Begin Function:Main::Lower *************************************************
+/* Function:Main::Lower *******************************************************
 Description : Convert the string to lowercase.
 Input       : std::string& Str - The string to convert.
 Output      : std::string& Str - The converted string.
@@ -2038,7 +2038,7 @@ void Main::Lower(std::string& Str)
 }
 /* End Function:Main::Lower **************************************************/
 
-/* Begin Function:Main::Strcicmp **********************************************
+/* Function:Main::Strcicmp ****************************************************
 Description : Compare two strings in a case insensitive way.
 Input       : const std::string& Str1 - The first string.
               const std::string& Str2 - The second string.
@@ -2062,7 +2062,7 @@ ret_t Main::Strcicmp(const std::string& Str1, const std::string& Str2)
 }
 /* End Function:Main::Strcicmp ***********************************************/
 
-/* Begin Function:Main::Info **************************************************
+/* Function:Main::Info ********************************************************
 Description : Output information in verbose mode.
 Input       : const char* Format - The printf format.
               ... - Additional printf arguments.
@@ -2083,7 +2083,7 @@ void Main::Info(const char* Format, ...)
 }
 /* End Function:Main::Info ***************************************************/
 
-/* Begin Function:Main::Info **************************************************
+/* Function:Main::Info ********************************************************
 Description : Output information in verbose mode.
 Input       : const std::string& String - The string.
 Output      : None.
@@ -2096,7 +2096,7 @@ void Main::Info(const std::string& Format)
 }
 /* End Function:Main::Info ***************************************************/
 
-/* Begin Function:Main::Warning ***********************************************
+/* Function:Main::Warning *****************************************************
 Description : Output warning.
 Input       : const char* Format - The printf format.
               ... - Additional printf arguments.
@@ -2116,7 +2116,7 @@ void Main::Warning(const char* Format, ...)
 }
 /* End Function:Main::Warning ************************************************/
 
-/* Begin Function:Main::Warning ***********************************************
+/* Function:Main::Warning *****************************************************
 Description : Output warning.
 Input       : const std::string& String - The string.
 Output      : None.
@@ -2128,7 +2128,7 @@ void Main::Warning(const std::string& Format)
 }
 /* End Function:Main::Warning ************************************************/
 
-/* Begin Function:Main::Error *************************************************
+/* Function:Main::Error *******************************************************
 Description : Throw an error.
 Input       : const std::string& Format - The string.
 Output      : None.
@@ -2140,7 +2140,7 @@ void Main::Error[[noreturn]](const std::string& Format)
 }
 /* End Function:Main::Error **************************************************/
 
-/* Begin Function:Main::Error *************************************************
+/* Function:Main::Error *******************************************************
 Description : Throw an error.
 Input       : const char* Format - The printf format.
               ... - Additional printf arguments.
@@ -2160,7 +2160,7 @@ void Main::Error[[noreturn]](const char* Format, ...)
 }
 /* End Function:Main::Error **************************************************/
 }
-/* Begin Function:Malloc ******************************************************
+/* Function:Malloc ************************************************************
 Description : Allocate some memory and register it with the system.
 Input       : ptr_t Size - The size to allocate, in bytes.
 Output      : None.
@@ -2172,7 +2172,7 @@ extern "C" void* Malloc(ptr_t Size)
 }
 /* End Function:Malloc *******************************************************/
 
-/* Begin Function:Free ********************************************************
+/* Function:Free **************************************************************
 Description : Deallocate the memory and deregister it.
 Input       : void* Addr - The address to free.
 Output      : None.
@@ -2184,7 +2184,7 @@ extern "C" void Free(void* Addr)
 }
 /* End Function:Free *********************************************************/
 
-/* Begin Function:Memcpy ******************************************************
+/* Function:Memcpy ************************************************************
 Description : Memcpy wrapper for 64-bit XML library.
 Input       : void* Src - The source string.
               xml_ptr_t Num - The number to copy.
@@ -2197,7 +2197,7 @@ extern "C" void* Memcpy(void* Dst, void* Src, xml_ptr_t Num)
 }
 /* End Function:Memcpy *******************************************************/
 
-/* Begin Function:Strncmp *****************************************************
+/* Function:Strncmp ***********************************************************
 Description : Strncmp wrapper for 64-bit XML library.
 Input       : s8_t* Str1 - The first string.
               s8_t* Str2 - The second string.
@@ -2212,7 +2212,7 @@ extern "C" ret_t Strncmp(s8_t* Str1, s8_t* Str2, ptr_t Num)
 }
 /* End Function:Strncmp ******************************************************/
 
-/* Begin Function:Strlen ******************************************************
+/* Function:Strlen ************************************************************
 Description : Strlen wrapper for 64-bit XML library.
 Input       : s8_t* Str - The Input string.
 Output      : None.
@@ -2224,7 +2224,7 @@ extern "C" ptr_t Strlen(s8_t* Str)
 }
 /* End Function:Strlen *******************************************************/
 
-/* Begin Function:main ********************************************************
+/* Function:main **************************************************************
 Description : The entry of the tool.
 Input       : None.
 Output      : None.

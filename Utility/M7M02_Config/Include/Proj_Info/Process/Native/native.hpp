@@ -6,36 +6,36 @@ License     : Proprietary; confidential.
 Description : Native process class header.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
-#ifdef __HDR_DEFS__
-#ifndef __NATIVE_HPP_TYPES__
-#define __NATIVE_HPP_TYPES__
+/* Define ********************************************************************/
+#ifdef __HDR_DEF__
+#ifndef __NATIVE_TYPE__
+#define __NATIVE_TYPE__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __NATIVE_HPP_TYPES__ */
+/* __NATIVE_TYPE__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
 
 namespace RVM_CFG
 {
-#ifdef __HDR_DEFS__
-#ifndef __NATIVE_HPP_DEFS__
-#define __NATIVE_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __NATIVE_DEF__
+#define __NATIVE_DEF__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __NATIVE_HPP_DEFS__ */
+/* __NATIVE_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __NATIVE_HPP_CLASSES__
-#define __NATIVE_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __NATIVE_CLASS__
+#define __NATIVE_CLASS__
 /*****************************************************************************/
 class Native:public Process
 {
@@ -68,9 +68,9 @@ public:
     virtual void Save(class wxXmlNode* Parent) final override;
 };
 /*****************************************************************************/
-/* __NATIVE_HPP_CLASSES__ */
+/* __NATIVE_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

@@ -6,7 +6,7 @@ Description : The Cortex-M user-level assembly scheduling support of the RVM
               hypervisor. This file is intended to be used with gcc.
 ******************************************************************************/
 
-/* Begin Header **************************************************************/
+/* Header ********************************************************************/
     .section            .text
     .arch               armv7-m
     .thumb_func
@@ -14,7 +14,7 @@ Description : The Cortex-M user-level assembly scheduling support of the RVM
     .align              3
 /* End Header ****************************************************************/
 
-/* Begin Exports *************************************************************/
+/* Export ********************************************************************/
     /* User entry stub */
     .global             _RVM_Entry
     /* User level stub for thread creation and synchronous invocation */
@@ -27,14 +27,14 @@ Description : The Cortex-M user-level assembly scheduling support of the RVM
     .global             RVM_Svc
     /* Get the MSB in a word */
     .global             _RVM_MSB_Get
-/* End Exports ***************************************************************/
+/* End Export ****************************************************************/
 
-/* Begin Imports *************************************************************/
+/* Import ********************************************************************/
     /* The main function. */
     .global             main
-/* End Imports ***************************************************************/
+/* End Import ****************************************************************/
 
-/* Begin Function:_RVM_Entry **************************************************
+/* Function:_RVM_Entry ********************************************************
 Description : The entry of the process.
 Input       : None.
 Output      : None.
@@ -70,7 +70,7 @@ clear_done:
     BX                  R0
 /* End Function:_RVM_Entry ***************************************************/
 
-/* Begin Function:_RVM_Jmp_Stub ***********************************************
+/* Function:_RVM_Jmp_Stub *****************************************************
 Description : The user level stub for thread creation.
 Input       : R4 - rvm_ptr_t Entry - The entry address.
               R5 - rvm_ptr_t Stack - The stack address that we are using now.
@@ -84,7 +84,7 @@ _RVM_Jmp_Stub:
     BLX                 R4                  /* Branch to the actual entry address */
 /* End Function:_RVM_Jmp_Stub ************************************************/
 
-/* Begin Function:RVM_Inv_Act ************************************************
+/* Function:RVM_Inv_Act ******************************************************
 Description : Activate an invocation. If the return value is not desired, pass
               0 into R2. This is a default implementation that saves all general
               purpose registers and doesn't save FPU context. If you need a faster
@@ -116,7 +116,7 @@ RVM_Inv_Act:
     BX                  LR                  /* Return from the call */
 /* End Function:RVM_Inv_Act *************************************************/
 
-/* Begin Function:RVM_Inv_Ret ************************************************
+/* Function:RVM_Inv_Ret ******************************************************
 Description : Manually return from an invocation, and set the return value to
               the old register set. This function does not need a capability
               table to work, and never returns.
@@ -135,7 +135,7 @@ RVM_Inv_Ret:
     B                   .                   /* Shouldn't reach here. */
 /* End Function:RVM_Inv_Ret *************************************************/
 
-/* Begin Function:RVM_Svc ****************************************************
+/* Function:RVM_Svc **********************************************************
 Description : Trigger a system call.
 Input       : R0 - rvm_ptr_t Num - The system call number/other information.
               R1 - rvm_ptr_t Param1 - Argument 1.
@@ -162,7 +162,7 @@ RVM_Svc:
     B                   .                   /* Shouldn't reach here */
 /* End Function:RVM_Svc *****************************************************/
 
-/* Begin Function:_RVM_MSB_Get ***********************************************
+/* Function:_RVM_MSB_Get *****************************************************
 Description : Get the MSB of the word.
 Input       : R0 - rvm_ptr_t Val - The value.
 Output      : None.

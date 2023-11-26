@@ -6,38 +6,38 @@ License     : Proprietary; confidential.
 Description : Project information class header.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
-#ifdef __HDR_DEFS__
-#ifndef __PROJ_INFO_HPP_TYPES__
-#define __PROJ_INFO_HPP_TYPES__
+/* Define ********************************************************************/
+#ifdef __HDR_DEF__
+#ifndef __PROJ_INFO_TYPE__
+#define __PROJ_INFO_TYPE__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __PROJ_INFO_HPP_TYPES__ */
+/* __PROJ_INFO_TYPE__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
 
 namespace RVM_CFG
 {
-#ifdef __HDR_DEFS__
-#ifndef __PROJ_INFO_HPP_DEFS__
-#define __PROJ_INFO_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __PROJ_INFO_DEF__
+#define __PROJ_INFO_DEF__
 /*****************************************************************************/
 /* Path type */
 #define PATH_FILE                       (0)
 #define PATH_DIR                        (1)
 /*****************************************************************************/
-/* __PROJ_INFO_HPP_DEFS__ */
+/* __PROJ_INFO_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __PROJ_INFO_HPP_CLASSES__
-#define __PROJ_INFO_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __PROJ_INFO_CLASS__
+#define __PROJ_INFO_CLASS__
 /*****************************************************************************/
 class Proj_Info
 {
@@ -100,9 +100,9 @@ public:
     std::string Rel_Conv(const std::string& Relpath,ptr_t Type);
 };
 /*****************************************************************************/
-/* __PROJ_INFO_HPP_CLASSES__ */
+/* __PROJ_INFO_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

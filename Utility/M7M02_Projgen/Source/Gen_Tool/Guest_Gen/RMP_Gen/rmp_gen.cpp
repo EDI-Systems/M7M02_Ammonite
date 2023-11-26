@@ -6,7 +6,7 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : This toolset is for RMP OS.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
+/* Include *******************************************************************/
 extern "C"
 {
 #include "xml.h"
@@ -21,15 +21,15 @@ extern "C"
 #include "algorithm"
 #include "filesystem"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "rvm_gen.hpp"
 #include "Gen_Tool/gen_tool.hpp"
 #include "Gen_Tool/Tool_Gen/tool_gen.hpp"
 #include "Gen_Tool/Guest_Gen/guest_gen.hpp"
 #include "Gen_Tool/Guest_Gen/RMP_Gen/rmp_gen.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_gen.hpp"
 #include "Plat_Info/plat_info.hpp"
 #include "Chip_Info/chip_info.hpp"
@@ -56,11 +56,11 @@ extern "C"
 #include "Gen_Tool/Tool_Gen/tool_gen.hpp"
 #include "Gen_Tool/Guest_Gen/guest_gen.hpp"
 #include "Gen_Tool/Guest_Gen/RMP_Gen/rmp_gen.hpp"
-#undef __HDR_STRUCTS__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_GEN
 {
-/* Begin Function:RMP_Gen::RMP_Gen ********************************************
+/* Function:RMP_Gen::RMP_Gen **************************************************
 Description : Generator for the RMP OS.
 Input       : class Proj_Info* Proj - The project information.
               class Plat_Info* Plat - The platform information.
@@ -82,7 +82,7 @@ Guest_Gen("RMP", Proj, Plat, Chip)
 }
 /* End Function:RMP_Gen::RMP_Gen *********************************************/
 
-/* Begin Function:RMP_Gen::Process_Virt_Hdr ***********************************
+/* Function:RMP_Gen::Process_Virt_Hdr *****************************************
 Description : Create the configuration headers for VMs.
 Input       : class Virtual* Virt - The process to generate for.
 Output      : None.
@@ -145,7 +145,7 @@ void RMP_Gen::Process_Virt_Hdr(class Virtual* Virt)
 }
 /* End Function:RMP_Gen::Process_Virt_Hdr ************************************/
 
-/* Begin Function:RMP_Gen::Process_Virt_Src ***********************************
+/* Function:RMP_Gen::Process_Virt_Src *****************************************
 Description : Create the configuration source for VMs.
 Input       : class Virtual* Virt - The process to generate for.
               class Tool_Gen* Tool - The toolchain to use.

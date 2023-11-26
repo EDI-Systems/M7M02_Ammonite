@@ -6,10 +6,10 @@ License     : Proprietary; confidential.
 Description : Build toolbar class implementation.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
-#define __HDR_DEFS__
+/* Include *******************************************************************/
+#define __HDR_DEF__
 #include "rvm_cfg.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
 #include "wx/wx.h"
 #include "wx/xml/xml.h"
@@ -25,18 +25,18 @@ Description : Build toolbar class implementation.
 #include "memory"
 #include "vector"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "Tool_Bar/tool_bar.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_cfg.hpp"
 #include "Tool_Bar/tool_bar.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_CFG
 {
-/* Begin Function:Tool_Bar::Tool_Bar ******************************************
+/* Function:Tool_Bar::Tool_Bar ************************************************
 Description : Constructor for Tool_Bar.
 Input       : class wxWindow* Parent - The parent window.
 Output      : None.
@@ -74,7 +74,7 @@ wxToolBar(Parent,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxTB_HORIZONTAL|wxTB_F
 }
 /* End Function:Tool_Bar::Tool_Bar *******************************************/
 
-/* Begin Function:Tool_Bar::~Tool_Bar *****************************************
+/* Function:Tool_Bar::~Tool_Bar ***********************************************
 Description : Destructor for build tool bar.
 Input       : None.
 Output      : None.
@@ -90,7 +90,7 @@ Return      : None.
 }
 /* End Function:Tool_Bar::~Tool_Bar ******************************************/
 
-/* Begin Function:Tool_Bar::State_Set *****************************************
+/* Function:Tool_Bar::State_Set ***********************************************
 Description : Set the current UI state, and decide what controls are usable.
 Input       : ptr_t Type - The state type.
 Output      : None.
@@ -125,7 +125,7 @@ void Tool_Bar::State_Set(ptr_t Type)
 }
 /* End Function:Tool_Bar::State_Set ******************************************/
 
-/* Begin Function:Tool_Bar::On_New_Proj ***************************************
+/* Function:Tool_Bar::On_New_Proj *********************************************
 Description : wxEVT_TOOL handler for 'New Project'.
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.
@@ -151,7 +151,7 @@ void Tool_Bar::On_New_Proj(class wxCommandEvent& Event)
 }
 /* End Function:Tool_Bar::On_New_Proj ****************************************/
 
-/* Begin Function:Tool_Bar::On_Open_Proj **************************************
+/* Function:Tool_Bar::On_Open_Proj ********************************************
 Description : wxEVT_TOOL handler for 'Open Project'.
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.
@@ -177,7 +177,7 @@ void Tool_Bar::On_Open_Proj(class wxCommandEvent& Event)
 }
 /* End Function:Tool_Bar::On_Open_Proj ***************************************/
 
-/* Begin Function:Tool_Bar::On_Save_Proj **************************************
+/* Function:Tool_Bar::On_Save_Proj ********************************************
 Description : wxEVT_TOOL handler for 'Save Project'.
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.
@@ -190,7 +190,7 @@ void Tool_Bar::On_Save_Proj(class wxCommandEvent& Event)
 }
 /* End Function:Tool_Bar::On_Save_Proj ***************************************/
 
-/* Begin Function:Tool_Bar::On_Validate ***************************************
+/* Function:Tool_Bar::On_Validate *********************************************
 Description : wxEVT_TOOL handler for 'Generate'.
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.
@@ -203,7 +203,7 @@ void Tool_Bar::On_Generate(class wxCommandEvent& Event)
 }
 /* End Function:Tool_Bar::On_Generate *****************************************/
 
-/* Begin Function:Tool_Bar::On_Validate ***************************************
+/* Function:Tool_Bar::On_Validate *********************************************
 Description : wxEVT_TOOL handler for 'Debug'.
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.

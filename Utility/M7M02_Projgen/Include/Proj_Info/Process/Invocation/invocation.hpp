@@ -6,25 +6,25 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The header for the invocation class.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
+/* Define ********************************************************************/
 namespace RVM_GEN
 {
-#ifdef __HDR_DEFS__
-#ifndef __INVOCATION_HPP_DEFS__
-#define __INVOCATION_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __INVOCATION_DEF__
+#define __INVOCATION_DEF__
 /*****************************************************************************/
     
 /*****************************************************************************/
-/* __INVOCATION_HPP_DEFS__ */
+/* __INVOCATION_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __INVOCATION_HPP_CLASSES__
-#define __INVOCATION_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __INVOCATION_CLASS__
+#define __INVOCATION_CLASS__
 /*****************************************************************************/
 /* Invocation information */
 class Invocation:public Kobj
@@ -41,9 +41,9 @@ public:
     /* void */ Invocation(xml_node_t* Root, class Process* Owner);
 };
 /*****************************************************************************/
-/* __INVOCATION_HPP_CLASSES__ */
+/* __INVOCATION_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

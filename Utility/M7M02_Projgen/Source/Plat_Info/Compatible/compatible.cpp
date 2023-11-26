@@ -11,7 +11,7 @@ Description : The compatibility information class. For each compartment, make
               toolchain (i.e. Keil), 2. LLVM/GCC+Makefile. IAR is out of scope.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
+/* Include *******************************************************************/
 extern "C"
 {
 #include "xml.h"
@@ -24,19 +24,19 @@ extern "C"
 #include "vector"
 #include "stdexcept"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "rvm_gen.hpp"
 #include "Plat_Info/compatible/compatible.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_gen.hpp"
 #include "Plat_Info/compatible/compatible.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_GEN
 {
-/* Begin Function:Compatible::Compatible **************************************
+/* Function:Compatible::Compatible ********************************************
 Description : Constructor for compatible combination class.
 Input       : xml_node_t* Root - The node containing the compatibility information.
 Output      : None.

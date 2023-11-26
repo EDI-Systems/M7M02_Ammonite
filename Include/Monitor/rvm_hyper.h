@@ -6,10 +6,10 @@ Licence     : The Unlicense; see LICENSE for details.
 Description : The header of microcontroller user-level library.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
-#ifdef __HDR_DEFS__
-#ifndef __RVM_HYPER_H_DEFS__
-#define __RVM_HYPER_H_DEFS__
+/* Define ********************************************************************/
+#ifdef __HDR_DEF__
+#ifndef __RVM_HYPER_DEF__
+#define __RVM_HYPER_DEF__
 /*****************************************************************************/
 /* Hypercalls */
 /* No operation - operation not ready */
@@ -94,20 +94,20 @@ Description : The header of microcontroller user-level library.
 #define RVM_DESC_NUM(B)             (((const struct RVM_Desc*)(B))->Number)
 #define RVM_DESC_STUB(B)            RVM_DESC_ENTRY(B, RVM_DESC_NUM(B)-1U)
 /*****************************************************************************/
-/* __RVM_HYPER_H_DEFS__ */
+/* __RVM_HYPER_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
-/* Structs *******************************************************************/
-#ifdef __HDR_STRUCTS__
-#ifndef __RVM_HYPER_H_STRUCTS__
-#define __RVM_HYPER_H_STRUCTS__
+/* Struct ********************************************************************/
+#ifdef __HDR_STRUCT__
+#ifndef __RVM_HYPER_STRUCT__
+#define __RVM_HYPER_STRUCT__
 
 /* Use defines in these headers */
-#define __HDR_DEFS__
-#undef __HDR_DEFS__
+#define __HDR_DEF__
+#undef __HDR_DEF__
 /*****************************************************************************/
 #if(RVM_VIRT_NUM!=0U)
 /* Parameter */
@@ -253,34 +253,34 @@ struct RVM_Thd_Reg
     rvm_ptr_t Cop[1];
 };
 /*****************************************************************************/
-/* __RVM_HYPER_H_STRUCTS__ */
+/* __RVM_HYPER_STRUCT__ */
 #endif
-/* __HDR_STRUCTS__ */
+/* __HDR_STRUCT__ */
 #endif
-/* End Structs ***************************************************************/
+/* End Struct ****************************************************************/
 
-/* Private Global Variables **************************************************/
-#if(!(defined __HDR_DEFS__||defined __HDR_STRUCTS__))
-#ifndef __RVM_HYPER_MEMBERS__
-#define __RVM_HYPER_MEMBERS__
+/* Private Variable **********************************************************/
+#if(!(defined __HDR_DEF__||defined __HDR_STRUCT__))
+#ifndef __RVM_HYPER_MEMBER__
+#define __RVM_HYPER_MEMBER__
 
 /* In this way we can use the data structures and definitions in the headers */
-#define __HDR_DEFS__
+#define __HDR_DEF__
 
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_STRUCTS__
+#define __HDR_STRUCT__
 
-#undef __HDR_STRUCTS__
+#undef __HDR_STRUCT__
 
 /* If the header is not used in the public mode */
-#ifndef __HDR_PUBLIC_MEMBERS__
+#ifndef __HDR_PUBLIC__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* End Private Global Variables **********************************************/
+/* End Private Variable ******************************************************/
 
-/* Private C Function Prototypes *********************************************/ 
+/* Private Function **********************************************************/ 
 /*****************************************************************************/
 #if(RVM_VIRT_NUM!=0U)
 /* Helper functions */
@@ -326,13 +326,13 @@ static rvm_ret_t RVM_Hyp_Wdg_Clr(void);
 #endif
 /*****************************************************************************/
 #define __EXTERN__
-/* End Private C Function Prototypes *****************************************/
+/* End Private Function ******************************************************/
 
-/* Public Global Variables ***************************************************/
-/* __HDR_PUBLIC_MEMBERS__ */
+/* Public Variable ***********************************************************/
+/* __HDR_PUBLIC__ */
 #else
 #define __EXTERN__ EXTERN 
-/* __HDR_PUBLIC_MEMBERS__ */
+/* __HDR_PUBLIC__ */
 #endif
 
 /*****************************************************************************/
@@ -364,9 +364,9 @@ __EXTERN__ struct RVM_Map_Struct RVM_Map[RVM_VIRT_MAP_NUM];
 #endif
 /*****************************************************************************/
 
-/* End Public Global Variables ***********************************************/
+/* End Public Variable *******************************************************/
 
-/* Public C Function Prototypes **********************************************/
+/* Public Function ***********************************************************/
 /*****************************************************************************/
 #if(RVM_VIRT_NUM!=0U)
 /* Initializing functions */
@@ -383,11 +383,11 @@ __EXTERN__ void RVM_Sftd(void);
 /*****************************************************************************/
 /* Undefine "__EXTERN__" to avoid redefinition */
 #undef __EXTERN__
-/* __RVM_HYPER_MEMBERS__ */
+/* __RVM_HYPER_MEMBER__ */
 #endif
-/* !(defined __HDR_DEFS__||defined __HDR_STRUCTS__) */
+/* !(defined __HDR_DEF__||defined __HDR_STRUCT__) */
 #endif
-/* End Public C Function Prototypes ******************************************/
+/* End Public Function *******************************************************/
 
 /* End Of File ***************************************************************/
 

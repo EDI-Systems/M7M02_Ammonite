@@ -6,38 +6,38 @@ License     : Proprietary; confidential.
 Description : Output notebook file header.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
-#ifdef __HDR_DEFS__
-#ifndef __OUTPUT_NOTEBOOK_HPP_TYPES__
-#define __OUTPUT_NOTEBOOK_HPP_TYPES__
+/* Define ********************************************************************/
+#ifdef __HDR_DEF__
+#ifndef __OUTPUT_NOTEBOOK_TYPE__
+#define __OUTPUT_NOTEBOOK_TYPE__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __OUTPUT_NOTEBOOK_HPP_TYPES__ */
+/* __OUTPUT_NOTEBOOK_TYPE__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
 
 namespace RVM_CFG
 {
-#ifdef __HDR_DEFS__
-#ifndef __OUTPUT_NOTEBOOK_HPP_DEFS__
-#define __OUTPUT_NOTEBOOK_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __OUTPUT_NOTEBOOK_DEF__
+#define __OUTPUT_NOTEBOOK_DEF__
 /*****************************************************************************/
 #define OUTPUT_GENERATE              (0)
 #define OUTPUT_PROCESS               (1)
 #define OUTPUT_STATISTICS            (2)
 /*****************************************************************************/
-/* __OUTPUT_NOTEBOOK_HPP_DEFS__ */
+/* __OUTPUT_NOTEBOOK_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __OUTPUT_NOTEBOOK_HPP_CLASSES__
-#define __OUTPUT_NOTEBOOK_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __OUTPUT_NOTEBOOK_CLASS__
+#define __OUTPUT_NOTEBOOK_CLASS__
 /*****************************************************************************/
 class Output_Notebook:public wxNotebook
 {
@@ -52,9 +52,9 @@ public:
     void State_Set(ptr_t Type);
 };
 /*****************************************************************************/
-/* __OUTPUT_NOTEBOOK_HPP_CLASSES__ */
+/* __OUTPUT_NOTEBOOK_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

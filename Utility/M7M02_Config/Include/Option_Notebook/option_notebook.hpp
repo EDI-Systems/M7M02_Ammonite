@@ -6,36 +6,36 @@ License     : Proprietary; confidential.
 Description : Option notebook file header.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
-#ifdef __HDR_DEFS__
-#ifndef __OPTION_NOTEBOOK_HPP_TYPES__
-#define __OPTION_NOTEBOOK_HPP_TYPES__
+/* Define ********************************************************************/
+#ifdef __HDR_DEF__
+#ifndef __OPTION_NOTEBOOK_TYPE__
+#define __OPTION_NOTEBOOK_TYPE__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __OPTION_NOTEBOOK_HPP_TYPES__ */
+/* __OPTION_NOTEBOOK_TYPE__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
 
 namespace RVM_CFG
 {
-#ifdef __HDR_DEFS__
-#ifndef __OPTION_NOTEBOOK_HPP_DEFS__
-#define __OPTION_NOTEBOOK_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __OPTION_NOTEBOOK_DEF__
+#define __OPTION_NOTEBOOK_DEF__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __OPTION_NOTEBOOK_HPP_DEFS__ */
+/* __OPTION_NOTEBOOK_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __OPTION_NOTEBOOK_HPP_CLASSES__
-#define __OPTION_NOTEBOOK_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __OPTION_NOTEBOOK_CLASS__
+#define __OPTION_NOTEBOOK_CLASS__
 /*****************************************************************************/
 class Option_Notebook:public wxNotebook
 {
@@ -47,9 +47,9 @@ public:
     void State_Set(ptr_t Type);
 };
 /*****************************************************************************/
-/* __OPTION_NOTEBOOK_HPP_CLASSES__ */
+/* __OPTION_NOTEBOOK_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

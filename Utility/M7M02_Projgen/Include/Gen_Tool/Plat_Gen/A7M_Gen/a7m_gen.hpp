@@ -6,12 +6,12 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The header of the ARMv7-M platform generator.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
+/* Define ********************************************************************/
 namespace RVM_GEN
 {
-#ifdef __HDR_DEFS__
-#ifndef __A7M_GEN_HPP_DEFS__
-#define __A7M_GEN_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __A7M_GEN_DEF__
+#define __A7M_GEN_DEF__
 /*****************************************************************************/
 /* Endianness */
 #define A7M_END_LITTLE                          (0)
@@ -31,16 +31,16 @@ namespace RVM_GEN
 #define A7M_RAW_REG_FPU_SIZE                    (112)
 #define A7M_RAW_INV_SIZE                        (36)
 /*****************************************************************************/
-/* __A7M_GEN_HPP_DEFS__ */
+/* __A7M_GEN_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __A7M_GEN_HPP_CLASSES__
-#define __A7M_GEN_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __A7M_GEN_CLASS__
+#define __A7M_GEN_CLASS__
 /*****************************************************************************/
 /* A7M-specific information */
 class A7M_Gen:public Plat_Gen
@@ -70,9 +70,9 @@ public:
     virtual void Process_Main_Hdr(std::unique_ptr<std::vector<std::string>>& List, const class Process* Prc) final override;
 };
 /*****************************************************************************/
-/* __A7M_GEN_HPP_CLASSES__ */
+/* __A7M_GEN_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

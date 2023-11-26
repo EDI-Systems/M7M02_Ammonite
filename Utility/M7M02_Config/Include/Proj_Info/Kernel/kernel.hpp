@@ -6,36 +6,36 @@ License     : Proprietary; confidential.
 Description : Monitor class header.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
-#ifdef __HDR_DEFS__
-#ifndef __KERNEL_HPP_TYPES__
-#define __KERNEL_HPP_TYPES__
+/* Define ********************************************************************/
+#ifdef __HDR_DEF__
+#ifndef __KERNEL_TYPE__
+#define __KERNEL_TYPE__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __KERNEL_HPP_TYPES__ */
+/* __KERNEL_TYPE__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
 
 namespace RVM_CFG
 {
-#ifdef __HDR_DEFS__
-#ifndef __KERNEL_HPP_DEFS__
-#define __KERNEL_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __KERNEL_DEF__
+#define __KERNEL_DEF__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __KERNEL_HPP_DEFS__ */
+/* __KERNEL_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __KERNEL_HPP_CLASSES__
-#define __KERNEL_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __KERNEL_CLASS__
+#define __KERNEL_CLASS__
 /*****************************************************************************/
 class Kernel
 {
@@ -90,9 +90,9 @@ public:
     void Save(class wxXmlNode* Parent);
 };
 /*****************************************************************************/
-/* __KERNEL_HPP_CLASSES__ */
+/* __KERNEL_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

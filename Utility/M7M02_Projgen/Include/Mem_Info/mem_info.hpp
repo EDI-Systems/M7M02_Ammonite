@@ -6,12 +6,12 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The header for the memory class.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
+/* Define ********************************************************************/
 namespace RVM_GEN
 {
-#ifdef __HDR_DEFS__
-#ifndef __MEM_INFO_HPP_DEFS__
-#define __MEM_INFO_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __MEM_INFO_DEF__
+#define __MEM_INFO_DEF__
 /*****************************************************************************/
 /* Physical block or reference */
 #define MEM_PHYS            0
@@ -57,16 +57,16 @@ namespace RVM_GEN
 #define MEM_TRY             (0)
 #define MEM_MARK            (1)
 /*****************************************************************************/
-/* __MEM_INFO_HPP_DEFS__ */
+/* __MEM_INFO_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __MEM_INFO_HPP_CLASSES__
-#define __MEM_INFO_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __MEM_INFO_CLASS__
+#define __MEM_INFO_CLASS__
 /*****************************************************************************/
 /* Memory trunk information */
 class Mem_Info
@@ -116,9 +116,9 @@ public:
     ret_t Auto_Fit(std::vector<class Mem_Info*>& Map);
 };
 /*****************************************************************************/
-/* __MEM_INFO_HPP_CLASSES__ */
+/* __MEM_INFO_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

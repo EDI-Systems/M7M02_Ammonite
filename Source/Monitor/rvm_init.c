@@ -7,35 +7,35 @@ Description : The init process of MPU-based RVM systems. This process just sets
               up all other parts of the system then go idle.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
+/* Include *******************************************************************/
 #include "rvm.h"
 #include "rvm_boot.h"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "rvm_platform.h"
 #include "Monitor/rvm_syssvc.h"
 #include "Monitor/rvm_init.h"
 #include "Monitor/rvm_hyper.h"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_STRUCTS__
+#define __HDR_STRUCT__
 #include "rvm_platform.h"
 #include "Monitor/rvm_syssvc.h"
 #include "Monitor/rvm_init.h"
 #include "Monitor/rvm_hyper.h"
-#undef __HDR_STRUCTS__
+#undef __HDR_STRUCT__
 
 /* Private include */
 #include "Monitor/rvm_init.h"
 
-#define __HDR_PUBLIC_MEMBERS__
+#define __HDR_PUBLIC__
 #include "rvm_platform.h"
 #include "Monitor/rvm_syssvc.h"
 #include "Monitor/rvm_hyper.h"
-#undef __HDR_PUBLIC_MEMBERS__
-/* End Includes **************************************************************/
+#undef __HDR_PUBLIC__
+/* End Include ***************************************************************/
 
-/* Begin Function:RVM_Clear ***************************************************
+/* Function:RVM_Clear *********************************************************
 Description : Memset a memory area to zero.
 Input       : volatile void* Addr - The address to clear.
               rvm_ptr_t Size - The size to clear.
@@ -52,7 +52,7 @@ void RVM_Clear(volatile void* Addr,
 }
 /* End Function:RVM_Clear ****************************************************/
 
-/* Begin Function:RVM_Boot_Main_Crt *******************************************
+/* Function:RVM_Boot_Main_Crt *************************************************
 Description : Create all 'main' capability tables at boot-time. Main capability 
               tables are placed into the boot-time capability table, and they
               contain the real kernel objects.
@@ -91,7 +91,7 @@ rvm_ptr_t RVM_Boot_Main_Crt(const struct RVM_Meta_Main_Struct* Meta,
 }
 /* End Function:RVM_Boot_Main_Crt ********************************************/
 
-/* Begin Function:RVM_Boot_Vep_Crt ********************************************
+/* Function:RVM_Boot_Vep_Crt **************************************************
 Description : Create all VM endpoints at boot-time.
 Input       : None.
 Output      : None.
@@ -129,7 +129,7 @@ void RVM_Boot_Vep_Crt(void)
 #endif
 /* End Function:RVM_Boot_Vep_Crt *********************************************/
 
-/* Begin Function:RVM_Boot_Cpt_Crt ********************************************
+/* Function:RVM_Boot_Cpt_Crt **************************************************
 Description : Create all capability tables at boot-time.
 Input       : None.
 Output      : None.
@@ -172,7 +172,7 @@ void RVM_Boot_Cpt_Crt(void)
 }
 /* End Function:RVM_Boot_Cpt_Crt *********************************************/
 
-/* Begin Function:RVM_Boot_Pgt_Crt ********************************************
+/* Function:RVM_Boot_Pgt_Crt **************************************************
 Description : Create all page tables at boot-time.
 Input       : None.
 Output      : None.
@@ -222,7 +222,7 @@ void RVM_Boot_Pgt_Crt(void)
 }
 /* End Function:RVM_Boot_Pgt_Crt *********************************************/
 
-/* Begin Function:RVM_Boot_Prc_Crt ********************************************
+/* Function:RVM_Boot_Prc_Crt **************************************************
 Description : Create all processes at boot-time.
 Input       : None.
 Output      : None.
@@ -260,7 +260,7 @@ void RVM_Boot_Prc_Crt(void)
 }
 /* End Function:RVM_Boot_Prc_Crt *********************************************/
 
-/* Begin Function:RVM_Boot_Thd_Crt ********************************************
+/* Function:RVM_Boot_Thd_Crt **************************************************
 Description : Create all threads at boot-time.
 Input       : None.
 Output      : None.
@@ -332,7 +332,7 @@ void RVM_Boot_Thd_Crt(void)
 }
 /* End Function:RVM_Boot_Thd_Crt *********************************************/
 
-/* Begin Function:RVM_Boot_Inv_Crt ********************************************
+/* Function:RVM_Boot_Inv_Crt **************************************************
 Description : Create all invocations at boot-time.
 Input       : None.
 Output      : None.
@@ -377,7 +377,7 @@ void RVM_Boot_Inv_Crt(void)
 #endif
 /* End Function:RVM_Boot_Inv_Crt *********************************************/
 
-/* Begin Function:RVM_Boot_Rcv_Crt ********************************************
+/* Function:RVM_Boot_Rcv_Crt **************************************************
 Description : Create all invocations at boot-time.
 Input       : None.
 Output      : None.
@@ -415,7 +415,7 @@ void RVM_Boot_Rcv_Crt(void)
 #endif
 /* End Function:RVM_Boot_Rcv_Crt *********************************************/
 
-/* Begin Function:RVM_Boot_Kobj_Crt *******************************************
+/* Function:RVM_Boot_Kobj_Crt *************************************************
 Description : Create kernel objects at boot-time.
 Input       : None.
 Output      : None.
@@ -454,7 +454,7 @@ void RVM_Boot_Kobj_Crt(void)
 }
 /* End Function:RVM_Boot_Kobj_Crt ********************************************/
 
-/* Begin Function:RVM_Boot_Vcap_Init ******************************************
+/* Function:RVM_Boot_Vcap_Init ************************************************
 Description : Initialize all VM capability table special contents.
 Input       : None.
 Output      : None.
@@ -491,7 +491,7 @@ void RVM_Boot_Vcap_Init(void)
 #endif
 /* End Function:RVM_Boot_Vcap_Init *******************************************/
 
-/* Begin Function:RVM_Boot_Cpt_Init *******************************************
+/* Function:RVM_Boot_Cpt_Init *************************************************
 Description : Initialize the capability tables of all processes.
 Input       : None.
 Output      : None.
@@ -545,7 +545,7 @@ void RVM_Boot_Cpt_Init(void)
 }
 /* End Function:RVM_Boot_Cpt_Init ********************************************/
 
-/* Begin Function:RVM_Boot_Pgt_Init *******************************************
+/* Function:RVM_Boot_Pgt_Init *************************************************
 Description : Initialize the page tables of all processes.
 Input       : None.
 Output      : None.
@@ -600,7 +600,7 @@ void RVM_Boot_Pgt_Init(void)
 }
 /* End Function:RVM_Boot_Pgt_Init ********************************************/
 
-/* Begin Function:RVM_Boot_Thd_Init *******************************************
+/* Function:RVM_Boot_Thd_Init *************************************************
 Description : Initialize the all threads.
 Input       : None.
 Output      : None.
@@ -676,7 +676,7 @@ void RVM_Boot_Thd_Init(void)
 }
 /* End Function:RVM_Boot_Thd_Init ********************************************/
 
-/* Begin Function:RVM_Boot_Inv_Init *******************************************
+/* Function:RVM_Boot_Inv_Init *************************************************
 Description : Initialize the all invocations.
 Input       : None.
 Output      : None.
@@ -723,7 +723,7 @@ void RVM_Boot_Inv_Init(void)
 #endif
 /* End Function:RVM_Boot_Inv_Init ********************************************/
 
-/* Begin Function:RVM_Boot_Kobj_Init ******************************************
+/* Function:RVM_Boot_Kobj_Init ************************************************
 Description : Initialize kernel objects at boot-time.
 Input       : None.
 Output      : None.
@@ -744,7 +744,7 @@ void RVM_Boot_Kobj_Init(void)
 }
 /* End Function:RVM_Boot_Kobj_Init *******************************************/
 
-/* Begin Function:RVM_Prc_Init ************************************************
+/* Function:RVM_Prc_Init ******************************************************
 Description : Initialize processes.
 Input       : None.
 Output      : None.
@@ -765,7 +765,7 @@ void RVM_Prc_Init(void)
 }
 /* End Function:RVM_Prc_Init *************************************************/
 
-/* Begin Function:RVM_Daemon_Init *********************************************
+/* Function:RVM_Daemon_Init ***************************************************
 Description : Initialize the daemons. These daemons include four ones:
               1. SFTD, the daemon for the startup and process recovery.
               2. TIMD, the daemon for time accounting and sending timer interrupts to VMs.
@@ -802,7 +802,7 @@ void RVM_Daemon_Init(rvm_cid_t Cap_Base,
     RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Sftd_Thd_Cap, RVM_BOOT_INIT_THD, RVM_Sftd_Sig_Cap, RVM_Sftd_Thd_Cap, RVM_PREEMPT_PRIO_NUM-1U)==0);
     RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Sftd_Thd_Cap, (rvm_ptr_t)RVM_Sftd, 
                                 RVM_Stack_Init(RVM_SFTD_STACK_BASE, RVM_SFTD_STACK_SIZE,
-                                               (rvm_ptr_t)RVM_Sftd, (rvm_ptr_t)_RVM_Jmp_Stub), 0U)==0);
+                                               (rvm_ptr_t)RVM_Sftd, (rvm_ptr_t)__RVM_Jmp_Stub), 0U)==0);
     RVM_DBG_S("Init: Safety daemon initialization complete.\r\n");
 
 #if(RVM_VIRT_NUM!=0U)
@@ -816,13 +816,13 @@ void RVM_Daemon_Init(rvm_cid_t Cap_Base,
     RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Vmmd_Thd_Cap, RVM_Sftd_Thd_Cap, RVM_Sftd_Sig_Cap, RVM_Vmmd_Thd_Cap, RVM_VMMD_PRIO)==0);
     RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Vmmd_Thd_Cap, (rvm_ptr_t)RVM_Vmmd, 
                                 RVM_Stack_Init(RVM_VMMD_STACK_BASE, RVM_VMMD_STACK_SIZE,
-                                               (rvm_ptr_t)RVM_Vmmd, (rvm_ptr_t)_RVM_Jmp_Stub),0)==0);
+                                               (rvm_ptr_t)RVM_Vmmd, (rvm_ptr_t)__RVM_Jmp_Stub),0)==0);
     RVM_DBG_S("Init: Main daemon initialization complete.\r\n");
 #endif
 }
 /* End Function:RVM_Daemon_Init **********************************************/
 
-/* Begin Function:RVM_Init ****************************************************
+/* Function:RVM_Init **********************************************************
 Description : The VMM's init thread, which boots the VMM from here.
 Input       : None.
 Output      : None.
@@ -887,7 +887,7 @@ void RVM_Init(void)
 }
 /* End Function:RVM_Init *****************************************************/
 
-/* Begin Function:main ********************************************************
+/* Function:main **************************************************************
 Description : The entry of the VMM's init thread.
 Input       : None.
 Output      : None.

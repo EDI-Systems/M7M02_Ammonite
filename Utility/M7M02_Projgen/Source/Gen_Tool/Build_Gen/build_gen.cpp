@@ -6,7 +6,7 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : Generic buildsystem generator port.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
+/* Include *******************************************************************/
 extern "C"
 {
 #include "xml.h"
@@ -20,19 +20,19 @@ extern "C"
 #include "stdexcept"
 #include "algorithm"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "rvm_gen.hpp"
 #include "Gen_Tool/Build_Gen/build_gen.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_gen.hpp"
 #include "Gen_Tool/Build_Gen/build_gen.hpp"
-#undef __HDR_STRUCTS__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_GEN
 {
-/* Begin Function:Build_Gen::Build_Gen ****************************************
+/* Function:Build_Gen::Build_Gen **********************************************
 Description : Generator for the toolchain.
 Input       : class Proj_Info* Proj - The project information.
               class Plat_Info* Plat - The platform information.

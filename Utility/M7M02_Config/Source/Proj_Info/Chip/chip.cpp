@@ -6,10 +6,10 @@ License     : Proprietary; confidential.
 Description : Chip information implementation.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
-#define __HDR_DEFS__
+/* Include *******************************************************************/
+#define __HDR_DEF__
 #include "rvm_cfg.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
 #include "wx/wx.h"
 #include "wx/xml/xml.h"
@@ -18,20 +18,20 @@ Description : Chip information implementation.
 #include "string"
 #include "memory"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "Proj_Info/proj_info.hpp"
 #include "Proj_Info/Chip/chip.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_cfg.hpp"
 #include "Proj_Info/Chip/chip.hpp"
 #include "Proj_Info/proj_info.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_CFG
 {
-/* Begin Function:Chip::Chip **************************************************
+/* Function:Chip::Chip ********************************************************
 Description : Default constructor for chip information.
 Input       : const std::string& Name - The exact chip name.
               const class Chip_Info* Chip - The chip information.
@@ -46,7 +46,7 @@ Return      : None.
 }
 /* End Function:Chip::Chip ***************************************************/
 
-/* Begin Function:Chip::Chip **************************************************
+/* Function:Chip::Chip ********************************************************
 Description : Constructor for chip information.
 Input       : class wxXmlNode* Node - The node containing information.
 Output      : None.
@@ -65,7 +65,7 @@ Return      : None.
 }
 /* End Function:Chip::Chip ***************************************************/
 
-/* Begin Function:Chip::~Chip *************************************************
+/* Function:Chip::~Chip *******************************************************
 Description : Destructor for chip information.
 Input       : None.
 Output      : None.
@@ -77,7 +77,7 @@ Return      : None.
 }
 /* End Function:Chip::~Chip **************************************************/
 
-/* Begin Function:Chip::Save **************************************************
+/* Function:Chip::Save ********************************************************
 Description : Save target information to XML file.
 Input       : class wxXmlNode* Parent - The parent node.
 Output      : None.

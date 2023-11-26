@@ -6,25 +6,25 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The header of the Keil buildsystem generator.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
+/* Define ********************************************************************/
 namespace RVM_GEN
 {
-#ifdef __HDR_DEFS__
-#ifndef __KEIL_GEN_HPP_DEFS__
-#define __KEIL_GEN_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __KEIL_GEN_DEF__
+#define __KEIL_GEN_DEF__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __KEIL_GEN_HPP_DEFS__ */
+/* __KEIL_GEN_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __KEIL_GEN_HPP_CLASSES__
-#define __KEIL_GEN_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __KEIL_GEN_CLASS__
+#define __KEIL_GEN_CLASS__
 /*****************************************************************************/
 /* Keil-specific information */
 class Keil_Gen:public Build_Gen
@@ -62,9 +62,9 @@ public:
                                 const std::vector<std::string>& Project) final override;
 };
 /*****************************************************************************/
-/* __KEIL_GEN_HPP_CLASSES__ */
+/* __KEIL_GEN_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

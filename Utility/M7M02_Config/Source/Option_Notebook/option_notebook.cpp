@@ -6,10 +6,10 @@ License     : Proprietary; confidential.
 Description : Sheet notebook implementation.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
-#define __HDR_DEFS__
+/* Include *******************************************************************/
+#define __HDR_DEF__
 #include "rvm_cfg.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
 #include "wx/wx.h"
 #include "wx/notebook.h"
@@ -19,18 +19,18 @@ Description : Sheet notebook implementation.
 #include "map"
 #include "memory"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "Option_Notebook/option_notebook.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_cfg.hpp"
 #include "Option_Notebook/option_notebook.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_CFG
 {
-/* Begin Function:Option_Notebook::Option_Notebook ****************************
+/* Function:Option_Notebook::Option_Notebook **********************************
 Description : Constructor for sheet notebook. This notebook is very flexible and
               allows close buttons.
 Input       : class wxWindow* Parent - The parent panel.
@@ -44,7 +44,7 @@ wxNotebook(Parent,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxNB_TOP)
 }
 /* End Function:Option_Notebook::Option_Notebook *****************************/
 
-/* Begin Function:Option_Notebook::~Option_Notebook ***************************
+/* Function:Option_Notebook::~Option_Notebook *********************************
 Description : Destructor for sheet notebook.
 Input       : None.
 Output      : None.
@@ -56,7 +56,7 @@ Return      : None.
 }
 /* End Function:Option_Notebook::Option_Notebook *****************************/
 
-/* Begin Function:Option_Notebook::State_Set **********************************
+/* Function:Option_Notebook::State_Set ****************************************
 Description : Set the current UI state, and decide what controls are usable.
 Input       : ptr_t Type - The state type.
 Output      : None.

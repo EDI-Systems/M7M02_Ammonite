@@ -6,36 +6,36 @@ License     : Proprietary; confidential.
 Description : Help menu class header.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
-#ifdef __HDR_DEFS__
-#ifndef __HELP_MENU_HPP_TYPES__
-#define __HELP_MENU_HPP_TYPES__
+/* Define ********************************************************************/
+#ifdef __HDR_DEF__
+#ifndef __HELP_MENU_TYPE__
+#define __HELP_MENU_TYPE__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __HELP_MENU_HPP_TYPES__ */
+/* __HELP_MENU_TYPE__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
 
 namespace RVM_CFG
 {
-#ifdef __HDR_DEFS__
-#ifndef __HELP_MENU_HPP_DEFS__
-#define __HELP_MENU_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __HELP_MENU_DEF__
+#define __HELP_MENU_DEF__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __HELP_MENU_HPP_DEFS__ */
+/* __HELP_MENU_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __HELP_MENU_HPP_CLASSES__
-#define __HELP_MENU_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __HELP_MENU_CLASS__
+#define __HELP_MENU_CLASS__
 /*****************************************************************************/
 class Help_Menu:public wxMenu
 {
@@ -62,9 +62,9 @@ public:
 #endif
 };
 /*****************************************************************************/
-/* __HELP_MENU_HPP_CLASSES__ */
+/* __HELP_MENU_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

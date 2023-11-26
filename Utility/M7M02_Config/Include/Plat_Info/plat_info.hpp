@@ -6,36 +6,36 @@ License     : Proprietary; confidential.
 Description : Platform information class header.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
-#ifdef __HDR_DEFS__
-#ifndef __PLAT_INFO_HPP_TYPES__
-#define __PLAT_INFO_HPP_TYPES__
+/* Define ********************************************************************/
+#ifdef __HDR_DEF__
+#ifndef __PLAT_INFO_TYPE__
+#define __PLAT_INFO_TYPE__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __PLAT_INFO_HPP_TYPES__ */
+/* __PLAT_INFO_TYPE__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
 
 namespace RVM_CFG
 {
-#ifdef __HDR_DEFS__
-#ifndef __PLAT_INFO_HPP_DEFS__
-#define __PLAT_INFO_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __PLAT_INFO_DEF__
+#define __PLAT_INFO_DEF__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __PLAT_INFO_HPP_DEFS__ */
+/* __PLAT_INFO_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __PLAT_INFO_HPP_CLASSES__
-#define __PLAT_INFO_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __PLAT_INFO_CLASS__
+#define __PLAT_INFO_CLASS__
 /*****************************************************************************/
 class Plat_Info
 {
@@ -69,9 +69,9 @@ public:
     /* void */ ~Plat_Info(void);
 };
 /*****************************************************************************/
-/* __PLAT_INFO_HPP_CLASSES__ */
+/* __PLAT_INFO_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

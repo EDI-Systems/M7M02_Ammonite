@@ -6,7 +6,7 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : This toolset is for ARMv6-M. Specifically, this suits Cortex-M0+.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
+/* Include *******************************************************************/
 extern "C"
 {
 #include "xml.h"
@@ -20,7 +20,7 @@ extern "C"
 #include "stdexcept"
 #include "algorithm"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "rvm_gen.hpp"
 #include "Mem_Info/mem_info.hpp"
 #include "Plat_Info/plat_info.hpp"
@@ -31,9 +31,9 @@ extern "C"
 #include "Gen_Tool/Gen_Tool.hpp"
 #include "Gen_Tool/Plat_Gen/plat_gen.hpp"
 #include "Gen_Tool/Plat_Gen/A6M_Gen/a6m_gen.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_gen.hpp"
 #include "Plat_Info/plat_info.hpp"
 #include "Chip_Info/chip_info.hpp"
@@ -59,11 +59,11 @@ extern "C"
 #include "Gen_Tool/Gen_Tool.hpp"
 #include "Gen_Tool/Plat_Gen/plat_gen.hpp"
 #include "Gen_Tool/Plat_Gen/A6M_Gen/a6m_gen.hpp"
-#undef __HDR_STRUCTS__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_GEN
 {
-/* Begin Function:A6M_Gen::A6M_Gen ********************************************
+/* Function:A6M_Gen::A6M_Gen **************************************************
 Description : Generator for the ARMv6-M platform.
 Input       : class Proj_Info* Proj - The project information.
               class Plat_Info* Plat - The platform information.
@@ -85,7 +85,7 @@ Plat_Gen("A6M", Proj, Plat, Chip)
 }
 /* End Function:A6M_Gen::A6M_Gen *********************************************/
 
-/* Begin Function:A6M_Gen::Mem_Align ******************************************
+/* Function:A6M_Gen::Mem_Align ************************************************
 Description : Memory aligner for the ARMv6-M platform.
 Input       : ptr_t Base - The memory base address.
               ptr_t Size - The memory size.
@@ -152,7 +152,7 @@ ptr_t A6M_Gen::Mem_Align(ptr_t Base, ptr_t Size, ptr_t Align_Order)
 }
 /* End Function:A6M_Gen::Mem_Align *******************************************/
 
-/* Begin Function:A6M_Gen::Pgt_Total_Order ************************************
+/* Function:A6M_Gen::Pgt_Total_Order ******************************************
 Description : Get the total order and the start address of the page table.
 Input       : std::vector<std::unique_ptr<class Mem_Info>>& List - The memory block list.
 Output      : ptr_t* Base - The base address of this page table.
@@ -203,7 +203,7 @@ ptr_t A6M_Gen::Pgt_Total_Order(std::vector<std::unique_ptr<class Mem_Info>>& Lis
 }
 /* End Function:A6M_Gen::Pgt_Total_Order *************************************/
 
-/* Begin Function:A6M_Gen::Pgt_Num_Order **************************************
+/* Function:A6M_Gen::Pgt_Num_Order ********************************************
 Description : Get the number order of the page table.
 Input       : std::vector<std::unique_ptr<class Mem_Info>>& List - The memory block list.
               ptr_t Total_Order - The total order of the page table.
@@ -309,7 +309,7 @@ ptr_t A6M_Gen::Pgt_Num_Order(std::vector<std::unique_ptr<class Mem_Info>>& List,
 }
 /* End Function:A6M_Gen::Pgt_Num_Order ***************************************/
 
-/* Begin Function:A6M_Gen::Page_Map *******************************************
+/* Function:A6M_Gen::Page_Map *************************************************
 Description : Map pages into the page table as we can.
 Input       : std::vector<std::unique_ptr<class Mem>>& List - The memory block list.
               std::unique_ptr<class Pgtbl>& Pgt - The current page table.
@@ -390,7 +390,7 @@ void A6M_Gen::Page_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
 }
 /* End Function:A6M_Gen::Page_Map ********************************************/
 
-/* Begin Function:A6M_Gen::Pgdir_Map ******************************************
+/* Function:A6M_Gen::Pgdir_Map ************************************************
 Description : Map page directories into the page table.
 Input       : std::vector<std::unique_ptr<class Mem>>& List - The memory block list.
               class Process* Owner - The owner process of this kernel object.
@@ -452,7 +452,7 @@ void A6M_Gen::Pgdir_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
 }
 /* End Function:A6M_Gen::Pgdir_Map *******************************************/
 
-/* Begin Function:A6M_Gen::Pgt_Gen ********************************************
+/* Function:A6M_Gen::Pgt_Gen **************************************************
 Description : Recursively construct the page table for the ARMv6-M port.
 Input       : std::vector<std::unique_ptr<class Mem_Info>>& - The list containing
                                                               memory segments to fit
@@ -516,7 +516,7 @@ std::unique_ptr<class Pgtbl> A6M_Gen::Pgt_Gen(std::vector<std::unique_ptr<class 
 }
 /* End Function:A6M::Gen_Pgt *************************************************/
 
-/* Begin Function:A6M_Gen::Raw_Pgt ********************************************
+/* Function:A6M_Gen::Raw_Pgt **************************************************
 Description : Query the size of page table given the parameters.
 Input       : ptr_t Num_Order - The number order.
               ptr_t Is_Top - Whether this is a top-level.
@@ -532,7 +532,7 @@ ptr_t A6M_Gen::Raw_Pgt(ptr_t Num_Order, ptr_t Is_Top)
 }
 /* End Function:A6M_Gen::Size_Pgt ********************************************/
 
-/* Begin Function:A6M_Gen::Raw_Thread *****************************************
+/* Function:A6M_Gen::Raw_Thread ***********************************************
 Description : Query the size of the minimal thread object.
 Input       : None.
 Output      : None.
@@ -544,7 +544,7 @@ ptr_t A6M_Gen::Raw_Thread(void)
 }
 /* End Function:A6M_Gen::Raw_Thread ******************************************/
 
-/* Begin Function:A6M_Gen::Raw_Invocation *************************************
+/* Function:A6M_Gen::Raw_Invocation *******************************************
 Description : Query the size of a invocation.
 Input       : None.
 Output      : None.
@@ -556,7 +556,7 @@ ptr_t A6M_Gen::Raw_Invocation(void)
 }
 /* End Function:A6M_Gen::Raw_Invocation **************************************/
 
-/* Begin Function:A6M_Gen::Raw_Register ***************************************
+/* Function:A6M_Gen::Raw_Register *********************************************
 Description : Query the size of the register set.
 Input       : const std::vector<std::string>& Coprocessor - The coprocessor list.
 Output      : None.
@@ -568,7 +568,7 @@ ptr_t A6M_Gen::Raw_Register(const std::vector<std::string>& Coprocessor)
 }
 /* End Function:A6M_Gen::Raw_Register ****************************************/
 
-/* Begin Function:A6M_Gen::Kernel_Conf_Hdr ************************************
+/* Function:A6M_Gen::Kernel_Conf_Hdr ******************************************
 Description : Replace kernel configuration header macros.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The input file.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The modified file.
@@ -593,7 +593,7 @@ void A6M_Gen::Kernel_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
 }
 /* End Function:A6M_Gen::Kernel_Conf_Hdr *************************************/
 
-/* Begin Function:A6M_Gen::Monitor_Conf_Hdr ***********************************
+/* Function:A6M_Gen::Monitor_Conf_Hdr *****************************************
 Description : Replace monitor configuration header macros.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The input file.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The modified file.
@@ -614,7 +614,7 @@ void A6M_Gen::Monitor_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
 }
 /* End Function:A6M_Gen::Monitor_Conf_Hdr ************************************/
 
-/* Begin Function:A6M_Gen::Process_Main_Hdr ***********************************
+/* Function:A6M_Gen::Process_Main_Hdr *****************************************
 Description : Replace process main header macros.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The input file.
               const class Process* Prc - The process information.

@@ -6,25 +6,25 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The header for the guest OS generator class.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
+/* Define ********************************************************************/
 namespace RVM_GEN
 {
-#ifdef __HDR_DEFS__
-#ifndef __GUEST_GEN_HPP_DEFS__
-#define __GUEST_GEN_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __GUEST_GEN_DEF__
+#define __GUEST_GEN_DEF__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __GUEST_GEN_HPP_DEFS__ */
+/* __GUEST_GEN_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __GUEST_GEN_HPP_CLASSES__
-#define __GUEST_GEN_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __GUEST_GEN_CLASS__
+#define __GUEST_GEN_CLASS__
 /*****************************************************************************/
 /* Buildsystem generator information */
 class Guest_Gen
@@ -47,9 +47,9 @@ public:
     virtual void Process_Virt_Src(class Virtual* Virt, class Tool_Gen* Tool)=0;
 };
 /*****************************************************************************/
-/* __GUEST_GEN_HPP_CLASSES__ */
+/* __GUEST_GEN_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

@@ -7,7 +7,7 @@ Description : The chip information class. This class is responsible for reading
               chip parameters.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
+/* Include *******************************************************************/
 extern "C"
 {
 #include "xml.h"
@@ -20,24 +20,24 @@ extern "C"
 #include "vector"
 #include "stdexcept"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "rvm_gen.hpp"
 #include "Chip_Info/chip_info.hpp"
 #include "Mem_Info/mem_info.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_gen.hpp"
 #include "Chip_Info/chip_info.hpp"
 #include "Conf_Info/conf_info.hpp"
 #include "Proj_Info/Kobj/kobj.hpp"
 #include "Vect_Info/vect_info.hpp"
 #include "Mem_Info/mem_info.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_GEN
 {
-/* Begin Function:Chip_Info::Chip_Info ****************************************
+/* Function:Chip_Info::Chip_Info **********************************************
 Description : Constructor for chip class.
 Input       : xml_node_t* Root - The node containing the chip information.
 Output      : None.
@@ -86,7 +86,7 @@ Return      : None.
 }
 /* End Function:Chip_Info::Chip_Info *****************************************/
 
-/* Begin Function:Chip_Info::Check ********************************************
+/* Function:Chip_Info::Check **************************************************
 Description : Check whether the chip configuration makes sense.
 Input       : None.
 Output      : None.
@@ -130,7 +130,7 @@ void Chip_Info::Check(void)
 }
 /* End Function:Chip_Info::Check *********************************************/
 
-/* Begin Function:Chip_Info::Project_Config_Mark_Check ************************
+/* Function:Chip_Info::Project_Config_Mark_Check ******************************
 Description : Check whether all configs have been set.
 Input       : None.
 Output      : None.

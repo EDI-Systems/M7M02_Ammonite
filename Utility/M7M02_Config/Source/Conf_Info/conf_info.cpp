@@ -6,10 +6,10 @@ License     : Proprietary; confidential.
 Description : Configuration information implementation.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
-#define __HDR_DEFS__
+/* Include *******************************************************************/
+#define __HDR_DEF__
 #include "rvm_cfg.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
 #include "wx/wx.h"
 #include "wx/xml/xml.h"
@@ -18,18 +18,18 @@ Description : Configuration information implementation.
 #include "string"
 #include "memory"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "Conf_Info/conf_info.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_cfg.hpp"
 #include "Conf_Info/conf_info.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_CFG
 {
-/* Begin Function:Conf_Info::Conf_Info ****************************************
+/* Function:Conf_Info::Conf_Info **********************************************
 Description : Constructor for configuration information.
 Input       : class wxXmlNode* Node - The node containing information.
 Output      : None.
@@ -62,7 +62,7 @@ Return      : None.
 }
 /* End Function:Conf_Info::Conf_Info *****************************************/
 
-/* Begin Function:Conf_Info::~Conf_Info ***************************************
+/* Function:Conf_Info::~Conf_Info *********************************************
 Description : Destructor for configuration information.
 Input       : None.
 Output      : None.

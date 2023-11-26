@@ -6,25 +6,25 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The header for the receive class.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
+/* Define ********************************************************************/
 namespace RVM_GEN
 {
-#ifdef __HDR_DEFS__
-#ifndef __RECEIVE_HPP_DEFS__
-#define __RECEIVE_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __RECEIVE_DEF__
+#define __RECEIVE_DEF__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __RECEIVE_HPP_DEFS__ */
+/* __RECEIVE_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __RECEIVE_HPP_CLASSES__
-#define __RECEIVE_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __RECEIVE_CLASS__
+#define __RECEIVE_CLASS__
 /*****************************************************************************/
 /* Receive endpoint information */
 class Receive:public Kobj
@@ -34,9 +34,9 @@ public:
     /* void */  Receive(xml_node_t* Root, class Process* Owner);
 };
 /*****************************************************************************/
-/* __RECEIVE_HPP_CLASSES__ */
+/* __RECEIVE_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

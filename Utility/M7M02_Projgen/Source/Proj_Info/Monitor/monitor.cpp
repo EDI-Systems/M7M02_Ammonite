@@ -6,7 +6,7 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The virtual machine monitor class.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
+/* Include *******************************************************************/
 extern "C"
 {
 #include "xml.h"
@@ -20,21 +20,21 @@ extern "C"
 #include "stdexcept"
 #include "algorithm"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "rvm_gen.hpp"
 #include "Proj_Info/Monitor/monitor.hpp"
 #include "Mem_Info/mem_info.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_gen.hpp"
 #include "Proj_Info/Monitor/monitor.hpp"
 #include "Mem_Info/mem_info.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_GEN
 {
-/* Begin Function:Monitor::Monitor ********************************************
+/* Function:Monitor::Monitor **************************************************
 Description : Constructor for virtual machine monitor class.
 Input       : xml_node_t* Root - The node containing the whole project.
               ptr_t Code_Base - The monitor code base.
@@ -106,7 +106,7 @@ Return      : None.
 }
 /* End Function:Monitor::Monitor *********************************************/
 
-/* Begin Function:Monitor::Mem_Alloc ******************************************
+/* Function:Monitor::Mem_Alloc ************************************************
 Description : Allocate the kernel objects and memory for RVM user-level library.
 Input       : ptr_t Code_Start - The code start position for RVM.
               ptr_t Data_Start - The data start position for RVM.

@@ -6,7 +6,7 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The virtual machine class.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
+/* Include *******************************************************************/
 extern "C"
 {
 #include "xml.h"
@@ -20,13 +20,13 @@ extern "C"
 #include "stdexcept"
 #include "algorithm"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "rvm_gen.hpp"
 #include "Proj_Info/Process/process.hpp"
 #include "Proj_Info/Process/Virtual/virtual.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_gen.hpp"
 #include "Proj_Info/Kobj/kobj.hpp"
 #include "Proj_Info/Process/process.hpp"
@@ -42,11 +42,11 @@ extern "C"
 #include "Proj_Info/Process/Virtual/virtual.hpp"
 #include "Mem_Info/mem_info.hpp"
 #include "Vect_Info/vect_info.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_GEN
 {
-/* Begin Function:Virtual::Virtual ********************************************
+/* Function:Virtual::Virtual **************************************************
 Description : Constructor for virtual machine class. The virtual machine is a special
               type of process, in which we populate the kernel objects autonomously.
 Input       : xml_node_t* Root - The node containing the virtual machine description.
@@ -100,7 +100,7 @@ Process(Root,PROCESS_VIRTUAL)
 }
 /* End Function:Virtual::Virtual *********************************************/
 
-/* Begin Function:Virtual::State_Alloc ****************************************
+/* Function:Virtual::State_Alloc **********************************************
 Description : Allocate the memory for state space. State space is like
               struct RVM_Param
               {

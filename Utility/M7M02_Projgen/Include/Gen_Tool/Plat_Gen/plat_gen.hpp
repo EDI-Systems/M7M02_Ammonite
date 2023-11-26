@@ -6,25 +6,25 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The header of the platform generator.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
+/* Define ********************************************************************/
 namespace RVM_GEN
 {
-#ifdef __HDR_DEFS__
-#ifndef __PLAT_GEN_HPP_DEFS__
-#define __PLAT_GEN_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __PLAT_GEN_DEF__
+#define __PLAT_GEN_DEF__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __PLAT_GEN_HPP_DEFS__ */
+/* __PLAT_GEN_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __PLAT_GEN_HPP_CLASSES__
-#define __PLAT_GEN_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __PLAT_GEN_CLASS__
+#define __PLAT_GEN_CLASS__
 /*****************************************************************************/
 /* Platform generator */
 class Plat_Gen
@@ -65,9 +65,9 @@ public:
     virtual void Process_Main_Hdr(std::unique_ptr<std::vector<std::string>>& List, const class Process* Prc)=0;
 };
 /*****************************************************************************/
-/* __PLAT_GEN_HPP_CLASSES__ */
+/* __PLAT_GEN_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

@@ -6,10 +6,10 @@ License     : Proprietary; confidential.
 Description : Config tree implementation.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
-#define __HDR_DEFS__
+/* Include *******************************************************************/
+#define __HDR_DEF__
 #include "rvm_cfg.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
 #include "wx/wx.h"
 #include "wx/xml/xml.h"
@@ -20,20 +20,20 @@ Description : Config tree implementation.
 #include "set"
 #include "memory"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "Config_Tree/Config_Popup/config_popup.hpp"
 #include "Config_Tree/config_tree.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_cfg.hpp"
 #include "Config_Tree/Config_Popup/config_popup.hpp"
 #include "Config_Tree/config_tree.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_CFG
 {
-/* Begin Function:Config_Tree::Config_Tree ************************************
+/* Function:Config_Tree::Config_Tree ******************************************
 Description : Constructor for config tree.
 Input       : class wxWindow* Parent - The parent panel.
               ptr_t Type - The type of this tree.
@@ -62,7 +62,7 @@ wxTreeCtrl(Parent,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxTR_HIDE_ROOT|wxTR_H
 }
 /* End Function:Config_Tree::Config_Tree *************************************/
 
-/* Begin Function:Config_Tree::~Config_Tree ***********************************
+/* Function:Config_Tree::~Config_Tree *****************************************
 Description : Destructor for file tree.
 Input       : None.
 Output      : None.
@@ -79,7 +79,7 @@ Return      : None.
 }
 /* End Function:Config_Tree::~Config_Tree ************************************/
 
-/* Begin Function:Config_Tree::Load *******************************************
+/* Function:Config_Tree::Load *************************************************
 Description : Load up the config tree.
 Input       : None.
 Output      : None.
@@ -100,7 +100,7 @@ void Config_Tree::Load(void)
 }
 /* End Function:Config_Tree::Load ********************************************/
 
-/* Begin Function:Config_Tree::Detail *****************************************
+/* Function:Config_Tree::Detail ***********************************************
 Description : Update the selection marker and details.
 Input       : class wxTreeItemId& Select - The selected entry.
 Output      : None.
@@ -117,7 +117,7 @@ ret_t Config_Tree::Detail(class wxTreeItemId& Select)
 }
 /* End Function:Config_Tree::Detail ******************************************/
 
-/* Begin Function:Config_Tree::State_Set **************************************
+/* Function:Config_Tree::State_Set ********************************************
 Description : Set the current UI state, and decide what controls are usable.
 Input       : ptr_t Type - The state type.
 Output      : None.
@@ -129,7 +129,7 @@ void Config_Tree::State_Set(ptr_t Type)
 }
 /* End Function:Config_Tree::State_Set ***************************************/
 
-/* Begin Function:Config_Tree::On_Activate ************************************
+/* Function:Config_Tree::On_Activate ******************************************
 Description : wxEVT_TREE_ITEM_ACTIVATED handler for 'Selection activate'.
 Input       : class wxTreeEvent& Event - The event.
 Output      : None.
@@ -143,7 +143,7 @@ void Config_Tree::On_Activate(class wxTreeEvent& Event)
 }
 /* End Function:Config_Tree::On_Activate *************************************/
 
-/* Begin Function:Config_Tree::On_Menu ****************************************
+/* Function:Config_Tree::On_Menu **********************************************
 Description : wxEVT_TREE_ITEM_MENU handler.
 Input       : class wxTreeEvent& Event - The event.
 Output      : None.
@@ -168,7 +168,7 @@ void Config_Tree::On_Menu(class wxTreeEvent& Event)
 }
 /* End Function:Config_Tree::On_Menu *****************************************/
 
-/* Begin Function:Config_Tree::On_Drag_Begin **********************************
+/* Function:Config_Tree::On_Drag_Begin ****************************************
 Description : wxEVT_TREE_BEGIN_DRAG handler for 'Begin Drag'.
               Only the closed sheets may be dragged. Open sheets are not allowed.
 Input       : class wxTreeEvent& Event - The event.
@@ -185,7 +185,7 @@ void Config_Tree::On_Drag_Begin(class wxTreeEvent& Event)
 }
 /* End Function:Config_Tree::On_Drag_Begin ***********************************/
 
-/* Begin Function:Config_Tree::On_Drag_End ************************************
+/* Function:Config_Tree::On_Drag_End ******************************************
 Description : wxEVT_TREE_END_DRAG handler for 'End Drag'.
               Only the closed sheets may be dragged. Open sheets are not allowed.
 Input       : class wxTreeEvent& Event - The event.
@@ -204,7 +204,7 @@ void Config_Tree::On_Drag_End(class wxTreeEvent& Event)
 }
 /* End Function:Config_Tree::On_Drag_End *************************************/
 
-/* Begin Function:Config_Drop::OnDropFiles ************************************
+/* Function:Config_Drop::OnDropFiles ******************************************
 Description : Drop project onto the tree to open it.
 Input       : wxCoord X - The X coordinate.
               wxCoord Y - The Y coordinate.

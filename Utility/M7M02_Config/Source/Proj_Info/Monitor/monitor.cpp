@@ -6,10 +6,10 @@ License     : Proprietary; confidential.
 Description : Monitor information implementation.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
-#define __HDR_DEFS__
+/* Include *******************************************************************/
+#define __HDR_DEF__
 #include "rvm_cfg.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
 #include "wx/wx.h"
 #include "wx/xml/xml.h"
@@ -18,20 +18,20 @@ Description : Monitor information implementation.
 #include "string"
 #include "memory"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "Proj_Info/proj_info.hpp"
 #include "Proj_Info/Monitor/monitor.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_cfg.hpp"
 #include "Proj_Info/Monitor/monitor.hpp"
 #include "Proj_Info/proj_info.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_CFG
 {
-/* Begin Function:Monitor::Monitor **********************************************
+/* Function:Monitor::Monitor ****************************************************
 Description : Default constructor for kernel information. This will initialize
               with the platform/chip description file.
 Input       : const std::string& Monitor_Root - The kernel root folder.
@@ -49,7 +49,7 @@ Return      : None.
 }
 /* End Function:Monitor::Monitor ***********************************************/
 
-/* Begin Function:Monitor::Monitor **********************************************
+/* Function:Monitor::Monitor ****************************************************
 Description : Constructor for kernel information.
 Input       : class wxXmlNode* Node - The node containing information.
 Output      : None.
@@ -106,7 +106,7 @@ Return      : None.
 }
 /* End Function:Monitor::Monitor ***********************************************/
 
-/* Begin Function:Monitor::~Monitor *********************************************
+/* Function:Monitor::~Monitor ***************************************************
 Description : Destructor for kernel information.
 Input       : None.
 Output      : None.
@@ -118,7 +118,7 @@ Return      : None.
 }
 /* End Function:Monitor::~Monitor **********************************************/
 
-/* Begin Function:Monitor::Save ************************************************
+/* Function:Monitor::Save ******************************************************
 Description : Save target information to XML file.
 Input       : class wxXmlNode* Parent - The parent node.
 Output      : None.

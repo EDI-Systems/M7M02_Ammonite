@@ -6,23 +6,23 @@ License     : Proprietary; confidential.
 Description : Mem_Info class header.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
-#ifdef __HDR_DEFS__
-#ifndef __MEM_INFO_HPP_TYPES__
-#define __MEM_INFO_HPP_TYPES__
+/* Define ********************************************************************/
+#ifdef __HDR_DEF__
+#ifndef __MEM_INFO_TYPE__
+#define __MEM_INFO_TYPE__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __MEM_INFO_HPP_TYPES__ */
+/* __MEM_INFO_TYPE__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
 
 namespace RVM_CFG
 {
-#ifdef __HDR_DEFS__
-#ifndef __MEM_INFO_HPP_DEFS__
-#define __MEM_INFO_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __MEM_INFO_DEF__
+#define __MEM_INFO_DEF__
 /*****************************************************************************/
 /* Memory type - Code, Data, Device */
 #define MEM_CODE            0
@@ -40,16 +40,16 @@ namespace RVM_CFG
 /* Memory placement */
 #define MEM_AUTO            ((ptr_t)(-1LL))
 /*****************************************************************************/
-/* __MEM_INFO_HPP_DEFS__ */
+/* __MEM_INFO_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __MEM_INFO_HPP_CLASSES__
-#define __MEM_INFO_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __MEM_INFO_CLASS__
+#define __MEM_INFO_CLASS__
 /*****************************************************************************/
 class Mem_Info
 {
@@ -73,9 +73,9 @@ public:
     void Save(class wxXmlNode* Parent);
 };
 /*****************************************************************************/
-/* __MEM_INFO_HPP_CLASSES__ */
+/* __MEM_INFO_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

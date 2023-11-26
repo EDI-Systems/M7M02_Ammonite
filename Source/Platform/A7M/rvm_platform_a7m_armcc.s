@@ -5,41 +5,41 @@
 ;Description : The ARMv7-M user-level assembly support of RVM.
 ;*****************************************************************************/
 
-;/* Begin Import *************************************************************/
-    ; The ARM C library entry
+;/* Import *******************************************************************/
+    ;The ARM C library entry
     IMPORT              __main
-    ; All four daemons
+    ;All four daemons
     IMPORT              RVM_Sftd
     IMPORT              RVM_Vmmd
 ;/* End Import ***************************************************************/
 
-;/* Begin Export *************************************************************/
-    ; User level stub for thread creation and synchronous invocation
-    EXPORT              _RVM_Jmp_Stub
-    ; Triggering an invocation
-    EXPORT              RVM_Inv_Act
-    ; Returning from an invocation
-    EXPORT              RVM_Inv_Ret
-    ; System call gate
-    EXPORT              RVM_Svc
-    ; Kernel function system call gate
-    EXPORT              RVM_A7M_Svc_Kfn
-    ; Get the MSB in a word
+;/* Export *******************************************************************/
+    ;User level stub for thread creation and synchronous invocation
+    EXPORT              __RVM_Jmp_Stub
+    ;Get the MSB in a word
     EXPORT              __RVM_A7M_MSB_Get
+    ;Triggering an invocation
+    EXPORT              RVM_Inv_Act
+    ;Returning from an invocation
+    EXPORT              RVM_Inv_Ret
+    ;System call gate
+    EXPORT              RVM_Svc
+    ;Kernel function system call gate
+    EXPORT              RVM_A7M_Svc_Kfn
 ;/* End Export ***************************************************************/
 
-;/* Begin Header *************************************************************/
+;/* Header *******************************************************************/
     AREA                RVM_HEADER,CODE,READONLY,ALIGN=3
     THUMB
     REQUIRE8
     PRESERVE8
 
     DCD                 0x49535953          ;Magic number for native process
-    DCD                 0x00000006          ;Six entries specified
+    DCD                 0x00000004          ;Four entries specified
     DCD                 __main              ;Init thread entry - direct fill
     DCD                 RVM_Sftd            ;All four daemons
     DCD                 RVM_Vmmd
-    DCD                 _RVM_Jmp_Stub       ;Jump stub
+    DCD                 __RVM_Jmp_Stub      ;Jump stub
     NOP                                     ;Catch something in the middle
     NOP
     NOP
@@ -52,26 +52,45 @@
     NOP
 ;/* End Header ***************************************************************/
 
-;/* Begin Function:_RVM_Jmp_Stub **********************************************
+;/* Function:__RVM_Jmp_Stub ***************************************************
 ;Description : The user level stub for thread/invocation creation.
 ;Input       : R4 - rvm_ptr_t Entry - The entry address.
 ;              R5 - rvm_ptr_t Param - The parameter to be passed to it.
 ;Output      : None.
 ;Return      : None.
 ;*****************************************************************************/
-    AREA                _RVM_JMP_STUB,CODE,READONLY,ALIGN=3
+    AREA                __RVM_JMP_STUB,CODE,READONLY,ALIGN=3
     THUMB
     REQUIRE8
     PRESERVE8
 
-_RVM_Jmp_Stub           PROC
+__RVM_Jmp_Stub           PROC
     SUB                 SP,#0x40            ;In order not to destroy the stack
     MOV                 R0,R5
-    BX                  R4                  ;Branch to the actual entry address.
+    BX                  R4                  ;Branch to the actual entry address
     ENDP
-;/* End Function:_RVM_Jmp_Stub ***********************************************/
+;/* End Function:__RVM_Jmp_Stub **********************************************/
 
-;/* Begin Function:RVM_Inv_Act ************************************************
+;/* Function:__RVM_A7M_MSB_Get ************************************************
+;Description : Get the MSB of the word.
+;Input       : R0 - rvm_ptr_t Val - The value.
+;Output      : None.
+;Return      : R0 - rvm_ptr_t - The MSB position.
+;*****************************************************************************/
+    AREA                __RVM_A7M_MSB_GET,CODE,READONLY,ALIGN=3
+    THUMB
+    REQUIRE8
+    PRESERVE8
+
+__RVM_A7M_MSB_Get       PROC
+    CLZ                 R1,R0
+    MOV                 R0,#31
+    SUB                 R0,R1
+    BX                  LR
+    ENDP
+;/* End Function:__RVM_A7M_MSB_Get *******************************************/
+
+;/* Function:RVM_Inv_Act ******************************************************
 ;Description : Activate an invocation. If the return value is not desired, pass
 ;              0 into R2. This is a default implementation that saves all general
 ;              purpose registers and doesn't save FPU context. If you need a faster
@@ -107,7 +126,7 @@ RVM_Inv_Act             PROC
     ENDP
 ;/* End Function:RVM_Inv_Act *************************************************/
 
-;/* Begin Function:RVM_Inv_Ret ************************************************
+;/* Function:RVM_Inv_Ret ******************************************************
 ;Description : Manually return from an invocation, and set the return value to
 ;              the old register set. This function does not need a capability
 ;              table to work, and never returns.
@@ -127,12 +146,12 @@ RVM_Inv_Ret             PROC
     SVC                 #0x00               ;System call
     ISB
     
-    MOV                 R0,R4               ;If we reach here, then return failed
+    MOV                 R0,R4               ;Return failed if we reach here
     BX                  LR
     ENDP
 ;/* End Function:RVM_Inv_Ret *************************************************/
 
-;/* Begin Function:RVM_Svc ****************************************************
+;/* Function:RVM_Svc **********************************************************
 ;Description : Trigger a system call.
 ;Input       : R0 - rvm_ptr_t Num - The system call number/other information.
 ;              R1 - rvm_ptr_t Param1 - Argument 1.
@@ -162,7 +181,7 @@ RVM_Svc                 PROC
     ENDP
 ;/* End Function:RVM_Svc *****************************************************/
 
-;/* Begin Function:RVM_A7M_Svc_Kfn ********************************************
+;/* Function:RVM_A7M_Svc_Kfn **************************************************
 ;Description : Trigger a system call. This is ARMv7-M specific, and does not expand
 ;              to other architectures, and is only used for kernel functions.
 ;              This specially crafted system call allows up to 8 parameters to
@@ -205,25 +224,6 @@ RVM_A7M_Svc_Kfn         PROC
     BX                  LR
     ENDP
 ;/* End Function:RVM_A7M_Svc_Kfn *********************************************/
-
-;/* Begin Function:__RVM_A7M_MSB_Get ******************************************
-;Description : Get the MSB of the word.
-;Input       : R0 - rvm_ptr_t Val - The value.
-;Output      : None.
-;Return      : R0 - rvm_ptr_t - The MSB position.
-;*****************************************************************************/
-    AREA                __RVM_A7M_MSB_GET,CODE,READONLY,ALIGN=3
-    THUMB
-    REQUIRE8
-    PRESERVE8
-
-__RVM_A7M_MSB_Get       PROC
-    CLZ                 R1,R0
-    MOV                 R0,#31
-    SUB                 R0,R1
-    BX                  LR
-    ENDP
-;/* End Function:__RVM_A7M_MSB_Get *******************************************/
     ALIGN
     END
 ;/* End Of File **************************************************************/

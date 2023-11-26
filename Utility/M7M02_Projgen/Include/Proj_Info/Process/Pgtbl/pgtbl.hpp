@@ -6,26 +6,26 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The header for the page table class.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
+/* Define ********************************************************************/
 namespace RVM_GEN
 {
-#ifdef __HDR_DEFS__
-#ifndef __PGTBL_HPP_DEFS__
-#define __PGTBL_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __PGTBL_DEF__
+#define __PGTBL_DEF__
 /*****************************************************************************/
 #define PGTBL_TOP           1
 #define PGTBL_NOM           0
 /*****************************************************************************/
-/* __PGTBL_HPP_DEFS__ */
+/* __PGTBL_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __PGTBL_HPP_CLASSES__
-#define __PGTBL_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __PGTBL_CLASS__
+#define __PGTBL_CLASS__
 /*****************************************************************************/
 /* Page table information */
 class Pgtbl:public Kobj
@@ -50,9 +50,9 @@ public:
     /* void */ Pgtbl(ptr_t Base, ptr_t Size_Order, ptr_t Num_Order, ptr_t Attr, class Process* Owner);
 };
 /*****************************************************************************/
-/* __PGTBL_HPP_CLASSES__ */
+/* __PGTBL_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

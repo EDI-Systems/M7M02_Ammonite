@@ -6,25 +6,25 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The header for the kernel object class.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
+/* Define ********************************************************************/
 namespace RVM_GEN
 {
-#ifdef __HDR_DEFS__
-#ifndef __KOBJ_HPP_DEFS__
-#define __KOBJ_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __KOBJ_DEF__
+#define __KOBJ_DEF__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __KOBJ_HPP_DEFS__ */
+/* __KOBJ_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __KOBJ_HPP_CLASSES__
-#define __KOBJ_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __KOBJ_CLASS__
+#define __KOBJ_CLASS__
 /*****************************************************************************/
 /* Kernel object information */
 class Kobj
@@ -51,9 +51,9 @@ public:
     virtual /* void */ ~Kobj(void)=0;
 };
 /*****************************************************************************/
-/* __KOBJ_HPP_CLASSES__ */
+/* __KOBJ_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

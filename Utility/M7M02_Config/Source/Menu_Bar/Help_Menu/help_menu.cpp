@@ -6,10 +6,10 @@ License     : Proprietary; confidential.
 Description : Help menu class implementation.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
-#define __HDR_DEFS__
+/* Include *******************************************************************/
+#define __HDR_DEF__
 #include "rvm_cfg.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
 #include "wx/wx.h"
 #include "wx/xml/xml.h"
@@ -25,19 +25,19 @@ Description : Help menu class implementation.
 #include "memory"
 #include "vector"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "Menu_Bar/Help_Menu/help_menu.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_cfg.hpp"
 #include "Menu_Bar/Help_Menu/help_menu.hpp"
 #include "About_Dialog/about_dialog.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_CFG
 {
-/* Begin Function:Help_Menu::Help_Menu ****************************************
+/* Function:Help_Menu::Help_Menu **********************************************
 Description : Constructor for help menu.
 Input       : None.
 Output      : None.
@@ -77,7 +77,7 @@ Return      : None.
 }
 /* End Function:Help_Menu::Help_Menu *****************************************/
 
-/* Begin Function:Help_Menu::~Help_Menu ***************************************
+/* Function:Help_Menu::~Help_Menu *********************************************
 Description : Destructor for help menu.
 Input       : None.
 Output      : None.
@@ -96,7 +96,7 @@ Return      : None.
 }
 /* End Function:Help_Menu::~Help_Menu ****************************************/
 
-/* Begin Function:Help_Menu::State_Set ****************************************
+/* Function:Help_Menu::State_Set **********************************************
 Description : Set the current UI state, and decide what controls are usable.
 Input       : ptr_t Type - The state type.
 Output      : None.
@@ -108,7 +108,7 @@ void Help_Menu::State_Set(ptr_t Type)
 }
 /* End Function:Help_Menu::State_Set *****************************************/
 
-/* Begin Function:Help_Menu::On_Kernel_Manual *********************************
+/* Function:Help_Menu::On_Kernel_Manual ***************************************
 Description : wxEVT_MENU handler for 'Kernel_Manual'.
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.
@@ -121,7 +121,7 @@ void Help_Menu::On_Kernel_Manual(class wxCommandEvent& Event)
 }
 /* End Function:Help_Menu::On_Hardware_Manual ********************************/
 
-/* Begin Function:Help_Menu::On_Monitor_Manual ********************************
+/* Function:Help_Menu::On_Monitor_Manual **************************************
 Description : wxEVT_MENU handler for 'Monitor Manual'.
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.
@@ -134,7 +134,7 @@ void Help_Menu::On_Monitor_Manual(class wxCommandEvent& Event)
 }
 /* End Function:Help_Menu::On_Monitor_Manual *********************************/
 
-/* Begin Function:Help_Menu::On_About_Program *********************************
+/* Function:Help_Menu::On_About_Program ***************************************
 Description : wxEVT_MENU handler for 'About Program'.
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.
@@ -147,7 +147,7 @@ void Help_Menu::On_About_Program(class wxCommandEvent& Event)
 }
 /* End Function:Help_Menu::On_About_Program **********************************/
 
-/* Begin Function:Help_Menu::On_Error_Trigger *********************************
+/* Function:Help_Menu::On_Error_Trigger ***************************************
 Description : wxEVT_MENU handler for 'Trigger Error'.
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.

@@ -14,7 +14,7 @@
     <Config>
         <C0>
             <Name>Ostim_Value</Name>
-            <Macro>RME_A7M_OSTIM_VALUE</Macro>
+            <Macro>RME_RV32P_OSTIM_VALUE</Macro>
             <Type>Range</Type>
             <Range>100,16777215</Range>
         </C0>

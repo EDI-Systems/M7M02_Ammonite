@@ -6,10 +6,10 @@ License     : Proprietary; confidential.
 Description : Platform information implementation.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
-#define __HDR_DEFS__
+/* Include *******************************************************************/
+#define __HDR_DEF__
 #include "rvm_cfg.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
 #include "wx/wx.h"
 #include "wx/xml/xml.h"
@@ -22,21 +22,21 @@ Description : Platform information implementation.
 #include "vector"
 #include "algorithm"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "Plat_Info/plat_info.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_cfg.hpp"
 #include "Conf_Info/conf_info.hpp"
 #include "Plat_Info/Compatible/compatible.hpp"
 #include "Plat_Info/Default/default.hpp"
 #include "Plat_Info/plat_info.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_CFG
 {
-/* Begin Function:Plat_Info::Plat_Info ****************************************
+/* Function:Plat_Info::Plat_Info **********************************************
 Description : Constructor for platform information.
 Input       : const std::string& Path - The path to the platform information file.
 Output      : None.
@@ -99,7 +99,7 @@ Return      : None.
 }
 /* End Function:Plat_Info::Plat_Info *****************************************/
 
-/* Begin Function:Plat_Info::~Plat_Info ***************************************
+/* Function:Plat_Info::~Plat_Info *********************************************
 Description : Destructor for project information.
 Input       : None.
 Output      : None.

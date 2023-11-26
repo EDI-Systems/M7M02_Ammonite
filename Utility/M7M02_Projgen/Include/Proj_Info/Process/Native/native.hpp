@@ -6,25 +6,25 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The header for the native processes.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
+/* Define ********************************************************************/
 namespace RVM_GEN
 {
-#ifdef __HDR_DEFS__
-#ifndef __NATIVE_HPP_DEFS__
-#define __NATIVE_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __NATIVE_DEF__
+#define __NATIVE_DEF__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __NATIVE_HPP_DEFS__ */
+/* __NATIVE_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __NATIVE_HPP_CLASSES__
-#define __NATIVE_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __NATIVE_CLASS__
+#define __NATIVE_CLASS__
 /*****************************************************************************/
 /* Native process type */
 class Native:public Process
@@ -37,9 +37,9 @@ public:
     /* void */ Native(xml_node_t* Root);
 };
 /*****************************************************************************/
-/* __NATIVE_HPP_CLASSES__ */
+/* __NATIVE_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

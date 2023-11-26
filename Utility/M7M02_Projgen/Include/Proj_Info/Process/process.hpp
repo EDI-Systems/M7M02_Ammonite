@@ -6,12 +6,12 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The header for the process.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
+/* Define ********************************************************************/
 namespace RVM_GEN
 {
-#ifdef __HDR_DEFS__
-#ifndef __PROCESS_HPP_DEFS__
-#define __PROCESS_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __PROCESS_DEF__
+#define __PROCESS_DEF__
 /*****************************************************************************/
 /* Process type */
 #define PROCESS_NATIVE          (0)
@@ -34,16 +34,16 @@ namespace RVM_GEN
 /* Description header alignment */
 #define PRC_DESC_ALIGN(X)          ROUND_UP(X,16)
 /*****************************************************************************/
-/* __PROCESS_HPP_DEFS__ */
+/* __PROCESS_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __PROCESS_HPP_CLASSES__
-#define __PROCESS_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __PROCESS_CLASS__
+#define __PROCESS_CLASS__
 /*****************************************************************************/
 /* For parsing and storing process information */
 class Process:public Kobj
@@ -155,9 +155,9 @@ public:
     void Mem_Alloc(ptr_t Wordlength, ptr_t Hyp_Reg_Size, ptr_t Kom_Order);
 };
 /*****************************************************************************/
-/* __PROCESS_HPP_CLASSES__ */
+/* __PROCESS_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/

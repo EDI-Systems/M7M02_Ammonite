@@ -6,7 +6,7 @@ Licence     : LGPL v3+; see COPYING for details.
 Description : The memory block class. This contains the memory block information.
 ******************************************************************************/
 
-/* Includes ******************************************************************/
+/* Include *******************************************************************/
 extern "C"
 {
 #include "xml.h"
@@ -20,19 +20,19 @@ extern "C"
 #include "stdexcept"
 #include "algorithm"
 
-#define __HDR_DEFS__
+#define __HDR_DEF__
 #include "rvm_gen.hpp"
 #include "Mem_Info/mem_info.hpp"
-#undef __HDR_DEFS__
+#undef __HDR_DEF__
 
-#define __HDR_CLASSES__
+#define __HDR_CLASS__
 #include "rvm_gen.hpp"
 #include "Mem_Info/mem_info.hpp"
-#undef __HDR_CLASSES__
-/* End Includes **************************************************************/
+#undef __HDR_CLASS__
+/* End Include ***************************************************************/
 namespace RVM_GEN
 {
-/* Begin Function:Mem_Info::Mem_Info ******************************************
+/* Function:Mem_Info::Mem_Info ************************************************
 Description : Constructor for memory information class.
 Input       : xml_node_t* Root - The node containing the memory block information.
               ptr_t Reference - Reference mode: physical, shared or private.
@@ -126,7 +126,7 @@ Return      : None.
 }
 /* End Function:Mem_Info::Mem_Info *******************************************/
 
-/* Begin Function:Mem_Info::Mem_Info ******************************************
+/* Function:Mem_Info::Mem_Info ************************************************
 Description : Constructor for Mem class.
 Input       : class Mem* Block - The block to copy from.
               ptr_t Attr_New - The new attributes.
@@ -153,7 +153,7 @@ Return      : None.
 }
 /* End Function:Mem_Info::Mem_Info *******************************************/
 
-/* Begin Function:Mem_Info::Mem_Info ******************************************
+/* Function:Mem_Info::Mem_Info ************************************************
 Description : Constructor for memory class.
 Input       : const std::string& Name - The optional memory trunk name.
               ptr_t Base - The start address.
@@ -179,7 +179,7 @@ Return      : None.
 }
 /* End Function:Mem_Info::Mem_Info *******************************************/
 
-/* Begin Function:Mem_Info::Check *********************************************
+/* Function:Mem_Info::Check ***************************************************
 Description : Check whether the memory block configuration makes sense.
 Input       : None.
 Output      : None.
@@ -217,7 +217,7 @@ void Mem_Info::Check(void)
 }
 /* End Function:Mem_Info::Check **********************************************/
 
-/* Begin Function:Mem_Info::Overlap_Check *************************************
+/* Function:Mem_Info::Overlap_Check *******************************************
 Description : Check whether the memory blocks declared will overlap.
 Input       : const std::vector<class Mem_Info*>& Code - Code memory segments.
               const std::vector<class Mem_Info*>& Data - Data memory segments.
@@ -277,7 +277,7 @@ void Mem_Info::Overlap_Check(const std::vector<class Mem_Info*>& Code,
 }
 /* End Function:Mem_Info::Overlap_Check **************************************/
 
-/* Begin Function:Mem_Info::Memmap_Init ***************************************
+/* Function:Mem_Info::Memmap_Init *********************************************
 Description : Initialize memory map for the memory trunk.
 Input       : None.
 Output      : None.
@@ -290,7 +290,7 @@ void Mem_Info::Memmap_Init(void)
 }
 /* End Function:Mem_Info::Memmap_Init ****************************************/
 
-/* Begin Function:Mem_Info::Memmap_Mark ***************************************
+/* Function:Mem_Info::Memmap_Mark *********************************************
 Description : Try or perform allocation of this memory trunk.
 Input       : ptr_t Base - The base address.
               ptr_t Size - The memory size.
@@ -336,7 +336,7 @@ ret_t Mem_Info::Memmap_Mark(ptr_t Base, ptr_t Size, ptr_t Mark)
 }
 /* End Function:Mem_Info::Memmap_Mark ****************************************/
 
-/* Begin Function:Mem_Info::Static_Fit ****************************************
+/* Function:Mem_Info::Static_Fit **********************************************
 Description : Fit a memory trunk statically.
 Input       : std::vector<class Mem_Info*>& Map - The collection of memory maps to fit in.
 Output      : None.
@@ -364,7 +364,7 @@ ret_t Mem_Info::Static_Fit(std::vector<class Mem_Info*>& Map)
 }
 /* End Function:Mem_Info::Static_Fit *****************************************/
 
-/* Begin Function:Mem_Info::Auto_Fit ******************************************
+/* Function:Mem_Info::Auto_Fit ************************************************
 Description : Fit a memory trunk automatically.
 Input       : std::vector<class Mem_Info*>& Map - The collection of memory maps to fit in.
 Output      : None.

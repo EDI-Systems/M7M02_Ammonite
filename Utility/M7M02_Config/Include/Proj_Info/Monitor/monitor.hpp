@@ -6,36 +6,36 @@ License     : Proprietary; confidential.
 Description : Monitor class header.
 ******************************************************************************/
 
-/* Defines *******************************************************************/
-#ifdef __HDR_DEFS__
-#ifndef __MONITOR_HPP_TYPES__
-#define __MONITOR_HPP_TYPES__
+/* Define ********************************************************************/
+#ifdef __HDR_DEF__
+#ifndef __MONITOR_TYPE__
+#define __MONITOR_TYPE__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __MONITOR_HPP_TYPES__ */
+/* __MONITOR_TYPE__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
 
 namespace RVM_CFG
 {
-#ifdef __HDR_DEFS__
-#ifndef __MONITOR_HPP_DEFS__
-#define __MONITOR_HPP_DEFS__
+#ifdef __HDR_DEF__
+#ifndef __MONITOR_DEF__
+#define __MONITOR_DEF__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __MONITOR_HPP_DEFS__ */
+/* __MONITOR_DEF__ */
 #endif
-/* __HDR_DEFS__ */
+/* __HDR_DEF__ */
 #endif
-/* End Defines ***************************************************************/
+/* End Define ****************************************************************/
 
 /* Classes *******************************************************************/
-#ifdef __HDR_CLASSES__
-#ifndef __MONITOR_HPP_CLASSES__
-#define __MONITOR_HPP_CLASSES__
+#ifdef __HDR_CLASS__
+#ifndef __MONITOR_CLASS__
+#define __MONITOR_CLASS__
 /*****************************************************************************/
 class Monitor
 {
@@ -89,9 +89,9 @@ public:
     void Save(class wxXmlNode* Parent);
 };
 /*****************************************************************************/
-/* __MONITOR_HPP_CLASSES__ */
+/* __MONITOR_CLASS__ */
 #endif
-/* __HDR_CLASSES__ */
+/* __HDR_CLASS__ */
 #endif
 }
 /* End Classes ***************************************************************/
