@@ -236,10 +236,10 @@ void GCC_Gen::Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back("PROVIDE(__bss_end__ = __RME_Zero_End);");
     List->push_back("PROVIDE(__noinit_start__ = __RME_Noinit_Start);");
     List->push_back("PROVIDE(__noinit_end__ = __RME_Noinit_End);");
-    List->push_back("PROVIDE(end = __RME_Zero_End);");
-    List->push_back("PROVIDE(_end = __RME_Zero_End);");
-    List->push_back("PROVIDE(__end = __RME_Zero_End);");
-    List->push_back("PROVIDE(__end__ = __RME_Zero_End);");
+    List->push_back("PROVIDE(end = __RME_Noinit_End);");
+    List->push_back("PROVIDE(_end = __RME_Noinit_End);");
+    List->push_back("PROVIDE(__end = __RME_Noinit_End);");
+    List->push_back("PROVIDE(__end__ = __RME_Noinit_End);");
     List->push_back("/* End Section:.noinit *******************************************************/");
     List->push_back("}");
     List->push_back("/* End Of File ***************************************************************/");
@@ -270,7 +270,7 @@ void GCC_Gen::Monitor_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back("MEMORY");
     List->push_back("{");
     List->push_back("    /* Monitor RAM BASE and SIZE*/");
-    List->push_back(std::string("    DATA (rw) : ORIGIN =  0x")+Main::Hex(this->Proj->Monitor->Data_Base)+" , LENGTH = 0x" + Main::Hex(this->Proj->Monitor->Data_Size));
+    List->push_back(std::string("    DATA (rw) : ORIGIN = 0x")+Main::Hex(this->Proj->Monitor->Data_Base)+" , LENGTH = 0x" + Main::Hex(this->Proj->Monitor->Data_Size));
     List->push_back("    /* Monitor Stack BASE and SIZE*/");
     List->push_back(std::string("    STK (rw) : ORIGIN = 0x")+Main::Hex(this->Proj->Monitor->Init_Stack_Base)+" , LENGTH = 0x" + Main::Hex(this->Proj->Monitor->Init_Stack_Size));
     List->push_back("    /* Monitor flash segment */");
@@ -305,6 +305,7 @@ void GCC_Gen::Monitor_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back("__RVM_Data_Load = LOADADDR(.MONITOR_DATA);");
     List->push_back(".MONITOR_DATA : ALIGN(4)");
     List->push_back("{");
+    List->push_back("    FILL(0xFF)");
     List->push_back("    __RVM_Data_Start = .;");
     List->push_back("    __RVM_Global = . + 0x800;");
     List->push_back("    *(.data_begin .data_begin.*)");
@@ -361,10 +362,10 @@ void GCC_Gen::Monitor_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back("PROVIDE(__bss_end__ = __RVM_Zero_End);");
     List->push_back("PROVIDE(__noinit_start__ = __RVM_Noinit_Start);");
     List->push_back("PROVIDE(__noinit_end__ = __RVM_Noinit_End);");
-    List->push_back("PROVIDE(end = __RVM_Zero_End);");
-    List->push_back("PROVIDE(_end = __RVM_Zero_End);");
-    List->push_back("PROVIDE(__end = __RVM_Zero_End);");
-    List->push_back("PROVIDE(__end__ = __RVM_Zero_End);");
+    List->push_back("PROVIDE(end = __RVM_Noinit_End);");
+    List->push_back("PROVIDE(_end = __RVM_Noinit_End);");
+    List->push_back("PROVIDE(__end = __RVM_Noinit_End);");
+    List->push_back("PROVIDE(__end__ = __RVM_Noinit_End);");
     List->push_back("/* End Section ***************************************************************/");
     List->push_back("");
     List->push_back("/* End Of File ***************************************************************/");
@@ -405,19 +406,19 @@ void GCC_Gen::Process_Linker(std::unique_ptr<std::vector<std::string>>& List,
     List->push_back("MEMORY");
     List->push_back("{");
     List->push_back("    /* Process data segment */");
-    List->push_back(std::string("    DATA (rw) : ORIGIN =  0x")+Main::Hex(Prc->Data_Base) + ",  LENGTH = 0x" + Main::Hex(Prc->Data_Size));
+    List->push_back(std::string("    DATA (rw) : ORIGIN = 0x")+Main::Hex(Prc->Data_Base) + " , LENGTH = 0x" + Main::Hex(Prc->Data_Size));
     List->push_back("    /* Process stack segment */");
     if(Prc->Type==PROCESS_NATIVE)
-        List->push_back(std::string("    STK (rw) : ORIGIN =  0x")+Main::Hex(Prc->Thread[0]->Stack_Base)+" , LENGTH = 0x"+Main::Hex(Prc->Thread[0]->Stack_Size));
+        List->push_back(std::string("    STK (rw) : ORIGIN = 0x")+Main::Hex(Prc->Thread[0]->Stack_Base)+" , LENGTH = 0x"+Main::Hex(Prc->Thread[0]->Stack_Size));
     else
     {
         ASSERT((Prc->Thread[0]->Name=="Vct")&&(Prc->Thread[1]->Name=="Usr"));
-        List->push_back(std::string("    STK (rw) : ORIGIN =  0x")+Main::Hex(Prc->Thread[1]->Stack_Base)+" , LENGTH = 0x"+Main::Hex(Prc->Thread[1]->Stack_Size));
+        List->push_back(std::string("    STK (rw) : ORIGIN = 0x")+Main::Hex(Prc->Thread[1]->Stack_Base)+" , LENGTH = 0x"+Main::Hex(Prc->Thread[1]->Stack_Size));
     }
     List->push_back("    /* Process descriptor */");
-    List->push_back(std::string("    DESC   (r) : ORIGIN =  0x")+Main::Hex(Prc->Code_Base)+" , LENGTH = 0x"+Main::Hex(Header_Size));
+    List->push_back(std::string("    DESC (r) : ORIGIN = 0x")+Main::Hex(Prc->Code_Base)+" , LENGTH = 0x"+Main::Hex(Header_Size));
     List->push_back("    /* Process code segment */");
-    List->push_back(std::string("    CODE   (rx) : ORIGIN = 0x")+Main::Hex(Prc->Code_Front)+" , LENGTH = 0x"+Main::Hex(Real_Code_Size));
+    List->push_back(std::string("    CODE (rx) : ORIGIN = 0x")+Main::Hex(Prc->Code_Front)+" , LENGTH = 0x"+Main::Hex(Real_Code_Size));
     List->push_back("}");
     List->push_back("/* End Memory ****************************************************************/");
     List->push_back("");
@@ -453,6 +454,7 @@ void GCC_Gen::Process_Linker(std::unique_ptr<std::vector<std::string>>& List,
     List->push_back("_RVM_Data_Load = LOADADDR(.PROCESS_DATA);");
     List->push_back(".PROCESS_DATA : ALIGN(4)");
     List->push_back("{");
+    List->push_back("    FILL(0xFF)");
     List->push_back("    _RVM_Data_Start = .;");
     List->push_back("    _RVM_Global = . + 0x800;");
     List->push_back("    *(.data_begin .data_begin.*)");
@@ -509,10 +511,10 @@ void GCC_Gen::Process_Linker(std::unique_ptr<std::vector<std::string>>& List,
     List->push_back("PROVIDE(__bss_end__ = _RVM_Zero_End);");
     List->push_back("PROVIDE(__noinit_start__ = _RVM_Noinit_Start);");
     List->push_back("PROVIDE(__noinit_end__ = _RVM_Noinit_End);");
-    List->push_back("PROVIDE(end = _RVM_Zero_End);");
-    List->push_back("PROVIDE(_end = _RVM_Zero_End);");
-    List->push_back("PROVIDE(__end = _RVM_Zero_End);");
-    List->push_back("PROVIDE(__end__ = _RVM_Zero_End);");
+    List->push_back("PROVIDE(end = _RVM_Noinit_End);");
+    List->push_back("PROVIDE(_end = _RVM_Noinit_End);");
+    List->push_back("PROVIDE(__end = _RVM_Noinit_End);");
+    List->push_back("PROVIDE(__end__ = _RVM_Noinit_End);");
     List->push_back("/* End Section ***************************************************************/");
     List->push_back("");
     List->push_back("/* End Of File ***************************************************************/");
