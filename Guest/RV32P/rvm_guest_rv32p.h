@@ -139,7 +139,7 @@ struct RVM_Reg_Struct
 };
 
 /* Single-precision register set */
-struct RVM_RV32P_Cop_Struct
+struct RVM_RV32P_RVF_Struct
 {
     rvm_ptr_t FCSR;
     rvm_ptr_t F0;
@@ -177,7 +177,7 @@ struct RVM_RV32P_Cop_Struct
 };
 
 /* Double-precision register set */
-struct RVM_RV32P_Cop_Struct
+struct RVM_RV32P_RVFD_Struct
 {
     rvm_ptr_t FCSR;
     rvm_ptr_t F0[2];
@@ -247,8 +247,8 @@ EXTERN rvm_ret_t RVM_Svc(rvm_ptr_t Op_Capid,
                          rvm_ptr_t Arg2,
                          rvm_ptr_t Arg3);
 EXTERN rvm_ret_t RVM_RV32P_Svc_Kfn(rvm_ptr_t Op_Capid,
-                                 rvm_ptr_t ID,
-                                 rvm_ptr_t* Param);
+                                   rvm_ptr_t ID,
+                                   rvm_ptr_t* Param);
 /* Invocation */
 EXTERN rvm_ret_t RVM_Inv_Act(rvm_cid_t Cap_Inv,
                              rvm_ptr_t Param,
@@ -261,60 +261,60 @@ EXTERN rvm_ptr_t RVM_Thd_Cop_Size(rvm_ptr_t Attr);
 
 /* Kernel functions */
 EXTERN rvm_ret_t RVM_RV32P_Kfn_Act(rvm_cid_t Cap_Kfn,
-                                 rvm_ptr_t Func_ID,
-                                 rvm_ptr_t Sub_ID,
-                                 rvm_ptr_t* Param);
+                                   rvm_ptr_t Func_ID,
+                                   rvm_ptr_t Sub_ID,
+                                   rvm_ptr_t* Param);
 EXTERN rvm_ret_t RVM_RV32P_Pgt_Entry_Mod(rvm_cid_t Cap_Kfn,
-                                       rvm_cid_t Cap_Pgt,
-                                       rvm_ptr_t Vaddr,
-                                       rvm_ptr_t Type);
+                                         rvm_cid_t Cap_Pgt,
+                                         rvm_ptr_t Vaddr,
+                                         rvm_ptr_t Type);
 EXTERN rvm_ret_t RVM_RV32P_Int_Local_Mod(rvm_cid_t Cap_Kfn,
-                                       rvm_ptr_t Int_Num,
-                                       rvm_ptr_t Operation,
-                                       rvm_ptr_t Param);
+                                         rvm_ptr_t Int_Num,
+                                         rvm_ptr_t Operation,
+                                         rvm_ptr_t Param);
 EXTERN rvm_ret_t RVM_RV32P_Int_Local_Trig(rvm_cid_t Cap_Kfn,
-                                        rvm_ptr_t Int_Num);
+                                          rvm_ptr_t Int_Num);
 EXTERN rvm_ret_t RVM_RV32P_Cache_Mod(rvm_cid_t Cap_Kfn,
-                                   rvm_ptr_t Cache_ID,
-                                   rvm_ptr_t Operation,
-                                   rvm_ptr_t Param);
-EXTERN rvm_ret_t RVM_RV32P_Cache_Maint(rvm_cid_t Cap_Kfn,
                                      rvm_ptr_t Cache_ID,
                                      rvm_ptr_t Operation,
                                      rvm_ptr_t Param);
+EXTERN rvm_ret_t RVM_RV32P_Cache_Maint(rvm_cid_t Cap_Kfn,
+                                       rvm_ptr_t Cache_ID,
+                                       rvm_ptr_t Operation,
+                                       rvm_ptr_t Param);
 EXTERN rvm_ret_t RVM_RV32P_Prfth_Mod(rvm_cid_t Cap_Kfn,
-                                   rvm_ptr_t Prfth_ID,
-                                   rvm_ptr_t Operation,
-                                   rvm_ptr_t Param);
+                                     rvm_ptr_t Prfth_ID,
+                                     rvm_ptr_t Operation,
+                                     rvm_ptr_t Param);
 EXTERN rvm_ret_t RVM_RV32P_Perf_CPU_Func(rvm_cid_t Cap_Kfn,
-                                       rvm_ptr_t Freg_ID,
-                                       rvm_ptr_t* Content);
+                                         rvm_ptr_t Freg_ID,
+                                         rvm_ptr_t* Content);
 EXTERN rvm_ret_t RVM_RV32P_Perf_Mon_Mod(rvm_cid_t Cap_Kfn,
-                                      rvm_ptr_t Perf_ID,
-                                      rvm_ptr_t Operation,
-                                      rvm_ptr_t Param);
-EXTERN rvm_ret_t RVM_RV32P_Perf_Cycle_Mod(rvm_cid_t Cap_Kfn,
-                                        rvm_ptr_t Cycle_ID, 
+                                        rvm_ptr_t Perf_ID,
                                         rvm_ptr_t Operation,
-                                        rvm_ptr_t Value,
-                                        rvm_ptr_t* Content);
+                                        rvm_ptr_t Param);
+EXTERN rvm_ret_t RVM_RV32P_Perf_Cycle_Mod(rvm_cid_t Cap_Kfn,
+                                          rvm_ptr_t Cycle_ID, 
+                                          rvm_ptr_t Operation,
+                                          rvm_ptr_t Value,
+                                          rvm_ptr_t* Content);
 EXTERN rvm_ret_t RVM_RV32P_Debug_Print(rvm_cid_t Cap_Kfn,
-                                     char Char);
+                                       char Char);
 EXTERN rvm_ret_t RVM_RV32P_Debug_Reg_Mod(rvm_cid_t Cap_Kfn,
-                                       rvm_cid_t Cap_Thd, 
-                                       rvm_ptr_t Operation,
-                                       rvm_ptr_t Value,
-                                       rvm_ptr_t* Content);
+                                         rvm_cid_t Cap_Thd, 
+                                         rvm_ptr_t Operation,
+                                         rvm_ptr_t Value,
+                                         rvm_ptr_t* Content);
 EXTERN rvm_ret_t RVM_RV32P_Debug_Inv_Mod(rvm_cid_t Cap_Kfn,
-                                       rvm_cid_t Cap_Thd, 
-                                       rvm_ptr_t Layer,
-                                       rvm_ptr_t Operation,
-                                       rvm_ptr_t Value,
-                                       rvm_ptr_t* Content);
+                                         rvm_cid_t Cap_Thd, 
+                                         rvm_ptr_t Layer,
+                                         rvm_ptr_t Operation,
+                                         rvm_ptr_t Value,
+                                         rvm_ptr_t* Content);
 EXTERN rvm_ret_t RVM_RV32P_Debug_Exc_Get(rvm_cid_t Cap_Kfn,
-                                       rvm_cid_t Cap_Thd,
-                                       rvm_ptr_t Operation,
-                                       rvm_ptr_t* Content);
+                                         rvm_cid_t Cap_Thd,
+                                         rvm_ptr_t Operation,
+                                         rvm_ptr_t* Content);
 /*****************************************************************************/
 #endif /* __RVM_GUEST_RV32P__ */
 /* End Public Function *******************************************************/

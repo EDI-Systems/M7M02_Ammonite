@@ -33,7 +33,7 @@ Description : The RISC-V 32bit PMP user-level assembly support of RVM.
 /* End Export ****************************************************************/
 
 /* Header ********************************************************************/
-    .section            .text.header,"ax",@progbits
+    .section            .text.rvm_header
     .align              3
 
     .word               0x49535953          ;Magic number for native process
@@ -55,10 +55,9 @@ Description : The RISC-V 32bit PMP user-level assembly support of RVM.
 /* End Header ****************************************************************/
 
 /* Entry *********************************************************************/
-    .section            .text.entry,"ax",@progbits
+    .section            .text.rvm_entry
     .align              3
 
-    .type               __RVM_Entry,@function
 __RVM_Entry:
     /* Set GP and SP */
     .option             push
@@ -98,10 +97,9 @@ Input       : a0 - rvm_cid_t Cap_Inv - The capability slot to the invocation stu
 Output      : a2 - rvm_ptr_t* Retval - The return value from the call.
 Return      : a0 - rvm_ptr_t - The return value of the system call itself.
 ******************************************************************************/
-    .section            .text.rvm_inv_act,"ax",@progbits
+    .section            .text.rvm_inv_act
     .align              3
 
-    .type               RVM_Inv_Act,@function
 RVM_Inv_Act:
     ADDI                sp,sp,-28*4         /* Allocate stack space for context */
     SW                  x31,27*4(sp)        /* Save GP registers except for zero, sp, a0 and a1 */
@@ -180,10 +178,9 @@ Input       : a0 - The returning result from the invocation.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-    .section            .text.rvm_inv_ret,"ax",@progbits
+    .section            .text.rvm_inv_ret
     .align              3
 
-    .type               RVM_Inv_Ret,@function
 RVM_Inv_Ret:
     MV                  a1,a0               /* Set return value */
     MV                  a0,zero             /* RVM_SVC_INV_RET */
@@ -202,10 +199,9 @@ Input       : a0 - rvm_ptr_t Num - The system call number/other information.
 Output      : None.
 Return      : a0 - rvm_ret_t - The system call return value.
 ******************************************************************************/
-    .section            .text.rvm_svc,"ax",@progbits
+    .section            .text.rvm_svc
     .align              3
 
-    .type               RVM_Svc,@function
 RVM_Svc:
     ECALL                                   /* System call */
     RET
@@ -223,10 +219,9 @@ Input       : a0 - rvm_ptr_t Num - The system call number/other information.
 Output      : a2 - rvm_ptr_t Param[6] - Array of 6 return values.
 Return      : a0 - rvm_ret_t - The system call return value.
 ******************************************************************************/
-    .section            .text.rvm_rv32p_svc_kfn,"ax",@progbits
+    .section            .text.rvm_rv32p_svc_kfn
     .align              3
 
-    .type               RVM_RV32P_Svc_Kfn,@function
 RVM_RV32P_Svc_Kfn:
     ADDI                sp,sp,-7*4          /* Push used regs to stack */
     SW                  t0,6*4(sp)

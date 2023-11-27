@@ -7,54 +7,66 @@ Description : The assembly portion of the RVM guest library for ARMv7-M.
 ******************************************************************************/
 
 /* Import *******************************************************************/
+    /* Locations provided by the linker */
+    .extern             _RVM_Stack
+    .extern             __RVM_Global
+    .extern             _RVM_Data_Load
+    .extern             _RVM_Data_Start
+    .extern             _RVM_Data_End
+    .extern             _RVM_Zero_Start
+    .extern             _RVM_Zero_End
     /* The real entry */
-    .global             main
+    .extern             main
 /* End Import ***************************************************************/
 
 /* Export *******************************************************************/
     /* Entry point */
-    EXPORT              _RVM_Entry
+    .global             _RVM_Entry
+    /* Dummy jump stub */
+    .global             _RVM_Jmp_Stub
     /* Triggering an invocation */
-    EXPORT              RVM_Inv_Act
+    .global             RVM_Inv_Act
     /* Returning from an invocation */
-    EXPORT              RVM_Inv_Ret
+    .global             RVM_Inv_Ret
     /* System call gate */
-    EXPORT              RVM_Svc
+    .global             RVM_Svc
     /* Kernel function system call gate */
-    EXPORT              RVM_RV32P_Svc_Kfn
+    .global             RVM_RV32P_Svc_Kfn
 /* End Export ****************************************************************/
 
 /* Entry *********************************************************************/
-    .section            .text.entry,"ax",@progbits
+    .section            .text.entry
     .align              3
 
-    .type               _RVM_Entry,@function
 _RVM_Entry:
     /* Set GP and SP */
     .option             push
     .option             norelax
-    LA                  gp,__RVM_Global
+    LA                  gp,_RVM_Global
     .option             pop
-    LA                  sp,__RVM_Stack
+    LA                  sp,_RVM_Stack
     /* Load data section from flash to RAM */
-    LA                  a0,__RVM_Data_Load
-    LA                  a1,__RVM_Data_Start
-    LA                  a2,__RVM_Data_End
-__RVM_Data_Load:
+    LA                  a0,_RVM_Data_Load
+    LA                  a1,_RVM_Data_Start
+    LA                  a2,_RVM_Data_End
+_RVM_Data_Load:
     LW                  t0,(a0)
     SW                  t0,(a1)
     ADDI                a0,a0,4
     ADDI                a1,a1,4
-    BLTU                a1,a2,__RVM_Data_Load
+    BLTU                a1,a2,_RVM_Data_Load
     /* Clear bss zero section */
-    LA                  a0,__RVM_Zero_Start
-    LA                  a1,__RVM_Zero_End
-__RVM_Zero_Clear:
+    LA                  a0,_RVM_Zero_Start
+    LA                  a1,_RVM_Zero_End
+_RVM_Zero_Clear:
     SW                  zero,(a0)
     ADDI                a0,a0,4
-    BLTU                a0,a1,__RVM_Zero_Clear
+    BLTU                a0,a1,_RVM_Zero_Clear
     /* Branch to main function */
     J                   main
+    /* Dummy jump stub */
+_RVM_Jmp_Stub:
+    J                   .
 /* End Entry *****************************************************************/
 
 /* Function:RVM_Inv_Act *******************************************************
@@ -68,10 +80,9 @@ Input       : a0 - rvm_cid_t Cap_Inv - The capability slot to the invocation stu
 Output      : a2 - rvm_ptr_t* Retval - The return value from the call.
 Return      : a0 - rvm_ptr_t - The return value of the system call itself.
 ******************************************************************************/
-    .section            .text.rvm_inv_act,"ax",@progbits
+    .section            .text.rvm_inv_act
     .align              3
 
-    .type               RVM_Inv_Act,@function
 RVM_Inv_Act:
     ADDI                sp,sp,-28*4         /* Allocate stack space for context */
     SW                  x31,27*4(sp)        /* Save GP registers except for zero, sp, a0 and a1 */
@@ -103,7 +114,8 @@ RVM_Inv_Act:
     SW                  x3,1*4(sp)
     SW                  x1,0*4(sp)
     
-    ORI                 a0,a0,0x10000       /* RVM_SVC_INV_ACT */
+    LI                  a2,0x10000          /* RVM_SVC_INV_ACT */
+    OR                  a0,a0,a2
     ECALL                                   /* System call */
 
     LW                  x1,0*4(sp)          /* Load GP registers except for zero, sp, a0 and a1 */
@@ -150,10 +162,9 @@ Input       : a0 - The returning result from the invocation.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-    .section            .text.rvm_inv_ret,"ax",@progbits
+    .section            .text.rvm_inv_ret
     .align              3
 
-    .type               RVM_Inv_Ret,@function
 RVM_Inv_Ret:
     MV                  a1,a0               /* Set return value */
     MV                  a0,zero             /* RVM_SVC_INV_RET */
@@ -172,10 +183,9 @@ Input       : a0 - rvm_ptr_t Num - The system call number/other information.
 Output      : None.
 Return      : a0 - rvm_ret_t - The system call return value.
 ******************************************************************************/
-    .section            .text.rvm_svc,"ax",@progbits
+    .section            .text.rvm_svc
     .align              3
 
-    .type               RVM_Svc,@function
 RVM_Svc:
     ECALL                                   /* System call */
     RET
@@ -193,10 +203,9 @@ Input       : a0 - rvm_ptr_t Num - The system call number/other information.
 Output      : a2 - rvm_ptr_t Param[6] - Array of 6 return values.
 Return      : a0 - rvm_ret_t - The system call return value.
 ******************************************************************************/
-    .section            .text.rvm_rv32p_svc_kfn,"ax",@progbits
+    .section            .text.rvm_rv32p_svc_kfn
     .align              3
 
-    .type               RVM_RV32P_Svc_Kfn,@function
 RVM_RV32P_Svc_Kfn:
     ADDI                sp,sp,-7*4          /* Push used regs to stack */
     SW                  t0,6*4(sp)

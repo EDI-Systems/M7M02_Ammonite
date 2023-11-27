@@ -43,8 +43,12 @@ Return      : None.
     {
         /* Platform */
         this->Platform=Main::XML_Get_String(Root,"Platform","DXXXX","DXXXX");
+        this->Platform_Lower=this->Platform;
+        Main::Lower(this->Platform_Lower);
         /* Class */
         this->Class=Main::XML_Get_String(Root,"Class","DXXXX","DXXXX");
+        this->Class_Lower=this->Class;
+        Main::Lower(this->Class_Lower);
         /* Name */
         this->Name=Main::XML_Get_String(Root,"Name","DXXXX","DXXXX");
         /* Coprocessor */

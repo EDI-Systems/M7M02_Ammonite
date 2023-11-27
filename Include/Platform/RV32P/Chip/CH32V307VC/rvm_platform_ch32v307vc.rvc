@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<Chip>
+    <Name>CH32V307VC</Name>
+    <Version>1.0</Version>
+    <Platform>RV32P</Platform>
+    <Compatible>CH32V307VCT6</Compatible>
+    <Vendor>WCH</Vendor>
+    <Vector>110</Vector>
+    <Region>8</Region>
+    <Iregion>0</Iregion>
+    <Dregion>0</Dregion>
+    <Coprocessor>RVF,RVD</Coprocessor>
+    <Attribute>
+        <CPU>IMAC</CPU>
+    </Attribute>
+    <Memory>
+        <M0>
+            <Base>0x00000000</Base>
+            <Size>0x00040000</Size>
+            <Type>Code</Type>
+            <Attribute>RXBCS</Attribute>
+        </M0>
+        <M1>
+            <Base>0x20000000</Base>
+            <Size>0x00010000</Size>
+            <Type>Data</Type>
+            <Attribute>RWXBCS</Attribute>
+        </M1>
+        <M2>
+            <Base>0x40000000</Base>
+            <Size>0xC0000000</Size>
+            <Type>Device</Type>
+            <Attribute>RWS</Attribute>
+        </M2>
+    </Memory>
+    <Config>
+    </Config>
+</Chip>

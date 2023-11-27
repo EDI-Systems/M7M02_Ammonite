@@ -508,7 +508,7 @@ std::unique_ptr<class Pgtbl> A7M_Gen::Pgt_Gen(std::vector<std::unique_ptr<class 
 
     return Pgt;
 }
-/* End Function:A7M::Gen_Pgt *************************************************/
+/* End Function:A7M::Pgt_Gen *************************************************/
 
 /* Function:A7M_Gen::Raw_Pgt **************************************************
 Description : Query the size of page table given the parameters.

@@ -1,9 +1,11 @@
 /******************************************************************************
-Filename    : a6m_gen.cpp
+Filename    : rv32p_gen.cpp
 Author      : pry
 Date        : 12/07/2019
 Licence     : LGPL v3+; see COPYING for details.
-Description : This toolset is for ARMv6-M. Specifically, this suits Cortex-M0+.
+Description : This toolset is for RISC-V 32-bit PMP.
+              RISC-V PMP can map any number of static and dynamic pages, with
+              any power-of-2 that is bigger than 16.
 ******************************************************************************/
 
 /* Include *******************************************************************/
@@ -30,7 +32,7 @@ extern "C"
 #include "Proj_Info/Process/process.hpp"
 #include "Gen_Tool/Gen_Tool.hpp"
 #include "Gen_Tool/Plat_Gen/plat_gen.hpp"
-#include "Gen_Tool/Plat_Gen/A6M_Gen/a6m_gen.hpp"
+#include "Gen_Tool/Plat_Gen/RV32P_Gen/rv32p_gen.hpp"
 #undef __HDR_DEF__
 
 #define __HDR_CLASS__
@@ -58,21 +60,21 @@ extern "C"
 
 #include "Gen_Tool/Gen_Tool.hpp"
 #include "Gen_Tool/Plat_Gen/plat_gen.hpp"
-#include "Gen_Tool/Plat_Gen/A6M_Gen/a6m_gen.hpp"
+#include "Gen_Tool/Plat_Gen/RV32P_Gen/rv32p_gen.hpp"
 #undef __HDR_CLASS__
 /* End Include ***************************************************************/
 namespace RVM_GEN
 {
-/* Function:A6M_Gen::A6M_Gen **************************************************
-Description : Generator for the ARMv6-M platform.
+/* Function:RV32P_Gen::RV32P_Gen **************************************************
+Description : Generator for the ARMv7-M platform.
 Input       : class Proj_Info* Proj - The project information.
               class Plat_Info* Plat - The platform information.
               class Chip_Info* Chip - The chip information.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ A6M_Gen::A6M_Gen(class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip):
-Plat_Gen("A6M", Proj, Plat, Chip)
+/* void */ RV32P_Gen::RV32P_Gen(class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip):
+Plat_Gen("RV32P", Proj, Plat, Chip)
 {
     try
     {
@@ -80,20 +82,20 @@ Plat_Gen("A6M", Proj, Plat, Chip)
     }
     catch(std::exception& Exc)
     {
-        Main::Error(std::string("ARMv6-M (A6M) generator:\n")+Exc.what());
+        Main::Error(std::string("RISC-V 32-bit PMP (RV32P) generator:\n")+Exc.what());
     }
 }
-/* End Function:A6M_Gen::A6M_Gen *********************************************/
+/* End Function:RV32P_Gen::RV32P_Gen *********************************************/
 
-/* Function:A6M_Gen::Mem_Align ************************************************
-Description : Memory aligner for the ARMv6-M platform.
+/* Function:RV32P_Gen::Mem_Align ************************************************
+Description : Memory aligner for the ARMv7-M platform.
 Input       : ptr_t Base - The memory base address.
               ptr_t Size - The memory size.
               ptr_t Align_Order - The user suggested align order.
 Output      : None.
 Return      : ptr_t - The computed alignment.
 ******************************************************************************/
-ptr_t A6M_Gen::Mem_Align(ptr_t Base, ptr_t Size, ptr_t Align_Order)
+ptr_t RV32P_Gen::Mem_Align(ptr_t Base, ptr_t Size, ptr_t Align_Order)
 {
     ptr_t Align;
 
@@ -102,43 +104,45 @@ ptr_t A6M_Gen::Mem_Align(ptr_t Base, ptr_t Size, ptr_t Align_Order)
         /* Check all sensitive memory block allocation */
         if(Base!=MEM_AUTO)
         {
-            if((Base%A6M_MEM_ALIGN)!=0)
+            if((Base%RV32P_MEM_ALIGN)!=0)
                 Main::Error("XXXXX: Static memory base address not properly aligned.");
         }
 
-        if((Size%A6M_MEM_ALIGN)!=0)
+        if((Size%RV32P_MEM_ALIGN)!=0)
             Main::Error("XXXXX: Memory size not properly aligned.");
 
         /* This memory's start address is not designated yet. Decide its size after
          * alignment and calculate its start address alignment granularity */
         if(Base==MEM_AUTO)
         {
-            /* Compute maximum alignment that make sense for this memory trunk */
+        	/* Compute maximum alignment that make sense for this memory trunk */
             Align=1;
             while(Align<Size)
                 Align<<=1;
 
             /* If the user did not supply an alignment order, produce an appropriate default.
-             * For ARMv6-M, the default is 1/8 of the nearest power of 2 for the size */
-            if(Align_Order==MEM_AUTO)
-            {
-                Align>>=3;
-                if(Align<A6M_MEM_ALIGN)
-                    Align=A6M_MEM_ALIGN;
-            }
-            /* If the user supplied the alignment order, check if that order makes sense */
-            else
-            {
-                if((Align_Order>=32)||(POW2(Align_Order)>Align))
-                    Main::Error("XXXXX: Alignment order too large.");
-                if(Align_Order<5)
-                    Main::Error("XXXXX: Alignment order too small.");
-                Align=POW2(Align_Order);
-            }
+             * For RV32P, the default is 1/16 of the nearest power of 2 for the size. RV32P
+             * itself does not put restrictions on this, but we don't want to cut memory into
+             * too many pieces */
+        	if(Align_Order==MEM_AUTO)
+        	{
+                Align>>=4;
+                if(Align<RV32P_MEM_ALIGN)
+                	Align=RV32P_MEM_ALIGN;
+        	}
+        	/* If the user supplied the alignment order, check if that order makes sense */
+        	else
+        	{
+				if((Align_Order>=32)||(POW2(Align_Order)>Align))
+					Main::Error("XXXXX: Alignment order too large.");
+				if(Align_Order<4)
+					Main::Error("XXXXX: Alignment order too small.");
+				Align=POW2(Align_Order);
+        	}
         }
         else
         {
-            Align=A6M_MEM_ALIGN;
+            Align=RV32P_MEM_ALIGN;
             if(Align_Order!=MEM_AUTO)
                 Main::Error("XXXXX: Cannot designate fixed alignment for statically allocated memory.");
         }
@@ -147,18 +151,18 @@ ptr_t A6M_Gen::Mem_Align(ptr_t Base, ptr_t Size, ptr_t Align_Order)
     }
     catch(std::exception& Exc)
     {
-        Main::Error(std::string("ARMv6-M (A6M) generator:\n")+Exc.what());
+        Main::Error(std::string("RISC-V 32-bit PMP (RV32P) generator:\n")+Exc.what());
     }
 }
-/* End Function:A6M_Gen::Mem_Align *******************************************/
+/* End Function:RV32P_Gen::Mem_Align *******************************************/
 
-/* Function:A6M_Gen::Pgt_Total_Order ******************************************
+/* Function:RV32P_Gen::Pgt_Total_Order ****************************************
 Description : Get the total order and the start address of the page table.
 Input       : std::vector<std::unique_ptr<class Mem_Info>>& List - The memory block list.
 Output      : ptr_t* Base - The base address of this page table.
 Return      : ptr_t - The total order of the page table.
 ******************************************************************************/
-ptr_t A6M_Gen::Pgt_Total_Order(std::vector<std::unique_ptr<class Mem_Info>>& List, ptr_t* Base)
+ptr_t RV32P_Gen::Pgt_Total_Order(std::vector<std::unique_ptr<class Mem_Info>>& List, ptr_t* Base)
 {
     /* Start is inclusive, end is exclusive */
     ptr_t Start;
@@ -188,10 +192,9 @@ ptr_t A6M_Gen::Pgt_Total_Order(std::vector<std::unique_ptr<class Mem_Info>>& Lis
         Total_Order++;
     }
 
-    /* If the total order less than 8, we wish to extend that to 8, because if we are smaller than
-     * this it makes no sense. ARMv6-M MPU only allows subregions for regions more than 256 bytes */
-    if(Total_Order<8)
-        Total_Order=8;
+    /* If the total order less than 4, we wish to extend that to 4 */
+    if(Total_Order<4)
+        Total_Order=4;
 
     /* Do not shift more than 32 or we get undefined behavior */
     if(Total_Order==32)
@@ -201,9 +204,9 @@ ptr_t A6M_Gen::Pgt_Total_Order(std::vector<std::unique_ptr<class Mem_Info>>& Lis
 
     return Total_Order;
 }
-/* End Function:A6M_Gen::Pgt_Total_Order *************************************/
+/* End Function:RV32P_Gen::Pgt_Total_Order ***********************************/
 
-/* Function:A6M_Gen::Pgt_Num_Order ********************************************
+/* Function:RV32P_Gen::Pgt_Num_Order ******************************************
 Description : Get the number order of the page table.
 Input       : std::vector<std::unique_ptr<class Mem_Info>>& List - The memory block list.
               ptr_t Total_Order - The total order of the page table.
@@ -211,158 +214,55 @@ Input       : std::vector<std::unique_ptr<class Mem_Info>>& List - The memory bl
 Output      : None.
 Return      : ptr_t - The number order of the page table.
 ******************************************************************************/
-ptr_t A6M_Gen::Pgt_Num_Order(std::vector<std::unique_ptr<class Mem_Info>>& List,
+ptr_t RV32P_Gen::Pgt_Num_Order(std::vector<std::unique_ptr<class Mem_Info>>& List,
                                ptr_t Total_Order, ptr_t Base)
 {
     ptr_t Num_Order;
-    ptr_t Pivot_Cnt;
-    ptr_t Pivot_Addr;
-    ptr_t Cut_Apart;
-    /* Whether the memory block is good */
-    ptr_t Uniform;
     ptr_t Aligned;
 
-    /* Can the memory segments get fully mapped in? If yes, there are two conditions
-     * that must be met:
-     * 1. There cannot be different access permissions in these memory segments.
-     * 2. The memory start address and the size must be fully divisible by POW2(Total_Order-3). */
-    Uniform=1;
-    Aligned=1;
-    for(std::unique_ptr<class Mem_Info>& Mem:List)
+    /* We choose the smallest number order, in this way we have the largest size
+     * order. This will leave us plenty of chances to use huge pages, as this
+     * facilitates delegation as well. Number order = 0 is also possible, as this
+     * maps in a single huge page. Don't increase the number order aggressively,
+     * or it will take too much RAM. The current limit is 4. */
+    for(Num_Order=0;Num_Order<4;Num_Order++)
     {
-        if(Mem->Attr!=List[0]->Attr)
-        	Uniform=0;
-        if((Mem->Base%POW2(Total_Order-3))!=0)
-        	Aligned=0;
-        if((Mem->Size%POW2(Total_Order-3))!=0)
-        	Aligned=0;
-        if((Uniform==0)||(Aligned==0))
+        Aligned=1;
+
+        for(std::unique_ptr<class Mem_Info>& Mem:List)
+        {
+            if((Mem->Base%POW2(Total_Order-Num_Order))!=0)
+                Aligned=0;
+            if((Mem->Size%POW2(Total_Order-Num_Order))!=0)
+                Aligned=0;
+            if(Aligned==0)
+                break;
+        }
+
+        if(Aligned!=0)
             break;
     }
 
-    /* Is this directly mappable? If yes, we always create page tables with 8 pages. */
-    if((Uniform!=0)&&(Aligned!=0))
-    {
-        /* Yes, it is directly mappable. We choose the smallest number order, in this way
-         * we have the largest size order. This will leave us plenty of chances to use huge
-         * pages, as this facilitates delegation as well. Number order = 0 is also possible,
-         * as this maps in a single huge page. */
-        for(Num_Order=0;Num_Order<=3;Num_Order++)
-        {
-        	Aligned=1;
-
-            for(std::unique_ptr<class Mem_Info>& Mem:List)
-            {
-                if((Mem->Base%POW2(Total_Order-Num_Order))!=0)
-                	Aligned=0;
-                if((Mem->Size%POW2(Total_Order-Num_Order))!=0)
-                	Aligned=0;
-                if(Aligned==0)
-                    break;
-            }
-
-            if(Aligned!=0)
-                break;
-        }
-
-        if(Num_Order>3)
-        	Main::Error("XXXXX: Internal number order miscalculation.");
-    }
-    /* Non-uniform attributes caused this to be unmappable. Avoid cutting contiguous regions
-     * up because this can potentially increase our region usage */
-    else if(Uniform==0)
-    {
-        /* Not directly mappable. What's the maximum number order that do not cut things apart? */
-        Cut_Apart=0;
-        for(Num_Order=1;Num_Order<=3;Num_Order++)
-        {
-            for(std::unique_ptr<class Mem_Info>& Mem:List)
-            {
-                for(Pivot_Cnt=1;Pivot_Cnt<POW2(Num_Order);Pivot_Cnt++)
-                {
-                    Pivot_Addr=Base+Pivot_Cnt*POW2(Total_Order-Num_Order);
-                    if((Mem->Base<Pivot_Addr)&&((Mem->Base+Mem->Size)>Pivot_Addr))
-                    {
-                        Cut_Apart=1;
-                        break;
-                    }
-                }
-                if(Cut_Apart!=0)
-                    break;
-            }
-            if(Cut_Apart!=0)
-                break;
-        }
-
-        /* For whatever reason, if it breaks, then the last number order must be good,
-         * and the minimum order is 1 because we at least need to split something */
-        if(Num_Order>1)
-            Num_Order--;
-    }
-    /* Uniform, but some is not aligned. Cut up as much as we can to reduce lower-level tables. */
-    else if(Aligned==0)
-    	Num_Order=3;
-    else
-    	Main::Error("XXXXX: Internal number order miscalculation.");
-
     return Num_Order;
 }
-/* End Function:A6M_Gen::Pgt_Num_Order ***************************************/
+/* End Function:RV32P_Gen::Pgt_Num_Order *************************************/
 
-/* Function:A6M_Gen::Page_Map *************************************************
+/* Function:RV32P_Gen::Page_Map ***********************************************
 Description : Map pages into the page table as we can.
 Input       : std::vector<std::unique_ptr<class Mem>>& List - The memory block list.
               std::unique_ptr<class Pgtbl>& Pgt - The current page table.
 Output      : std::unique_ptr<class Pgtbl>& Pgt - The updated current page table.
 Return      : None.
 ******************************************************************************/
-void A6M_Gen::Page_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
-                       std::unique_ptr<class Pgtbl>& Pgt)
+void RV32P_Gen::Page_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
+                         std::unique_ptr<class Pgtbl>& Pgt)
 {
-    ptr_t Attr;
     ptr_t Page_Cnt;
     ptr_t Page_Start;
     ptr_t Page_End;
-    ptr_t Page_Num;
-    ptr_t Page_Num_Max;
-    ptr_t Cur_Attr;
 
     Main::Info("> Mapping pages into pgdir base 0x%llX size order %lld num order %lld.",
                Pgt->Base,Pgt->Size_Order,Pgt->Num_Order);
-
-    /* Use the attribute that covers most pages - there are O(N) algorithms,
-     * but this is easier to guarantee correctness */
-    Page_Num_Max=0;
-    for(std::unique_ptr<class Mem_Info>& Mem:List)
-    {
-        Cur_Attr=Mem->Attr;
-        Page_Num=0;
-
-        for(std::unique_ptr<class Mem_Info>& Mem:List)
-        {
-            if(Mem->Attr==Cur_Attr)
-            {
-                for(Page_Cnt=0;Page_Cnt<POW2(Pgt->Num_Order);Page_Cnt++)
-                {
-                    Page_Start=Pgt->Base+Page_Cnt*POW2(Pgt->Size_Order);
-                    Page_End=Page_Start+POW2(Pgt->Size_Order);
-
-                    if((Mem->Base<=Page_Start)&&((Mem->Base+Mem->Size)>=Page_End))
-                        Page_Num++;
-                }
-            }
-        }
-
-        if(Page_Num>Page_Num_Max)
-        {
-            Page_Num_Max=Page_Num;
-            Attr=Cur_Attr;
-        }
-    }
-
-    /* Is there anything that we should map? If no, we return early */
-    if(Page_Num_Max==0)
-        return;
 
     /* Map whatever we can map, and postpone whatever we will have to postpone */
     for(Page_Cnt=0;Page_Cnt<POW2(Pgt->Num_Order);Page_Cnt++)
@@ -370,27 +270,21 @@ void A6M_Gen::Page_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
         Page_Start=Pgt->Base+Page_Cnt*POW2(Pgt->Size_Order);
         Page_End=Page_Start+POW2(Pgt->Size_Order);
 
-        /* Can this compartment be mapped? It can if there is one segment covering the range */
+        /* Map whatever that we can map */
         for(std::unique_ptr<class Mem_Info>& Mem:List)
         {
             if((Mem->Base<=Page_Start)&&((Mem->Base+Mem->Size)>=Page_End))
             {
-                /* The attribute must be the same as what we map, cause we're mapping the stuff
-                 * as a single region - we ignore the static attribute when comparing to map as much
-                 * memory with the same attributes as possible */
-                if((Attr&(~MEM_STATIC))==(Mem->Attr&(~MEM_STATIC)))
-                {
-                    Pgt->Page[Page_Cnt]=Mem->Attr;
-                    Main::Info("> > Memory page base 0x%0llX size 0x%0llX mapped with attr 0x%0llX.",
-                               Page_Start,Page_End-Page_Start,Mem->Attr);
-                }
+                Pgt->Page[Page_Cnt]=Mem->Attr;
+                Main::Info("> > Memory page base 0x%0llX size 0x%0llX mapped with attr 0x%0llX.",
+                           Page_Start,Page_End-Page_Start,Mem->Attr);
             }
         }
     }
 }
-/* End Function:A6M_Gen::Page_Map ********************************************/
+/* End Function:RV32P_Gen::Page_Map ******************************************/
 
-/* Function:A6M_Gen::Pgdir_Map ************************************************
+/* Function:RV32P_Gen::Pgdir_Map **********************************************
 Description : Map page directories into the page table.
 Input       : std::vector<std::unique_ptr<class Mem>>& List - The memory block list.
               class Process* Owner - The owner process of this kernel object.
@@ -399,8 +293,8 @@ Output      : std::unique_ptr<class Pgtbl>& Pgt - The updated current page table
               ptr_t& Total_Static - The total number of static regions used.
 Return      : None.
 ******************************************************************************/
-void A6M_Gen::Pgdir_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
-                        class Process* Owner, std::unique_ptr<class Pgtbl>& Pgt, ptr_t& Total_Static)
+void RV32P_Gen::Pgdir_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
+                          class Process* Owner, std::unique_ptr<class Pgtbl>& Pgt, ptr_t& Total_Static)
 {
     ptr_t Base;
     ptr_t Size;
@@ -450,10 +344,10 @@ void A6M_Gen::Pgdir_Map(std::vector<std::unique_ptr<class Mem_Info>>& List,
         }
     }
 }
-/* End Function:A6M_Gen::Pgdir_Map *******************************************/
+/* End Function:RV32P_Gen::Pgdir_Map *****************************************/
 
-/* Function:A6M_Gen::Pgt_Gen **************************************************
-Description : Recursively construct the page table for the ARMv6-M port.
+/* Function:RV32P_Gen::Pgt_Gen ************************************************
+Description : Recursively construct the page table for the ARMv7-M port.
 Input       : std::vector<std::unique_ptr<class Mem_Info>>& - The list containing
                                                               memory segments to fit
                                                               into this level (and below).
@@ -467,8 +361,8 @@ Return      : std::unique_ptr<class Pgtbl> - The page table structure returned. 
                                              error is encountered, it will directly
                                              error out.
 ******************************************************************************/
-std::unique_ptr<class Pgtbl> A6M_Gen::Pgt_Gen(std::vector<std::unique_ptr<class Mem_Info>>& List,
-                                              class Process* Owner, ptr_t Total_Max, ptr_t& Total_Static)
+std::unique_ptr<class Pgtbl> RV32P_Gen::Pgt_Gen(std::vector<std::unique_ptr<class Mem_Info>>& List,
+                                                class Process* Owner, ptr_t Total_Max, ptr_t& Total_Static)
 {
     ptr_t Base;
     ptr_t Num_Order;
@@ -482,19 +376,12 @@ std::unique_ptr<class Pgtbl> A6M_Gen::Pgt_Gen(std::vector<std::unique_ptr<class 
     if(Total_Order>Total_Max)
         Main::Error("XXXXX: Memory segment too small, cannot find a reasonable placement.");
 
-    /* Make sure the list only contain static mappings - ARMv6-M does not allow dynamic mappings */
-    for(const std::unique_ptr<class Mem_Info>& Mem:List)
-    {
-        if((Mem->Attr&MEM_STATIC)==0)
-            Main::Error("XXXXX: ARMv6-M does not allow dynamic page mappings.");
-    }
-
     /* Number order */
     Num_Order=this->Pgt_Num_Order(List, Total_Order, Base);
     /* Size order */
     Size_Order=Total_Order-Num_Order;
 
-    /* Page table attributes are in fact not used in A6M, we always set to full attributes */
+    /* Page table attributes are in fact not used in RV32P, we always set to full attributes */
     Pgt=std::make_unique<class Pgtbl>(Base, Size_Order, Num_Order, MEM_FULL, Owner);
     Main::Info("> Creating pgdir base 0x%llX size order %lld num order %lld.",Base,Size_Order,Num_Order);
     /* Map in all pages */
@@ -502,131 +389,128 @@ std::unique_ptr<class Pgtbl> A6M_Gen::Pgt_Gen(std::vector<std::unique_ptr<class 
     /* Map in all page directories - recursive */
     this->Pgdir_Map(List, Owner, Pgt, Total_Static);
 
-    /* If a single page is static, we now have a static MPU region */
-    for(ptr_t Page:Pgt->Page)
-    {
-        if((Page&MEM_STATIC)!=0)
-        {
-            Total_Static++;
-            break;
-        }
-    }
+    /* The RV32P will not lock-down any static regions, hence always 0 */
+    Total_Static=0;
 
     return Pgt;
 }
-/* End Function:A6M::Pgt_Gen *************************************************/
+/* End Function:RV32P::Gen_Pgt ***********************************************/
 
-/* Function:A6M_Gen::Raw_Pgt **************************************************
+/* Function:RV32P_Gen::Raw_Pgt ************************************************
 Description : Query the size of page table given the parameters.
 Input       : ptr_t Num_Order - The number order.
               ptr_t Is_Top - Whether this is a top-level.
 Output      : None.
 Return      : ptr_t - The size in bytes.
 ******************************************************************************/
-ptr_t A6M_Gen::Raw_Pgt(ptr_t Num_Order, ptr_t Is_Top)
+ptr_t RV32P_Gen::Raw_Pgt(ptr_t Num_Order, ptr_t Is_Top)
 {
     if(Is_Top!=0)
-        return A6M_RAW_PGT_SIZE_TOP(Num_Order, this->Chip->Region);
+        return RV32P_RAW_PGT_SIZE_TOP(Num_Order, this->Chip->Region);
     else
-        return A6M_RAW_PGT_SIZE_NOM(Num_Order);
+        return RV32P_RAW_PGT_SIZE_NOM(Num_Order);
 }
-/* End Function:A6M_Gen::Size_Pgt ********************************************/
+/* End Function:RV32P_Gen::Size_Pgt ******************************************/
 
-/* Function:A6M_Gen::Raw_Thread ***********************************************
+/* Function:RV32P_Gen::Raw_Thread *********************************************
 Description : Query the size of the minimal thread object.
 Input       : None.
 Output      : None.
 Return      : ptr_t - The size in bytes.
 ******************************************************************************/
-ptr_t A6M_Gen::Raw_Thread(void)
+ptr_t RV32P_Gen::Raw_Thread(void)
 {
-    return A6M_RAW_HYP_SIZE;
+    return RV32P_RAW_HYP_SIZE;
 }
-/* End Function:A6M_Gen::Raw_Thread ******************************************/
+/* End Function:RV32P_Gen::Raw_Thread ****************************************/
 
-/* Function:A6M_Gen::Raw_Invocation *******************************************
+/* Function:RV32P_Gen::Raw_Invocation *****************************************
 Description : Query the size of a invocation.
-Input       : None.
+Input       : None¡£
 Output      : None.
 Return      : ptr_t - The size in bytes.
 ******************************************************************************/
-ptr_t A6M_Gen::Raw_Invocation(void)
+ptr_t RV32P_Gen::Raw_Invocation(void)
 {
-    return A6M_RAW_INV_SIZE;
+    return RV32P_RAW_INV_SIZE;
 }
-/* End Function:A6M_Gen::Raw_Invocation **************************************/
+/* End Function:RV32P_Gen::Raw_Invocation ************************************/
 
-/* Function:A6M_Gen::Raw_Register *********************************************
+/* Function:RV32P_Gen::Raw_Register *******************************************
 Description : Query the size of the register set.
 Input       : const std::vector<std::string>& Coprocessor - The coprocessor list.
 Output      : None.
 Return      : ptr_t - The size in bytes.
 ******************************************************************************/
-ptr_t A6M_Gen::Raw_Register(const std::vector<std::string>& Coprocessor)
+ptr_t RV32P_Gen::Raw_Register(const std::vector<std::string>& Coprocessor)
 {
-    return A6M_RAW_REG_SIZE;
+    if(Coprocessor.empty())
+        return RV32P_RAW_REG_SIZE;
+    else
+        return RV32P_RAW_REG_FPU_SIZE;
 }
-/* End Function:A6M_Gen::Raw_Register ****************************************/
+/* End Function:RV32P_Gen::Raw_Register **************************************/
 
-/* Function:A6M_Gen::Kernel_Conf_Hdr ******************************************
+/* Function:RV32P_Gen::Kernel_Conf_Hdr ****************************************
 Description : Replace kernel configuration header macros.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The input file.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The modified file.
 Return      : None.
 ******************************************************************************/
-void A6M_Gen::Kernel_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
+void RV32P_Gen::Kernel_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
 {
     /* Init process's first thread's entry point address */
-    Gen_Tool::Macro_Hex(List, "RME_A6M_INIT_ENTRY",PRC_DESC_ALIGN(this->Proj->Monitor->Code_Base+8*4)|0x01, MACRO_REPLACE);
+    if (Proj->Buildsystem=="Makefile")
+        Gen_Tool::Macro_Hex(List, "RME_RV32P_INIT_ENTRY",PRC_DESC_ALIGN(this->Proj->Monitor->Code_Base), MACRO_REPLACE);
+    else
+        Gen_Tool::Macro_Hex(List, "RME_RV32P_INIT_ENTRY",PRC_DESC_ALIGN(this->Proj->Monitor->Code_Base+8*4), MACRO_REPLACE);
     /* Init process's first thread's stack address */
-    Gen_Tool::Macro_Hex(List, "RME_A6M_INIT_STACK",
+    Gen_Tool::Macro_Hex(List, "RME_RV32P_INIT_STACK",
                         this->Proj->Monitor->Init_Stack_Base+this->Proj->Monitor->Init_Stack_Size-16, MACRO_REPLACE);
-    /* No NVIC grouping for ARMv6-M */
     /* What is the Systick value? - (usually) 10ms per tick */
-    Gen_Tool::Macro_String(List, "RME_A6M_SYSTICK_VAL", this->Proj->Chip->Config["Systick_Value"], MACRO_REPLACE);
+    Gen_Tool::Macro_String(List, "RME_RV32P_OSTIM_VAL", this->Proj->Chip->Config["Ostim_Value"]+"U", MACRO_REPLACE);
 
     /* Fixed attributes - we will refill these with database values */
     /* Number of MPU regions available */
-    Gen_Tool::Macro_Int(List, "RME_A6M_REGION_NUM", this->Chip->Region, MACRO_REPLACE);
-
-    /* CPU & Endianness currently unused */
+    Gen_Tool::Macro_Int(List, "RME_RV32P_REGION_NUM", this->Chip->Region, MACRO_REPLACE);
 }
-/* End Function:A6M_Gen::Kernel_Conf_Hdr *************************************/
+/* End Function:RV32P_Gen::Kernel_Conf_Hdr ***********************************/
 
-/* Function:A6M_Gen::Monitor_Conf_Hdr *****************************************
+/* Function:RV32P_Gen::Monitor_Conf_Hdr ***************************************
 Description : Replace monitor configuration header macros.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The input file.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The modified file.
 Return      : None.
 ******************************************************************************/
-void A6M_Gen::Monitor_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
+void RV32P_Gen::Monitor_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List)
 {
     /* Init process's first thread's entry point address */
-    Gen_Tool::Macro_Hex(List, "RVM_A6M_INIT_ENTRY",PRC_DESC_ALIGN(this->Proj->Monitor->Code_Base+8*4)|0x01, MACRO_REPLACE);
+    if(Proj->Buildsystem == "Makefile")
+        Gen_Tool::Macro_Hex(List, "RVM_RV32P_INIT_ENTRY", PRC_DESC_ALIGN(this->Proj->Monitor->Code_Base), MACRO_REPLACE);
+    else
+        Gen_Tool::Macro_Hex(List, "RVM_RV32P_INIT_ENTRY",PRC_DESC_ALIGN(this->Proj->Monitor->Code_Base+8*4), MACRO_REPLACE);
     /* Init process's first thread's stack address */
-    Gen_Tool::Macro_Hex(List, "RVM_A6M_INIT_STACK",
+    Gen_Tool::Macro_Hex(List, "RVM_RV32P_INIT_STACK",
                         this->Proj->Monitor->Init_Stack_Base+this->Proj->Monitor->Init_Stack_Size-16, MACRO_REPLACE);
     /* Fixed attributes - we will refill these with database values */
     /* Number of MPU regions available */
-    Gen_Tool::Macro_Int(List, "RVM_A6M_REGION_NUM", this->Chip->Region, MACRO_REPLACE);
-
-    /* CPU & Endianness currently unused */
+    Gen_Tool::Macro_Int(List, "RVM_RV32P_REGION_NUM", this->Chip->Region, MACRO_REPLACE);
 }
-/* End Function:A6M_Gen::Monitor_Conf_Hdr ************************************/
+/* End Function:RV32P_Gen::Monitor_Conf_Hdr **********************************/
 
-/* Function:A6M_Gen::Process_Main_Hdr *****************************************
+/* Function:RV32P_Gen::Process_Main_Hdr ***************************************
 Description : Replace process main header macros.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The input file.
               const class Process* Prc - The process information.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The modified file.
 Return      : None.
 ******************************************************************************/
-void A6M_Gen::Process_Main_Hdr(std::unique_ptr<std::vector<std::string>>& List,
-                               const class Process* Prc)
+void RV32P_Gen::Process_Main_Hdr(std::unique_ptr<std::vector<std::string>>& List,
+		                         const class Process* Prc)
 {
-    /* CPU & Endianness currently unused */
+
 }
-/* End Function:A6M_Gen::Process_Main_Hdr ************************************/
+/* End Function:RV32P_Gen::Process_Main_Hdr **********************************/
 }
 /* End Of File ***************************************************************/
 

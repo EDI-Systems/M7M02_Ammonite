@@ -32,8 +32,10 @@ class Chip
 public:
     /* Platform */
     std::string Platform;
+    std::string Platform_Lower;
     /* Class */
     std::string Class;
+    std::string Class_Lower;
     /* The vendor */
     std::string Name;
     /* Selected coprocessors in this project */

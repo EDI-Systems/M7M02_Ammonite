@@ -169,8 +169,16 @@ void GCC_Gen::Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back(".KERNEL_CODE : ALIGN(4)");
     List->push_back("{");
     List->push_back("    __RME_Code_Start = .;");
-    List->push_back("    KEEP(*_gcc.o(.text.rme_vector))");
-    List->push_back("    KEEP(*_gcc.o(.text.rme_entry))");
+    /* ARM Cortex-M processors require that the vector table be linked upfront, whereas other processors require entry */
+    if((this->Chip->Platform=="A6M")||(this->Chip->Platform=="A7M")||(this->Chip->Platform=="A8M"))
+    {
+        List->push_back("    KEEP(*_gcc.o(.text.rme_vector))");
+    }
+    else
+    {
+        List->push_back("    KEEP(*_gcc.o(.text.rme_entry))");
+        List->push_back("    KEEP(*_gcc.o(.text.rme_vector))");
+    }
     List->push_back("    *(.text .text.*)");
     List->push_back("    *(.rodata .rodata.* .constdata .constdata.*)");
     List->push_back("    __RME_Code_End = .;");

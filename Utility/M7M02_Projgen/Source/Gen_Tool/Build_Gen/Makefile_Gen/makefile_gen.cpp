@@ -152,27 +152,32 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
     	CPU_Option+=" -mthumb";
 
         /* FPU Type */
-        if(!Coprocessor.empty())
+        if(Coprocessor.empty())
         {
-			if(Coprocessor.size()==1)
-			{
-				Temp=Coprocessor[0];
-				if(Temp!="NONE")
-				{
-					CPU_Option+=" -mfpu=";
-					if(Temp=="FPV4_SP")
-						CPU_Option+="fpv4-sp-d16";
-					else if(Temp=="FPV5_SP")
-						CPU_Option+="fpv5-sp-d16";
-					else if(Temp=="FPV5_DP")
-						CPU_Option+="fpv5-d16";
-					else
-						Main::Error("XXXXX: Internal FPU type error.");
-				}
-			}
-			else
-				Main::Error("XXXXX: Internal FPU type error.");
+            /* Don't add anything */
         }
+        else if(Coprocessor.size()==1)
+        {
+            Temp=Coprocessor[0];
+            if(Temp=="NONE")
+            {
+                /* Don't add anything */
+            }
+            else
+            {
+                CPU_Option+=" -mfpu=";
+                if(Temp=="FPV4_SP")
+                    CPU_Option+="fpv4-sp-d16";
+                else if(Temp=="FPV5_SP")
+                    CPU_Option+="fpv5-sp-d16";
+                else if(Temp=="FPV5_DP")
+                    CPU_Option+="fpv5-d16";
+                else
+                    Main::Error("XXXXX: Internal FPU type error.");
+            }
+        }
+        else
+            Main::Error("XXXXX: Internal FPU type error.");
 
         /* Endianness */
         Temp=this->Chip->Attribute["Endian"];
@@ -180,23 +185,71 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
         	CPU_Option+="-mbig-endian";
         else if(Temp!="Little")
             Main::Error("XXXXX: Internal endianness error.");
-    }
 
-    /* Generic optimization levels */
-    if(Optimization=="O0")
-        Opt_Level="-O0";
-    else if(Optimization=="O1")
-        Opt_Level="-O1";
-    else if(Optimization=="O2")
-        Opt_Level="-O2";
-    else if(Optimization=="O3")
-        Opt_Level="-O3";
-    else if(Optimization=="Of")
-        Opt_Level="-Ofast";
-    else if(Optimization=="Os")
-        Opt_Level="-Os";
-    else
-        Main::Error("XXXXX: Internal optimization level error.");
+        /* Optimization levels */
+        if(Optimization=="O0")
+            Opt_Level="-O0";
+        else if(Optimization=="O1")
+            Opt_Level="-O1";
+        else if(Optimization=="O2")
+            Opt_Level="-O2";
+        else if(Optimization=="O3")
+            Opt_Level="-O3";
+        else if(Optimization=="Of")
+            Opt_Level="-Ofast";
+        else if(Optimization=="Os")
+            Opt_Level="-Os";
+        else
+            Main::Error("XXXXX: Internal optimization level error.");
+    }
+    else if(this->Chip->Platform=="RV32P")
+    {
+        Prefix="riscv-none-elf-";
+
+        /* CPU Type */
+        Temp=this->Chip->Attribute["CPU"];
+        Main::Lower(Temp);
+        CPU_Option=std::string("-march=rv32")+Temp;
+
+        /* FPU Type */
+        if(Coprocessor.empty())
+            CPU_Option+=" -mabi=ilp32";
+        else if(Coprocessor.size()==1)
+        {
+            Temp=Coprocessor[0];
+            if(Temp=="NONE")
+                CPU_Option+=" -mabi=ilp32";
+            else if(Temp=="RVF")
+                CPU_Option+="f -mabi=ilp32f";
+            else if(Temp=="RVD")
+                CPU_Option+="fd -mabi=ilp32fd";
+            else
+                Main::Error("XXXXX: Internal FPU type error.");
+        }
+        else
+            Main::Error("XXXXX: Internal FPU type error.");
+
+        CPU_Option+=" -msmall-data-limit=8";
+
+        /* Optimization levels */
+        if(Optimization=="O0")
+            Opt_Level="-O0";
+        else if(Optimization=="O1")
+            Opt_Level="-O1";
+        else if(Optimization=="O2")
+            Opt_Level="-O2";
+        else if(Optimization=="O3")
+            Opt_Level="-O3";
+        else if(Optimization=="Of")
+            Opt_Level="-Ofast";
+        else if(Optimization=="Os")
+        {
+            Opt_Level="-Os";
+            CPU_Option+=" -msave-restore";
+        }
+        else
+            Main::Error("XXXXX: Internal optimization level error.");
+    }
 
     List->push_back("###############################################################################");
     List->push_back(std::string("#Filename    : ")+Target_Lower);
@@ -207,19 +260,19 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
     List->push_back(std::string("#              to be used with ") + this->Chip->Name + ", and the GNU toolchain.");
     List->push_back("###############################################################################");
     List->push_back("");
-    List->push_back("# Configuration ###############################################################");
+    List->push_back("# Config ######################################################################");
     List->push_back(std::string("TARGET=")+Target_Lower);
     List->push_back(std::string("CPU=")+CPU_Option);
     List->push_back("");
-    List->push_back(std::string("CFLAGS=")+Opt_Level+" -fno-strict-aliasing -fdata-sections -ffunction-sections -ffreestanding -nostdlib -nostartfiles");
+    List->push_back(std::string("CFLAGS=")+Opt_Level+" -specs=nano.specs -fsigned-char -fno-common -fno-strict-aliasing -fdata-sections -ffunction-sections -ffreestanding");
     List->push_back("AFLAGS=-fdata-sections -ffunction-sections");
     List->push_back("WFLAGS=-Wall -Wno-strict-aliasing");
-    List->push_back("DFLAGS=-g -gdwarf-2");
-    List->push_back("LFLAGS=-nostdlib -nostartfiles -ffreestanding -specs=nano.specs -Wl,--gc-sections,--cref");
+    List->push_back("DFLAGS=-g3 -gdwarf-2");
+    List->push_back("LFLAGS=-specs=nano.specs -specs=nosys.specs -nostartfiles -Wl,--gc-sections,--cref");
     List->push_back("");
     List->push_back("OBJDIR=Objects");
     List->push_back(std::string("PREFIX=")+Prefix);
-    List->push_back("# End Configuration ###########################################################");
+    List->push_back("# End Config ##################################################################");
     List->push_back("");
     List->push_back("# Source ######################################################################");
     for(const std::string& Inc:Include)
@@ -238,7 +291,7 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
     }
     List->push_back("");
     List->push_back(std::string("LDSCRIPT=")+Linker);
-    List->push_back("LIBS=-lc -lnosys");
+    List->push_back("LIBS=-lc -lm");
     List->push_back("# End Source ##################################################################");
     List->push_back("");
     List->push_back("# Toolchain ###################################################################");

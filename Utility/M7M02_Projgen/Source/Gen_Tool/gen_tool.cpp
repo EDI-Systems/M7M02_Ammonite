@@ -60,8 +60,9 @@ extern "C"
 #include "Gen_Tool/gen_tool.hpp"
 
 #include "Gen_Tool/Plat_Gen/plat_gen.hpp"
-#include "Gen_Tool/Plat_Gen/A7M_Gen/a7m_gen.hpp"
 #include "Gen_Tool/Plat_Gen/A6M_Gen/a6m_gen.hpp"
+#include "Gen_Tool/Plat_Gen/A7M_Gen/a7m_gen.hpp"
+#include "Gen_Tool/Plat_Gen/RV32P_Gen/rv32p_gen.hpp"
 
 #include "Gen_Tool/Build_Gen/build_gen.hpp"
 #include "Gen_Tool/Build_Gen/Keil_Gen/keil_gen.hpp"
@@ -91,10 +92,12 @@ Return      : None.
 {
     try
     {
-        if(Name=="A7M")
-            this->Plat=std::make_unique<class A7M_Gen>(Proj,Plat,Chip);
-        else if(Name=="A6M")
-        	this->Plat=std::make_unique<class A6M_Gen>(Proj,Plat,Chip);
+        if(Name=="A6M")
+            this->Plat=std::make_unique<class A6M_Gen>(Proj,Plat,Chip);
+        else if(Name=="A7M")
+        	this->Plat=std::make_unique<class A7M_Gen>(Proj,Plat,Chip);
+        else if(Name=="RV32P")
+            this->Plat=std::make_unique<class RV32P_Gen>(Proj,Plat,Chip);
         else
             Main::Error("XXXXX: Platform generator for '"+Name+"' is not found.");
     }
@@ -2073,7 +2076,9 @@ void Gen_Tool::Monitor_Boot_Src(void)
     	Coprocessor.clear();
     	for(const std::string& Cop:Thd->Owner->Coprocessor)
     		Coprocessor+="RVM_"+this->Plat->Name_Upper+"_ATTR_"+Cop+"|";
-    	Coprocessor+="RVM_"+this->Plat->Name_Upper+"_ATTR_NONE";
+        /* If list is empty, specify "none" */
+    	if(Coprocessor=="")
+    	    Coprocessor="RVM_"+this->Plat->Name_Upper+"_ATTR_NONE";
 
         List->push_back(std::string("{RVM_MAIN_THD_")+MIDS(Thd->Cid_Global)+", "+SIDS(Thd->Cid_Global)+", "+
                         Thd->Owner->Macro_Global+", "+std::to_string(Thd->Priority)+"U, "+

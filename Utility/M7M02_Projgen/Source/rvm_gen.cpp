@@ -197,7 +197,7 @@ void Main::Chip_Parse(void)
         Path=this->Proj->Monitor->Monitor_Root+"Include/Platform/"+
              this->Proj->Chip->Platform+"/Chip/"+
              this->Proj->Chip->Class+"/"+
-             "rvm_platform_"+this->Proj->Chip->Class+".rvc";
+             "rvm_platform_"+this->Proj->Chip->Class_Lower+".rvc";
         /* Read in the whole chip description file */
         File=fopen(Path.c_str(),"r");
         if(File==nullptr)

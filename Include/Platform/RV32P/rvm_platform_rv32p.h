@@ -52,7 +52,7 @@ typedef unsigned char rvm_u8_t;
 /* FPU type definitions - keep in accordance with kernel */
 #define RVM_RV32P_ATTR_NONE                         (0U)
 #define RVM_RV32P_ATTR_RVF                          (1U<<0)
-#define RVM_RV32P_ATTR_RVFD                         (1U<<1)
+#define RVM_RV32P_ATTR_RVD                          (1U<<1)
 
 /* Platform-specific includes */
 #include "rvm_platform_rv32p_conf.h"
