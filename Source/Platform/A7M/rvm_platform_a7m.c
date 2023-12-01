@@ -59,25 +59,26 @@ Description : Initialize a thread's stack for synchronous invocation or thread
                      instruction already changed SP.
 Input       : rvm_ptr_t Stack_Base - The start(lower) address of the stub.
               rvm_ptr_t Stack_Size - The size of the stack.
-              rvm_ptr_t Entry_Addr - The entry address of the thread, not used here.
-              rvm_ptr_t Stub_Addr - The jump stub address.
-Output      : None.
+              rvm_ptr_t* Entry - The entry address of the thread, not used here.
+              rvm_ptr_t Stub - The jump stub address.
+Output      : rvm_ptr_t* Entry - The entry address of the thread, not used here.
 Return      : rvm_ptr_t - The actual stack address to use for system call.
 ******************************************************************************/
-rvm_ptr_t RVM_Stack_Init(rvm_ptr_t Stack_Base,
-                         rvm_ptr_t Stack_Size,
-                         rvm_ptr_t Entry_Addr,
-                         rvm_ptr_t Stub_Addr)
+rvm_ptr_t RVM_Stack_Init(rvm_ptr_t Stack,
+                         rvm_ptr_t Size,
+                         rvm_ptr_t* Entry,
+                         rvm_ptr_t Stub)
 
 {
     struct RVM_A7M_Stack* Ptr;
     
-    Ptr=(struct RVM_A7M_Stack*)(Stack_Base+Stack_Size-
+    Ptr=(struct RVM_A7M_Stack*)(Stack+Size-
                                 RVM_STACK_SAFE_RDCY*sizeof(rvm_ptr_t)-
                                 sizeof(struct RVM_A7M_Stack));
     Ptr->R12=0U;
     Ptr->LR=0U;
-    Ptr->PC=Stub_Addr|0x01U;
+    Ptr->PC=Stub|0x01U;
+
     /* Initialize the xPSR to avoid a transition to ARM state */
     Ptr->XPSR=0x01000000U;
     

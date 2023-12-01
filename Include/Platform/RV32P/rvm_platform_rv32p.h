@@ -121,6 +121,12 @@ typedef rvm_s32_t rvm_ret_t;
 #define __HDR_DEF__
 #undef __HDR_DEF__
 /*****************************************************************************/
+struct RVM_RV32P_Stack
+{
+    /* Only PC is placed onto stack */
+    rvm_ptr_t PC;
+};
+
 /* The register set struct */
 struct RVM_Reg_Struct
 {
@@ -309,10 +315,10 @@ EXTERN rvm_ret_t RVM_Inv_Ret(rvm_ptr_t Retval);
 __EXTERN__ rvm_ptr_t RVM_Putchar(char Char);
 #endif
 /* Stack operations */
-__EXTERN__ rvm_ptr_t RVM_Stack_Init(rvm_ptr_t Stack_Base,
-                                    rvm_ptr_t Stack_Size,
-                                    rvm_ptr_t Entry_Addr,
-                                    rvm_ptr_t Stub_Addr);
+__EXTERN__ rvm_ptr_t RVM_Stack_Init(rvm_ptr_t Stack,
+                                    rvm_ptr_t Size,
+                                    rvm_ptr_t* Entry,
+                                    rvm_ptr_t Stub);
 /* Idle function */
 __EXTERN__ void RVM_Idle(void);
 /* Coprocessor context size */

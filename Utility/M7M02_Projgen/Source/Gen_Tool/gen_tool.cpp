@@ -2079,7 +2079,8 @@ void Gen_Tool::Monitor_Boot_Src(void)
         /* If list is empty, specify "none" */
     	if(Coprocessor=="")
     	    Coprocessor="RVM_"+this->Plat->Name_Upper+"_ATTR_NONE";
-
+    	else
+    	    Coprocessor.pop_back();
         List->push_back(std::string("{RVM_MAIN_THD_")+MIDS(Thd->Cid_Global)+", "+SIDS(Thd->Cid_Global)+", "+
                         Thd->Owner->Macro_Global+", "+std::to_string(Thd->Priority)+"U, "+
 						Coprocessor+", "+std::to_string(Thd->Is_Hyp)+"U},");
@@ -2639,17 +2640,18 @@ void Gen_Tool::Process_Desc_Src(class Process* Prc)
     /* Public prototypes */
     List->push_back("/* Public Function ***********************************************************/");
     if(Prc->Type==PROCESS_VIRTUAL)
-    {
         List->push_back("EXTERN rvm_ret_t Thd_Vct(rvm_ret_t Param);");
-        List->push_back("EXTERN void _RVM_Jmp_Stub(void);");
-    }
     else
     {
 		for(const std::unique_ptr<class Thread>& Thd:Prc->Thread)
+		{
+		    /* The first one is entry, pass it */
+            if(Thd.get()==Prc->Thread[0].get())
+                continue;
 			List->push_back(std::string("EXTERN rvm_ret_t Thd_")+Thd->Name+"(rvm_ret_t Param);");
+		}
 		for(const std::unique_ptr<class Invocation>& Inv:Prc->Invocation)
 			List->push_back(std::string("EXTERN rvm_ret_t Inv_")+Inv->Name+"(rvm_ret_t Param);");
-		List->push_back("EXTERN void _RVM_Jmp_Stub(void);");
     }
     List->push_back("/* End Public Function *******************************************************/");
     List->push_back("");
@@ -2668,7 +2670,7 @@ void Gen_Tool::Process_Desc_Src(class Process* Prc)
         for(const std::unique_ptr<class Thread>& Thd:Prc->Thread)
         {
             if(Thd.get()==Prc->Thread[0].get())
-                List->push_back(std::string("    0x")+Main::Hex(Prc->Code_Front)+"U,");
+                List->push_back("    (rvm_ptr_t)_RVM_Entry,");
             else
                 List->push_back(std::string("    (rvm_ptr_t)Thd_")+Thd->Name+",");
         }
@@ -2685,7 +2687,7 @@ void Gen_Tool::Process_Desc_Src(class Process* Prc)
             if(Thd.get()==Prc->Thread[1].get())
             {
                 ASSERT(Thd->Name=="Usr");
-                List->push_back(std::string("    0x")+Main::Hex(Prc->Code_Front)+"U,");
+                List->push_back("    (rvm_ptr_t)_RVM_Entry,");
             }
             else
             {
@@ -2696,7 +2698,7 @@ void Gen_Tool::Process_Desc_Src(class Process* Prc)
     }
     for(const std::unique_ptr<class Invocation>& Inv:Prc->Invocation)
         List->push_back(std::string("    (rvm_ptr_t)Inv_")+Inv->Name+",");
-    List->push_back("    (rvm_ptr_t)_RVM_Jmp_Stub,");
+    List->push_back("    (rvm_ptr_t)_RVM_Stub,");
     List->push_back("};");
     List->push_back("/* End Public Variable *******************************************************/");
     List->push_back("");
@@ -2739,25 +2741,19 @@ void Gen_Tool::Process_Main_Src(class Process* Prc)
     List->push_back("");
 
     /* Private prototypes */
+    List->push_back("/* Private Function **********************************************************/");
     if(Prc->Type==PROCESS_VIRTUAL)
-    {
-        List->push_back("/* Private Function **********************************************************/");
         List->push_back("rvm_ret_t Thd_Vct(rvm_ret_t Param);");
-        List->push_back("EXTERN void _RVM_Jmp_Stub(void);");
-        List->push_back("/* End Private Function ******************************************************/");
-        List->push_back("");
-    }
     else
     {
-        List->push_back("/* Public Function ***********************************************************/");
         for(const std::unique_ptr<class Thread>& Thd:Prc->Thread)
-            List->push_back(std::string("extern rvm_ret_t Thd_")+Thd->Name+"(rvm_ret_t Param);");
+            List->push_back(std::string("EXTERN rvm_ret_t Thd_")+Thd->Name+"(rvm_ret_t Param);");
         for(const std::unique_ptr<class Invocation>& Inv:Prc->Invocation)
-            List->push_back(std::string("extern rvm_ret_t Inv_")+Inv->Name+"(rvm_ret_t Param);");
-        List->push_back("extern void _RVM_Jmp_Stub(void);");
-        List->push_back("/* End Private Function ******************************************************/");
-        List->push_back("");
+            List->push_back(std::string("EXTERN rvm_ret_t Inv_")+Inv->Name+"(rvm_ret_t Param);");
     }
+    List->push_back("EXTERN void _RVM_Stub(void);");
+    List->push_back("/* End Private Function ******************************************************/");
+    List->push_back("");
 
     /* If this is a virtual machine, create the two essential threads */
     if(Prc->Type==PROCESS_VIRTUAL)

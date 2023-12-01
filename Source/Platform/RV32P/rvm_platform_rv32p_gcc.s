@@ -41,7 +41,7 @@ Description : The RISC-V 32bit PMP user-level assembly support of RVM.
     .word               __RVM_Init          /* Init thread entry */
     .word               RVM_Sftd            /* All four daemons */
     .word               RVM_Vmmd
-    .word               0x00000000          /* Dummy */
+    .word               __RVM_Stub          /* Jump stub */
     NOP                                     /* Catch something in the middle */
     NOP
     NOP
@@ -85,6 +85,25 @@ __RVM_Zero_Clear:
     /* Branch to main function */
     J                   main
 /* End Entry *****************************************************************/
+
+/* Function:__RVM_Stub ********************************************************
+Description : The user level stub for thread creation.
+Input       : a0 - The parameter, which is passed on without change.
+Output      : None.
+Return      : None.
+******************************************************************************/
+    .section            .text.__rvm_stub
+    .align              3
+
+__RVM_Stub:
+    .option             push
+    .option             norelax
+    LA                  gp,__RVM_Global     /* Load gp for every thread */
+    .option             pop
+    LW                  a1,(sp)
+    ADDI                sp,sp,-12           /* Align stack to 16 bytes */
+    J                   a1                  /* Branch to the actual entry address */
+/* End Function:__RVM_Stub ***************************************************/
 
 /* Function:RVM_Inv_Act *******************************************************
 Description : Activate an invocation. If the return value is not desired, pass

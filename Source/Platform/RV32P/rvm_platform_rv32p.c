@@ -46,20 +46,31 @@ rvm_ptr_t RVM_Putchar(char Char)
 /* Function:RVM_Stack_Init ****************************************************
 Description : Initialize a thread's stack for synchronous invocation or thread 
               creation.
-Input       : rvm_ptr_t Stack_Base - The start(lower) address of the stub.
-              rvm_ptr_t Stack_Size - The size of the stack.
-              rvm_ptr_t Entry_Addr - The entry address of the thread, not used here.
-              rvm_ptr_t Stub_Addr - The jump stub address.
-Output      : None.
+Input       : rvm_ptr_t Stack - The start(lower) address of the stub.
+              rvm_ptr_t Stack - The size of the stack.
+              rvm_ptr_t* Entry - The entry address of the thread, not used here.
+              rvm_ptr_t Stub - The jump stub address, not used here.
+Output      : rvm_ptr_t* Entry - The entry address of the thread.
 Return      : rvm_ptr_t - The actual stack address to use for system call.
 ******************************************************************************/
-rvm_ptr_t RVM_Stack_Init(rvm_ptr_t Stack_Base,
-                         rvm_ptr_t Stack_Size,
-                         rvm_ptr_t Entry_Addr,
-                         rvm_ptr_t Stub_Addr)
+rvm_ptr_t RVM_Stack_Init(rvm_ptr_t Stack,
+                         rvm_ptr_t Size,
+                         rvm_ptr_t* Entry,
+                         rvm_ptr_t Stub)
 
 {
-    /* No automatic stacking for RV32P */
+
+    struct RVM_A7M_Stack* Ptr;
+    
+    Ptr=(struct RVM_RV32P_Stack*)(Stack+Size-
+                                  RVM_STACK_SAFE_RDCY*sizeof(rvm_ptr_t)-
+                                  sizeof(struct RVM_RV32P_Stack));
+
+    /* Jump to the stub so we can load the gp at start, for linker relaxation */
+    Ptr->PC=Entry;
+    *Entry=Stub;
+    
+    return (rvm_ptr_t)Ptr;
 }
 /* End Function:RVM_Stack_Init ***********************************************/
 

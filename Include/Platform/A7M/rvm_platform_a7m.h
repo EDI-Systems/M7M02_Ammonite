@@ -460,13 +460,15 @@ struct RVM_Exc_Struct
 
 /* Public Function ***********************************************************/
 /*****************************************************************************/
-/* Stubs in assembly */
-EXTERN void __RVM_Jmp_Stub(void);
+/* Assembly */
+EXTERN void __RVM_Stub(void);
 EXTERN rvm_ptr_t __RVM_A7M_MSB_Get(rvm_ptr_t Value); 
+
+/* System call */
 EXTERN rvm_ret_t RVM_Svc(rvm_ptr_t Op_Cid,
-                         rvm_ptr_t Arg1,
-                         rvm_ptr_t Arg2,
-                         rvm_ptr_t Arg3);
+                         rvm_ptr_t Param1,
+                         rvm_ptr_t Param2,
+                         rvm_ptr_t Param3);
 EXTERN rvm_ret_t RVM_A7M_Svc_Kfn(rvm_ptr_t Op_Cid,
                                  rvm_ptr_t ID,
                                  rvm_ptr_t* Param);
@@ -479,11 +481,11 @@ EXTERN rvm_ret_t RVM_Inv_Ret(rvm_ptr_t Retval);
 /* Debugging */
 __EXTERN__ rvm_ptr_t RVM_Putchar(char Char);
 #endif
-/* Stack operations */
-__EXTERN__ rvm_ptr_t RVM_Stack_Init(rvm_ptr_t Stack_Base,
-                                    rvm_ptr_t Stack_Size,
-                                    rvm_ptr_t Entry_Addr,
-                                    rvm_ptr_t Stub_Addr);
+/* Stack operation */
+__EXTERN__ rvm_ptr_t RVM_Stack_Init(rvm_ptr_t Stack,
+                                    rvm_ptr_t Size,
+                                    rvm_ptr_t* Entry,
+                                    rvm_ptr_t Stub);
 /* Idle function */
 __EXTERN__ void RVM_Idle(void);
 /* Coprocessor context size */

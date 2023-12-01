@@ -609,9 +609,9 @@ Return      : None.
 void RVM_Boot_Thd_Init(void)
 {
     rvm_ptr_t Count;
-    rvm_ptr_t Init_Entry_Addr;
-    rvm_ptr_t Init_Stub_Addr;
-    rvm_ptr_t Init_Stack_Addr;
+    rvm_ptr_t Init_Entry;
+    rvm_ptr_t Init_Stub;
+    rvm_ptr_t Init_Stack;
 
     RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
     RVM_DBG_S("Init: Initializing threads.\r\n");
@@ -638,18 +638,16 @@ void RVM_Boot_Thd_Init(void)
         }
         
         /* Initialize stack with whatever we have to initialize */
-        Init_Entry_Addr=RVM_DESC_ENTRY(RVM_Meta_Thd_Init[Count].Code_Base,
-                                       RVM_Meta_Thd_Init[Count].Desc_Slot);
-        Init_Stub_Addr=RVM_DESC_STUB(RVM_Meta_Thd_Init[Count].Code_Base);
-        Init_Stack_Addr=RVM_Stack_Init(RVM_Meta_Thd_Init[Count].Stack_Base,
-                                       RVM_Meta_Thd_Init[Count].Stack_Size,
-                                       Init_Entry_Addr,
-                                       Init_Stub_Addr);
+        Init_Entry=RVM_DESC_ENTRY(RVM_Meta_Thd_Init[Count].Code_Base,
+                                  RVM_Meta_Thd_Init[Count].Desc_Slot);
+        Init_Stub=RVM_DESC_STUB(RVM_Meta_Thd_Init[Count].Code_Base);
+        Init_Stack=RVM_Stack_Init(RVM_Meta_Thd_Init[Count].Stack_Base,
+                                  RVM_Meta_Thd_Init[Count].Stack_Size,
+                                  &Init_Entry,Init_Stub);
         
         /* Set execution info and transfer time */
         RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Meta_Thd_Init[Count].Thd,
-                                    Init_Entry_Addr,
-                                    Init_Stack_Addr,
+                                    Init_Entry,Init_Stack,
                                     RVM_Meta_Thd_Init[Count].Param)==0);
         
         RVM_ASSERT(RVM_Thd_Time_Xfer(RVM_Meta_Thd_Init[Count].Thd,
@@ -686,28 +684,25 @@ Return      : None.
 void RVM_Boot_Inv_Init(void)
 {
     rvm_ptr_t Count;
-    rvm_ptr_t Init_Entry_Addr;
-    rvm_ptr_t Init_Stub_Addr;
-    rvm_ptr_t Init_Stack_Addr;
+    rvm_ptr_t Init_Entry;
+    rvm_ptr_t Init_Stub;
+    rvm_ptr_t Init_Stack;
 
     RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
     RVM_DBG_S("Init: Initializing invocations.\r\n");
     
     for(Count=0U;Count<RVM_BOOT_INV_INIT_NUM;Count++)
     {
-        Init_Entry_Addr=RVM_DESC_ENTRY(RVM_Meta_Inv_Init[Count].Code_Base,
-                                       RVM_Meta_Inv_Init[Count].Desc_Slot);
-        Init_Stub_Addr=RVM_DESC_STUB(RVM_Meta_Inv_Init[Count].Code_Base);
-        Init_Stack_Addr=RVM_Stack_Init(RVM_Meta_Inv_Init[Count].Stack_Base,
-                                       RVM_Meta_Inv_Init[Count].Stack_Size,
-                                       Init_Entry_Addr,
-                                       Init_Stub_Addr);
+        Init_Entry=RVM_DESC_ENTRY(RVM_Meta_Inv_Init[Count].Code_Base,
+                                  RVM_Meta_Inv_Init[Count].Desc_Slot);
+        Init_Stub=RVM_DESC_STUB(RVM_Meta_Inv_Init[Count].Code_Base);
+        Init_Stack=RVM_Stack_Init(RVM_Meta_Inv_Init[Count].Stack_Base,
+                                  RVM_Meta_Inv_Init[Count].Stack_Size,
+                                  &Init_Entry,Init_Stub);
                                        
         /* These invocations always return on error */
         RVM_ASSERT(RVM_Inv_Set(RVM_Meta_Inv_Init[Count].Inv,
-                               Init_Entry_Addr,
-                               Init_Stack_Addr,
-                               1U)==0);
+                               Init_Entry,Init_Stack,1U)==0);
 
         RVM_DBG_S("Init: Invocation '0x");
         RVM_DBG_H(RVM_Meta_Inv_Init[Count].Inv);
@@ -760,7 +755,7 @@ void RVM_Prc_Init(void)
     
     /* Initialize virtual machines */
 #if(RVM_VIRT_NUM!=0U)
-    RVM_Virt_Crt(RVM_Virt, RVM_Vmap, RVM_VIRT_NUM);
+    RVM_Virt_Crt(RVM_Virt,RVM_Vmap,RVM_VIRT_NUM);
 #endif
 }
 /* End Function:RVM_Prc_Init *************************************************/
@@ -782,6 +777,8 @@ void RVM_Daemon_Init(rvm_cid_t Cap_Base,
 {
     rvm_cid_t Cap_Front;
     rvm_ptr_t Kom_Front;
+    rvm_ptr_t Init_Stack;
+    rvm_ptr_t Init_Entry;
     
     Cap_Front=Cap_Base;
     Kom_Front=Kom_Base;
@@ -790,33 +787,33 @@ void RVM_Daemon_Init(rvm_cid_t Cap_Base,
     
     /* Safety daemon initialization - highest priority as always */
     RVM_Sftd_Sig_Cap=Cap_Front++;
-    RVM_ASSERT(RVM_Sig_Crt(RVM_BOOT_INIT_CPT, RVM_Sftd_Sig_Cap)==0);
+    RVM_ASSERT(RVM_Sig_Crt(RVM_BOOT_INIT_CPT,RVM_Sftd_Sig_Cap)==0);
     RVM_DBG_SIS("Init: Created safety daemon fault endpoint '",RVM_Sftd_Sig_Cap,"'.\r\n");
     
     RVM_Sftd_Thd_Cap=Cap_Front++;
-    RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_INIT_CPT, RVM_BOOT_INIT_KOM, RVM_Sftd_Thd_Cap,
-                           RVM_BOOT_INIT_PRC, RVM_SFTD_PRIO, Kom_Front, 0U)>=0);
+    RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_INIT_CPT,RVM_BOOT_INIT_KOM,RVM_Sftd_Thd_Cap,
+                           RVM_BOOT_INIT_PRC,RVM_SFTD_PRIO,Kom_Front,0U)>=0);
     RVM_DBG_SISHS("Init: Created safety daemon '",RVM_Sftd_Thd_Cap,"' @ 0x",Kom_Front,".\r\n");
     Kom_Front+=RVM_THD_SIZE(0U);
     
-    RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Sftd_Thd_Cap, RVM_BOOT_INIT_THD, RVM_Sftd_Sig_Cap, RVM_Sftd_Thd_Cap, RVM_PREEMPT_PRIO_NUM-1U)==0);
-    RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Sftd_Thd_Cap, (rvm_ptr_t)RVM_Sftd, 
-                                RVM_Stack_Init(RVM_SFTD_STACK_BASE, RVM_SFTD_STACK_SIZE,
-                                               (rvm_ptr_t)RVM_Sftd, (rvm_ptr_t)__RVM_Jmp_Stub), 0U)==0);
+    RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Sftd_Thd_Cap,RVM_BOOT_INIT_THD,RVM_Sftd_Sig_Cap,RVM_Sftd_Thd_Cap,RVM_PREEMPT_PRIO_NUM-1U)==0);
+    Init_Entry=(rvm_ptr_t)RVM_Sftd;
+    Init_Stack=RVM_Stack_Init(RVM_SFTD_STACK_BASE,RVM_SFTD_STACK_SIZE,&Init_Entry,(rvm_ptr_t)__RVM_Stub);
+    RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Sftd_Thd_Cap,Init_Entry,Init_Stack,0U)==0);
     RVM_DBG_S("Init: Safety daemon initialization complete.\r\n");
 
 #if(RVM_VIRT_NUM!=0U)
     /* VMM daemon initialization - main priority - don't boot this if we have no VM at all */
     RVM_Vmmd_Thd_Cap=Cap_Front++;
-    RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_INIT_CPT, RVM_BOOT_INIT_KOM, RVM_Vmmd_Thd_Cap,
-                           RVM_BOOT_INIT_PRC, RVM_VMMD_PRIO, Kom_Front, 0U)>=0);
+    RVM_ASSERT(RVM_Thd_Crt(RVM_BOOT_INIT_CPT,RVM_BOOT_INIT_KOM,RVM_Vmmd_Thd_Cap,
+                           RVM_BOOT_INIT_PRC,RVM_VMMD_PRIO,Kom_Front,0U)>=0);
     RVM_DBG_SISHS("Init: Created VMM daemon '",RVM_Vmmd_Thd_Cap,"' @ 0x",Kom_Front,".\r\n");
     Kom_Front+=RVM_THD_SIZE(0U);
     
-    RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Vmmd_Thd_Cap, RVM_Sftd_Thd_Cap, RVM_Sftd_Sig_Cap, RVM_Vmmd_Thd_Cap, RVM_VMMD_PRIO)==0);
-    RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Vmmd_Thd_Cap, (rvm_ptr_t)RVM_Vmmd, 
-                                RVM_Stack_Init(RVM_VMMD_STACK_BASE, RVM_VMMD_STACK_SIZE,
-                                               (rvm_ptr_t)RVM_Vmmd, (rvm_ptr_t)__RVM_Jmp_Stub),0)==0);
+    RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Vmmd_Thd_Cap,RVM_Sftd_Thd_Cap,RVM_Sftd_Sig_Cap,RVM_Vmmd_Thd_Cap,RVM_VMMD_PRIO)==0);
+    Init_Entry=(rvm_ptr_t)RVM_Vmmd;
+    Init_Stack=RVM_Stack_Init(RVM_VMMD_STACK_BASE,RVM_VMMD_STACK_SIZE,&Init_Entry,(rvm_ptr_t)__RVM_Stub);
+    RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Vmmd_Thd_Cap,Init_Entry,Init_Stack,0)==0);
     RVM_DBG_S("Init: Main daemon initialization complete.\r\n");
 #endif
 }

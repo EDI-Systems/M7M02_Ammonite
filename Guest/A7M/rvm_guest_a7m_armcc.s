@@ -12,8 +12,8 @@
 ;/* Export *******************************************************************/
     ;Entry point
     EXPORT              _RVM_Entry
-    ;The jump stub and entry stub
-    EXPORT              _RVM_Jmp_Stub
+    ;Jump stub
+    EXPORT              _RVM_Stub
     ;Triggering an invocation
     EXPORT              RVM_Inv_Act
     ;Returning from an invocation
@@ -36,24 +36,24 @@ _RVM_Entry              PROC
     ENDP
 ;/* End Entry ****************************************************************/
 
-;/* Function:_RVM_Jmp_Stub ****************************************************
+;/* Function:_RVM_Stub ********************************************************
 ;Description : The user level stub for thread creation.
 ;Input       : R4 - rvm_ptr_t Entry - The entry address.
 ;              R5 - rvm_ptr_t Stack - The stack address that we are using now.
 ;Output      : None.
 ;Return      : None.
 ;*****************************************************************************/
-    AREA                _RVM_JMP_STUB,CODE,READONLY,ALIGN=3
+    AREA                _RVM_STUB,CODE,READONLY,ALIGN=3
     THUMB
     REQUIRE8
     PRESERVE8
 
-_RVM_Jmp_Stub           PROC
+_RVM_Stub               PROC
     SUB                 SP,#0x40            ;Protect the stack
     MOV                 R0,R5
     BX                  R4                  ;Branch to the entry
     ENDP
-;/* End Function:_RVM_Jmp_Stub ***********************************************/
+;/* End Function:_RVM_Stub ***************************************************/
 
 ;/* Function:RVM_Inv_Act ******************************************************
 ;Description : Activate an invocation. If the return value is not desired, pass
@@ -153,8 +153,8 @@ RVM_Svc                 PROC
 ;              be passed and returned. This number may be different in your system.
 ;Input       : R0 - rvm_ptr_t Num - The system call number/other information.
 ;              R1 - rvm_ptr_t ID - The func ID and sub ID of the kernel function call.
-;              R2 - rvm_ptr_t Args[6] - Array of 6 arguments.
-;Output      : R2 - rvm_ptr_t Args[6] - Array of 6 return values.
+;              R2 - rvm_ptr_t Param[6] - Array of 6 parameters.
+;Output      : R2 - rvm_ptr_t Param[6] - Array of 6 return values.
 ;Return      : R0 - rvm_ret_t - The system call return value.
 ;*****************************************************************************/
     AREA                RVM_A7M_SVC_KFN,CODE,READONLY,ALIGN=3

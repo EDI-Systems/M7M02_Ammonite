@@ -706,41 +706,40 @@ Return      : None.
 void _RVM_Virt_Cur_Recover(void)
 {
     struct RVM_Map_Struct* Map;
-    rvm_ptr_t Init_Stack_Addr;
+    rvm_ptr_t Init_Entry;
+    rvm_ptr_t Init_Stack;
     
     /* Unbind the threads from the core then rebind in case they are still blocked. 
      * This can break the assumption that the vector thread shall run first */
     RVM_ASSERT(RVM_Thd_Sched_Free(RVM_Virt_Cur->Map->Vct_Thd_Cap)==0);
     RVM_ASSERT(RVM_Thd_Sched_Free(RVM_Virt_Cur->Map->Usr_Thd_Cap)==0);
-    RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Virt_Cur->Map->Vct_Thd_Cap, RVM_Sftd_Thd_Cap, RVM_Sftd_Sig_Cap, 
-                                  RVM_Virt_Cur->Map->Vct_Thd_Cap|RVM_VIRT_TID_MARKER, RVM_VVCT_PRIO)==0);
-    RVM_ASSERT(RVM_Hyp_Sched_Bind(RVM_Virt_Cur->Map->Usr_Thd_Cap, RVM_Sftd_Thd_Cap, RVM_Sftd_Sig_Cap, 
-                                  RVM_Virt_Cur->Map->Usr_Thd_Cap|RVM_VIRT_TID_MARKER, RVM_VUSR_PRIO, 
+    RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Virt_Cur->Map->Vct_Thd_Cap,RVM_Sftd_Thd_Cap,RVM_Sftd_Sig_Cap, 
+                                  RVM_Virt_Cur->Map->Vct_Thd_Cap|RVM_VIRT_TID_MARKER,RVM_VVCT_PRIO)==0);
+    RVM_ASSERT(RVM_Hyp_Sched_Bind(RVM_Virt_Cur->Map->Usr_Thd_Cap,RVM_Sftd_Thd_Cap,RVM_Sftd_Sig_Cap, 
+                                  RVM_Virt_Cur->Map->Usr_Thd_Cap|RVM_VIRT_TID_MARKER,RVM_VUSR_PRIO, 
                                   (rvm_ptr_t)(RVM_Virt_Cur->Map->Reg_Base))==0);
     
     /* Set the execution properties for virt @ position 0 */
-    Init_Stack_Addr=RVM_Stack_Init(RVM_Virt_Cur->Map->Vct_Stack_Base, RVM_Virt_Cur->Map->Vct_Stack_Size,
-                                   RVM_DESC_ENTRY(RVM_Virt_Cur->Map->Desc_Base,0U),
-                                   RVM_DESC_STUB(RVM_Virt_Cur->Map->Desc_Base));
-    RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Virt_Cur->Map->Vct_Thd_Cap, 
-                                RVM_DESC_ENTRY(RVM_Virt_Cur->Map->Desc_Base,0U), Init_Stack_Addr, 0)==0);
+    Init_Entry=RVM_DESC_ENTRY(RVM_Virt_Cur->Map->Desc_Base,0U);
+    Init_Stack=RVM_Stack_Init(RVM_Virt_Cur->Map->Vct_Stack_Base,RVM_Virt_Cur->Map->Vct_Stack_Size,
+                              &Init_Entry,RVM_DESC_STUB(RVM_Virt_Cur->Map->Desc_Base));
+    RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Virt_Cur->Map->Vct_Thd_Cap,Init_Entry,Init_Stack,0U)==0);
     
     /* Set the execution properties for user @ position 1 */
-    Init_Stack_Addr=RVM_Stack_Init(RVM_Virt_Cur->Map->Usr_Stack_Base, RVM_Virt_Cur->Map->Usr_Stack_Size,
-                                   RVM_DESC_ENTRY(RVM_Virt_Cur->Map->Desc_Base,1U),
-                                   RVM_DESC_STUB(RVM_Virt_Cur->Map->Desc_Base));
-    RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Virt_Cur->Map->Usr_Thd_Cap, 
-                                RVM_DESC_ENTRY(RVM_Virt_Cur->Map->Desc_Base,1U), Init_Stack_Addr ,0)==0);
+    Init_Entry=RVM_DESC_ENTRY(RVM_Virt_Cur->Map->Desc_Base,1U);
+    Init_Stack=RVM_Stack_Init(RVM_Virt_Cur->Map->Usr_Stack_Base, RVM_Virt_Cur->Map->Usr_Stack_Size,
+                              &Init_Entry,RVM_DESC_STUB(RVM_Virt_Cur->Map->Desc_Base));
+    RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Virt_Cur->Map->Usr_Thd_Cap,Init_Entry,Init_Stack,0U)==0);
     
     /* Delegate infinite time to both threads */
     RVM_ASSERT(RVM_Thd_Time_Xfer(RVM_Virt_Cur->Map->Vct_Thd_Cap, RVM_BOOT_INIT_THD, RVM_THD_INF_TIME)==RVM_THD_INF_TIME);
     RVM_ASSERT(RVM_Thd_Time_Xfer(RVM_Virt_Cur->Map->Usr_Thd_Cap, RVM_BOOT_INIT_THD, RVM_THD_INF_TIME)==RVM_THD_INF_TIME);
     
     /* Clear all its interrupt flags */
-    RVM_Clear(RVM_Virt_Cur->Map->State_Base, RVM_Virt_Cur->Map->State_Size);
+    RVM_Clear(RVM_Virt_Cur->Map->State_Base,RVM_Virt_Cur->Map->State_Size);
     
     /* Clear all event capabilities */
-    RVM_Clear(RVM_Virt_Cur->Evt_Cap, RVM_EVTCAP_BITMAP*sizeof(rvm_ptr_t));
+    RVM_Clear(RVM_Virt_Cur->Evt_Cap,RVM_EVTCAP_BITMAP*sizeof(rvm_ptr_t));
 
     /* Set the state to running, interrupt disabled, vector unlocked, and watchdog disabled */
     RVM_Virt_Cur->Sched.State=RVM_VM_RUNNING;
@@ -1287,7 +1286,7 @@ void RVM_Virt_Crt(struct RVM_Virt_Struct* Virt,
         RVM_Clear(Virt[Count].Evt_Cap, RVM_EVTCAP_BITMAP*sizeof(rvm_ptr_t));
 
         /* Print log */
-        RVM_DBG_S("Init:  Created VM ");
+        RVM_DBG_S("Init: Created VM ");
         RVM_DBG_S(Vmap[Count].Name);
         RVM_DBG_S(" control block 0x");
         RVM_DBG_H((rvm_ptr_t)&Virt[Count]);

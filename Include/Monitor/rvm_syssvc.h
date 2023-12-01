@@ -310,8 +310,11 @@ struct RVM_List
 
 /* Public Function ***********************************************************/
 /*****************************************************************************/
-/* Bit manipulation */
+/* Bit manipulations */
 __EXTERN__ rvm_ptr_t _RVM_MSB_Generic(rvm_ptr_t Value);
+__EXTERN__ rvm_ptr_t _RVM_LSB_Generic(rvm_ptr_t Value);
+__EXTERN__ rvm_ptr_t _RVM_RBT_Generic(rvm_ptr_t Value);
+
 /* Doubly linked list */
 __EXTERN__ void RVM_List_Crt(struct RVM_List* Head);
 __EXTERN__ void RVM_List_Del(struct RVM_List* Prev,

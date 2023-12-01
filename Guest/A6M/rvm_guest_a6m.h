@@ -213,12 +213,15 @@ struct RVM_Exc_Struct
 
 /* Public Function ***********************************************************/
 /*****************************************************************************/
-EXTERN void RVM_Putchar(char Char);
+/* Assembly veneer */
+EXTERN void _RVM_Entry(void);
+EXTERN void _RVM_Stub(void);
 
+/* System call */
 EXTERN rvm_ret_t RVM_Svc(rvm_ptr_t Op_Capid,
-                         rvm_ptr_t Arg1,
-                         rvm_ptr_t Arg2,
-                         rvm_ptr_t Arg3);
+                         rvm_ptr_t Param1,
+                         rvm_ptr_t Param2,
+                         rvm_ptr_t Param3);
 EXTERN rvm_ret_t RVM_A6M_Svc_Kfn(rvm_ptr_t Op_Capid,
                                  rvm_ptr_t ID,
                                  rvm_ptr_t* Param);
@@ -228,8 +231,10 @@ EXTERN rvm_ret_t RVM_Inv_Act(rvm_cid_t Cap_Inv,
                              rvm_ptr_t* Retval);
 EXTERN rvm_ret_t RVM_Inv_Ret(rvm_ptr_t Retval);
 
-EXTERN rvm_ptr_t _RVM_MSB_Get(rvm_ptr_t Val);
+/* Utility */
+EXTERN void RVM_Putchar(char Char);
 
+/* Kernel function */
 EXTERN rvm_ret_t RVM_A6M_Kfn_Act(rvm_cid_t Cap_Kfn,
                                  rvm_ptr_t Func_ID,
                                  rvm_ptr_t Sub_ID,

@@ -22,8 +22,8 @@ Description : The assembly portion of the RVM guest library for ARMv7-M.
 /* Export *******************************************************************/
     /* Entry point */
     .global             _RVM_Entry
-    /* Dummy jump stub */
-    .global             _RVM_Jmp_Stub
+    /* Jump stub */
+    .global             _RVM_Stub
     /* Triggering an invocation */
     .global             RVM_Inv_Act
     /* Returning from an invocation */
@@ -64,10 +64,26 @@ _RVM_Zero_Clear:
     BLTU                a0,a1,_RVM_Zero_Clear
     /* Branch to main function */
     J                   main
-    /* Dummy jump stub */
-_RVM_Jmp_Stub:
-    J                   .
 /* End Entry *****************************************************************/
+
+/* Function:_RVM_Stub *********************************************************
+Description : The user level stub for thread creation.
+Input       : a0 - The parameter, which is passed on without change.
+Output      : None.
+Return      : None.
+******************************************************************************/
+    .section            .text._rvm_stub
+    .align              3
+
+_RVM_Stub:
+    .option             push
+    .option             norelax
+    LA                  gp,_RVM_Global      /* Load gp for every thread */
+    .option             pop
+    LW                  a1,(sp)
+    ADDI                sp,sp,-12           /* Align stack to 16 bytes */   
+    J                   a1                  /* Branch to the actual entry address */
+/* End Function:_RVM_Stub ****************************************************/
 
 /* Function:RVM_Inv_Act *******************************************************
 Description : Activate an invocation. If the return value is not desired, pass

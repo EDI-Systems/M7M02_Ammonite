@@ -21,10 +21,10 @@ Description : The ARMv7-M user-level assembly scheduling support of the RVM
 /* End Import ****************************************************************/
 
 /* Export ********************************************************************/
-    /* User entry stub */
+    /* Entry point */
     .global             __RVM_Entry
-    /* User level stub for thread creation and synchronous invocation */
-    .global             __RVM_Jmp_Stub
+    /* Jump stub */
+    .global             __RVM_Stub
     /* Triggering an invocation */
     .global             RVM_Inv_Act
     /* Returning from an invocation */
@@ -46,7 +46,7 @@ Description : The ARMv7-M user-level assembly scheduling support of the RVM
     .long               __RVM_Entry         /* Init thread entry */
     .long               RVM_Sftd            /* All four daemons */
     .long               RVM_Vmmd
-    .long               __RVM_Jmp_Stub      /* Jump stub */
+    .long               __RVM_Stub          /* Jump stub */
     NOP                                     /* Catch something in the middle */
     NOP
     NOP
@@ -93,22 +93,22 @@ __RVM_Zero_Done:
     BX                  R0
 /* End Entry *****************************************************************/
 
-/* Function:__RVM_Jmp_Stub ****************************************************
+/* Function:__RVM_Stub ********************************************************
 Description : The user level stub for thread creation.
 Input       : R4 - rvm_ptr_t Entry - The entry address.
-              R5 - rvm_ptr_t Stack - The stack address that we are using now.
+              R5 - rvm_ptr_t Param - The parameter.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-    .section            .text.__rvm_jmp_stub
+    .section            .text.__rvm_stub
     .align              3
 
     .thumb_func
-__RVM_Jmp_Stub:
+__RVM_Stub:
     SUB                 SP,#0x40            /* In order not to destroy the stack */
     MOV                 R0,R5
     BLX                 R4                  /* Branch to the actual entry address */
-/* End Function:__RVM_Jmp_Stub ***********************************************/
+/* End Function:__RVM_Stub ***************************************************/
 
 /* Function:__RVM_A7M_MSB_Get *************************************************
 Description : Get the MSB of the word.

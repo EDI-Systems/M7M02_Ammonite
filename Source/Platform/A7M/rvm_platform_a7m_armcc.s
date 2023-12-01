@@ -15,7 +15,7 @@
 
 ;/* Export *******************************************************************/
     ;User level stub for thread creation and synchronous invocation
-    EXPORT              __RVM_Jmp_Stub
+    EXPORT              __RVM_Stub
     ;Get the MSB in a word
     EXPORT              __RVM_A7M_MSB_Get
     ;Triggering an invocation
@@ -39,7 +39,7 @@
     DCD                 __main              ;Init thread entry - direct fill
     DCD                 RVM_Sftd            ;All four daemons
     DCD                 RVM_Vmmd
-    DCD                 __RVM_Jmp_Stub      ;Jump stub
+    DCD                 __RVM_Stub          ;Jump stub
     NOP                                     ;Catch something in the middle
     NOP
     NOP
@@ -52,24 +52,24 @@
     NOP
 ;/* End Header ***************************************************************/
 
-;/* Function:__RVM_Jmp_Stub ***************************************************
+;/* Function:__RVM_Stub *******************************************************
 ;Description : The user level stub for thread/invocation creation.
 ;Input       : R4 - rvm_ptr_t Entry - The entry address.
 ;              R5 - rvm_ptr_t Param - The parameter to be passed to it.
 ;Output      : None.
 ;Return      : None.
 ;*****************************************************************************/
-    AREA                __RVM_JMP_STUB,CODE,READONLY,ALIGN=3
+    AREA                __RVM_STUB,CODE,READONLY,ALIGN=3
     THUMB
     REQUIRE8
     PRESERVE8
 
-__RVM_Jmp_Stub           PROC
+__RVM_Stub              PROC
     SUB                 SP,#0x40            ;In order not to destroy the stack
     MOV                 R0,R5
     BX                  R4                  ;Branch to the actual entry address
     ENDP
-;/* End Function:__RVM_Jmp_Stub **********************************************/
+;/* End Function:__RVM_Stub **************************************************/
 
 ;/* Function:__RVM_A7M_MSB_Get ************************************************
 ;Description : Get the MSB of the word.

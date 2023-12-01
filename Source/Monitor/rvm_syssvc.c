@@ -39,24 +39,24 @@ Return      : rvm_ptr_t - The result. 0 will be returned for 0.
 rvm_ptr_t _RVM_MSB_Generic(rvm_ptr_t Value)
 {
     rvm_ptr_t Bit;
-    static const rvm_u8_t Table[256]=
+    static const rvm_u8_t Table[256U]=
     {
-        0U, 0U, 1U, 1U, 2U, 2U, 2U, 2U, 3U, 3U, 3U, 3U, 3U, 3U, 3U, 3U,
-        4U, 4U, 4U, 4U, 4U, 4U, 4U, 4U, 4U, 4U, 4U, 4U, 4U, 4U, 4U, 4U,
-        5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U,
-        5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U, 5U,
-        6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U,
-        6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U,
-        6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U,
-        6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U, 6U,
-        7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U,
-        7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U,
-        7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U,
-        7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U,
-        7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U,
-        7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U,
-        7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U,
-        7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U, 7U
+        0U,0U,1U,1U,2U,2U,2U,2U,3U,3U,3U,3U,3U,3U,3U,3U,
+        4U,4U,4U,4U,4U,4U,4U,4U,4U,4U,4U,4U,4U,4U,4U,4U,
+        5U,5U,5U,5U,5U,5U,5U,5U,5U,5U,5U,5U,5U,5U,5U,5U,
+        5U,5U,5U,5U,5U,5U,5U,5U,5U,5U,5U,5U,5U,5U,5U,5U,
+        6U,6U,6U,6U,6U,6U,6U,6U,6U,6U,6U,6U,6U,6U,6U,6U,
+        6U,6U,6U,6U,6U,6U,6U,6U,6U,6U,6U,6U,6U,6U,6U,6U,
+        6U,6U,6U,6U,6U,6U,6U,6U,6U,6U,6U,6U,6U,6U,6U,6U,
+        6U,6U,6U,6U,6U,6U,6U,6U,6U,6U,6U,6U,6U,6U,6U,6U,
+        7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,
+        7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,
+        7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,
+        7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,
+        7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,
+        7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,
+        7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,
+        7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U,7U
     };
 
 #if(RVM_WORD_ORDER==4U)
@@ -187,12 +187,259 @@ rvm_ptr_t _RVM_MSB_Generic(rvm_ptr_t Value)
         }
     }
 #else
-#error Generic FFS for 128-bits & above are not implemented.
+#error Generic MSB for 128-bits & above are not implemented.
 #endif
 
     return Table[Value>>Bit]+Bit;
 }
 /* End Function:_RVM_MSB_Generic *********************************************/
+
+/* Function:_RVM_LSB_Generic **************************************************
+Description : Find the LSB's position. This is a portable solution for all
+              processors; if your processor does not have fast built-in bit
+              manipulation support, you can resort to this when porting.
+Input       : rvm_ptr_t Value - The value to count.
+Output      : None.
+Return      : rvm_ptr_t - The result. 0 will be returned for 0.
+******************************************************************************/
+rvm_ptr_t _RVM_LSB_Generic(rvm_ptr_t Value)
+{
+    rvm_ptr_t Bit;
+    static const rvm_u8_t Table[256U]=
+    {
+        0U,0U,1U,0U,2U,0U,1U,0U,3U,0U,1U,0U,2U,0U,1U,0U,
+        4U,0U,1U,0U,2U,0U,1U,0U,3U,0U,1U,0U,2U,0U,1U,0U,
+        5U,0U,1U,0U,2U,0U,1U,0U,3U,0U,1U,0U,2U,0U,1U,0U,
+        4U,0U,1U,0U,2U,0U,1U,0U,3U,0U,1U,0U,2U,0U,1U,0U,
+        6U,0U,1U,0U,2U,0U,1U,0U,3U,0U,1U,0U,2U,0U,1U,0U,
+        4U,0U,1U,0U,2U,0U,1U,0U,3U,0U,1U,0U,2U,0U,1U,0U,
+        5U,0U,1U,0U,2U,0U,1U,0U,3U,0U,1U,0U,2U,0U,1U,0U,
+        4U,0U,1U,0U,2U,0U,1U,0U,3U,0U,1U,0U,2U,0U,1U,0U,
+        7U,0U,1U,0U,2U,0U,1U,0U,3U,0U,1U,0U,2U,0U,1U,0U,
+        4U,0U,1U,0U,2U,0U,1U,0U,3U,0U,1U,0U,2U,0U,1U,0U,
+        5U,0U,1U,0U,2U,0U,1U,0U,3U,0U,1U,0U,2U,0U,1U,0U,
+        4U,0U,1U,0U,2U,0U,1U,0U,3U,0U,1U,0U,2U,0U,1U,0U,
+        6U,0U,1U,0U,2U,0U,1U,0U,3U,0U,1U,0U,2U,0U,1U,0U,
+        4U,0U,1U,0U,2U,0U,1U,0U,3U,0U,1U,0U,2U,0U,1U,0U,
+        5U,0U,1U,0U,2U,0U,1U,0U,3U,0U,1U,0U,2U,0U,1U,0U,
+        4U,0U,1U,0U,2U,0U,1U,0U,3U,0U,1U,0U,2U,0U,1U,0U
+    };
+    
+#if(RVM_WORD_ORDER==4U)
+    /* 16-8 */
+    if((Value<<8U)==0U)
+    {
+        RVM_COVERAGE_MARKER();
+        Bit=8U;
+    }
+    /* 7-0 */
+    else
+    {
+        RVM_COVERAGE_MARKER();
+        Bit=0U;
+    }
+#elif(RVM_WORD_ORDER==5U)
+    /* 31-16 */
+    if((Value<<16U)==0U)
+    {
+        RVM_COVERAGE_MARKER();
+        /* 31-24 */
+        if((Value<<8U)==0U)
+        {
+            RVM_COVERAGE_MARKER();
+            Bit=24U;
+        }
+        /* 24-16 */
+        else
+        {
+            RVM_COVERAGE_MARKER();
+            Bit=16U;
+        }
+    }
+    /* 15-0 */
+    else
+    {
+        RVM_COVERAGE_MARKER();
+        /* 15-8 */
+        if((Value<<24U)==0U)
+        {
+            RVM_COVERAGE_MARKER();
+            Bit=8U;
+        }
+        /* 7-0 */
+        else
+        {
+            RVM_COVERAGE_MARKER();
+            Bit=0U;
+        }
+    }
+#elif(RVM_WORD_ORDER==6U)
+    /* 63-32 */
+    if((Value<<32U)==0U)
+    {
+        RVM_COVERAGE_MARKER();
+        /* 63-48 */
+        if((Value<<16U)==0U)
+        {
+            RVM_COVERAGE_MARKER();
+            /* 63-56 */
+            if((Value<<8U)==0U)
+            {
+                RVM_COVERAGE_MARKER();
+                Bit=56U;
+            }
+            /* 56-48 */
+            else
+            {
+                RVM_COVERAGE_MARKER();
+                Bit=48U;
+            }
+        }
+        /* 47-32 */
+        else
+        {
+            RVM_COVERAGE_MARKER();
+            /* 47-40 */
+            if((Value<<24U)==0U)
+            {
+                RVM_COVERAGE_MARKER();
+                Bit=40U;
+            }
+            /* 39-32 */
+            else
+            {
+                RVM_COVERAGE_MARKER();
+                Bit=32U;
+            }
+        }
+    }
+    /* 31-0 */
+    else
+    {
+        RVM_COVERAGE_MARKER();
+        /* 31-16 */
+        if((Value<<48U)==0U)
+        {
+            RVM_COVERAGE_MARKER();
+            /* 31-24 */
+            if((Value<<40U)==0U)
+            {
+                RVM_COVERAGE_MARKER();
+                Bit=24U;
+            }
+            /* 24-16 */
+            else
+            {
+                RVM_COVERAGE_MARKER();
+                Bit=16U;
+            }
+        }
+        /* 15-0 */
+        else
+        {
+            RVM_COVERAGE_MARKER();
+            /* 15-8 */
+            if((Value<<56U)==0U)
+            {
+                RVM_COVERAGE_MARKER();
+                Bit=8U;
+            }
+            /* 7-0 */
+            else
+            {
+                RVM_COVERAGE_MARKER();
+                Bit=0U;
+            }
+        }
+    }
+#else
+#error Generic LSB for 128-bits & above are not implemented.
+#endif
+
+    return Table[(rvm_u8_t)(Value>>Bit)]+Bit;
+}
+/* End Function:_RVM_LSB_Generic *********************************************/
+
+/* Function:_RVM_RBT_Generic **************************************************
+Description : Reverse bit order. This is a portable solution meant for all
+              processors; if your processor does not have fast built-in RBT,
+              you can resort to this instead.
+              This is implemented to be as fast as possible.
+Input       : rvm_ptr_t Value - The value to count.
+Output      : None.
+Return      : rvm_ptr_t - The result.
+******************************************************************************/
+rvm_ptr_t _RVM_RBT_Generic(rvm_ptr_t Value)
+{
+    rvm_ptr_t Ret;
+    rvm_ptr_t Src;
+    rvm_u8_t* To;
+    rvm_u8_t* From;
+
+    static const rvm_u8_t Table[256U]=
+    {
+        0x00U,0x80U,0x40U,0xC0U,0x20U,0xA0U,0x60U,0xE0U,
+        0x10U,0x90U,0x50U,0xD0U,0x30U,0xB0U,0x70U,0xF0U,
+        0x08U,0x88U,0x48U,0xC8U,0x28U,0xA8U,0x68U,0xE8U,
+        0x18U,0x98U,0x58U,0xD8U,0x38U,0xB8U,0x78U,0xF8U,
+        0x04U,0x84U,0x44U,0xC4U,0x24U,0xA4U,0x64U,0xE4U,
+        0x14U,0x94U,0x54U,0xD4U,0x34U,0xB4U,0x74U,0xF4U,
+        0x0CU,0x8CU,0x4CU,0xCCU,0x2CU,0xACU,0x6CU,0xECU,
+        0x1CU,0x9CU,0x5CU,0xDCU,0x3CU,0xBCU,0x7CU,0xFCU,
+        0x02U,0x82U,0x42U,0xC2U,0x22U,0xA2U,0x62U,0xE2U,
+        0x12U,0x92U,0x52U,0xD2U,0x32U,0xB2U,0x72U,0xF2U,
+        0x0AU,0x8AU,0x4AU,0xCAU,0x2AU,0xAAU,0x6AU,0xEAU,
+        0x1AU,0x9AU,0x5AU,0xDAU,0x3AU,0xBAU,0x7AU,0xFAU,
+        0x06U,0x86U,0x46U,0xC6U,0x26U,0xA6U,0x66U,0xE6U,
+        0x16U,0x96U,0x56U,0xD6U,0x36U,0xB6U,0x76U,0xF6U,
+        0x0EU,0x8EU,0x4EU,0xCEU,0x2EU,0xAEU,0x6EU,0xEEU,
+        0x1EU,0x9EU,0x5EU,0xDEU,0x3EU,0xBEU,0x7EU,0xFEU,
+        0x01U,0x81U,0x41U,0xC1U,0x21U,0xA1U,0x61U,0xE1U,
+        0x11U,0x91U,0x51U,0xD1U,0x31U,0xB1U,0x71U,0xF1U,
+        0x09U,0x89U,0x49U,0xC9U,0x29U,0xA9U,0x69U,0xE9U,
+        0x19U,0x99U,0x59U,0xD9U,0x39U,0xB9U,0x79U,0xF9U,
+        0x05U,0x85U,0x45U,0xC5U,0x25U,0xA5U,0x65U,0xE5U,
+        0x15U,0x95U,0x55U,0xD5U,0x35U,0xB5U,0x75U,0xF5U,
+        0x0DU,0x8DU,0x4DU,0xCDU,0x2DU,0xADU,0x6DU,0xEDU,
+        0x1DU,0x9DU,0x5DU,0xDDU,0x3DU,0xBDU,0x7DU,0xFDU,
+        0x03U,0x83U,0x43U,0xC3U,0x23U,0xA3U,0x63U,0xE3U,
+        0x13U,0x93U,0x53U,0xD3U,0x33U,0xB3U,0x73U,0xF3U,
+        0x0BU,0x8BU,0x4BU,0xCBU,0x2BU,0xABU,0x6BU,0xEBU,
+        0x1BU,0x9BU,0x5BU,0xDBU,0x3BU,0xBBU,0x7BU,0xFBU,
+        0x07U,0x87U,0x47U,0xC7U,0x27U,0xA7U,0x67U,0xE7U,
+        0x17U,0x97U,0x57U,0xD7U,0x37U,0xB7U,0x77U,0xF7U,
+        0x0FU,0x8FU,0x4FU,0xCFU,0x2FU,0xAFU,0x6FU,0xEFU,
+        0x1FU,0x9FU,0x5FU,0xDFU,0x3FU,0xBFU,0x7FU,0xFFU
+    };
+
+    Src=Value;
+    To=(rvm_u8_t*)(&Ret);
+    From=(rvm_u8_t*)(&Src);
+
+#if(RVM_WORD_ORDER==4U)
+    To[0]=Table[From[1]];
+    To[1]=Table[From[0]];
+#elif(RVM_WORD_ORDER==5U)
+    To[0]=Table[From[3]];
+    To[1]=Table[From[2]];
+    To[2]=Table[From[1]];
+    To[3]=Table[From[0]];
+#elif(RVM_WORD_ORDER==6U)
+    To[0]=Table[From[7]];
+    To[1]=Table[From[6]];
+    To[2]=Table[From[5]];
+    To[3]=Table[From[4]];
+    To[4]=Table[From[3]];
+    To[5]=Table[From[2]];
+    To[6]=Table[From[1]];
+    To[7]=Table[From[0]];
+#else
+#error Generic RBT for 128-bits & above are not implemented.
+#endif
+
+    return Ret;
+}
+/* End Function:_RVM_RBT_Generic *********************************************/
 
 /* Function:RVM_List_Crt ******************************************************
 Description : Create a doubly linkled list.
