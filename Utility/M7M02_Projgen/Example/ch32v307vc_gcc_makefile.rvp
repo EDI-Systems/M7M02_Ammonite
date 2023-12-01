@@ -57,9 +57,9 @@
 		<Monitor_Root>../../../../M7M02_Ammonite</Monitor_Root>
         <Code_Size>0x10000</Code_Size>
         <Data_Size>0x2000</Data_Size>
-        <Init_Stack_Size>0x800</Init_Stack_Size>
-        <Sftd_Stack_Size>0x800</Sftd_Stack_Size>
-        <Vmmd_Stack_Size>0x800</Vmmd_Stack_Size>
+        <Init_Stack_Size>0x400</Init_Stack_Size>
+        <Sftd_Stack_Size>0x400</Sftd_Stack_Size>
+        <Vmmd_Stack_Size>0x400</Vmmd_Stack_Size>
         <Extra_Captbl>32</Extra_Captbl>
         <Virt_Prio>32</Virt_Prio>
         <Virt_Event>32</Virt_Event>

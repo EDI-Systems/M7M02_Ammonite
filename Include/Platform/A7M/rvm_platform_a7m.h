@@ -122,14 +122,14 @@ typedef unsigned char rvm_u8_t;
 
 /* Platform-specific kernel function macros **********************************/
 /* Page table entry mode which property to get */
-#define RVM_A7M_KFN_PGT_ENTRY_MOD_GET_FLAGS         (0U)
-#define RVM_A7M_KFN_PGT_ENTRY_MOD_GET_SIZEORDER     (1U)
-#define RVM_A7M_KFN_PGT_ENTRY_MOD_GET_NUMORDER      (2U)
+#define RVM_A7M_KFN_PGT_ENTRY_MOD_FLAG_GET          (0U)
+#define RVM_A7M_KFN_PGT_ENTRY_MOD_SZORD_GET         (1U)
+#define RVM_A7M_KFN_PGT_ENTRY_MOD_NUMORD_GET        (2U)
 /* Interrupt source configuration */
-#define RVM_A7M_KFN_INT_LOCAL_MOD_GET_STATE         (0U)
-#define RVM_A7M_KFN_INT_LOCAL_MOD_SET_STATE         (1U)
-#define RVM_A7M_KFN_INT_LOCAL_MOD_GET_PRIO          (2U)
-#define RVM_A7M_KFN_INT_LOCAL_MOD_SET_PRIO          (3U)
+#define RVM_A7M_KFN_INT_LOCAL_MOD_STATE_GET         (0U)
+#define RVM_A7M_KFN_INT_LOCAL_MOD_STATE_SET         (1U)
+#define RVM_A7M_KFN_INT_LOCAL_MOD_PRIO_GET          (2U)
+#define RVM_A7M_KFN_INT_LOCAL_MOD_PRIO_SET          (3U)
 /* Cache identifier */
 #define RVM_A7M_KFN_CACHE_ICACHE                    (0U)
 #define RVM_A7M_KFN_CACHE_DCACHE                    (1U)
@@ -288,8 +288,8 @@ typedef unsigned char rvm_u8_t;
 #define RVM_A7M_KFN_DEBUG_INV_MOD_LR_GET            (2U)
 #define RVM_A7M_KFN_DEBUG_INV_MOD_LR_SET            (3U)
 /* Error register read */
-#define RVM_A7M_KFN_DEBUG_ERR_CAUSE_GET             (0U)
-#define RVM_A7M_KFN_DEBUG_ERR_ADDR_GET              (1U)
+#define RVM_A7M_KFN_DEBUG_EXC_CAUSE_GET             (0U)
+#define RVM_A7M_KFN_DEBUG_EXC_ADDR_GET              (1U)
 /* Extended Types ************************************************************/
 #ifndef __RVM_TID_T__
 #define __RVM_TID_T__

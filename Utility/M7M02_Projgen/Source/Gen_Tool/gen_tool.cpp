@@ -1145,6 +1145,10 @@ void Gen_Tool::Kernel_Proj(void)
     std::vector<std::string> Include;
     std::vector<std::string> Source;
     std::vector<std::string> Linker;
+    std::string Veneer;
+    std::string Filename;
+    std::string Extension;
+    std::string Ending;
 
     Kernel=this->Plat->Proj->Kernel.get();
     Monitor=this->Plat->Proj->Monitor.get();
@@ -1153,7 +1157,7 @@ void Gen_Tool::Kernel_Proj(void)
     Tool=this->Tool_Map[Kernel->Toolchain];
 
     /* Does the file already exist? */
-    Kernel->Project_Filename = std::string("kernel")+Build->Suffix(BUILD_PROJECT);     
+    Kernel->Project_Filename=std::string("kernel")+Build->Suffix(BUILD_PROJECT);
     if(std::filesystem::exists(Kernel->Project_Output+Kernel->Project_Filename)==true)
     {
         /* See if we'll use forced regenerate */
@@ -1183,6 +1187,21 @@ void Gen_Tool::Kernel_Proj(void)
     Source.push_back(Kernel->Kernel_Root+"Source/Platform/"+this->Plat->Name+"/rme_platform_"+this->Plat->Name_Lower+".c");
     Source.push_back(Kernel->Kernel_Root+"Source/Platform/"+this->Plat->Name+
                      "/rme_platform_"+this->Plat->Name_Lower+"_"+Tool->Name_Lower+Tool->Suffix(TOOL_ASSEMBLER));
+    /* Additional chip-specific veneers (required only by some architectures to handle idiosyncrasies) */
+    Veneer=Kernel->Kernel_Root+"Include/Platform/"+this->Plat->Name+"/Chip/"+this->Plat->Chip->Name_Upper;
+    Ending=std::string("_")+Tool->Name_Lower+Tool->Suffix(TOOL_ASSEMBLER);
+    for(const std::filesystem::directory_entry& File:std::filesystem::directory_iterator(Veneer))
+    {
+        Filename=File.path().filename().string();
+        Extension=File.path().extension().string();
+        /* If this is a c veneer, always add them to project */
+        if((Extension=="C")||(Extension=="c"))
+            Source.push_back(Veneer+"/"+Filename);
+        /* If this is an assembly veneer, it will have to match the toolchain ending */
+        else if((Filename.length()>Ending.length())&&(std::equal(Ending.rbegin(),Ending.rend(),Filename.rbegin())))
+            Source.push_back(Veneer+"/"+Filename);
+    }
+    /* Hooks */
     Source.push_back(Kernel->Boot_Source_Output+"rme_boot.c");
     Source.push_back(Kernel->Hook_Source_Output+"rme_hook.c");
     for(const class Vect_Info* Vct:Monitor->Vector)

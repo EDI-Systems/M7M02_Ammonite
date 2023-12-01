@@ -81,8 +81,8 @@ _RVM_Stub:
     LA                  gp,_RVM_Global      /* Load gp for every thread */
     .option             pop
     LW                  a1,(sp)
-    ADDI                sp,sp,-12           /* Align stack to 16 bytes */   
-    J                   a1                  /* Branch to the actual entry address */
+    ADDI                sp,sp,-12           /* Align stack to 16 bytes */
+    JR                  a1                  /* Branch to the actual entry address */
 /* End Function:_RVM_Stub ****************************************************/
 
 /* Function:RVM_Inv_Act *******************************************************

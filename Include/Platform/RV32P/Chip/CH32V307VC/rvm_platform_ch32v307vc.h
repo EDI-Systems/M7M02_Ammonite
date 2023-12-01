@@ -1,9 +1,9 @@
 /******************************************************************************
-Filename   : rvm_platform_stm32f767ig.h
+Filename   : rvm_platform_ch32v307vc.h
 Author     : pry
 Date       : 26/06/2017
 Licence    : The Unlicense; see LICENSE for details.
-Description: The configuration file for STM32F767IG. The values listed here should
+Description: The configuration file for CH32V307VC. The values listed here should
              be in accordance with that in the kernel.
 ******************************************************************************/
 
@@ -45,16 +45,15 @@ Description: The configuration file for STM32F767IG. The values listed here shou
 #define RVM_KOM_DONE_FRONT                              (0x1200U)
 
 /* Init process's first thread's entry point address */
-#define RVM_A7M_INIT_ENTRY                              (0x08004000U|0x01U)
+#define RVM_RV32P_INIT_ENTRY                            (0x00000000U)
 /* Init process's first thread's stack address */
-#define RVM_A7M_INIT_STACK                              (0x2000FFF0U)
+#define RVM_RV32P_INIT_STACK                            (0x2000FFF0U)
 /* Number of MPU regions available */
-#define RVM_A7M_REGION_NUM                              (8U)
+#define RVM_RV32P_REGION_NUM                            (8U)
 /* What is the FPU type? */
-#define RVM_COP_NUM                                     (3U)
-#define RVM_A7M_COP_FPV4_SP                             (1U)
-#define RVM_A7M_COP_FPV5_SP                             (1U)
-#define RVM_A7M_COP_FPV5_DP                             (1U)
+#define RVM_COP_NUM                                     (1U)
+#define RVM_RV32P_COP_RVF                               (1U)
+#define RVM_RV32P_COP_RVD                               (0U)
 
 /* Syslib configurations *****************************************************/
 /* Stack redundancy */
@@ -65,16 +64,17 @@ Description: The configuration file for STM32F767IG. The values listed here shou
 #define RVM_VMMD_STACK_BASE                             (0x20000000U)
 #define RVM_VMMD_STACK_SIZE                             (1024U)
 
-#define RVM_A7M_USART1_ISR                              RVM_A7M_REG(0x4001101CU)
-#define RVM_A7M_USART1_TDR                              RVM_A7M_REG(0x40011028U)
+#define RVM_RV32P_USART1_STATR                          RVM_RV32P_REG(0x40013800U)
+#define RVM_RV32P_USART1_STATR_TC                       (0x00000040U)
+#define RVM_RV32P_USART1_DATAR                          RVM_RV32P_REG(0x40013804U)
 
 #if(RVM_DEBUG_PRINT==1U)
 /* Print characters to console */
-#define RVM_A7M_PUTCHAR(CHAR) \
+#define RVM_RV32P_PUTCHAR(CHAR) \
 do \
 { \
-    RVM_A7M_USART1_TDR=(rvm_ptr_t)(CHAR); \
-    while((RVM_A7M_USART1_ISR&0x40U)==0U); \
+    while((RVM_RV32P_USART1_STATR&RVM_RV32P_USART1_STATR_TC)==0U); \
+    RVM_RV32P_USART1_DATAR=(rvm_ptr_t)(CHAR); \
 } \
 while(0)
 #endif

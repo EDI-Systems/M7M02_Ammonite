@@ -129,7 +129,7 @@ Return      : None.
 void RVM_Thd_Print_Exc(rvm_tid_t TID)
 {
 #if(RVM_DEBUG_PRINT==1U)
-    RVM_DBG_S("Sftd:Unknown cause - ARMv6-M does not support fault handling.\r\n");
+    RVM_DBG_S("Sftd: Unknown cause - ARMv6-M does not support fault handling.\r\n");
 #endif
 }
 /* End Function:RVM_Thd_Print_Exc ********************************************/
@@ -152,63 +152,63 @@ rvm_ret_t RVM_Thd_Print_Reg(rvm_cid_t Cap_Thd)
                                RVM_KFN_DEBUG_REG_MOD,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
-    RVM_DBG_SHS("Sftd:R4:0x",Param[0],"\r\n");
+    RVM_DBG_SHS("Sftd: R4:0x",Param[0],"\r\n");
     
     Param[0]=RVM_A6M_KFN_DEBUG_REG_MOD_R5_GET;
     RVM_ASSERT(RVM_A6M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_REG_MOD,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
-    RVM_DBG_SHS("Sftd:R5:0x",Param[0],"\r\n");
+    RVM_DBG_SHS("Sftd: R5:0x",Param[0],"\r\n");
     
     Param[0]=RVM_A6M_KFN_DEBUG_REG_MOD_R6_GET;
     RVM_ASSERT(RVM_A6M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_REG_MOD,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
-    RVM_DBG_SHS("Sftd:R6:0x",Param[0],"\r\n");
+    RVM_DBG_SHS("Sftd: R6:0x",Param[0],"\r\n");
     
     Param[0]=RVM_A6M_KFN_DEBUG_REG_MOD_R7_GET;
     RVM_ASSERT(RVM_A6M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_REG_MOD,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
-    RVM_DBG_SHS("Sftd:R7:0x",Param[0],"\r\n");
+    RVM_DBG_SHS("Sftd: R7:0x",Param[0],"\r\n");
     
     Param[0]=RVM_A6M_KFN_DEBUG_REG_MOD_R8_GET;
     RVM_ASSERT(RVM_A6M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_REG_MOD,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
-    RVM_DBG_SHS("Sftd:R8:0x",Param[0],"\r\n");
+    RVM_DBG_SHS("Sftd: R8:0x",Param[0],"\r\n");
     
     Param[0]=RVM_A6M_KFN_DEBUG_REG_MOD_R9_GET;
     RVM_ASSERT(RVM_A6M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_REG_MOD,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
-    RVM_DBG_SHS("Sftd:R9:0x",Param[0],"\r\n");
+    RVM_DBG_SHS("Sftd: R9:0x",Param[0],"\r\n");
     
     Param[0]=RVM_A6M_KFN_DEBUG_REG_MOD_R10_GET;
     RVM_ASSERT(RVM_A6M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_REG_MOD,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
-    RVM_DBG_SHS("Sftd:R10:0x",Param[0],"\r\n");
+    RVM_DBG_SHS("Sftd: R10:0x",Param[0],"\r\n");
     
     Param[0]=RVM_A6M_KFN_DEBUG_REG_MOD_R11_GET;
     RVM_ASSERT(RVM_A6M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_REG_MOD,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
-    RVM_DBG_SHS("Sftd:R11:0x",Param[0],"\r\n");
+    RVM_DBG_SHS("Sftd: R11:0x",Param[0],"\r\n");
     
     Param[0]=RVM_A6M_KFN_DEBUG_REG_MOD_SP_GET;
     RVM_ASSERT(RVM_A6M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_REG_MOD,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
-    RVM_DBG_SHS("Sftd:SP:0x",Param[0],"\r\n");
+    RVM_DBG_SHS("Sftd: SP:0x",Param[0],"\r\n");
     Stack=(struct RVM_A6M_Stack*)Param[0];
     
     Param[0]=RVM_A6M_KFN_DEBUG_REG_MOD_LR_GET;
@@ -216,7 +216,7 @@ rvm_ret_t RVM_Thd_Print_Reg(rvm_cid_t Cap_Thd)
                                RVM_KFN_DEBUG_REG_MOD,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
-    RVM_DBG_SHS("Sftd:LR:0x",Param[0],"\r\n");
+    RVM_DBG_SHS("Sftd: LR:0x",Param[0],"\r\n");
 
     /* We know where SP is, but we are not sure whether accessing SP in RVM
      * will cause issues. We assume that the user program will not fiddle
@@ -224,16 +224,16 @@ rvm_ret_t RVM_Thd_Print_Reg(rvm_cid_t Cap_Thd)
      * always print the stack trace, though this is quite dangerous. When 
      * developing products, this register printing function will be disabled
      * anyway and thus does not cause security breaches. */
-    RVM_DBG_SHS("Sftd:Stack-R0:0x",Stack->R0,"\r\n");
-    RVM_DBG_SHS("Sftd:Stack-R1:0x",Stack->R1,"\r\n");
-    RVM_DBG_SHS("Sftd:Stack-R2:0x",Stack->R2,"\r\n");
-    RVM_DBG_SHS("Sftd:Stack-R3:0x",Stack->R3,"\r\n");
-    RVM_DBG_SHS("Sftd:Stack-R12:0x",Stack->R12,"\r\n");
-    RVM_DBG_SHS("Sftd:Stack-LR:0x",Stack->LR,"\r\n");
-    RVM_DBG_SHS("Sftd:Stack-PC:0x",Stack->PC,"\r\n");
-    RVM_DBG_SHS("Sftd:Stack-XPSR:0x",Stack->XPSR,"\r\n");
-    
+    RVM_DBG_SHS("Sftd: Stack-R0:0x",Stack->R0,"\r\n");
+    RVM_DBG_SHS("Sftd: Stack-R1:0x",Stack->R1,"\r\n");
+    RVM_DBG_SHS("Sftd: Stack-R2:0x",Stack->R2,"\r\n");
+    RVM_DBG_SHS("Sftd: Stack-R3:0x",Stack->R3,"\r\n");
+    RVM_DBG_SHS("Sftd: Stack-R12:0x",Stack->R12,"\r\n");
+    RVM_DBG_SHS("Sftd: Stack-LR:0x",Stack->LR,"\r\n");
+    RVM_DBG_SHS("Sftd: Stack-PC:0x",Stack->PC,"\r\n");
+    RVM_DBG_SHS("Sftd: Stack-XPSR:0x",Stack->XPSR,"\r\n");
 #endif
+
     return 0;
 }
 /* End Function:RVM_Thd_Print_Reg ********************************************/

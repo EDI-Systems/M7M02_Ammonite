@@ -22,23 +22,27 @@ Description : The RISC-V 32bit PMP user-level assembly support of RVM.
 /* End Import ****************************************************************/
 
 /* Export ********************************************************************/
-    ;Triggering an invocation
-    EXPORT              RVM_Inv_Act
-    ;Returning from an invocation
-    EXPORT              RVM_Inv_Ret
-    ;System call gate
-    EXPORT              RVM_Svc
-    ;Kernel function system call gate
-    EXPORT              RVM_RV32P_Svc_Kfn
+    /* Entry point */
+    .global             __RVM_Entry
+    /* Jump stub */
+    .global             __RVM_Stub
+    /* Triggering an invocation */
+    .global             RVM_Inv_Act
+    /* Returning from an invocation */
+    .global             RVM_Inv_Ret
+    /* System call gate */
+    .global             RVM_Svc
+    /* Kernel function system call gate */
+    .global             RVM_RV32P_Svc_Kfn
 /* End Export ****************************************************************/
 
 /* Header ********************************************************************/
     .section            .text.rvm_header
     .align              3
 
-    .word               0x49535953          ;Magic number for native process
+    .word               0x49535953          /* Magic number for native process */
     .word               0x00000004          /* Four entries specified */
-    .word               __RVM_Init          /* Init thread entry */
+    .word               __RVM_Entry         /* Init thread entry */
     .word               RVM_Sftd            /* All four daemons */
     .word               RVM_Vmmd
     .word               __RVM_Stub          /* Jump stub */
@@ -102,7 +106,7 @@ __RVM_Stub:
     .option             pop
     LW                  a1,(sp)
     ADDI                sp,sp,-12           /* Align stack to 16 bytes */
-    J                   a1                  /* Branch to the actual entry address */
+    JR                  a1                  /* Branch to the actual entry address */
 /* End Function:__RVM_Stub ***************************************************/
 
 /* Function:RVM_Inv_Act *******************************************************
@@ -150,7 +154,8 @@ RVM_Inv_Act:
     SW                  x3,1*4(sp)
     SW                  x1,0*4(sp)
     
-    ORI                 a0,a0,0x10000       /* RVM_SVC_INV_ACT */
+    LI                  a2,0x10000          /* RVM_SVC_INV_ACT */
+    OR                  a0,a0,a2
     ECALL                                   /* System call */
 
     LW                  x1,0*4(sp)          /* Load GP registers except for zero, sp, a0 and a1 */

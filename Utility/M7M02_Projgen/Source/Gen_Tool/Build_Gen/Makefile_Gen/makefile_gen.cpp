@@ -332,7 +332,8 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
     if(After!="")
     {
         List->push_back("all: mkdir $(COBJS) $(AOBJS) $(TARGET).elf $(TARGET).hex $(TARGET).bin");
-        List->push_back(std::string("\t")+After);
+        List->push_back("\t@echo [COPY] \"$(TARGET)_image.c\"");
+        List->push_back(std::string("\t@")+After);
     }
     else
         List->push_back("all: mkdir $(COBJS) $(AOBJS) $(TARGET).elf $(TARGET).hex $(TARGET).bin");
@@ -343,23 +344,28 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
     List->push_back("");
     List->push_back("# Compile C sources");
     List->push_back("%.o:%.c");
-    List->push_back("\t$(CC) -c $(CPU) $(INCS) $(CFLAGS) -MMD -MP -MF \"$(DEP)\" -Wa,-a,-ad,-alms=\"$(LST)\" \"$<\" -o \"$(OBJ)\"");
+    List->push_back("\t@echo [CC] \"$<\"");
+    List->push_back("\t@$(CC) -c $(CPU) $(INCS) $(CFLAGS) -MMD -MP -MF \"$(DEP)\" -Wa,-a,-ad,-alms=\"$(LST)\" \"$<\" -o \"$(OBJ)\"");
     List->push_back("");
     List->push_back("# Assemble ASM sources");
     List->push_back("%.o:%.s");
-    List->push_back("\t$(AS) -c $(CPU) $(INCS) $(AFLAGS) \"$<\" -o \"$(OBJ)\"");
+    List->push_back("\t@echo [AS] \"$<\"");
+    List->push_back("\t@$(AS) -c $(CPU) $(INCS) $(AFLAGS) \"$<\" -o \"$(OBJ)\"");
     List->push_back("");
     List->push_back("# Link ELF target file and print size");
     List->push_back("$(TARGET).elf:$(COBJS) $(AOBJS)");
-    List->push_back("\t$(LD) $(OBJDIR)/*.o $(CPU) $(LFLAGS) -T $(LDSCRIPT) -Wl,-Map=$(MAP) $(LIBS) -o $(OBJ)");
-    List->push_back("\t$(SZ) $(OBJ)");
+    List->push_back("\t@echo [LD] \"$@\"");
+    List->push_back("\t@$(LD) $(OBJDIR)/*.o $(CPU) $(LFLAGS) -T $(LDSCRIPT) -Wl,-Map=$(MAP) $(LIBS) -o $(OBJ)");
+    List->push_back("\t@$(SZ) $(OBJ)");
     List->push_back("");
     List->push_back("# Create hex/bin programming files");
     List->push_back("$(TARGET).hex:$(TARGET).elf");
-    List->push_back("\t$(HEX) \"$(OBJDIR)/$<\" \"$(OBJDIR)/$@\"");
+    List->push_back("\t@echo [HEX] \"$@\"");
+    List->push_back("\t@$(HEX) \"$(OBJDIR)/$<\" \"$(OBJDIR)/$@\"");
     List->push_back("");
     List->push_back("$(TARGET).bin:$(TARGET).elf");
-    List->push_back("\t$(BIN) \"$(OBJDIR)/$<\" \"$(OBJDIR)/$@\"");
+    List->push_back("\t@echo [BIN] \"$@\"");
+    List->push_back("\t@$(BIN) \"$(OBJDIR)/$<\" \"$(OBJDIR)/$@\"");
     List->push_back("");
     List->push_back("# Clean up");
     List->push_back("clean:");
@@ -505,18 +511,32 @@ void Makefile_Gen::Workspace_Proj(std::unique_ptr<std::vector<std::string>>& Lis
     List->push_back("");
     List->push_back("# Build #######################################################################");
     List->push_back("all:");
-    List->push_back(std::string("\tcd Monitor/Project && $(MAKE) -f monitor -j8"));
     for(const std::unique_ptr<class Process>& Prc:this->Proj->Process)
-    	List->push_back(std::string("\tcd ")+Prc->Name+"/Project && $(MAKE) -f prc_"+Prc->Name_Lower+" -j8");
-    List->push_back(std::string("\tcd Kernel/Project && $(MAKE) -f kernel -j8"));
+    {
+        List->push_back("\t@echo \033[32mBuild process: "+Prc->Name+"\033[0m");
+    	List->push_back(std::string("\t@cd ")+Prc->Name+"/Project && $(MAKE) -f prc_"+Prc->Name_Lower+" -j8 --no-print-directory");
+        List->push_back("\t@echo");
+        List->push_back("\t@echo");
+    }
+    List->push_back("\t@echo \033[32mBuild monitor\033[0m");
+    List->push_back(std::string("\t@cd Monitor/Project && $(MAKE) -f monitor -j8 --no-print-directory"));
+    List->push_back("\t@echo");
+    List->push_back("\t@echo");
+    List->push_back("\t@echo \033[32mBuild kernel\033[0m");
+    List->push_back(std::string("\t@cd Kernel/Project && $(MAKE) -f kernel -j8 --no-print-directory"));
     List->push_back("# End Build ###################################################################");
     List->push_back("");
     List->push_back("# Clean #######################################################################");
     List->push_back("clean:");
-    List->push_back(std::string("\tcd Monitor/Project && $(MAKE) clean -f monitor"));
     for(const std::unique_ptr<class Process>& Prc:this->Proj->Process)
-    	List->push_back(std::string("\tcd ")+Prc->Name+"/Project && $(MAKE) clean -f prc_" + Prc->Name_Lower);
-    List->push_back(std::string("\tcd Kernel/Project && $(MAKE) clean -f kernel"));
+    {
+        List->push_back("\t@echo \033[32mClean process: "+Prc->Name+"\033[0m");
+    	List->push_back(std::string("\t@cd ")+Prc->Name+"/Project && $(MAKE) clean -f prc_"+Prc->Name_Lower+" --no-print-directory");
+    }
+    List->push_back("\t@echo \033[32mClean monitor\033[0m");
+    List->push_back(std::string("\t@cd Monitor/Project && $(MAKE) clean -f monitor --no-print-directory"));
+    List->push_back("\t@echo \033[32mClean kernel\033[0m");
+    List->push_back(std::string("\t@cd Kernel/Project && $(MAKE) clean -f kernel --no-print-directory"));
     List->push_back("# End Clean ###################################################################");
     List->push_back("");
     List->push_back("# End Of File #################################################################");

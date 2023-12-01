@@ -147,13 +147,15 @@ void RVM_Thd_Print_Exc(rvm_tid_t TID)
     rvm_ptr_t Exc;
     rvm_ptr_t Param[6];
     
-    Param[0]=RVM_A7M_KFN_DEBUG_ERR_CAUSE_GET;
+    /* Get exception cause */
+    Param[0]=RVM_A7M_KFN_DEBUG_EXC_CAUSE_GET;
     RVM_ASSERT(RVM_A7M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_EXC_GET,
                                (rvm_ptr_t)TID,
                                Param)==0);
     Exc=Param[0];
 
+    /* Parse exception reason */
     if((Exc&RVM_A7M_UFSR_DIVBYZERO)!=0U)
         RVM_DBG_S("Sftd: Divide by zero.\r\n");
     if((Exc&RVM_A7M_UFSR_UNALIGNED)!=0U)
@@ -276,14 +278,14 @@ rvm_ret_t RVM_Thd_Print_Reg(rvm_cid_t Cap_Thd)
                                Param)==0);
     RVM_DBG_SHS("Sftd: LR:0x",Param[0],"\r\n");
 
-    Param[0]=RVM_A7M_KFN_DEBUG_ERR_CAUSE_GET;
+    Param[0]=RVM_A7M_KFN_DEBUG_EXC_CAUSE_GET;
     RVM_ASSERT(RVM_A7M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_EXC_GET,
                                (rvm_ptr_t)Cap_Thd,
                                Param)==0);
     RVM_DBG_SHS("Sftd: Cause:0x",Param[0],"\r\n");
     
-    Param[0]=RVM_A7M_KFN_DEBUG_ERR_ADDR_GET;
+    Param[0]=RVM_A7M_KFN_DEBUG_EXC_ADDR_GET;
     RVM_ASSERT(RVM_A7M_Kfn_Act(RVM_BOOT_INIT_KFN, 
                                RVM_KFN_DEBUG_EXC_GET,
                                (rvm_ptr_t)Cap_Thd,

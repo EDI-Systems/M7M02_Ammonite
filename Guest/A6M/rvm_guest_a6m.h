@@ -89,17 +89,17 @@ typedef rvm_s32_t rvm_ret_t;
 
 /* ARMv7-M specific kernel function macros ***********************************/
 /* Page table entry mode which property to get */
-#define RVM_A6M_KFN_PGT_ENTRY_MOD_GET_FLAGS         (0U)
-#define RVM_A6M_KFN_PGT_ENTRY_MOD_GET_SIZEORDER     (1U)
-#define RVM_A6M_KFN_PGT_ENTRY_MOD_GET_NUMORDER      (2U)
+#define RVM_A6M_KFN_PGT_ENTRY_MOD_FLAG_GET          (0U)
+#define RVM_A6M_KFN_PGT_ENTRY_MOD_SZORD_GET         (1U)
+#define RVM_A6M_KFN_PGT_ENTRY_MOD_NUMORD_GET        (2U)
 /* Interrupt source configuration */
-#define RVM_A6M_KFN_INT_LOCAL_MOD_GET_STATE         (0U)
-#define RVM_A6M_KFN_INT_LOCAL_MOD_SET_STATE         (1U)
-#define RVM_A6M_KFN_INT_LOCAL_MOD_GET_PRIO          (2U)
-#define RVM_A6M_KFN_INT_LOCAL_MOD_SET_PRIO          (3U)
+#define RVM_A6M_KFN_INT_LOCAL_MOD_STATE_GET         (0U)
+#define RVM_A6M_KFN_INT_LOCAL_MOD_STATE_SET         (1U)
+#define RVM_A6M_KFN_INT_LOCAL_MOD_PRIO_GET          (2U)
+#define RVM_A6M_KFN_INT_LOCAL_MOD_PRIO_SET          (3U)
 /* Prefetcher modification */
-#define RVM_A6M_KFN_PRFTH_MOD_GET_STATE             (0U)
-#define RVM_A6M_KFN_PRFTH_MOD_SET_STATE             (1U)
+#define RVM_A6M_KFN_PRFTH_MOD_STATE_GET             (0U)
+#define RVM_A6M_KFN_PRFTH_MOD_STATE_SET             (1U)
 /* Prefetcher state */
 #define RVM_A6M_KFN_PRFTH_STATE_DISABLE             (0U)
 #define RVM_A6M_KFN_PRFTH_STATE_ENABLE              (1U)
@@ -169,7 +169,7 @@ typedef rvm_s32_t rvm_ret_t;
 #define RVM_A6M_KFN_DEBUG_INV_MOD_SP_GET            (0U)
 #define RVM_A6M_KFN_DEBUG_INV_MOD_SP_SET            (1U)
 /* Error register read */
-#define RVM_A6M_KFN_DEBUG_ERR_GET_CAUSE             (0U)
+#define RVM_A6M_KFN_DEBUG_EXC_CAUSE_GET             (0U)
 /* End Define ****************************************************************/
 
 /* Struct ********************************************************************/
