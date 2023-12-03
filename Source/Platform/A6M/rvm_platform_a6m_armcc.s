@@ -14,6 +14,8 @@
 ;/* End Import ***************************************************************/
 
 ;/* Export *******************************************************************/
+    ;Entry point
+    EXPORT              __RVM_Entry
     ; User level stub for thread creation and synchronous invocation
     EXPORT              __RVM_Stub
     ; Triggering an invocation
@@ -26,29 +28,17 @@
     EXPORT              RVM_A6M_Svc_Kfn
 ;/* End Export ***************************************************************/
 
-;/* Header *******************************************************************/
-    AREA                RVM_HEADER,CODE,READONLY,ALIGN=3
+;/* Entry ********************************************************************/
+    AREA                RVM_ENTRY,CODE,READONLY,ALIGN=3
     THUMB
     REQUIRE8
     PRESERVE8
 
-    DCD                 0x49535953          ;Magic number for native process
-    DCD                 0x00000004          ;Four entries specified
-    DCD                 __main              ;Init thread entry - direct fill
-    DCD                 RVM_Sftd            ;All four daemons
-    DCD                 RVM_Vmmd
-    DCD                 __RVM_Stub          ;Jump stub
-    NOP                                     ;Catch something in the middle
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-;/* End Header ***************************************************************/
+__RVM_Entry             PROC
+    LDR                 R0,=__main          ;Jump to init entry directly
+    BX                  R0
+    ENDP
+;/* End Entry ****************************************************************/
     
 ;/* Function:__RVM_Stub *******************************************************
 ;Description : The user level stub for thread/invocation creation.
@@ -65,7 +55,7 @@
 __RVM_Stub              PROC
     SUB                 SP,#0x40            ;In order not to destroy the stack
     MOV                 R0,R5
-    BLX                 R4                  ;Branch to the actual entry address.
+    BX                  R4                  ;Branch to the actual entry address.
     ENDP
 ;/* End Function:__RVM_Stub **************************************************/
 

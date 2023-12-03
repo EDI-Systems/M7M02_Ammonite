@@ -211,7 +211,7 @@ void ARMCC_Gen::Monitor_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back(std::string("    MONITOR_CODE 0x")+Main::Hex(this->Proj->Monitor->Code_Base)+" 0x"+Main::Hex(this->Proj->Monitor->Code_Size));
     List->push_back("    {");
     List->push_back("        ;The entry will be the first instruction");
-    List->push_back("        *.o                    (RVM_HEADER, +First)");
+    List->push_back("        *.o                    (RVM_ENTRY, +First)");
     List->push_back("        ;The lib code copying code");
     List->push_back("        *                      (InRoot$$Sections)");
     List->push_back("        ;The monitor code section");

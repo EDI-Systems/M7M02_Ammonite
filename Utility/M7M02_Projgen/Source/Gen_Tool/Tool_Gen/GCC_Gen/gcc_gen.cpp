@@ -301,7 +301,6 @@ void GCC_Gen::Monitor_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back(".MONITOR_CODE : ALIGN(4)");
     List->push_back("{");
     List->push_back("    __RVM_Code_Start = .;");
-    List->push_back("    KEEP(*_gcc.o(.text.rvm_header))");
     List->push_back("    KEEP(*_gcc.o(.text.rvm_entry))");
     List->push_back("    *(.text .text.*)");
     List->push_back("    *(.rodata .rodata.* .constdata .constdata.*)");

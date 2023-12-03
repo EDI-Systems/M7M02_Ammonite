@@ -36,28 +36,6 @@ Description : The RISC-V 32bit PMP user-level assembly support of RVM.
     .global             RVM_RV32P_Svc_Kfn
 /* End Export ****************************************************************/
 
-/* Header ********************************************************************/
-    .section            .text.rvm_header
-    .align              3
-
-    .word               0x49535953          /* Magic number for native process */
-    .word               0x00000004          /* Four entries specified */
-    .word               __RVM_Entry         /* Init thread entry */
-    .word               RVM_Sftd            /* All four daemons */
-    .word               RVM_Vmmd
-    .word               __RVM_Stub          /* Jump stub */
-    NOP                                     /* Catch something in the middle */
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-/* End Header ****************************************************************/
-
 /* Entry *********************************************************************/
     .section            .text.rvm_entry
     .align              3

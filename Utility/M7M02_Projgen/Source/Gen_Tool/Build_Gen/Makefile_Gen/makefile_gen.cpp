@@ -136,7 +136,7 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
         if (Temp=="CM0")
         	CPU_Option+="cortex-m0";
         else if(Temp=="CM0P")
-        	CPU_Option+="cortex-m0+";
+        	CPU_Option+="cortex-m0plus";
         else if(Temp=="CM1")
         	CPU_Option+="cortex-m1";
         else if(Temp=="CM3")
@@ -267,7 +267,7 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
     List->push_back(std::string("CFLAGS=")+Opt_Level+" -specs=nano.specs -fsigned-char -fno-common -fno-strict-aliasing -fdata-sections -ffunction-sections -ffreestanding");
     List->push_back("AFLAGS=-fdata-sections -ffunction-sections");
     List->push_back("WFLAGS=-Wall -Wno-strict-aliasing");
-    List->push_back("DFLAGS=-g3 -gdwarf-2");
+    List->push_back("DFLAGS=-g3");
     List->push_back("LFLAGS=-specs=nano.specs -specs=nosys.specs -nostartfiles -Wl,--gc-sections,--cref");
     List->push_back("");
     List->push_back("OBJDIR=Objects");
@@ -345,17 +345,17 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
     List->push_back("# Compile C sources");
     List->push_back("%.o:%.c");
     List->push_back("\t@echo [CC] \"$<\"");
-    List->push_back("\t@$(CC) -c $(CPU) $(INCS) $(CFLAGS) -MMD -MP -MF \"$(DEP)\" -Wa,-a,-ad,-alms=\"$(LST)\" \"$<\" -o \"$(OBJ)\"");
+    List->push_back("\t@$(CC) -c $(CPU) $(INCS) $(CFLAGS) $(DFLAGS) -MMD -MP -MF \"$(DEP)\" -Wa,-a,-ad,-alms=\"$(LST)\" \"$<\" -o \"$(OBJ)\"");
     List->push_back("");
     List->push_back("# Assemble ASM sources");
     List->push_back("%.o:%.s");
     List->push_back("\t@echo [AS] \"$<\"");
-    List->push_back("\t@$(AS) -c $(CPU) $(INCS) $(AFLAGS) \"$<\" -o \"$(OBJ)\"");
+    List->push_back("\t@$(AS) -c $(CPU) $(INCS) $(AFLAGS) $(DFLAGS) \"$<\" -o \"$(OBJ)\"");
     List->push_back("");
     List->push_back("# Link ELF target file and print size");
     List->push_back("$(TARGET).elf:$(COBJS) $(AOBJS)");
     List->push_back("\t@echo [LD] \"$@\"");
-    List->push_back("\t@$(LD) $(OBJDIR)/*.o $(CPU) $(LFLAGS) -T $(LDSCRIPT) -Wl,-Map=$(MAP) $(LIBS) -o $(OBJ)");
+    List->push_back("\t@$(LD) $(OBJDIR)/*.o $(CPU) $(LFLAGS) $(DFLAGS) -T $(LDSCRIPT) -Wl,-Map=$(MAP) $(LIBS) -o $(OBJ)");
     List->push_back("\t@$(SZ) $(OBJ)");
     List->push_back("");
     List->push_back("# Create hex/bin programming files");

@@ -446,8 +446,16 @@ ptr_t RV32P_Gen::Raw_Register(const std::vector<std::string>& Coprocessor)
 {
     if(Coprocessor.empty())
         return RV32P_RAW_REG_SIZE;
+    else if(Coprocessor.size()!=1)
+        Main::Error("XXXXX: Internal FPU type error.");
+    else if(Coprocessor[0]=="NONE")
+        return RV32P_RAW_REG_SIZE;
+    else if(Coprocessor[0]=="RVF")
+        return RV32P_RAW_REG_RVF_SIZE;
+    else if(Coprocessor[0]=="RVD")
+        return RV32P_RAW_REG_RVD_SIZE;
     else
-        return RV32P_RAW_REG_FPU_SIZE;
+        Main::Error("XXXXX: Internal FPU type error.");
 }
 /* End Function:RV32P_Gen::Raw_Register **************************************/
 
@@ -486,7 +494,7 @@ void RV32P_Gen::Monitor_Conf_Hdr(std::unique_ptr<std::vector<std::string>>& List
 {
     /* Init process's first thread's entry point address */
     if(Proj->Buildsystem == "Makefile")
-        Gen_Tool::Macro_Hex(List, "RVM_RV32P_INIT_ENTRY", PRC_DESC_ALIGN(this->Proj->Monitor->Code_Base), MACRO_REPLACE);
+        Gen_Tool::Macro_Hex(List, "RVM_RV32P_INIT_ENTRY",PRC_DESC_ALIGN(this->Proj->Monitor->Code_Base), MACRO_REPLACE);
     else
         Gen_Tool::Macro_Hex(List, "RVM_RV32P_INIT_ENTRY",PRC_DESC_ALIGN(this->Proj->Monitor->Code_Base+8*4), MACRO_REPLACE);
     /* Init process's first thread's stack address */

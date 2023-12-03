@@ -37,28 +37,6 @@ Description : The ARMv7-M user-level assembly scheduling support of the RVM
     .global             __RVM_A7M_MSB_Get
 /* End Export ****************************************************************/
 
-/* Header ********************************************************************/
-    .section            .text.rvm_header
-    .align              3
-
-    .long               0x49535953          /* Magic number for native process */
-    .long               0x00000004          /* Four entries specified */
-    .long               __RVM_Entry         /* Init thread entry */
-    .long               RVM_Sftd            /* All four daemons */
-    .long               RVM_Vmmd
-    .long               __RVM_Stub          /* Jump stub */
-    NOP                                     /* Catch something in the middle */
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-/* End Header ****************************************************************/
-
 /* Entry *********************************************************************/
     .section            .text.rvm_entry
     .align              3
@@ -107,7 +85,7 @@ Return      : None.
 __RVM_Stub:
     SUB                 SP,#0x40            /* In order not to destroy the stack */
     MOV                 R0,R5
-    BLX                 R4                  /* Branch to the actual entry address */
+    BX                  R4                  /* Branch to the actual entry address */
 /* End Function:__RVM_Stub ***************************************************/
 
 /* Function:__RVM_A7M_MSB_Get *************************************************

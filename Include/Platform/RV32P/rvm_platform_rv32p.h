@@ -62,9 +62,13 @@ typedef unsigned char rvm_u8_t;
 /* Invocation size */
 #define RVM_INV_RAW_SIZE                            ((9U)*sizeof(rvm_ptr_t))
 /* Normal page directory size */
-#define RVM_PGT_RAW_SIZE_NOM(NUM_ORDER)             ((4U+RVM_POW2(NUM_ORDER))*sizeof(rvm_ptr_t))
+#define RVM_PGT_RAW_PTR(NUM_ORDER)                  (RVM_POW2(NUM_ORDER)*sizeof(rvm_ptr_t))
+#define RVM_PGT_RAW_PERM(NUM_ORDER)                 RVM_ROUND_UP(RVM_POW2(NUM_ORDER),RVM_WORD_ORDER-3U)
+#define RVM_PGT_RAW_SIZE_NOM(NUM_ORDER)             (2U*sizeof(rvm_ptr_t)+RVM_PGT_RAW_PTR(NUM_ORDER)+RVM_PGT_RAW_PERM(NUM_ORDER))
 /* Top-level page directory size */
-#define RVM_PGT_RAW_SIZE_TOP(NUM_ORDER)             ((1U+2U*RVM_RV32P_REGION_NUM)*sizeof(rvm_ptr_t)+RVM_PGT_RAW_SIZE_NOM(NUM_ORDER))
+#define RVM_PGT_RAW_CFG                             RVM_ROUND_UP(RVM_RV32P_REGION_NUM,RVM_WORD_ORDER-3U)
+#define RVM_PGT_RAW_DATA                            ((RVM_RV32P_REGION_NUM)*sizeof(rvm_ptr_t))           
+#define RVM_PGT_RAW_SIZE_TOP(NUM_ORDER)             (sizeof(rvm_ptr_t)+RVM_PGT_RAW_CFG+RVM_PGT_RAW_DATA+RVM_PGT_RAW_SIZE_NOM(NUM_ORDER))
 
 #define RVM_RV32P_REG(X)                            (*((volatile rvm_ptr_t*)(X)))
 #define RVM_RV32P_REGB(X)                           (*((volatile rvm_u8_t*)(X)))

@@ -24,12 +24,13 @@ namespace RVM_GEN
 #define RV32P_INIT_NUM_ORD                      (0)
 
 /* RV32P kernel object size */
-#define RV32P_RAW_PGT_SIZE_NOM(O)               ((4+POW2(O))*4)
-#define RV32P_RAW_PGT_SIZE_TOP(O, R)             (((1+(R)*2)*4)+RV32P_RAW_PGT_SIZE_NOM(O))
-#define RV32P_RAW_HYP_SIZE                       (84)
-#define RV32P_RAW_REG_SIZE                       (48)
-#define RV32P_RAW_REG_FPU_SIZE                   (112)
-#define RV32P_RAW_INV_SIZE                       (36)
+#define RV32P_RAW_PGT_SIZE_NOM(O)               ((2+POW2(O))*4+ROUND_UP(POW2(O),4))
+#define RV32P_RAW_PGT_SIZE_TOP(O, R)            ((4+ROUND_UP(R,4)+(R)*4)+RV32P_RAW_PGT_SIZE_NOM(O))
+#define RV32P_RAW_HYP_SIZE                      (84)
+#define RV32P_RAW_REG_SIZE                      (144)
+#define RV32P_RAW_REG_RVF_SIZE                  (276)
+#define RV32P_RAW_REG_RVD_SIZE                  (404)
+#define RV32P_RAW_INV_SIZE                      (36)
 /*****************************************************************************/
 /* __RV32P_GEN_DEF__ */
 #endif
