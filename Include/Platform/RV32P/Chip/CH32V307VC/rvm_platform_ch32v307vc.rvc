@@ -6,7 +6,7 @@
     <Compatible>CH32V307VCT6</Compatible>
     <Vendor>WCH</Vendor>
     <Vector>110</Vector>
-    <Region>4</Region>
+    <Region>3</Region>
     <Iregion>0</Iregion>
     <Dregion>0</Dregion>
     <Coprocessor>RVF,RVD</Coprocessor>

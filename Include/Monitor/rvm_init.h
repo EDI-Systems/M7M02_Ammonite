@@ -147,7 +147,7 @@ struct RVM_Meta_Pgt_Add_Struct
 {
     rvm_cid_t Pgt_Dst;
     rvm_ptr_t Pos_Dst;
-    rvm_ptr_t Flags;
+    rvm_ptr_t Flag;
     rvm_ptr_t Pos_Src;
     rvm_ptr_t Index;
 };

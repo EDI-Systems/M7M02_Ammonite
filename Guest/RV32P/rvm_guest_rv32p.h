@@ -100,7 +100,7 @@ typedef rvm_s32_t rvm_ret_t;
 /* Page table entry mode which property to get */
 #define RVM_RV32P_KFN_PGT_ENTRY_MOD_FLAG_GET            (0U)
 #define RVM_RV32P_KFN_PGT_ENTRY_MOD_SZORD_GET           (1U)
-#define RVM_RV32P_KFN_PGT_ENTRY_MOD_NUMORD_GET          (2U)
+#define RVM_RV32P_KFN_PGT_ENTRY_MOD_NMORD_GET           (2U)
 /* Interrupt source configuration */
 #define RVM_RV32P_KFN_INT_LOCAL_MOD_STATE_GET           (0U)
 #define RVM_RV32P_KFN_INT_LOCAL_MOD_STATE_SET           (1U)

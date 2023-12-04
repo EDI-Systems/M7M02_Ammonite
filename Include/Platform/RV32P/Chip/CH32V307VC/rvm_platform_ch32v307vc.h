@@ -49,7 +49,7 @@ Description: The configuration file for CH32V307VC. The values listed here shoul
 /* Init process's first thread's stack address */
 #define RVM_RV32P_INIT_STACK                            (0x2000FFF0U)
 /* Number of MPU regions available */
-#define RVM_RV32P_REGION_NUM                            (8U)
+#define RVM_RV32P_REGION_NUM                            (3U)
 /* What is the FPU type? */
 #define RVM_COP_NUM                                     (1U)
 #define RVM_RV32P_COP_RVF                               (1U)

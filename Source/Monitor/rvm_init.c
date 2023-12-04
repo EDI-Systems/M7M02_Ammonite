@@ -582,7 +582,7 @@ void RVM_Boot_Pgt_Init(void)
     {
         RVM_ASSERT(RVM_Pgt_Add(RVM_Meta_Pgt_Add[Count].Pgt_Dst,
                                RVM_Meta_Pgt_Add[Count].Pos_Dst,
-                               RVM_Meta_Pgt_Add[Count].Flags,
+                               RVM_Meta_Pgt_Add[Count].Flag,
                                RVM_BOOT_INIT_PGT,
                                RVM_Meta_Pgt_Add[Count].Pos_Src,
                                RVM_Meta_Pgt_Add[Count].Index)==0);

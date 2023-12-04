@@ -56,10 +56,10 @@
     <Monitor>
 		<Monitor_Root>../../../../M7M02_Ammonite</Monitor_Root>
         <Code_Size>0x10000</Code_Size>
-        <Data_Size>0x2000</Data_Size>
-        <Init_Stack_Size>0x400</Init_Stack_Size>
+        <Data_Size>0x4000</Data_Size>
+        <Init_Stack_Size>0x800</Init_Stack_Size>
         <Sftd_Stack_Size>0x400</Sftd_Stack_Size>
-        <Vmmd_Stack_Size>0x400</Vmmd_Stack_Size>
+        <Vmmd_Stack_Size>0x800</Vmmd_Stack_Size>
         <Extra_Captbl>32</Extra_Captbl>
         <Virt_Prio>32</Virt_Prio>
         <Virt_Event>32</Virt_Event>
@@ -95,7 +95,7 @@
                 <M0>
                     <Name>Main_Code</Name>
                     <Base>0x00020000</Base>
-                    <Size>0x6000</Size>
+                    <Size>0x4000</Size>
                     <Align>Auto</Align>
                     <Type>Code</Type>
                     <Attribute>RXBCS</Attribute>
@@ -169,7 +169,7 @@
                 <M0>
                     <Name>Main_Code</Name>
                     <Base>Auto</Base>
-                    <Size>0x1000</Size>
+                    <Size>0x4000</Size>
                     <Align>Auto</Align>
                     <Type>Code</Type>
                     <Attribute>RXBCS</Attribute>
@@ -177,7 +177,7 @@
                 <M1>
                     <Name>Main_Data</Name>
                     <Base>Auto</Base>
-                    <Size>0x4000</Size>
+                    <Size>0x1000</Size>
                     <Align>Auto</Align>
                     <Type>Data</Type>
                     <Attribute>RWXBCS</Attribute>
