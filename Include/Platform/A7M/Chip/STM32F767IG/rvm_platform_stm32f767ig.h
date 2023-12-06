@@ -11,6 +11,7 @@ Description: The configuration file for STM32F767IG. The values listed here shou
 /* Debugging *****************************************************************/
 #define RVM_ASSERT_CORRECT                              (0U)
 #define RVM_DEBUG_PRINT                                 (1U)
+#define RVM_REGION_FIXED                                (0U)
 /* Kernel configurations - keep the same with the kernel *********************/
 /* The virtual memory start address for the kernel objects */
 #define RVM_KOM_VA_BASE                                 (0x20003000U)

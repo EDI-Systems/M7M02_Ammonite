@@ -636,6 +636,8 @@ void Gen_Tool::Kernel_Conf_Hdr(void)
     Gen_Tool::Macro_Int(List, "RME_DEBUG_PRINT", this->Plat->Proj->Debug_Print, MACRO_REPLACE);
     /* Generator enabled */
     Gen_Tool::Macro_Int(List, "RME_RVM_GEN_ENABLE", 1, MACRO_REPLACE);
+    /* If region is fixed, we use user-level raw page tables */
+    Gen_Tool::Macro_Int(List, "RME_PGT_RAW_USER", this->Plat->Proj->Region_Fixed, MACRO_REPLACE);
     /* The virtual memory base/size for the kernel objects */
     Gen_Tool::Macro_Hex(List, "RME_KOM_VA_BASE", Kernel->Kom_Base, MACRO_REPLACE);
     Gen_Tool::Macro_Hex(List, "RME_KOM_VA_SIZE", Kernel->Kom_Size, MACRO_REPLACE);
@@ -1324,6 +1326,8 @@ void Gen_Tool::Monitor_Conf_Hdr(void)
     /* Debugging control */
     Gen_Tool::Macro_Int(List, "RVM_ASSERT_CORRECT", this->Plat->Proj->Assert_Correct, MACRO_REPLACE);
     Gen_Tool::Macro_Int(List, "RVM_DEBUG_PRINT", this->Plat->Proj->Debug_Print, MACRO_REPLACE);
+    /* Whether the region mappings are fixed hence the RVM should provide them */
+    Gen_Tool::Macro_Int(List, "RVM_REGION_FIXED", this->Plat->Proj->Region_Fixed, MACRO_REPLACE);
     /* The virtual memory base/size for the kernel objects */
     Gen_Tool::Macro_Hex(List, "RVM_KOM_VA_BASE", Kernel->Kom_Base, MACRO_REPLACE);
     Gen_Tool::Macro_Hex(List, "RVM_KOM_VA_SIZE", Kernel->Kom_Size, MACRO_REPLACE);
@@ -1694,8 +1698,16 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
         Gen_Tool::Macro_Int(List, std::string("RVM_MAIN_CPT_")+MIDS(Obj_Cnt), Cap_Front, MACRO_ADD);
         Cap_Front++;
     }
-    if(Cap_Front!=Monitor->Pgt_Cap_Front)
-        Main::Error("XXXXX: Capability table capability table computation failure.");
+    if(this->Plat->Proj->Region_Fixed==0)
+    {
+        if(Cap_Front!=Monitor->Pgt_Cap_Front)
+            Main::Error("XXXXX: Capability table capability table computation failure.");
+    }
+    else
+    {
+        if(Cap_Front!=Monitor->Prc_Cap_Front)
+            Main::Error("XXXXX: Capability table capability table computation failure.");
+    }
     List->push_back("");
     List->push_back("/* Process capability tables */");
     for(const class Captbl* Cpt:Monitor->Captbl)
@@ -1707,24 +1719,27 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
     List->push_back("");
 
     /* Pgt capability tables & objects */
-    List->push_back("/* Process page table capability tables */");
-    Cap_Front=Monitor->Pgt_Cap_Front;
-    for(Obj_Cnt=0;Obj_Cnt<Monitor->Pgtbl.size();Obj_Cnt+=this->Plat->Plat->Captbl_Max)
+    if(this->Plat->Proj->Region_Fixed==0)
     {
-        Gen_Tool::Macro_Int(List, std::string("RVM_MAIN_PGT_")+MIDS(Obj_Cnt), Cap_Front, MACRO_ADD);
-        Cap_Front++;
+        List->push_back("/* Process page table capability tables */");
+        Cap_Front=Monitor->Pgt_Cap_Front;
+        for(Obj_Cnt=0;Obj_Cnt<Monitor->Pgtbl.size();Obj_Cnt+=this->Plat->Plat->Captbl_Max)
+        {
+            Gen_Tool::Macro_Int(List, std::string("RVM_MAIN_PGT_")+MIDS(Obj_Cnt), Cap_Front, MACRO_ADD);
+            Cap_Front++;
+        }
+        if(Cap_Front!=Monitor->Prc_Cap_Front)
+            Main::Error("XXXXX: Page table capability table computation failure.");
+        List->push_back("");
+        List->push_back("/* Process page tables */");
+        for(const class Pgtbl* Pgt:Monitor->Pgtbl)
+        {
+            Gen_Tool::Macro_String(List, Pgt->Macro_Global,
+                                   std::string("RVM_CID(RVM_MAIN_PGT_")+
+                                   MIDS(Pgt->Cid_Global)+", "+SIDS(Pgt->Cid_Global)+"U)", MACRO_ADD);
+        }
+        List->push_back("");
     }
-    if(Cap_Front!=Monitor->Prc_Cap_Front)
-        Main::Error("XXXXX: Page table capability table computation failure.");
-    List->push_back("");
-    List->push_back("/* Process page tables */");
-    for(const class Pgtbl* Pgt:Monitor->Pgtbl)
-    {
-        Gen_Tool::Macro_String(List, Pgt->Macro_Global,
-                               std::string("RVM_CID(RVM_MAIN_PGT_")+
-                               MIDS(Pgt->Cid_Global)+", "+SIDS(Pgt->Cid_Global)+"U)", MACRO_ADD);
-    }
-    List->push_back("");
 
     /* Process capability tables & objects */
     List->push_back("/* Process capability tables */");
@@ -1822,7 +1837,11 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
 
     List->push_back("/* Cpt frontiers & number */");
     Gen_Tool::Macro_Hex(List, "RVM_BOOT_INIT_CPT_BEFORE", Monitor->Cpt_Kom_Front, MACRO_ADD);
-    Gen_Tool::Macro_Hex(List, "RVM_BOOT_INIT_CPT_AFTER", Monitor->Pgt_Kom_Front, MACRO_ADD);
+    /* See if we're skipping page tables when all regions are fixed */
+    if(this->Plat->Proj->Region_Fixed==0)
+        Gen_Tool::Macro_Hex(List, "RVM_BOOT_INIT_CPT_AFTER", Monitor->Pgt_Kom_Front, MACRO_ADD);
+    else
+        Gen_Tool::Macro_Hex(List, "RVM_BOOT_INIT_CPT_AFTER", Monitor->Prc_Kom_Front, MACRO_ADD);
     Gen_Tool::Macro_Int(List, "RVM_BOOT_INIT_CPT_MAIN_NUM", CTNUM(Monitor->Captbl.size()), MACRO_ADD);
     Gen_Tool::Macro_Int(List, "RVM_BOOT_INIT_CPT_CRT_NUM", Monitor->Captbl.size(), MACRO_ADD);
     this->Cpt_Init_Total=this->Monitor_Cpt_Init(Dummy, 0);
@@ -1832,20 +1851,24 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
     List->push_back("");
 
     List->push_back("/* Pgt frontiers & number */");
-    Gen_Tool::Macro_Hex(List, "RVM_BOOT_INIT_PGT_BEFORE", Monitor->Pgt_Kom_Front, MACRO_ADD);
-    Gen_Tool::Macro_Hex(List, "RVM_BOOT_INIT_PGT_AFTER", Monitor->Prc_Kom_Front, MACRO_ADD);
-    Gen_Tool::Macro_Int(List, "RVM_BOOT_INIT_PGT_MAIN_NUM", CTNUM(Monitor->Pgtbl.size()), MACRO_ADD);
-    Gen_Tool::Macro_Int(List, "RVM_BOOT_INIT_PGT_CRT_NUM", Monitor->Pgtbl.size(), MACRO_ADD);
-    Total=0;
-    for(const std::unique_ptr<class Process>& Prc:this->Plat->Proj->Process)
-        Total+=this->Monitor_Pgt_Con(Dummy, Prc->Pgtbl.get());
-    this->Pgt_Con_Total=Total;
-    Gen_Tool::Macro_Int(List, "RVM_BOOT_INIT_PGT_CON_NUM", Total, MACRO_ADD);
-    Total=0;
-    for(class Pgtbl* Pgt:Monitor->Pgtbl)
-        Total+=this->Monitor_Pgt_Add(Dummy, Pgt, this->Plat->Plat->Wordlength);
-    Gen_Tool::Macro_Int(List, "RVM_BOOT_INIT_PGT_ADD_NUM", Total, MACRO_ADD);
-    List->push_back("");
+    /* Only exist when using kernel-managed PCTrie */
+    if(this->Plat->Proj->Region_Fixed==0)
+    {
+        Gen_Tool::Macro_Hex(List, "RVM_BOOT_INIT_PGT_BEFORE", Monitor->Pgt_Kom_Front, MACRO_ADD);
+        Gen_Tool::Macro_Hex(List, "RVM_BOOT_INIT_PGT_AFTER", Monitor->Prc_Kom_Front, MACRO_ADD);
+        Gen_Tool::Macro_Int(List, "RVM_BOOT_INIT_PGT_MAIN_NUM", CTNUM(Monitor->Pgtbl.size()), MACRO_ADD);
+        Gen_Tool::Macro_Int(List, "RVM_BOOT_INIT_PGT_CRT_NUM", Monitor->Pgtbl.size(), MACRO_ADD);
+        Total=0;
+        for(const std::unique_ptr<class Process>& Prc:this->Plat->Proj->Process)
+            Total+=this->Monitor_Pgt_Con(Dummy, Prc->Pgtbl.get());
+        this->Pgt_Con_Total=Total;
+        Gen_Tool::Macro_Int(List, "RVM_BOOT_INIT_PGT_CON_NUM", Total, MACRO_ADD);
+        Total=0;
+        for(class Pgtbl* Pgt:Monitor->Pgtbl)
+            Total+=this->Monitor_Pgt_Add(Dummy, Pgt, this->Plat->Plat->Wordlength);
+        Gen_Tool::Macro_Int(List, "RVM_BOOT_INIT_PGT_ADD_NUM", Total, MACRO_ADD);
+        List->push_back("");
+    }
 
     List->push_back("/* Process frontiers & number */");
     Gen_Tool::Macro_Hex(List, "RVM_BOOT_PRC_BEFORE", Monitor->Prc_Kom_Front, MACRO_ADD);
@@ -2035,34 +2058,50 @@ void Gen_Tool::Monitor_Boot_Src(void)
     }
     List->push_back("");
 
-    /* Page table metadata */
-    List->push_back("/* Page table metadata */");
-    List->push_back("const struct RVM_Meta_Main_Struct RVM_Meta_Pgt_Main[RVM_BOOT_INIT_PGT_MAIN_NUM]=");
-    List->push_back("{");
-    this->Monitor_Main_Crt(List, Monitor->Pgtbl.size(), "PGT");
-    List->push_back("};");
-    List->push_back("const struct RVM_Meta_Pgt_Crt_Struct RVM_Meta_Pgt_Crt[RVM_BOOT_INIT_PGT_CRT_NUM]=");
-    List->push_back("{");
-    for(const class Pgtbl* Pgt:Monitor->Pgtbl)
+    /* Page table metadata - only exist when using kernel-managed page tables */
+    if(this->Plat->Proj->Region_Fixed==0)
     {
-        List->push_back(std::string("{RVM_MAIN_PGT_")+MIDS(Pgt->Cid_Global)+", "+SIDS(Pgt->Cid_Global)+", 0x"+
-                        Main::Hex(Pgt->Base)+"U, "+std::to_string((ptr_t)(Pgt->Is_Top!=0))+"U, "+
-                        std::to_string(Pgt->Size_Order)+"U, "+std::to_string(Pgt->Num_Order)+"U},");
-    }
-    List->push_back("};");
-    if(this->Pgt_Con_Total!=0)
-    {
-        List->push_back("const struct RVM_Meta_Pgt_Con_Struct RVM_Meta_Pgt_Con[RVM_BOOT_INIT_PGT_CON_NUM]=");
+        List->push_back("/* Page table metadata */");
+        List->push_back("const struct RVM_Meta_Main_Struct RVM_Meta_Pgt_Main[RVM_BOOT_INIT_PGT_MAIN_NUM]=");
         List->push_back("{");
-        for(const std::unique_ptr<class Process>& Prc:this->Plat->Proj->Process)
-            this->Monitor_Pgt_Con(List, Prc->Pgtbl.get());
+        this->Monitor_Main_Crt(List, Monitor->Pgtbl.size(), "PGT");
+        List->push_back("};");
+        List->push_back("const struct RVM_Meta_Pgt_Crt_Struct RVM_Meta_Pgt_Crt[RVM_BOOT_INIT_PGT_CRT_NUM]=");
+        List->push_back("{");
+        for(const class Pgtbl* Pgt:Monitor->Pgtbl)
+        {
+            List->push_back(std::string("{RVM_MAIN_PGT_")+MIDS(Pgt->Cid_Global)+", "+SIDS(Pgt->Cid_Global)+", 0x"+
+                            Main::Hex(Pgt->Base)+"U, "+std::to_string((ptr_t)(Pgt->Is_Top!=0))+"U, "+
+                            std::to_string(Pgt->Size_Order)+"U, "+std::to_string(Pgt->Num_Order)+"U},");
+        }
+        List->push_back("};");
+        if(this->Pgt_Con_Total!=0)
+        {
+            List->push_back("const struct RVM_Meta_Pgt_Con_Struct RVM_Meta_Pgt_Con[RVM_BOOT_INIT_PGT_CON_NUM]=");
+            List->push_back("{");
+            for(const std::unique_ptr<class Process>& Prc:this->Plat->Proj->Process)
+                this->Monitor_Pgt_Con(List, Prc->Pgtbl.get());
+            List->push_back("};");
+        }
+        List->push_back("const struct RVM_Meta_Pgt_Add_Struct RVM_Meta_Pgt_Add[RVM_BOOT_INIT_PGT_ADD_NUM]=");
+        List->push_back("{");
+        for(const class Pgtbl* Pgt:Monitor->Pgtbl)
+            this->Monitor_Pgt_Add(List, Pgt, this->Plat->Plat->Wordlength);
         List->push_back("};");
     }
-    List->push_back("const struct RVM_Meta_Pgt_Add_Struct RVM_Meta_Pgt_Add[RVM_BOOT_INIT_PGT_ADD_NUM]=");
-    List->push_back("{");
-    for(const class Pgtbl* Pgt:Monitor->Pgtbl)
-        this->Monitor_Pgt_Add(List, Pgt, this->Plat->Plat->Wordlength);
-    List->push_back("};");
+    /* Process raw page table when fixed mode is selected */
+    else
+    {
+        List->push_back("/* Process page table raw data */");
+        for(const class Process* Prc:Monitor->Process)
+        {
+            List->push_back(std::string("const rvm_ptr_t RVM_Meta_Raw_")+Prc->Name+"["+std::to_string(Prc->Rawtbl->size())+"U]=");
+            List->push_back("{");
+            for(ptr_t Raw:*Prc->Rawtbl)
+                List->push_back(std::string("    0x")+Main::Hex(Raw)+"U,");
+            List->push_back("};");
+        }
+    }
     List->push_back("");
 
     /* Process metadata */
@@ -2075,8 +2114,18 @@ void Gen_Tool::Monitor_Boot_Src(void)
     List->push_back("{");
     for(const class Process* Prc:Monitor->Process)
     {
-        List->push_back(std::string("{RVM_MAIN_PRC_")+MIDS(Prc->Cid_Global)+", "+SIDS(Prc->Cid_Global)+", "+
-                        Prc->Captbl->Macro_Global+", "+Prc->Pgtbl->Macro_Global+"},");
+        /* Load normal page table capability if kernel-managed */
+        if(this->Plat->Proj->Region_Fixed==0)
+        {
+            List->push_back(std::string("{RVM_MAIN_PRC_")+MIDS(Prc->Cid_Global)+", "+SIDS(Prc->Cid_Global)+", "+
+                            Prc->Captbl->Macro_Global+", "+Prc->Pgtbl->Macro_Global+"},");
+        }
+        /* Load raw table when fixed mode is selected */
+        else
+        {
+            List->push_back(std::string("{RVM_MAIN_PRC_")+MIDS(Prc->Cid_Global)+", "+SIDS(Prc->Cid_Global)+", "+
+                            Prc->Captbl->Macro_Global+", (rvm_ptr_t)RVM_Meta_Raw_"+Prc->Name+"},");
+        }
     }
     List->push_back("};");
     List->push_back("");

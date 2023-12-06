@@ -17,6 +17,13 @@ namespace RVM_GEN
 #define RV32P_END_LITTLE                   		(0)
 #define RV32P_END_BIG                           (1)
 
+/* PMP flags */
+#define RV32P_PMPCFG_OFF                        (0<<3)
+#define RV32P_PMPCFG_TOR                        (1<<3)
+#define RV32P_PMPCFG_NA4                        (2<<3)
+#define RV32P_PMPCFG_NAPOT                      (3<<3)
+#define RV32P_PMPCFG_ATTR                       (7)
+
 /* Minimum alignment requirements for RV32P - for memory trunks only, not for kernel objects */
 #define RV32P_MEM_ALIGN                         (0x10)
 
@@ -59,7 +66,9 @@ public:
 
     virtual ptr_t Mem_Align(ptr_t Base, ptr_t Size, ptr_t Align_Order) final override;
     virtual std::unique_ptr<class Pgtbl> Pgt_Gen(std::vector<std::unique_ptr<class Mem_Info>>& List,
-                                                   class Process* Owner, ptr_t Total_Max, ptr_t& Total_Static) final override;
+                                                 class Process* Owner, ptr_t Total_Max, ptr_t& Total_Static) final override;
+    virtual std::unique_ptr<std::vector<ptr_t>> Pgt_Gen(std::vector<std::unique_ptr<class Mem_Info>>& List,
+                                                        ptr_t& Total_Static) final override;
 
     virtual ptr_t Raw_Pgt(ptr_t Size_Order, ptr_t Is_Top) final override;
     virtual ptr_t Raw_Thread(void) final override;

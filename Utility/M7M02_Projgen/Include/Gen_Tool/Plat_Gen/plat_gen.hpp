@@ -45,10 +45,17 @@ public:
 
     /* Align memory segments */
     virtual ptr_t Mem_Align(ptr_t Base, ptr_t Size, ptr_t Align_Order)=0;
+    /* Generate kernel-managed PCTrie */
     virtual std::unique_ptr<class Pgtbl> Pgt_Gen(std::vector<std::unique_ptr<class Mem_Info>>& List,
                                                  class Process* Owner, ptr_t Total_Max, ptr_t& Total_Static)=0;
+    /* Generate raw MPU representation */
+    virtual std::unique_ptr<std::vector<ptr_t>> Pgt_Gen(std::vector<std::unique_ptr<class Mem_Info>>& List,
+                                                        ptr_t& Total_Static)=0;
 
     /* Get size of kernel objects */
+    ptr_t Pow2_Align(ptr_t Base);
+    ptr_t Pow2_Contain(ptr_t Size);
+    ptr_t Pow2_Box(ptr_t Start, ptr_t End);
     ptr_t Size_Cpt(ptr_t Slot);
     ptr_t Size_Pgt(ptr_t Size_Order, ptr_t Is_Top);
     ptr_t Size_Thread(const std::vector<std::string>& Coprocessor, ptr_t Is_Hyp);

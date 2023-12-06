@@ -180,19 +180,8 @@ ptr_t RV32P_Gen::Pgt_Total_Order(std::vector<std::unique_ptr<class Mem_Info>>& L
             End=Mem->Base+Mem->Size;
     }
 
-    /* Which power-of-2 box is this in? - do not shift more than 32 or you get undefined behavior */
-    Total_Order=0;
-    while(1)
-    {
-        /* No bigger than 32 is ever possible */
-        if(Total_Order>=32)
-            break;
-        if(End<=(ROUND_DOWN_POW2(Start, Total_Order)+POW2(Total_Order)))
-            break;
-        Total_Order++;
-    }
-
     /* If the total order less than 4, we wish to extend that to 4 */
+    Total_Order=this->Pow2_Box(Start, End);
     if(Total_Order<4)
         Total_Order=4;
 
@@ -394,7 +383,88 @@ std::unique_ptr<class Pgtbl> RV32P_Gen::Pgt_Gen(std::vector<std::unique_ptr<clas
 
     return Pgt;
 }
-/* End Function:RV32P::Gen_Pgt ***********************************************/
+/* End Function:RV32P_Gen::Gen_Pgt *******************************************/
+
+/* Function:RV32P_Gen::Pgt_Gen ************************************************
+Description : Construct the raw page table MPU cache for the ARMv7-M port.
+Input       : std::vector<std::unique_ptr<class Mem_Info>>& - The list containing
+                                                              memory segments.
+Output      : ptr_t Total_Static - The total number of static regions used.
+Return      : std::unique_ptr<std::vector<ptr_t>> - The generated content.
+******************************************************************************/
+std::unique_ptr<std::vector<ptr_t>> RV32P_Gen::Pgt_Gen(std::vector<std::unique_ptr<class Mem_Info>>& List,
+                                                       ptr_t& Total_Static)
+{
+    std::unique_ptr<std::vector<ptr_t>> Pgt;
+    ptr_t Order;
+    ptr_t Contain;
+    u32_t PMPCFG[18];
+    u32_t PMPADDR[18];
+    ptr_t Count;
+    ptr_t Extra;
+
+    Pgt=std::make_unique<std::vector<ptr_t>>();
+
+    /* The regions have been sorted. Just dump PMP ranges at them, until they're empty */
+    Total_Static=0;
+    for(std::unique_ptr<class Mem_Info>& Mem:List)
+    {
+        /* Choose the smaller order of the base and size, and use that order */
+        Order=this->Pow2_Align(Mem->Base);
+        Contain=this->Pow2_Contain(Mem->Size);
+
+        /* Make use of TOR. Won't be able to fit this into NAPOT */
+        if((Order<Contain)||(Mem->Size!=POW2(Contain)))
+        {
+            Main::Info("> Mapping pages into PMP fixed raw TOR range start 0x%llX end 0x%llX.", Mem->Base, Mem->Base+Mem->Size);
+            PMPCFG[Total_Static]=0;
+            PMPADDR[Total_Static]=Mem->Base>>2;
+            PMPCFG[Total_Static+1]=RV32P_PMPCFG_TOR|(RV32P_PMPCFG_ATTR&Mem->Attr);
+            PMPADDR[Total_Static+1]=(Mem->Base+Mem->Size)>>2;
+            Total_Static+=2;
+        }
+        /* This is a perfect fit for NAPOT */
+        else
+        {
+            Order=Contain;
+            Main::Info("> Mapping page into PMP fixed raw NAPOT range base 0x%llX size order %lld.", Mem->Base, Order);
+            PMPCFG[Total_Static]=RV32P_PMPCFG_NAPOT|(RV32P_PMPCFG_ATTR&Mem->Attr);
+            PMPADDR[Total_Static]=(Mem->Base>>2)|(0xFFFFFFFFULL>>(35-Order));
+            Total_Static++;
+        }
+
+        /* This is guaranteed to trigger an error outside - we have exceeded # regions */
+        if(Total_Static>16)
+            return Pgt;
+    }
+
+    /* Fill the rest with useless data, banning all access */
+    while(Total_Static<this->Chip->Region)
+    {
+        PMPCFG[Total_Static]=RV32P_PMPCFG_NAPOT;
+        PMPADDR[Total_Static]=0xFFFFFFFFU;
+        Total_Static++;
+    }
+
+    /* If the Total_Static is not a multiple of 4, write the rest with useless data
+     * as well - this is for compatibility with some chips allowing URW by default */
+    Extra=Total_Static;
+    while((Extra%4)!=0)
+    {
+        PMPCFG[Extra]=RV32P_PMPCFG_NAPOT;
+        PMPADDR[Extra]=0xFFFFFFFFU;
+        Extra++;
+    }
+
+    /* Put everything neatly into the PMP metadata codeword */
+    for(Count=0;Count<Extra/4;Count++)
+        Pgt->push_back(PMPCFG[Count*4+0]|(PMPCFG[Count*4+1]<<8)|(PMPCFG[Count*4+2]<<16)|(PMPCFG[Count*4+3]<<24));
+    for(Count=0;Count<Extra;Count++)
+        Pgt->push_back(PMPADDR[Count]);
+
+    return Pgt;
+}
+/* End Function:RV32P_Gen::Pgt_Gen *******************************************/
 
 /* Function:RV32P_Gen::Raw_Pgt ************************************************
 Description : Query the size of page table given the parameters.

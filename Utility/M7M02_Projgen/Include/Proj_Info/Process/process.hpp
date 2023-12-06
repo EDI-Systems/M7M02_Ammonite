@@ -92,6 +92,7 @@ public:
     /* Cpt/Pgt */
     std::unique_ptr<class Captbl> Captbl;
     std::unique_ptr<class Pgtbl> Pgtbl;
+    std::unique_ptr<std::vector<ptr_t>> Rawtbl;
 
     /* Threads */
     std::vector<std::unique_ptr<class Thread>> Thread;

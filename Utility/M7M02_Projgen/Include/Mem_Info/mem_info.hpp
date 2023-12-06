@@ -91,7 +91,7 @@ public:
 
     /* Alignment - to be decided by the architecture - related generator, in real granularity */
     ptr_t Align;
-    /* Memory map - to be used by the memory allocator */
+    /* Memory map - only populated for physical memory declarations, to be used by the memory allocator */
     std::vector<bool> Map;
     /* Memory map - identifies sharing relationships in individual projects */
     ptr_t Is_Shared;

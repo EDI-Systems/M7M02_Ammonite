@@ -903,6 +903,7 @@ Input       : rvm_cid_t Cap_Cpt - The capability table that contains the newly
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
+#if(RVM_REGION_FIXED==0U)
 rvm_ret_t RVM_Pgt_Crt(rvm_cid_t Cap_Cpt,
                       rvm_cid_t Cap_Kom,
                       rvm_cid_t Cap_Pgt, 
@@ -919,6 +920,7 @@ rvm_ret_t RVM_Pgt_Crt(rvm_cid_t Cap_Cpt,
                       Raddr, 
                       Base|Is_Top);
 }
+#endif
 /* End Function:RVM_Pgt_Crt **************************************************/
 
 /* Function:RVM_Pgt_Del *******************************************************
@@ -932,6 +934,7 @@ Input       : rvm_cid_t Cap_Cpt - The capability to the captbl that may contain
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
+#if(RVM_REGION_FIXED==0U)
 rvm_ret_t RVM_Pgt_Del(rvm_cid_t Cap_Cpt,
                       rvm_cid_t Cap_Pgt)
 {
@@ -941,6 +944,7 @@ rvm_ret_t RVM_Pgt_Del(rvm_cid_t Cap_Cpt,
                       0U,
                       0U);
 }
+#endif
 /* End Function:RVM_Pgt_Del **************************************************/
 
 /* Function:RVM_Pgt_Add *******************************************************
@@ -969,6 +973,7 @@ Input       : rvm_cid_t Cap_Pgt_Dst - The capability to the destination page
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
+#if(RVM_REGION_FIXED==0U)
 rvm_ret_t RVM_Pgt_Add(rvm_cid_t Cap_Pgt_Dst,
                       rvm_ptr_t Pos_Dst,
                       rvm_ptr_t Flag_Dst,
@@ -982,6 +987,7 @@ rvm_ret_t RVM_Pgt_Add(rvm_cid_t Cap_Pgt_Dst,
                       RVM_PARAM_D1(Cap_Pgt_Src)|RVM_PARAM_D0(Pos_Src),
                       Index);
 }
+#endif
 /* End Function:RVM_Pgt_Add **************************************************/
 
 /* Function:RVM_Pgt_Rem *******************************************************
@@ -993,6 +999,7 @@ Input       : rvm_cid_t Cap_Pgt - The capability to the page table.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
+#if(RVM_REGION_FIXED==0U)
 rvm_ret_t RVM_Pgt_Rem(rvm_cid_t Cap_Pgt,
                       rvm_ptr_t Pos)
 {
@@ -1002,6 +1009,7 @@ rvm_ret_t RVM_Pgt_Rem(rvm_cid_t Cap_Pgt,
                       Pos,
                       0U);
 }
+#endif
 /* End Function:RVM_Pgt_Rem **************************************************/
 
 /* Function:RVM_Pgt_Con *******************************************************
@@ -1018,6 +1026,7 @@ Input       : rvm_cid_t Cap_Pgt_Parent - The capability to the parent page
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
+#if(RVM_REGION_FIXED==0U)
 rvm_ret_t RVM_Pgt_Con(rvm_cid_t Cap_Pgt_Parent,
                       rvm_ptr_t Pos,
                       rvm_cid_t Cap_Pgt_Child,
@@ -1029,6 +1038,7 @@ rvm_ret_t RVM_Pgt_Con(rvm_cid_t Cap_Pgt_Parent,
                       Pos,
                       Flag_Child);
 }
+#endif
 /* End Function:RVM_Pgt_Con **************************************************/
 
 /* Function:RVM_Pgt_Des *******************************************************
@@ -1045,6 +1055,7 @@ Input       : rvm_cid_t Cap_Pgt_Parent - The capability to the parent page
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
+#if(RVM_REGION_FIXED==0U)
 rvm_ret_t RVM_Pgt_Des(rvm_cid_t Cap_Pgt_Parent,
                       rvm_ptr_t Pos,
                       rvm_cid_t Cap_Pgt_Child)
@@ -1055,6 +1066,7 @@ rvm_ret_t RVM_Pgt_Des(rvm_cid_t Cap_Pgt_Parent,
                       Pos,
                       Cap_Pgt_Child);
 }
+#endif
 /* End Function:RVM_Pgt_Des **************************************************/
 
 /* Function:RVM_Prc_Crt *******************************************************
@@ -1072,9 +1084,12 @@ Input       : rvm_cid_t Cap_Cpt_Crt - The capability to the capability table to
               rvm_cid_t Cap_Pgt - The capability to the page table to use for
                                   this process.
                                   2-Level.
+              rme_ptr_t Raw_Pgt - Alternate user-supplied page table physical
+                                  address.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
+#if(RVM_REGION_FIXED==0U)
 rvm_ret_t RVM_Prc_Crt(rvm_cid_t Cap_Cpt_Crt,
                       rvm_cid_t Cap_Prc,
                       rvm_cid_t Cap_Cpt,
@@ -1086,6 +1101,19 @@ rvm_ret_t RVM_Prc_Crt(rvm_cid_t Cap_Cpt_Crt,
                       Cap_Cpt,
                       Cap_Pgt);
 }
+#else
+rvm_ret_t RVM_Prc_Crt(rvm_cid_t Cap_Cpt_Crt,
+                      rvm_cid_t Cap_Prc,
+                      rvm_cid_t Cap_Cpt,
+                      rvm_ptr_t Raw_Pgt)
+{
+    return RVM_CAP_OP(RVM_SVC_PRC_CRT,
+                      Cap_Cpt_Crt,
+                      Cap_Prc,
+                      Cap_Cpt,
+                      Raw_Pgt);
+}
+#endif
 /* End Function:RVM_Prc_Crt **************************************************/
 
 /* Function:RVM_Prc_Del *******************************************************
@@ -1137,9 +1165,12 @@ Input       : rvm_cid_t Cap_Prc - The capability to the process that have been
               rvm_cid_t Cap_Pgt - The capability to the page table to use for
                                   this process.
                                   2-Level.
+              rme_ptr_t Raw_Pgt - Alternate user-supplied page table physical
+                                  address.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
+#if(RVM_REGION_FIXED==0U)
 rvm_ret_t RVM_Prc_Pgt(rvm_cid_t Cap_Prc,
                       rvm_cid_t Cap_Pgt)
 {
@@ -1149,6 +1180,17 @@ rvm_ret_t RVM_Prc_Pgt(rvm_cid_t Cap_Prc,
                       Cap_Pgt,
                       0U);
 }
+#else
+rvm_ret_t RVM_Prc_Pgt(rvm_cid_t Cap_Prc,
+                      rvm_ptr_t Raw_Pgt)
+{
+    return RVM_CAP_OP(RVM_SVC_PRC_PGT,
+                      0,
+                      Cap_Prc,
+                      Raw_Pgt,
+                      0U);
+}
+#endif
 /* End Function:RVM_Prc_Pgt **************************************************/
 
 /* Function:RVM_Thd_Crt *******************************************************

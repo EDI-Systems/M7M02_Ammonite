@@ -4,6 +4,7 @@
     <Version>1.0</Version>
 	<Assert_Correct>No</Assert_Correct>
 	<Debug_Print>Yes</Debug_Print>
+	<Region_Fixed>Yes</Region_Fixed>
 	<Buildsystem>Makefile</Buildsystem>
 	<Workspace_Output>./</Workspace_Output>
 	<Workspace_Overwrite>No</Workspace_Overwrite>
@@ -257,7 +258,7 @@
                     <Name>Main_Code</Name>
                     <Base>Auto</Base>
                     <Size>0x10000</Size>
-                    <Align>Auto</Align>
+                    <Align>16</Align>
                     <Type>Code</Type>
                     <Attribute>RXBCS</Attribute>
                 </M0>
@@ -279,10 +280,6 @@
                 </M2>
             </Memory>
             <Shmem>
-                <S0>
-                    <Name>Shared1</Name>
-                    <Attribute>RWBCS</Attribute>
-                </S0>
             </Shmem>
             <Send>
                 <S0>

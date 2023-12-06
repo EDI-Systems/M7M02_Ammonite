@@ -61,6 +61,7 @@ struct RVM_Meta_Cpt_Crt_Struct
     rvm_ptr_t Size;
 };
 
+#if(RVM_REGION_FIXED==0U)
 /* Page table creation database entry */
 struct RVM_Meta_Pgt_Crt_Struct
 {
@@ -80,6 +81,15 @@ struct RVM_Meta_Prc_Crt_Struct
     rvm_cid_t Cpt;
     rvm_cid_t Pgt;
 };
+#else
+struct RVM_Meta_Prc_Crt_Struct
+{
+    rvm_cid_t Main;
+    rvm_cid_t Slot;
+    rvm_cid_t Cpt;
+    rvm_ptr_t Raw;
+};
+#endif
 
 /* Thread creation database entry */
 struct RVM_Meta_Thd_Crt_Struct
@@ -134,6 +144,7 @@ struct RVM_Meta_Cpt_Kfn_Struct
     rvm_ptr_t End;
 };
 
+#if(RVM_REGION_FIXED==0U)
 /* Page table construct database entry */
 struct RVM_Meta_Pgt_Con_Struct
 {
@@ -151,6 +162,7 @@ struct RVM_Meta_Pgt_Add_Struct
     rvm_ptr_t Pos_Src;
     rvm_ptr_t Index;
 };
+#endif
 
 /* Thread initialization database entry */
 struct RVM_Meta_Thd_Init_Struct
@@ -222,6 +234,7 @@ EXTERN struct RVM_Meta_Cpt_Init_Struct RVM_Meta_Cpt_Init[];
 EXTERN struct RVM_Meta_Cpt_Kfn_Struct RVM_Meta_Cpt_Kfn[];
 #endif
 
+#if(RVM_REGION_FIXED==0U)
 /* Page table */
 EXTERN struct RVM_Meta_Main_Struct RVM_Meta_Pgt_Main[];
 EXTERN struct RVM_Meta_Pgt_Crt_Struct RVM_Meta_Pgt_Crt[];
@@ -229,6 +242,7 @@ EXTERN struct RVM_Meta_Pgt_Crt_Struct RVM_Meta_Pgt_Crt[];
 EXTERN struct RVM_Meta_Pgt_Con_Struct RVM_Meta_Pgt_Con[];
 #endif
 EXTERN struct RVM_Meta_Pgt_Add_Struct RVM_Meta_Pgt_Add[];
+#endif
 
 /* Process */
 EXTERN struct RVM_Meta_Main_Struct RVM_Meta_Prc_Main[];
@@ -266,7 +280,9 @@ static rvm_ptr_t RVM_Boot_Main_Crt(const struct RVM_Meta_Main_Struct* Meta,
 static void RVM_Boot_Vep_Crt(void);
 #endif
 static void RVM_Boot_Cpt_Crt(void);
+#if(RVM_REGION_FIXED==0U)
 static void RVM_Boot_Pgt_Crt(void);
+#endif
 static void RVM_Boot_Prc_Crt(void);
 static void RVM_Boot_Thd_Crt(void);
 #if(RVM_BOOT_INV_CRT_NUM!=0U)
@@ -280,7 +296,9 @@ static void RVM_Boot_Rcv_Crt(void);
 #if(RVM_BOOT_VCAP_INIT_NUM!=0U)
 static void RVM_Boot_Vcap_Init(void);
 #endif
+#if(RVM_REGION_FIXED==0U)
 static void RVM_Boot_Pgt_Init(void);
+#endif
 static void RVM_Boot_Cpt_Init(void);
 static void RVM_Boot_Thd_Init(void);
 #if(RVM_BOOT_INV_INIT_NUM!=0U)

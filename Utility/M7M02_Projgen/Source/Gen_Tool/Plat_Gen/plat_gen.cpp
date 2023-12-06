@@ -68,6 +68,74 @@ Return      : None.
 }
 /* End Function:Plat_Gen::Plat_Gen *******************************************/
 
+/* Function:Plat_Gen::Pow2_Align **********************************************
+Description : Get the power-of-2 alignment status for a memory address.
+Input       : ptr_t Base - The address.
+Output      : None.
+Return      : ptr_t - The maximum alignment order.
+******************************************************************************/
+ptr_t Plat_Gen::Pow2_Align(ptr_t Base)
+{
+    ptr_t Align;
+
+    for(Align=0;Align<this->Plat->Wordlength;Align++)
+    {
+        if(((Base>>Align)&0x01)!=0)
+            break;
+    }
+
+    return Align;
+}
+/* End Function:Plat_Gen::Pow2_Align *****************************************/
+
+/* Function:Plat_Gen::Pow2_Contain ********************************************
+Description : Get the power-of-2 containment status for a memory size.
+Input       : ptr_t Base - The address.
+Output      : None.
+Return      : ptr_t - The maximum containable order.
+******************************************************************************/
+ptr_t Plat_Gen::Pow2_Contain(ptr_t Size)
+{
+    ptr_t Contain;
+
+    for(Contain=0;Contain<this->Plat->Wordlength;Contain++)
+    {
+        if(Size<POW2(Contain))
+            break;
+    }
+
+    return Contain-1;
+}
+/* End Function:Plat_Gen::Pow2_Contain ***************************************/
+
+/* Function:Plat_Gen::Pow2_Box ************************************************
+Description : Get the power-of-2 box this memory range lies in. Useful for some
+              architectures.
+Input       : ptr_t Start - The inclusive start address.
+              ptr_t End - The exclusive start address.
+Output      : None.
+Return      : ptr_t - The total order needed to contain the memory range.
+******************************************************************************/
+ptr_t Plat_Gen::Pow2_Box(ptr_t Start, ptr_t End)
+{
+    ptr_t Total_Order;
+
+    /* Which power-of-2 box is this in? */
+    Total_Order=0;
+    while(1)
+    {
+        /* No bigger than 32 is ever possible */
+        if(Total_Order>=this->Plat->Wordlength)
+            break;
+        if(End<=(ROUND_DOWN_POW2(Start, Total_Order)+POW2(Total_Order)))
+            break;
+        Total_Order++;
+    }
+
+    return Total_Order;
+}
+/* End Function:Plat_Gen::Pow2_Box *******************************************/
+
 /* Function:Plat_Gen::Size_Cpt ************************************************
 Description : Query the size of capability table given the number of slots.
 Input       : ptr_t Slot - The number of slots.

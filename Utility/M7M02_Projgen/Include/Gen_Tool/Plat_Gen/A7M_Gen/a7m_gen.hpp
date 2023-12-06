@@ -17,6 +17,16 @@ namespace RVM_GEN
 #define A7M_END_LITTLE                          (0)
 #define A7M_END_BIG                             (1)
 
+/* MPU flags */
+#define A7M_RBAR_VALID                          POW2(4)
+#define A7M_RASR_XN                             POW2(28)
+#define A7M_RASR_C                              POW2(17)
+#define A7M_RASR_B                              POW2(16)
+#define A7M_RASR_RO                             (2<<24)
+#define A7M_RASR_RW                             (3<<24)
+#define A7M_RASR_SIZE(X)                        ((X-1)<<1)
+#define A7M_RASR_ENABLE                         (1)
+
 /* Minimum alignment requirements for A7M - for memory trunks only, not for kernel objects */
 #define A7M_MEM_ALIGN                           (0x20)
 
@@ -58,7 +68,9 @@ public:
 
     virtual ptr_t Mem_Align(ptr_t Base, ptr_t Size, ptr_t Align_Order) final override;
     virtual std::unique_ptr<class Pgtbl> Pgt_Gen(std::vector<std::unique_ptr<class Mem_Info>>& List,
-                                                   class Process* Owner, ptr_t Total_Max, ptr_t& Total_Static) final override;
+                                                 class Process* Owner, ptr_t Total_Max, ptr_t& Total_Static) final override;
+    virtual std::unique_ptr<std::vector<ptr_t>> Pgt_Gen(std::vector<std::unique_ptr<class Mem_Info>>& List,
+                                                        ptr_t& Total_Static) final override;
 
     virtual ptr_t Raw_Pgt(ptr_t Size_Order, ptr_t Is_Top) final override;
     virtual ptr_t Raw_Thread(void) final override;

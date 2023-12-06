@@ -153,7 +153,7 @@ ptr_t A7M_Gen::Mem_Align(ptr_t Base, ptr_t Size, ptr_t Align_Order)
 }
 /* End Function:A7M_Gen::Mem_Align *******************************************/
 
-/* Function:A7M_Gen::Pgt_Total_Order ****************************************
+/* Function:A7M_Gen::Pgt_Total_Order ******************************************
 Description : Get the total order and the start address of the page table.
 Input       : std::vector<std::unique_ptr<class Mem_Info>>& List - The memory block list.
 Output      : ptr_t* Base - The base address of this page table.
@@ -177,20 +177,9 @@ ptr_t A7M_Gen::Pgt_Total_Order(std::vector<std::unique_ptr<class Mem_Info>>& Lis
             End=Mem->Base+Mem->Size;
     }
 
-    /* Which power-of-2 box is this in? - do not shift more than 32 or you get undefined behavior */
-    Total_Order=0;
-    while(1)
-    {
-        /* No bigger than 32 is ever possible */
-        if(Total_Order>=32)
-            break;
-        if(End<=(ROUND_DOWN_POW2(Start, Total_Order)+POW2(Total_Order)))
-            break;
-        Total_Order++;
-    }
-
     /* If the total order less than 8, we wish to extend that to 8, because if we are smaller than
      * this it makes no sense. ARMv7-M MPU only allows subregions for regions more than 256 bytes */
+    Total_Order=this->Pow2_Box(Start, End);
     if(Total_Order<8)
         Total_Order=8;
 
@@ -510,6 +499,145 @@ std::unique_ptr<class Pgtbl> A7M_Gen::Pgt_Gen(std::vector<std::unique_ptr<class 
 }
 /* End Function:A7M::Pgt_Gen *************************************************/
 
+/* Function:A7M_Gen::Pgt_Gen **************************************************
+Description : Construct the raw page table MPU cache for the ARMv7-M port.
+Input       : std::vector<std::unique_ptr<class Mem_Info>>& - The list containing
+                                                              memory segments.
+Output      : ptr_t Total_Static - The total number of static regions used.
+Return      : std::unique_ptr<std::vector<ptr_t>> - The generated content.
+******************************************************************************/
+std::unique_ptr<std::vector<ptr_t>> A7M_Gen::Pgt_Gen(std::vector<std::unique_ptr<class Mem_Info>>& List,
+                                                     ptr_t& Total_Static)
+{
+    std::unique_ptr<std::vector<ptr_t>> Pgt;
+    std::unique_ptr<std::vector<std::unique_ptr<class Mem_Info>>> Info;
+    std::unique_ptr<std::vector<std::unique_ptr<class Mem_Info>>> Left;
+    ptr_t Count;
+    ptr_t Order;
+    ptr_t Contain;
+    ptr_t Base;
+    ptr_t Size;
+    ptr_t Start;
+    ptr_t End;
+    ptr_t Attr;
+    ptr_t SRD;
+    ptr_t RBAR;
+    ptr_t RASR;
+
+    Pgt=std::make_unique<std::vector<ptr_t>>();
+    Info=std::make_unique<std::vector<std::unique_ptr<class Mem_Info>>>();
+
+    /* Copy the memory list */
+    for(std::unique_ptr<class Mem_Info>& Mem:List)
+        Info->push_back(std::make_unique<class Mem_Info>(Mem.get(),Mem->Attr));
+
+    /* The regions have been sorted. Just dump MPU regions at them, until they're empty */
+    Total_Static=0;
+    while(!Info->empty())
+    {
+        /* Choose the smaller order of the base and size */
+        Order=this->Pow2_Align(Info->front()->Base);
+        Contain=this->Pow2_Contain(Info->front()->Size);
+        Attr=Info->front()->Attr&~MEM_STATIC;
+        if(Order>Contain)
+            Order=Contain;
+
+        /* Use as many subregions as possible, 8 subregions, thus +3 */
+        Order+=3;
+        if(Order>this->Plat->Wordlength)
+            Order=this->Plat->Wordlength;
+        /* Subregion size */
+        Size=POW2(Order-3);
+        /* Region base */
+        Base=ROUND_DOWN_POW2(Info->front()->Base, Order);
+        Main::Info("> Mapping pages into MPU fixed raw region base 0x%llX size order %lld.", Base, Order);
+
+        /* Map in as much from the list as possible */
+        SRD=0xFF;
+        for(Count=0;Count<8;Count++)
+        {
+            Start=Base+Size*Count;
+            End=Start+Size;
+            for(std::unique_ptr<class Mem_Info>& Mem:*Info)
+            {
+                if((Mem->Base<=Start)&&((Mem->Base+Mem->Size)>=End)&&((Mem->Attr&~MEM_STATIC)==Attr))
+                {
+                    SRD&=~POW2(Count);
+                    Main::Info("> > Memory page base 0x%0llX size 0x%0llX mapped with attr 0x%0llX.", Start, Size, Mem->Attr);
+                    break;
+                }
+            }
+        }
+
+        /* Generate the MPU pair */
+        RBAR=Base|A7M_RBAR_VALID|Total_Static;
+        RASR=A7M_RASR_ENABLE;
+
+        if((Attr&MEM_WRITE)!=0)
+            RASR|=A7M_RASR_RW;
+        else
+            RASR|=A7M_RASR_RO;
+        if((Attr&MEM_EXECUTE)==0)
+            RASR|=A7M_RASR_XN;
+        if((Attr&MEM_CACHE)!=0)
+            RASR|=A7M_RASR_C;
+        if((Attr&MEM_BUFFER)!=0)
+            RASR|=A7M_RASR_B;
+
+        /* Push to data array */
+        RASR|=A7M_RASR_SIZE(Order);
+        RASR|=SRD<<8;
+        Total_Static++;
+        Pgt->push_back(RBAR);
+        Pgt->push_back(RASR);
+
+        /* Generate leftovers - for each slot that have mapped something,
+         * the mapped portion must be removed from the current list */
+        for(Count=0;Count<8;Count++)
+        {
+            Left=std::make_unique<std::vector<std::unique_ptr<class Mem_Info>>>();
+            Start=Base+Size*Count;
+            End=Start+Size;
+            /* This subregion is not mapped, skip it */
+            if((SRD&POW2(Count))!=0)
+                continue;
+            /* This subregion is mapped. Remove mapped parts */
+            for(std::unique_ptr<class Mem_Info>& Mem:*Info)
+            {
+                /* Not mapped, keep it */
+                if(((Mem->Base+Mem->Size)<=Start)||(Mem->Base>=End)||(((Mem->Attr&~MEM_STATIC)!=Attr)))
+                    Left->push_back(std::make_unique<class Mem_Info>(Mem.get(),Mem->Attr));
+                /* This memory segment is mapped. Remove mapped parts */
+                else
+                {
+                    if(Mem->Base<Start)
+                    {
+                        Left->push_back(std::make_unique<class Mem_Info>("",Mem->Base,Start-Mem->Base,Mem->Type,Mem->Attr));
+                        Main::Info("> > Residual memory base 0x%0llX size 0x%0llX.",Mem->Base,Start-Mem->Base);
+                    }
+                    if((Mem->Base+Mem->Size)>End)
+                    {
+                        Left->push_back(std::make_unique<class Mem_Info>("",End,Mem->Base+Mem->Size-End,Mem->Type,Mem->Attr));
+                        Main::Info("> > Residual memory base 0x%0llX size 0x%0llX.",End,Mem->Base+Mem->Size-End);
+                    }
+                }
+            }
+            /* Until mapped subregions are all accounted for */
+            Info=std::move(Left);
+        }
+    }
+
+    /* Fill the rest with useless data, but set REGION to avoid overwriting useful entries */
+    for(Count=Total_Static;Count<this->Chip->Region;Count++)
+    {
+        Pgt->push_back(A7M_RBAR_VALID|Count);
+        Pgt->push_back(0);
+    }
+
+    return Pgt;
+}
+/* End Function:A7M::Pgt_Gen *************************************************/
+
 /* Function:A7M_Gen::Raw_Pgt **************************************************
 Description : Query the size of page table given the parameters.
 Input       : ptr_t Num_Order - The number order.
@@ -524,7 +652,7 @@ ptr_t A7M_Gen::Raw_Pgt(ptr_t Num_Order, ptr_t Is_Top)
     else
         return A7M_RAW_PGT_SIZE_NOM(Num_Order);
 }
-/* End Function:A7M_Gen::Size_Pgt ********************************************/
+/* End Function:A7M_Gen::Raw_Pgt *********************************************/
 
 /* Function:A7M_Gen::Raw_Thread ***********************************************
 Description : Query the size of the minimal thread object.

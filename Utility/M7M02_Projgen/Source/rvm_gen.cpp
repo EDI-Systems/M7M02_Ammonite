@@ -1159,9 +1159,9 @@ void Main::Pgt_Alloc(void)
 
             try
             {
-                /* Merge whatever this list has to offer - if two adjacent memory blocks have the
-                 * same attributes, we simply merge them into one block, hopefully reducing MPU
-                 * region number usage. */
+                /* Sort and merge whatever this list has to offer - if two adjacent memory
+                 * blocks have the same attributes, we simply merge them into one block,
+                 * hopefully reducing MPU region number usage. */
                 std::sort(Prc->Memory_All.begin(),Prc->Memory_All.end(),
                 [](std::unique_ptr<class Mem_Info>& Left, std::unique_ptr<class Mem_Info>& Right)
                 {
@@ -1215,21 +1215,38 @@ void Main::Pgt_Alloc(void)
                     Prc->Memory_All.push_back(std::move(Mem));
                 List.clear();
 
-                /* We must reserve at least 2 MPU regions. If this is not the case, we give an warning, cause new static
-                 * regions will now begin to replace each other at the kernel level. The global algorithm is:
-                 * 1 If the incoming one is STATIC:
-                 *   1.1 If there are DYNAMIC regions, replace one of them.
-                 *   1.2 If there are no DYNAMIC regions, replace one of the STATIC regions.
-                 * 2 If the incoming one is DYNAMIC:
-                 *   2.1 If there are no less than 2 DYNAMIC regions, replace one of them.
-                 *   2.2 If there are less than 2 DYNAMIC regions, replace a STATIC region. */
+                /* Decide what generator to use, raw page table or kernel-managed PCTrie */
                 Total_Static=0;
-                Prc->Pgtbl=this->Gen->Plat->Pgt_Gen(Prc->Memory_All, Prc.get(), this->Plat->Wordlength, Total_Static);
-                Prc->Pgtbl->Is_Top=1;
-                if(Total_Static>(this->Chip->Region-2))
+                /* Kernel-managed PCTrie */
+                if(this->Proj->Region_Fixed==0)
                 {
-                    Main::Warning(std::string("A0203: Too many static memory segments declared in process '")+Prc->Name+"', using "+
-                                  std::to_string(Total_Static)+" regions, exceeding limit "+std::to_string(this->Chip->Region-2)+".");
+                    Prc->Pgtbl=this->Gen->Plat->Pgt_Gen(Prc->Memory_All, Prc.get(), this->Plat->Wordlength, Total_Static);
+                    Prc->Pgtbl->Is_Top=1;
+                    /* We must reserve at least 2 MPU regions. If this is not the case, we give an warning,
+                     * cause new static regions will now begin to replace each other at the kernel level.
+                     * The global algorithm is:
+                     * 1 If the incoming one is STATIC:
+                     *   1.1 If there are DYNAMIC regions, replace one of them.
+                     *   1.2 If there are no DYNAMIC regions, replace one of the STATIC regions.
+                     * 2 If the incoming one is DYNAMIC:
+                     *   2.1 If there are no less than 2 DYNAMIC regions, replace one of them.
+                     *   2.2 If there are less than 2 DYNAMIC regions, replace a STATIC region. */
+                    if(Total_Static>(this->Chip->Region-2))
+                    {
+                        Main::Warning(std::string("XXXXX: Too many static memory segments declared in process '")+Prc->Name+"', using "+
+                                      std::to_string(Total_Static)+" regions, exceeding limit "+std::to_string(this->Chip->Region-2)+".");
+                    }
+                }
+                /* Raw page table metadata has no such restrictions and can use all regions for whatever it wants */
+                else
+                {
+                    Prc->Rawtbl=this->Gen->Plat->Pgt_Gen(Prc->Memory_All, Total_Static);
+                    /* But no more than what the chip have */
+                    if(Total_Static>this->Chip->Region)
+                    {
+                        Main::Error(std::string("XXXXX: Too many static memory segments declared in process '")+Prc->Name+"', using "+
+                                    std::to_string(Total_Static)+" regions, exceeding limit "+std::to_string(this->Chip->Region)+".");
+                    }
                 }
             }
             catch(std::exception& Exc)
@@ -1277,7 +1294,9 @@ void Main::Cap_Alloc(void)
         {
             Main::Info(std::string("Allocating global caps for process '")+Prc->Name+"'.");
             Prc->Global_Alloc_Captbl(this->Proj->Monitor->Captbl);
-            Prc->Global_Alloc_Pgtbl(this->Proj->Monitor->Pgtbl,Prc->Pgtbl);
+            /* Only allocate page tables if the mappings are not fixed */
+            if(this->Proj->Region_Fixed==0)
+                Prc->Global_Alloc_Pgtbl(this->Proj->Monitor->Pgtbl,Prc->Pgtbl);
             Prc->Global_Alloc_Process(this->Proj->Monitor->Process);
             Prc->Global_Alloc_Thread(this->Proj->Monitor->Thread);
             Prc->Global_Alloc_Invocation(this->Proj->Monitor->Invocation);
@@ -1355,9 +1374,11 @@ void Main::Kom_Alloc(ptr_t Init_Capsz)
     /* Initial capability table */
     Cap_Front=1;
     Kom_Front=this->Gen->Plat->Size_Cpt(Init_Capsz);
-    /* Initial page table - always order 0, containing all address space */
+    /* Initial page table - always order 0, containing all address space - may
+     * not be present if we use user-managed tables, but the slot is still there */
     Cap_Front++;
-    Kom_Front+=this->Gen->Plat->Size_Pgt(0,1);
+    if(this->Proj->Region_Fixed==0)
+        Kom_Front+=this->Gen->Plat->Size_Pgt(0,1);
     /* Initial RVM process */
     Cap_Front++;
     /* Initial thread */
@@ -1420,16 +1441,19 @@ void Main::Kom_Alloc(ptr_t Init_Capsz)
     for(class Captbl* Cpt:this->Proj->Monitor->Captbl)
         Kom_Front+=this->Gen->Plat->Size_Cpt(Cpt->Size);
 
-    /* Create page tables */
-    Main::Info("> Monitor pgtbl cap front %lld kmem front 0x%llX.", Cap_Front, Kom_Front);
-    this->Proj->Monitor->Pgt_Cap_Front=Cap_Front;
-    this->Proj->Monitor->Pgt_Kom_Front=Kom_Front;
-    /* Capability tables for containing page tables */
-    Cap_Front+=ROUND_DIV(this->Proj->Monitor->Pgtbl.size(),this->Plat->Captbl_Max);
-    Kom_Front+=this->Gen->Plat->Size_Cpt(this->Proj->Monitor->Pgtbl.size());
-    /* Page table themselves */
-    for(class Pgtbl* Pgt:this->Proj->Monitor->Pgtbl)
-        Kom_Front+=this->Gen->Plat->Size_Pgt(Pgt->Num_Order, Pgt->Is_Top);
+    /* Create page tables - only if we use kernel-managed page tables */
+    if(this->Proj->Region_Fixed==0)
+    {
+        Main::Info("> Monitor pgtbl cap front %lld kmem front 0x%llX.", Cap_Front, Kom_Front);
+        this->Proj->Monitor->Pgt_Cap_Front=Cap_Front;
+        this->Proj->Monitor->Pgt_Kom_Front=Kom_Front;
+        /* Capability tables for containing page tables */
+        Cap_Front+=ROUND_DIV(this->Proj->Monitor->Pgtbl.size(),this->Plat->Captbl_Max);
+        Kom_Front+=this->Gen->Plat->Size_Cpt(this->Proj->Monitor->Pgtbl.size());
+        /* Page table themselves */
+        for(class Pgtbl* Pgt:this->Proj->Monitor->Pgtbl)
+            Kom_Front+=this->Gen->Plat->Size_Pgt(Pgt->Num_Order, Pgt->Is_Top);
+    }
 
     /* Create processes */
     Main::Info("> Monitor process cap front %lld kmem front 0x%llX.", Cap_Front, Kom_Front);

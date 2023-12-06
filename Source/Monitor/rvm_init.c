@@ -178,6 +178,7 @@ Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
+#if(RVM_REGION_FIXED==0U)
 void RVM_Boot_Pgt_Crt(void)
 {
     rvm_ptr_t Count;
@@ -220,6 +221,7 @@ void RVM_Boot_Pgt_Crt(void)
 
     RVM_ASSERT(Cur_Addr==RVM_BOOT_INIT_PGT_AFTER);
 }
+#endif
 /* End Function:RVM_Boot_Pgt_Crt *********************************************/
 
 /* Function:RVM_Boot_Prc_Crt **************************************************
@@ -244,10 +246,17 @@ void RVM_Boot_Prc_Crt(void)
     /* Then the processes themselves */
     for(Count=0U;Count<RVM_BOOT_PRC_CRT_NUM;Count++)
     {
+#if(RVM_REGION_FIXED==0U)
         RVM_ASSERT(RVM_Prc_Crt(RVM_Meta_Prc_Crt[Count].Main,
                                RVM_Meta_Prc_Crt[Count].Slot,
                                RVM_Meta_Prc_Crt[Count].Cpt,
                                RVM_Meta_Prc_Crt[Count].Pgt)==0);
+#else
+        RVM_ASSERT(RVM_Prc_Crt(RVM_Meta_Prc_Crt[Count].Main,
+                               RVM_Meta_Prc_Crt[Count].Slot,
+                               RVM_Meta_Prc_Crt[Count].Cpt,
+                               RVM_Meta_Prc_Crt[Count].Raw)==0);
+#endif
         
         RVM_DBG_S("Init: Process '");
         RVM_DBG_I(RVM_Meta_Prc_Crt[Count].Main);
@@ -429,8 +438,10 @@ void RVM_Boot_Kobj_Crt(void)
     RVM_ASSERT(RVM_VIRT_NUM==RVM_BOOT_VCAP_INIT_NUM);
     RVM_ASSERT(RVM_BOOT_INIT_CPT_CRT_NUM!=0U);
     RVM_ASSERT(RVM_BOOT_INIT_CPT_CRT_NUM!=0U);
+#if(RVM_REGION_FIXED==0U)
     RVM_ASSERT(RVM_BOOT_INIT_PGT_CRT_NUM!=0U);
     RVM_ASSERT(RVM_BOOT_INIT_PGT_ADD_NUM!=0U);
+#endif
     RVM_ASSERT(RVM_BOOT_PRC_CRT_NUM!=0U);
     RVM_ASSERT(RVM_BOOT_THD_CRT_NUM!=0U);
     RVM_ASSERT(RVM_BOOT_THD_CRT_NUM==RVM_BOOT_THD_INIT_NUM);
@@ -442,7 +453,9 @@ void RVM_Boot_Kobj_Crt(void)
     RVM_Boot_Vep_Crt();
 #endif
     RVM_Boot_Cpt_Crt();
+#if(RVM_REGION_FIXED==0U)
     RVM_Boot_Pgt_Crt();
+#endif
     RVM_Boot_Prc_Crt();
     RVM_Boot_Thd_Crt();
 #if(RVM_BOOT_INV_CRT_NUM!=0U)
@@ -551,6 +564,7 @@ Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
+#if(RVM_REGION_FIXED==0U)
 void RVM_Boot_Pgt_Init(void)
 {
     rvm_ptr_t Count;
@@ -598,6 +612,7 @@ void RVM_Boot_Pgt_Init(void)
         RVM_DBG_S("].\r\n");
     }
 }
+#endif
 /* End Function:RVM_Boot_Pgt_Init ********************************************/
 
 /* Function:RVM_Boot_Thd_Init *************************************************
@@ -731,7 +746,9 @@ void RVM_Boot_Kobj_Init(void)
     RVM_Boot_Vcap_Init();
 #endif
     RVM_Boot_Cpt_Init();
+#if(RVM_REGION_FIXED==0U)
     RVM_Boot_Pgt_Init();
+#endif
     RVM_Boot_Thd_Init();
 #if(RVM_BOOT_INV_INIT_NUM!=0U)
     RVM_Boot_Inv_Init();

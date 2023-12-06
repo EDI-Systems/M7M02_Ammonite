@@ -52,18 +52,22 @@ __RVM_Entry:
     LA                  a1,__RVM_Data_Start
     LA                  a2,__RVM_Data_End
 __RVM_Data_Load:
+    BEQ                 a1,a2,__RVM_Data_Done
     LW                  t0,(a0)
     SW                  t0,(a1)
     ADDI                a0,a0,4
     ADDI                a1,a1,4
-    BLTU                a1,a2,__RVM_Data_Load
+    J                   __RVM_Data_Load
+__RVM_Data_Done:
     /* Clear bss zero section */
     LA                  a0,__RVM_Zero_Start
     LA                  a1,__RVM_Zero_End
 __RVM_Zero_Clear:
+    BEQ                 a0,a1,__RVM_Zero_Done
     SW                  zero,(a0)
     ADDI                a0,a0,4
-    BLTU                a0,a1,__RVM_Zero_Clear
+    J                   __RVM_Zero_Clear
+__RVM_Zero_Done:
     /* Branch to main function */
     J                   main
 /* End Entry *****************************************************************/
@@ -83,6 +87,14 @@ __RVM_Stub:
     LA                  gp,__RVM_Global     /* Load gp for every thread */
     .option             pop
     LW                  a1,(sp)
+    NOP                                     /* Evade from imprecise faults */
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
     ADDI                sp,sp,-12           /* Align stack to 16 bytes */
     JR                  a1                  /* Branch to the actual entry address */
 /* End Function:__RVM_Stub ***************************************************/

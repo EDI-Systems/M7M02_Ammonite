@@ -38,6 +38,8 @@ public:
     std::string Version;
     /* Whether we assume all asserts to be correct */
     ptr_t Assert_Correct;
+    /* Whether the region mappings are fixed and hence unmodifiable at runtime */
+    ptr_t Region_Fixed;
     /* Whether we enable debug prints */
     ptr_t Debug_Print;
     /* Workspace build system */

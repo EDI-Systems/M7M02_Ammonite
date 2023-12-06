@@ -11,6 +11,7 @@ Description: The configuration file for CH32V307VC. The values listed here shoul
 /* Debugging *****************************************************************/
 #define RVM_ASSERT_CORRECT                              (0U)
 #define RVM_DEBUG_PRINT                                 (1U)
+#define RVM_REGION_FIXED                                (1U)
 /* Kernel configurations - keep the same with the kernel *********************/
 /* The virtual memory start address for the kernel objects */
 #define RVM_KOM_VA_BASE                                 (0x20003000U)

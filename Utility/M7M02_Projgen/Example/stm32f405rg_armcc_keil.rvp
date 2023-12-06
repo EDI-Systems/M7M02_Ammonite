@@ -4,6 +4,7 @@
     <Version>1.0</Version>
 	<Assert_Correct>No</Assert_Correct>
 	<Debug_Print>Yes</Debug_Print>
+	<Region_Fixed>Yes</Region_Fixed>
 	<Buildsystem>Keil</Buildsystem>
 	<Workspace_Output>./</Workspace_Output>
 	<Workspace_Overwrite>No</Workspace_Overwrite>

@@ -23,7 +23,7 @@ Description : The header of MPU-based user level low-level library.
 /* Magic number for virtual machine processes */
 #define RVM_MAGIC_VIRTUAL                           (0x56495254U)
 
-#if(RVM_DEBUG_PRINT==1U)
+#if(RVM_DEBUG_PRINT!=0U)
 /* Debug prints */
 #define RVM_DBG_I(INT)                              RVM_Int_Print((rvm_cnt_t)(INT))
 #define RVM_DBG_H(UINT)                             RVM_Hex_Print((rvm_ptr_t)(UINT))
@@ -367,7 +367,8 @@ __EXTERN__ rvm_ret_t RVM_Kfn_Act(rvm_cid_t Cap_Kfn,
                                  rvm_ptr_t Sub_ID,
                                  rvm_ptr_t Param1,
                                  rvm_ptr_t Param2);
-                                  
+
+#if(RVM_REGION_FIXED==0U)
 /* Page table operations */
 __EXTERN__ rvm_ret_t RVM_Pgt_Crt(rvm_cid_t Cap_Cpt,
                                  rvm_cid_t Cap_Kom,
@@ -394,18 +395,29 @@ __EXTERN__ rvm_ret_t RVM_Pgt_Con(rvm_cid_t Cap_Pgt_Parent,
 __EXTERN__ rvm_ret_t RVM_Pgt_Des(rvm_cid_t Cap_Pgt_Parent,
                                  rvm_ptr_t Pos,
                                  rvm_cid_t Cap_Pgt_Child);
-                                   
+
 /* Process operations */
 __EXTERN__ rvm_ret_t RVM_Prc_Crt(rvm_cid_t Cap_Cpt_Crt,
                                  rvm_cid_t Cap_Prc,
                                  rvm_cid_t Cap_Cpt,
                                  rvm_cid_t Cap_Pgt);
+#else
+__EXTERN__ rvm_ret_t RVM_Prc_Crt(rvm_cid_t Cap_Cpt_Crt,
+                                 rvm_cid_t Cap_Prc,
+                                 rvm_cid_t Cap_Cpt,
+                                 rvm_ptr_t Raw_Pgt);
+#endif
 __EXTERN__ rvm_ret_t RVM_Prc_Del(rvm_cid_t Cap_Cpt,
                                  rvm_cid_t Cap_Prc);
 __EXTERN__ rvm_ret_t RVM_Prc_Cpt(rvm_cid_t Cap_Prc,
                                  rvm_cid_t Cap_Cpt);
+#if(RVM_REGION_FIXED==0U)
 __EXTERN__ rvm_ret_t RVM_Prc_Pgt(rvm_cid_t Cap_Prc,
                                  rvm_cid_t Cap_Pgt);
+#else
+__EXTERN__ rvm_ret_t RVM_Prc_Pgt(rvm_cid_t Cap_Prc,
+                                 rvm_ptr_t Raw_Pgt);
+#endif
                                   
 /* Thread operations */
 __EXTERN__ rvm_ret_t RVM_Thd_Crt(rvm_cid_t Cap_Cpt,

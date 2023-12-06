@@ -70,6 +70,8 @@ Return      : None.
         this->Version=Main::XML_Get_String(Root,"Version","DXXXX","DXXXX");
         /* Assert_Correct */
         this->Assert_Correct=Main::XML_Get_Yesno(Root,"Assert_Correct","DXXXX","DXXXX");
+        /* Region_Fixed */
+        this->Region_Fixed=Main::XML_Get_Yesno(Root,"Region_Fixed","DXXXX","DXXXX");
         /* Debug_Print */
         this->Debug_Print=Main::XML_Get_Yesno(Root,"Debug_Print","DXXXX","DXXXX");
         /* Buildsystem */
