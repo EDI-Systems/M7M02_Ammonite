@@ -716,7 +716,14 @@ void Gen_Tool::Kernel_Boot_Hdr(void)
     Main::Info("> Generating defines.");
     List->push_back("/* Define ********************************************************************/");
 
+    /* Capability table maximum size */
+    List->push_back("/* Capability table maximum capacity */");
+    Gen_Tool::Macro_Int(List, "RME_MAIN_CPT_SIZE", this->Plat->Plat->Captbl_Max, MACRO_ADD);
+    List->push_back("/* Boot-time capability table */");
+    Gen_Tool::Macro_String(List, "RME_BOOT_CPT_OBJ", std::string("RME_")+this->Plat->Name_Upper+"_CPT", MACRO_ADD);
+
     /* Vector capability tables */
+    List->push_back("");
     List->push_back("/* Vector endpoint capability tables */");
     Cap_Front=Kernel->Vct_Cap_Front;
     for(Obj_Cnt=0;Obj_Cnt<Monitor->Vector.size();Obj_Cnt+=this->Plat->Plat->Captbl_Max)
@@ -732,6 +739,27 @@ void Gen_Tool::Kernel_Boot_Hdr(void)
     for(const class Vect_Info* Vct:Monitor->Vector)
     {
         Gen_Tool::Macro_Int(List, Vct->Macro_Global, SID(Obj_Cnt), MACRO_ADD);
+        Obj_Cnt++;
+    }
+
+    /* Receive endpoint capability tables - created by RVM later */
+    List->push_back("");
+    List->push_back("/* Receive endpoint capability tables - created by RVM later */");
+    Cap_Front=Monitor->Rcv_Cap_Front;
+    for(Obj_Cnt=0;Obj_Cnt<Monitor->Receive.size();Obj_Cnt+=this->Plat->Plat->Captbl_Max)
+    {
+        Gen_Tool::Macro_Int(List, std::string("RME_BOOT_SIG_")+MIDS(Obj_Cnt), Cap_Front, MACRO_ADD);
+        Cap_Front++;
+    }
+    
+    /* Receive endpoints - created by RVM later */
+    List->push_back("");
+    List->push_back("/* Receive endpoints - created by RVM later */");
+    Obj_Cnt=0;
+    for(const class Receive* Rcv:Monitor->Receive)
+    {
+        Gen_Tool::Macro_String(List, std::string("RME")+Rcv->Macro_Global.substr(3),
+                               std::string("RME_CID(RME_BOOT_SIG_")+MIDS(Obj_Cnt)+","+SIDS(Obj_Cnt)+"U)", MACRO_ADD);
         Obj_Cnt++;
     }
 
