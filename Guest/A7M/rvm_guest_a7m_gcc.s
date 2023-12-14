@@ -48,7 +48,7 @@ _RVM_Entry:
 _RVM_Data_Load:
     CMP                 R0,R1
     BEQ                 _RVM_Data_Done
-    LDR					R3,[R2]
+    LDR                 R3,[R2]
     STR                 R3,[R0]
     ADD                 R0,#0x04
     ADD                 R2,#0x04
@@ -79,7 +79,7 @@ Return      : None.
     .section            .text._rvm_stub
     .align              3
 
-	.thumb_func
+    .thumb_func
 _RVM_Stub:           
     SUB                 SP,#0x40            /* In order not to destroy the stack */
     MOV                 R0,R5
