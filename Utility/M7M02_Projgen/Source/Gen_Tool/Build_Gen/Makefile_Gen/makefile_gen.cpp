@@ -332,7 +332,7 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
     if(After!="")
     {
         List->push_back("all: mkdir $(COBJS) $(AOBJS) $(TARGET).elf $(TARGET).hex $(TARGET).bin");
-        List->push_back("\t@echo [COPY] \"$(TARGET)_image.c\"");
+        List->push_back("\t@echo \"    COPY    $(TARGET)_image.c\"");
         List->push_back(std::string("\t@")+After);
     }
     else
@@ -344,27 +344,32 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
     List->push_back("");
     List->push_back("# Compile C sources");
     List->push_back("%.o:%.c");
-    List->push_back("\t@echo [CC] \"$<\"");
+    List->push_back("\t@echo \"    CC      $(notdir $<)\"");
     List->push_back("\t@$(CC) -c $(CPU) $(INCS) $(CFLAGS) $(DFLAGS) -MMD -MP -MF \"$(DEP)\" -Wa,-a,-ad,-alms=\"$(LST)\" \"$<\" -o \"$(OBJ)\"");
     List->push_back("");
     List->push_back("# Assemble ASM sources");
     List->push_back("%.o:%.s");
-    List->push_back("\t@echo [AS] \"$<\"");
+    List->push_back("\t@echo \"    AS      $(notdir $<)\"");
     List->push_back("\t@$(AS) -c $(CPU) $(INCS) $(AFLAGS) $(DFLAGS) \"$<\" -o \"$(OBJ)\"");
     List->push_back("");
     List->push_back("# Link ELF target file and print size");
     List->push_back("$(TARGET).elf:$(COBJS) $(AOBJS)");
-    List->push_back("\t@echo [LD] \"$@\"");
+    if(Target_Lower=="Kernel")
+    	List->push_back("\t@echo \"    LD [K]  $(notdir $@)\"");
+    else if(Target_Lower=="Monitor")
+    	List->push_back("\t@echo \"    LD [M]  $(notdir $@)\"");
+    else
+    	List->push_back("\t@echo \"    LD [P]  $(notdir $@)\"");
     List->push_back("\t@$(LD) $(OBJDIR)/*.o $(CPU) $(LFLAGS) $(DFLAGS) -T $(LDSCRIPT) -Wl,-Map=$(MAP) $(LIBS) -o $(OBJ)");
     List->push_back("\t@$(SZ) $(OBJ)");
     List->push_back("");
     List->push_back("# Create hex/bin programming files");
     List->push_back("$(TARGET).hex:$(TARGET).elf");
-    List->push_back("\t@echo [HEX] \"$@\"");
+    List->push_back("\t@echo \"    HEX     $(notdir $@)\"");
     List->push_back("\t@$(HEX) \"$(OBJDIR)/$<\" \"$(OBJDIR)/$@\"");
     List->push_back("");
     List->push_back("$(TARGET).bin:$(TARGET).elf");
-    List->push_back("\t@echo [BIN] \"$@\"");
+    List->push_back("\t@echo \"    BIN     $(notdir $@)\"");
     List->push_back("\t@$(BIN) \"$(OBJDIR)/$<\" \"$(OBJDIR)/$@\"");
     List->push_back("");
     List->push_back("# Clean up");

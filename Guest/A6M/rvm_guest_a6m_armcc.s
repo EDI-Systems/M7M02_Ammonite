@@ -58,7 +58,9 @@ _RVM_Stub               PROC
 ;/* Function:RVM_Inv_Act ******************************************************
 ;Description : Activate an invocation. If the return value is not desired, pass
 ;              0 into R2. This is a default implementation that saves all general
-;              purpose registers.
+;              purpose registers and doesn't save FPU context. If you need a faster
+;              version, consider inline functions; if you need to save FPU contexts,
+;              please DIY.
 ;Input       : R0 - rvm_cid_t Cap_Inv - The capability slot to the invocation stub. 2-Level.
 ;              R1 - rvm_ptr_t Param - The parameter for the call.
 ;Output      : R2 - rvm_ptr_t* Retval - The return value from the call.
@@ -158,7 +160,7 @@ RVM_Svc                 PROC
 ;/* End Function:RVM_Svc *****************************************************/
 
 ;/* Function:RVM_A6M_Svc_Kfn **************************************************
-;Description : Trigger a system call. This is ARMv7-M specific, and does not expand
+;Description : Trigger a system call. This is ARMv6-M specific, and does not expand
 ;              to other architectures, and is only used for kernel functions.
 ;              This specially crafted system call allows up to 8 parameters to
 ;              be passed and returned. This number may be different in your system.

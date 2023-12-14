@@ -50,7 +50,7 @@ __RVM_Entry:
 __RVM_Data_Load:
     CMP                 R0,R1
     BEQ                 __RVM_Data_Done
-    LDR					R3,[R2]
+    LDR                 R3,[R2]
     STR                 R3,[R0]
     ADD                 R0,#0x04
     ADD                 R2,#0x04
