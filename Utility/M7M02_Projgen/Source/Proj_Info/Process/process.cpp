@@ -232,9 +232,14 @@ void Process::Check(void)
 /* End Function:Process::Check ***********************************************/
 
 /* Function:Process::Local_Alloc **********************************************
-Description : Allocate local capability table. If this is a virtual machine,
-              allocation always starts with 2 because the first two slots are
-              reserved for other purposes. The local and global macros are:
+Description : Allocate local capability table. 
+              If this is a native process, the allocation starts with slot 1
+              because the first slot contains the kernel function capability
+              for event sending; if this is a virtual machine, the allocation
+              starts with slot 2 because the first slot contains hypercall
+              send endpoint capability and the second slot contains software
+              interrupt send/receive endpoint capability.
+              The local and global macros are:
 -------------------------------------------------------------------------------
 Type            Local                           Global
 -------------------------------------------------------------------------------

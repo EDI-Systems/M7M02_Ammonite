@@ -55,6 +55,10 @@ Description : The header of microcontroller user-level library.
 /* The error is mapping block related */
 #define RVM_ERR_MAP                 (-7)
 
+/* Filter action */
+#define RVM_FILTER_PASS             (0)
+#define RVM_FILTER_DROP             (-1)
+
 /* Size of bitmap */
 #define RVM_VPRIO_BITMAP            ((RVM_PREEMPT_VPRIO_NUM+RVM_WORD_SIZE-1U)/RVM_WORD_SIZE)
 #define RVM_EVTCAP_BITMAP           ((RVM_VIRT_EVT_NUM+RVM_WORD_SIZE-1U)/RVM_WORD_SIZE)
@@ -303,6 +307,7 @@ static void _RVM_Wheel_Ins(struct RVM_Virt_Struct* Virt,
 static void _RVM_Tim_Snd(struct RVM_Virt_Struct* Virt);
 static rvm_ptr_t _RVM_Flagset_Get(volatile struct RVM_Flag* Set);
 
+/* Hypercalls */
 #if(RVM_DEBUG_PRINT==1U)
 static rvm_ret_t RVM_Hyp_Putchar(rvm_ptr_t Char);
 #endif
@@ -323,6 +328,10 @@ static rvm_ret_t RVM_Hyp_Evt_Del(rvm_ptr_t Evt_Num);
 static rvm_ret_t RVM_Hyp_Evt_Snd(rvm_ptr_t Evt_Num);
 
 static rvm_ret_t RVM_Hyp_Wdg_Clr(void);
+
+/* Vector/event filter */
+EXTERN rvm_ret_t RVM_Vct_Filter(rvm_ptr_t Vct_Num);
+EXTERN rvm_ret_t RVM_Evt_Filter(rvm_ptr_t Evt_Num);
 #endif
 /*****************************************************************************/
 #define __EXTERN__

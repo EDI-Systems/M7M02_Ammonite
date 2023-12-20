@@ -1058,8 +1058,9 @@ void RVM_Vmmd(void)
             /* Process the interrupts in the first group one by one */
             Number=_RVM_Flagset_Get(Vctf_Set0);
             /* Only send if smaller than the number of physical vectors declared */
-            if(Number<RVM_PHYS_VCT_NUM)
-                _RVM_Virt_Vct_Snd(RVM_Phys, Number);
+            if((Number<RVM_PHYS_VCT_NUM)&&
+               (RVM_Vct_Filter(Number)==RVM_FILTER_PASS))
+                _RVM_Virt_Vct_Snd(RVM_Phys,Number);
         }
         Vctf_Set0->Lock=0U;
         
@@ -1075,8 +1076,9 @@ void RVM_Vmmd(void)
             /* Process the interrupts in the first group one by one */
             Number=_RVM_Flagset_Get(Vctf_Set1);
             /* Only send if smaller than the number of physical vectors declared */
-            if(Number<RVM_PHYS_VCT_NUM)
-                _RVM_Virt_Vct_Snd(RVM_Phys, Number);
+            if((Number<RVM_PHYS_VCT_NUM)&&
+               (RVM_Vct_Filter(Number)==RVM_FILTER_PASS))
+                _RVM_Virt_Vct_Snd(RVM_Phys,Number);
         }
         Vctf_Set1->Lock=0U;
         
@@ -1087,8 +1089,9 @@ void RVM_Vmmd(void)
             /* Process the interrupts in the first group one by one */
             Number=_RVM_Flagset_Get(Evtf_Set0);
             /* Only send if smaller than the number of events declared */
-            if(Number<RVM_VIRT_EVT_NUM)
-                _RVM_Virt_Vct_Snd(RVM_Evt, Number);
+            if((Number<RVM_VIRT_EVT_NUM)&&
+               (RVM_Evt_Filter(Number)==RVM_FILTER_PASS))
+                _RVM_Virt_Vct_Snd(RVM_Evt,Number);
         }
         Evtf_Set0->Lock=0U;
         
@@ -1099,8 +1102,9 @@ void RVM_Vmmd(void)
             /* Process the interrupts in the first group one by one */
             Number=_RVM_Flagset_Get(Evtf_Set1);
             /* Only send if smaller than the number of events declared */
-            if(Number<RVM_VIRT_EVT_NUM)
-                _RVM_Virt_Vct_Snd(RVM_Evt, Number);
+            if((Number<RVM_VIRT_EVT_NUM)&&
+               (RVM_Evt_Filter(Number)==RVM_FILTER_PASS))
+                _RVM_Virt_Vct_Snd(RVM_Evt,Number);
         }
         Evtf_Set1->Lock=0U;
         

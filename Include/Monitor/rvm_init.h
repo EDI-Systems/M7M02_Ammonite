@@ -311,6 +311,7 @@ static void RVM_Boot_Kobj_Crt(void);
 static void RVM_Boot_Kobj_Init(void);
 static void RVM_Prc_Init(void);
 
+/* Boot hook */
 EXTERN void RVM_Boot_Pre_Init(void);
 EXTERN void RVM_Boot_Post_Init(void);
 /* Init daemon */

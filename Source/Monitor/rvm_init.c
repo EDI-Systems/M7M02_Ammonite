@@ -483,13 +483,14 @@ void RVM_Boot_Vcap_Init(void)
 
     for(Count=0U;Count<RVM_BOOT_VCAP_INIT_NUM;Count++)
     {
-        /* Setup system call send endpoint at capability table location 0 */
+        /* Setup system call send endpoint at captbl location 0 */
         RVM_ASSERT(RVM_Cpt_Add(RVM_Meta_Vcap_Init[Count].Cpt,
                                0U,
                                RVM_BOOT_INIT_CPT,
                                RVM_BOOT_INIT_VCT,
                                RVM_SIG_FLAG_SND)==0);
         
+        /* Setup software interrupt send/receive endpoint at captbl location 1 */
         RVM_ASSERT(RVM_Cpt_Add(RVM_Meta_Vcap_Init[Count].Cpt,
                                1U,
                                RVM_Meta_Vcap_Init[Count].Vep_Main,

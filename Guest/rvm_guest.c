@@ -1252,7 +1252,7 @@ rvm_ret_t RVM_Sig_Del(rvm_cid_t Cap_Cpt,
 #endif
 /* End Function:RVM_Sig_Del **************************************************/
 
-/* Function:RVM_Sig_Snd ******************************************************
+/* Function:RVM_Sig_Snd *******************************************************
 Description : Try to send to a signal endpoint. This system call can cause
               a potential context switch.
 Input       : rvm_cid_t Cap_Sig - The capability to the signal.

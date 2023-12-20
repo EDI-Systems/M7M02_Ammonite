@@ -988,7 +988,7 @@ void Gen_Tool::Kernel_Hook_Src(void)
     /* Preinitialization of hardware */
     Main::Info("> Generating boot-time pre-initialization stub.");
     Gen_Tool::Func_Head(List, "RME_Boot_Pre_Init",
-                        "Initialize critical hardware before any kernel initialization takes place.",
+                        "Initialize critical hardware before any initialization takes place.",
                         Input, Output, "None.");
     List->push_back("void RME_Boot_Pre_Init(void)");
     List->push_back("{");
@@ -1000,7 +1000,7 @@ void Gen_Tool::Kernel_Hook_Src(void)
     /* Postinitialization of hardware */
     Main::Info("> Generating boot-time post-initialization stub.");
     Gen_Tool::Func_Head(List, "RME_Boot_Post_Init",
-                        "Initialize hardware after all kernel initialization took place.",
+                        "Initialize other hardware after all initialization took place.",
                         Input, Output, "None.");
     List->push_back("void RME_Boot_Post_Init(void)");
     List->push_back("{");
@@ -2278,13 +2278,15 @@ void Gen_Tool::Monitor_Hook_Src(void)
     List->push_back("/* Public Function ***********************************************************/");
     List->push_back("void RVM_Boot_Pre_Init(void);");
     List->push_back("void RVM_Boot_Post_Init(void);");
+    List->push_back("rvm_ret_t RVM_Vct_Filter(rvm_ptr_t Vct_Num);");
+    List->push_back("rvm_ret_t RVM_Evt_Filter(rvm_ptr_t Evt_Num);");
     List->push_back("/* End Public Function *******************************************************/");
     List->push_back("");
 
     /* Preinitialization of hardware */
     Main::Info("> Generating boot-time pre-initialization stub.");
     Gen_Tool::Func_Head(List, "RVM_Boot_Pre_Init",
-                        "Initialize critical hardware before any kernel initialization takes place.",
+                        "Initialize critical hardware before any initialization takes place.",
                         Input, Output, "None.");
     List->push_back("void RVM_Boot_Pre_Init(void)");
     List->push_back("{");
@@ -2296,13 +2298,46 @@ void Gen_Tool::Monitor_Hook_Src(void)
     /* Postinitialization of hardware */
     Main::Info("> Generating boot-time post-initialization stub.");
     Gen_Tool::Func_Head(List, "RVM_Boot_Post_Init",
-                        "Initialize hardware after all kernel initialization took place.",
+                        "Initialize other hardware after all initialization took place.",
                         Input, Output, "None.");
     List->push_back("void RVM_Boot_Post_Init(void)");
     List->push_back("{");
     List->push_back("    /* Add code here */");
     List->push_back("}");
     Gen_Tool::Func_Foot(List, "RVM_Boot_Post_Init");
+    List->push_back("");
+
+    /* Vector activation filter - generate regardless; won't be called when no VMs exist */
+    Main::Info("> Generating vector filter stub.");
+    Input.push_back("rvm_ptr_t Vct_Num - The number of the activated vector.");
+    Gen_Tool::Func_Head(List, "RVM_Vct_Filter",
+                        "Filter all forwarded vector activations before they reach VMs.",
+                        Input, Output,
+                        "rvm_ret_t - If forwarding is needed, return RVM_FILTER_PASS (0);\n"
+                        "                          if not, return RVM_FILTER_DROP (-1).");
+    List->push_back("rvm_ret_t RVM_Vct_Filter(rvm_ptr_t Vct_Num)");
+    List->push_back("{");
+    List->push_back("    /* Add code here */");
+    List->push_back("    return RVM_FILTER_PASS;");
+    List->push_back("}");
+    Gen_Tool::Func_Foot(List, "RVM_Vct_Filter");
+    List->push_back("");
+
+    /* Event activation filter - generate regardless; won't be called when no VMs exist */
+    Main::Info("> Generating event filter stub.");
+    Input.clear();
+    Input.push_back("rvm_ptr_t Evt_Num - The number of the activated event.");
+    Gen_Tool::Func_Head(List, "RVM_Evt_Filter",
+                        "Filter all forwarded event activations before they reach VMs.",
+                        Input, Output,
+                        "rvm_ret_t - If forwarding is needed, return RVM_FILTER_PASS (0);\n"
+                        "                          if not, return RVM_FILTER_DROP (-1).");
+    List->push_back("rvm_ret_t RVM_Evt_Filter(rvm_ptr_t Evt_Num)");
+    List->push_back("{");
+    List->push_back("    /* Add code here */");
+    List->push_back("    return RVM_FILTER_PASS;");
+    List->push_back("}");
+    Gen_Tool::Func_Foot(List, "RVM_Evt_Filter");
     List->push_back("");
     Gen_Tool::Src_Foot(List);
 
