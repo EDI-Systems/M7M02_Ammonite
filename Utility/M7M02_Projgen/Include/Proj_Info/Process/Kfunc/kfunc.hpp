@@ -30,9 +30,9 @@ namespace RVM_GEN
 class Kfunc:public Kobj
 {
 public:
-    /* The starting number of this kernel function */
-    ptr_t Start;
-    /* The ending number of this kernel function */
+    /* The beginning number of this kernel function */
+    ptr_t Begin;
+    /* The ending number of this kernel function - inclusive*/
     ptr_t End;
 
     /* void */ Kfunc(xml_node_t* Root, class Process* Owner);

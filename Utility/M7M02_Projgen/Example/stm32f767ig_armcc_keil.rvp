@@ -302,7 +302,7 @@
             <Kfunc>
                 <K0>
                     <Name>Int_Local_Mod</Name>
-                    <Start>0xF100</Start>
+                    <Begin>0xF100</Begin>
                     <End>0xF100</End>
                 </K0>
             </Kfunc>

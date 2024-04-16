@@ -47,8 +47,8 @@ Kobj(Owner)
         /* Name */
         this->Name=Main::XML_Get_String(Root,"Name","DXXXX","DXXXX");
         Name_Gen(this);
-        /* Start */
-        this->Start=Main::XML_Get_Number(Root,"Start","DXXXX","DXXXX");
+        /* Begin */
+        this->Begin=Main::XML_Get_Number(Root,"Begin","DXXXX","DXXXX");
         /* End */
         this->End=Main::XML_Get_Number(Root,"End","DXXXX","DXXXX");
     }

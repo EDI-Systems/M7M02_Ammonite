@@ -110,8 +110,8 @@ ptr_t A7M_Gen::Mem_Align(ptr_t Base, ptr_t Size, ptr_t Align_Order)
         if((Size%A7M_MEM_ALIGN)!=0)
             Main::Error("XXXXX: Memory size not properly aligned.");
 
-        /* This memory's start address is not designated yet. Decide its size after
-         * alignment and calculate its start address alignment granularity */
+        /* This memory's begin address is not designated yet. Decide its size after
+         * alignment and calculate its begin address alignment granularity */
         if(Base==MEM_AUTO)
         {
         	/* Compute maximum alignment that make sense for this memory trunk */
@@ -154,32 +154,32 @@ ptr_t A7M_Gen::Mem_Align(ptr_t Base, ptr_t Size, ptr_t Align_Order)
 /* End Function:A7M_Gen::Mem_Align *******************************************/
 
 /* Function:A7M_Gen::Pgt_Total_Order ******************************************
-Description : Get the total order and the start address of the page table.
+Description : Get the total order and the begin address of the page table.
 Input       : std::vector<std::unique_ptr<class Mem_Info>>& List - The memory block list.
 Output      : ptr_t* Base - The base address of this page table.
 Return      : ptr_t - The total order of the page table.
 ******************************************************************************/
 ptr_t A7M_Gen::Pgt_Total_Order(std::vector<std::unique_ptr<class Mem_Info>>& List, ptr_t* Base)
 {
-    /* Start is inclusive, end is exclusive */
-    ptr_t Start;
+    /* Begin is inclusive, end is exclusive */
+    ptr_t Begin;
     ptr_t End;
     ptr_t Total_Order;
 
     /* What ranges does these stuff cover? */
-    Start=(ptr_t)(-1ULL);
+    Begin=(ptr_t)(-1ULL);
     End=0;
     for(std::unique_ptr<class Mem_Info>& Mem:List)
     {
-        if(Start>Mem->Base)
-            Start=Mem->Base;
+        if(Begin>Mem->Base)
+            Begin=Mem->Base;
         if(End<(Mem->Base+Mem->Size))
             End=Mem->Base+Mem->Size;
     }
 
     /* If the total order less than 8, we wish to extend that to 8, because if we are smaller than
      * this it makes no sense. ARMv7-M MPU only allows subregions for regions more than 256 bytes */
-    Total_Order=this->Pow2_Box(Start, End);
+    Total_Order=this->Pow2_Box(Begin, End);
     if(Total_Order<8)
         Total_Order=8;
 
@@ -187,7 +187,7 @@ ptr_t A7M_Gen::Pgt_Total_Order(std::vector<std::unique_ptr<class Mem_Info>>& Lis
     if(Total_Order==32)
         *Base=0;
     else
-        *Base=ROUND_DOWN_POW2(Start, Total_Order);
+        *Base=ROUND_DOWN_POW2(Begin, Total_Order);
 
     return Total_Order;
 }
@@ -197,7 +197,7 @@ ptr_t A7M_Gen::Pgt_Total_Order(std::vector<std::unique_ptr<class Mem_Info>>& Lis
 Description : Get the number order of the page table.
 Input       : std::vector<std::unique_ptr<class Mem_Info>>& List - The memory block list.
               ptr_t Total_Order - The total order of the page table.
-              ptr_t Base - The start address of the page table.
+              ptr_t Base - The begin address of the page table.
 Output      : None.
 Return      : ptr_t - The number order of the page table.
 ******************************************************************************/
@@ -215,7 +215,7 @@ ptr_t A7M_Gen::Pgt_Num_Order(std::vector<std::unique_ptr<class Mem_Info>>& List,
     /* Can the memory segments get fully mapped in? If yes, there are two conditions
      * that must be met:
      * 1. There cannot be different access permissions in these memory segments.
-     * 2. The memory start address and the size must be fully divisible by POW2(Total_Order-3). */
+     * 2. The memory begin address and the size must be fully divisible by POW2(Total_Order-3). */
     Uniform=1;
     Aligned=1;
     for(std::unique_ptr<class Mem_Info>& Mem:List)
@@ -466,7 +466,7 @@ std::unique_ptr<class Pgtbl> A7M_Gen::Pgt_Gen(std::vector<std::unique_ptr<class 
     ptr_t Total_Order;
     std::unique_ptr<class Pgtbl> Pgt;
 
-    /* Total order and start address of the page table */
+    /* Total order and begin address of the page table */
     Total_Order=this->Pgt_Total_Order(List, &Base);
     /* See if this will violate the extension limit */
     if(Total_Order>Total_Max)
@@ -517,7 +517,7 @@ std::unique_ptr<std::vector<ptr_t>> A7M_Gen::Pgt_Gen(std::vector<std::unique_ptr
     ptr_t Contain;
     ptr_t Base;
     ptr_t Size;
-    ptr_t Start;
+    ptr_t Begin;
     ptr_t End;
     ptr_t Attr;
     ptr_t SRD;
@@ -556,14 +556,14 @@ std::unique_ptr<std::vector<ptr_t>> A7M_Gen::Pgt_Gen(std::vector<std::unique_ptr
         SRD=0xFF;
         for(Count=0;Count<8;Count++)
         {
-            Start=Base+Size*Count;
-            End=Start+Size;
+            Begin=Base+Size*Count;
+            End=Begin+Size;
             for(std::unique_ptr<class Mem_Info>& Mem:*Info)
             {
-                if((Mem->Base<=Start)&&((Mem->Base+Mem->Size)>=End)&&((Mem->Attr&~MEM_STATIC)==Attr))
+                if((Mem->Base<=Begin)&&((Mem->Base+Mem->Size)>=End)&&((Mem->Attr&~MEM_STATIC)==Attr))
                 {
                     SRD&=~POW2(Count);
-                    Main::Info("> > Memory page base 0x%0llX size 0x%0llX mapped with attr 0x%0llX.", Start, Size, Mem->Attr);
+                    Main::Info("> > Memory page base 0x%0llX size 0x%0llX mapped with attr 0x%0llX.", Begin, Size, Mem->Attr);
                     break;
                 }
             }
@@ -596,8 +596,8 @@ std::unique_ptr<std::vector<ptr_t>> A7M_Gen::Pgt_Gen(std::vector<std::unique_ptr
         for(Count=0;Count<8;Count++)
         {
             Left=std::make_unique<std::vector<std::unique_ptr<class Mem_Info>>>();
-            Start=Base+Size*Count;
-            End=Start+Size;
+            Begin=Base+Size*Count;
+            End=Begin+Size;
             /* This subregion is not mapped, skip it */
             if((SRD&POW2(Count))!=0)
                 continue;
@@ -605,15 +605,15 @@ std::unique_ptr<std::vector<ptr_t>> A7M_Gen::Pgt_Gen(std::vector<std::unique_ptr
             for(std::unique_ptr<class Mem_Info>& Mem:*Info)
             {
                 /* Not mapped, keep it */
-                if(((Mem->Base+Mem->Size)<=Start)||(Mem->Base>=End)||(((Mem->Attr&~MEM_STATIC)!=Attr)))
+                if(((Mem->Base+Mem->Size)<=Begin)||(Mem->Base>=End)||(((Mem->Attr&~MEM_STATIC)!=Attr)))
                     Left->push_back(std::make_unique<class Mem_Info>(Mem.get(),Mem->Attr));
                 /* This memory segment is mapped. Remove mapped parts */
                 else
                 {
-                    if(Mem->Base<Start)
+                    if(Mem->Base<Begin)
                     {
-                        Left->push_back(std::make_unique<class Mem_Info>("",Mem->Base,Start-Mem->Base,Mem->Type,Mem->Attr));
-                        Main::Info("> > Residual memory base 0x%0llX size 0x%0llX.",Mem->Base,Start-Mem->Base);
+                        Left->push_back(std::make_unique<class Mem_Info>("",Mem->Base,Begin-Mem->Base,Mem->Type,Mem->Attr));
+                        Main::Info("> > Residual memory base 0x%0llX size 0x%0llX.",Mem->Base,Begin-Mem->Base);
                     }
                     if((Mem->Base+Mem->Size)>End)
                     {

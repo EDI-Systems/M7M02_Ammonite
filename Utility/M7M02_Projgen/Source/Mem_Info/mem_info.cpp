@@ -156,7 +156,7 @@ Return      : None.
 /* Function:Mem_Info::Mem_Info ************************************************
 Description : Constructor for memory class.
 Input       : const std::string& Name - The optional memory trunk name.
-              ptr_t Base - The start address.
+              ptr_t Base - The begin address.
               ptr_t Size - The memory trunk size.
               ptr_t Type - The memory type.
               ptr_t Attr - The attributes of this memory block.
@@ -386,7 +386,7 @@ ret_t Mem_Info::Auto_Fit(std::vector<class Mem_Info*>& Map)
         if((Phys->Attr&this->Attr)!=this->Attr)
             continue;
 
-        /* Round start address up, round end address down, to alignment */
+        /* Round begin address up, round end address down, to alignment */
         Phys_Start=ROUND_UP(Phys->Base,this->Align);
         Phys_End=ROUND_DOWN(Phys->Base+Phys->Size,this->Align);
 

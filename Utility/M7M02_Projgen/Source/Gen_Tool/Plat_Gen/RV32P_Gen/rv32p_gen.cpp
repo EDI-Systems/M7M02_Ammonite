@@ -111,8 +111,8 @@ ptr_t RV32P_Gen::Mem_Align(ptr_t Base, ptr_t Size, ptr_t Align_Order)
         if((Size%RV32P_MEM_ALIGN)!=0)
             Main::Error("XXXXX: Memory size not properly aligned.");
 
-        /* This memory's start address is not designated yet. Decide its size after
-         * alignment and calculate its start address alignment granularity */
+        /* This memory's begin address is not designated yet. Decide its size after
+         * alignment and calculate its begin address alignment granularity */
         if(Base==MEM_AUTO)
         {
         	/* Compute maximum alignment that make sense for this memory trunk */
@@ -157,31 +157,31 @@ ptr_t RV32P_Gen::Mem_Align(ptr_t Base, ptr_t Size, ptr_t Align_Order)
 /* End Function:RV32P_Gen::Mem_Align *******************************************/
 
 /* Function:RV32P_Gen::Pgt_Total_Order ****************************************
-Description : Get the total order and the start address of the page table.
+Description : Get the total order and the begin address of the page table.
 Input       : std::vector<std::unique_ptr<class Mem_Info>>& List - The memory block list.
 Output      : ptr_t* Base - The base address of this page table.
 Return      : ptr_t - The total order of the page table.
 ******************************************************************************/
 ptr_t RV32P_Gen::Pgt_Total_Order(std::vector<std::unique_ptr<class Mem_Info>>& List, ptr_t* Base)
 {
-    /* Start is inclusive, end is exclusive */
-    ptr_t Start;
+    /* Begin is inclusive, end is exclusive */
+    ptr_t Begin;
     ptr_t End;
     ptr_t Total_Order;
 
     /* What ranges does these stuff cover? */
-    Start=(ptr_t)(-1ULL);
+    Begin=(ptr_t)(-1ULL);
     End=0;
     for(std::unique_ptr<class Mem_Info>& Mem:List)
     {
-        if(Start>Mem->Base)
-            Start=Mem->Base;
+        if(Begin>Mem->Base)
+            Begin=Mem->Base;
         if(End<(Mem->Base+Mem->Size))
             End=Mem->Base+Mem->Size;
     }
 
     /* If the total order less than 4, we wish to extend that to 4 */
-    Total_Order=this->Pow2_Box(Start, End);
+    Total_Order=this->Pow2_Box(Begin, End);
     if(Total_Order<4)
         Total_Order=4;
 
@@ -189,7 +189,7 @@ ptr_t RV32P_Gen::Pgt_Total_Order(std::vector<std::unique_ptr<class Mem_Info>>& L
     if(Total_Order==32)
         *Base=0;
     else
-        *Base=ROUND_DOWN_POW2(Start, Total_Order);
+        *Base=ROUND_DOWN_POW2(Begin, Total_Order);
 
     return Total_Order;
 }
@@ -199,7 +199,7 @@ ptr_t RV32P_Gen::Pgt_Total_Order(std::vector<std::unique_ptr<class Mem_Info>>& L
 Description : Get the number order of the page table.
 Input       : std::vector<std::unique_ptr<class Mem_Info>>& List - The memory block list.
               ptr_t Total_Order - The total order of the page table.
-              ptr_t Base - The start address of the page table.
+              ptr_t Base - The begin address of the page table.
 Output      : None.
 Return      : ptr_t - The number order of the page table.
 ******************************************************************************/
@@ -359,7 +359,7 @@ std::unique_ptr<class Pgtbl> RV32P_Gen::Pgt_Gen(std::vector<std::unique_ptr<clas
     ptr_t Total_Order;
     std::unique_ptr<class Pgtbl> Pgt;
 
-    /* Total order and start address of the page table */
+    /* Total order and begin address of the page table */
     Total_Order=this->Pgt_Total_Order(List, &Base);
     /* See if this will violate the extension limit */
     if(Total_Order>Total_Max)
@@ -416,7 +416,7 @@ std::unique_ptr<std::vector<ptr_t>> RV32P_Gen::Pgt_Gen(std::vector<std::unique_p
         /* Make use of TOR. Won't be able to fit this into NAPOT */
         if((Order<Contain)||(Mem->Size!=POW2(Contain)))
         {
-            Main::Info("> Mapping pages into PMP fixed raw TOR range start 0x%llX end 0x%llX.", Mem->Base, Mem->Base+Mem->Size);
+            Main::Info("> Mapping pages into PMP fixed raw TOR range begin 0x%llX end 0x%llX.", Mem->Base, Mem->Base+Mem->Size);
             PMPCFG[Total_Static]=0;
             PMPADDR[Total_Static]=Mem->Base>>2;
             PMPCFG[Total_Static+1]=RV32P_PMPCFG_TOR|(RV32P_PMPCFG_ATTR&Mem->Attr);

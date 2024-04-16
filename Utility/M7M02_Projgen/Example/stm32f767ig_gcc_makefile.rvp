@@ -164,7 +164,7 @@
             <Kfunc>
                 <K0>
                     <Name>Kfunc1</Name>
-                    <Start>0x60</Start>
+                    <Begin>0x60</Begin>
                     <End>0x90</End>
                 </K0>
             </Kfunc>
@@ -240,7 +240,7 @@
             <Kfunc>
                 <K0>
                     <Name>Kfunc1</Name>
-                    <Start>0x125</Start>
+                    <Begin>0x125</Begin>
                     <End>0x126</End>
                 </K0>
             </Kfunc>
@@ -303,7 +303,7 @@
             <Kfunc>
                 <K0>
                     <Name>Kfunc1</Name>
-                    <Start>0x100</Start>
+                    <Begin>0x100</Begin>
                     <End>0x200</End>
                 </K0>
             </Kfunc>

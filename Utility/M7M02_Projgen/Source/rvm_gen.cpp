@@ -742,7 +742,7 @@ void Main::Setup(void)
 /* End Function:Main::Setup **************************************************/
 
 /* Function:Main::Mem_Align ***************************************************
-Description : Align all memories that does not have a fixed start address, and
+Description : Align all memories that does not have a fixed begin address, and
               check all memories that have an address is aligned.
 Input       : None.
 Output      : None.

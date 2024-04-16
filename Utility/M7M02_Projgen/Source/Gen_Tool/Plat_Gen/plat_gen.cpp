@@ -111,12 +111,12 @@ ptr_t Plat_Gen::Pow2_Contain(ptr_t Size)
 /* Function:Plat_Gen::Pow2_Box ************************************************
 Description : Get the power-of-2 box this memory range lies in. Useful for some
               architectures.
-Input       : ptr_t Start - The inclusive start address.
-              ptr_t End - The exclusive start address.
+Input       : ptr_t Begin - The inclusive begin address.
+              ptr_t End - The exclusive end address.
 Output      : None.
 Return      : ptr_t - The total order needed to contain the memory range.
 ******************************************************************************/
-ptr_t Plat_Gen::Pow2_Box(ptr_t Start, ptr_t End)
+ptr_t Plat_Gen::Pow2_Box(ptr_t Begin, ptr_t End)
 {
     ptr_t Total_Order;
 
@@ -127,7 +127,7 @@ ptr_t Plat_Gen::Pow2_Box(ptr_t Start, ptr_t End)
         /* No bigger than 32 is ever possible */
         if(Total_Order>=this->Plat->Wordlength)
             break;
-        if(End<=(ROUND_DOWN_POW2(Start, Total_Order)+POW2(Total_Order)))
+        if(End<=(ROUND_DOWN_POW2(Begin, Total_Order)+POW2(Total_Order)))
             break;
         Total_Order++;
     }

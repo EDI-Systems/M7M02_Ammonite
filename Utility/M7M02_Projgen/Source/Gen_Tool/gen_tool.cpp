@@ -1435,7 +1435,7 @@ ptr_t Gen_Tool::Monitor_Cpt_Init(std::unique_ptr<std::vector<std::string>>& List
             for(const std::unique_ptr<class Kfunc>& Kfn:Prc->Kfunc)
             {
                 List->push_back(std::string("{")+Prc->Captbl->Macro_Global+", "+std::to_string(Kfn->Cid_Local)+"U, 0x"+
-                                Main::Hex(Kfn->Start)+"U, 0x"+Main::Hex(Kfn->End)+"U},");
+                                Main::Hex(Kfn->Begin)+"U, 0x"+Main::Hex(Kfn->End)+"U},");
                 Total++;
             }
         }

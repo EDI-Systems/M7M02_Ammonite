@@ -108,8 +108,8 @@ Return      : None.
 
 /* Function:Monitor::Mem_Alloc ************************************************
 Description : Allocate the kernel objects and memory for RVM user-level library.
-Input       : ptr_t Code_Start - The code start position for RVM.
-              ptr_t Data_Start - The data start position for RVM.
+Input       : ptr_t Code_Start - The code begin position for RVM.
+              ptr_t Data_Start - The data begin position for RVM.
               ptr_t Kom_Order - The kernel memory order.
 Output      : None.
 Return      : None.
