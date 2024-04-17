@@ -1,0 +1,123 @@
+We choose case IIIC. The trade-off here is good, and when no virtualization is needed we can write microkernel raw applications.
+
+
+Case IA: Single-Context, IRET atomic, kernel-level hypervisor : total = 2 kctxsws, latency = 1kctxsws
+----------------------------------------------------
+HYP   modify PC                                          PREV -HYP(K)-> VM
+
+VM    push rest - ASM
+
+VM    call handler
+
+VM    pop rest - ASM
+
+VM   IRET - modify SP, etc, into place         VM -HYP(K)-> VM
+
+// TCB too large, no native OS support
+
+
+
+Case IB: Single-Context, IRET atomic, user-level hypervisor : total = 4 kctxsws, latency = 2kctxsws
+----------------------------------------------------
+HYP   modify PC                                          PREV -> HYP(U) -> VM
+
+VM    push rest - ASM
+
+VM    call handler
+
+VM    pop rest - ASM
+
+VM   IRET - modify SP, etc, into place         VM -> HYP(U) -> VM
+
+// Crazy slow for average case, ASM needed
+
+
+
+Case IIA: Single-Context, ENABLE/RET separate, kernel-level hypervisor : total = 1 kctxsws, latency = 1kctxsws
+----------------------------------------------------
+HYP   modify PC                                          PREV -HYP(K)-> VM
+
+VM    push rest - difficult ASM
+
+VM    call handler
+
+VM    pop rest - difficult ASM
+
+VM    ENABLE
+
+          *** CRITICAL REGION ***
+
+VM    RET
+
+// TCB too large, no native OS support, very difficult ASM to write for new architectures
+
+
+
+Case IIB: Single-Context, ENABLE/RET separate, user-level hypervisor : total = 2 kctxsws, latency = 2 kctxsws
+----------------------------------------------------
+HYP   modify PC                                          PREV -> HYP(U) -> VM
+
+VM    push rest - difficult ASM
+
+VM    call handler
+
+VM    pop rest - difficult ASM
+
+VM    ENABLE
+
+          *** CRITICAL REGION ***
+
+VM    RET
+
+// no native OS support, very difficult ASM to write for new architectures
+
+
+Case IIIA: Double-Context, no context sharing : total = 5 kctxsws, latency = 2 kctxsws
+----------------------------------------------------
+HYP   SND                                                 PREV -> HYP(U) -> VMINT
+
+VM   read context                                      VMINT -> VMINT
+
+VM   push rest - C
+
+VM   call handler
+
+VM   pop rest - C
+
+VM   write context                                      VMINT -> VMINT
+
+VM   RCV                                                   VMINT -> VMUSR
+
+// Crazy slow for average case, crazy long latency
+
+
+Case IIIB: Double-Context, context sharing : total = 3 kctxsws, latency = 2 kctxsws
+----------------------------------------------------
+HYP   SND                                                 PREV -> HYP(U) -> VMINT
+
+VM   push rest - C
+
+VM   call handler
+
+VM   pop rest - C
+
+VM   RCV                                                   VMINT -> VMUSR
+
+// Slightly slow for average case, long latency
+
+
+Case IIIC: Double-Context, context sharing, secure tophalf : total = 4 kctxsws, latency = 1 kctxsws
+----------------------------------------------------
+DRV  GET                                                   PREV -> DRV
+
+HYP   SND                                                 DRV -> HYP(U) -> VMINT
+
+VM   push rest - C
+
+VM   call handler
+
+VM   pop rest - C
+
+VM   RCV                                                   VMINT -> VMUSR
+
+// Slow for average case, good latency

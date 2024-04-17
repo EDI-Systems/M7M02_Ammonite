@@ -361,8 +361,8 @@ Input       : rvm_cid_t Cap_Cpt_Dst - The capability to the destination
               rvm_cid_t Cap_Src - The capability in the source capability table
                                   to delegate.
                                   1-Level.
-              rvm_ptr_t Start - The start position of the page table entry.
-              rvm_ptr_t End - The end position of the page table entry.
+              rvm_ptr_t Begin - The begin position of the page table entry.
+              rvm_ptr_t End - The end position of the page table entry, inclusive.
               rvm_ptr_t Flag - The flags for the page table capability.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
@@ -372,7 +372,7 @@ rvm_ret_t RVM_Cpt_Pgt(rvm_cid_t Cap_Cpt_Dst,
                       rvm_cid_t Cap_Dst, 
                       rvm_cid_t Cap_Cpt_Src,
                       rvm_cid_t Cap_Src,
-                      rvm_ptr_t Start,
+                      rvm_ptr_t Begin,
                       rvm_ptr_t End,
                       rvm_ptr_t Flag)
 {
@@ -380,7 +380,7 @@ rvm_ret_t RVM_Cpt_Pgt(rvm_cid_t Cap_Cpt_Dst,
                       0,
                       RVM_PARAM_D1(Cap_Cpt_Dst)|RVM_PARAM_D0(Cap_Dst),
                       RVM_PARAM_D1(Cap_Cpt_Src)|RVM_PARAM_D0(Cap_Src),
-                      RVM_PGT_FLAG(End, Start, Flag));
+                      RVM_PGT_FLAG(End, Begin, Flag));
 }
 #endif
 /* End Function:RVM_Cpt_Pgt **************************************************/
@@ -399,7 +399,7 @@ Input       : rvm_cid_t Cap_Cpt_Dst - The capability to the destination
               rvm_cid_t Cap_Src - The capability in the source capability table
                                   to delegate.
                                   1-Level.
-              rvm_ptr_t Start - The start of the kernel function ID.
+              rvm_ptr_t Begin - The begin of the kernel function ID, inclusive.
               rvm_ptr_t End - The end of the kernel function ID.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
@@ -409,14 +409,14 @@ rvm_ret_t RVM_Cpt_Kfn(rvm_cid_t Cap_Cpt_Dst,
                       rvm_cid_t Cap_Dst, 
                       rvm_cid_t Cap_Cpt_Src,
                       rvm_cid_t Cap_Src,
-                      rvm_ptr_t Start,
+                      rvm_ptr_t Begin,
                       rvm_ptr_t End)
 {
     return RVM_CAP_OP(RVM_SVC_CPT_ADD,
                       0,
                       RVM_PARAM_D1(Cap_Cpt_Dst)|RVM_PARAM_D0(Cap_Dst),
                       RVM_PARAM_D1(Cap_Cpt_Src)|RVM_PARAM_D0(Cap_Src),
-                      RVM_KFN_FLAG(End, Start));
+                      RVM_KFN_FLAG(End, Begin));
 }
 #endif
 /* End Function:RVM_Cpt_Kfn **************************************************/
@@ -435,10 +435,10 @@ Input       : rvm_cid_t Cap_Cpt_Dst - The capability to the destination
               rvm_cid_t Cap_Src - The capability in the source capability table
                                   to delegate.
                                   1-Level.
-              rvm_ptr_t Start - The relative start virtual address of the
+              rvm_ptr_t Begin - The relative begin virtual address of the
                                 kernel memory.
               rvm_ptr_t End - The relative end virtual address of the kernel
-                              memory.
+                              memory, exclusive.
               rvm_ptr_t Flag - The flags for the kernel memory capability.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
@@ -448,15 +448,15 @@ rvm_ret_t RVM_Cpt_Kom(rvm_cid_t Cap_Cpt_Dst,
                       rvm_cid_t Cap_Dst, 
                       rvm_cid_t Cap_Cpt_Src,
                       rvm_cid_t Cap_Src,
-                      rvm_ptr_t Start,
+                      rvm_ptr_t Begin,
                       rvm_ptr_t End,
                       rvm_ptr_t Flag)
 {
     return RVM_CAP_OP(RVM_KOM_SVC(End, RVM_SVC_CPT_ADD),
-                      RVM_KOM_CAPID(Start, Flag),
+                      RVM_KOM_CAPID(Begin, Flag),
                       RVM_PARAM_D1(Cap_Cpt_Dst)|RVM_PARAM_D0(Cap_Dst),
                       RVM_PARAM_D1(Cap_Cpt_Src)|RVM_PARAM_D0(Cap_Src),
-                      RVM_KOM_FLAG(End, Start));
+                      RVM_KOM_FLAG(End, Begin));
 }
 #endif
 /* End Function:RVM_Cpt_Kom **************************************************/

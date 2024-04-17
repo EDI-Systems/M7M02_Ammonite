@@ -28,14 +28,14 @@ Description : The header of guest user level low-level library.
 #define RVM_WORD_SIZE                               RVM_POW2(RVM_WORD_ORDER)
 #define RVM_WORD_BYTE                               (RVM_WORD_SIZE>>3)
 #define RVM_WORD_MASK                               (~(RVM_ALLBITS<<(RVM_WORD_ORDER-1U)))
-/* Apply this mask to keep START to MSB bits */
-#define RVM_MASK_START(START)                       ((RVM_ALLBITS)<<(START))
+/* Apply this mask to keep BEGIN to MSB bits */
+#define RVM_MASK_BEGIN(BEGIN)                       ((RVM_ALLBITS)<<(BEGIN))
 /* Apply this mask to keep LSB to END bits */
 #define RVM_MASK_END(END)                           ((RVM_ALLBITS)>>(RVM_WORD_SIZE-1U-(END)))
-/* Apply this mask to keep START to END bits, START < END */
-#define RVM_MASK(START,END)                         ((RVM_MASK_START(START))&(RVM_MASK_END(END)))
+/* Apply this mask to keep BEGIN to END bits, BEGIN < END */
+#define RVM_MASK(BEGIN,END)                         ((RVM_MASK_BEGIN(BEGIN))&(RVM_MASK_END(END)))
 /* Round the number down & up to a power of 2, or get the power of 2 */
-#define RVM_ROUND_DOWN(NUM,POW)                     ((NUM)&(RVM_MASK_START(POW)))
+#define RVM_ROUND_DOWN(NUM,POW)                     ((NUM)&(RVM_MASK_BEGIN(POW)))
 #define RVM_ROUND_UP(NUM,POW)                       RVM_ROUND_DOWN((NUM)+RVM_MASK_END(POW-1U),POW)
 #define RVM_POW2(POW)                               (((rvm_ptr_t)1U)<<(POW))
 
@@ -385,20 +385,20 @@ EXTERN rvm_ret_t RVM_Cpt_Pgt(rvm_cid_t Cap_Cpt_Dst,
                              rvm_cid_t Cap_Dst, 
                              rvm_cid_t Cap_Cpt_Src,
                              rvm_cid_t Cap_Src,
-                             rvm_ptr_t Start,
+                             rvm_ptr_t Begin,
                              rvm_ptr_t End,
                              rvm_ptr_t Flag);
 EXTERN rvm_ret_t RVM_Cpt_Kfn(rvm_cid_t Cap_Cpt_Dst,
                              rvm_cid_t Cap_Dst, 
                              rvm_cid_t Cap_Cpt_Src,
                              rvm_cid_t Cap_Src,
-                             rvm_ptr_t Start,
+                             rvm_ptr_t Begin,
                              rvm_ptr_t End);
 EXTERN rvm_ret_t RVM_Cpt_Kom(rvm_cid_t Cap_Cpt_Dst,
                              rvm_cid_t Cap_Dst, 
                              rvm_cid_t Cap_Cpt_Src,
                              rvm_cid_t Cap_Src,
-                             rvm_ptr_t Start,
+                             rvm_ptr_t Begin,
                              rvm_ptr_t End,
                              rvm_ptr_t Flag);
 EXTERN rvm_ret_t RVM_Cpt_Rem(rvm_cid_t Cap_Cpt_Rem,

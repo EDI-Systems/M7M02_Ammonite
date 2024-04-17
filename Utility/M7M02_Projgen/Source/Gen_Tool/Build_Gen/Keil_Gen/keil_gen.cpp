@@ -320,7 +320,7 @@ void Keil_Gen::Raw_Proj(std::unique_ptr<std::vector<std::string>>& List,
     List->push_back("            <v6Rtti>0</v6Rtti>");
     List->push_back("            <VariousControls>");
     /* These warnings are spurious */
-    List->push_back("              <MiscControls>-Wno-date-time -Wno-unused-parameter -Wno-missing-variable-declarations -Wno-missing-noreturn</MiscControls>");
+    List->push_back("              <MiscControls>-Wno-date-time -Wno-unused-parameter -Wno-missing-variable-declarations -Wno-missing-noreturn -Wno-unsafe-buffer-usage</MiscControls>");
     List->push_back("              <Define></Define>");
     List->push_back("              <Undefine></Undefine>");
     List->push_back(std::string("              <IncludePath>")+Include_Path+"</IncludePath>");
