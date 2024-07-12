@@ -46,9 +46,6 @@ Return      : None.
 {
     try
     {
-        /* Monitor_Root */
-        this->Monitor_Root=Main::XML_Get_String(Root,"Monitor_Root","DXXXX","DXXXX");
-        Main::Dir_Fixup(this->Monitor_Root);
         /* Code base/size */
         this->Code_Base=Code_Base;
         this->Code_Size=Main::XML_Get_Number(Root,"Code_Size","DXXXX","DXXXX");
@@ -76,27 +73,25 @@ Return      : None.
         this->Toolchain=Main::XML_Get_String(Root,"Toolchain","DXXXX","DXXXX");
         /* Optimization */
         this->Optimization=Main::XML_Get_String(Root,"Optimization","DXXXX","DXXXX");
-        /* Project_Output */
+        /* Project_Output - relative to workspace */
         this->Project_Output=Main::XML_Get_String(Root,"Project_Output","DXXXX","DXXXX");
-        Main::Dir_Fixup(this->Project_Output);
-        /* Project_Overwrite */
+        this->Project_Output=Main::Path_Absolute(PATH_DIR, Main::Workspace_Output, this->Project_Output);
         this->Project_Overwrite=Main::XML_Get_Yesno(Root,"Project_Overwrite","DXXXX","DXXXX");
-        /* Linker_Output */
+        /* Linker_Output - relative to project */
         this->Linker_Output=Main::XML_Get_String(Root,"Linker_Output","DXXXX","DXXXX");
-        Main::Dir_Fixup(this->Linker_Output);
-        /* Config_Header_Output */
+        this->Linker_Output=Main::Path_Absolute(PATH_DIR, this->Project_Output, this->Linker_Output);
+        /* Config_Header_Output - relative to project */
         this->Config_Header_Output=Main::XML_Get_String(Root,"Config_Header_Output","DXXXX","DXXXX");
-        Main::Dir_Fixup(this->Config_Header_Output);
-        /* Boot_Header_Output */
+        this->Config_Header_Output=Main::Path_Absolute(PATH_DIR, this->Project_Output, this->Config_Header_Output);
+        /* Boot_Header_Output - relative to project */
         this->Boot_Header_Output=Main::XML_Get_String(Root,"Boot_Header_Output","DXXXX","DXXXX");
-        Main::Dir_Fixup(this->Boot_Header_Output);
-        /* Boot_Source_Output */
+        this->Boot_Header_Output=Main::Path_Absolute(PATH_DIR, this->Project_Output, this->Boot_Header_Output);
+        /* Boot_Source_Output - relative to project */
         this->Boot_Source_Output=Main::XML_Get_String(Root,"Boot_Source_Output","DXXXX","DXXXX");
-        Main::Dir_Fixup(this->Boot_Source_Output);
-        /* Hook_Source_Output */
+        this->Boot_Source_Output=Main::Path_Absolute(PATH_DIR, this->Project_Output, this->Boot_Source_Output);
+        /* Hook_Source_Output - relative to project */
         this->Hook_Source_Output=Main::XML_Get_String(Root,"Hook_Source_Output","DXXXX","DXXXX");
-        Main::Dir_Fixup(this->Hook_Source_Output);
-        /* Init_Source_Output */
+        this->Hook_Source_Output=Main::Path_Absolute(PATH_DIR, this->Project_Output, this->Hook_Source_Output);
         this->Hook_Source_Overwrite=Main::XML_Get_Yesno(Root,"Hook_Source_Overwrite","DXXXX","DXXXX");
     }
     catch(std::exception& Exc)
@@ -140,7 +135,7 @@ void Monitor::Mem_Alloc(ptr_t Kom_Order)
         this->Vmmd_Stack_Base=this->Data_Base+this->Data_Size-this->Vmmd_Stack_Size;
         Main::Info("> Hypd stack base 0x%llX size 0x%llX.", this->Vmmd_Stack_Base, this->Vmmd_Stack_Size);
         if(this->Vmmd_Stack_Base<=this->Data_Base)
-            Main::Error("XXXXX: Monitor data section is not big enough, unable to allocate virtual machine monitor daemon thread stack.");
+            Main::Error("XXXXX: Monitor data section is not big enough, unable to allocate monitor daemon thread stack.");
         this->Data_Size=this->Vmmd_Stack_Base-this->Data_Base;
     }
     else

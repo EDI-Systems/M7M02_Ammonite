@@ -52,6 +52,7 @@ extern "C"
 #include "Proj_Info/Process/Receive/receive.hpp"
 #include "Proj_Info/Process/Send/send.hpp"
 #include "Proj_Info/Process/Kfunc/kfunc.hpp"
+#include "Proj_Info/Process/Native/native.hpp"
 #include "Proj_Info/Process/Virtual/virtual.hpp"
 #include "Mem_Info/mem_info.hpp"
 #include "Vect_Info/vect_info.hpp"
@@ -188,7 +189,12 @@ void  Gen_Tool::Guest_Load(const std::string& Name)
             return;
 
         if(Name=="RMP")
+        {
+            /* Check guest OS root path, it must be filled in to load the corresponding tool */
+            if(Main::Guest_RMP_Root=="")
+                Main::Error("XXXXX: Guest path for '"+Name+"' is missing.");
             Guest=std::make_unique<class RMP_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
+        }
         else
             Main::Error("XXXXX: Guest generator for '"+Name+"' is not found.");
 
@@ -513,34 +519,22 @@ Return      : None.
 ******************************************************************************/
 void Gen_Tool::Path_Conv(const std::string& Root, std::vector<std::string>& List)
 {
-    std::filesystem::path Root_Abs;
-    std::filesystem::path Path_Abs;
-    std::filesystem::path Path_Rel;
     std::set<std::string> Result;
-    std::string Temp;
-
-    /* Convert root to absolute mode */
-    Root_Abs=std::filesystem::absolute(Root);
 
     /* Convert then dump redundant files */
     for(const std::string& Path:List)
     {
-        Path_Abs=std::filesystem::absolute(Path);
-        Path_Rel=std::filesystem::relative(Path_Abs, Root_Abs);
-        /* If whatever being converted is a path, make it a path */
         if((Path.back()=='/')||(Path.back()=='\\'))
-            Result.insert(Path_Rel.string()+"/");
+            Result.insert(Main::Path_Relative(PATH_DIR, Root, Path));
         else
-            Result.insert(Path_Rel.string());
+            Result.insert(Main::Path_Relative(PATH_FILE, Root, Path));
     }
 
     /* Substitute path specifiers */
     List.clear();
     for(const std::string& Path:Result)
     {
-        Temp=Path;
-        std::replace(Temp.begin(),Temp.end(),'\\','/');
-        List.push_back(Temp);
+        List.push_back(Path);
     }
 
     /* Sort the list from small to large for better view */
@@ -628,16 +622,16 @@ void Gen_Tool::Kernel_Conf_Hdr(void)
     /* Generate rme_platform_chipname.h */
     Filename=std::string("rme_platform_")+this->Plat->Chip->Name_Lower+".h";
     Main::Info(std::string("> Generating '")+Filename+"'.");
-    List=Gen_Tool::Line_Read(Kernel->Kernel_Root+
+    List=Gen_Tool::Line_Read(Main::Kernel_Root+
                              "Include/Platform/"+this->Plat->Name+"/Chip/"+this->Plat->Chip->Name+"/"+Filename);
     /* Replace general parameter macros */
     /* Debugging control */
-    Gen_Tool::Macro_Int(List, "RME_ASSERT_CORRECT", this->Plat->Proj->Assert_Correct, MACRO_REPLACE);
-    Gen_Tool::Macro_Int(List, "RME_DEBUG_PRINT", this->Plat->Proj->Debug_Print, MACRO_REPLACE);
+    Gen_Tool::Macro_Int(List, "RME_ASSERT_ENABLE", this->Plat->Proj->Assert_Enable, MACRO_REPLACE);
+    Gen_Tool::Macro_Int(List, "RME_DBGLOG_ENABLE", this->Plat->Proj->Debug_Log_Enable, MACRO_REPLACE);
     /* Generator enabled */
     Gen_Tool::Macro_Int(List, "RME_RVM_GEN_ENABLE", 1, MACRO_REPLACE);
     /* If region is fixed, we use user-level raw page tables */
-    Gen_Tool::Macro_Int(List, "RME_PGT_RAW_USER", this->Plat->Proj->Region_Fixed, MACRO_REPLACE);
+    Gen_Tool::Macro_Int(List, "RME_PGT_RAW_ENABLE", this->Plat->Proj->Pgtbl_Raw_Enable, MACRO_REPLACE);
     /* The virtual memory base/size for the kernel objects */
     Gen_Tool::Macro_Hex(List, "RME_KOM_VA_BASE", Kernel->Kom_Base, MACRO_REPLACE);
     Gen_Tool::Macro_Hex(List, "RME_KOM_VA_SIZE", Kernel->Kom_Size, MACRO_REPLACE);
@@ -813,8 +807,8 @@ void Gen_Tool::Kernel_Boot_Src(void)
     Main::Info("> Generating private C function prototypes.");
     List->push_back("/* Private Function **********************************************************/");
     for(const class Vect_Info* Vct:Monitor->Vector)
-        List->push_back(std::string("EXTERN rme_ptr_t RME_Vct_")+Vct->Name+"_Handler(void);");
-    List->push_back("EXTERN rme_ptr_t RME_Spurious_Handler(rme_ptr_t Vct_Num);");
+        List->push_back(std::string("RME_EXTERN rme_ptr_t RME_Vct_")+Vct->Name+"_Handler(void);");
+    List->push_back("RME_EXTERN rme_ptr_t RME_Spurious_Handler(rme_ptr_t Vct_Num);");
     List->push_back("/* End Private Function ******************************************************/");
     List->push_back("");
 
@@ -1202,7 +1196,7 @@ void Gen_Tool::Kernel_Proj(void)
     Main::Info("> Generating project include paths:");
 
     Include.push_back(Kernel->Project_Output);
-    Include.push_back(Kernel->Kernel_Root+"Include/");
+    Include.push_back(Main::Kernel_Root+"Include/");
     Include.push_back(Kernel->Config_Header_Output);
     Include.push_back(Kernel->Boot_Header_Output);
     Gen_Tool::Path_Conv(Kernel->Project_Output, Include);
@@ -1213,12 +1207,12 @@ void Gen_Tool::Kernel_Proj(void)
     /* Extract the source paths */
     Main::Info("> Generating project source paths:");
     /* Regular kernel source */
-    Source.push_back(Kernel->Kernel_Root+"Source/Kernel/rme_kernel.c");
-    Source.push_back(Kernel->Kernel_Root+"Source/Platform/"+this->Plat->Name+"/rme_platform_"+this->Plat->Name_Lower+".c");
-    Source.push_back(Kernel->Kernel_Root+"Source/Platform/"+this->Plat->Name+
+    Source.push_back(Main::Kernel_Root+"Source/Kernel/rme_kernel.c");
+    Source.push_back(Main::Kernel_Root+"Source/Platform/"+this->Plat->Name+"/rme_platform_"+this->Plat->Name_Lower+".c");
+    Source.push_back(Main::Kernel_Root+"Source/Platform/"+this->Plat->Name+
                      "/rme_platform_"+this->Plat->Name_Lower+"_"+Tool->Name_Lower+Tool->Suffix(TOOL_ASSEMBLER));
     /* Additional chip-specific veneers (required only by some architectures to handle idiosyncrasies) */
-    Veneer=Kernel->Kernel_Root+"Include/Platform/"+this->Plat->Name+"/Chip/"+this->Plat->Chip->Name_Upper;
+    Veneer=Main::Kernel_Root+"Include/Platform/"+this->Plat->Name+"/Chip/"+this->Plat->Chip->Name_Upper;
     Ending=std::string("_")+Tool->Name_Lower+Tool->Suffix(TOOL_ASSEMBLER);
     for(const std::filesystem::directory_entry& File:std::filesystem::directory_iterator(Veneer))
     {
@@ -1279,23 +1273,17 @@ void Gen_Tool::Monitor_Inc(std::unique_ptr<std::vector<std::string>>& List)
     Temp=std::string("#include \"Platform/")+this->Plat->Name+"/rvm_platform_"+this->Plat->Name_Lower+".h\"";
     List->push_back("#define __HDR_DEF__");
     List->push_back(Temp);
-    List->push_back("#include \"Monitor/rvm_syssvc.h\"");
-    List->push_back("#include \"Monitor/rvm_init.h\"");
-    List->push_back("#include \"Monitor/rvm_hyper.h\"");
+    List->push_back("#include \"Monitor/rvm_monitor.h\"");
     List->push_back("#undef __HDR_DEF__");
     List->push_back("");
     List->push_back("#define __HDR_STRUCT__");
     List->push_back(Temp);
-    List->push_back("#include \"Monitor/rvm_syssvc.h\"");
-    List->push_back("#include \"Monitor/rvm_init.h\"");
-    List->push_back("#include \"Monitor/rvm_hyper.h\"");
+    List->push_back("#include \"Monitor/rvm_monitor.h\"");
     List->push_back("#undef __HDR_STRUCT__");
     List->push_back("");
     List->push_back("#define __HDR_PUBLIC__");
     List->push_back(Temp);
-    List->push_back("#include \"Monitor/rvm_syssvc.h\"");
-    List->push_back("#include \"Monitor/rvm_init.h\"");
-    List->push_back("#include \"Monitor/rvm_hyper.h\"");
+    List->push_back("#include \"Monitor/rvm_monitor.h\"");
     List->push_back("#undef __HDR_PUBLIC__");
     List->push_back("/* End Include ***************************************************************/");
 }
@@ -1348,14 +1336,14 @@ void Gen_Tool::Monitor_Conf_Hdr(void)
     /* Generate rvm_platform_chipname.h */
     Filename=std::string("rvm_platform_")+this->Plat->Chip->Name_Lower+".h";
     Main::Info(std::string("> Generating '")+Filename+"'.");
-    List=Gen_Tool::Line_Read(Monitor->Monitor_Root+
+    List=Gen_Tool::Line_Read(Main::Monitor_Root+
                              "Include/Platform/"+this->Plat->Name+"/Chip/"+this->Plat->Chip->Name+"/"+Filename);
     /* Replace general parameter macros */
     /* Debugging control */
-    Gen_Tool::Macro_Int(List, "RVM_ASSERT_CORRECT", this->Plat->Proj->Assert_Correct, MACRO_REPLACE);
-    Gen_Tool::Macro_Int(List, "RVM_DEBUG_PRINT", this->Plat->Proj->Debug_Print, MACRO_REPLACE);
+    Gen_Tool::Macro_Int(List, "RVM_ASSERT_ENABLE", this->Plat->Proj->Assert_Enable, MACRO_REPLACE);
+    Gen_Tool::Macro_Int(List, "RVM_DBGLOG_ENABLE", this->Plat->Proj->Debug_Log_Enable, MACRO_REPLACE);
     /* Whether the region mappings are fixed hence the RVM should provide them */
-    Gen_Tool::Macro_Int(List, "RVM_REGION_FIXED", this->Plat->Proj->Region_Fixed, MACRO_REPLACE);
+    Gen_Tool::Macro_Int(List, "RVM_PGT_RAW_ENABLE", this->Plat->Proj->Pgtbl_Raw_Enable, MACRO_REPLACE);
     /* The virtual memory base/size for the kernel objects */
     Gen_Tool::Macro_Hex(List, "RVM_KOM_VA_BASE", Kernel->Kom_Base, MACRO_REPLACE);
     Gen_Tool::Macro_Hex(List, "RVM_KOM_VA_SIZE", Kernel->Kom_Size, MACRO_REPLACE);
@@ -1726,7 +1714,7 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
         Gen_Tool::Macro_Int(List, std::string("RVM_MAIN_CPT_")+MIDS(Obj_Cnt), Cap_Front, MACRO_ADD);
         Cap_Front++;
     }
-    if(this->Plat->Proj->Region_Fixed==0)
+    if(this->Plat->Proj->Pgtbl_Raw_Enable==0)
     {
         if(Cap_Front!=Monitor->Pgt_Cap_Front)
             Main::Error("XXXXX: Capability table capability table computation failure.");
@@ -1747,7 +1735,7 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
     List->push_back("");
 
     /* Pgt capability tables & objects */
-    if(this->Plat->Proj->Region_Fixed==0)
+    if(this->Plat->Proj->Pgtbl_Raw_Enable==0)
     {
         List->push_back("/* Process page table capability tables */");
         Cap_Front=Monitor->Pgt_Cap_Front;
@@ -1866,7 +1854,7 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
     List->push_back("/* Cpt frontiers & number */");
     Gen_Tool::Macro_Hex(List, "RVM_BOOT_INIT_CPT_BEFORE", Monitor->Cpt_Kom_Front, MACRO_ADD);
     /* See if we're skipping page tables when all regions are fixed */
-    if(this->Plat->Proj->Region_Fixed==0)
+    if(this->Plat->Proj->Pgtbl_Raw_Enable==0)
         Gen_Tool::Macro_Hex(List, "RVM_BOOT_INIT_CPT_AFTER", Monitor->Pgt_Kom_Front, MACRO_ADD);
     else
         Gen_Tool::Macro_Hex(List, "RVM_BOOT_INIT_CPT_AFTER", Monitor->Prc_Kom_Front, MACRO_ADD);
@@ -1880,7 +1868,7 @@ void Gen_Tool::Monitor_Boot_Hdr(void)
 
     List->push_back("/* Pgt frontiers & number */");
     /* Only exist when using kernel-managed PCTrie */
-    if(this->Plat->Proj->Region_Fixed==0)
+    if(this->Plat->Proj->Pgtbl_Raw_Enable==0)
     {
         Gen_Tool::Macro_Hex(List, "RVM_BOOT_INIT_PGT_BEFORE", Monitor->Pgt_Kom_Front, MACRO_ADD);
         Gen_Tool::Macro_Hex(List, "RVM_BOOT_INIT_PGT_AFTER", Monitor->Prc_Kom_Front, MACRO_ADD);
@@ -2087,7 +2075,7 @@ void Gen_Tool::Monitor_Boot_Src(void)
     List->push_back("");
 
     /* Page table metadata - only exist when using kernel-managed page tables */
-    if(this->Plat->Proj->Region_Fixed==0)
+    if(this->Plat->Proj->Pgtbl_Raw_Enable==0)
     {
         List->push_back("/* Page table metadata */");
         List->push_back("const struct RVM_Meta_Main_Struct RVM_Meta_Pgt_Main[RVM_BOOT_INIT_PGT_MAIN_NUM]=");
@@ -2143,7 +2131,7 @@ void Gen_Tool::Monitor_Boot_Src(void)
     for(const class Process* Prc:Monitor->Process)
     {
         /* Load normal page table capability if kernel-managed */
-        if(this->Plat->Proj->Region_Fixed==0)
+        if(this->Plat->Proj->Pgtbl_Raw_Enable==0)
         {
             List->push_back(std::string("{RVM_MAIN_PRC_")+MIDS(Prc->Cid_Global)+", "+SIDS(Prc->Cid_Global)+", "+
                             Prc->Captbl->Macro_Global+", "+Prc->Pgtbl->Macro_Global+"},");
@@ -2407,7 +2395,7 @@ void Gen_Tool::Monitor_Proj(void)
     Main::Info("> Generating project include paths:");
 
     Include.push_back(Monitor->Project_Output);
-    Include.push_back(Monitor->Monitor_Root+"Include/");
+    Include.push_back(Main::Monitor_Root+"Include/");
     Include.push_back(Monitor->Config_Header_Output);
     Include.push_back(Monitor->Boot_Header_Output);
     Gen_Tool::Path_Conv(Monitor->Project_Output, Include);
@@ -2418,11 +2406,9 @@ void Gen_Tool::Monitor_Proj(void)
     /* Extract the source paths */
     Main::Info("> Generating project source paths:");
 
-    Source.push_back(Monitor->Monitor_Root+"Source/Monitor/rvm_init.c");
-    Source.push_back(Monitor->Monitor_Root+"Source/Monitor/rvm_hyper.c");
-    Source.push_back(Monitor->Monitor_Root+"Source/Monitor/rvm_syssvc.c");
-    Source.push_back(Monitor->Monitor_Root+"Source/Platform/"+this->Plat->Name+"/rvm_platform_"+this->Plat->Name_Lower+".c");
-    Source.push_back(Monitor->Monitor_Root+"Source/Platform/"+this->Plat->Name+
+    Source.push_back(Main::Monitor_Root+"Source/Monitor/rvm_monitor.c");
+    Source.push_back(Main::Monitor_Root+"Source/Platform/"+this->Plat->Name+"/rvm_platform_"+this->Plat->Name_Lower+".c");
+    Source.push_back(Main::Monitor_Root+"Source/Platform/"+this->Plat->Name+
                      "/rvm_platform_"+this->Plat->Name_Lower+"_"+Tool->Name_Lower+Tool->Suffix(TOOL_ASSEMBLER));
     Source.push_back(Monitor->Boot_Source_Output+"rvm_boot.c");
     Source.push_back(Monitor->Hook_Source_Output+"rvm_hook.c");
@@ -2578,10 +2564,12 @@ void Gen_Tool::Process_Main_Hdr(class Process* Prc)
     Gen_Tool::Macro_Int(List, "RVM_KOM_SLOT_ORDER", this->Plat->Proj->Kernel->Kom_Order, MACRO_ADD);
     List->push_back("");
 
-    /* If this is a virtual machine, define the following */
+    /* If this is a virtual machine, define the following specific macros */
     if(Prc->Type==PROCESS_VIRTUAL)
     {
         Virt=static_cast<const class Virtual*>(Prc);
+        List->push_back("/* Virtual machine library enable */");
+        Gen_Tool::Macro_Int(List, "RVM_VIRT_LIB_ENABLE", 1, MACRO_ADD);
         List->push_back("/* Virtual vector total number */");
         Gen_Tool::Macro_Int(List, "RVM_VIRT_VCT_NUM", Virt->Vector_Num, MACRO_ADD);
         List->push_back("/* State block base address & size */");
@@ -2590,13 +2578,18 @@ void Gen_Tool::Process_Main_Hdr(class Process* Prc)
         List->push_back("/* Virtual register base address & size */");
         Gen_Tool::Macro_Hex(List, "RVM_VIRT_REG_BASE", Virt->Reg_Base, MACRO_ADD);
         Gen_Tool::Macro_Hex(List, "RVM_VIRT_REG_SIZE", Virt->Reg_Size, MACRO_ADD);
-        List->push_back("");
     }
+    else
+    {
+        List->push_back("/* Virtual machine library disable */");
+        Gen_Tool::Macro_Int(List, "RVM_VIRT_LIB_ENABLE", 0, MACRO_ADD);
+    }
+    List->push_back("");
 
     /* Assert & debugging */
     List->push_back("/* Debugging settings */");
-    Gen_Tool::Macro_Int(List, "RVM_ASSERT_CORRECT", this->Plat->Proj->Assert_Correct, MACRO_ADD);
-    Gen_Tool::Macro_Int(List, "RVM_DEBUG_PRINT", this->Plat->Proj->Debug_Print, MACRO_ADD);
+    Gen_Tool::Macro_Int(List, "RVM_ASSERT_ENABLE", this->Plat->Proj->Assert_Enable, MACRO_ADD);
+    Gen_Tool::Macro_Int(List, "RVM_DBGLOG_ENABLE", this->Plat->Proj->Debug_Log_Enable, MACRO_ADD);
     List->push_back("");
 
     /* Set coprocessor macros - set all of them to 0 first, then modify from there */
@@ -2636,111 +2629,6 @@ void Gen_Tool::Process_Main_Hdr(class Process* Prc)
 }
 /* End Function:Gen_Tool::Process_Main_Hdr ***********************************/
 
-/* Function:Gen_Tool::Process_Entry_Src ***************************************
-Description : Create the stubs for process. Each invocation and thread will
-              have its own file, so there is least interference between them.
-Input       : class Process* Prc - The process to generate for.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Gen_Tool::Process_Entry_Src(class Process* Prc)
-{
-    std::string Filename;
-    std::vector<std::string> Input;
-    std::vector<std::string> Output;
-    std::unique_ptr<std::vector<std::string>> List;
-
-    /* Single files only used for native threads */
-    if(Prc->Type==PROCESS_VIRTUAL)
-        return;
-
-    List=std::make_unique<std::vector<std::string>>();
-
-    /* For each thread, create a single file */
-    Input.push_back("rvm_ret_t Param - The parameter supplied by the OS.");
-    for(const std::unique_ptr<class Thread>& Thd:Prc->Thread)
-    {
-        Filename=std::string("prc_")+Prc->Name_Lower+"_thd_"+Thd->Name_Lower+".c";
-        if(std::filesystem::exists(Prc->Entry_Source_Output+Filename)==true)
-        {
-            /* See if we'll use forced regenerate */
-            if(Prc->Entry_Source_Overwrite==0)
-            {
-                Main::Info(std::string("> File '")+Filename+"' exists, skipping generation.");
-                continue;
-            }
-        }
-        Main::Info(std::string("> Generating source for thread '")+Thd->Name+"'.");
-        List->clear();
-        Gen_Tool::Src_Head(List, Filename, std::string("The user stub file for thread '")+Thd->Name+"'.");
-        List->push_back("");
-        /* Include **/
-        this->Process_Inc(List, Prc);
-        List->push_back("");
-        /* Private prototypes */
-        List->push_back("/* Private Function **********************************************************/");
-        List->push_back(std::string("rvm_ret_t Thd_")+Thd->Name+"(rvm_ret_t Param);");
-        List->push_back("/* End Private Function ******************************************************/");
-        List->push_back("");
-        /* Thread functions themselves */
-        Gen_Tool::Func_Head(List, std::string("Thd_")+Thd->Name,
-                            "The function body for thread.", Input, Output, "rvm_ret_t - Should never return.");
-        List->push_back(std::string("rvm_ret_t Thd_")+Thd->Name+"(rvm_ret_t Param)");
-        List->push_back("{");
-        List->push_back("    /* Add your code here - Threads shall never return */");
-        List->push_back("    while(1);");
-        List->push_back("}");
-        Gen_Tool::Func_Foot(List, std::string("Thd_")+Thd->Name);
-        List->push_back("");
-        this->Src_Foot(List);
-        List->push_back("");
-        Gen_Tool::Line_Write(List, Prc->Entry_Source_Output+Filename);
-    }
-    Input.clear();
-
-    /* For each invocation, create a single file */
-    Input.push_back("rvm_ret_t Param - The parameter supplied by the caller.");
-    for(const std::unique_ptr<class Invocation>& Inv:Prc->Invocation)
-    {
-        Filename=std::string("prc_")+Prc->Name_Lower+"_inv_"+Inv->Name_Lower+".c";
-        if(std::filesystem::exists(Prc->Entry_Source_Output+Filename)==true)
-        {
-            /* See if we'll use forced regenerate */
-            if(Prc->Entry_Source_Overwrite==0)
-            {
-                Main::Info(std::string("> File '")+Filename+"' exists, skipping generation.");
-                continue;
-            }
-        }
-        Main::Info(std::string("> Generating source for invocation '")+Inv->Name+"'.");
-        List->clear();
-        Gen_Tool::Src_Head(List, Filename, std::string("The user stub file for thread '")+Inv->Name+"'.");
-        List->push_back("");
-        /* Include **/
-        this->Process_Inc(List, Prc);
-        List->push_back("");
-        /* Private prototypes */
-        List->push_back("/* Private Function **********************************************************/");
-        List->push_back(std::string("rvm_ret_t Inv_")+Inv->Name+"(rvm_ret_t Param);");
-        List->push_back("/* End Private Function ******************************************************/");
-        List->push_back("");
-        /* Thread functions themselves */
-        Gen_Tool::Func_Head(List, std::string("Inv_")+Inv->Name,
-                            "The function body for invocation.", Input, Output, "rvm_ret_t - Should never return.");
-        List->push_back(std::string("rvm_ret_t Inv_")+Inv->Name+"(rvm_ret_t Param)");
-        List->push_back("{");
-        List->push_back("    /* Add your code here */");
-        List->push_back("    return 0;");
-        List->push_back("}");
-        Gen_Tool::Func_Foot(List, std::string("Inv_")+Inv->Name);
-        List->push_back("");
-        this->Src_Foot(List);
-
-        Gen_Tool::Line_Write(List, Prc->Entry_Source_Output+Filename);
-    }
-    Input.clear();
-}
-/* End Function:Gen_Tool::Process_Entry_Src **********************************/
 
 /* Function:Gen_Tool::Process_Desc_Src ****************************************
 Description : Create the descriptor source for process.
@@ -2771,7 +2659,7 @@ void Gen_Tool::Process_Desc_Src(class Process* Prc)
     /* Public prototypes */
     List->push_back("/* Public Function ***********************************************************/");
     if(Prc->Type==PROCESS_VIRTUAL)
-        List->push_back("EXTERN rvm_ret_t Thd_Vct(rvm_ret_t Param);");
+        List->push_back("RVM_EXTERN rvm_ret_t Thd_Vct(rvm_ret_t Param);");
     else
     {
 		for(const std::unique_ptr<class Thread>& Thd:Prc->Thread)
@@ -2779,10 +2667,10 @@ void Gen_Tool::Process_Desc_Src(class Process* Prc)
 		    /* The first one is entry, pass it */
             if(Thd.get()==Prc->Thread[0].get())
                 continue;
-			List->push_back(std::string("EXTERN rvm_ret_t Thd_")+Thd->Name+"(rvm_ret_t Param);");
+			List->push_back(std::string("RVM_EXTERN rvm_ret_t Thd_")+Thd->Name+"(rvm_ret_t Param);");
 		}
 		for(const std::unique_ptr<class Invocation>& Inv:Prc->Invocation)
-			List->push_back(std::string("EXTERN rvm_ret_t Inv_")+Inv->Name+"(rvm_ret_t Param);");
+			List->push_back(std::string("RVM_EXTERN rvm_ret_t Inv_")+Inv->Name+"(rvm_ret_t Param);");
     }
     List->push_back("/* End Public Function *******************************************************/");
     List->push_back("");
@@ -2867,7 +2755,7 @@ void Gen_Tool::Process_Main_Src(class Process* Prc)
 
     /* Global variable - The only one being the process header reference */
     List->push_back("/* Public Variable ***********************************************************/");
-    List->push_back(std::string("EXTERN const rvm_ptr_t RVM_Desc[")+std::to_string(Prc->Desc_Front)+"];");
+    List->push_back(std::string("RVM_EXTERN const rvm_ptr_t RVM_Desc[")+std::to_string(Prc->Desc_Front)+"];");
     List->push_back("/* End Public Variable *******************************************************/");
     List->push_back("");
 
@@ -2878,11 +2766,11 @@ void Gen_Tool::Process_Main_Src(class Process* Prc)
     else
     {
         for(const std::unique_ptr<class Thread>& Thd:Prc->Thread)
-            List->push_back(std::string("EXTERN rvm_ret_t Thd_")+Thd->Name+"(rvm_ret_t Param);");
+            List->push_back(std::string("RVM_EXTERN rvm_ret_t Thd_")+Thd->Name+"(rvm_ret_t Param);");
         for(const std::unique_ptr<class Invocation>& Inv:Prc->Invocation)
-            List->push_back(std::string("EXTERN rvm_ret_t Inv_")+Inv->Name+"(rvm_ret_t Param);");
+            List->push_back(std::string("RVM_EXTERN rvm_ret_t Inv_")+Inv->Name+"(rvm_ret_t Param);");
     }
-    List->push_back("EXTERN void _RVM_Stub(void);");
+    List->push_back("RVM_EXTERN void _RVM_Stub(void);");
     List->push_back("/* End Private Function ******************************************************/");
     List->push_back("");
 
@@ -2929,7 +2817,7 @@ void Gen_Tool::Process_Main_Src(class Process* Prc)
     /* The RVM library putchar function - print character to console */
     Input.push_back("char Char - The character to print to console.");
     Gen_Tool::Func_Head(List, "RVM_Putchar", "The character printing function for debugging.", Input, Output, "None.");
-    List->push_back("#if(RVM_DEBUG_PRINT==1U)");
+    List->push_back("#if(RVM_DBGLOG_ENABLE!=0U)");
     List->push_back("void RVM_Putchar(char Char)");
     List->push_back("{");
     if(Prc->Type==PROCESS_VIRTUAL)
@@ -2946,6 +2834,108 @@ void Gen_Tool::Process_Main_Src(class Process* Prc)
     Gen_Tool::Line_Write(List, Prc->Main_Source_Output+Filename);
 }
 /* End Function:Gen_Tool::Process_Main_Src ***********************************/
+
+/* Function:Gen_Tool::Process_Nat_Src *****************************************
+Description : Create the stubs for process. Each invocation and thread will
+              have its own file, so there is least interference between them.
+Input       : class Native* Native - The native process to generate for.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Gen_Tool::Process_Nat_Src(class Native* Nat)
+{
+    std::string Filename;
+    std::vector<std::string> Input;
+    std::vector<std::string> Output;
+    std::unique_ptr<std::vector<std::string>> List;
+
+    List=std::make_unique<std::vector<std::string>>();
+
+    /* For each thread, create a single file */
+    Input.push_back("rvm_ret_t Param - The parameter supplied by the OS.");
+    for(const std::unique_ptr<class Thread>& Thd:Nat->Thread)
+    {
+        Filename=std::string("prc_")+Nat->Name_Lower+"_thd_"+Thd->Name_Lower+".c";
+        if(std::filesystem::exists(Nat->Entry_Source_Output+Filename)==true)
+        {
+            /* See if we'll use forced regenerate */
+            if(Nat->Entry_Source_Overwrite==0)
+            {
+                Main::Info(std::string("> File '")+Filename+"' exists, skipping generation.");
+                continue;
+            }
+        }
+        Main::Info(std::string("> Generating source for thread '")+Thd->Name+"'.");
+        List->clear();
+        Gen_Tool::Src_Head(List, Filename, std::string("The user stub file for thread '")+Thd->Name+"'.");
+        List->push_back("");
+        /* Include **/
+        this->Process_Inc(List, Nat);
+        List->push_back("");
+        /* Private prototypes */
+        List->push_back("/* Private Function **********************************************************/");
+        List->push_back(std::string("rvm_ret_t Thd_")+Thd->Name+"(rvm_ret_t Param);");
+        List->push_back("/* End Private Function ******************************************************/");
+        List->push_back("");
+        /* Thread functions themselves */
+        Gen_Tool::Func_Head(List, std::string("Thd_")+Thd->Name,
+                            "The function body for thread.", Input, Output, "rvm_ret_t - Should never return.");
+        List->push_back(std::string("rvm_ret_t Thd_")+Thd->Name+"(rvm_ret_t Param)");
+        List->push_back("{");
+        List->push_back("    /* Add your code here - Threads shall never return */");
+        List->push_back("    while(1);");
+        List->push_back("}");
+        Gen_Tool::Func_Foot(List, std::string("Thd_")+Thd->Name);
+        List->push_back("");
+        this->Src_Foot(List);
+        List->push_back("");
+        Gen_Tool::Line_Write(List, Nat->Entry_Source_Output+Filename);
+    }
+    Input.clear();
+
+    /* For each invocation, create a single file */
+    Input.push_back("rvm_ret_t Param - The parameter supplied by the caller.");
+    for(const std::unique_ptr<class Invocation>& Inv:Nat->Invocation)
+    {
+        Filename=std::string("prc_")+Nat->Name_Lower+"_inv_"+Inv->Name_Lower+".c";
+        if(std::filesystem::exists(Nat->Entry_Source_Output+Filename)==true)
+        {
+            /* See if we'll use forced regenerate */
+            if(Nat->Entry_Source_Overwrite==0)
+            {
+                Main::Info(std::string("> File '")+Filename+"' exists, skipping generation.");
+                continue;
+            }
+        }
+        Main::Info(std::string("> Generating source for invocation '")+Inv->Name+"'.");
+        List->clear();
+        Gen_Tool::Src_Head(List, Filename, std::string("The user stub file for thread '")+Inv->Name+"'.");
+        List->push_back("");
+        /* Include **/
+        this->Process_Inc(List, Nat);
+        List->push_back("");
+        /* Private prototypes */
+        List->push_back("/* Private Function **********************************************************/");
+        List->push_back(std::string("rvm_ret_t Inv_")+Inv->Name+"(rvm_ret_t Param);");
+        List->push_back("/* End Private Function ******************************************************/");
+        List->push_back("");
+        /* Thread functions themselves */
+        Gen_Tool::Func_Head(List, std::string("Inv_")+Inv->Name,
+                            "The function body for invocation.", Input, Output, "rvm_ret_t - Should never return.");
+        List->push_back(std::string("rvm_ret_t Inv_")+Inv->Name+"(rvm_ret_t Param)");
+        List->push_back("{");
+        List->push_back("    /* Add your code here */");
+        List->push_back("    return 0;");
+        List->push_back("}");
+        Gen_Tool::Func_Foot(List, std::string("Inv_")+Inv->Name);
+        List->push_back("");
+        this->Src_Foot(List);
+
+        Gen_Tool::Line_Write(List, Nat->Entry_Source_Output+Filename);
+    }
+    Input.clear();
+}
+/* End Function:Gen_Tool::Process_Nat_Src ************************************/
 
 /* Function:Gen_Tool::Process_Virt_Hdr ****************************************
 Description : Create the configuration header for VMs.
@@ -3002,8 +2992,8 @@ Return      : None.
 ******************************************************************************/
 void Gen_Tool::Process_Proj(class Process* Prc)
 {
+    class Native* Nat;
     class Virtual* Virt;
-    class Monitor* Monitor;
     class Build_Gen* Build;
     class Tool_Gen* Tool;
     std::unique_ptr<std::vector<std::string>> List;
@@ -3012,8 +3002,8 @@ void Gen_Tool::Process_Proj(class Process* Prc)
     std::vector<std::string> Linker;
 
     List=std::make_unique<std::vector<std::string>>();
+    Nat=static_cast<class Native*>(Prc);
     Virt=static_cast<class Virtual*>(Prc);
-    Monitor=this->Plat->Proj->Monitor.get();
     Build=this->Build_Map[Prc->Buildsystem];
     Tool=this->Tool_Map[Prc->Toolchain];
 
@@ -3032,8 +3022,8 @@ void Gen_Tool::Process_Proj(class Process* Prc)
     /* Extract the include paths */
     Main::Info("> Generating project include paths:");
 
-    Include.push_back(Monitor->Monitor_Root+"Guest/");
-    Include.push_back(Monitor->Monitor_Root+"Include/");
+    Include.push_back(Main::Monitor_Root+"Guest/");
+    Include.push_back(Main::Monitor_Root+"Include/");
     Include.push_back(Prc->Project_Output);
     Include.push_back(Prc->Main_Header_Output);
     /* For virtual machines, add all the VM files as well */
@@ -3047,9 +3037,9 @@ void Gen_Tool::Process_Proj(class Process* Prc)
     /* Extract the source paths */
     Main::Info("> Generating project source paths:");
 
-    Source.push_back(Monitor->Monitor_Root+"Guest/rvm_guest.c");
-    Source.push_back(Monitor->Monitor_Root+"Guest/"+this->Plat->Name+"/rvm_guest_"+this->Plat->Name_Lower+".c");
-    Source.push_back(Monitor->Monitor_Root+"Guest/"+this->Plat->Name+
+    Source.push_back(Main::Monitor_Root+"Guest/rvm_guest.c");
+    Source.push_back(Main::Monitor_Root+"Guest/"+this->Plat->Name+"/rvm_guest_"+this->Plat->Name_Lower+".c");
+    Source.push_back(Main::Monitor_Root+"Guest/"+this->Plat->Name+
                      "/rvm_guest_"+this->Plat->Name_Lower+"_"+Tool->Name_Lower+Tool->Suffix(TOOL_ASSEMBLER));
     Source.push_back(Prc->Main_Source_Output+"prc_"+Prc->Name_Lower+".c");
     Source.push_back(Prc->Main_Source_Output+"prc_"+Prc->Name_Lower+"_desc.c");
@@ -3057,9 +3047,9 @@ void Gen_Tool::Process_Proj(class Process* Prc)
     if(Prc->Type==PROCESS_NATIVE)
     {
         for(const std::unique_ptr<class Thread>& Thd:Prc->Thread)
-            Source.push_back(Prc->Entry_Source_Output+"prc_"+Prc->Name_Lower+"_thd_"+Thd->Name_Lower+".c");
+            Source.push_back(Nat->Entry_Source_Output+"prc_"+Prc->Name_Lower+"_thd_"+Thd->Name_Lower+".c");
         for(const std::unique_ptr<class Invocation>& Inv:Prc->Invocation)
-            Source.push_back(Prc->Entry_Source_Output+"prc_"+Prc->Name_Lower+"_inv_"+Inv->Name_Lower+".c");
+            Source.push_back(Nat->Entry_Source_Output+"prc_"+Prc->Name_Lower+"_inv_"+Inv->Name_Lower+".c");
     }
     /* For virtual machines, add all the VM files as well */
     else
@@ -3115,7 +3105,7 @@ void Gen_Tool::Workspace_Proj(void)
 
     /* Does the file already exist? */
     Proj->Workspace_Filename=Proj->Name_Lower+Build->Suffix(BUILD_WORKSPACE);
-    if(std::filesystem::exists(Proj->Workspace_Output+Proj->Workspace_Filename)==true)
+    if(std::filesystem::exists(Main::Workspace_Output+Proj->Workspace_Filename)==true)
     {
         /* See if we'll use forced regenerate */
         if(Proj->Workspace_Overwrite==0)
@@ -3132,13 +3122,13 @@ void Gen_Tool::Workspace_Proj(void)
     Project.push_back(Proj->Monitor->Project_Output+Proj->Monitor->Project_Filename);
     for(const std::unique_ptr<class Process>& Prc:Proj->Process)
         Project.push_back(Prc->Project_Output+Prc->Project_Filename);
-    Gen_Tool::Path_Conv(Proj->Workspace_Output, Project);
+    Gen_Tool::Path_Conv(Main::Workspace_Output, Project);
 
     for(const std::string& Path:Project)
         Main::Info(std::string("> > ")+Path);
 
     Build->Workspace_Proj(List, Project);
-    Gen_Tool::Line_Write(List, Proj->Workspace_Output+Proj->Workspace_Filename);
+    Gen_Tool::Line_Write(List, Main::Workspace_Output+Proj->Workspace_Filename);
 }
 /* End Function:Gen_Tool::Workspace_Proj *************************************/
 }

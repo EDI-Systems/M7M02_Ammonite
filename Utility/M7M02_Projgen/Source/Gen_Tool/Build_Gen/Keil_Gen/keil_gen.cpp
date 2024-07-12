@@ -229,7 +229,7 @@ void Keil_Gen::Raw_Proj(std::unique_ptr<std::vector<std::string>>& List,
     List->push_back("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\" ?>");
     List->push_back("<Project xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"project_projx.xsd\">");
     List->push_back("  <SchemaVersion>2.1</SchemaVersion>");
-    List->push_back("  <Header>### uVision Project, (C) Keil Software</Header>");
+    List->push_back("  <Header>### uVision Project, (C) RVM Project Generator</Header>");
     List->push_back("  <Targets>");
     List->push_back("    <Target>");
     List->push_back(std::string("      <TargetName>")+Target+"</TargetName>");
@@ -244,13 +244,13 @@ void Keil_Gen::Raw_Proj(std::unique_ptr<std::vector<std::string>>& List,
     List->push_back(std::string("          <Vendor>")+this->Chip->Vendor+"</Vendor>");
     List->push_back(std::string("          <Cpu>IRAM(0x08000000,0x10000) IROM(0x20000000,0x10000) CPUTYPE(\"")+
                     CPU_Type+"\") "+FPU_Type+" CLOCK(12000000) "+Endian+"</Cpu>");
-    List->push_back("          <OutputDirectory>.\\Objects\\</OutputDirectory>");
+    List->push_back("          <OutputDirectory>.\\Object\\</OutputDirectory>");
     List->push_back(std::string("          <OutputName>")+Target+"</OutputName>");
     List->push_back("          <CreateExecutable>1</CreateExecutable>");
     List->push_back("          <CreateHexFile>1</CreateHexFile>");
     List->push_back("          <DebugInformation>1</DebugInformation>");
     List->push_back("          <BrowseInformation>1</BrowseInformation>");
-    List->push_back("          <ListingPath>.\\Listings\\</ListingPath>");
+    List->push_back("          <ListingPath>.\\Listing\\</ListingPath>");
     List->push_back("          <HexFormatSelection>1</HexFormatSelection>");
     List->push_back("          <AfterMake>");
     List->push_back(std::string("            <RunUserProg1>")+std::to_string((int)((After1=="")?0:1))+"</RunUserProg1>");
@@ -320,7 +320,8 @@ void Keil_Gen::Raw_Proj(std::unique_ptr<std::vector<std::string>>& List,
     List->push_back("            <v6Rtti>0</v6Rtti>");
     List->push_back("            <VariousControls>");
     /* These warnings are spurious */
-    List->push_back("              <MiscControls>-Wno-date-time -Wno-unused-parameter -Wno-missing-variable-declarations -Wno-missing-noreturn -Wno-unsafe-buffer-usage</MiscControls>");
+    List->push_back("              <MiscControls>-Wno-unknown-warning-option -Wno-unsafe-buffer-usage -Wno-date-time -Wno-unused-parameter "
+                                                "-Wno-missing-noreturn -Wno-unsafe-buffer-usage -Wno-missing-variable-declarations</MiscControls>");
     List->push_back("              <Define></Define>");
     List->push_back("              <Undefine></Undefine>");
     List->push_back(std::string("              <IncludePath>")+Include_Path+"</IncludePath>");
@@ -448,7 +449,7 @@ void Keil_Gen::Monitor_Proj(std::unique_ptr<std::vector<std::string>>& List,
 
     if(this->Proj->Kernel->Full_Image!=0)
     {
-        Bincopy.push_back(this->Proj->Monitor->Monitor_Root+"Utility/M7M02_Bincopy/bincopy.exe");
+        Bincopy.push_back(Main::Monitor_Root+"Utility/M7M02_Bincopy/bincopy.exe");
         Gen_Tool::Path_Conv(this->Proj->Monitor->Project_Output, Bincopy);
         After1="fromelf.exe --binCombined -o \"$L@L.bin\" \"#L\"";
         After2=Bincopy[0]+" -i $L@L.bin -o ./monitor_image.c";
@@ -490,7 +491,7 @@ void Keil_Gen::Process_Proj(std::unique_ptr<std::vector<std::string>>& List,
 
     if(this->Proj->Kernel->Full_Image!=0)
     {
-        Bincopy.push_back(this->Proj->Monitor->Monitor_Root+"Utility/M7M02_Bincopy/bincopy.exe");
+        Bincopy.push_back(Main::Monitor_Root+"Utility/M7M02_Bincopy/bincopy.exe");
         Gen_Tool::Path_Conv(Prc->Project_Output, Bincopy);
         After1="fromelf.exe --binCombined -o \"$L@L.bin\" \"#L\"";
         After2=Bincopy[0]+" -i $L@L.bin -o ./"+Prc->Name_Lower+"_image.c";
@@ -525,7 +526,7 @@ void Keil_Gen::Workspace_Proj(std::unique_ptr<std::vector<std::string>>& List,
     List->push_back("");
     List->push_back("  <SchemaVersion>1.0</SchemaVersion>");
     List->push_back("");
-    List->push_back("  <Header>### uVision Project, (C) Keil Software</Header>");
+    List->push_back("  <Header>### uVision Project, (C) RVM Project Generator</Header>");
     List->push_back("");
     List->push_back("  <WorkspaceName>WorkSpace</WorkspaceName>");
     List->push_back("");

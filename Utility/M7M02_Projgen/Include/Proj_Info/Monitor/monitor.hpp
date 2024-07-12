@@ -57,8 +57,6 @@ public:
     std::string Toolchain;
     /* Compiler optimization level */
     std::string Optimization;
-    /* Monitor source root folder for reference */
-    std::string Monitor_Root;
     /* Project output folder/overwrite */
     std::string Project_Output;
     ptr_t Project_Overwrite;

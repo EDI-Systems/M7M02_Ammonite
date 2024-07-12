@@ -36,16 +36,15 @@ public:
     std::string Name_Lower;
     /* The project version */
     std::string Version;
-    /* Whether we assume all asserts to be correct */
-    ptr_t Assert_Correct;
-    /* Whether the region mappings are fixed and hence unmodifiable at runtime */
-    ptr_t Region_Fixed;
-    /* Whether we enable debug prints */
-    ptr_t Debug_Print;
+    /* Whether we enable assertions */
+    ptr_t Assert_Enable;
+    /* Whether we enable debug log prints */
+    ptr_t Debug_Log_Enable;
+    /* Whether to delegate page mapping constructions to user-level init process */
+    ptr_t Pgtbl_Raw_Enable;
     /* Workspace build system */
     std::string Buildsystem;
-    /* Workspace output folder & overwrite */
-    std::string Workspace_Output;
+    /* Workspace overwrite */
     ptr_t Workspace_Overwrite;
     /* Chip information */
     std::unique_ptr<class Chip> Chip;
@@ -72,7 +71,8 @@ public:
     /* The process information */
     std::vector<std::unique_ptr<class Process>> Process;
     std::map<std::string,class Process*> Process_Map;
-    /* The virtual machine information - some processes are VMs */
+    /* Which ones are native and VMs */
+    std::vector<class Native*> Native;
     std::vector<class Virtual*> Virtual;
 
     /* Workspace filename */

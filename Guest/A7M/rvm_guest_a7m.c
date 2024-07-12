@@ -46,7 +46,7 @@ rvm_ret_t RVM_A7M_Kfn_Act(rvm_cid_t Cap_Kfn,
                           rvm_ptr_t Sub_ID,
                           rvm_ptr_t* Param)
 {
-    return RVM_A7M_Svc_Kfn((RVM_SVC_KFN<<(sizeof(rvm_ptr_t)*4U))|((rvm_ptr_t)Cap_Kfn),
+    return RVM_A7M_Svc_Kfn((RVM_SVC_KFN<<(RVM_WORD_BYTE*4U))|((rvm_ptr_t)Cap_Kfn),
                            RVM_PARAM_D1(Sub_ID)|RVM_PARAM_D0(Func_ID),
                            Param);
 }

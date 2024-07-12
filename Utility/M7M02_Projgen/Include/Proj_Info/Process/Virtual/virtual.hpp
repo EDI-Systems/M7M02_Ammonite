@@ -33,9 +33,8 @@ namespace RVM_GEN
 class Virtual:public Process
 {
 public:
-    /* Name and root folder of the guest operating system */
+    /* Name and of the guest operating system */
     std::string Guest_Type;
-    std::string Guest_Root;
     /* Virtual header output folder & overwrite */
     std::string Virtual_Header_Output;
     ptr_t Virtual_Header_Overwrite;

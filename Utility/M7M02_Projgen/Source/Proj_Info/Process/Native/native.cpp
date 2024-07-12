@@ -57,10 +57,9 @@ Process(Root,PROCESS_NATIVE)
 {
     try
     {
-        /* Entry_Source_Output */
+        /* Entry_Source_Output - relative to project */
         this->Entry_Source_Output=Main::XML_Get_String(Root, "Entry_Source_Output", "DXXXX", "DXXXX");
-        Main::Dir_Fixup(this->Entry_Source_Output);
-        /* Entry_Source_Overwrite */
+        this->Entry_Source_Output=Main::Path_Absolute(PATH_DIR, this->Project_Output, this->Entry_Source_Output);
         this->Entry_Source_Overwrite=Main::XML_Get_Yesno(Root, "Entry_Source_Overwrite", "DXXXX", "DXXXX");
         /* Thread */
         Trunk_Parse_Param<class Thread, class Thread>(Root,"Thread",this->Thread,this,"DXXXX","DXXXX");
@@ -72,8 +71,6 @@ Process(Root,PROCESS_NATIVE)
         Trunk_Parse_Param<class Receive, class Receive>(Root,"Receive",this->Receive,this,"DXXXX","DXXXX");
         /* Vector */
         Trunk_Parse_Param<class Vect_Info, class Vect_Info>(Root,"Vector",this->Vector,this,"DXXXX","DXXXX");
-        /* Kfunc */
-        Trunk_Parse_Param<class Kfunc, class Kfunc>(Root,"Kfunc",this->Kfunc,this,"DXXXX","DXXXX");
     }
     catch(std::exception& Exc)
     {

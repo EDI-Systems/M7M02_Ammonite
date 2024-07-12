@@ -3,7 +3,7 @@ Filename    : rvm_platform_rv32p.c
 Author      : pry
 Date        : 26/06/2017
 Licence     : The Unlicense; see LICENSE for details.
-Description : The Cortex-M system library platform specific header.
+Description : The RISC-V system library platform specific header.
 ******************************************************************************/
 
 /* Include *******************************************************************/
@@ -67,6 +67,7 @@ rvm_ptr_t RVM_Stack_Init(rvm_ptr_t Stack,
                                   sizeof(struct RVM_RV32P_Stack));
 
     /* Jump to the stub so we can load the gp at start, for linker relaxation */
+#warning best if we can evade this crap. really messy and counterintuitive.
     Ptr->PC=*Entry;
     *Entry=Stub;
     

@@ -344,54 +344,54 @@ Description : The header of the RVM user-level library. This header defines the
 /* Kernel function calling ***************************************************/
 #define RVM_SVC_KFN                     (4U)
 /* The operations that may cause a context switch ****************************/
-/* Changing thread priority */
-#define RVM_SVC_THD_SCHED_PRIO          (5U)
 /* Free a thread from some core */
-#define RVM_SVC_THD_SCHED_FREE          (6U)
+#define RVM_SVC_THD_SCHED_FREE          (5U)
+/* Set entry&stack */
+#define RVM_SVC_THD_EXEC_SET            (6U)
+/* Changing thread priority */
+#define RVM_SVC_THD_SCHED_PRIO          (7U)
 /* Transfer time to a thread */
-#define RVM_SVC_THD_TIME_XFER           (7U)
+#define RVM_SVC_THD_TIME_XFER           (8U)
 /* Switch to another thread */
-#define RVM_SVC_THD_SWT                 (8U)
+#define RVM_SVC_THD_SWT                 (9U)
 /* Capability table operations ***********************************************/
 /* Create */
-#define RVM_SVC_CPT_CRT                 (9U)
+#define RVM_SVC_CPT_CRT                 (10U)
 /* Delete */
-#define RVM_SVC_CPT_DEL                 (10U)
+#define RVM_SVC_CPT_DEL                 (11U)
 /* Freeze */
-#define RVM_SVC_CPT_FRZ                 (11U)
+#define RVM_SVC_CPT_FRZ                 (12U)
 /* Add */
-#define RVM_SVC_CPT_ADD                 (12U)
+#define RVM_SVC_CPT_ADD                 (13U)
 /* Remove */
-#define RVM_SVC_CPT_REM                 (13U)
+#define RVM_SVC_CPT_REM                 (14U)
 /* Page table operations *****************************************************/
 /* Create */
-#define RVM_SVC_PGT_CRT                 (14U)
+#define RVM_SVC_PGT_CRT                 (15U)
 /* Delete */
-#define RVM_SVC_PGT_DEL                 (15U)
+#define RVM_SVC_PGT_DEL                 (16U)
 /* Add */
-#define RVM_SVC_PGT_ADD                 (16U)
+#define RVM_SVC_PGT_ADD                 (17U)
 /* Remove */
-#define RVM_SVC_PGT_REM                 (17U)
+#define RVM_SVC_PGT_REM                 (18U)
 /* Construction */
-#define RVM_SVC_PGT_CON                 (18U)
+#define RVM_SVC_PGT_CON                 (19U)
 /* Destruction */
-#define RVM_SVC_PGT_DES                 (19U)
+#define RVM_SVC_PGT_DES                 (20U)
 /* Process operations ********************************************************/
 /* Create */
-#define RVM_SVC_PRC_CRT                 (20U)
+#define RVM_SVC_PRC_CRT                 (21U)
 /* Delete */
-#define RVM_SVC_PRC_DEL                 (21U)
+#define RVM_SVC_PRC_DEL                 (22U)
 /* Change captbl */
-#define RVM_SVC_PRC_CPT                 (22U)
+#define RVM_SVC_PRC_CPT                 (23U)
 /* Change pgtbl */ 
-#define RVM_SVC_PRC_PGT                 (23U)
+#define RVM_SVC_PRC_PGT                 (24U)
 /* Thread operations *********************************************************/
 /* Create */
-#define RVM_SVC_THD_CRT                 (24U)
+#define RVM_SVC_THD_CRT                 (25U)
 /* Delete */
-#define RVM_SVC_THD_DEL                 (25U)
-/* Set entry&stack */
-#define RVM_SVC_THD_EXEC_SET            (26U)
+#define RVM_SVC_THD_DEL                 (26U)
 /* Bind to the current processor */
 #define RVM_SVC_THD_SCHED_BIND          (27U)
 /* Try to receive scheduling notifications */

@@ -60,16 +60,14 @@ Process(Root,PROCESS_VIRTUAL)
     {
         /* Guest_Type */
         this->Guest_Type=Main::XML_Get_String(Root,"Guest_Type","DXXXX","DXXXX");
-        /* Guest_Root */
-        this->Guest_Root=Main::XML_Get_String(Root,"Guest_Root","DXXXX","DXXXX");
-        Main::Dir_Fixup(this->Guest_Root);
-        /* Virtual_Header_Output */
+
+        /* Virtual_Header_Output - relative to project */
         this->Virtual_Header_Output=Main::XML_Get_String(Root,"Virtual_Header_Output","DXXXX","DXXXX");
-        Main::Dir_Fixup(this->Virtual_Header_Output);
+        this->Virtual_Header_Output=Main::Path_Absolute(PATH_DIR, this->Project_Output, this->Virtual_Header_Output);
         this->Virtual_Header_Overwrite=Main::XML_Get_Yesno(Root,"Virtual_Header_Overwrite","DXXXX","DXXXX");
-        /* Virtual_Source_Output */
+        /* Virtual_Source_Output - relative to project */
         this->Virtual_Source_Output=Main::XML_Get_String(Root,"Virtual_Source_Output","DXXXX","DXXXX");
-        Main::Dir_Fixup(this->Virtual_Source_Output);
+        this->Virtual_Source_Output=Main::Path_Absolute(PATH_DIR, this->Project_Output, this->Virtual_Source_Output);
         this->Virtual_Source_Overwrite=Main::XML_Get_Yesno(Root,"Virtual_Source_Overwrite","DXXXX","DXXXX");
 
         /* Stack_Size */

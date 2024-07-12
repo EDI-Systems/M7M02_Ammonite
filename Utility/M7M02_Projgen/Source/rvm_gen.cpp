@@ -102,6 +102,7 @@ extern "C"
 #include "Proj_Info/Process/Receive/receive.hpp"
 #include "Proj_Info/Process/Send/send.hpp"
 #include "Proj_Info/Process/Kfunc/kfunc.hpp"
+#include "Proj_Info/Process/Native/native.hpp"
 #include "Proj_Info/Process/Virtual/virtual.hpp"
 #include "Chip_Info/chip_info.hpp"
 #include "Plat_Info/Compatible/compatible.hpp"
@@ -109,6 +110,7 @@ extern "C"
 #include "Conf_Info/conf_info.hpp"
 #include "Vect_Info/vect_info.hpp"
 #include "Mem_Info/mem_info.hpp"
+
 #include "Gen_Tool/gen_tool.hpp"
 #include "Gen_Tool/Plat_Gen/plat_gen.hpp"
 #include "Gen_Tool/Build_Gen/build_gen.hpp"
@@ -118,11 +120,17 @@ extern "C"
 /* End Include ***************************************************************/
 namespace RVM_GEN
 {
-/* Global Variables **********************************************************/
+/* Global Variable ***********************************************************/
+std::string Main::Project_Input;
+std::string Main::Kernel_Root;
+std::string Main::Monitor_Root;
+std::string Main::Guest_RMP_Root;
+std::string Main::Guest_FRT_Root;
+std::string Main::Workspace_Output;
 ptr_t Main::Verbose=0;
 ptr_t Main::Mock=0;
 std::string Main::Time;
-/* End Global Variables ******************************************************/
+/* End Global Variable *******************************************************/
 
 /* Function:Main::Proj_Parse **************************************************
 Description : Parse the main project.
@@ -140,14 +148,14 @@ void Main::Proj_Parse(void)
     try
     {
         /* Read in the whole project file */
-        File=fopen(this->Input.c_str(),"r");
+        File=fopen(Main::Project_Input.c_str(),"r");
         if(File==nullptr)
-            Main::Error(std::string("XXXXX: '")+this->Input+"': No such project file or cannot be opened.");
+            Main::Error(std::string("XXXXX: '")+Main::Project_Input+"': No such project file or cannot be opened.");
         this->Buffer[fread(this->Buffer,1,MAX_FILE_SIZE,File)]='\0';
         if(strlen(this->Buffer)==0)
         {
             File=nullptr;
-            Main::Error(std::string("XXXXX: '")+this->Input+"': Project file is empty.");
+            Main::Error(std::string("XXXXX: '")+Main::Project_Input+"': Project file is empty.");
         }
         fclose(File);
         File=nullptr;
@@ -194,7 +202,7 @@ void Main::Chip_Parse(void)
     try
     {
         /* Try to find the correct chip description file */
-        Path=this->Proj->Monitor->Monitor_Root+"Include/Platform/"+
+        Path=Main::Monitor_Root+"Include/Platform/"+
              this->Proj->Chip->Platform+"/Chip/"+
              this->Proj->Chip->Class+"/"+
              "rvm_platform_"+this->Proj->Chip->Class_Lower+".rvc";
@@ -255,7 +263,7 @@ void Main::Plat_Parse(void)
         /* Try to find the correct platform description file */
         Path=this->Proj->Chip->Platform;
         Main::Lower(Path);
-        Path=this->Proj->Monitor->Monitor_Root+"Include/Platform/"+
+        Path=Main::Monitor_Root+"Include/Platform/"+
              this->Proj->Chip->Platform+"/rvm_platform_"+Path+".rva";
         /* Read in the whole chip description file */
         File=fopen(Path.c_str(),"r");
@@ -310,7 +318,7 @@ void Main::Parse(void)
         /* Parse project file */
         this->Proj_Parse();
         /* Change current path - everything is now relative to the project */
-        std::filesystem::current_path(this->Input.substr(0,this->Input.find_last_of("/\\")+1));
+        std::filesystem::current_path(this->Project_Input.substr(0,this->Project_Input.find_last_of("/\\")+1));
         /* Parse platform description file */
         this->Plat_Parse();
         /* Parse chip description file */
@@ -376,6 +384,17 @@ void Main::Compatible_Check(void)
         	if(this->Chip->Coprocessor_Set.find(Cop)==this->Chip->Coprocessor_Set.end())
                 Main::Error("XXXXX: The project contains a coprocessor that does not exist in the chip.");
         }
+
+        /* Check kernel toolchain compatibility */
+        this->Plat->Compatible_Check("Kernel", this->Proj->Kernel->Buildsystem, this->Proj->Kernel->Toolchain, "Native");
+        /* Check monitor toolchain compatibility */
+        this->Plat->Compatible_Check("Monitor", this->Proj->Kernel->Buildsystem, this->Proj->Kernel->Toolchain, "Native");
+        /* Check native process toolchain compatibility */
+        for(class Native* Nat:this->Proj->Native)
+            this->Plat->Compatible_Check(std::string("Native '")+Nat->Name+"'", Nat->Buildsystem, Nat->Toolchain, "Native");
+        /* Check virtual machine toolchain/guest compatibility */
+        for(class Virtual* Virt:this->Proj->Virtual)
+            this->Plat->Compatible_Check(std::string("Virtual '")+Virt->Name+"'", Virt->Buildsystem, Virt->Toolchain, Virt->Guest_Type);
 
         /* Check if the kernel priorities are a multiple of word size */
         if((this->Proj->Kernel->Kern_Prio%this->Plat->Wordlength)!=0)
@@ -574,15 +593,6 @@ void Main::Reference_Check(void)
                         Main::Error("XXXXX: The process contains a coprocessor that does not exist in the project.");
                 }
 
-                /* Check virtual machine priorities */
-                if(Prc->Type==PROCESS_VIRTUAL)
-                {
-                    Virt=static_cast<class Virtual*>(Prc.get());
-                    if(Virt->Priority>=this->Proj->Monitor->Virt_Prio)
-                        Main::Error("XXXXX: Virtual machine priority %lld must be smaller than total number of virtual machine priorities %lld.",
-                                    Virt->Priority, this->Proj->Monitor->Virt_Prio);
-                }
-
                 /* Check shared memory references */
                 for(std::unique_ptr<class Shmem>& Shm:Prc->Shmem)
                 {
@@ -605,6 +615,14 @@ void Main::Reference_Check(void)
                         else if(Thd->Priority>(this->Proj->Kernel->Kern_Prio-2))
                             Main::Error("XXXXX: Thread '"+Thd->Name+"' priority must be smaller than safety daemon's priority (Kern_Prio-1).");
                     }
+                }
+                /* Check virtual machine priorities */
+                else
+                {
+                    Virt=static_cast<class Virtual*>(Prc.get());
+                    if(Virt->Priority>=this->Proj->Monitor->Virt_Prio)
+                        Main::Error("XXXXX: Virtual machine priority %lld must be smaller than total number of virtual machine priorities %lld.",
+                                    Virt->Priority, this->Proj->Monitor->Virt_Prio);
                 }
 
                 /* Check port references */
@@ -703,36 +721,21 @@ void Main::Setup(void)
         this->Gen=std::make_unique<class Gen_Tool>(this->Plat->Name,
                                                    this->Proj.get(),this->Plat.get(),this->Chip.get());
 
-        /* Load buildsystem toolset */
+        /* Load buildsystem toolset - only used ones will be loaded */
         this->Gen->Build_Load(this->Proj->Kernel->Buildsystem);
         this->Gen->Build_Load(this->Proj->Monitor->Buildsystem);
         for(std::unique_ptr<class Process>& Prc:this->Proj->Process)
             this->Gen->Build_Load(Prc->Buildsystem);
 
-        /* Load toolchain toolset */
+        /* Load toolchain toolset - only used ones will be loaded */
         this->Gen->Tool_Load(this->Proj->Kernel->Toolchain);
         this->Gen->Tool_Load(this->Proj->Monitor->Toolchain);
         for(std::unique_ptr<class Process>& Prc:this->Proj->Process)
             this->Gen->Tool_Load(Prc->Toolchain);
 
-        /* Load guest OS toolset */
+        /* Load guest OS toolset - only used ones will be loaded */
         for(class Virtual* Virt:this->Proj->Virtual)
             this->Gen->Guest_Load(Virt->Guest_Type);
-
-        /* Check kernel */
-        this->Plat->Compatible_Check("Kernel", this->Proj->Kernel->Buildsystem, this->Proj->Kernel->Toolchain, "Native");
-        /* Check monitor */
-        this->Plat->Compatible_Check("Monitor", this->Proj->Kernel->Buildsystem, this->Proj->Kernel->Toolchain, "Native");
-        /* Check each process */
-        for(std::unique_ptr<class Process>& Prc:this->Proj->Process)
-        {
-            if(Prc->Type==PROCESS_NATIVE)
-                this->Plat->Compatible_Check(std::string("Process '")+Prc->Name+"'",
-                                             Prc->Buildsystem, Prc->Toolchain, "Native");
-            else
-                this->Plat->Compatible_Check(std::string("Virtual machine '")+Prc->Name+"'",
-                                             Prc->Buildsystem, Prc->Toolchain, static_cast<class Virtual*>(Prc.get())->Guest_Type);
-        }
     }
     catch(std::exception& Exc)
     {
@@ -1218,7 +1221,7 @@ void Main::Pgt_Alloc(void)
                 /* Decide what generator to use, raw page table or kernel-managed PCTrie */
                 Total_Static=0;
                 /* Kernel-managed PCTrie */
-                if(this->Proj->Region_Fixed==0)
+                if(this->Proj->Pgtbl_Raw_Enable==0)
                 {
                     Prc->Pgtbl=this->Gen->Plat->Pgt_Gen(Prc->Memory_All, Prc.get(), this->Plat->Wordlength, Total_Static);
                     Prc->Pgtbl->Is_Top=1;
@@ -1295,7 +1298,7 @@ void Main::Cap_Alloc(void)
             Main::Info(std::string("Allocating global caps for process '")+Prc->Name+"'.");
             Prc->Global_Alloc_Captbl(this->Proj->Monitor->Captbl);
             /* Only allocate page tables if the mappings are not fixed */
-            if(this->Proj->Region_Fixed==0)
+            if(this->Proj->Pgtbl_Raw_Enable==0)
                 Prc->Global_Alloc_Pgtbl(this->Proj->Monitor->Pgtbl,Prc->Pgtbl);
             Prc->Global_Alloc_Process(this->Proj->Monitor->Process);
             Prc->Global_Alloc_Thread(this->Proj->Monitor->Thread);
@@ -1377,7 +1380,7 @@ void Main::Kom_Alloc(ptr_t Init_Capsz)
     /* Initial page table - always order 0, containing all address space - may
      * not be present if we use user-managed tables, but the slot is still there */
     Cap_Front++;
-    if(this->Proj->Region_Fixed==0)
+    if(this->Proj->Pgtbl_Raw_Enable==0)
         Kom_Front+=this->Gen->Plat->Size_Pgt(0,1);
     /* Initial RVM process */
     Cap_Front++;
@@ -1442,7 +1445,7 @@ void Main::Kom_Alloc(ptr_t Init_Capsz)
         Kom_Front+=this->Gen->Plat->Size_Cpt(Cpt->Size);
 
     /* Create page tables - only if we use kernel-managed page tables */
-    if(this->Proj->Region_Fixed==0)
+    if(this->Proj->Pgtbl_Raw_Enable==0)
     {
         Main::Info("> Monitor pgtbl cap front %lld kmem front 0x%llX.", Cap_Front, Kom_Front);
         this->Proj->Monitor->Pgt_Cap_Front=Cap_Front;
@@ -1699,15 +1702,15 @@ void Main::Process_Gen(void)
             /* If this process is a virtual machine, generate VM configuration header as well */
             if(Prc->Type==PROCESS_VIRTUAL)
             {
-                Main::Info("Generating virtual machine configuration file.");
+                Main::Info("Generating virtual machine header and source.");
                 this->Gen->Process_Virt_Hdr(static_cast<class Virtual*>(Prc.get()));
                 this->Gen->Process_Virt_Src(static_cast<class Virtual*>(Prc.get()));
             }
             /* Generate process entry source */
             else
             {
-                Main::Info("Generating process entry source.");
-                this->Gen->Process_Entry_Src(Prc.get());
+                Main::Info("Generating native process entry source.");
+                this->Gen->Process_Nat_Src(static_cast<class Native*>(Prc.get()));
             }
 
             /* Generate monitor linker script */
@@ -1794,11 +1797,51 @@ Return      : None.
         while(Count<argc)
         {
             /* Input project file */
-            if(strcmp(argv[Count],"-i")==0)
+            if(strcmp(argv[Count],"-p")==0)
             {
-                if(this->Input!="")
+                if(Main::Project_Input!="")
                     Main::Error("XXXXX: More than one input file specified.");
-                this->Input=argv[Count+1];
+                Main::Project_Input=Main::Path_Absolute(PATH_FILE, "", argv[Count+1]);
+                Count+=2;
+            }
+            /* Input kernel root folder */
+            if(strcmp(argv[Count],"-k")==0)
+            {
+                if(Main::Kernel_Root!="")
+                    Main::Error("XXXXX: More than one kernel directory specified.");
+                Main::Kernel_Root=Main::Path_Absolute(PATH_DIR, "", argv[Count+1]);
+                Count+=2;
+            }
+            /* Input monitor root folder */
+            if(strcmp(argv[Count],"-m")==0)
+            {
+                if(Main::Monitor_Root!="")
+                    Main::Error("XXXXX: More than one monitor directory specified.");
+                Main::Monitor_Root=Main::Path_Absolute(PATH_DIR, "", argv[Count+1]);
+                Count+=2;
+            }
+            /* Input RMP root folder */
+            if(strcmp(argv[Count],"-rmp")==0)
+            {
+                if(Main::Guest_RMP_Root!="")
+                    Main::Error("XXXXX: More than one directory specified for the same guest.");
+                Main::Guest_RMP_Root=Main::Path_Absolute(PATH_DIR, "", argv[Count+1]);
+                Count+=2;
+            }
+            /* Input FRT root folder */
+            if(strcmp(argv[Count],"-frt")==0)
+            {
+                if(Main::Guest_FRT_Root!="")
+                    Main::Error("XXXXX: More than one directory specified for the same guest.");
+                Main::Guest_FRT_Root=Main::Path_Absolute(PATH_DIR, "", argv[Count+1]);
+                Count+=2;
+            }
+            /* Output workspace root folder */
+            if(strcmp(argv[Count],"-w")==0)
+            {
+                if(Main::Workspace_Output!="")
+                    Main::Error("XXXXX: More than one workspace directory specified.");
+                Main::Workspace_Output=Main::Path_Absolute(PATH_DIR, "", argv[Count+1]);
                 Count+=2;
             }
             /* Verbose mode */
@@ -1819,8 +1862,17 @@ Return      : None.
                 Main::Error("XXXXX: Unrecognized command line argument.");
         }
 
-        if(this->Input=="")
-            Main::Error("XXXXX: No input file specified.");
+        if(Main::Project_Input=="")
+            Main::Error("XXXXX: No project input file specified.");
+
+        if(Main::Kernel_Root=="")
+            Main::Error("XXXXX: No kernel source folder specified.");
+
+        if(Main::Monitor_Root=="")
+            Main::Error("XXXXX: No monitor source folder specified.");
+
+        if(Main::Workspace_Output=="")
+            Main::Error("XXXXX: No workspace output folder specified.");
 
         this->Buffer=(char*)malloc(MAX_FILE_SIZE);
         if(this->Buffer==nullptr)
@@ -1837,8 +1889,13 @@ Return      : None.
     catch(std::exception& Exc)
     {
         Main::Error(std::string("Command line parsing:\n")+Exc.what()+"\n"+
-                                "Usage: -i input.rvp\n"
-                                "       -i: Project description file.\n");
+                                "Usage: -p project.rvp -k kernel/ -m monitor/ -rmp rmp/ -frt frt/ -w workspace/\n"
+                                "       -p: Project description file.\n"
+                                "       -k: RME microkernel root folder.\n"
+                                "       -m: RVM hypervisor root folder.\n"
+                                "       -rmp: RMP RTOS root folder; needed when RMP is the guest.\n"
+                                "       -frt: FreeRTOS root folder; needed when FreeRTOS is the guest.\n"
+                                "       -w: Workspace output folder.\n");
     }
 }
 /* End Function:Main::Main ***************************************************/
@@ -2010,18 +2067,78 @@ void Main::Idtfr_Check(const std::string& Idtfr, const std::string& Name,
 }
 /* End Function:Main::Idtfr_Check ********************************************/
 
-/* Function:Main::Dir_Fixup ***************************************************
-Description : Fix up all directory paths with a lagging '/'.
-Input       : std::string& Dir - The directory path.
-Output      : std::string& Dir - The guaranteed correct directory path.
+/* Function:Main::Path_Absolute ***********************************************
+Description : Convert relative path to absolute path.
+Input       : ptr_t Type - The path type.
+              const std::string& Root - The root path; when empty, it is treated
+                                        as the current working directory.
+              const std::string& Path - The potentially relative path.
+Output      : None.
 Return      : None.
 ******************************************************************************/
-void Main::Dir_Fixup(std::string& Dir)
+std::string Main::Path_Absolute(ptr_t Type, const std::string& Root, const std::string& Path)
 {
-    if((Dir.back()!='/')&&(Dir.back()!='\\'))
-        Dir+='/';
+    std::string Temp;
+
+    if(Path=="")
+        return "";
+
+    if(Root!="")
+    {
+        /* Take care of volume labels like C:\ (Windows) or / (Linux) */
+        if(((Path.length()>=2)&&(Path[1]==':'))||(Path.front()=='/'))
+            Temp=Path;
+        else
+            Temp=std::filesystem::weakly_canonical(std::filesystem::absolute(Root)).string()+"/"+Path;
+    }
+    else
+        Temp=Path;
+
+    Temp=std::filesystem::weakly_canonical(std::filesystem::absolute(Temp)).string();
+
+    /* Replace path separators */
+    std::replace(Temp.begin(),Temp.end(),'\\','/');
+    /* If this is a folder, end it with the delimiter if it doesn't already have one */
+    if((Type==PATH_DIR)&&(Temp.back()!='/'))
+        Temp+="/";
+
+    return Temp;
 }
-/* End Function:Main::Dir_Fixup **********************************************/
+/* End Function:Main::Path_Absolute ******************************************/
+
+/* Function:Main::Path_Relative ***********************************************
+Description : Convert absolute path to relative path.
+Input       : ptr_t Type - The path type.
+              const std::string& Root - The root path, must not be empty.
+              const std::string& Path - The potentially absolute path.
+Output      : None.
+Return      : None.
+******************************************************************************/
+std::string Main::Path_Relative(ptr_t Type, const std::string& Root, const std::string& Path)
+{
+    std::filesystem::path Absroot;
+    std::filesystem::path Abspath;
+    std::string Temp;
+
+    if(Path=="")
+        return "";
+
+    /* Convert root path to canonical path */
+    Absroot=std::filesystem::weakly_canonical(std::filesystem::absolute(Root));
+    /* Convert path to canonical path */
+    Abspath=std::filesystem::weakly_canonical(std::filesystem::absolute(Path));
+    /* Compute relative path */
+    Temp=std::filesystem::relative(Abspath, Absroot).string();
+
+    /* Replace path separators */
+    std::replace(Temp.begin(),Temp.end(),'\\','/');
+    /* If this is a folder, end it with the delimiter if it doesn't already have one */
+    if((Type==PATH_DIR)&&(Temp.back()!='/'))
+        Temp+="/";
+
+    return Temp;
+}
+/* End Function:Main::Path_Relative ******************************************/
 
 /* Function:Main::Hex *********************************************************
 Description : Convert a number to a hex string, without 0x prefix.
@@ -2283,6 +2400,10 @@ int main(int argc, char* argv[])
 /* Phase 4: Produce output ***************************************************/
         if(Main::Mock==0)
         {
+            /* Generate workspace folder if it does not exist already */
+            Main::Info("Creating directory for workspace.");
+            std::filesystem::create_directories(Main::Workspace_Output);
+            /* Generate the underlying project files as needed */
             Main->Kernel_Gen();
             Main->Monitor_Gen();
             Main->Process_Gen();

@@ -60,7 +60,7 @@ while(0)
 /* The code generator author name */
 #define CODE_AUTHOR                         "The RVM project generator."
 /* The license for the generator */
-#define CODE_LICENSE                        "LGPL v3+; see COPYING for details."
+#define CODE_LICENSE                        "Unlicense; see COPYING for details."
 /* Generator macro alignment */
 #define MACRO_ALIGN                         (56-4-8)
 /* Buffer size for all temporary buffers */
@@ -74,6 +74,10 @@ while(0)
 
 /* Maximum file length allowed */
 #define MAX_FILE_SIZE                       (16*1024*1024)
+
+/* Path flags */
+#define PATH_FILE                           (0)
+#define PATH_DIR                            (1)
 /*****************************************************************************/
 /* __RVM_GEN_DEF__ */
 #endif
@@ -93,7 +97,12 @@ public:
     char* Buffer;
     static std::string Time;
 
-    std::string Input;
+    static std::string Project_Input;
+    static std::string Kernel_Root;
+    static std::string Monitor_Root;
+    static std::string Guest_RMP_Root;
+    static std::string Guest_FRT_Root;
+    static std::string Workspace_Output;
     static ptr_t Verbose;
     static ptr_t Mock;
 
@@ -158,7 +167,8 @@ public:
 
     static void Idtfr_Check(const std::string& Idtfr, const std::string& Name,
                             const std::string& Errno0, const std::string& Errno1);
-    static void Dir_Fixup(std::string& Dir);
+    static std::string Path_Absolute(ptr_t Type, const std::string& Root, const std::string& Path);
+    static std::string Path_Relative(ptr_t Type, const std::string& Root, const std::string& Path);
 
     static std::string Hex(ptr_t Number);
 

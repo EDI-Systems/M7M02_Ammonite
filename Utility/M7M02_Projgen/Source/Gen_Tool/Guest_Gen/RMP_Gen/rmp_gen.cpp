@@ -96,7 +96,7 @@ void RMP_Gen::Process_Virt_Hdr(class Virtual* Virt)
     List=std::make_unique<std::vector<std::string>>();
 
     /* Add whatever in the supposed include path into the VM */
-    Virt->Virtual_Include.push_back(Virt->Guest_Root+"Include/");
+    Virt->Virtual_Include.push_back(Main::Guest_RMP_Root+"Include/");
 
     /* Create platform selection header files */
     Main::Info("> Generating 'rmp_platform.h'.");
@@ -139,7 +139,7 @@ void RMP_Gen::Process_Virt_Hdr(class Virtual* Virt)
 
     Main::Info(std::string("> Generating '")+Filename+"'.");
     /* This may pop up: gcc bug - ignoring copy_options, will fix in the future */
-    std::filesystem::copy(Virt->Guest_Root+"Include/Platform/"+this->Plat->Name_Upper+"_RVM/Chip/"+this->Chip->Name+"/"+Filename,
+    std::filesystem::copy(Main::Guest_RMP_Root+"Include/Platform/"+this->Plat->Name_Upper+"_RVM/Chip/"+this->Chip->Name+"/"+Filename,
                           Virt->Virtual_Header_Output+Filename,
                           std::filesystem::copy_options::overwrite_existing);
 }
@@ -157,8 +157,8 @@ void RMP_Gen::Process_Virt_Src(class Virtual* Virt, class Tool_Gen* Tool)
     std::string Platform;
 
     /* Add all sources that this depend on */
-    Platform=Virt->Guest_Root+"Source/Platform/"+this->Plat->Name_Upper+"_RVM/";
-    Virt->Virtual_Source.push_back(Virt->Guest_Root+"Source/Kernel/rmp_kernel.c");
+    Platform=Main::Guest_RMP_Root+"Source/Platform/"+this->Plat->Name_Upper+"_RVM/";
+    Virt->Virtual_Source.push_back(Main::Guest_RMP_Root+"Source/Kernel/rmp_kernel.c");
     Virt->Virtual_Source.push_back(Platform+"rmp_platform_"+this->Plat->Name_Lower+"_rvm.c");
     Virt->Virtual_Source.push_back(Platform+"rmp_platform_"+this->Plat->Name_Lower+"_rvm_"+Tool->Name_Lower+Tool->Suffix(TOOL_ASSEMBLER));
     Virt->Virtual_Source.push_back(Virt->Virtual_Source_Output+"rmp_hook.c");
@@ -176,7 +176,7 @@ void RMP_Gen::Process_Virt_Src(class Virtual* Virt, class Tool_Gen* Tool)
 
     Main::Info("> Generating 'rmp_hook.c'.");
     /* This may pop up: gcc bug - ignoring copy_options, will fix in the future */
-    std::filesystem::copy(Virt->Guest_Root+"Source/Hook/rmp_hook_rvm.c",
+    std::filesystem::copy(Main::Guest_RMP_Root+"Source/Hook/rmp_hook_rvm.c",
                           Virt->Virtual_Source_Output+"rmp_hook.c",
                           std::filesystem::copy_options::overwrite_existing);
 }

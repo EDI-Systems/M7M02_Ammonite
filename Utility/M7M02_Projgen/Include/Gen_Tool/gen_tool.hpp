@@ -119,9 +119,9 @@ public:
     void Process_Inc(std::unique_ptr<std::vector<std::string>>& List, class Process* Prc);
     void Process_Main_Hdr_Mem(std::unique_ptr<std::vector<std::string>>& List, const class Mem_Info* Mem);
     void Process_Main_Hdr(class Process* Prc);
-    void Process_Entry_Src(class Process* Prc);
     void Process_Desc_Src(class Process* Prc);
     void Process_Main_Src(class Process* Prc);
+    void Process_Nat_Src(class Native* Nat);
     void Process_Virt_Hdr(class Virtual* Virt);
     void Process_Virt_Src(class Virtual* Virt);
     void Process_Linker(class Process* Prc);

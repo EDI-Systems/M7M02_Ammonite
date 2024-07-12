@@ -44,6 +44,7 @@ extern "C"
 #include "Proj_Info/Process/Receive/receive.hpp"
 #include "Proj_Info/Process/Send/send.hpp"
 #include "Proj_Info/Process/Kfunc/kfunc.hpp"
+#include "Proj_Info/Process/Native/native.hpp"
 #include "Proj_Info/Process/Virtual/virtual.hpp"
 #include "Mem_Info/mem_info.hpp"
 #include "Vect_Info/vect_info.hpp"
@@ -68,17 +69,15 @@ Return      : None.
         Name_Gen(this);
         /* Version */
         this->Version=Main::XML_Get_String(Root,"Version","DXXXX","DXXXX");
-        /* Assert_Correct */
-        this->Assert_Correct=Main::XML_Get_Yesno(Root,"Assert_Correct","DXXXX","DXXXX");
-        /* Region_Fixed */
-        this->Region_Fixed=Main::XML_Get_Yesno(Root,"Region_Fixed","DXXXX","DXXXX");
-        /* Debug_Print */
-        this->Debug_Print=Main::XML_Get_Yesno(Root,"Debug_Print","DXXXX","DXXXX");
+        /* Assert_Enable */
+        this->Assert_Enable=Main::XML_Get_Yesno(Root,"Assert_Enable","DXXXX","DXXXX");
+        /* Debug_Log_Enable */
+        this->Debug_Log_Enable=Main::XML_Get_Yesno(Root,"Debug_Log_Enable","DXXXX","DXXXX");
+        /* Pgtbl_Raw_Enable */
+        this->Pgtbl_Raw_Enable=Main::XML_Get_Yesno(Root,"Pgtbl_Raw_Enable","DXXXX","DXXXX");
         /* Buildsystem */
         this->Buildsystem=Main::XML_Get_String(Root,"Buildsystem","DXXXX","DXXXX");
-        /* Workspace_Output */
-        this->Workspace_Output=Main::XML_Get_String(Root,"Workspace_Output","DXXXX","DXXXX");
-        /* Workspace_Output */
+        /* Workspace_Overwrite */
         this->Workspace_Overwrite=Main::XML_Get_Yesno(Root,"Workspace_Overwrite","DXXXX","DXXXX");
 
         /* Chip */
@@ -103,12 +102,14 @@ Return      : None.
                                                       this->Kernel->Code_Base+this->Kernel->Code_Size,
                                                       this->Kernel->Data_Base+this->Kernel->Data_Size);
 
-        /* Processes & VMs */
-        Trunk_Parse_Param<class Process,class Process,ptr_t>(Root,"Process",this->Process,PROCESS_NATIVE,"DXXXX","DXXXX");
+        /* Natives & VMs */
+        Trunk_Parse<class Process,class Native>(Root,"Native",this->Process,"DXXXX","DXXXX");
         Trunk_Parse<class Process,class Virtual>(Root,"Virtual",this->Process,"DXXXX","DXXXX");
         for(std::unique_ptr<class Process>& Prc:this->Process)
         {
-            if(Prc->Type==PROCESS_VIRTUAL)
+            if(Prc->Type==PROCESS_NATIVE)
+                this->Native.push_back(static_cast<class Native*>(Prc.get()));
+            else
                 this->Virtual.push_back(static_cast<class Virtual*>(Prc.get()));
         }
     }
@@ -190,7 +191,9 @@ Description : Allocate the memory for vector/event flags. Flags are always like
                     ptr_t Group;
                     ptr_t Flag[1];
               };
-              Each bit corresponds to a single vector. The whole struct will repeat twice.
+              Each bit corresponds to a single vector. The whole struct will
+              repeat twice so we can support CPUs with no atomics at all.
+              The "Fast" entry is unused in the event flags.
 Input       : ptr_t Source - The source number.
               ptr_t Wordlength - The processor wordlength.
               ptr_t Kom_Order - The kernel memory alignment order of 2.

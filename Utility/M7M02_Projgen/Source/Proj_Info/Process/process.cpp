@@ -48,7 +48,8 @@ extern "C"
 namespace RVM_GEN
 {
 /* Function:Process::Process **************************************************
-Description : Constructor for process class.
+Description : Constructor for process class. This only handles the common portion
+              between virtual machines and the native process.
 Input       : xml_node_t* Root - The node containing the process information.
               ptr_t Type - The process type.
 Output      : None.
@@ -76,29 +77,19 @@ Kobj(this)
         this->Toolchain=Main::XML_Get_String(Root, "Toolchain", "DXXXX", "DXXXX");
         /* Optimization */
         this->Optimization=Main::XML_Get_String(Root, "Optimization", "DXXXX", "DXXXX");
-        /* Project_Output */
+        /* Project_Output - relative to workspace */
         this->Project_Output=Main::XML_Get_String(Root, "Project_Output", "DXXXX", "DXXXX");
-        Main::Dir_Fixup(this->Project_Output);
-        /* Project_Overwrite */
+        this->Project_Output=Main::Path_Absolute(PATH_DIR, Main::Workspace_Output, this->Project_Output);
         this->Project_Overwrite=Main::XML_Get_Yesno(Root, "Project_Overwrite", "DXXXX", "DXXXX");
-        /* Linker_Output */
+        /* Linker_Output - relative to project */
         this->Linker_Output=Main::XML_Get_String(Root, "Linker_Output", "DXXXX", "DXXXX");
-        Main::Dir_Fixup(this->Linker_Output);
-        /* Main_Header_Output */
+        this->Linker_Output=Main::Path_Absolute(PATH_DIR, this->Project_Output, this->Linker_Output);
+        /* Main_Header_Output - relative to project */
         this->Main_Header_Output=Main::XML_Get_String(Root, "Main_Header_Output", "DXXXX", "DXXXX");
-        Main::Dir_Fixup(this->Main_Header_Output);
-        /* Main_Source_Output */
+        this->Main_Header_Output=Main::Path_Absolute(PATH_DIR, this->Project_Output, this->Main_Header_Output);
+        /* Main_Source_Output - relative to project */
         this->Main_Source_Output=Main::XML_Get_String(Root, "Main_Source_Output", "DXXXX", "DXXXX");
-        Main::Dir_Fixup(this->Main_Source_Output);
-        /* These are present only if the process is native */
-        if(Type==PROCESS_NATIVE)
-        {
-            /* Entry_Source_Output */
-            this->Entry_Source_Output=Main::XML_Get_String(Root, "Entry_Source_Output", "DXXXX", "DXXXX");
-            Main::Dir_Fixup(this->Entry_Source_Output);
-            /* Entry_Source_Overwrite */
-        	this->Entry_Source_Overwrite=Main::XML_Get_Yesno(Root, "Entry_Source_Overwrite", "DXXXX", "DXXXX");
-        }
+        this->Main_Source_Output=Main::Path_Absolute(PATH_DIR, this->Project_Output, this->Main_Source_Output);
 
         /* Memory */
         Trunk_Parse_Param<class Mem_Info, class Mem_Info, ptr_t>(Root,"Memory",this->Memory,MEM_PSEG,"DXXXX","DXXXX");
@@ -106,20 +97,6 @@ Kobj(this)
         Trunk_Parse<class Shmem, class Shmem>(Root,"Shmem",this->Shmem,"DXXXX","DXXXX");
         /* Send */
         Trunk_Parse_Param<class Send, class Send>(Root,"Send",this->Send,this,"DXXXX","DXXXX");
-        /* These are present only if the process is native */
-        if(Type==PROCESS_NATIVE)
-        {
-            /* Thread */
-            Trunk_Parse_Param<class Thread, class Thread>(Root,"Thread",this->Thread,this,"DXXXX","DXXXX");
-            /* Invocation */
-            Trunk_Parse_Param<class Invocation, class Invocation>(Root,"Invocation",this->Invocation,this,"DXXXX","DXXXX");
-            /* Port */
-            Trunk_Parse_Param<class Port, class Port>(Root,"Port",this->Port,this,"DXXXX","DXXXX");
-            /* Receive */
-            Trunk_Parse_Param<class Receive, class Receive>(Root,"Receive",this->Receive,this,"DXXXX","DXXXX");
-            /* Vector */
-            Trunk_Parse_Param<class Vect_Info, class Vect_Info>(Root,"Vector",this->Vector,this,"DXXXX","DXXXX");
-        }
         /* Kfunc */
         Trunk_Parse_Param<class Kfunc, class Kfunc>(Root,"Kfunc",this->Kfunc,this,"DXXXX","DXXXX");
     }
@@ -184,7 +161,7 @@ void Process::Check(void)
                                                  [](std::unique_ptr<class Shmem>& Shm)->std::string{return Shm->Name;},
                                                  "XXXXX","name","Shmem");
 
-        /* All normal processes shall have at least one thread */
+        /* All native processes shall have at least one thread */
         if((this->Type==PROCESS_NATIVE)&&(this->Thread.empty()))
             Main::Error("XXXXX: No thread exists in native process.");
 
@@ -577,7 +554,7 @@ void Process::Mem_Alloc(ptr_t Wordlength, ptr_t Hyp_Reg_Size, ptr_t Kom_Order)
         Virt->State_Base=this->Data_Base+this->Data_Size-Virt->State_Size;
         Main::Info("> State block base 0x%llX size 0x%llX.", Virt->State_Base, Virt->State_Size);
         if(Virt->State_Base<=this->Data_Base)
-            Main::Error("XXXXX: Data section size is not big enough, unable to allocate virtual machine interrupt flags.");
+            Main::Error("XXXXX: Data section size is not big enough, unable to allocate virtual interrupt flags.");
         this->Data_Size=Virt->State_Base-this->Data_Base;
 
         /* Register space for hypervisor-managed thread */
@@ -585,7 +562,7 @@ void Process::Mem_Alloc(ptr_t Wordlength, ptr_t Hyp_Reg_Size, ptr_t Kom_Order)
         Virt->Reg_Base=this->Data_Base+this->Data_Size-Virt->Reg_Size;
         Main::Info("> Register base 0x%llX size 0x%llX.", Virt->Reg_Base, Virt->Reg_Size);
         if(Virt->Reg_Base<=this->Data_Base)
-            Main::Error("XXXXX: Data section size is not big enough, unable to allocate virtual machine registers.");
+            Main::Error("XXXXX: Data section size is not big enough, unable to allocate virtual registers.");
         this->Data_Size=Virt->Reg_Base-this->Data_Base;
     }
 

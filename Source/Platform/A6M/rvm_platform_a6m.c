@@ -8,22 +8,23 @@ Description : The ARMv6-M system library platform specific header.
 
 /* Include *******************************************************************/
 #include "rvm.h"
+#include "rvm_boot.h"
 
 #define __HDR_DEF__
 #include "Platform/A6M/rvm_platform_a6m.h"
-#include "Monitor/rvm_syssvc.h"
+#include "Monitor/rvm_monitor.h"
 #undef __HDR_DEF__
 
 #define __HDR_STRUCT__
 #include "Platform/A6M/rvm_platform_a6m.h"
-#include "Monitor/rvm_syssvc.h"
+#include "Monitor/rvm_monitor.h"
 #undef __HDR_STRUCT__
 
 /* Private include */
 #include "Platform/A6M/rvm_platform_a6m.h"
 
 #define __HDR_PUBLIC__
-#include "Monitor/rvm_syssvc.h"
+#include "Monitor/rvm_monitor.h"
 #undef __HDR_PUBLIC__
 /* End Include ***************************************************************/
 
@@ -34,7 +35,7 @@ Input       : char Char - The character to print.
 Output      : None.
 Return      : rvm_ptr_t - Always 0.
 ******************************************************************************/
-#if(RVM_DEBUG_PRINT==1U)
+#if(RVM_DBGLOG_ENABLE!=0U)
 rvm_ptr_t RVM_Putchar(char Char)
 {
     RVM_A6M_PUTCHAR(Char);
@@ -72,6 +73,7 @@ rvm_ptr_t RVM_Stack_Init(rvm_ptr_t Stack,
 {
     struct RVM_A6M_Stack* Ptr;
     
+    /* No macro provided because not every processor would require this */
     Ptr=(struct RVM_A6M_Stack*)(Stack+Size-
                                 RVM_STACK_SAFE_RDCY*sizeof(rvm_ptr_t)-
                                 sizeof(struct RVM_A6M_Stack));
@@ -95,7 +97,7 @@ Return      : None.
 void RVM_Idle(void)
 {
     /* Put us to sleep */
-    RVM_Kfn_Act(RVM_BOOT_INIT_KFN, RVM_KFN_IDLE_SLEEP, 0U, 0U, 0U);
+    RVM_Kfn_Act(RVM_BOOT_INIT_KFN,RVM_KFN_IDLE_SLEEP,0U,0U,0U);
 }
 /* End Function:RVM_Idle *****************************************************/
 
@@ -114,7 +116,7 @@ rvm_ret_t RVM_A6M_Kfn_Act(rvm_cid_t Cap_Kfn,
                           rvm_ptr_t Sub_ID,
                           rvm_ptr_t* Param)
 {
-    return RVM_A6M_Svc_Kfn((RVM_SVC_KFN<<(sizeof(rvm_ptr_t)*4U))|((rvm_ptr_t)Cap_Kfn),
+    return RVM_A6M_Svc_Kfn((RVM_SVC_KFN<<RVM_WORD_BYTE)|((rvm_ptr_t)Cap_Kfn),
                            RVM_PARAM_D1(Sub_ID)|RVM_PARAM_D0(Func_ID),
                            Param);
 }
@@ -128,7 +130,7 @@ Return      : None.
 ******************************************************************************/
 void RVM_Thd_Print_Exc(rvm_tid_t TID)
 {
-#if(RVM_DEBUG_PRINT==1U)
+#if(RVM_DBGLOG_ENABLE!=0U)
     RVM_DBG_S("Sftd: Unknown cause - ARMv6-M does not support fault handling.\r\n");
 #endif
 }
@@ -142,7 +144,7 @@ Return      : rvm_ret_t - If successful, 0; else a negative value.
 ******************************************************************************/
 rvm_ret_t RVM_Thd_Print_Reg(rvm_cid_t Cap_Thd)
 {
-#if(RVM_DEBUG_PRINT==1U)
+#if(RVM_DBGLOG_ENABLE!=0U)
     rvm_ptr_t Param[6];
     struct RVM_A6M_Stack* Stack;
     

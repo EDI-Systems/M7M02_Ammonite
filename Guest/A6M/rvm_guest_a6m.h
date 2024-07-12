@@ -6,7 +6,7 @@ Licence     : The Unlicense; see LICENSE for details.
 Description : The header of platform-specific part of RMP for RVM.
 ******************************************************************************/
 
-/* Typedefs ******************************************************************/
+/* Typedef *******************************************************************/
 #ifndef __RVM_GUEST_A6M__
 #define __RVM_GUEST_A6M__
 
@@ -40,54 +40,55 @@ typedef unsigned short rvm_u16_t;
 typedef unsigned char rvm_u8_t;
 #endif
 
+#ifndef __RVM_CID_T__
+#define __RVM_CID_T__
+/* Capability ID */
+typedef rvm_s32_t rvm_cid_t;
+#endif
+
 #ifndef __RVM_TID_T__
 #define __RVM_TID_T__
-/* The typedef for the Thread ID */
+/* Thread ID */
 typedef rvm_s32_t rvm_tid_t;
 #endif
 
 #ifndef __RVM_PTR_T__
 #define __RVM_PTR_T__
-/* The typedef for the pointers - This is the raw style. Pointers must be unsigned */
+/* Pointer */
 typedef rvm_u32_t rvm_ptr_t;
 #endif
 
 #ifndef __RVM_CNT_T__
 #define __RVM_CNT_T__
-/* The typedef for the count variables */
+/* Counter */
 typedef rvm_s32_t rvm_cnt_t;
-#endif
-
-#ifndef __RVM_CID_T__
-#define __RVM_CID_T__
-/* The typedef for capability ID */
-typedef rvm_s32_t rvm_cid_t;
 #endif
 
 #ifndef __RVM_RET_T__
 #define __RVM_RET_T__
-/* The type for process return value */
+/* Return value */
 typedef rvm_s32_t rvm_ret_t;
 #endif
-/* End Typedefs **************************************************************/
+/* End Typedef ***************************************************************/
 
 /* Define ********************************************************************/
-/* System macros *************************************************************/
+/* System Macro **************************************************************/
 /* Compiler "extern" keyword setting */
-#define EXTERN                                      extern
+#define RVM_EXTERN                                  extern
 /* The order of bits in one CPU machine word */
 #define RVM_WORD_ORDER                              (5U)
 
 /* Thread size */
-#define RVM_HYP_RAW_SIZE                            ((21U)*sizeof(rvm_ptr_t))
+#define RVM_HYP_RAW_SIZE                            ((21U)*RVM_WORD_BYTE)
 /* Invocation size */
-#define RVM_INV_RAW_SIZE                            ((8U)*sizeof(rvm_ptr_t))
+#define RVM_INV_RAW_SIZE                            ((8U)*RVM_WORD_BYTE)
 /* Normal page directory size */
-#define RVM_PGT_RAW_SIZE_NOM(NUM_ORDER)             ((4U+RVM_POW2(NUM_ORDER))*sizeof(rvm_ptr_t))
+#define RVM_PGT_RAW_SIZE_NOM(NUM_ORDER)             ((4U+RVM_POW2(NUM_ORDER))*RVM_WORD_BYTE)
 /* Top-level page directory size */
-#define RVM_PGT_RAW_SIZE_TOP(NUM_ORDER)             ((2U*RVM_A6M_REGION_NUM)*sizeof(rvm_ptr_t)+RVM_PGT_WORD_SIZE_NOM(NUM_ORDER))
+#define RVM_PGT_RAW_SIZE_TOP(NUM_ORDER)             ((2U*RVM_A6M_REGION_NUM)*RVM_WORD_BYTE+RVM_PGT_WORD_SIZE_NOM(NUM_ORDER))
+/* End System Macro **********************************************************/
 
-/* ARMv7-M specific kernel function macros ***********************************/
+/* ARMv6-M Specific Macro ****************************************************/
 /* Page table entry mode which property to get */
 #define RVM_A6M_KFN_PGT_ENTRY_MOD_FLAG_GET          (0U)
 #define RVM_A6M_KFN_PGT_ENTRY_MOD_SZORD_GET         (1U)
@@ -131,7 +132,7 @@ typedef rvm_s32_t rvm_ret_t;
 #define RVM_A6M_KFN_PERF_VAL_SET                    (1U)
 /* Register read/write */
 #define RVM_A6M_KFN_DEBUG_REG_MOD_GET               (0U)
-#define RVM_A6M_KFN_DEBUG_REG_MOD_SET               (1U<<16)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_SET               RVM_POW2(16U)
 /* General-purpose registers */
 #define RVM_A6M_KFN_DEBUG_REG_MOD_SP                (0U)
 #define RVM_A6M_KFN_DEBUG_REG_MOD_R8                (1U)
@@ -170,6 +171,7 @@ typedef rvm_s32_t rvm_ret_t;
 #define RVM_A6M_KFN_DEBUG_INV_MOD_SP_SET            (1U)
 /* Error register read */
 #define RVM_A6M_KFN_DEBUG_EXC_CAUSE_GET             (0U)
+/* End ARMv6-M Specific Macro ************************************************/
 /* End Define ****************************************************************/
 
 /* Struct ********************************************************************/
@@ -197,8 +199,8 @@ struct RVM_Exc_Struct
 
 /* Private Function **********************************************************/
 #ifdef __HDR_PRIVATE__
-#undef EXTERN
-#define EXTERN
+#undef RVM_EXTERN
+#define RVM_EXTERN
 /*****************************************************************************/
 
 /*****************************************************************************/
@@ -214,74 +216,74 @@ struct RVM_Exc_Struct
 /* Public Function ***********************************************************/
 /*****************************************************************************/
 /* Assembly veneer */
-EXTERN void _RVM_Entry(void);
-EXTERN void _RVM_Stub(void);
+RVM_EXTERN void _RVM_Entry(void);
+RVM_EXTERN void _RVM_Stub(void);
 
 /* System call */
-EXTERN rvm_ret_t RVM_Svc(rvm_ptr_t Op_Capid,
-                         rvm_ptr_t Param1,
-                         rvm_ptr_t Param2,
-                         rvm_ptr_t Param3);
-EXTERN rvm_ret_t RVM_A6M_Svc_Kfn(rvm_ptr_t Op_Capid,
-                                 rvm_ptr_t ID,
-                                 rvm_ptr_t* Param);
+RVM_EXTERN rvm_ret_t RVM_Svc(rvm_ptr_t Op_Capid,
+                             rvm_ptr_t Param1,
+                             rvm_ptr_t Param2,
+                             rvm_ptr_t Param3);
+RVM_EXTERN rvm_ret_t RVM_A6M_Svc_Kfn(rvm_ptr_t Op_Capid,
+                                     rvm_ptr_t ID,
+                                     rvm_ptr_t* Param);
 /* Invocation */
-EXTERN rvm_ret_t RVM_Inv_Act(rvm_cid_t Cap_Inv,
-                             rvm_ptr_t Param,
-                             rvm_ptr_t* Retval);
-EXTERN rvm_ret_t RVM_Inv_Ret(rvm_ptr_t Retval);
+RVM_EXTERN rvm_ret_t RVM_Inv_Act(rvm_cid_t Cap_Inv,
+                                 rvm_ptr_t Param,
+                                 rvm_ptr_t* Retval);
+RVM_EXTERN rvm_ret_t RVM_Inv_Ret(rvm_ptr_t Retval);
 
 /* Utility */
-EXTERN void RVM_Putchar(char Char);
+RVM_EXTERN void RVM_Putchar(char Char);
 
 /* Kernel function */
-EXTERN rvm_ret_t RVM_A6M_Kfn_Act(rvm_cid_t Cap_Kfn,
-                                 rvm_ptr_t Func_ID,
-                                 rvm_ptr_t Sub_ID,
-                                 rvm_ptr_t* Param);
-EXTERN rvm_ret_t RVM_A6M_Pgt_Entry_Mod(rvm_cid_t Cap_Kfn,
-                                       rvm_cid_t Cap_Pgt,
-                                       rvm_ptr_t Vaddr,
-                                       rvm_ptr_t Type);
-EXTERN rvm_ret_t RVM_A6M_Int_Local_Mod(rvm_cid_t Cap_Kfn,
-                                       rvm_ptr_t Int_Num,
+RVM_EXTERN rvm_ret_t RVM_A6M_Kfn_Act(rvm_cid_t Cap_Kfn,
+                                     rvm_ptr_t Func_ID,
+                                     rvm_ptr_t Sub_ID,
+                                     rvm_ptr_t* Param);
+RVM_EXTERN rvm_ret_t RVM_A6M_Pgt_Entry_Mod(rvm_cid_t Cap_Kfn,
+                                           rvm_cid_t Cap_Pgt,
+                                           rvm_ptr_t Vaddr,
+                                           rvm_ptr_t Type);
+RVM_EXTERN rvm_ret_t RVM_A6M_Int_Local_Mod(rvm_cid_t Cap_Kfn,
+                                           rvm_ptr_t Int_Num,
+                                           rvm_ptr_t Operation,
+                                           rvm_ptr_t Param);
+RVM_EXTERN rvm_ret_t RVM_A6M_Int_Local_Trig(rvm_cid_t Cap_Kfn,
+                                            rvm_ptr_t Int_Num);
+RVM_EXTERN rvm_ret_t RVM_A6M_Prfth_Mod(rvm_cid_t Cap_Kfn,
+                                       rvm_ptr_t Prfth_ID,
                                        rvm_ptr_t Operation,
                                        rvm_ptr_t Param);
-EXTERN rvm_ret_t RVM_A6M_Int_Local_Trig(rvm_cid_t Cap_Kfn,
-                                        rvm_ptr_t Int_Num);
-EXTERN rvm_ret_t RVM_A6M_Prfth_Mod(rvm_cid_t Cap_Kfn,
-                                   rvm_ptr_t Prfth_ID,
-                                   rvm_ptr_t Operation,
-                                   rvm_ptr_t Param);
-EXTERN rvm_ret_t RVM_A6M_Perf_CPU_Func(rvm_cid_t Cap_Kfn,
-                                       rvm_ptr_t Freg_ID,
-                                       rvm_ptr_t* Content);
-EXTERN rvm_ret_t RVM_A6M_Perf_Mon_Mod(rvm_cid_t Cap_Kfn,
-                                      rvm_ptr_t Perf_ID,
-                                      rvm_ptr_t Operation,
-                                      rvm_ptr_t Param);
-EXTERN rvm_ret_t RVM_A6M_Perf_Cycle_Mod(rvm_cid_t Cap_Kfn,
-                                        rvm_ptr_t Cycle_ID, 
-                                        rvm_ptr_t Operation,
-                                        rvm_ptr_t Value,
-                                        rvm_ptr_t* Content);
-EXTERN rvm_ret_t RVM_A6M_Debug_Print(rvm_cid_t Cap_Kfn,
-                                     char Char);
-EXTERN rvm_ret_t RVM_A6M_Debug_Reg_Mod(rvm_cid_t Cap_Kfn,
-                                       rvm_cid_t Cap_Thd, 
-                                       rvm_ptr_t Operation,
-                                       rvm_ptr_t Value,
-                                       rvm_ptr_t* Content);
-EXTERN rvm_ret_t RVM_A6M_Debug_Inv_Mod(rvm_cid_t Cap_Kfn,
-                                       rvm_cid_t Cap_Thd, 
-                                       rvm_ptr_t Layer,
-                                       rvm_ptr_t Operation,
-                                       rvm_ptr_t Value,
-                                       rvm_ptr_t* Content);
-EXTERN rvm_ret_t RVM_A6M_Debug_Exc_Get(rvm_cid_t Cap_Kfn,
-                                       rvm_cid_t Cap_Thd,
-                                       rvm_ptr_t Operation,
-                                       rvm_ptr_t* Content);
+RVM_EXTERN rvm_ret_t RVM_A6M_Perf_CPU_Func(rvm_cid_t Cap_Kfn,
+                                           rvm_ptr_t Freg_ID,
+                                           rvm_ptr_t* Content);
+RVM_EXTERN rvm_ret_t RVM_A6M_Perf_Mon_Mod(rvm_cid_t Cap_Kfn,
+                                          rvm_ptr_t Perf_ID,
+                                          rvm_ptr_t Operation,
+                                          rvm_ptr_t Param);
+RVM_EXTERN rvm_ret_t RVM_A6M_Perf_Cycle_Mod(rvm_cid_t Cap_Kfn,
+                                            rvm_ptr_t Cycle_ID, 
+                                            rvm_ptr_t Operation,
+                                            rvm_ptr_t Value,
+                                            rvm_ptr_t* Content);
+RVM_EXTERN rvm_ret_t RVM_A6M_Debug_Print(rvm_cid_t Cap_Kfn,
+                                         char Char);
+RVM_EXTERN rvm_ret_t RVM_A6M_Debug_Reg_Mod(rvm_cid_t Cap_Kfn,
+                                           rvm_cid_t Cap_Thd, 
+                                           rvm_ptr_t Operation,
+                                           rvm_ptr_t Value,
+                                           rvm_ptr_t* Content);
+RVM_EXTERN rvm_ret_t RVM_A6M_Debug_Inv_Mod(rvm_cid_t Cap_Kfn,
+                                           rvm_cid_t Cap_Thd, 
+                                           rvm_ptr_t Layer,
+                                           rvm_ptr_t Operation,
+                                           rvm_ptr_t Value,
+                                           rvm_ptr_t* Content);
+RVM_EXTERN rvm_ret_t RVM_A6M_Debug_Exc_Get(rvm_cid_t Cap_Kfn,
+                                           rvm_cid_t Cap_Thd,
+                                           rvm_ptr_t Operation,
+                                           rvm_ptr_t* Content);
 /*****************************************************************************/
 #endif /* __RVM_GUEST_A6M__ */
 /* End Public Function *******************************************************/

@@ -270,7 +270,7 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
     List->push_back("DFLAGS=-g3");
     List->push_back("LFLAGS=-specs=nano.specs -specs=nosys.specs -nostartfiles -Wl,--gc-sections,--cref");
     List->push_back("");
-    List->push_back("OBJDIR=Objects");
+    List->push_back("OBJDIR=Object");
     List->push_back(std::string("PREFIX=")+Prefix);
     List->push_back("# End Config ##################################################################");
     List->push_back("");
@@ -354,9 +354,10 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
     List->push_back("");
     List->push_back("# Link ELF target file and print size");
     List->push_back("$(TARGET).elf:$(COBJS) $(AOBJS)");
-    if(Target_Lower=="Kernel")
+    /* Distinguish between projects - kernel, monitor or process? */
+    if(Target=="Kernel")
     	List->push_back("\t@echo \"    LD [K]  $(notdir $@)\"");
-    else if(Target_Lower=="Monitor")
+    else if(Target=="Monitor")
     	List->push_back("\t@echo \"    LD [M]  $(notdir $@)\"");
     else
     	List->push_back("\t@echo \"    LD [P]  $(notdir $@)\"");
@@ -437,7 +438,7 @@ void Makefile_Gen::Monitor_Proj(std::unique_ptr<std::vector<std::string>>& List,
 
     if(this->Proj->Kernel->Full_Image!=0)
     {
-        Bincopy.push_back(this->Proj->Monitor->Monitor_Root + "Utility/M7M02_Bincopy/bincopy.exe");
+        Bincopy.push_back(Main::Monitor_Root + "Utility/M7M02_Bincopy/bincopy.exe");
         Gen_Tool::Path_Conv(this->Proj->Monitor->Project_Output, Bincopy);
         After=Bincopy[0]+" -i $(OBJDIR)/$(TARGET).bin -o ./monitor_image.c";
     }
@@ -477,7 +478,7 @@ void Makefile_Gen::Process_Proj(std::unique_ptr<std::vector<std::string>>& List,
 
     if(this->Proj->Kernel->Full_Image!=0)
     {
-        Bincopy.push_back(this->Proj->Monitor->Monitor_Root + "Utility/M7M02_Bincopy/bincopy.exe");
+        Bincopy.push_back(Main::Monitor_Root+"Utility/M7M02_Bincopy/bincopy.exe");
         Gen_Tool::Path_Conv(Prc->Project_Output, Bincopy);
         After=Bincopy[0]+" -i $(OBJDIR)/$(TARGET).bin -o ./" + Prc->Name_Lower + "_image.c";
     }

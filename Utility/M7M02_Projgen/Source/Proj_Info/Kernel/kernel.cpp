@@ -45,9 +45,6 @@ Return      : None.
 {
     try
     {
-        /* Source_Root */
-        this->Kernel_Root=Main::XML_Get_String(Root,"Kernel_Root","DXXXX","DXXXX");
-        Main::Dir_Fixup(this->Kernel_Root);
         /* Code base/size */
         this->Code_Base=Main::XML_Get_Number(Root,"Code_Base","DXXXX","DXXXX");
         this->Code_Size=Main::XML_Get_Number(Root,"Code_Size","DXXXX","DXXXX");
@@ -73,31 +70,30 @@ Return      : None.
         this->Optimization=Main::XML_Get_String(Root,"Optimization","DXXXX","DXXXX");
         /* Full_Image */
         this->Full_Image=Main::XML_Get_Yesno(Root,"Full_Image","DXXXX","DXXXX");
-        /* Project_Output */
+        /* Project_Output - relative to workspace */
         this->Project_Output=Main::XML_Get_String(Root,"Project_Output","DXXXX","DXXXX");
-        Main::Dir_Fixup(this->Project_Output);
-        /* Project_Overwrite */
+        this->Project_Output=Main::Path_Absolute(PATH_DIR, Main::Workspace_Output, this->Project_Output);
         this->Project_Overwrite=Main::XML_Get_Yesno(Root,"Project_Overwrite","DXXXX","DXXXX");
-        /* Linker_Output */
+        /* Linker_Output - relative to project */
         this->Linker_Output=Main::XML_Get_String(Root,"Linker_Output","DXXXX","DXXXX");
-        Main::Dir_Fixup(this->Linker_Output);
-        /* Config_Header_Output */
+        this->Linker_Output=Main::Path_Absolute(PATH_DIR, this->Project_Output, this->Linker_Output);
+        /* Config_Header_Output - relative to project */
         this->Config_Header_Output=Main::XML_Get_String(Root,"Config_Header_Output","DXXXX","DXXXX");
-        Main::Dir_Fixup(this->Config_Header_Output);
-        /* Boot_Header_Output */
+        this->Config_Header_Output=Main::Path_Absolute(PATH_DIR, this->Project_Output, this->Config_Header_Output);
+        /* Boot_Header_Output - relative to project */
         this->Boot_Header_Output=Main::XML_Get_String(Root,"Boot_Header_Output","DXXXX","DXXXX");
-        Main::Dir_Fixup(this->Boot_Header_Output);
-        /* Boot_Source_Output */
+        this->Boot_Header_Output=Main::Path_Absolute(PATH_DIR, this->Project_Output, this->Boot_Header_Output);
+        /* Boot_Source_Output - relative to project */
         this->Boot_Source_Output=Main::XML_Get_String(Root,"Boot_Source_Output","DXXXX","DXXXX");
-        Main::Dir_Fixup(this->Boot_Source_Output);
-        /* Hook_Source_Output */
+        this->Boot_Source_Output=Main::Path_Absolute(PATH_DIR, this->Project_Output, this->Boot_Source_Output);
+        /* Hook_Source_Output - relative to project */
         this->Hook_Source_Output=Main::XML_Get_String(Root,"Hook_Source_Output","DXXXX","DXXXX");
-        Main::Dir_Fixup(this->Hook_Source_Output);
-        /* Hook_Source_Output */
+        this->Hook_Source_Output=Main::Path_Absolute(PATH_DIR, this->Project_Output, this->Hook_Source_Output);
+        /* Hook_Source_Output - relative to project */
         this->Hook_Source_Overwrite=Main::XML_Get_Yesno(Root,"Hook_Source_Overwrite","DXXXX","DXXXX");
-        /* Handler_Source_Output */
+        /* Handler_Source_Output - relative to project */
         this->Handler_Source_Output=Main::XML_Get_String(Root,"Handler_Source_Output","DXXXX","DXXXX");
-        Main::Dir_Fixup(this->Handler_Source_Output);
+        this->Handler_Source_Output=Main::Path_Absolute(PATH_DIR, this->Project_Output, this->Handler_Source_Output);
         /* Handler_Source_Overwrite */
         this->Handler_Source_Overwrite=Main::XML_Get_Yesno(Root,"Handler_Source_Overwrite","DXXXX","DXXXX");
     }

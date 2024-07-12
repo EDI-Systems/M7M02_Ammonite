@@ -43,82 +43,82 @@ typedef unsigned short rvm_u16_t;
 typedef unsigned char rvm_u8_t;
 #endif
 /* End Basic Types ***********************************************************/
-/* EXTERN keyword definition */
-#define EXTERN                                      extern
+/* Compiler "extern" keyword setting */
+#define RVM_EXTERN                                  extern
 /* The order of bits in one CPU machine word */
 #define RVM_WORD_ORDER                              (5U)
 /* Get most significant bit */
 #define RVM_MSB_GET(VAL)                            __RVM_A7M_MSB_Get(VAL)
 /* FPU type definitions - keep in accordance with kernel */
 #define RVM_A7M_ATTR_NONE                           (0U)
-#define RVM_A7M_ATTR_FPV4_SP                        (1U<<0)
-#define RVM_A7M_ATTR_FPV5_SP                        (1U<<1)
-#define RVM_A7M_ATTR_FPV5_DP                        (1U<<2)
+#define RVM_A7M_ATTR_FPV4_SP                        RVM_POW2(0U)
+#define RVM_A7M_ATTR_FPV5_SP                        RVM_POW2(1U)
+#define RVM_A7M_ATTR_FPV5_DP                        RVM_POW2(2U)
 
 /* Platform-specific includes */
 #include "rvm_platform_a7m_conf.h"
 
 /* Thread size */
-#define RVM_HYP_RAW_SIZE                            ((21U)*sizeof(rvm_ptr_t))
+#define RVM_HYP_RAW_SIZE                            ((21U)*RVM_WORD_BYTE)
 /* Invocation size */
-#define RVM_INV_RAW_SIZE                            ((9U)*sizeof(rvm_ptr_t))
+#define RVM_INV_RAW_SIZE                            ((9U)*RVM_WORD_BYTE)
 /* Normal page directory size */
-#define RVM_PGT_RAW_SIZE_NOM(NUM_ORDER)             ((4U+RVM_POW2(NUM_ORDER))*sizeof(rvm_ptr_t))
+#define RVM_PGT_RAW_SIZE_NOM(NUM_ORDER)             ((4U+RVM_POW2(NUM_ORDER))*RVM_WORD_BYTE)
 /* Top-level page directory size */
-#define RVM_PGT_RAW_SIZE_TOP(NUM_ORDER)             ((1U+2U*RVM_A7M_REGION_NUM)*sizeof(rvm_ptr_t)+RVM_PGT_RAW_SIZE_NOM(NUM_ORDER))
+#define RVM_PGT_RAW_SIZE_TOP(NUM_ORDER)             ((1U+2U*RVM_A7M_REGION_NUM)*RVM_WORD_BYTE+RVM_PGT_RAW_SIZE_NOM(NUM_ORDER))
 
 #define RVM_A7M_REG(X)                              (*((volatile rvm_ptr_t*)(X)))
 #define RVM_A7M_REGB(X)                             (*((volatile rvm_u8_t*)(X)))
 
 /* Fault reasons */
 /* Debug event has occurred. The Debug Fault Status Register has been updated */
-#define RVM_A7M_HFSR_DEBUGEVT                       (1U<<31)
+#define RVM_A7M_HFSR_DEBUGEVT                       RVM_POW2(31U)
 /* Processor has escalated a configurable-priority exception to HardFault */
-#define RVM_A7M_HFSR_FORCED                         (1U<<30)
+#define RVM_A7M_HFSR_FORCED                         RVM_POW2(30U)
 /* Vector table read fault has occurred */
-#define RVM_A7M_HFSR_VECTTBL                        (1U<<1)
+#define RVM_A7M_HFSR_VECTTBL                        RVM_POW2(1U)
 /* Divide by zero */
-#define RVM_A7M_UFSR_DIVBYZERO                      (1U<<25)
+#define RVM_A7M_UFSR_DIVBYZERO                      RVM_POW2(25U)
 /* Unaligned load/store access */
-#define RVM_A7M_UFSR_UNALIGNED                      (1U<<24)
+#define RVM_A7M_UFSR_UNALIGNED                      RVM_POW2(24U)
 /* No such coprocessor */
-#define RVM_A7M_UFSR_NOCP                           (1U<<19)
+#define RVM_A7M_UFSR_NOCP                           RVM_POW2(19U)
 /* Invalid vector return LR or PC value */
-#define RVM_A7M_UFSR_INVPC                          (1U<<18)
+#define RVM_A7M_UFSR_INVPC                          RVM_POW2(18U)
 /* Attempt to enter an invalid instruction set (ARM) state */
-#define RVM_A7M_UFSR_INVSTATE                       (1U<<17)
+#define RVM_A7M_UFSR_INVSTATE                       RVM_POW2(17U)
 /* Invalid IT instruction or related instructions */
-#define RVM_A7M_UFSR_UNDEFINSTR                     (1U<<16)
+#define RVM_A7M_UFSR_UNDEFINSTR                     RVM_POW2(16U)
 /* The Bus Fault Address Register (BFAR) is valid */
-#define RVM_A7M_BFSR_BFARVALID                      (1U<<15)
+#define RVM_A7M_BFSR_BFARVALID                      RVM_POW2(15U)
 /* The bus fault happened during FP lazy stacking */
-#define RVM_A7M_BFSR_LSPERR                         (1U<<13)
+#define RVM_A7M_BFSR_LSPERR                         RVM_POW2(13U)
 /* A derived bus fault has occurred on exception entry */
-#define RVM_A7M_BFSR_STKERR                         (1U<<12)
+#define RVM_A7M_BFSR_STKERR                         RVM_POW2(12U)
 /* A derived bus fault has occurred on exception return */
-#define RVM_A7M_BFSR_UNSTKERR                       (1U<<11)
+#define RVM_A7M_BFSR_UNSTKERR                       RVM_POW2(11U)
 /* Imprecise data access error has occurred */
-#define RVM_A7M_BFSR_IMPRECISERR                    (1U<<10)
+#define RVM_A7M_BFSR_IMPRECISERR                    RVM_POW2(10U)
 /* Precise data access error has occurred, BFAR updated */
-#define RVM_A7M_BFSR_PRECISERR                      (1U<<9)
+#define RVM_A7M_BFSR_PRECISERR                      RVM_POW2(9U)
 /* A bus fault on an instruction prefetch has occurred. The 
  * fault is signaled only if the instruction is issued */
-#define RVM_A7M_BFSR_IBUSERR                        (1U<<8)
+#define RVM_A7M_BFSR_IBUSERR                        RVM_POW2(8U)
 /* The Memory Mnagement Fault Address Register have valid contents */
-#define RVM_A7M_MFSR_MMARVALID                      (1U<<7)
+#define RVM_A7M_MFSR_MMARVALID                      RVM_POW2(7U)
 /* A MemManage fault occurred during FP lazy state preservation */
-#define RVM_A7M_MFSR_MLSPERR                        (1U<<5)
+#define RVM_A7M_MFSR_MLSPERR                        RVM_POW2(5U)
 /* A derived MemManage fault occurred on exception entry */
-#define RVM_A7M_MFSR_MSTKERR                        (1U<<4)
+#define RVM_A7M_MFSR_MSTKERR                        RVM_POW2(4U)
 /* A derived MemManage fault occurred on exception return */
-#define RVM_A7M_MFSR_MUNSTKERR                      (1U<<3)
+#define RVM_A7M_MFSR_MUNSTKERR                      RVM_POW2(3U)
 /* Data access violation. The MMFAR shows the data address that
  * the load or store tried to access */
-#define RVM_A7M_MFSR_DACCVIOL                       (1U<<1)
+#define RVM_A7M_MFSR_DACCVIOL                       RVM_POW2(1U)
 /* MPU or Execute Never (XN) default memory map access violation on an
  * instruction fetch has occurred. The fault is signalled only if the
  * instruction is issued */
-#define RVM_A7M_MFSR_IACCVIOL                       (1U<<0)
+#define RVM_A7M_MFSR_IACCVIOL                       RVM_POW2(0U)
 
 /* Platform-specific kernel function macros **********************************/
 /* Page table entry mode which property to get */
@@ -199,7 +199,7 @@ typedef unsigned char rvm_u8_t;
 #define RVM_A7M_KFN_PERF_VAL_SET                    (1U)
 /* Register read/write */
 #define RVM_A7M_KFN_DEBUG_REG_MOD_GET               (0U)
-#define RVM_A7M_KFN_DEBUG_REG_MOD_SET               (1U<<16)
+#define RVM_A7M_KFN_DEBUG_REG_MOD_SET               RVM_POW2(16U)
 /* General-purpose registers */
 #define RVM_A7M_KFN_DEBUG_REG_MOD_SP                (0U)
 #define RVM_A7M_KFN_DEBUG_REG_MOD_R4                (1U)
@@ -442,13 +442,13 @@ struct RVM_Exc_Struct
 /*****************************************************************************/
 
 /*****************************************************************************/
-#define __EXTERN__
+#define __RVM_EXTERN__
 /* End Private Function ******************************************************/
 
 /* Public Variable ***********************************************************/
 /* __HDR_PUBLIC__ */
 #else
-#define __EXTERN__ EXTERN 
+#define __RVM_EXTERN__ RVM_EXTERN 
 /* __HDR_PUBLIC__ */
 #endif
 
@@ -461,47 +461,47 @@ struct RVM_Exc_Struct
 /* Public Function ***********************************************************/
 /*****************************************************************************/
 /* Assembly */
-EXTERN void __RVM_Stub(void);
-EXTERN rvm_ptr_t __RVM_A7M_MSB_Get(rvm_ptr_t Value); 
+RVM_EXTERN void __RVM_Stub(void);
+RVM_EXTERN rvm_ptr_t __RVM_A7M_MSB_Get(rvm_ptr_t Value); 
 
 /* System call */
-EXTERN rvm_ret_t RVM_Svc(rvm_ptr_t Op_Cid,
-                         rvm_ptr_t Param1,
-                         rvm_ptr_t Param2,
-                         rvm_ptr_t Param3);
-EXTERN rvm_ret_t RVM_A7M_Svc_Kfn(rvm_ptr_t Op_Cid,
-                                 rvm_ptr_t ID,
-                                 rvm_ptr_t* Param);
+RVM_EXTERN rvm_ret_t RVM_Svc(rvm_ptr_t Op_Cid,
+                             rvm_ptr_t Param1,
+                             rvm_ptr_t Param2,
+                             rvm_ptr_t Param3);
+RVM_EXTERN rvm_ret_t RVM_A7M_Svc_Kfn(rvm_ptr_t Op_Cid,
+                                     rvm_ptr_t ID,
+                                     rvm_ptr_t* Param);
 /* Invocation */
-EXTERN rvm_ret_t RVM_Inv_Act(rvm_cid_t Cap_Inv,
-                             rvm_ptr_t Param,
-                             rvm_ptr_t* Retval);
-EXTERN rvm_ret_t RVM_Inv_Ret(rvm_ptr_t Retval);
-#if(RVM_DEBUG_PRINT==1U)
+RVM_EXTERN rvm_ret_t RVM_Inv_Act(rvm_cid_t Cap_Inv,
+                                 rvm_ptr_t Param,
+                                 rvm_ptr_t* Retval);
+RVM_EXTERN rvm_ret_t RVM_Inv_Ret(rvm_ptr_t Retval);
+#if(RVM_DBGLOG_ENABLE!=0U)
 /* Debugging */
-__EXTERN__ rvm_ptr_t RVM_Putchar(char Char);
+__RVM_EXTERN__ rvm_ptr_t RVM_Putchar(char Char);
 #endif
 /* Stack operation */
-__EXTERN__ rvm_ptr_t RVM_Stack_Init(rvm_ptr_t Stack,
-                                    rvm_ptr_t Size,
-                                    rvm_ptr_t* Entry,
-                                    rvm_ptr_t Stub);
+__RVM_EXTERN__ rvm_ptr_t RVM_Stack_Init(rvm_ptr_t Stack,
+                                        rvm_ptr_t Size,
+                                        rvm_ptr_t* Entry,
+                                        rvm_ptr_t Stub);
 /* Idle function */
-__EXTERN__ void RVM_Idle(void);
+__RVM_EXTERN__ void RVM_Idle(void);
 /* Coprocessor context size */
-__EXTERN__ rvm_ptr_t RVM_Thd_Cop_Size(rvm_ptr_t Attr);
+__RVM_EXTERN__ rvm_ptr_t RVM_Thd_Cop_Size(rvm_ptr_t Attr);
 /* Kernel function activation */
-__EXTERN__ rvm_ret_t RVM_A7M_Kfn_Act(rvm_cid_t Cap_Kern,
-                                     rvm_ptr_t Func_ID,
-                                     rvm_ptr_t Sub_ID,
-                                     rvm_ptr_t* Param);
+__RVM_EXTERN__ rvm_ret_t RVM_A7M_Kfn_Act(rvm_cid_t Cap_Kern,
+                                         rvm_ptr_t Func_ID,
+                                         rvm_ptr_t Sub_ID,
+                                         rvm_ptr_t* Param);
 /* Print exception */
-__EXTERN__ void RVM_Thd_Print_Exc(rvm_tid_t TID);
+__RVM_EXTERN__ void RVM_Thd_Print_Exc(rvm_tid_t TID);
 /* Print registers */
-__EXTERN__ rvm_ret_t RVM_Thd_Print_Reg(rvm_cid_t Cap_Thd);
+__RVM_EXTERN__ rvm_ret_t RVM_Thd_Print_Reg(rvm_cid_t Cap_Thd);
 /*****************************************************************************/
-/* Undefine "__EXTERN__" to avoid redefinition */
-#undef __EXTERN__
+/* Undefine "__RVM_EXTERN__" to avoid redefinition */
+#undef __RVM_EXTERN__
 /* __RVM_PLATFORM_A7M_MEMBER__ */
 #endif
 /* !(defined __HDR_DEF__||defined __HDR_STRUCT__) */

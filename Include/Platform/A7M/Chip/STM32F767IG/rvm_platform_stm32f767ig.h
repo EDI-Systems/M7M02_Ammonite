@@ -9,28 +9,27 @@ Description: The configuration file for STM32F767IG. The values listed here shou
 
 /* Define ********************************************************************/
 /* Debugging *****************************************************************/
-#define RVM_ASSERT_CORRECT                              (0U)
-#define RVM_DEBUG_PRINT                                 (1U)
-/* Kernel configurations - keep the same with the kernel *********************/
-/* Whether to use fixed mappings */
-#define RVM_REGION_FIXED                                (0U)
-/* The virtual memory start address for the kernel objects */
+#define RVM_ASSERT_ENABLE                               (0U)
+#define RVM_DBGLOG_ENABLE                               (1U)
+/* Kernel configurations - align with the kernel ****************************/
+/* Are we using raw memory mappings? */
+#define RVM_PGT_RAW_ENABLE                              (0U)
+/* Kernel object virtual memory base */
 #define RVM_KOM_VA_BASE                                 (0x20003000U)
-/* The size of the kernel object virtual memory */
+/* Kernel object virtual memory size */
 #define RVM_KOM_VA_SIZE                                 (0xD000U)
-/* The granularity of kernel memory allocation, order of 2 in bytes */
+/* Kernel memory allocation granularity order */
 #define RVM_KOM_SLOT_ORDER                              (4U)
-/* The maximum number of preemption priority levels in the system.
- * This parameter must be divisible by the word length - 32 is usually sufficient */
+/* The maximum number of preemption priorities */
 #define RVM_PREEMPT_PRIO_NUM                            (32U)
-/* Number of virtual priorities in the system */
+/* The maximum number of VM preemption priorities */
 #define RVM_PREEMPT_VPRIO_NUM                           (32U)
 
-/* Physical vector number, flag area base and its size */
+/* Physical vector number, flag area base and size */
 #define RVM_PHYS_VCT_NUM                                (110U)
 #define RVM_PHYS_VCTF_BASE                              (0x20007C00U)
 #define RVM_PHYS_VCTF_SIZE                              (0x200U)
-/* Virtual event number, flag area base and its size */
+/* Virtual event number, flag area base and size */
 #define RVM_VIRT_EVT_NUM                                (10U)
 #define RVM_VIRT_EVTF_BASE                              (0x20007E00U)
 #define RVM_VIRT_EVTF_SIZE                              (0x200U)
@@ -70,7 +69,7 @@ Description: The configuration file for STM32F767IG. The values listed here shou
 #define RVM_A7M_USART1_ISR                              RVM_A7M_REG(0x4001101CU)
 #define RVM_A7M_USART1_TDR                              RVM_A7M_REG(0x40011028U)
 
-#if(RVM_DEBUG_PRINT==1U)
+#if(RVM_DBGLOG_ENABLE!=0U)
 /* Print characters to console */
 #define RVM_A7M_PUTCHAR(CHAR) \
 do \

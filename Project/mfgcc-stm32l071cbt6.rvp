@@ -1,21 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <Project>
-    <Name>Test</Name>
+    <Name>RVM</Name>
     <Version>1.0</Version>
-	<Assert_Correct>No</Assert_Correct>
-	<Debug_Print>Yes</Debug_Print>
-	<Region_Fixed>Yes</Region_Fixed>
-	<Buildsystem>Keil</Buildsystem>
-	<Workspace_Output>./</Workspace_Output>
+	<Assert_Enable>Yes</Assert_Enable>
+	<Debug_Log_Enable>Yes</Debug_Log_Enable>
+	<Pgtbl_Raw_Enable>No</Pgtbl_Raw_Enable>
+	<Buildsystem>Makefile</Buildsystem>
 	<Workspace_Overwrite>No</Workspace_Overwrite>
     <Chip>
-        <Platform>A7M</Platform>
-        <Class>STM32F405RG</Class>
-        <Name>STM32F405RGT6</Name>
-        <Coprocessor>FPV4_SP</Coprocessor>
+        <Platform>A6M</Platform>
+        <Class>STM32L071CB</Class>
+        <Name>STM32L071CBT6</Name>
+        <Coprocessor>None</Coprocessor>
         <Config>
-            <NVIC_Grouping>P2S6</NVIC_Grouping>
-            <Systick_Value>1680000</Systick_Value>
+            <Systick_Value>320000</Systick_Value>
         </Config>
     </Chip>
     <Extmem>
@@ -31,89 +29,88 @@
         </S0>
     </Shmem>
     <Kernel>
-		<Kernel_Root>../../../../M7M01_Eukaron</Kernel_Root>
         <Code_Base>0x08000000</Code_Base>
-        <Code_Size>0x10000</Code_Size>
-        <Data_Base>0x10000000</Data_Base>
-        <Data_Size>0x3000</Data_Size>
-        <Stack_Size>0x800</Stack_Size>
+        <Code_Size>0xE000</Code_Size>
+        <Data_Base>0x20000000</Data_Base>
+        <Data_Size>0x1800</Data_Size>
+        <Stack_Size>0x400</Stack_Size>
         <Extra_Kom>0x0</Extra_Kom>
         <Kom_Order>4</Kom_Order>
         <Kern_Prio>32</Kern_Prio>
-		<Buildsystem>Keil</Buildsystem>
-		<Toolchain>ARMCC</Toolchain>
-		<Optimization>O3</Optimization>
+		<Buildsystem>Makefile</Buildsystem>
+		<Toolchain>GCC</Toolchain>
+		<Optimization>Os</Optimization>
 		<Full_Image>Yes</Full_Image>
-		<Project_Output>./Kernel/Project</Project_Output>
+		<Project_Output>./Kernel/Project/</Project_Output>
 		<Project_Overwrite>No</Project_Overwrite>
-		<Linker_Output>./Kernel/Project</Linker_Output>
-		<Config_Header_Output>./Kernel/Include</Config_Header_Output>
-		<Boot_Header_Output>./Kernel/Include</Boot_Header_Output>
-		<Boot_Source_Output>./Kernel/Source</Boot_Source_Output>
-		<Hook_Source_Output>./Kernel/Source</Hook_Source_Output>
+		<Linker_Output>./</Linker_Output>
+		<Config_Header_Output>../Include/</Config_Header_Output>
+		<Boot_Header_Output>../Include/</Boot_Header_Output>
+		<Boot_Source_Output>../Source/</Boot_Source_Output>
+		<Hook_Source_Output>../Source/</Hook_Source_Output>
 		<Hook_Source_Overwrite>No</Hook_Source_Overwrite>
-		<Handler_Source_Output>./Kernel/Source</Handler_Source_Output>
+		<Handler_Source_Output>../Source/</Handler_Source_Output>
 		<Handler_Source_Overwrite>No</Handler_Source_Overwrite>
     </Kernel>
     <Monitor>
-		<Monitor_Root>../../../../M7M02_Ammonite</Monitor_Root>
-        <Code_Size>0x10000</Code_Size>
-        <Data_Size>0x4000</Data_Size>
-        <Init_Stack_Size>0x800</Init_Stack_Size>
-        <Sftd_Stack_Size>0x800</Sftd_Stack_Size>
-        <Vmmd_Stack_Size>0x800</Vmmd_Stack_Size>
+        <Code_Size>0x8000</Code_Size>
+        <Data_Size>0x1000</Data_Size>
+        <Init_Stack_Size>0x100</Init_Stack_Size>
+        <Sftd_Stack_Size>0x100</Sftd_Stack_Size>
+        <Vmmd_Stack_Size>0x400</Vmmd_Stack_Size>
         <Extra_Captbl>32</Extra_Captbl>
         <Virt_Prio>32</Virt_Prio>
         <Virt_Event>32</Virt_Event>
         <Virt_Map>32</Virt_Map>
-		<Buildsystem>Keil</Buildsystem>
-		<Toolchain>ARMCC</Toolchain>
-        <Optimization>O3</Optimization>
-		<Project_Output>./Monitor/Project</Project_Output>
+		<Buildsystem>Makefile</Buildsystem>
+		<Toolchain>GCC</Toolchain>
+        <Optimization>Os</Optimization>
+		<Project_Output>./Monitor/Project/</Project_Output>
 		<Project_Overwrite>No</Project_Overwrite>
-		<Linker_Output>./Monitor/Project</Linker_Output>
-		<Config_Header_Output>./Monitor/Include</Config_Header_Output>
-		<Boot_Header_Output>./Monitor/Include</Boot_Header_Output>
-		<Boot_Source_Output>./Monitor/Source</Boot_Source_Output>
-		<Hook_Source_Output>./Monitor/Source</Hook_Source_Output>
+		<Linker_Output>./</Linker_Output>
+		<Config_Header_Output>./Include/</Config_Header_Output>
+		<Boot_Header_Output>./Include/</Boot_Header_Output>
+		<Boot_Source_Output>./Source/</Boot_Source_Output>
+		<Hook_Source_Output>./Source/</Hook_Source_Output>
 		<Hook_Source_Overwrite>No</Hook_Source_Overwrite>
     </Monitor>
-    <Process>
-        <P0>
+    <Native>
+        <N0>
             <Name>Proc1</Name>
-            <Extra_Captbl>9</Extra_Captbl>
-            <Coprocessor>FPV4_SP</Coprocessor>
-			<Buildsystem>Keil</Buildsystem>
-			<Toolchain>ARMCC</Toolchain>
+            <Extra_Captbl>0</Extra_Captbl>
+            <Coprocessor>None</Coprocessor>
+			<Buildsystem>Makefile</Buildsystem>
+			<Toolchain>GCC</Toolchain>
             <Optimization>O3</Optimization>
-			<Project_Output>./Proc1/Project</Project_Output>
+			<Project_Output>./Proc1/Project/</Project_Output>
 			<Project_Overwrite>No</Project_Overwrite>
-			<Linker_Output>./Proc1/Project</Linker_Output>
-			<Main_Header_Output>./Proc1/Include</Main_Header_Output>
-			<Main_Source_Output>./Proc1/Source</Main_Source_Output>
-			<Entry_Source_Output>./Proc1/Source</Entry_Source_Output>
+			<Linker_Output>./</Linker_Output>
+			<Main_Header_Output>../Include/</Main_Header_Output>
+			<Main_Source_Output>../Source/</Main_Source_Output>
+			<Entry_Source_Output>../Source/</Entry_Source_Output>
 			<Entry_Source_Overwrite>No</Entry_Source_Overwrite>
             <Memory>
                 <M0>
                     <Name>P1_Code</Name>
-                    <Base>0x08020000</Base>
-                    <Size>0x8000</Size>
+                    <Base>Auto</Base>
+                    <Size>0x800</Size>
                     <Align>Auto</Align>
                     <Type>Code</Type>
                     <Attribute>RXBCS</Attribute>
                 </M0>
                 <M1>
                     <Name>P1_Data</Name>
-                    <Base>0x20000000</Base>
-                    <Size>0x9000</Size>
+                    <Base>Auto</Base>
+                    <Size>0x400</Size>
                     <Align>Auto</Align>
                     <Type>Data</Type>
-                    <Attribute>RWXBCS</Attribute>
+                    <Attribute>RWBCS</Attribute>
                 </M1>
             </Memory>
             <Shmem>
                 <S0>
                     <Name>S_Data</Name>
+                    <Type>Data</Type>
                     <Attribute>RWBCS</Attribute>
                 </S0>
             </Shmem>
@@ -128,7 +125,7 @@
             <Invocation>
                 <I0>
                     <Name>Inv1</Name>
-                    <Stack_Size>0x1000</Stack_Size>
+                    <Stack_Size>0x100</Stack_Size>
                 </I0>
             </Invocation>
             <Port>
@@ -152,26 +149,26 @@
             </Vector>
             <Kfunc>
             </Kfunc>
-        </P0>
-        <P1>
+        </N0>
+        <N1>
             <Name>Proc2</Name>
             <Extra_Captbl>0</Extra_Captbl>
-            <Coprocessor>FPV4_SP</Coprocessor>
-			<Buildsystem>Keil</Buildsystem>
-			<Toolchain>ARMCC</Toolchain>
-			<Optimization>O3</Optimization>
-			<Project_Output>./Proc2/Project</Project_Output>
+            <Coprocessor>None</Coprocessor>
+			<Buildsystem>Makefile</Buildsystem>
+			<Toolchain>GCC</Toolchain>
+            <Optimization>Os</Optimization>
+			<Project_Output>./Proc2/Project/</Project_Output>
 			<Project_Overwrite>No</Project_Overwrite>
-			<Linker_Output>./Proc2/Project</Linker_Output>
-			<Main_Header_Output>./Proc2/Include</Main_Header_Output>
-			<Main_Source_Output>./Proc2/Source</Main_Source_Output>
-			<Entry_Source_Output>./Proc2/Source</Entry_Source_Output>
+			<Linker_Output>./</Linker_Output>
+			<Main_Header_Output>../Include/</Main_Header_Output>
+			<Main_Source_Output>../Source/</Main_Source_Output>
+			<Entry_Source_Output>../Source/</Entry_Source_Output>
 			<Entry_Source_Overwrite>No</Entry_Source_Overwrite>
             <Memory>
                 <M0>
                     <Name>P2_Code</Name>
                     <Base>Auto</Base>
-                    <Size>0x8000</Size>
+                    <Size>0x800</Size>
                     <Align>Auto</Align>
                     <Type>Code</Type>
                     <Attribute>RXBCS</Attribute>
@@ -179,15 +176,16 @@
                 <M1>
                     <Name>P2_Data</Name>
                     <Base>Auto</Base>
-                    <Size>0x4000</Size>
+                    <Size>0x400</Size>
                     <Align>Auto</Align>
                     <Type>Data</Type>
-                    <Attribute>RWXBCS</Attribute>
+                    <Attribute>RWBCS</Attribute>
                 </M1>
             </Memory>
             <Shmem>
                 <S0>
                     <Name>S_Data</Name>
+                    <Type>Data</Type>
                     <Attribute>RWBCS</Attribute>
                 </S0>
             </Shmem>
@@ -202,7 +200,7 @@
             <Invocation>
                 <I0>
                     <Name>Inv1</Name>
-                    <Stack_Size>0x1000</Stack_Size>
+                    <Stack_Size>0x100</Stack_Size>
                 </I0>
             </Invocation>
             <Port>
@@ -226,39 +224,38 @@
             </Vector>
             <Kfunc>
             </Kfunc>
-        </P1>
-    </Process>
+        </N1>
+    </Native>
     <Virtual>
         <V0>
             <Name>Virt1</Name>
             <Extra_Captbl>0</Extra_Captbl>
-            <Coprocessor>FPV4_SP</Coprocessor>
-            <Vector_Stack_Size>0x400</Vector_Stack_Size>
-            <User_Stack_Size>0x400</User_Stack_Size>
+            <Coprocessor>None</Coprocessor>
+            <Vector_Stack_Size>0x200</Vector_Stack_Size>
+            <User_Stack_Size>0x200</User_Stack_Size>
             <Priority>5</Priority>
             <Timeslice>10</Timeslice>
             <Period>100</Period>
             <Watchdog>0</Watchdog>
-            <Vector_Num>100</Vector_Num>
+            <Vector_Num>4</Vector_Num>
 			<Guest_Type>RMP</Guest_Type>
-			<Guest_Root>../../../../M5P01_Prokaron</Guest_Root>
-			<Buildsystem>Keil</Buildsystem>
-			<Toolchain>ARMCC</Toolchain>
-			<Optimization>O3</Optimization>
-			<Project_Output>./Virt1/Project</Project_Output>
+			<Buildsystem>Makefile</Buildsystem>
+			<Toolchain>GCC</Toolchain>
+			<Optimization>Os</Optimization>
+			<Project_Output>./Virt1/Project/</Project_Output>
 			<Project_Overwrite>No</Project_Overwrite>
-			<Linker_Output>./Virt1/Project</Linker_Output>
-			<Main_Header_Output>./Virt1/Include</Main_Header_Output>
-			<Main_Source_Output>./Virt1/Source</Main_Source_Output>
-			<Virtual_Header_Output>./Virt1/Include</Virtual_Header_Output>
+			<Linker_Output>./</Linker_Output>
+			<Main_Header_Output>../Include/</Main_Header_Output>
+			<Main_Source_Output>../Source/</Main_Source_Output>
+			<Virtual_Header_Output>../Include/</Virtual_Header_Output>
 			<Virtual_Header_Overwrite>No</Virtual_Header_Overwrite>
-			<Virtual_Source_Output>./Virt1/Source</Virtual_Source_Output>
+			<Virtual_Source_Output>../Source/</Virtual_Source_Output>
 			<Virtual_Source_Overwrite>No</Virtual_Source_Overwrite>
             <Memory>
                 <M0>
                     <Name>V_Code</Name>
                     <Base>Auto</Base>
-                    <Size>0x10000</Size>
+                    <Size>0x8000</Size>
                     <Align>Auto</Align>
                     <Type>Code</Type>
                     <Attribute>RXBCS</Attribute>
@@ -266,10 +263,10 @@
                 <M1>
                     <Name>V_Data</Name>
                     <Base>Auto</Base>
-                    <Size>0x10000</Size>
+                    <Size>0x1000</Size>
                     <Align>Auto</Align>
                     <Type>Data</Type>
-                    <Attribute>RWXBCS</Attribute>
+                    <Attribute>RWBCS</Attribute>
                 </M1>
                 <M2>
                     <Name>V_Device</Name>
@@ -283,6 +280,7 @@
             <Shmem>
                 <S0>
                     <Name>S_Data</Name>
+                    <Type>Data</Type>
                     <Attribute>RWBCS</Attribute>
                 </S0>
             </Shmem>

@@ -30,8 +30,6 @@ namespace RVM_GEN
 class Kernel
 {
 public:
-    /* Kernel source root folder for reference */
-    std::string Kernel_Root;
     /* RME code section base/size */
     ptr_t Code_Base;
     ptr_t Code_Size;
