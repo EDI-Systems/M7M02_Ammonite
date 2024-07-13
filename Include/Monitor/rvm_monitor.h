@@ -138,7 +138,7 @@ while(0)
 #define RVM_MAGIC_VIRTUAL                           (0x56495254U)
 
 /* System service stub */
-#define RVM_CAP_OP(OP,CID,ARG1,ARG2,ARG3)           RVM_Svc(RVM_FIELD(OP,RVM_WORD_BIT_D1)|((rvm_ptr_t)(CID)), \
+#define RVM_SVC(SVC,CID,ARG1,ARG2,ARG3)             RVM_Svc(RVM_FIELD(SVC,RVM_WORD_BIT_D1)|((rvm_ptr_t)(CID)), \
                                                             ((rvm_ptr_t)(ARG1)),((rvm_ptr_t)(ARG2)),((rvm_ptr_t)(ARG3)))
 /* User-level parameter marshalling macros - reverse of the kernel */
 #define RVM_PARAM_D1(X)                             RVM_FIELD(((rvm_ptr_t)(X))&RVM_MASK_WORD_D,RVM_WORD_BIT_D1)

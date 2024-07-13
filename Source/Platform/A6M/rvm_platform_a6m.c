@@ -102,7 +102,7 @@ void RVM_Idle(void)
 /* End Function:RVM_Idle *****************************************************/
 
 /* Function:RVM_A6M_Kfn_Act ***************************************************
-Description : Activate kernel functions that must use ARMv7-M specific calling
+Description : Activate kernel functions that must use ARMv6-M specific calling
               convention to pass extra parameters.
 Input       : rvm_cid_t Cap_Kfn - The capability to the kernel capability. 2-Level.
               rvm_ptr_t Func_ID - The function ID to invoke.
@@ -116,7 +116,7 @@ rvm_ret_t RVM_A6M_Kfn_Act(rvm_cid_t Cap_Kfn,
                           rvm_ptr_t Sub_ID,
                           rvm_ptr_t* Param)
 {
-    return RVM_A6M_Svc_Kfn((RVM_SVC_KFN<<RVM_WORD_BYTE)|((rvm_ptr_t)Cap_Kfn),
+    return RVM_A6M_Svc_Kfn((RVM_SVC_KFN<<RVM_WORD_BIT_D1)|((rvm_ptr_t)Cap_Kfn),
                            RVM_PARAM_D1(Sub_ID)|RVM_PARAM_D0(Func_ID),
                            Param);
 }

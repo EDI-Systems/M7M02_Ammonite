@@ -16,6 +16,18 @@ Description : The ARMv6-M guest OS wrapper.
 #include "rvm_guest.h"
 /* End Include ***************************************************************/
 
+/* Function:RVM_Thd_Cop_Size **************************************************
+Description : Query coprocessor register size for this CPU.
+Input       : rme_ptr_t Attr - The thread context attributes.
+Output      : None.
+Return      : rme_ptr_t - The coprocessor context size.
+******************************************************************************/
+rvm_ptr_t RVM_Thd_Cop_Size(rvm_ptr_t Attr)
+{
+    return 0U;
+}
+/* End Function:RVM_Thd_Cop_Size *********************************************/
+
 /* Function:RVM_A6M_Kfn_Act ***************************************************
 Description : Activate kernel functions that must use ARMv7-M specific calling
               convention to pass extra parameters.
@@ -31,7 +43,7 @@ rvm_ret_t RVM_A6M_Kfn_Act(rvm_cid_t Cap_Kfn,
                           rvm_ptr_t Sub_ID,
                           rvm_ptr_t* Param)
 {
-    return RVM_A6M_Svc_Kfn((RVM_SVC_KFN<<(sizeof(rvm_ptr_t)*4U))|((rvm_ptr_t)Cap_Kfn),
+    return RVM_A6M_Svc_Kfn((RVM_SVC_KFN<<RVM_WORD_BIT_D1)|((rvm_ptr_t)Cap_Kfn),
                            RVM_PARAM_D1(Sub_ID)|RVM_PARAM_D0(Func_ID),
                            Param);
 }
@@ -53,7 +65,7 @@ rvm_ret_t RVM_A6M_Pgt_Entry_Mod(rvm_cid_t Cap_Kfn,
                                 rvm_ptr_t Vaddr,
                                 rvm_ptr_t Type)
 {
-    return RVM_Kfn_Act(Cap_Kfn, RVM_KFN_PGT_ENTRY_MOD, (rvm_ptr_t)Cap_Pgt, Vaddr, Type);
+    return RVM_Kfn_Act(Cap_Kfn,RVM_KFN_PGT_ENTRY_MOD,(rvm_ptr_t)Cap_Pgt,Vaddr,Type);
 }
 /* End Function:RVM_A6M_Pgt_Entry_Mod **************************************/
 
@@ -71,7 +83,7 @@ rvm_ret_t RVM_A6M_Int_Local_Mod(rvm_cid_t Cap_Kfn,
                                 rvm_ptr_t Operation,
                                 rvm_ptr_t Param)
 {
-    return RVM_Kfn_Act(Cap_Kfn, RVM_KFN_INT_LOCAL_MOD, Int_Num, Operation, Param);
+    return RVM_Kfn_Act(Cap_Kfn,RVM_KFN_INT_LOCAL_MOD,Int_Num,Operation,Param);
 }
 /* End Function:RVM_A6M_Int_Local_Mod ****************************************/
 
@@ -85,7 +97,7 @@ Return      : rvm_ret_t - If successful, 0; else an error code.
 rvm_ret_t RVM_A6M_Int_Local_Trig(rvm_cid_t Cap_Kfn,
                                  rvm_ptr_t Int_Num)
 {
-    return RVM_Kfn_Act(Cap_Kfn, RVM_KFN_INT_LOCAL_TRIG, 0, Int_Num, 0);
+    return RVM_Kfn_Act(Cap_Kfn,RVM_KFN_INT_LOCAL_TRIG,0,Int_Num,0);
 }
 /* End Function:RVM_A6M_Int_Local_Trig ***************************************/
 
@@ -106,7 +118,7 @@ rvm_ret_t RVM_A6M_Prfth_Mod(rvm_cid_t Cap_Kfn,
                             rvm_ptr_t Operation,
                             rvm_ptr_t Param)
 {
-    return RVM_Kfn_Act(Cap_Kfn, RVM_KFN_PRFTH_MOD, Prfth_ID, Operation, Param);
+    return RVM_Kfn_Act(Cap_Kfn,RVM_KFN_PRFTH_MOD,Prfth_ID,Operation,Param);
 }
 /* End Function:RVM_A6M_Prfth_Mod ********************************************/
 
@@ -121,16 +133,16 @@ rvm_ret_t RVM_A6M_Perf_CPU_Func(rvm_cid_t Cap_Kfn,
                                 rvm_ptr_t Freg_ID,
                                 rvm_ptr_t* Content)
 {
-    rvm_ptr_t Params[6];
+    rvm_ptr_t Param[6];
     rvm_ret_t Retval;
 
-    Retval=RVM_A6M_Kfn_Act(Cap_Kfn, RVM_KFN_PERF_CPU_FUNC, Freg_ID, Params);
+    Retval=RVM_A6M_Kfn_Act(Cap_Kfn,RVM_KFN_PERF_CPU_FUNC,Freg_ID,Param);
 
     if(Retval<0)
         return Retval;
 
     if(Content!=0)
-        Content[0]=Params[0];
+        Content[0]=Param[0];
 
     return Retval;
 }
@@ -151,7 +163,7 @@ rvm_ret_t RVM_A6M_Perf_Mon_Mod(rvm_cid_t Cap_Kfn,
                                rvm_ptr_t Operation,
                                rvm_ptr_t Param)
 {
-    return RVM_Kfn_Act(Cap_Kfn, RVM_KFN_PERF_MON_MOD, Perf_ID, Operation, Param);
+    return RVM_Kfn_Act(Cap_Kfn,RVM_KFN_PERF_MON_MOD,Perf_ID,Operation,Param);
 }
 /* End Function:RVM_A6M_Perf_Mon_Mod *****************************************/
 
@@ -169,18 +181,18 @@ rvm_ret_t RVM_A6M_Perf_Cycle_Mod(rvm_cid_t Cap_Kfn,
                                  rvm_ptr_t Value,
                                  rvm_ptr_t* Content)
 {
-    rvm_ptr_t Params[6];
+    rvm_ptr_t Param[6];
     rvm_ret_t Retval;
 
-    Params[0]=Operation;
-    Params[1]=Value;
-    Retval=RVM_A6M_Kfn_Act(Cap_Kfn, RVM_KFN_PERF_CYCLE_MOD, Cycle_ID, Params);
+    Param[0]=Operation;
+    Param[1]=Value;
+    Retval=RVM_A6M_Kfn_Act(Cap_Kfn,RVM_KFN_PERF_CYCLE_MOD,Cycle_ID,Param);
 
     if(Retval<0)
         return Retval;
 
     if(Content!=RVM_NULL)
-        Content[0]=Params[0];
+        Content[0]=Param[0];
 
     return Retval;
 }
@@ -199,7 +211,7 @@ Return      : rvm_ret_t - If successful, 0; if a negative value, failed.
 rvm_ret_t RVM_A6M_Debug_Print(rvm_cid_t Cap_Kfn,
                               char Char)
 {
-    return RVM_Kfn_Act(Cap_Kfn, RVM_KFN_DEBUG_PRINT, (rvm_ptr_t)Char, 0U, 0U);
+    return RVM_Kfn_Act(Cap_Kfn,RVM_KFN_DEBUG_PRINT,(rvm_ptr_t)Char,0U,0U);
 }
 /* End Function:RVM_A6M_Debug_Print ******************************************/
 
@@ -218,18 +230,18 @@ rvm_ret_t RVM_A6M_Debug_Reg_Mod(rvm_cid_t Cap_Kfn,
                                 rvm_ptr_t Value,
                                 rvm_ptr_t* Content)
 {
-    rvm_ptr_t Params[6];
+    rvm_ptr_t Param[6];
     rvm_ret_t Retval;
 
-    Params[0]=Operation;
-    Params[1]=Value;
-    Retval=RVM_A6M_Kfn_Act(Cap_Kfn, RVM_KFN_DEBUG_REG_MOD, (rvm_ptr_t)Cap_Thd, Params);
+    Param[0]=Operation;
+    Param[1]=Value;
+    Retval=RVM_A6M_Kfn_Act(Cap_Kfn,RVM_KFN_DEBUG_REG_MOD,(rvm_ptr_t)Cap_Thd,Param);
 
     if(Retval<0)
         return Retval;
 
     if(Content!=0)
-        Content[0]=Params[0];
+        Content[0]=Param[0];
 
     return Retval;
 }
@@ -252,18 +264,18 @@ rvm_ret_t RVM_A6M_Debug_Inv_Mod(rvm_cid_t Cap_Kfn,
                                 rvm_ptr_t Value,
                                 rvm_ptr_t* Content)
 {
-    rvm_ptr_t Params[6];
+    rvm_ptr_t Param[6];
     rvm_ret_t Retval;
 
-    Params[0]=RVM_PARAM_D1(Layer)|RVM_PARAM_D0(Operation);
-    Params[1]=Value;
-    Retval=RVM_A6M_Kfn_Act(Cap_Kfn, RVM_KFN_DEBUG_INV_MOD, (rvm_ptr_t)Cap_Thd, Params);
+    Param[0]=RVM_PARAM_D1(Layer)|RVM_PARAM_D0(Operation);
+    Param[1]=Value;
+    Retval=RVM_A6M_Kfn_Act(Cap_Kfn,RVM_KFN_DEBUG_INV_MOD,(rvm_ptr_t)Cap_Thd,Param);
 
     if(Retval<0)
         return Retval;
 
     if(Content!=0)
-        Content[0]=Params[0];
+        Content[0]=Param[0];
 
     return Retval;
 }
@@ -286,7 +298,7 @@ rvm_ret_t RVM_A6M_Debug_Exc_Get(rvm_cid_t Cap_Kfn,
     rvm_ret_t Retval;
 
     Params[0]=RVM_PARAM_D0(Operation);
-    Retval=RVM_A6M_Kfn_Act(Cap_Kfn, RVM_KFN_DEBUG_EXC_GET, (rvm_ptr_t)Cap_Thd, Params);
+    Retval=RVM_A6M_Kfn_Act(Cap_Kfn,RVM_KFN_DEBUG_EXC_GET,(rvm_ptr_t)Cap_Thd,Params);
 
     if(Retval<0)
         return Retval;
