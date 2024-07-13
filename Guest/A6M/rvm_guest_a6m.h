@@ -88,7 +88,10 @@ typedef rvm_s32_t rvm_ret_t;
 #define RVM_PGT_RAW_SIZE_TOP(NUM_ORDER)             ((2U*RVM_A6M_REGION_NUM)*RVM_WORD_BYTE+RVM_PGT_WORD_SIZE_NOM(NUM_ORDER))
 /* End System Macro **********************************************************/
 
-/* ARMv6-M Specific Macro ****************************************************/
+/* ARMv6-M Macro *************************************************************/
+/* Thread context attribute definitions - keep in accordance with kernel */
+#define RVM_A6M_ATTR_NONE                           (0U)
+
 /* Page table entry mode which property to get */
 #define RVM_A6M_KFN_PGT_ENTRY_MOD_FLAG_GET          (0U)
 #define RVM_A6M_KFN_PGT_ENTRY_MOD_SZORD_GET         (1U)
@@ -171,7 +174,7 @@ typedef rvm_s32_t rvm_ret_t;
 #define RVM_A6M_KFN_DEBUG_INV_MOD_SP_SET            (1U)
 /* Error register read */
 #define RVM_A6M_KFN_DEBUG_EXC_CAUSE_GET             (0U)
-/* End ARMv6-M Specific Macro ************************************************/
+/* End ARMv6-M Macro *********************************************************/
 /* End Define ****************************************************************/
 
 /* Struct ********************************************************************/

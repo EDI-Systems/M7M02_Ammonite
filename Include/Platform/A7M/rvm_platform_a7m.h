@@ -11,8 +11,7 @@ Description : The header of the platform dependent part.
 #ifndef __RVM_PLATFORM_A7M_DEF__
 #define __RVM_PLATFORM_A7M_DEF__
 /*****************************************************************************/
-/* Definitions of basic types */
-/* Basic Types ***************************************************************/
+/* Basic Type ****************************************************************/
 #ifndef __RVM_S32_T__
 #define __RVM_S32_T__
 typedef signed int rvm_s32_t;
@@ -42,18 +41,47 @@ typedef unsigned short rvm_u16_t;
 #define __RVM_U8_T__
 typedef unsigned char rvm_u8_t;
 #endif
-/* End Basic Types ***********************************************************/
+/* End Basic Type ************************************************************/
+
+/* Extended Type *************************************************************/
+#ifndef __RVM_CID_T__
+#define __RVM_CID_T__
+/* Capability ID */
+typedef rvm_s32_t rvm_cid_t;
+#endif
+
+#ifndef __RVM_TID_T__
+#define __RVM_TID_T__
+/* Thread ID */
+typedef rvm_s32_t rvm_tid_t;
+#endif
+
+#ifndef __RVM_PTR_T__
+#define __RVM_PTR_T__
+/* Pointer */
+typedef rvm_u32_t rvm_ptr_t;
+#endif
+
+#ifndef __RVM_CNT_T__
+#define __RVM_CNT_T__
+/* Counter */
+typedef rvm_s32_t rvm_cnt_t;
+#endif
+
+#ifndef __RVM_RET_T__
+#define __RVM_RET_T__
+/* Return value */
+typedef rvm_s32_t rvm_ret_t;
+#endif
+/* End Extended Type *********************************************************/
+
+/* System Macro **************************************************************/
 /* Compiler "extern" keyword setting */
 #define RVM_EXTERN                                  extern
 /* The order of bits in one CPU machine word */
 #define RVM_WORD_ORDER                              (5U)
 /* Get most significant bit */
 #define RVM_MSB_GET(VAL)                            __RVM_A7M_MSB_Get(VAL)
-/* FPU type definitions - keep in accordance with kernel */
-#define RVM_A7M_ATTR_NONE                           (0U)
-#define RVM_A7M_ATTR_FPV4_SP                        RVM_POW2(0U)
-#define RVM_A7M_ATTR_FPV5_SP                        RVM_POW2(1U)
-#define RVM_A7M_ATTR_FPV5_DP                        RVM_POW2(2U)
 
 /* Platform-specific includes */
 #include "rvm_platform_a7m_conf.h"
@@ -66,11 +94,21 @@ typedef unsigned char rvm_u8_t;
 #define RVM_PGT_RAW_SIZE_NOM(NUM_ORDER)             ((4U+RVM_POW2(NUM_ORDER))*RVM_WORD_BYTE)
 /* Top-level page directory size */
 #define RVM_PGT_RAW_SIZE_TOP(NUM_ORDER)             ((1U+2U*RVM_A7M_REGION_NUM)*RVM_WORD_BYTE+RVM_PGT_RAW_SIZE_NOM(NUM_ORDER))
+/* End System Macro **********************************************************/
 
+/* ARMv7-M Macro *************************************************************/
+/* Generic *******************************************************************/
+/* Register access */
 #define RVM_A7M_REG(X)                              (*((volatile rvm_ptr_t*)(X)))
 #define RVM_A7M_REGB(X)                             (*((volatile rvm_u8_t*)(X)))
 
-/* Fault reasons */
+/* Thread context attribute definitions - keep in accordance with kernel */
+#define RVM_A7M_ATTR_NONE                           (0U)
+#define RVM_A7M_ATTR_FPV4_SP                        RVM_POW2(0U)
+#define RVM_A7M_ATTR_FPV5_SP                        RVM_POW2(1U)
+#define RVM_A7M_ATTR_FPV5_DP                        RVM_POW2(2U)
+
+/* Handler *******************************************************************/
 /* Debug event has occurred. The Debug Fault Status Register has been updated */
 #define RVM_A7M_HFSR_DEBUGEVT                       RVM_POW2(31U)
 /* Processor has escalated a configurable-priority exception to HardFault */
@@ -120,7 +158,7 @@ typedef unsigned char rvm_u8_t;
  * instruction is issued */
 #define RVM_A7M_MFSR_IACCVIOL                       RVM_POW2(0U)
 
-/* Platform-specific kernel function macros **********************************/
+/* Kernel Function  **********************************************************/
 /* Page table entry mode which property to get */
 #define RVM_A7M_KFN_PGT_ENTRY_MOD_FLAG_GET          (0U)
 #define RVM_A7M_KFN_PGT_ENTRY_MOD_SZORD_GET         (1U)
@@ -290,37 +328,7 @@ typedef unsigned char rvm_u8_t;
 /* Error register read */
 #define RVM_A7M_KFN_DEBUG_EXC_CAUSE_GET             (0U)
 #define RVM_A7M_KFN_DEBUG_EXC_ADDR_GET              (1U)
-/* Extended Types ************************************************************/
-#ifndef __RVM_TID_T__
-#define __RVM_TID_T__
-/* The typedef for the Thread ID */
-typedef rvm_s32_t rvm_tid_t;
-#endif
-
-#ifndef __RVM_PTR_T__
-#define __RVM_PTR_T__
-/* The typedef for the pointers - This is the raw style. Pointers must be unsigned */
-typedef rvm_u32_t rvm_ptr_t;
-#endif
-
-#ifndef __RVM_CNT_T__
-#define __RVM_CNT_T__
-/* The typedef for the count variables */
-typedef rvm_s32_t rvm_cnt_t;
-#endif
-
-#ifndef __RVM_CID_T__
-#define __RVM_CID_T__
-/* The typedef for capability ID */
-typedef rvm_s32_t rvm_cid_t;
-#endif
-
-#ifndef __RVM_RET_T__
-#define __RVM_RET_T__
-/* The type for process return value */
-typedef rvm_s32_t rvm_ret_t;
-#endif
-/* End Extended Types ********************************************************/
+/* End ARMv7-M Macro *********************************************************/
 /*****************************************************************************/
 /* __RVM_PLATFORM_A7M_DEF__ */
 #endif
