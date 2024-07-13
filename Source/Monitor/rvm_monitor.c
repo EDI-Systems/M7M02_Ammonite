@@ -753,11 +753,11 @@ rvm_ret_t RVM_Cpt_Crt(rvm_cid_t Cap_Cpt_Crt,
                       rvm_ptr_t Raddr,
                       rvm_ptr_t Entry_Num)
 {
-    return RVM_CAP_OP(RVM_SVC_CPT_CRT,
-                      Cap_Cpt_Crt, 
-                      RVM_PARAM_D1(Cap_Kom)|RVM_PARAM_D0(Cap_Cpt),
-                      Raddr,
-                      Entry_Num);
+    return RVM_SVC(RVM_SVC_CPT_CRT,
+                   Cap_Cpt_Crt, 
+                   RVM_PARAM_D1(Cap_Kom)|RVM_PARAM_D0(Cap_Cpt),
+                   Raddr,
+                   Entry_Num);
 }
 /* End Function:RVM_Cpt_Crt **************************************************/
 
@@ -776,11 +776,11 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 rvm_ret_t RVM_Cpt_Del(rvm_cid_t Cap_Cpt_Del,
                       rvm_cid_t Cap_Del)
 {
-    return RVM_CAP_OP(RVM_SVC_CPT_DEL,
-                      Cap_Cpt_Del,
-                      Cap_Del,
-                      0U,
-                      0U);
+    return RVM_SVC(RVM_SVC_CPT_DEL,
+                   Cap_Cpt_Del,
+                   Cap_Del,
+                   0U,
+                   0U);
 }
 /* End Function:RVM_Cpt_Del **************************************************/
 
@@ -797,11 +797,11 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 rvm_ret_t RVM_Cpt_Frz(rvm_cid_t Cap_Cpt_Frz,
                       rvm_cid_t Cap_Frz)
 {
-        return RVM_CAP_OP(RVM_SVC_CPT_FRZ,
-                          Cap_Cpt_Frz,
-                          Cap_Frz,
-                          0U,
-                          0U);
+    return RVM_SVC(RVM_SVC_CPT_FRZ,
+                   Cap_Cpt_Frz,
+                   Cap_Frz,
+                   0U,
+                   0U);
 }
 /* End Function:RVM_Cpt_Frz **************************************************/
 
@@ -830,11 +830,11 @@ rvm_ret_t RVM_Cpt_Add(rvm_cid_t Cap_Cpt_Dst,
                       rvm_cid_t Cap_Src,
                       rvm_ptr_t Flag)
 {
-    return RVM_CAP_OP(RVM_SVC_CPT_ADD,
-                      0U,
-                      RVM_PARAM_D1(Cap_Cpt_Dst)|RVM_PARAM_D0(Cap_Dst),
-                      RVM_PARAM_D1(Cap_Cpt_Src)|RVM_PARAM_D0(Cap_Src),
-                      Flag);
+    return RVM_SVC(RVM_SVC_CPT_ADD,
+                   0U,
+                   RVM_PARAM_D1(Cap_Cpt_Dst)|RVM_PARAM_D0(Cap_Dst),
+                   RVM_PARAM_D1(Cap_Cpt_Src)|RVM_PARAM_D0(Cap_Src),
+                   Flag);
 }
 /* End Function:RVM_Cpt_Add **************************************************/
 
@@ -866,11 +866,11 @@ rvm_ret_t RVM_Cpt_Pgt(rvm_cid_t Cap_Cpt_Dst,
                       rvm_ptr_t End,
                       rvm_ptr_t Flag)
 {
-    return RVM_CAP_OP(RVM_SVC_CPT_ADD,
-                      0U,
-                      RVM_PARAM_D1(Cap_Cpt_Dst)|RVM_PARAM_D0(Cap_Dst),
-                      RVM_PARAM_D1(Cap_Cpt_Src)|RVM_PARAM_D0(Cap_Src),
-                      RVM_PGT_FLAG(End,Begin,Flag));
+    return RVM_SVC(RVM_SVC_CPT_ADD,
+                   0U,
+                   RVM_PARAM_D1(Cap_Cpt_Dst)|RVM_PARAM_D0(Cap_Dst),
+                   RVM_PARAM_D1(Cap_Cpt_Src)|RVM_PARAM_D0(Cap_Src),
+                   RVM_PGT_FLAG(End,Begin,Flag));
 }
 /* End Function:RVM_Cpt_Pgt **************************************************/
 
@@ -900,11 +900,11 @@ rvm_ret_t RVM_Cpt_Kfn(rvm_cid_t Cap_Cpt_Dst,
                       rvm_ptr_t Begin,
                       rvm_ptr_t End)
 {
-    return RVM_CAP_OP(RVM_SVC_CPT_ADD,
-                      0U,
-                      RVM_PARAM_D1(Cap_Cpt_Dst)|RVM_PARAM_D0(Cap_Dst),
-                      RVM_PARAM_D1(Cap_Cpt_Src)|RVM_PARAM_D0(Cap_Src),
-                      RVM_KFN_FLAG(End,Begin));
+    return RVM_SVC(RVM_SVC_CPT_ADD,
+                   0U,
+                   RVM_PARAM_D1(Cap_Cpt_Dst)|RVM_PARAM_D0(Cap_Dst),
+                   RVM_PARAM_D1(Cap_Cpt_Src)|RVM_PARAM_D0(Cap_Src),
+                   RVM_KFN_FLAG(End,Begin));
 }
 /* End Function:RVM_Cpt_Kfn **************************************************/
 
@@ -938,11 +938,11 @@ rvm_ret_t RVM_Cpt_Kom(rvm_cid_t Cap_Cpt_Dst,
                       rvm_ptr_t End,
                       rvm_ptr_t Flag)
 {
-    return RVM_CAP_OP(RVM_KOM_SVC(End,RVM_SVC_CPT_ADD),
-                      RVM_KOM_CID(Begin,Flag),
-                      RVM_PARAM_D1(Cap_Cpt_Dst)|RVM_PARAM_D0(Cap_Dst),
-                      RVM_PARAM_D1(Cap_Cpt_Src)|RVM_PARAM_D0(Cap_Src),
-                      RVM_KOM_FLAG(End,Begin));
+    return RVM_SVC(RVM_KOM_SVC(End,RVM_SVC_CPT_ADD),
+                   RVM_KOM_CID(Begin,Flag),
+                   RVM_PARAM_D1(Cap_Cpt_Dst)|RVM_PARAM_D0(Cap_Dst),
+                   RVM_PARAM_D1(Cap_Cpt_Src)|RVM_PARAM_D0(Cap_Src),
+                   RVM_KOM_FLAG(End,Begin));
 }
 /* End Function:RVM_Cpt_Kom **************************************************/
 
@@ -960,11 +960,11 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 rvm_ret_t RVM_Cpt_Rem(rvm_cid_t Cap_Cpt_Rem,
                       rvm_cid_t Cap_Rem)
 {
-    return RVM_CAP_OP(RVM_SVC_CPT_REM,
-                      Cap_Cpt_Rem,
-                      Cap_Rem,
-                      0U,
-                      0U);
+    return RVM_SVC(RVM_SVC_CPT_REM,
+                   Cap_Cpt_Rem,
+                   Cap_Rem,
+                   0U,
+                   0U);
 }
 /* End Function:_RVM_Cpt_Rem *************************************************/
 
@@ -1004,11 +1004,11 @@ rvm_ret_t RVM_Pgt_Crt(rvm_cid_t Cap_Cpt,
                       rvm_ptr_t Num_Order)
 {
     
-    return RVM_CAP_OP(RVM_PGT_SVC(Num_Order,RVM_SVC_PGT_CRT),
-                      Cap_Cpt,
-                      RVM_PARAM_D1(Cap_Kom)|RVM_PARAM_Q1(Cap_Pgt)|RVM_PARAM_Q0(Size_Order),
-                      Raddr, 
-                      Base|Is_Top);
+    return RVM_SVC(RVM_PGT_SVC(Num_Order,RVM_SVC_PGT_CRT),
+                   Cap_Cpt,
+                   RVM_PARAM_D1(Cap_Kom)|RVM_PARAM_Q1(Cap_Pgt)|RVM_PARAM_Q0(Size_Order),
+                   Raddr, 
+                   Base|Is_Top);
 }
 /* End Function:RVM_Pgt_Crt **************************************************/
 
@@ -1026,11 +1026,11 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 rvm_ret_t RVM_Pgt_Del(rvm_cid_t Cap_Cpt,
                       rvm_cid_t Cap_Pgt)
 {
-    return RVM_CAP_OP(RVM_SVC_PGT_DEL,
-                      Cap_Cpt,
-                      Cap_Pgt,
-                      0U,
-                      0U);
+    return RVM_SVC(RVM_SVC_PGT_DEL,
+                   Cap_Cpt,
+                   Cap_Pgt,
+                   0U,
+                   0U);
 }
 /* End Function:RVM_Pgt_Del **************************************************/
 
@@ -1067,11 +1067,11 @@ rvm_ret_t RVM_Pgt_Add(rvm_cid_t Cap_Pgt_Dst,
                       rvm_ptr_t Pos_Src,
                       rvm_ptr_t Index)
 {
-    return RVM_CAP_OP(RVM_SVC_PGT_ADD,
-                      RVM_PARAM_D0(Flag_Dst),
-                      RVM_PARAM_D1(Cap_Pgt_Dst)|RVM_PARAM_D0(Pos_Dst),
-                      RVM_PARAM_D1(Cap_Pgt_Src)|RVM_PARAM_D0(Pos_Src),
-                      Index);
+    return RVM_SVC(RVM_SVC_PGT_ADD,
+                   RVM_PARAM_D0(Flag_Dst),
+                   RVM_PARAM_D1(Cap_Pgt_Dst)|RVM_PARAM_D0(Pos_Dst),
+                   RVM_PARAM_D1(Cap_Pgt_Src)|RVM_PARAM_D0(Pos_Src),
+                   Index);
 }
 /* End Function:RVM_Pgt_Add **************************************************/
 
@@ -1087,11 +1087,11 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 rvm_ret_t RVM_Pgt_Rem(rvm_cid_t Cap_Pgt,
                       rvm_ptr_t Pos)
 {
-    return RVM_CAP_OP(RVM_SVC_PGT_REM,
-                      0U,
-                      Cap_Pgt,
-                      Pos,
-                      0U);
+    return RVM_SVC(RVM_SVC_PGT_REM,
+                   0U,
+                   Cap_Pgt,
+                   Pos,
+                   0U);
 }
 /* End Function:RVM_Pgt_Rem **************************************************/
 
@@ -1114,11 +1114,11 @@ rvm_ret_t RVM_Pgt_Con(rvm_cid_t Cap_Pgt_Parent,
                       rvm_cid_t Cap_Pgt_Child,
                       rvm_ptr_t Flag_Child)
 {
-    return RVM_CAP_OP(RVM_SVC_PGT_CON,
-                      0U,
-                      RVM_PARAM_D1(Cap_Pgt_Parent)|RVM_PARAM_D0(Cap_Pgt_Child),
-                      Pos,
-                      Flag_Child);
+    return RVM_SVC(RVM_SVC_PGT_CON,
+                   0U,
+                   RVM_PARAM_D1(Cap_Pgt_Parent)|RVM_PARAM_D0(Cap_Pgt_Child),
+                   Pos,
+                   Flag_Child);
 }
 /* End Function:RVM_Pgt_Con **************************************************/
 
@@ -1140,11 +1140,11 @@ rvm_ret_t RVM_Pgt_Des(rvm_cid_t Cap_Pgt_Parent,
                       rvm_ptr_t Pos,
                       rvm_cid_t Cap_Pgt_Child)
 {
-    return RVM_CAP_OP(RVM_SVC_PGT_DES,
-                      0U,
-                      Cap_Pgt_Parent,
-                      Pos,
-                      Cap_Pgt_Child);
+    return RVM_SVC(RVM_SVC_PGT_DES,
+                   0U,
+                   Cap_Pgt_Parent,
+                   Pos,
+                   Cap_Pgt_Child);
 }
 #endif
 /* End Function:RVM_Pgt_Des **************************************************/
@@ -1175,11 +1175,11 @@ rvm_ret_t RVM_Prc_Crt(rvm_cid_t Cap_Cpt_Crt,
                       rvm_cid_t Cap_Cpt,
                       rvm_cid_t Cap_Pgt)
 {
-    return RVM_CAP_OP(RVM_SVC_PRC_CRT,
-                      Cap_Cpt_Crt,
-                      Cap_Prc,
-                      Cap_Cpt,
-                      Cap_Pgt);
+    return RVM_SVC(RVM_SVC_PRC_CRT,
+                   Cap_Cpt_Crt,
+                   Cap_Prc,
+                   Cap_Cpt,
+                   Cap_Pgt);
 }
 #else
 rvm_ret_t RVM_Prc_Crt(rvm_cid_t Cap_Cpt_Crt,
@@ -1187,11 +1187,11 @@ rvm_ret_t RVM_Prc_Crt(rvm_cid_t Cap_Cpt_Crt,
                       rvm_cid_t Cap_Cpt,
                       rvm_ptr_t Raw_Pgt)
 {
-    return RVM_CAP_OP(RVM_SVC_PRC_CRT,
-                      Cap_Cpt_Crt,
-                      Cap_Prc,
-                      Cap_Cpt,
-                      Raw_Pgt);
+    return RVM_SVC(RVM_SVC_PRC_CRT,
+                   Cap_Cpt_Crt,
+                   Cap_Prc,
+                   Cap_Cpt,
+                   Raw_Pgt);
 }
 #endif
 /* End Function:RVM_Prc_Crt **************************************************/
@@ -1208,10 +1208,11 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 rvm_ret_t RVM_Prc_Del(rvm_cid_t Cap_Cpt,
                       rvm_cid_t Cap_Prc)
 {
-    return RVM_CAP_OP(RVM_SVC_PRC_DEL, Cap_Cpt,
-                      Cap_Prc,
-                      0U,
-                      0U);
+    return RVM_SVC(RVM_SVC_PRC_DEL,
+                   Cap_Cpt,
+                   Cap_Prc,
+                   0U,
+                   0U);
 }
 /* End Function:RVM_Prc_Del **************************************************/
 
@@ -1229,11 +1230,11 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 rvm_ret_t RVM_Prc_Cpt(rvm_cid_t Cap_Prc,
                       rvm_cid_t Cap_Cpt)
 {
-    return RVM_CAP_OP(RVM_SVC_PRC_CPT,
-                      0U,
-                      Cap_Prc,
-                      Cap_Cpt,
-                      0U);
+    return RVM_SVC(RVM_SVC_PRC_CPT,
+                   0U,
+                   Cap_Prc,
+                   Cap_Cpt,
+                   0U);
 }
 /* End Function:RVM_Prc_Cpt **************************************************/
 
@@ -1254,21 +1255,21 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 rvm_ret_t RVM_Prc_Pgt(rvm_cid_t Cap_Prc,
                       rvm_cid_t Cap_Pgt)
 {
-    return RVM_CAP_OP(RVM_SVC_PRC_PGT,
-                      0U,
-                      Cap_Prc,
-                      Cap_Pgt,
-                      0U);
+    return RVM_SVC(RVM_SVC_PRC_PGT,
+                   0U,
+                   Cap_Prc,
+                   Cap_Pgt,
+                   0U);
 }
 #else
 rvm_ret_t RVM_Prc_Pgt(rvm_cid_t Cap_Prc,
                       rvm_ptr_t Raw_Pgt)
 {
-    return RVM_CAP_OP(RVM_SVC_PRC_PGT,
-                      0U,
-                      Cap_Prc,
-                      Raw_Pgt,
-                      0U);
+    return RVM_SVC(RVM_SVC_PRC_PGT,
+                   0U,
+                   Cap_Prc,
+                   Raw_Pgt,
+                   0U);
 }
 #endif
 /* End Function:RVM_Prc_Pgt **************************************************/
@@ -1301,11 +1302,11 @@ rvm_ret_t RVM_Thd_Crt(rvm_cid_t Cap_Cpt,
                       rvm_ptr_t Raddr,
                       rvm_ptr_t Attr)
 {
-    return RVM_CAP_OP(RVM_THD_SVC(Attr,0U,RVM_SVC_THD_CRT),
-                      Cap_Cpt, 
-                      RVM_PARAM_D1(Cap_Kom)|RVM_PARAM_D0(Cap_Thd),
-                      RVM_PARAM_D1(Cap_Prc)|RVM_PARAM_D0(Prio_Max),
-                      Raddr);
+    return RVM_SVC(RVM_THD_SVC(Attr,0U,RVM_SVC_THD_CRT),
+                   Cap_Cpt, 
+                   RVM_PARAM_D1(Cap_Kom)|RVM_PARAM_D0(Cap_Thd),
+                   RVM_PARAM_D1(Cap_Prc)|RVM_PARAM_D0(Prio_Max),
+                   Raddr);
 }
 /* End Function:RVM_Thd_Crt **************************************************/
 
@@ -1337,11 +1338,11 @@ rvm_ret_t RVM_Hyp_Crt(rvm_cid_t Cap_Cpt,
                       rvm_ptr_t Raddr,
                       rvm_ptr_t Attr)
 {
-    return RVM_CAP_OP(RVM_THD_SVC(Attr,1U,RVM_SVC_THD_CRT),
-                      Cap_Cpt, 
-                      RVM_PARAM_D1(Cap_Kom)|RVM_PARAM_D0(Cap_Thd),
-                      RVM_PARAM_D1(Cap_Prc)|RVM_PARAM_D0(Prio_Max),
-                      Raddr);
+    return RVM_SVC(RVM_THD_SVC(Attr,1U,RVM_SVC_THD_CRT),
+                   Cap_Cpt, 
+                   RVM_PARAM_D1(Cap_Kom)|RVM_PARAM_D0(Cap_Thd),
+                   RVM_PARAM_D1(Cap_Prc)|RVM_PARAM_D0(Prio_Max),
+                   Raddr);
 }
 /* End Function:RVM_Hyp_Crt **************************************************/
 
@@ -1357,11 +1358,11 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 rvm_ret_t RVM_Thd_Del(rvm_cid_t Cap_Cpt,
                       rvm_cid_t Cap_Thd)
 {
-    return RVM_CAP_OP(RVM_SVC_THD_DEL,
-                      Cap_Cpt,
-                      Cap_Thd,
-                      0U,
-                      0U);
+    return RVM_SVC(RVM_SVC_THD_DEL,
+                   Cap_Cpt,
+                   Cap_Thd,
+                   0U,
+                   0U);
 }
 /* End Function:RVM_Thd_Del **************************************************/
 
@@ -1381,11 +1382,11 @@ rvm_ret_t RVM_Thd_Exec_Set(rvm_cid_t Cap_Thd,
                            rvm_ptr_t Stack,
                            rvm_ptr_t Param)
 {
-    return RVM_CAP_OP(RVM_SVC_THD_EXEC_SET,
-                      Cap_Thd,
-                      Entry, 
-                      Stack,
-                      Param);
+    return RVM_SVC(RVM_SVC_THD_EXEC_SET,
+                   Cap_Thd,
+                   Entry, 
+                   Stack,
+                   Param);
 }
 /* End Function:RVM_Thd_Exec_Set *********************************************/
 
@@ -1425,11 +1426,11 @@ rvm_ret_t RVM_Thd_Sched_Bind(rvm_cid_t Cap_Thd,
                              rvm_tid_t TID,
                              rvm_ptr_t Prio)
 {
-    return RVM_CAP_OP(RVM_SVC_THD_SCHED_BIND,
-                      Cap_Thd,
-                      RVM_PARAM_D1(Cap_Thd_Sched)|RVM_PARAM_D0(Cap_Sig),
-                      RVM_PARAM_D1(TID)|RVM_PARAM_D0(Prio), 
-                      RVM_NULL);
+    return RVM_SVC(RVM_SVC_THD_SCHED_BIND,
+                   Cap_Thd,
+                   RVM_PARAM_D1(Cap_Thd_Sched)|RVM_PARAM_D0(Cap_Sig),
+                   RVM_PARAM_D1(TID)|RVM_PARAM_D0(Prio), 
+                   RVM_NULL);
 }
 /* End Function:RVM_Thd_Sched_Bind *******************************************/
 
@@ -1476,11 +1477,11 @@ rvm_ret_t RVM_Hyp_Sched_Bind(rvm_cid_t Cap_Thd,
                              rvm_ptr_t Prio,
                              rvm_ptr_t Haddr)
 {
-    return RVM_CAP_OP(RVM_SVC_THD_SCHED_BIND,
-                      Cap_Thd,
-                      RVM_PARAM_D1(Cap_Thd_Sched)|RVM_PARAM_D0(Cap_Sig),
-                      RVM_PARAM_D1(TID)|RVM_PARAM_D0(Prio), 
-                      Haddr);
+    return RVM_SVC(RVM_SVC_THD_SCHED_BIND,
+                   Cap_Thd,
+                   RVM_PARAM_D1(Cap_Thd_Sched)|RVM_PARAM_D0(Cap_Sig),
+                   RVM_PARAM_D1(TID)|RVM_PARAM_D0(Prio), 
+                   Haddr);
 }
 /* End Function:RVM_Hyp_Sched_Bind *******************************************/
 
@@ -1499,11 +1500,11 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 rvm_ret_t RVM_Thd_Sched_Prio(rvm_cid_t Cap_Thd,
                              rvm_ptr_t Prio)
 {
-    return RVM_CAP_OP(RVM_SVC_THD_SCHED_PRIO,
-                      1U,
-                      RVM_PARAM_D1(Prio)|RVM_PARAM_D0(Cap_Thd),
-                      0U, 
-                      0U);
+    return RVM_SVC(RVM_SVC_THD_SCHED_PRIO,
+                   1U,
+                   RVM_PARAM_D1(Prio)|RVM_PARAM_D0(Cap_Thd),
+                   0U, 
+                   0U);
 }
 /* End Function:RVM_Thd_Sched_Prio *******************************************/
 
@@ -1527,11 +1528,11 @@ rvm_ret_t RVM_Thd_Sched_Prio2(rvm_cid_t Cap_Thd0,
                               rvm_cid_t Cap_Thd1,
                               rvm_ptr_t Prio1)
 {
-    return RVM_CAP_OP(RVM_SVC_THD_SCHED_PRIO,
-                      2U,
-                      RVM_PARAM_D1(Prio0)|RVM_PARAM_D0(Cap_Thd0),
-                      RVM_PARAM_D1(Prio1)|RVM_PARAM_D0(Cap_Thd1), 
-                      0U);
+    return RVM_SVC(RVM_SVC_THD_SCHED_PRIO,
+                   2U,
+                   RVM_PARAM_D1(Prio0)|RVM_PARAM_D0(Cap_Thd0),
+                   RVM_PARAM_D1(Prio1)|RVM_PARAM_D0(Cap_Thd1), 
+                   0U);
 }
 /* End Function:RVM_Thd_Sched_Prio2 ******************************************/
 
@@ -1560,11 +1561,11 @@ rvm_ret_t RVM_Thd_Sched_Prio3(rvm_cid_t Cap_Thd0,
                               rvm_cid_t Cap_Thd2,
                               rvm_ptr_t Prio2)
 {
-    return RVM_CAP_OP(RVM_SVC_THD_SCHED_PRIO,
-                      3U,
-                      RVM_PARAM_D1(Prio0)|RVM_PARAM_D0(Cap_Thd0),
-                      RVM_PARAM_D1(Prio1)|RVM_PARAM_D0(Cap_Thd1), 
-                      RVM_PARAM_D1(Prio2)|RVM_PARAM_D0(Cap_Thd2));
+    return RVM_SVC(RVM_SVC_THD_SCHED_PRIO,
+                   3U,
+                   RVM_PARAM_D1(Prio0)|RVM_PARAM_D0(Cap_Thd0),
+                   RVM_PARAM_D1(Prio1)|RVM_PARAM_D0(Cap_Thd1), 
+                   RVM_PARAM_D1(Prio2)|RVM_PARAM_D0(Cap_Thd2));
 }
 /* End Function:RVM_Thd_Sched_Prio3 ******************************************/
 
@@ -1579,11 +1580,11 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 rvm_ret_t RVM_Thd_Sched_Free(rvm_cid_t Cap_Thd)
 {
-    return RVM_CAP_OP(RVM_SVC_THD_SCHED_FREE,
-                      0U,
-                      Cap_Thd,
-                      0U, 
-                      0U);
+    return RVM_SVC(RVM_SVC_THD_SCHED_FREE,
+                   0U,
+                   Cap_Thd,
+                   0U, 
+                   0U);
 }
 /* End Function:RVM_Thd_Sched_Free *******************************************/
 
@@ -1602,11 +1603,11 @@ Return      : rvm_ret_t - If successful, the thread ID; or an error code.
 ******************************************************************************/
 rvm_ret_t RVM_Thd_Sched_Rcv(rvm_cid_t Cap_Thd)
 {
-    return RVM_CAP_OP(RVM_SVC_THD_SCHED_RCV,
-                      0U,
-                      Cap_Thd,
-                      0U, 
-                      0U);
+    return RVM_SVC(RVM_SVC_THD_SCHED_RCV,
+                   0U,
+                   Cap_Thd,
+                   0U, 
+                   0U);
 }
 /* End Function:_RME_Thd_Sched_Rcv *******************************************/
 
@@ -1640,11 +1641,11 @@ rvm_ret_t RVM_Thd_Time_Xfer(rvm_cid_t Cap_Thd_Dst,
                             rvm_cid_t Cap_Thd_Src,
                             rvm_ptr_t Time)
 {
-    return RVM_CAP_OP(RVM_SVC_THD_TIME_XFER,
-                      0U,
-                      Cap_Thd_Dst,
-                      Cap_Thd_Src, 
-                      Time);
+    return RVM_SVC(RVM_SVC_THD_TIME_XFER,
+                   0U,
+                   Cap_Thd_Dst,
+                   Cap_Thd_Src, 
+                   Time);
 }
 /* End Function:RVM_Thd_Time_Xfer ********************************************/
 
@@ -1666,11 +1667,11 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 rvm_ret_t RVM_Thd_Swt(rvm_cid_t Cap_Thd,
                       rvm_ptr_t Is_Yield)
 {
-    return RVM_CAP_OP(RVM_SVC_THD_SWT,
-                      0U,
-                      Cap_Thd,
-                      Is_Yield, 
-                      0U);
+    return RVM_SVC(RVM_SVC_THD_SWT,
+                   0U,
+                   Cap_Thd,
+                   Is_Yield, 
+                   0U);
 }
 /* End Function:RVM_Thd_Swt **************************************************/
 
@@ -1688,11 +1689,11 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 rvm_ret_t RVM_Sig_Crt(rvm_cid_t Cap_Cpt,
                       rvm_cid_t Cap_Sig)
 {
-    return RVM_CAP_OP(RVM_SVC_SIG_CRT,
-                      Cap_Cpt,
-                      Cap_Sig,
-                      0U,
-                      0U);
+    return RVM_SVC(RVM_SVC_SIG_CRT,
+                   Cap_Cpt,
+                   Cap_Sig,
+                   0U,
+                   0U);
 }
 /* End Function:RVM_Sig_Crt **************************************************/
 
@@ -1709,11 +1710,11 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 rvm_ret_t RVM_Sig_Del(rvm_cid_t Cap_Cpt,
                       rvm_cid_t Cap_Sig)
 {
-    return RVM_CAP_OP(RVM_SVC_SIG_DEL,
-                      Cap_Cpt,
-                      Cap_Sig,
-                      0U,
-                      0U);
+    return RVM_SVC(RVM_SVC_SIG_DEL,
+                   Cap_Cpt,
+                   Cap_Sig,
+                   0U,
+                   0U);
 }
 /* End Function:RVM_Sig_Del **************************************************/
 
@@ -1727,11 +1728,11 @@ Return      : rvm_ret_t - If successful, 0, or an error code.
 ******************************************************************************/
 rvm_ret_t RVM_Sig_Snd(rvm_cid_t Cap_Sig)
 {
-    return RVM_CAP_OP(RVM_SVC_SIG_SND,
-                      0U,
-                      Cap_Sig,
-                      0U, 
-                      0U);
+    return RVM_SVC(RVM_SVC_SIG_SND,
+                   0U,
+                   Cap_Sig,
+                   0U, 
+                   0U);
 }
 /* End Function:RVM_Sig_Snd **************************************************/
 
@@ -1755,11 +1756,11 @@ Return      : rvm_ret_t - If successful, a non-negative number containing the
 rvm_ret_t RVM_Sig_Rcv(rvm_cid_t Cap_Sig,
                       rvm_ptr_t Option)
 {
-    return RVM_CAP_OP(RVM_SVC_SIG_RCV,
-                      0U,
-                      Cap_Sig,
-                      Option, 
-                      0U);
+    return RVM_SVC(RVM_SVC_SIG_RCV,
+                   0U,
+                   Cap_Sig,
+                   Option, 
+                   0U);
 }
 /* End Function:RVM_Sig_Rcv **************************************************/
 
@@ -1784,11 +1785,11 @@ rvm_ret_t RVM_Inv_Crt(rvm_cid_t Cap_Cpt,
                       rvm_cid_t Cap_Prc,
                       rvm_ptr_t Raddr)
 {
-    return RVM_CAP_OP(RVM_SVC_INV_CRT,
-                      Cap_Cpt,
-                      RVM_PARAM_D1(Cap_Kom)|RVM_PARAM_D0(Cap_Inv),
-                      Cap_Prc, 
-                      Raddr);
+    return RVM_SVC(RVM_SVC_INV_CRT,
+                   Cap_Cpt,
+                   RVM_PARAM_D1(Cap_Kom)|RVM_PARAM_D0(Cap_Inv),
+                   Cap_Prc, 
+                   Raddr);
 }
 /* End Function:RVM_Inv_Crt **************************************************/
 
@@ -1805,11 +1806,11 @@ Return      : rvm_ret_t - If successful, 0; or an error code.
 rvm_ret_t RVM_Inv_Del(rvm_cid_t Cap_Cpt,
                       rvm_cid_t Cap_Inv)
 {
-    return RVM_CAP_OP(RVM_SVC_INV_DEL,
-                      Cap_Cpt,
-                      Cap_Inv,
-                      0U, 
-                      0U);
+    return RVM_SVC(RVM_SVC_INV_DEL,
+                   Cap_Cpt,
+                   Cap_Inv,
+                   0U, 
+                   0U);
 }
 /* End Function:RVM_Inv_Del **************************************************/
 
@@ -1832,11 +1833,11 @@ rvm_ret_t RVM_Inv_Set(rvm_cid_t Cap_Inv,
                       rvm_ptr_t Stack,
                       rvm_ptr_t Is_Exc_Ret)
 {
-    return RVM_CAP_OP(RVM_SVC_INV_SET,
-                      0U,
-                      RVM_PARAM_D1(Is_Exc_Ret)|RVM_PARAM_D0(Cap_Inv),
-                      Entry, 
-                      Stack);
+    return RVM_SVC(RVM_SVC_INV_SET,
+                   0U,
+                   RVM_PARAM_D1(Is_Exc_Ret)|RVM_PARAM_D0(Cap_Inv),
+                   Entry, 
+                   Stack);
 }
 /* End Function:RVM_Inv_Set **************************************************/
 
@@ -1863,11 +1864,11 @@ rvm_ret_t RVM_Kfn_Act(rvm_cid_t Cap_Kfn,
                       rvm_ptr_t Param1,
                       rvm_ptr_t Param2)
 {
-    return RVM_CAP_OP(RVM_SVC_KFN,
-                      Cap_Kfn,
-                      RVM_PARAM_D1(Sub_ID)|RVM_PARAM_D0(Func_ID),
-                      Param1,
-                      Param2);
+    return RVM_SVC(RVM_SVC_KFN,
+                   Cap_Kfn,
+                   RVM_PARAM_D1(Sub_ID)|RVM_PARAM_D0(Func_ID),
+                   Param1,
+                   Param2);
 }
 /* End Function:RVM_Kfn_Act **************************************************/
 

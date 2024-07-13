@@ -80,7 +80,7 @@ typedef rvm_s32_t rvm_ret_t;
 
 /* Thread size */
 #define RVM_HYP_RAW_SIZE                            ((21U)*RVM_WORD_BYTE)
-/* Invocation size */
+/* Invocation size - ARMv6-M has fixed LR */
 #define RVM_INV_RAW_SIZE                            ((8U)*RVM_WORD_BYTE)
 /* Normal page directory size */
 #define RVM_PGT_RAW_SIZE_NOM(NUM_ORDER)             ((4U+RVM_POW2(NUM_ORDER))*RVM_WORD_BYTE)
@@ -238,6 +238,7 @@ RVM_EXTERN rvm_ret_t RVM_Inv_Ret(rvm_ptr_t Retval);
 
 /* Utility */
 RVM_EXTERN void RVM_Putchar(char Char);
+RVM_EXTERN rvm_ptr_t RVM_Thd_Cop_Size(rvm_ptr_t Attr);
 
 /* Kernel function */
 RVM_EXTERN rvm_ret_t RVM_A6M_Kfn_Act(rvm_cid_t Cap_Kfn,
