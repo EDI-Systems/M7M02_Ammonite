@@ -171,7 +171,7 @@ while(0)
 #define RVM_KOM_SVC(HIGH,SVC)                       (((HIGH)&RVM_MASK_BEGIN(6U))|(SVC))
 #define RVM_KOM_CID(LOW,FLAG)                       (((LOW)&RVM_MASK_BEGIN(6U))|(FLAG))
 /* Page table */
-#define RVM_PGT_SVC(NUM_ORDER,SVC)                  (RVM_FIELD(NUM_ORDER,RVM_WORD_BIT_D1)|(SVC))
+#define RVM_PGT_SVC(NUM_ORDER,SVC)                  (RVM_FIELD(NUM_ORDER,RVM_WORD_BIT_Q1)|(SVC))
 #define RVM_PGT_FLAG(HIGH,LOW,FLAG)                 (RVM_FIELD(HIGH,RVM_WORD_BIT_D1+4U)|((LOW)<<8)|(FLAG))
 /* Page table size and number order */
 #define RVM_PGT(SIZE,NUM)                           (RVM_FIELD(SIZE,RVM_WORD_BIT_D1)|(NUM))
