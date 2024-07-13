@@ -6,7 +6,7 @@ Licence     : The Unlicense; see LICENSE for details.
 Description : The header of platform-specific part of RMP for RVM.
 ******************************************************************************/
 
-/* Typedefs ******************************************************************/
+/* Typedef *******************************************************************/
 #ifndef __RVM_GUEST_A7M__
 #define __RVM_GUEST_A7M__
 
@@ -69,20 +69,14 @@ typedef rvm_s32_t rvm_cnt_t;
 /* Return value */
 typedef rvm_s32_t rvm_ret_t;
 #endif
-/* End Typedefs **************************************************************/
+/* End Typedef ***************************************************************/
 
 /* Define ********************************************************************/
-/* System macros *************************************************************/
+/* System Macro **************************************************************/
 /* Compiler "extern" keyword setting */
 #define RVM_EXTERN                                  extern
 /* The order of bits in one CPU machine word */
 #define RVM_WORD_ORDER                              (5U)
-
-/* FPU type definitions */
-#define RVM_A7M_ATTR_NONE                           (0U)
-#define RVM_A7M_ATTR_FPV4_SP                        RVM_POW2(0U)
-#define RVM_A7M_ATTR_FPV5_SP                        RVM_POW2(1U)
-#define RVM_A7M_ATTR_FPV5_DP                        RVM_POW2(2U)
 
 /* Thread size */
 #define RVM_HYP_RAW_SIZE                            ((21U)*RVM_WORD_BYTE)
@@ -92,8 +86,15 @@ typedef rvm_s32_t rvm_ret_t;
 #define RVM_PGT_RAW_SIZE_NOM(NUM_ORDER)             ((4U+RVM_POW2(NUM_ORDER))*RVM_WORD_BYTE)
 /* Top-level page directory size */
 #define RVM_PGT_RAW_SIZE_TOP(NUM_ORDER)             (((1U+2U*RVM_A7M_REGION_NUM)*RVM_WORD_BYTE)+RVM_PGT_RAW_SIZE_NOM(NUM_ORDER))
+/* End System Macro **********************************************************/
 
-/* ARMv7-M specific kernel function macros ***********************************/
+/* ARMv7-M Macro *************************************************************/
+/* Thread context attribute definitions - keep in accordance with kernel */
+#define RVM_A7M_ATTR_NONE                           (0U)
+#define RVM_A7M_ATTR_FPV4_SP                        RVM_POW2(0U)
+#define RVM_A7M_ATTR_FPV5_SP                        RVM_POW2(1U)
+#define RVM_A7M_ATTR_FPV5_DP                        RVM_POW2(2U)
+
 /* Page table entry mode which property to get */
 #define RVM_A7M_KFN_PGT_ENTRY_MOD_FLAG_GET          (0U)
 #define RVM_A7M_KFN_PGT_ENTRY_MOD_SZORD_GET         (1U)
@@ -263,6 +264,7 @@ typedef rvm_s32_t rvm_ret_t;
 /* Error register read */
 #define RVM_A7M_KFN_DEBUG_EXC_CAUSE_GET             (0U)
 #define RVM_A7M_KFN_DEBUG_EXC_ADDR_GET              (1U)
+/* End ARMv7-M Macro *********************************************************/
 /* End Define ****************************************************************/
 
 /* Struct ********************************************************************/
