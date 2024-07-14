@@ -106,6 +106,7 @@ Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
               const std::vector<std::string>& Coprocessor - The coprocessor options.
               const std::vector<std::string>& Include - The include paths.
               const std::vector<std::string>& Source - The source file paths.
+              const std::vector<std::string>& Library - The library file list.
               const std::string& Linker - The linker script (scatter file) path.
               const std::string& Linker_Misc - The linker miscellaneous control string.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
@@ -117,6 +118,7 @@ void Keil_Gen::Raw_Proj(std::unique_ptr<std::vector<std::string>>& List,
 						const std::vector<std::string>& Coprocessor,
                         const std::vector<std::string>& Include,
                         const std::vector<std::string>& Source,
+                        const std::vector<std::string>& Library,
                         const std::string& Linker, const std::string& Linker_Misc)
 {
     ptr_t Opt_Level;
@@ -365,7 +367,7 @@ void Keil_Gen::Raw_Proj(std::unique_ptr<std::vector<std::string>>& List,
     List->push_back("        </TargetArmAds>");
     List->push_back("      </TargetOption>");
     List->push_back("      <Groups>");
-    /* Print all files. We only have two groups in all cases. */
+    /* Project group containing all stubs or images */
     List->push_back("        <Group>");
     List->push_back(std::string("          <GroupName>")+Target+"</GroupName>");
     List->push_back("          <Files>");
@@ -387,6 +389,29 @@ void Keil_Gen::Raw_Proj(std::unique_ptr<std::vector<std::string>>& List,
     }
     List->push_back("          </Files>");
     List->push_back("        </Group>");
+    /* Library group containing all fixed files */
+    List->push_back("        <Group>");
+    List->push_back("          <GroupName>Lib</GroupName>");
+    List->push_back("          <Files>");
+    for(const std::string& Src:Library)
+    {
+        List->push_back("            <File>");
+        /* File display name, and real path */
+        if(Src.find_last_of("/")==std::string::npos)
+            List->push_back(std::string("              <FileName>")+Src+"</FileName>");
+        else
+            List->push_back(std::string("              <FileName>")+Src.substr(Src.find_last_of("/")+1)+"</FileName>");
+        /* File type - C or assembly */
+        if(Src.back()=='c')
+            List->push_back("              <FileType>1</FileType>");
+        else
+            List->push_back("              <FileType>2</FileType>");
+        List->push_back(std::string("              <FilePath>")+Src+"</FilePath>");
+        List->push_back("            </File>");
+    }
+    List->push_back("          </Files>");
+    List->push_back("        </Group>");
+    /* User group for user additions */
     List->push_back("        <Group>");
     List->push_back("          <GroupName>User</GroupName>");
     List->push_back("        </Group>");
@@ -402,7 +427,8 @@ Description : Generate kernel project.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
               const std::vector<std::string>& Include - The include file list.
               const std::vector<std::string>& Source - The source file list.
-              const std::vector<std::string>& Source - The linker script file list.
+              const std::vector<std::string>& Library - The library file list.
+              const std::vector<std::string>& Linker - The linker script file list.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
 Output      : None.
 Return      : None.
@@ -410,6 +436,7 @@ Return      : None.
 void Keil_Gen::Kernel_Proj(std::unique_ptr<std::vector<std::string>>& List,
                            const std::vector<std::string>& Include,
                            const std::vector<std::string>& Source,
+                           const std::vector<std::string>& Library,
                            const std::vector<std::string>& Linker)
 {
 	std::vector<std::string> None;
@@ -422,6 +449,7 @@ void Keil_Gen::Kernel_Proj(std::unique_ptr<std::vector<std::string>>& List,
 				   None,                                    /* Coprocessor */
                    Include,                                 /* Include */
                    Source,                                  /* Source */
+                   Library,                                 /* Library */
                    Linker[0],                               /* Linker */
                    "--keep=*_image");                       /* Linker_Misc */
 }
@@ -432,7 +460,8 @@ Description : Generate monitor project.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
               const std::vector<std::string>& Include - The include file list.
               const std::vector<std::string>& Source - The source file list.
-              const std::vector<std::string>& Source - The linker script file list.
+              const std::vector<std::string>& Library - The library file list.
+              const std::vector<std::string>& Linker - The linker script file list.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
 Output      : None.
 Return      : None.
@@ -440,6 +469,7 @@ Return      : None.
 void Keil_Gen::Monitor_Proj(std::unique_ptr<std::vector<std::string>>& List,
                             const std::vector<std::string>& Include,
                             const std::vector<std::string>& Source,
+                            const std::vector<std::string>& Library,
                             const std::vector<std::string>& Linker)
 {
     std::string After1;
@@ -463,6 +493,7 @@ void Keil_Gen::Monitor_Proj(std::unique_ptr<std::vector<std::string>>& List,
 				   None,                                    /* Coprocessor */
                    Include,                                 /* Include */
                    Source,                                  /* Source */
+                   Library,                                 /* Library */
                    Linker[0],                               /* Linker */
                    "");                                     /* Linker_Misc */
 }
@@ -473,7 +504,8 @@ Description : Generate process project.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
               const std::vector<std::string>& Include - The include file list.
               const std::vector<std::string>& Source - The source file list.
-              const std::vector<std::string>& Source - The linker script file list.
+              const std::vector<std::string>& Library - The library file list.
+              const std::vector<std::string>& Linker - The linker script file list.
               const class Process* Prc - The process to generate for.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
 Output      : None.
@@ -482,6 +514,7 @@ Return      : None.
 void Keil_Gen::Process_Proj(std::unique_ptr<std::vector<std::string>>& List,
                             const std::vector<std::string>& Include,
                             const std::vector<std::string>& Source,
+                            const std::vector<std::string>& Library,
                             const std::vector<std::string>& Linker,
                             const class Process* Prc)
 {
@@ -505,21 +538,51 @@ void Keil_Gen::Process_Proj(std::unique_ptr<std::vector<std::string>>& List,
 				   Prc->Coprocessor,                        /* Coprocessor */
                    Include,                                 /* Include */
                    Source,                                  /* Source */
+                   Library,                                 /* Library */
                    Linker[0],                               /* Linker */
                    "--keep=*_desc");                        /* Linker_Misc */
 }
 /* End Function:Keil_Gen::Process_Proj ***************************************/
 
+/* Function:Keil_Gen::Workspace_Sect ******************************************
+Description : Generate a workspace project section.
+Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
+              const std::vector<std::string>& Project - The project list.
+Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Keil_Gen::Workspace_Sect(std::unique_ptr<std::vector<std::string>>& List,
+                              const std::vector<std::string>& Project)
+{
+    for(const std::string& Proj:Project)
+    {
+        List->push_back("  <project>");
+        List->push_back(std::string("    <PathAndName>")+Proj+"</PathAndName>");
+        List->push_back("    <NodeIsExpanded>1</NodeIsExpanded>");
+        List->push_back("    <NodeIsCheckedInBatchBuild>1</NodeIsCheckedInBatchBuild>");
+        List->push_back("  </project>");
+        List->push_back("");
+    }
+}
+/* End Function:Keil_Gen::Workspace_Sect *************************************/
+
 /* Function:Keil_Gen::Workspace_Proj ******************************************
 Description : Generate workspace project.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
-              const std::vector<std::string>& Project - The project file list.
+              const std::vector<std::string>& Kernel - The kernel project.
+              const std::vector<std::string>& Monitor - The monitor project.
+              const std::vector<std::string>& Native - The native process project.
+              const std::vector<std::string>& Virtual - The virtual machine project.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
 Output      : None.
 Return      : None.
 ******************************************************************************/
 void Keil_Gen::Workspace_Proj(std::unique_ptr<std::vector<std::string>>& List,
-                              const std::vector<std::string>& Project)
+                              const std::vector<std::string>& Kernel,
+                              const std::vector<std::string>& Monitor,
+                              const std::vector<std::string>& Native,
+                              const std::vector<std::string>& Virtual)
 {
     List->push_back("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\" ?>");
     List->push_back("<ProjectWorkspace xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"project_mpw.xsd\">");
@@ -530,15 +593,11 @@ void Keil_Gen::Workspace_Proj(std::unique_ptr<std::vector<std::string>>& List,
     List->push_back("");
     List->push_back("  <WorkspaceName>WorkSpace</WorkspaceName>");
     List->push_back("");
-    for(const std::string& Proj:Project)
-    {
-        List->push_back("  <project>");
-        List->push_back(std::string("    <PathAndName>")+Proj+"</PathAndName>");
-        List->push_back("    <NodeIsExpanded>1</NodeIsExpanded>");
-        List->push_back("    <NodeIsCheckedInBatchBuild>1</NodeIsCheckedInBatchBuild>");
-        List->push_back("  </project>");
-        List->push_back("");
-    }
+    this->Workspace_Sect(List, Virtual);
+    this->Workspace_Sect(List, Native);
+    this->Workspace_Sect(List, Monitor);
+    this->Workspace_Sect(List, Kernel);
+    List->push_back("");
     List->push_back("</ProjectWorkspace>");
     List->push_back("");
 }

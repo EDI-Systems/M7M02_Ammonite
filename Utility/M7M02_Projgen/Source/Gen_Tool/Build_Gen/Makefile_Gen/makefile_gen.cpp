@@ -45,6 +45,7 @@ extern "C"
 #include "Proj_Info/Process/Receive/receive.hpp"
 #include "Proj_Info/Process/Send/send.hpp"
 #include "Proj_Info/Process/Kfunc/kfunc.hpp"
+#include "Proj_Info/Process/Native/native.hpp"
 #include "Proj_Info/Process/Virtual/virtual.hpp"
 #include "Mem_Info/mem_info.hpp"
 #include "Vect_Info/vect_info.hpp"
@@ -95,7 +96,7 @@ std::string Makefile_Gen::Suffix(ptr_t Type)
 }
 /* End Function:Makefile_Gen::Suffix *****************************************/
 
-/* Function:Makefile_Gen::Makefile_Proj ***************************************
+/* Function:Makefile_Gen::Raw_Proj ********************************************
 Description : Generate the makefile project.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
               const std::string& After - The command to run after compilation.
@@ -103,18 +104,20 @@ Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
               ptr_t Optimization - The optimization level chosen.
               const std::vector<std::string>& Include - The include paths.
               const std::vector<std::string>& Source - The source file paths.
+              const std::vector<std::string>& Library - The library file list.
               const std::string& Linker - The linker script (scatter file) path.
               const std::string& Linker_Misc - The linker miscellaneous control string.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
 Return      : None.
 ******************************************************************************/
-void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List,
-                                 const std::string& After,
-                                 const std::string& Target, const std::string& Optimization,
-                                 const std::vector<std::string>& Coprocessor,
-                                 const std::vector<std::string>& Include,
-                                 const std::vector<std::string>& Source,
-                                 const std::string& Linker)
+void Makefile_Gen::Raw_Proj(std::unique_ptr<std::vector<std::string>>& List,
+                            const std::string& After,
+                            const std::string& Target, const std::string& Optimization,
+                            const std::vector<std::string>& Coprocessor,
+                            const std::vector<std::string>& Include,
+                            const std::vector<std::string>& Source,
+                            const std::vector<std::string>& Library,
+                            const std::string& Linker)
 {
     std::string Temp;
     std::string Target_Lower;
@@ -278,13 +281,29 @@ void Makefile_Gen::Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List
     for(const std::string& Inc:Include)
         List->push_back(std::string("INCS+=-I")+Inc);
     List->push_back("");
+    List->push_back("# C source group");
     for(const std::string& Src:Source)
     {
         if(Src.back()=='c')
             List->push_back(std::string("CSRCS+=")+Src);
     }
     List->push_back("");
+    List->push_back("# C library group");
+    for(const std::string& Src:Library)
+    {
+        if(Src.back()=='c')
+            List->push_back(std::string("CSRCS+=")+Src);
+    }
+    List->push_back("");
+    List->push_back("# Assembly source group");
     for (const std::string& Src:Source)
+    {
+        if (Src.back()!='c')
+            List->push_back(std::string("ASRCS+=")+Src);
+    }
+    List->push_back("");
+    List->push_back("# Assembly library group");
+    for(const std::string& Src:Library)
     {
         if (Src.back()!='c')
             List->push_back(std::string("ASRCS+=")+Src);
@@ -393,7 +412,8 @@ Description : Generate kernel project.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
               const std::vector<std::string>& Include - The include file list.
               const std::vector<std::string>& Source - The source file list.
-              const std::vector<std::string>& Source - The linker script file list.
+              const std::vector<std::string>& Library - The library file list.
+              const std::vector<std::string>& Linker - The linker script file list.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
 Output      : None.
 Return      : None.
@@ -401,19 +421,21 @@ Return      : None.
 void Makefile_Gen::Kernel_Proj(std::unique_ptr<std::vector<std::string>>& List,
                                const std::vector<std::string>& Include,
                                const std::vector<std::string>& Source,
+                               const std::vector<std::string>& Library,
                                const std::vector<std::string>& Linker)
 {
     std::vector<std::string> None;
 
     /* Generate a Makefile for compiling system code */
-    this->Makefile_Proj(List,
-                        "",                                      /* After */
-                        "Kernel",                                /* Target */
-                        this->Proj->Kernel->Optimization,        /* Optimization */
-                        None,                                    /* Coprocessor */
-                        Include,                                 /* Include */
-                        Source,                                  /* Source */
-                        Linker[0]);                              /* Linker */
+    this->Raw_Proj(List,
+                   "",                                      /* After */
+                   "Kernel",                                /* Target */
+                    this->Proj->Kernel->Optimization,        /* Optimization */
+                    None,                                    /* Coprocessor */
+                    Include,                                 /* Include */
+                    Source,                                  /* Source */
+                    Library,                                 /* Library */
+                    Linker[0]);                              /* Linker */
 }
 /* End Function:Makefile_Gen::Kernel_Proj ************************************/
 
@@ -422,7 +444,7 @@ Description : Generate monitor project.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
               const std::vector<std::string>& Include - The include file list.
               const std::vector<std::string>& Source - The source file list.
-              const std::vector<std::string>& Source - The linker script file list.
+              const std::vector<std::string>& Linker - The linker script file list.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
 Output      : None.
 Return      : None.
@@ -430,6 +452,7 @@ Return      : None.
 void Makefile_Gen::Monitor_Proj(std::unique_ptr<std::vector<std::string>>& List,
                                 const std::vector<std::string>& Include,
                                 const std::vector<std::string>& Source,
+                                const std::vector<std::string>& Library,
                                 const std::vector<std::string>& Linker)
 {
     std::string After;
@@ -444,14 +467,15 @@ void Makefile_Gen::Monitor_Proj(std::unique_ptr<std::vector<std::string>>& List,
     }
 
     /* Generate a Makefile for compiling system code */
-    this->Makefile_Proj(List,
-                        After,                                   /* After */
-                        "Monitor",                               /* Target */
-                        this->Proj->Monitor->Optimization,       /* Optimization */
-                        None,                                    /* Coprocessor */
-                        Include,                                 /* Include */
-                        Source,                                  /* Source */
-                        Linker[0]);                              /* Linker */
+    this->Raw_Proj(List,
+                   After,                                   /* After */
+                   "Monitor",                               /* Target */
+                   this->Proj->Monitor->Optimization,       /* Optimization */
+                   None,                                    /* Coprocessor */
+                   Include,                                 /* Include */
+                   Source,                                  /* Source */
+                   Library,                                 /* Library */
+                   Linker[0]);                              /* Linker */
 }
 /* End Function:Makefile_Gen::Monitor_Proj ***********************************/
 
@@ -460,7 +484,8 @@ Description : Generate process project.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
               const std::vector<std::string>& Include - The include file list.
               const std::vector<std::string>& Source - The source file list.
-              const std::vector<std::string>& Source - The linker script file list.
+              const std::vector<std::string>& Library - The library file list.
+              const std::vector<std::string>& Linker - The linker script file list.
               const class Process* Prc - The process to generate for.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
 Output      : None.
@@ -469,6 +494,7 @@ Return      : None.
 void Makefile_Gen::Process_Proj(std::unique_ptr<std::vector<std::string>>& List,
                                 const std::vector<std::string>& Include,
                                 const std::vector<std::string>& Source,
+                                const std::vector<std::string>& Library,
                                 const std::vector<std::string>& Linker,
                                 const class Process* Prc)
 {
@@ -484,27 +510,79 @@ void Makefile_Gen::Process_Proj(std::unique_ptr<std::vector<std::string>>& List,
     }
 
     /* Generate a Makefile for compiling system code */
-    this->Makefile_Proj(List,
-                        After,                                   /* After */
-                        Prc->Name,                               /* Target */
-                        Prc->Optimization,                       /* Optimization */
-                        None,                                    /* Coprocessor */
-                        Include,                                 /* Include */
-                        Source,                                  /* Source */
-                        Linker[0]);                              /* Linker */
+    this->Raw_Proj(List,
+                   After,                                   /* After */
+                   Prc->Name,                               /* Target */
+                   Prc->Optimization,                       /* Optimization */
+                   None,                                    /* Coprocessor */
+                   Include,                                 /* Include */
+                   Source,                                  /* Source */
+                   Library,                                 /* Library */
+                   Linker[0]);                              /* Linker */
 }
 /* End Function:Makefile_Gen::Process_Proj ***********************************/
 
+/* Function:Makefile_Gen::Workspace_Build *************************************
+Description : Generate a workspace project build section.
+Input       : const std::string& Name - The name of the section.
+              std::unique_ptr<std::vector<std::string>>& List - The file.
+              const std::vector<std::string>& Project - The project list.
+Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Makefile_Gen::Workspace_Build(const std::string& Name,
+                                   std::unique_ptr<std::vector<std::string>>& List,
+                                   const std::vector<std::string>& Project)
+{
+    for(const std::string& Proj:Project)
+    {
+        List->push_back("\t@echo \033[32mBuild "+Name+": "+Proj+"\033[0m");
+        List->push_back(std::string("\t@cd ")+Main::File_Dir(Proj)+" && $(MAKE) -f "+Main::File_Name(Proj)+" -j8 --no-print-directory");
+        List->push_back("\t@echo");
+        List->push_back("\t@echo");
+    }
+}
+/* End Function:Makefile_Gen::Workspace_Build ********************************/
+
+/* Function:Makefile_Gen::Workspace_Clean *************************************
+Description : Generate a workspace project clean section.
+Input       : const std::string& Name - The name of the section.
+              std::unique_ptr<std::vector<std::string>>& List - The file.
+              const std::vector<std::string>& Project - The project list.
+Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Makefile_Gen::Workspace_Clean(const std::string& Name,
+                                   std::unique_ptr<std::vector<std::string>>& List,
+                                   const std::vector<std::string>& Project)
+{
+    for(const std::string& Proj:Project)
+    {
+        List->push_back("\t@echo \033[32mClean "+Name+": "+Proj+"\033[0m");
+        List->push_back(std::string("\t@cd ")+Main::File_Dir(Proj)+" && $(MAKE) clean -f "+Main::File_Name(Proj)+" --no-print-directory");
+    }
+}
+/* End Function:Makefile_Gen::Workspace_Clean ********************************/
+
 /* Function:Makefile_Gen::Workspace_Proj **************************************
-Description : Generate workspace project.
+Description : Generate workspace project. This does not make use of the lists
+              passed in, but instead consults the project datastructure.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
-              const std::vector<std::string>& Project - The project file list.
+              const std::vector<std::string>& Kernel - The kernel project.
+              const std::vector<std::string>& Monitor - The monitor project.
+              const std::vector<std::string>& Native - The native process project.
+              const std::vector<std::string>& Virtual - The virtual machine project.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The updated file.
 Output      : None.
 Return      : None.
 ******************************************************************************/
 void Makefile_Gen::Workspace_Proj(std::unique_ptr<std::vector<std::string>>& List,
-                                  const std::vector<std::string>& Project)
+                                  const std::vector<std::string>& Kernel,
+                                  const std::vector<std::string>& Monitor,
+                                  const std::vector<std::string>& Native,
+                                  const std::vector<std::string>& Virtual)
 {
     List->push_back("###############################################################################");
     List->push_back(std::string("#Filename    : ")+this->Proj->Name_Lower);
@@ -512,37 +590,23 @@ void Makefile_Gen::Workspace_Proj(std::unique_ptr<std::vector<std::string>>& Lis
     List->push_back(std::string("#Date        : ")+Main::Time);
     List->push_back(std::string("#Licence     : ")+CODE_LICENSE);
     List->push_back("#Description : Project Makefile (based on gcc). This file is intended");
-    List->push_back(std::string("#              to be used with ") + this->Chip->Name + ", and the GNU toolchain.");
+    List->push_back(std::string("#              to be used with ")+this->Chip->Name+", and the GNU toolchain.");
     List->push_back("###############################################################################");
     List->push_back("");
     List->push_back("# Build #######################################################################");
     List->push_back("all:");
-    for(const std::unique_ptr<class Process>& Prc:this->Proj->Process)
-    {
-        List->push_back("\t@echo \033[32mBuild process: "+Prc->Name+"\033[0m");
-    	List->push_back(std::string("\t@cd ")+Prc->Name+"/Project && $(MAKE) -f prc_"+Prc->Name_Lower+" -j8 --no-print-directory");
-        List->push_back("\t@echo");
-        List->push_back("\t@echo");
-    }
-    List->push_back("\t@echo \033[32mBuild monitor\033[0m");
-    List->push_back(std::string("\t@cd Monitor/Project && $(MAKE) -f monitor -j8 --no-print-directory"));
-    List->push_back("\t@echo");
-    List->push_back("\t@echo");
-    List->push_back("\t@echo \033[32mBuild kernel\033[0m");
-    List->push_back(std::string("\t@cd Kernel/Project && $(MAKE) -f kernel -j8 --no-print-directory"));
+    this->Workspace_Build("virtual", List, Virtual);
+    this->Workspace_Build("native", List, Native);
+    this->Workspace_Build("monitor", List, Monitor);
+    this->Workspace_Build("kernel", List, Kernel);
     List->push_back("# End Build ###################################################################");
     List->push_back("");
     List->push_back("# Clean #######################################################################");
     List->push_back("clean:");
-    for(const std::unique_ptr<class Process>& Prc:this->Proj->Process)
-    {
-        List->push_back("\t@echo \033[32mClean process: "+Prc->Name+"\033[0m");
-    	List->push_back(std::string("\t@cd ")+Prc->Name+"/Project && $(MAKE) clean -f prc_"+Prc->Name_Lower+" --no-print-directory");
-    }
-    List->push_back("\t@echo \033[32mClean monitor\033[0m");
-    List->push_back(std::string("\t@cd Monitor/Project && $(MAKE) clean -f monitor --no-print-directory"));
-    List->push_back("\t@echo \033[32mClean kernel\033[0m");
-    List->push_back(std::string("\t@cd Kernel/Project && $(MAKE) clean -f kernel --no-print-directory"));
+    this->Workspace_Clean("virtual", List, Virtual);
+    this->Workspace_Clean("native", List, Native);
+    this->Workspace_Clean("monitor", List, Monitor);
+    this->Workspace_Clean("kernel", List, Kernel);
     List->push_back("# End Clean ###################################################################");
     List->push_back("");
     List->push_back("# End Of File #################################################################");

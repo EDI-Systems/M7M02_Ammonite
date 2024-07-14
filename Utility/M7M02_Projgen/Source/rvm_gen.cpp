@@ -128,7 +128,7 @@ std::string Main::Guest_RMP_Root;
 std::string Main::Guest_FRT_Root;
 std::string Main::Workspace_Output;
 ptr_t Main::Verbose=0;
-ptr_t Main::Mock=0;
+ptr_t Main::Dryrun=0;
 std::string Main::Time;
 /* End Global Variable *******************************************************/
 
@@ -1851,11 +1851,11 @@ Return      : None.
                 Main::Info("Verbose output mode enabled.");
                 Count+=1;
             }
-            /* Mock mode */
-            else if(strcmp(argv[Count],"-m")==0)
+            /* Dryrun mode */
+            else if(strcmp(argv[Count],"-d")==0)
             {
-                Main::Mock=1;
-                Main::Info("Mock generation mode enabled.");
+                Main::Dryrun=1;
+                Main::Info("Dry running mode enabled.");
                 Count+=1;
             }
             else
@@ -1876,7 +1876,7 @@ Return      : None.
 
         this->Buffer=(char*)malloc(MAX_FILE_SIZE);
         if(this->Buffer==nullptr)
-            Main::Error(std::string("XXXXX: File buffer allocation failure."));
+            Main::Error("XXXXX: File buffer allocation failure.");
 
         /* Read current time */
         time(&Time_Value);
@@ -1895,7 +1895,10 @@ Return      : None.
                                 "       -m: RVM hypervisor root folder.\n"
                                 "       -rmp: RMP RTOS root folder; needed when RMP is the guest.\n"
                                 "       -frt: FreeRTOS root folder; needed when FreeRTOS is the guest.\n"
-                                "       -w: Workspace output folder.\n");
+                                "       -w: Workspace output folder.\n"
+                                "Auxiliary parameters:\n"
+                                "       -v: Verbose mode.\n"
+                                "       -d: Perform a dry run instead of generating files.\n");
     }
 }
 /* End Function:Main::Main ***************************************************/
@@ -2074,7 +2077,7 @@ Input       : ptr_t Type - The path type.
                                         as the current working directory.
               const std::string& Path - The potentially relative path.
 Output      : None.
-Return      : None.
+Return      : std::string - The absolute path.
 ******************************************************************************/
 std::string Main::Path_Absolute(ptr_t Type, const std::string& Root, const std::string& Path)
 {
@@ -2112,7 +2115,7 @@ Input       : ptr_t Type - The path type.
               const std::string& Root - The root path, must not be empty.
               const std::string& Path - The potentially absolute path.
 Output      : None.
-Return      : None.
+Return      : std::string - The relative path.
 ******************************************************************************/
 std::string Main::Path_Relative(ptr_t Type, const std::string& Root, const std::string& Path)
 {
@@ -2139,6 +2142,52 @@ std::string Main::Path_Relative(ptr_t Type, const std::string& Root, const std::
     return Temp;
 }
 /* End Function:Main::Path_Relative ******************************************/
+
+/* Function:Main::File_Dir ****************************************************
+Description : Extract the directory part of the file path.
+Input       : const std::string& Path - The file path.
+Output      : None.
+Return      : std::string - The directory part.
+******************************************************************************/
+std::string Main::File_Dir(const std::string& Path)
+{
+    std::string Dir;
+    std::filesystem::path Temp;
+
+    if(Path=="")
+        return "";
+
+    Temp=Path;
+    Dir=Temp.parent_path().string();
+
+    /* Replace path separators */
+    std::replace(Dir.begin(),Dir.end(),'\\','/');
+    /* If this is a folder, end it with the delimiter if it doesn't already have one */
+    if(Dir.back()!='/')
+        Dir+="/";
+
+    return Dir;
+}
+/* End Function:Main::File_Dir ***********************************************/
+
+/* Function:Main::File_Name ***************************************************
+Description : Extract the name part of the file path.
+Input       : const std::string& Path - The file path.
+Output      : None.
+Return      : std::string - The directory part.
+******************************************************************************/
+std::string Main::File_Name(const std::string& Path)
+{
+    std::filesystem::path Temp;
+
+    if(Path=="")
+        return "";
+
+    Temp=Path;
+
+    return Temp.filename().string();
+}
+/* End Function:Main::File_Name **********************************************/
 
 /* Function:Main::Hex *********************************************************
 Description : Convert a number to a hex string, without 0x prefix.
@@ -2398,7 +2447,7 @@ int main(int argc, char* argv[])
         Main->Obj_Alloc();
 
 /* Phase 4: Produce output ***************************************************/
-        if(Main::Mock==0)
+        if(Main::Dryrun==0)
         {
             /* Generate workspace folder if it does not exist already */
             Main::Info("Creating directory for workspace.");

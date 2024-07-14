@@ -34,32 +34,47 @@ public:
 
     virtual std::string Suffix(ptr_t Type) final override;
 
-   virtual void Makefile_Proj(std::unique_ptr<std::vector<std::string>>& List,
-                              const std::string& After1,
-                              const std::string& Target, const std::string& Optimization,
-							  const std::vector<std::string>& Coprocessor,
-                              const std::vector<std::string>& Include,
-                              const std::vector<std::string>& Source,
-                              const std::string& Linker);
+    void Raw_Proj(std::unique_ptr<std::vector<std::string>>& List,
+                  const std::string& After1,
+                  const std::string& Target, const std::string& Optimization,
+                  const std::vector<std::string>& Coprocessor,
+                  const std::vector<std::string>& Include,
+                  const std::vector<std::string>& Source,
+                  const std::vector<std::string>& Library,
+                  const std::string& Linker);
 
     virtual void Kernel_Proj(std::unique_ptr<std::vector<std::string>>& List,
                              const std::vector<std::string>& Include,
                              const std::vector<std::string>& Source,
+                             const std::vector<std::string>& Library,
                              const std::vector<std::string>& Linker) final override;
 
     virtual void Monitor_Proj(std::unique_ptr<std::vector<std::string>>& List,
                               const std::vector<std::string>& Include,
                               const std::vector<std::string>& Source,
+                              const std::vector<std::string>& Library,
                               const std::vector<std::string>& Linker) final override;
 
     virtual void Process_Proj(std::unique_ptr<std::vector<std::string>>& List,
                               const std::vector<std::string>& Include,
                               const std::vector<std::string>& Source,
+                              const std::vector<std::string>& Library,
                               const std::vector<std::string>& Linker,
                               const class Process* Prc) final override;
 
+    void Workspace_Build(const std::string& Name,
+                         std::unique_ptr<std::vector<std::string>>& List,
+                         const std::vector<std::string>& Project);
+
+    void Workspace_Clean(const std::string& Name,
+                         std::unique_ptr<std::vector<std::string>>& List,
+                         const std::vector<std::string>& Project);
+
     virtual void Workspace_Proj(std::unique_ptr<std::vector<std::string>>& List,
-                                const std::vector<std::string>& Project) final override;
+                                const std::vector<std::string>& Kernel,
+                                const std::vector<std::string>& Monitor,
+                                const std::vector<std::string>& Native,
+                                const std::vector<std::string>& Virtual) final override;
 };
 /*****************************************************************************/
 /* __MAKEFILE_GEN_CLASS__ */

@@ -65,6 +65,7 @@ public:
 
     std::vector<std::string> Virtual_Include;
     std::vector<std::string> Virtual_Source;
+    std::vector<std::string> Virtual_Library;
 
     /* void */ Virtual(xml_node_t* Root);
 

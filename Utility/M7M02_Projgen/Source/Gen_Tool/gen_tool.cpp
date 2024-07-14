@@ -1168,6 +1168,7 @@ void Gen_Tool::Kernel_Proj(void)
     std::unique_ptr<std::vector<std::string>> List;
     std::vector<std::string> Include;
     std::vector<std::string> Source;
+    std::vector<std::string> Library;
     std::vector<std::string> Linker;
     std::string Veneer;
     std::string Filename;
@@ -1207,10 +1208,10 @@ void Gen_Tool::Kernel_Proj(void)
     /* Extract the source paths */
     Main::Info("> Generating project source paths:");
     /* Regular kernel source */
-    Source.push_back(Main::Kernel_Root+"Source/Kernel/rme_kernel.c");
-    Source.push_back(Main::Kernel_Root+"Source/Platform/"+this->Plat->Name+"/rme_platform_"+this->Plat->Name_Lower+".c");
-    Source.push_back(Main::Kernel_Root+"Source/Platform/"+this->Plat->Name+
-                     "/rme_platform_"+this->Plat->Name_Lower+"_"+Tool->Name_Lower+Tool->Suffix(TOOL_ASSEMBLER));
+    Library.push_back(Main::Kernel_Root+"Source/Kernel/rme_kernel.c");
+    Library.push_back(Main::Kernel_Root+"Source/Platform/"+this->Plat->Name+"/rme_platform_"+this->Plat->Name_Lower+".c");
+    Library.push_back(Main::Kernel_Root+"Source/Platform/"+this->Plat->Name+
+                      "/rme_platform_"+this->Plat->Name_Lower+"_"+Tool->Name_Lower+Tool->Suffix(TOOL_ASSEMBLER));
     /* Additional chip-specific veneers (required only by some architectures to handle idiosyncrasies) */
     Veneer=Main::Kernel_Root+"Include/Platform/"+this->Plat->Name+"/Chip/"+this->Plat->Chip->Name_Upper;
     Ending=std::string("_")+Tool->Name_Lower+Tool->Suffix(TOOL_ASSEMBLER);
@@ -1220,11 +1221,12 @@ void Gen_Tool::Kernel_Proj(void)
         Extension=File.path().extension().string();
         /* If this is a c veneer, always add them to project */
         if((Extension=="C")||(Extension=="c"))
-            Source.push_back(Veneer+"/"+Filename);
+            Library.push_back(Veneer+"/"+Filename);
         /* If this is an assembly veneer, it will have to match the toolchain ending */
         else if((Filename.length()>Ending.length())&&(std::equal(Ending.rbegin(),Ending.rend(),Filename.rbegin())))
-            Source.push_back(Veneer+"/"+Filename);
+            Library.push_back(Veneer+"/"+Filename);
     }
+
     /* Hooks */
     Source.push_back(Kernel->Boot_Source_Output+"rme_boot.c");
     Source.push_back(Kernel->Hook_Source_Output+"rme_hook.c");
@@ -1237,9 +1239,12 @@ void Gen_Tool::Kernel_Proj(void)
         for(const std::unique_ptr<class Process>& Prc:this->Plat->Proj->Process)
             Source.push_back(Prc->Project_Output+Prc->Name_Lower+"_image.c");
     }
-    Gen_Tool::Path_Conv(Kernel->Project_Output, Source);
 
+    Gen_Tool::Path_Conv(Kernel->Project_Output, Source);
+    Gen_Tool::Path_Conv(Kernel->Project_Output, Library);
     for(const std::string& Path:Source)
+        Main::Info(std::string("> > ")+Path);
+    for(const std::string& Path:Library)
         Main::Info(std::string("> > ")+Path);
 
     /* Extract the linker paths */
@@ -1251,7 +1256,7 @@ void Gen_Tool::Kernel_Proj(void)
     for(const std::string& Path:Linker)
         Main::Info(std::string("> > ")+Path);
 
-    Build->Kernel_Proj(List, Include, Source, Linker);
+    Build->Kernel_Proj(List, Include, Source, Library, Linker);
     Gen_Tool::Line_Write(List, Kernel->Project_Output+Kernel->Project_Filename);
 }
 /* End Function:Gen_Tool::Kernel_Proj ****************************************/
@@ -2372,6 +2377,7 @@ void Gen_Tool::Monitor_Proj(void)
     std::unique_ptr<std::vector<std::string>> List;
     std::vector<std::string> Include;
     std::vector<std::string> Source;
+    std::vector<std::string> Library;
     std::vector<std::string> Linker;
 
     Monitor=this->Plat->Proj->Monitor.get();
@@ -2405,16 +2411,20 @@ void Gen_Tool::Monitor_Proj(void)
 
     /* Extract the source paths */
     Main::Info("> Generating project source paths:");
+    Library.push_back(Main::Monitor_Root+"Source/Monitor/rvm_monitor.c");
+    Library.push_back(Main::Monitor_Root+"Source/Platform/"+this->Plat->Name+"/rvm_platform_"+this->Plat->Name_Lower+".c");
+    Library.push_back(Main::Monitor_Root+"Source/Platform/"+this->Plat->Name+
+                      "/rvm_platform_"+this->Plat->Name_Lower+"_"+Tool->Name_Lower+Tool->Suffix(TOOL_ASSEMBLER));
 
-    Source.push_back(Main::Monitor_Root+"Source/Monitor/rvm_monitor.c");
-    Source.push_back(Main::Monitor_Root+"Source/Platform/"+this->Plat->Name+"/rvm_platform_"+this->Plat->Name_Lower+".c");
-    Source.push_back(Main::Monitor_Root+"Source/Platform/"+this->Plat->Name+
-                     "/rvm_platform_"+this->Plat->Name_Lower+"_"+Tool->Name_Lower+Tool->Suffix(TOOL_ASSEMBLER));
+    /* Hooks */
     Source.push_back(Monitor->Boot_Source_Output+"rvm_boot.c");
     Source.push_back(Monitor->Hook_Source_Output+"rvm_hook.c");
-    Gen_Tool::Path_Conv(Monitor->Project_Output, Source);
 
+    Gen_Tool::Path_Conv(Monitor->Project_Output, Source);
+    Gen_Tool::Path_Conv(Monitor->Project_Output, Library);
     for(const std::string& Path:Source)
+        Main::Info(std::string("> > ")+Path);
+    for(const std::string& Path:Library)
         Main::Info(std::string("> > ")+Path);
 
     /* Extract the linker paths */
@@ -2426,7 +2436,7 @@ void Gen_Tool::Monitor_Proj(void)
     for(const std::string& Path:Linker)
         Main::Info(std::string("> > ")+Path);
 
-    Build->Monitor_Proj(List, Include, Source, Linker);
+    Build->Monitor_Proj(List, Include, Source, Library, Linker);
     Gen_Tool::Line_Write(List, Monitor->Project_Output+Monitor->Project_Filename);
 }
 /* End Function:Gen_Tool::Monitor_Proj ***************************************/
@@ -2999,6 +3009,7 @@ void Gen_Tool::Process_Proj(class Process* Prc)
     std::unique_ptr<std::vector<std::string>> List;
     std::vector<std::string> Include;
     std::vector<std::string> Source;
+    std::vector<std::string> Library;
     std::vector<std::string> Linker;
 
     List=std::make_unique<std::vector<std::string>>();
@@ -3021,7 +3032,6 @@ void Gen_Tool::Process_Proj(class Process* Prc)
 
     /* Extract the include paths */
     Main::Info("> Generating project include paths:");
-
     Include.push_back(Main::Monitor_Root+"Guest/");
     Include.push_back(Main::Monitor_Root+"Include/");
     Include.push_back(Prc->Project_Output);
@@ -3036,11 +3046,12 @@ void Gen_Tool::Process_Proj(class Process* Prc)
 
     /* Extract the source paths */
     Main::Info("> Generating project source paths:");
+    Library.push_back(Main::Monitor_Root+"Guest/rvm_guest.c");
+    Library.push_back(Main::Monitor_Root+"Guest/"+this->Plat->Name+"/rvm_guest_"+this->Plat->Name_Lower+".c");
+    Library.push_back(Main::Monitor_Root+"Guest/"+this->Plat->Name+
+                      "/rvm_guest_"+this->Plat->Name_Lower+"_"+Tool->Name_Lower+Tool->Suffix(TOOL_ASSEMBLER));
 
-    Source.push_back(Main::Monitor_Root+"Guest/rvm_guest.c");
-    Source.push_back(Main::Monitor_Root+"Guest/"+this->Plat->Name+"/rvm_guest_"+this->Plat->Name_Lower+".c");
-    Source.push_back(Main::Monitor_Root+"Guest/"+this->Plat->Name+
-                     "/rvm_guest_"+this->Plat->Name_Lower+"_"+Tool->Name_Lower+Tool->Suffix(TOOL_ASSEMBLER));
+    /* Hooks */
     Source.push_back(Prc->Main_Source_Output+"prc_"+Prc->Name_Lower+".c");
     Source.push_back(Prc->Main_Source_Output+"prc_"+Prc->Name_Lower+"_desc.c");
     /* For native processes, add all the stub files */
@@ -3053,10 +3064,16 @@ void Gen_Tool::Process_Proj(class Process* Prc)
     }
     /* For virtual machines, add all the VM files as well */
     else
+    {
         Source.insert(Source.end(), Virt->Virtual_Source.begin(), Virt->Virtual_Source.end());
-    Gen_Tool::Path_Conv(Prc->Project_Output, Source);
+        Library.insert(Library.end(), Virt->Virtual_Library.begin(), Virt->Virtual_Library.end());
+    }
 
+    Gen_Tool::Path_Conv(Prc->Project_Output, Source);
+    Gen_Tool::Path_Conv(Prc->Project_Output, Library);
     for(const std::string& Path:Source)
+        Main::Info(std::string("> > ")+Path);
+    for(const std::string& Path:Library)
         Main::Info(std::string("> > ")+Path);
 
     /* Extract the linker paths */
@@ -3068,7 +3085,7 @@ void Gen_Tool::Process_Proj(class Process* Prc)
     for(const std::string& Path:Linker)
         Main::Info(std::string("> > ")+Path);
 
-    Build->Process_Proj(List, Include, Source, Linker, Prc);
+    Build->Process_Proj(List, Include, Source, Library, Linker, Prc);
     Gen_Tool::Line_Write(List, Prc->Project_Output+Prc->Project_Filename);
 }
 /* End Function:Gen_Tool::Process_Proj ***************************************/
@@ -3086,7 +3103,10 @@ void Gen_Tool::Workspace_Proj(void)
     class Build_Gen* Build;
     class Proj_Info* Proj;
     std::unique_ptr<std::vector<std::string>> List;
-    std::vector<std::string> Project;
+    std::vector<std::string> Kernel;
+    std::vector<std::string> Monitor;
+    std::vector<std::string> Native;
+    std::vector<std::string> Virtual;
 
     Proj=this->Plat->Proj;
 
@@ -3118,16 +3138,28 @@ void Gen_Tool::Workspace_Proj(void)
     List=std::make_unique<std::vector<std::string>>();
 
     /* Add all project file positions */
-    Project.push_back(Proj->Kernel->Project_Output+Proj->Kernel->Project_Filename);
-    Project.push_back(Proj->Monitor->Project_Output+Proj->Monitor->Project_Filename);
-    for(const std::unique_ptr<class Process>& Prc:Proj->Process)
-        Project.push_back(Prc->Project_Output+Prc->Project_Filename);
-    Gen_Tool::Path_Conv(Main::Workspace_Output, Project);
+    Kernel.push_back(Proj->Kernel->Project_Output+Proj->Kernel->Project_Filename);
+    Monitor.push_back(Proj->Monitor->Project_Output+Proj->Monitor->Project_Filename);
+    for(class Native* Nat:Proj->Native)
+        Native.push_back(Nat->Project_Output+Nat->Project_Filename);
+    for(class Virtual* Virt:Proj->Virtual)
+        Virtual.push_back(Virt->Project_Output+Virt->Project_Filename);
 
-    for(const std::string& Path:Project)
+    Gen_Tool::Path_Conv(Main::Workspace_Output, Kernel);
+    Gen_Tool::Path_Conv(Main::Workspace_Output, Monitor);
+    Gen_Tool::Path_Conv(Main::Workspace_Output, Native);
+    Gen_Tool::Path_Conv(Main::Workspace_Output, Virtual);
+
+    for(const std::string& Path:Kernel)
+        Main::Info(std::string("> > ")+Path);
+    for(const std::string& Path:Monitor)
+        Main::Info(std::string("> > ")+Path);
+    for(const std::string& Path:Native)
+        Main::Info(std::string("> > ")+Path);
+    for(const std::string& Path:Virtual)
         Main::Info(std::string("> > ")+Path);
 
-    Build->Workspace_Proj(List, Project);
+    Build->Workspace_Proj(List, Kernel, Monitor, Native, Virtual);
     Gen_Tool::Line_Write(List, Main::Workspace_Output+Proj->Workspace_Filename);
 }
 /* End Function:Gen_Tool::Workspace_Proj *************************************/

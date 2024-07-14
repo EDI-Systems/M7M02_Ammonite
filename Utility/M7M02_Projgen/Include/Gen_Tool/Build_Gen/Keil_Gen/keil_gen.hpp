@@ -40,26 +40,36 @@ public:
                   const std::vector<std::string>& Coprocessor,
                   const std::vector<std::string>& Include,
                   const std::vector<std::string>& Source,
+                  const std::vector<std::string>& Library,
                   const std::string& Linker, const std::string& Linker_Misc);
 
     virtual void Kernel_Proj(std::unique_ptr<std::vector<std::string>>& List,
                              const std::vector<std::string>& Include,
                              const std::vector<std::string>& Source,
+                             const std::vector<std::string>& Library,
                              const std::vector<std::string>& Linker) final override;
 
     virtual void Monitor_Proj(std::unique_ptr<std::vector<std::string>>& List,
                               const std::vector<std::string>& Include,
                               const std::vector<std::string>& Source,
+                              const std::vector<std::string>& Library,
                               const std::vector<std::string>& Linker) final override;
 
     virtual void Process_Proj(std::unique_ptr<std::vector<std::string>>& List,
                               const std::vector<std::string>& Include,
                               const std::vector<std::string>& Source,
+                              const std::vector<std::string>& Library,
                               const std::vector<std::string>& Linker,
                               const class Process* Prc) final override;
 
+    void Workspace_Sect(std::unique_ptr<std::vector<std::string>>& List,
+                        const std::vector<std::string>& Project);
+
     virtual void Workspace_Proj(std::unique_ptr<std::vector<std::string>>& List,
-                                const std::vector<std::string>& Project) final override;
+                                const std::vector<std::string>& Kernel,
+                                const std::vector<std::string>& Monitor,
+                                const std::vector<std::string>& Native,
+                                const std::vector<std::string>& Virtual) final override;
 };
 /*****************************************************************************/
 /* __KEIL_GEN_CLASS__ */

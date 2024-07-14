@@ -104,7 +104,7 @@ public:
     static std::string Guest_FRT_Root;
     static std::string Workspace_Output;
     static ptr_t Verbose;
-    static ptr_t Mock;
+    static ptr_t Dryrun;
 
     /* XML database */
     std::unique_ptr<class Proj_Info> Proj;
@@ -169,6 +169,8 @@ public:
                             const std::string& Errno0, const std::string& Errno1);
     static std::string Path_Absolute(ptr_t Type, const std::string& Root, const std::string& Path);
     static std::string Path_Relative(ptr_t Type, const std::string& Root, const std::string& Path);
+    static std::string File_Dir(const std::string& Path);
+    static std::string File_Name(const std::string& Path);
 
     static std::string Hex(ptr_t Number);
 

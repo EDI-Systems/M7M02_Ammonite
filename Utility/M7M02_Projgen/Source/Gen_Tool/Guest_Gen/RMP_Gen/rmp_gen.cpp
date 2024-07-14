@@ -102,9 +102,9 @@ void RMP_Gen::Process_Virt_Hdr(class Virtual* Virt)
     Main::Info("> Generating 'rmp_platform.h'.");
     Gen_Tool::Src_Head(List, "rmp_platform.h", "The platform selection header.");
     List->push_back("");
-    List->push_back("/* Platform Includes *********************************************************/");
+    List->push_back("/* Platform Include **********************************************************/");
     List->push_back(std::string("#include \"Platform/")+this->Plat->Name_Upper+"_RVM/rmp_platform_"+this->Plat->Name_Lower+"_rvm.h\"");
-    List->push_back("/* End Platform Includes *****************************************************/");
+    List->push_back("/* End Platform Include ******************************************************/");
     List->push_back("");
     Gen_Tool::Src_Foot(List);
     List->push_back("");
@@ -117,9 +117,9 @@ void RMP_Gen::Process_Virt_Hdr(class Virtual* Virt)
     Main::Info(std::string("> Generating '")+Filename+"'.");
     Gen_Tool::Src_Head(List, Filename, "The chip selection header.");
     List->push_back("");
-    List->push_back("/* Platform Includes *********************************************************/");
+    List->push_back("/* Platform Include **********************************************************/");
     List->push_back(std::string("#include \"rmp_platform_")+this->Chip->Name_Lower+"_rvm.h\"");
-    List->push_back("/* End Platform Includes *****************************************************/");
+    List->push_back("/* End Platform Include ******************************************************/");
     List->push_back("");
     Gen_Tool::Src_Foot(List);
     /* Generate rmp_platform_xxx_conf.h */
@@ -139,7 +139,8 @@ void RMP_Gen::Process_Virt_Hdr(class Virtual* Virt)
 
     Main::Info(std::string("> Generating '")+Filename+"'.");
     /* This may pop up: gcc bug - ignoring copy_options, will fix in the future */
-    std::filesystem::copy(Main::Guest_RMP_Root+"Include/Platform/"+this->Plat->Name_Upper+"_RVM/Chip/"+this->Chip->Name+"/"+Filename,
+    std::filesystem::copy(Main::Guest_RMP_Root+"Include/Platform/"+this->Plat->Name_Upper+"_RVM/"+
+                          "rmp_platform_"+this->Plat->Name_Lower+"_chip_rvm.h",
                           Virt->Virtual_Header_Output+Filename,
                           std::filesystem::copy_options::overwrite_existing);
 }
@@ -158,9 +159,9 @@ void RMP_Gen::Process_Virt_Src(class Virtual* Virt, class Tool_Gen* Tool)
 
     /* Add all sources that this depend on */
     Platform=Main::Guest_RMP_Root+"Source/Platform/"+this->Plat->Name_Upper+"_RVM/";
-    Virt->Virtual_Source.push_back(Main::Guest_RMP_Root+"Source/Kernel/rmp_kernel.c");
-    Virt->Virtual_Source.push_back(Platform+"rmp_platform_"+this->Plat->Name_Lower+"_rvm.c");
-    Virt->Virtual_Source.push_back(Platform+"rmp_platform_"+this->Plat->Name_Lower+"_rvm_"+Tool->Name_Lower+Tool->Suffix(TOOL_ASSEMBLER));
+    Virt->Virtual_Library.push_back(Main::Guest_RMP_Root+"Source/Kernel/rmp_kernel.c");
+    Virt->Virtual_Library.push_back(Platform+"rmp_platform_"+this->Plat->Name_Lower+"_rvm.c");
+    Virt->Virtual_Library.push_back(Platform+"rmp_platform_"+this->Plat->Name_Lower+"_rvm_"+Tool->Name_Lower+Tool->Suffix(TOOL_ASSEMBLER));
     Virt->Virtual_Source.push_back(Virt->Virtual_Source_Output+"rmp_hook.c");
 
     /* Copy the blank file to the folder, in case that it is not there before */
