@@ -185,7 +185,7 @@ while(0)
 /* Thread time upper limit - always ths infinite time */
 #define RVM_THD_MAX_TIME                            (RVM_THD_INF_TIME)
 /* Sched rcv return value's fault flag */
-#define RVM_THD_FAULT_FLAG                          ((rvm_tid_t)RVM_POW2(RVM_WORD_BIT-2U))
+#define RVM_THD_EXC_FLAG                            RVM_POW2(RVM_WORD_BIT-2U)
 /* Thread creation */
 #define RVM_THD_SVC(ATTR,IS_HYP,SVC)                (RVM_FIELD(ATTR,7U)|RVM_FIELD(IS_HYP,6U)|(SVC))
     
@@ -334,8 +334,9 @@ while(0)
 #define RVM_DST2MAP(X)                              ((struct RVM_Map_Struct*)(((rvm_ptr_t)(X))-sizeof(struct RVM_List)))
 #define RVM_DLY2VM(X)                               ((struct RVM_Virt_Struct*)(((rvm_ptr_t)(X))-sizeof(struct RVM_List)))
 
-/* Virtual machine thread ID identification */
-#define RVM_VIRT_TID_MARKER                         ((rvm_tid_t)RVM_POW2(RVM_WORD_BIT_D1))
+/* Virtual machine thread ID identification - TID is half word length */
+#define RVM_VIRT_TID_FLAG                           RVM_POW2(RVM_WORD_BIT_D1-1U)
+#define RVM_VIRT_TID(TID)                           ((rvm_tid_t)(((rvm_ptr_t)(TID))|RVM_VIRT_TID_FLAG))
 
 /* Communication flag set selection */
 #define RVM_FLAG_SET(B,S,N)                         ((volatile struct RVM_Flag*)((B)+((S)>>1)*(N)))
@@ -491,7 +492,6 @@ struct RVM_Meta_Pgt_Add_Struct
 struct RVM_Meta_Thd_Init_Struct
 {
     rvm_cid_t Thd;
-    rvm_tid_t Marker;
     rvm_ptr_t Code_Base;
     rvm_ptr_t Desc_Slot;
     rvm_ptr_t Stack_Base;
