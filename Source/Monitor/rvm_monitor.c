@@ -2474,8 +2474,7 @@ static void _RVM_Boot_Thd_Init(void)
             RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Meta_Thd_Init[Count].Thd,
                                           RVM_Sftd_Thd_Cap,
                                           RVM_Sftd_Sig_Cap,
-                                          RVM_Meta_Thd_Init[Count].Thd|
-                                          RVM_Meta_Thd_Init[Count].Marker,
+                                          RVM_Meta_Thd_Init[Count].Thd,
                                           RVM_Meta_Thd_Init[Count].Prio)==0);
         }
         else
@@ -2485,8 +2484,7 @@ static void _RVM_Boot_Thd_Init(void)
             RVM_ASSERT(RVM_Hyp_Sched_Bind(RVM_Meta_Thd_Init[Count].Thd,
                                           RVM_Sftd_Thd_Cap,
                                           RVM_Sftd_Sig_Cap,
-                                          RVM_Meta_Thd_Init[Count].Thd|
-                                          RVM_Meta_Thd_Init[Count].Marker,
+                                          RVM_VIRT_TID(RVM_Meta_Thd_Init[Count].Thd),
                                           RVM_Meta_Thd_Init[Count].Prio,
                                           RVM_Meta_Thd_Init[Count].Reg_Base)==0);
         }
@@ -2508,7 +2506,7 @@ static void _RVM_Boot_Thd_Init(void)
                                      RVM_BOOT_INIT_THD,
                                      RVM_THD_INF_TIME)==RVM_THD_INF_TIME);
         
-        if(RVM_Meta_Thd_Init[Count].Marker!=0U)
+        if(RVM_Meta_Thd_Init[Count].Reg_Base!=0U)
         {
             RVM_COV_MARKER();
             
@@ -3120,9 +3118,9 @@ static void _RVM_Virt_Recover(void)
     
     /* Rebind them */
     RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Virt_Cur->Map->Vct_Thd_Cap,RVM_Sftd_Thd_Cap,RVM_Sftd_Sig_Cap, 
-                                  RVM_Virt_Cur->Map->Vct_Thd_Cap|RVM_VIRT_TID_MARKER,RVM_VVCT_PRIO)==0);
+                                  RVM_VIRT_TID(RVM_Virt_Cur->Map->Vct_Thd_Cap),RVM_VVCT_PRIO)==0);
     RVM_ASSERT(RVM_Hyp_Sched_Bind(RVM_Virt_Cur->Map->Usr_Thd_Cap,RVM_Sftd_Thd_Cap,RVM_Sftd_Sig_Cap, 
-                                  RVM_Virt_Cur->Map->Usr_Thd_Cap|RVM_VIRT_TID_MARKER,RVM_VUSR_PRIO, 
+                                  RVM_VIRT_TID(RVM_Virt_Cur->Map->Usr_Thd_Cap),RVM_VUSR_PRIO, 
                                   (rvm_ptr_t)(RVM_Virt_Cur->Map->Reg_Base))==0);
     
     /* Set the execution properties for virt @ position 0 */
@@ -3162,7 +3160,7 @@ static void _RVM_Virt_Recover(void)
     }
     
     /* Reinsert this into the wheel */
-    RVM_List_Del(RVM_Virt_Cur->Delay.Prev, RVM_Virt_Cur->Delay.Next);
+    RVM_List_Del(RVM_Virt_Cur->Delay.Prev,RVM_Virt_Cur->Delay.Next);
     _RVM_Wheel_Ins(RVM_Virt_Cur,RVM_Virt_Cur->Map->Period);
 
     /* Context switch needed, someone rebooted */
@@ -4390,7 +4388,9 @@ Return      : None.
 ******************************************************************************/
 static void RVM_Sftd(void)
 {
-    rvm_tid_t Thd;
+    rvm_tid_t Retval;
+    rvm_ptr_t Thd_Flag;
+    rvm_tid_t Thd_Pure;
     
     RVM_DBG_S("Sftd: Safety guard daemon initialization complete.\r\n");
 
@@ -4400,15 +4400,17 @@ static void RVM_Sftd(void)
         /* Blocking single receive */
         RVM_ASSERT(RVM_Sig_Rcv(RVM_Sftd_Sig_Cap, RVM_RCV_BS)>=0);
         
-        Thd=RVM_Thd_Sched_Rcv(RVM_Sftd_Thd_Cap);
+        Retval=RVM_Thd_Sched_Rcv(RVM_Sftd_Thd_Cap);
+        Thd_Flag=(rvm_ptr_t)Retval;
+        Thd_Pure=(rvm_tid_t)(Thd_Flag&(~RVM_THD_EXC_FLAG)&~(RVM_VIRT_TID_FLAG));
         
-        /* Is an error a fault? If not, then we must have done something wrong - This is really bad */
-        if(((((rvm_ptr_t)Thd)&RVM_THD_FAULT_FLAG)==0U)||(Thd<0))
+        /* This must be an exception or we hang */
+        if(((Thd_Flag&RVM_THD_EXC_FLAG)==0U)||(Retval<0))
         {
             RVM_COV_MARKER();
             
             /* Hang the machine because this error is unrecoverable */
-            RVM_DBG_SHS("Sftd: Intangible fault on return value 0x", (rvm_ptr_t)Thd, ". Shutting down system...\r\n");
+            RVM_DBG_SHS("Sftd: Intangible fault on return value 0x",Retval,". Panicking system...\r\n");
             RVM_ASSERT(0);
         }
         else
@@ -4417,79 +4419,74 @@ static void RVM_Sftd(void)
             /* No action required */
         }
         
-        /* See what thread faulted. If it is any of the process threads, then the system is done */
-        Thd&=~RVM_THD_FAULT_FLAG;
-        
         /* Print the reason of the fault */
         RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
-        RVM_Thd_Print_Exc(Thd&~RVM_VIRT_TID_MARKER);
+        RVM_Thd_Print_Exc(Thd_Pure);
 
-        /* Whatever thread faults, we will need to print their registers, so we can figure out
-         * what the fault is. There should be a print somewhere, but shouldn't be in the kernel. */
-        if(((rvm_ptr_t)Thd)<RVM_CID_2L)
+        /* We're done - this is a monitor fault, have to reboot; monitor CID/TIDs are one-level */
+        if(Thd_Pure<(rvm_tid_t)RVM_CID_2L)
         {
             RVM_COV_MARKER();
             
-            /* We know that this happened within RVM itself. Sad, cannot recover */
             RVM_DBG_S("Sftd: Irrecoverable fault on RVM ");
-            if(Thd==RVM_Sftd_Thd_Cap)
+            
+            /* Safety daemon crashed - how is this ever possible, we're handling our own faults */
+            if(Thd_Pure==RVM_Sftd_Thd_Cap)
             {
                 RVM_COV_MARKER();
             
                 RVM_DBG_S("Sftd");
             }
 #if(RVM_VIRT_NUM!=0U)
-            else if(Thd==RVM_Vmmd_Thd_Cap)
+            /* Virtual machine daemon crashed */
+            else if(Thd_Pure==RVM_Vmmd_Thd_Cap)
             {
                 RVM_COV_MARKER();
                 
                 RVM_DBG_S("Vmmd");
             }
 #endif
+            /* Some user-supplied daemon crashed */
             else
             {
                 RVM_COV_MARKER();
                 
-                RVM_DBG_SHS("unrecognized thread TID 0x", Thd,"");
+                RVM_DBG_SHS("unrecognized daemon TID 0x", Thd_Pure,"");
             }
             
             RVM_DBG_S(". Rebooting system...\r\n");
             
-            /* Print registers so we know how it crashed */
-            RVM_ASSERT(RVM_Thd_Print_Reg(Thd)==0);
-            /* Reboot */
+            /* Print registers & reboot */
+            RVM_ASSERT(RVM_Thd_Print_Reg(Thd_Pure)==0);
             RVM_ASSERT(0);
         }
-        else if((Thd&RVM_VIRT_TID_MARKER)==0U)
+        /* We're done - process fault; processes are considered critical */
+        else if((Thd_Flag&RVM_VIRT_TID_FLAG)==0U)
         {
             RVM_COV_MARKER();
             
-            /* We know that this happened in a process. Still, cannot be recovered. */
-            RVM_DBG_SHS("Sftd: Irrecoverable fault on process thread TID 0x", Thd, ". Rebooting system...\r\n");
+            RVM_DBG_SHS("Sftd: Irrecoverable fault on process thread TID 0x",Thd_Pure,". Panicking system...\r\n");
             
-            /* Print registers so we know how it crashed */
-            RVM_ASSERT(RVM_Thd_Print_Reg(Thd)==0);
-            
-            /* Reboot */
+            /* Print registers & reboot */
+            RVM_ASSERT(RVM_Thd_Print_Reg(Thd_Pure)==0);
             RVM_ASSERT(0);
         }
+        /* Can recover - virtual machine fault */
         else
         {
             RVM_COV_MARKER();
             
 #if(RVM_VIRT_NUM!=0U)
-            Thd&=~RVM_VIRT_TID_MARKER;
-            /* This must have happened in the current virtual machine */
             RVM_DBG_S("Sftd: Recoverable fault in virtual machine ");
             RVM_DBG_S(RVM_Virt_Cur->Map->Name);
 
-            if(Thd==RVM_Virt_Cur->Map->Vct_Thd_Cap)
+            if(Thd_Pure==RVM_Virt_Cur->Map->Vct_Thd_Cap)
             {
                 RVM_COV_MARKER();
             
                 RVM_DBG_S(" vector handling thread");
             }
-            else if(Thd==RVM_Virt_Cur->Map->Usr_Thd_Cap)
+            else if(Thd_Pure==RVM_Virt_Cur->Map->Usr_Thd_Cap)
             {
                 RVM_COV_MARKER();
             
@@ -4518,7 +4515,7 @@ static void RVM_Sftd(void)
             
             RVM_DBG_S("Sftd: Recovered.\r\n");
 #else
-            RVM_DBG_S("Sftd: Fault on virtual machine but no virtual machine exists. Rebooting system...\r\n");
+            RVM_DBG_S("Sftd: Fault on virtual machine but no virtual machine exists. Panicking system...\r\n");
             RVM_ASSERT(0);
 #endif
         }
