@@ -4425,7 +4425,7 @@ static void RVM_Sftd(void)
         Retval=RVM_Thd_Sched_Rcv(RVM_Sftd_Thd_Cap);
         Thd_Flag=(rvm_ptr_t)Retval;
         
-        if(((Thd_Flag&RVM_THD_EXC_FLAG)==0U)||(Retval==RVM_ERR_PTH_NOTIF))
+        if(((Thd_Flag&RVM_THD_EXCPEND_FLAG)==0U)||(Retval==RVM_ERR_PTH_NOTIF))
         {
             RVM_COV_MARKER();
             
@@ -4438,8 +4438,9 @@ static void RVM_Sftd(void)
             /* No action required */
         }
         
-        /* This must be an exception or we hang */
-        if(Retval<0)
+        /* This must be an exception or we hang - we'd never have timeout notifications
+         * in RVM because we always perform EXEC_SET and TIME_XFER back-to-back. */
+        if(((Thd_Flag&RVM_THD_TIMEOUT_FLAG)!=0U)||(Retval<0))
         {
             RVM_COV_MARKER();
             
@@ -4454,7 +4455,7 @@ static void RVM_Sftd(void)
         }
         
         /* Print the reason of the fault */
-        Thd_Pure=(rvm_tid_t)(Thd_Flag&(~RVM_THD_EXC_FLAG)&~(RVM_VIRT_TID_FLAG));
+        Thd_Pure=(rvm_tid_t)(Thd_Flag&(~RVM_THD_EXCPEND_FLAG)&(~RVM_VIRT_TID_FLAG));
         RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
         RVM_Thd_Print_Exc(Thd_Pure);
 

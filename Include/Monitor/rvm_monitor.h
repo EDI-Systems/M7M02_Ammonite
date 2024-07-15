@@ -186,7 +186,9 @@ while(0)
 /* Thread time upper limit - always ths infinite time */
 #define RVM_THD_MAX_TIME                            (RVM_THD_INF_TIME)
 /* Sched rcv return value's fault flag */
-#define RVM_THD_EXC_FLAG                            RVM_POW2(RVM_WORD_BIT-2U)
+#define RVM_THD_EXCPEND_FLAG                        RVM_POW2(RVM_WORD_BIT-2U)
+/* Sched rcv return value's timeout flag */
+#define RVM_THD_TIMEOUT_FLAG                        RVM_POW2(RVM_WORD_BIT-3U)
 /* Thread creation */
 #define RVM_THD_SVC(ATTR,IS_HYP,SVC)                (RVM_FIELD(ATTR,7U)|RVM_FIELD(IS_HYP,6U)|(SVC))
     
