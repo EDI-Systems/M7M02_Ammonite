@@ -474,15 +474,15 @@ void Keil_Gen::Monitor_Proj(std::unique_ptr<std::vector<std::string>>& List,
 {
     std::string After1;
     std::string After2;
-    std::vector<std::string> Bincopy;
+    std::string Bincopy;
 	std::vector<std::string> None;
 
     if(this->Proj->Kernel->Full_Image!=0)
     {
-        Bincopy.push_back(Main::Monitor_Root+"Utility/M7M02_Bincopy/bincopy.exe");
-        Gen_Tool::Path_Conv(this->Proj->Monitor->Project_Output, Bincopy);
+        Bincopy=Main::Path_Absolute(PATH_FILE,Main::Monitor_Root,"Utility/M7M02_Final/bincopy.exe");
+        Bincopy=Main::Path_Relative(PATH_FILE,this->Proj->Monitor->Project_Output,Bincopy);
         After1="fromelf.exe --binCombined -o \"$L@L.bin\" \"#L\"";
-        After2=Bincopy[0]+" -i $L@L.bin -o ./monitor_image.c";
+        After2=Bincopy+" -i $L@L.bin -o ./monitor_image.c";
     }
 
     this->Raw_Proj(List,
@@ -520,14 +520,14 @@ void Keil_Gen::Process_Proj(std::unique_ptr<std::vector<std::string>>& List,
 {
     std::string After1;
     std::string After2;
-    std::vector<std::string> Bincopy;
+    std::string Bincopy;
 
     if(this->Proj->Kernel->Full_Image!=0)
     {
-        Bincopy.push_back(Main::Monitor_Root+"Utility/M7M02_Bincopy/bincopy.exe");
-        Gen_Tool::Path_Conv(Prc->Project_Output, Bincopy);
+        Bincopy=Main::Path_Absolute(PATH_FILE,Main::Monitor_Root,"Utility/M7M02_Final/bincopy.exe");
+        Bincopy=Main::Path_Relative(PATH_FILE,Prc->Project_Output,Bincopy);
         After1="fromelf.exe --binCombined -o \"$L@L.bin\" \"#L\"";
-        After2=Bincopy[0]+" -i $L@L.bin -o ./"+Prc->Name_Lower+"_image.c";
+        After2=Bincopy+" -i $L@L.bin -o ./"+Prc->Name_Lower+"_image.c";
     }
 
     this->Raw_Proj(List,

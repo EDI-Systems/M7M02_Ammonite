@@ -1588,7 +1588,7 @@ ptr_t Gen_Tool::Monitor_Thd_Init(std::unique_ptr<std::vector<std::string>>& List
 
 			/* The marker is non-zero only for virtual machine threads */
 			if(Prc->Type==PROCESS_VIRTUAL)
-				Line+="RVM_VIRT_TID_MARKER, ";
+				Line+="RVM_VIRT_TID_FLAG, ";
 			else
 				Line+="0U, ";
 

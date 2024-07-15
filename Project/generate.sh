@@ -13,7 +13,7 @@ if [ "$#" -ne 1 ]; then
 fi
 
 # Supply default paths
-RVGEN="../Utility/M7M02_Projgen/Release/rvgen.exe"
+RVGEN="../Utility/M7M02_Final/rvgen.exe"
 KERNEL="../../M7M01_Eukaron/"
 MONITOR="../"
 RMP="../../M5P01_Prokaron/"

@@ -2467,7 +2467,7 @@ static void _RVM_Boot_Thd_Init(void)
     for(Count=0U;Count<RVM_BOOT_THD_INIT_NUM;Count++)
     {
         /* Bind thread to safety daemon - if this is a VM thread, set its address accordingly */
-        if(RVM_Meta_Thd_Init[Count].Reg_Base==0U)
+        if(RVM_Meta_Thd_Init[Count].Flag==0U)
         {
             RVM_COV_MARKER();
             
@@ -2506,11 +2506,22 @@ static void _RVM_Boot_Thd_Init(void)
                                      RVM_BOOT_INIT_THD,
                                      RVM_THD_INF_TIME)==RVM_THD_INF_TIME);
         
-        if(RVM_Meta_Thd_Init[Count].Reg_Base!=0U)
+        if(RVM_Meta_Thd_Init[Count].Flag!=0U)
         {
             RVM_COV_MARKER();
             
-            RVM_DBG_S("Init: VM thread '0x");
+            if(RVM_Meta_Thd_Init[Count].Reg_Base!=0U)
+            {
+                RVM_COV_MARKER();
+                
+                RVM_DBG_S("Init: VM user '0x");
+            }
+            else
+            {
+                RVM_COV_MARKER();
+                
+                RVM_DBG_S("Init: VM vector '0x");
+            }
         }
         else
         {
@@ -2522,14 +2533,24 @@ static void _RVM_Boot_Thd_Init(void)
         RVM_DBG_H(RVM_Meta_Thd_Init[Count].Thd);
         RVM_DBG_S("' desc 0x");
         RVM_DBG_H(RVM_Meta_Thd_Init[Count].Desc_Slot);
-        RVM_DBG_S(" stack base 0x");
+        RVM_DBG_S(" stack 0x");
         RVM_DBG_H(RVM_Meta_Thd_Init[Count].Stack_Base);
         RVM_DBG_S(" size 0x");
         RVM_DBG_H(RVM_Meta_Thd_Init[Count].Stack_Size);
         RVM_DBG_S(" param 0x");
         RVM_DBG_H(RVM_Meta_Thd_Init[Count].Param);
-        RVM_DBG_S(" haddr 0x");
-        RVM_DBG_H(RVM_Meta_Thd_Init[Count].Reg_Base);
+        if(RVM_Meta_Thd_Init[Count].Reg_Base!=0U)
+        {
+            RVM_COV_MARKER();
+                
+            RVM_DBG_S(" haddr 0x");
+            RVM_DBG_H(RVM_Meta_Thd_Init[Count].Reg_Base);
+        }
+        else
+        {
+            RVM_COV_MARKER();
+            /* No action required */
+        }
         RVM_DBG_S(".\r\n");
     }
 }

@@ -53,8 +53,9 @@ dkms.conf
 
 # Example projects
 Project/*/
-!Utility/M7M02_Bincopy/*.exe
-!/Utility/M7M02_Projgen/Release/*.exe
+Project/log.txt
+!Utility/M7M02_Bincopy/upx.exe
+!Utility/M7M02_Final/*.exe
 
 # CCS/Eclipse specific
 Utility/**/.jxbrowser-data/

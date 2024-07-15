@@ -456,14 +456,14 @@ void Makefile_Gen::Monitor_Proj(std::unique_ptr<std::vector<std::string>>& List,
                                 const std::vector<std::string>& Linker)
 {
     std::string After;
-    std::vector<std::string> Bincopy;
+    std::string Bincopy;
     std::vector<std::string> None;
 
     if(this->Proj->Kernel->Full_Image!=0)
     {
-        Bincopy.push_back(Main::Monitor_Root + "Utility/M7M02_Bincopy/bincopy.exe");
-        Gen_Tool::Path_Conv(this->Proj->Monitor->Project_Output, Bincopy);
-        After=Bincopy[0]+" -i $(OBJDIR)/$(TARGET).bin -o ./monitor_image.c";
+        Bincopy=Main::Path_Absolute(PATH_FILE,Main::Monitor_Root,"Utility/M7M02_Final/bincopy.exe");
+        Bincopy=Main::Path_Relative(PATH_FILE,this->Proj->Monitor->Project_Output,Bincopy);
+        After=Bincopy+" -i $(OBJDIR)/$(TARGET).bin -o ./monitor_image.c";
     }
 
     /* Generate a Makefile for compiling system code */
@@ -499,14 +499,13 @@ void Makefile_Gen::Process_Proj(std::unique_ptr<std::vector<std::string>>& List,
                                 const class Process* Prc)
 {
     std::string After;
-    std::vector<std::string> Bincopy;
-    std::vector<std::string> None;
+    std::string Bincopy;
 
     if(this->Proj->Kernel->Full_Image!=0)
     {
-        Bincopy.push_back(Main::Monitor_Root+"Utility/M7M02_Bincopy/bincopy.exe");
-        Gen_Tool::Path_Conv(Prc->Project_Output, Bincopy);
-        After=Bincopy[0]+" -i $(OBJDIR)/$(TARGET).bin -o ./" + Prc->Name_Lower + "_image.c";
+        Bincopy=Main::Path_Absolute(PATH_FILE,Main::Monitor_Root,"Utility/M7M02_Final/bincopy.exe");
+        Bincopy=Main::Path_Relative(PATH_FILE,Prc->Project_Output,Bincopy);
+        After=Bincopy+" -i $(OBJDIR)/$(TARGET).bin -o ./"+Prc->Name_Lower+"_image.c";
     }
 
     /* Generate a Makefile for compiling system code */
@@ -514,7 +513,7 @@ void Makefile_Gen::Process_Proj(std::unique_ptr<std::vector<std::string>>& List,
                    After,                                   /* After */
                    Prc->Name,                               /* Target */
                    Prc->Optimization,                       /* Optimization */
-                   None,                                    /* Coprocessor */
+                   Prc->Coprocessor,                        /* Coprocessor */
                    Include,                                 /* Include */
                    Source,                                  /* Source */
                    Library,                                 /* Library */

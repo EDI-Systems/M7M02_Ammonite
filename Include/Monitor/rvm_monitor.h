@@ -492,6 +492,7 @@ struct RVM_Meta_Pgt_Add_Struct
 struct RVM_Meta_Thd_Init_Struct
 {
     rvm_cid_t Thd;
+    rvm_ptr_t Flag;
     rvm_ptr_t Code_Base;
     rvm_ptr_t Desc_Slot;
     rvm_ptr_t Stack_Base;
