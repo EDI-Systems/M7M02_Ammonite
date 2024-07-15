@@ -227,7 +227,7 @@ void RVM_Log(const char* File,
              const char* Date,
              const char* Time)
 {
-    RVM_DBG_S("\r\n***\r\nKernel panic - not syncing :\r\n"); \
+    RVM_DBG_S("\r\n***\r\nMonitor panic - not syncing :\r\n"); \
     RVM_DBG_S(File); \
     RVM_DBG_S(" , Line "); \
     RVM_DBG_I(Line); \
@@ -4419,19 +4419,32 @@ static void RVM_Sftd(void)
     while(1)
     {
         /* Blocking single receive */
-        RVM_ASSERT(RVM_Sig_Rcv(RVM_Sftd_Sig_Cap, RVM_RCV_BS)>=0);
+        RVM_ASSERT(RVM_Sig_Rcv(RVM_Sftd_Sig_Cap,RVM_RCV_BS)>=0);
         
+        /* Receive scheduler notifications if there are any */
         Retval=RVM_Thd_Sched_Rcv(RVM_Sftd_Thd_Cap);
         Thd_Flag=(rvm_ptr_t)Retval;
-        Thd_Pure=(rvm_tid_t)(Thd_Flag&(~RVM_THD_EXC_FLAG)&~(RVM_VIRT_TID_FLAG));
+        
+        if(((Thd_Flag&RVM_THD_EXC_FLAG)==0U)||(Retval==RVM_ERR_PTH_NOTIF))
+        {
+            RVM_COV_MARKER();
+            
+            RVM_DBG_SHS("Sftd: Ignoring spurious notification 0x",Retval,".\r\n");
+            continue;
+        }
+        else
+        {
+            RVM_COV_MARKER();
+            /* No action required */
+        }
         
         /* This must be an exception or we hang */
-        if(((Thd_Flag&RVM_THD_EXC_FLAG)==0U)||(Retval<0))
+        if(Retval<0)
         {
             RVM_COV_MARKER();
             
             /* Hang the machine because this error is unrecoverable */
-            RVM_DBG_SHS("Sftd: Intangible fault on return value 0x",Retval,". Panicking system...\r\n");
+            RVM_DBG_SHS("Sftd: Critical fault with return value 0x",Retval,". Panicking system...\r\n");
             RVM_ASSERT(0);
         }
         else
@@ -4441,6 +4454,7 @@ static void RVM_Sftd(void)
         }
         
         /* Print the reason of the fault */
+        Thd_Pure=(rvm_tid_t)(Thd_Flag&(~RVM_THD_EXC_FLAG)&~(RVM_VIRT_TID_FLAG));
         RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
         RVM_Thd_Print_Exc(Thd_Pure);
 
@@ -4449,7 +4463,7 @@ static void RVM_Sftd(void)
         {
             RVM_COV_MARKER();
             
-            RVM_DBG_S("Sftd: Irrecoverable fault on RVM ");
+            RVM_DBG_S("Sftd: Critical fault on RVM ");
             
             /* Safety daemon crashed - how is this ever possible, we're handling our own faults */
             if(Thd_Pure==RVM_Sftd_Thd_Cap)
@@ -4486,7 +4500,7 @@ static void RVM_Sftd(void)
         {
             RVM_COV_MARKER();
             
-            RVM_DBG_SHS("Sftd: Irrecoverable fault on process thread TID 0x",Thd_Pure,". Panicking system...\r\n");
+            RVM_DBG_SHS("Sftd: Critical fault on process thread TID 0x",Thd_Pure,". Panicking system...\r\n");
             
             /* Print registers & reboot */
             RVM_ASSERT(RVM_Thd_Print_Reg(Thd_Pure)==0);
