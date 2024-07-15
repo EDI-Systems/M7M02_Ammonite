@@ -111,6 +111,7 @@ do \
     if(!(X)) \
     { \
         RVM_LOG_OP(__FILE__,__LINE__,__DATE__,__TIME__); \
+        RVM_Kfn_Act(RVM_BOOT_INIT_KFN,RVM_KFN_SYS_REBOOT,0U,0U,0U); \
         while(1); \
     } \
 } \
