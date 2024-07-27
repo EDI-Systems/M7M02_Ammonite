@@ -4,7 +4,7 @@
     <Version>1.0</Version>
 	<Assert_Enable>Yes</Assert_Enable>
 	<Debug_Log_Enable>Yes</Debug_Log_Enable>
-	<Pgtbl_Raw_Enable>No</Pgtbl_Raw_Enable>
+	<Pgtbl_Raw_Enable>Yes</Pgtbl_Raw_Enable>
 	<Buildsystem>Makefile</Buildsystem>
 	<Workspace_Overwrite>No</Workspace_Overwrite>
     <Chip>
@@ -30,7 +30,7 @@
     </Shmem>
     <Kernel>
         <Code_Base>0x00000000</Code_Base>
-        <Code_Size>0x10000</Code_Size>
+        <Code_Size>0x8000</Code_Size>
         <Data_Base>0x20000000</Data_Base>
         <Data_Size>0x3000</Data_Size>
         <Stack_Size>0x800</Stack_Size>
@@ -53,7 +53,7 @@
 		<Handler_Source_Overwrite>No</Handler_Source_Overwrite>
     </Kernel>
     <Monitor>
-        <Code_Size>0x10000</Code_Size>
+        <Code_Size>0x8000</Code_Size>
         <Data_Size>0x4000</Data_Size>
         <Init_Stack_Size>0x800</Init_Stack_Size>
         <Sftd_Stack_Size>0x400</Sftd_Stack_Size>
@@ -92,7 +92,7 @@
             <Memory>
                 <M0>
                     <Name>Main_Code</Name>
-                    <Base>0x00020000</Base>
+                    <Base>0x00010000</Base>
                     <Size>0x4000</Size>
                     <Align>Auto</Align>
                     <Type>Code</Type>

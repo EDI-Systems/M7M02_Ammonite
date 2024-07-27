@@ -205,6 +205,7 @@ void Makefile_Gen::Raw_Proj(std::unique_ptr<std::vector<std::string>>& List,
         else
             Main::Error("XXXXX: Internal optimization level error.");
     }
+    /* RISC-V 32-bit physical memory */
     else if(this->Chip->Platform=="RV32P")
     {
         Prefix="riscv-none-elf-";
@@ -220,12 +221,19 @@ void Makefile_Gen::Raw_Proj(std::unique_ptr<std::vector<std::string>>& List,
         else if(Coprocessor.size()==1)
         {
             Temp=Coprocessor[0];
+            /* Canonical order: imafdqlcbkjtpvh; g=imafd */
             if(Temp=="NONE")
                 CPU_Option+=" -mabi=ilp32";
             else if(Temp=="RVF")
-                CPU_Option+="f -mabi=ilp32f";
+            {
+                CPU_Option.insert(CPU_Option.find_last_of("ima")+1,"f");
+                CPU_Option+=" -mabi=ilp32f";
+            }
             else if(Temp=="RVD")
-                CPU_Option+="fd -mabi=ilp32fd";
+            {
+                CPU_Option.insert(CPU_Option.find_last_of("ima")+1,"fd");
+                CPU_Option+=" -mabi=ilp32fd";
+            }
             else
                 Main::Error("XXXXX: Internal FPU type error.");
         }

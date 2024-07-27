@@ -11,19 +11,19 @@ Description : The RISC-V system library platform specific header.
 
 #define __HDR_DEF__
 #include "Platform/RV32P/rvm_platform_rv32p.h"
-#include "Monitor/rvm_syssvc.h"
+#include "Monitor/rvm_monitor.h"
 #undef __HDR_DEF__
 
 #define __HDR_STRUCT__
 #include "Platform/RV32P/rvm_platform_rv32p.h"
-#include "Monitor/rvm_syssvc.h"
+#include "Monitor/rvm_monitor.h"
 #undef __HDR_STRUCT__
 
 /* Private include */
 #include "Platform/RV32P/rvm_platform_rv32p.h"
 
 #define __HDR_PUBLIC__
-#include "Monitor/rvm_syssvc.h"
+#include "Monitor/rvm_monitor.h"
 #undef __HDR_PUBLIC__
 /* End Include ***************************************************************/
 
@@ -34,7 +34,7 @@ Input       : char Char - The character to print.
 Output      : None.
 Return      : rvm_ptr_t - Always 0.
 ******************************************************************************/
-#if(RVM_DEBUG_PRINT==1U)
+#if(RVM_DBGLOG_ENABLE!=0U)
 rvm_ptr_t RVM_Putchar(char Char)
 {
     RVM_RV32P_PUTCHAR(Char);
@@ -67,7 +67,6 @@ rvm_ptr_t RVM_Stack_Init(rvm_ptr_t Stack,
                                   sizeof(struct RVM_RV32P_Stack));
 
     /* Jump to the stub so we can load the gp at start, for linker relaxation */
-#warning best if we can evade this crap. really messy and counterintuitive.
     Ptr->PC=*Entry;
     *Entry=Stub;
     
@@ -132,7 +131,7 @@ Return      : None.
 ******************************************************************************/
 void RVM_Thd_Print_Exc(rvm_tid_t TID)
 {
-#if(RVM_DEBUG_PRINT==1U)
+#if(RVM_DBGLOG_ENABLE!=0U)
     /* TODO */
 #endif
 }
@@ -146,7 +145,7 @@ Return      : rvm_ret_t - If successful, 0; else a negative value.
 ******************************************************************************/
 rvm_ret_t RVM_Thd_Print_Reg(rvm_cid_t Cap_Thd)
 {
-#if(RVM_DEBUG_PRINT==1U)
+#if(RVM_DBGLOG_ENABLE!=0U)
     /* TODO */
 #endif
     return 0;

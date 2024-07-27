@@ -83,9 +83,9 @@ typedef rvm_s32_t rvm_ret_t;
 /* Invocation size - ARMv6-M has fixed LR */
 #define RVM_INV_RAW_SIZE                            ((8U)*RVM_WORD_BYTE)
 /* Normal page directory size */
-#define RVM_PGT_RAW_SIZE_NOM(NUM_ORDER)             ((4U+RVM_POW2(NUM_ORDER))*RVM_WORD_BYTE)
+#define RVM_PGT_RAW_SIZE_NOM(NMORD)                 ((4U+RVM_POW2(NMORD))*RVM_WORD_BYTE)
 /* Top-level page directory size */
-#define RVM_PGT_RAW_SIZE_TOP(NUM_ORDER)             ((2U*RVM_A6M_REGION_NUM)*RVM_WORD_BYTE+RVM_PGT_WORD_SIZE_NOM(NUM_ORDER))
+#define RVM_PGT_RAW_SIZE_TOP(NMORD)                 ((2U*RVM_A6M_REGION_NUM)*RVM_WORD_BYTE+RVM_PGT_WORD_SIZE_NOM(NMORD))
 /* End System Macro **********************************************************/
 
 /* ARMv6-M Macro *************************************************************/

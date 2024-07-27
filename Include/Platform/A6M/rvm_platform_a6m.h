@@ -77,188 +77,188 @@ typedef rvm_s32_t rvm_ret_t;
 
 /* System Macro **************************************************************/
 /* Compiler "extern" keyword setting */
-#define RVM_EXTERN                                  extern
+#define RVM_EXTERN                              extern
 /* The order of bits in one CPU machine word */
-#define RVM_WORD_ORDER                              (5U)
+#define RVM_WORD_ORDER                          (5U)
 /* Get most significant bit */
-#define RVM_MSB_GET(VAL)                            _RVM_MSB_Generic(VAL)
+#define RVM_MSB_GET(VAL)                        _RVM_MSB_Generic(VAL)
 
 /* Platform-specific includes */
 #include "rvm_platform_a6m_conf.h"
 
 /* Thread size */
-#define RVM_HYP_RAW_SIZE                            ((21U)*RVM_WORD_BYTE)
+#define RVM_HYP_RAW_SIZE                        ((21U)*RVM_WORD_BYTE)
 /* Invocation size - ARMv6-M has fixed LR */
-#define RVM_INV_RAW_SIZE                            ((8U)*RVM_WORD_BYTE)
+#define RVM_INV_RAW_SIZE                        ((8U)*RVM_WORD_BYTE)
 /* Normal page directory size */
-#define RVM_PGT_RAW_SIZE_NOM(NUM_ORDER)             ((4U+RVM_POW2(NUM_ORDER))*RVM_WORD_BYTE)
+#define RVM_PGT_RAW_SIZE_NOM(NMORD)             ((4U+RVM_POW2(NMORD))*RVM_WORD_BYTE)
 /* Top-level page directory size - ARMv6-M are all static, no static field needed */
-#define RVM_PGT_RAW_SIZE_TOP(NUM_ORDER)             ((2U*RVM_A6M_REGION_NUM)*RVM_WORD_BYTE+RVM_PGT_RAW_SIZE_NOM(NUM_ORDER))
+#define RVM_PGT_RAW_SIZE_TOP(NMORD)             ((2U*RVM_A6M_REGION_NUM)*RVM_WORD_BYTE+RVM_PGT_RAW_SIZE_NOM(NMORD))
 /* End System Macro **********************************************************/
 
 /* ARMv6-M Macro *************************************************************/
 /* Generic *******************************************************************/
 /* Register access */
-#define RVM_A6M_REG(X)                              (*((volatile rvm_ptr_t*)(X)))
-#define RVM_A6M_REGB(X)                             (*((volatile rvm_u8_t*)(X)))
+#define RVM_A6M_REG(X)                          (*((volatile rvm_ptr_t*)(X)))
+#define RVM_A6M_REGB(X)                         (*((volatile rvm_u8_t*)(X)))
 
 /* Thread context attribute definitions - keep in accordance with kernel */
-#define RVM_A6M_ATTR_NONE                           (0U)
+#define RVM_A6M_ATTR_NONE                       (0U)
 
 /* Handler *******************************************************************/
 /* Debug event has occurred. The Debug Fault Status Register has been updated */
-#define RVM_A6M_HFSR_DEBUGEVT                       RVM_POW2(31U)
+#define RVM_A6M_HFSR_DEBUGEVT                   RVM_POW2(31U)
 /* Processor has escalated a configurable-priority exception to HardFault */
-#define RVM_A6M_HFSR_FORCED                         RVM_POW2(30U)
+#define RVM_A6M_HFSR_FORCED                     RVM_POW2(30U)
 /* Vector table read fault has occurred */
-#define RVM_A6M_HFSR_VECTTBL                        RVM_POW2(1U)
+#define RVM_A6M_HFSR_VECTTBL                    RVM_POW2(1U)
 /* Divide by zero */
-#define RVM_A6M_UFSR_DIVBYZERO                      RVM_POW2(25U)
+#define RVM_A6M_UFSR_DIVBYZERO                  RVM_POW2(25U)
 /* Unaligned load/store access */
-#define RVM_A6M_UFSR_UNALIGNED                      RVM_POW2(24U)
+#define RVM_A6M_UFSR_UNALIGNED                  RVM_POW2(24U)
 /* No such coprocessor */
-#define RVM_A6M_UFSR_NOCP                           RVM_POW2(19U)
+#define RVM_A6M_UFSR_NOCP                       RVM_POW2(19U)
 /* Invalid vector return LR or PC value */
-#define RVM_A6M_UFSR_INVPC                          RVM_POW2(18U)
+#define RVM_A6M_UFSR_INVPC                      RVM_POW2(18U)
 /* Attempt to enter an invalid instruction set (ARM) state */
-#define RVM_A6M_UFSR_INVSTATE                       RVM_POW2(17U)
+#define RVM_A6M_UFSR_INVSTATE                   RVM_POW2(17U)
 /* Invalid IT instruction or related instructions */
-#define RVM_A6M_UFSR_UNDEFINSTR                     RVM_POW2(16U)
+#define RVM_A6M_UFSR_UNDEFINSTR                 RVM_POW2(16U)
 /* The Bus Fault Address Register (BFAR) is valid */
-#define RVM_A6M_BFSR_BFARVALID                      RVM_POW2(15U)
+#define RVM_A6M_BFSR_BFARVALID                  RVM_POW2(15U)
 /* The bus fault happened during FP lazy stacking */
-#define RVM_A6M_BFSR_LSPERR                         RVM_POW2(13U)
+#define RVM_A6M_BFSR_LSPERR                     RVM_POW2(13U)
 /* A derived bus fault has occurred on exception entry */
-#define RVM_A6M_BFSR_STKERR                         RVM_POW2(12U)
+#define RVM_A6M_BFSR_STKERR                     RVM_POW2(12U)
 /* A derived bus fault has occurred on exception return */
-#define RVM_A6M_BFSR_UNSTKERR                       RVM_POW2(11U)
+#define RVM_A6M_BFSR_UNSTKERR                   RVM_POW2(11U)
 /* Imprecise data access error has occurred */
-#define RVM_A6M_BFSR_IMPRECISERR                    RVM_POW2(10U)
+#define RVM_A6M_BFSR_IMPRECISERR                RVM_POW2(10U)
 /* Precise data access error has occurred, BFAR updated */
-#define RVM_A6M_BFSR_PRECISERR                      RVM_POW2(9U)
+#define RVM_A6M_BFSR_PRECISERR                  RVM_POW2(9U)
 /* A bus fault on an instruction prefetch has occurred. The 
  * fault is signaled only if the instruction is issued */
-#define RVM_A6M_BFSR_IBUSERR                        RVM_POW2(8U)
+#define RVM_A6M_BFSR_IBUSERR                    RVM_POW2(8U)
 /* The Memory Mnagement Fault Address Register have valid contents */
-#define RVM_A6M_MFSR_MMARVALID                      RVM_POW2(7U)
+#define RVM_A6M_MFSR_MMARVALID                  RVM_POW2(7U)
 /* A MemManage fault occurred during FP lazy state preservation */
-#define RVM_A6M_MFSR_MLSPERR                        RVM_POW2(5U)
+#define RVM_A6M_MFSR_MLSPERR                    RVM_POW2(5U)
 /* A derived MemManage fault occurred on exception entry */
-#define RVM_A6M_MFSR_MSTKERR                        RVM_POW2(4U)
+#define RVM_A6M_MFSR_MSTKERR                    RVM_POW2(4U)
 /* A derived MemManage fault occurred on exception return */
-#define RVM_A6M_MFSR_MUNSTKERR                      RVM_POW2(3U)
+#define RVM_A6M_MFSR_MUNSTKERR                  RVM_POW2(3U)
 /* Data access violation. The MMFAR shows the data address that
  * the load or store tried to access */
-#define RVM_A6M_MFSR_DACCVIOL                       RVM_POW2(1U)
+#define RVM_A6M_MFSR_DACCVIOL                   RVM_POW2(1U)
 /* MPU or Execute Never (XN) default memory map access violation on an
  * instruction fetch has occurred. The fault is signalled only if the
  * instruction is issued */
-#define RVM_A6M_MFSR_IACCVIOL                       RVM_POW2(0U)
+#define RVM_A6M_MFSR_IACCVIOL                   RVM_POW2(0U)
 
 /* Kernel Function ***********************************************************/
 /* Page table entry mode which property to get */
-#define RVM_A6M_KFN_PGT_ENTRY_MOD_FLAG_GET          (0U)
-#define RVM_A6M_KFN_PGT_ENTRY_MOD_SZORD_GET         (1U)
-#define RVM_A6M_KFN_PGT_ENTRY_MOD_NMORD_GET         (2U)
+#define RVM_A6M_KFN_PGT_ENTRY_MOD_FLAG_GET      (0U)
+#define RVM_A6M_KFN_PGT_ENTRY_MOD_SZORD_GET     (1U)
+#define RVM_A6M_KFN_PGT_ENTRY_MOD_NMORD_GET     (2U)
 /* Interrupt source configuration */
-#define RVM_A6M_KFN_INT_LOCAL_MOD_STATE_GET         (0U)
-#define RVM_A6M_KFN_INT_LOCAL_MOD_STATE_SET         (1U)
-#define RVM_A6M_KFN_INT_LOCAL_MOD_PRIO_GET          (2U)
-#define RVM_A6M_KFN_INT_LOCAL_MOD_PRIO_SET          (3U)
+#define RVM_A6M_KFN_INT_LOCAL_MOD_STATE_GET     (0U)
+#define RVM_A6M_KFN_INT_LOCAL_MOD_STATE_SET     (1U)
+#define RVM_A6M_KFN_INT_LOCAL_MOD_PRIO_GET      (2U)
+#define RVM_A6M_KFN_INT_LOCAL_MOD_PRIO_SET      (3U)
 /* Prefetcher modification */
-#define RVM_A6M_KFN_PRFTH_MOD_STATE_GET             (0U)
-#define RVM_A6M_KFN_PRFTH_MOD_STATE_SET             (1U)
+#define RVM_A6M_KFN_PRFTH_MOD_STATE_GET         (0U)
+#define RVM_A6M_KFN_PRFTH_MOD_STATE_SET         (1U)
 /* Prefetcher state */
-#define RVM_A6M_KFN_PRFTH_STATE_DISABLE             (0U)
-#define RVM_A6M_KFN_PRFTH_STATE_ENABLE              (1U)
+#define RVM_A6M_KFN_PRFTH_STATE_DISABLE         (0U)
+#define RVM_A6M_KFN_PRFTH_STATE_ENABLE          (1U)
 /* CPU feature support */
-#define RVM_A6M_KFN_CPU_FUNC_CPUID                  (0U)
-#define RVM_A6M_KFN_CPU_FUNC_ID_PFR0                (1U)
-#define RVM_A6M_KFN_CPU_FUNC_ID_PFR1                (2U)
-#define RVM_A6M_KFN_CPU_FUNC_ID_DFR0                (3U)
-#define RVM_A6M_KFN_CPU_FUNC_ID_AFR0                (4U)
-#define RVM_A6M_KFN_CPU_FUNC_ID_MMFR0               (5U)
-#define RVM_A6M_KFN_CPU_FUNC_ID_MMFR1               (6U)
-#define RVM_A6M_KFN_CPU_FUNC_ID_MMFR2               (7U)
-#define RVM_A6M_KFN_CPU_FUNC_ID_MMFR3               (8U)
-#define RVM_A6M_KFN_CPU_FUNC_ID_ISAR0               (9U)
-#define RVM_A6M_KFN_CPU_FUNC_ID_ISAR1               (10U)
-#define RVM_A6M_KFN_CPU_FUNC_ID_ISAR2               (11U)
-#define RVM_A6M_KFN_CPU_FUNC_ID_ISAR3               (12U)
-#define RVM_A6M_KFN_CPU_FUNC_ID_ISAR4               (13U)
-#define RVM_A6M_KFN_CPU_FUNC_ID_ISAR5               (14U)
-#define RVM_A6M_KFN_CPU_FUNC_CLIDR                  (15U)
-#define RVM_A6M_KFN_CPU_FUNC_CTR                    (16U)
-#define RVM_A6M_KFN_CPU_FUNC_ICACHE_CCSIDR          (17U)
-#define RVM_A6M_KFN_CPU_FUNC_DCACHE_CCSIDR          (18U)
-#define RVM_A6M_KFN_CPU_FUNC_MPU_TYPE               (19U)
-#define RVM_A6M_KFN_CPU_FUNC_MVFR0                  (20U)
-#define RVM_A6M_KFN_CPU_FUNC_MVFR1                  (21U)
-#define RVM_A6M_KFN_CPU_FUNC_MVFR2                  (22U)
-#define RVM_A6M_KFN_CPU_FUNC_PID0                   (23U)
-#define RVM_A6M_KFN_CPU_FUNC_PID1                   (24U)
-#define RVM_A6M_KFN_CPU_FUNC_PID2                   (25U)
-#define RVM_A6M_KFN_CPU_FUNC_PID3                   (26U)
-#define RVM_A6M_KFN_CPU_FUNC_PID4                   (27U)
-#define RVM_A6M_KFN_CPU_FUNC_PID5                   (28U)
-#define RVM_A6M_KFN_CPU_FUNC_PID6                   (29U)
-#define RVM_A6M_KFN_CPU_FUNC_PID7                   (30U)
-#define RVM_A6M_KFN_CPU_FUNC_CID0                   (31U)
-#define RVM_A6M_KFN_CPU_FUNC_CID1                   (32U)
-#define RVM_A6M_KFN_CPU_FUNC_CID2                   (33U)
-#define RVM_A6M_KFN_CPU_FUNC_CID3                   (34U)
+#define RVM_A6M_KFN_CPU_FUNC_CPUID              (0U)
+#define RVM_A6M_KFN_CPU_FUNC_ID_PFR0            (1U)
+#define RVM_A6M_KFN_CPU_FUNC_ID_PFR1            (2U)
+#define RVM_A6M_KFN_CPU_FUNC_ID_DFR0            (3U)
+#define RVM_A6M_KFN_CPU_FUNC_ID_AFR0            (4U)
+#define RVM_A6M_KFN_CPU_FUNC_ID_MMFR0           (5U)
+#define RVM_A6M_KFN_CPU_FUNC_ID_MMFR1           (6U)
+#define RVM_A6M_KFN_CPU_FUNC_ID_MMFR2           (7U)
+#define RVM_A6M_KFN_CPU_FUNC_ID_MMFR3           (8U)
+#define RVM_A6M_KFN_CPU_FUNC_ID_ISAR0           (9U)
+#define RVM_A6M_KFN_CPU_FUNC_ID_ISAR1           (10U)
+#define RVM_A6M_KFN_CPU_FUNC_ID_ISAR2           (11U)
+#define RVM_A6M_KFN_CPU_FUNC_ID_ISAR3           (12U)
+#define RVM_A6M_KFN_CPU_FUNC_ID_ISAR4           (13U)
+#define RVM_A6M_KFN_CPU_FUNC_ID_ISAR5           (14U)
+#define RVM_A6M_KFN_CPU_FUNC_CLIDR              (15U)
+#define RVM_A6M_KFN_CPU_FUNC_CTR                (16U)
+#define RVM_A6M_KFN_CPU_FUNC_ICACHE_CCSIDR      (17U)
+#define RVM_A6M_KFN_CPU_FUNC_DCACHE_CCSIDR      (18U)
+#define RVM_A6M_KFN_CPU_FUNC_MPU_TYPE           (19U)
+#define RVM_A6M_KFN_CPU_FUNC_MVFR0              (20U)
+#define RVM_A6M_KFN_CPU_FUNC_MVFR1              (21U)
+#define RVM_A6M_KFN_CPU_FUNC_MVFR2              (22U)
+#define RVM_A6M_KFN_CPU_FUNC_PID0               (23U)
+#define RVM_A6M_KFN_CPU_FUNC_PID1               (24U)
+#define RVM_A6M_KFN_CPU_FUNC_PID2               (25U)
+#define RVM_A6M_KFN_CPU_FUNC_PID3               (26U)
+#define RVM_A6M_KFN_CPU_FUNC_PID4               (27U)
+#define RVM_A6M_KFN_CPU_FUNC_PID5               (28U)
+#define RVM_A6M_KFN_CPU_FUNC_PID6               (29U)
+#define RVM_A6M_KFN_CPU_FUNC_PID7               (30U)
+#define RVM_A6M_KFN_CPU_FUNC_CID0               (31U)
+#define RVM_A6M_KFN_CPU_FUNC_CID1               (32U)
+#define RVM_A6M_KFN_CPU_FUNC_CID2               (33U)
+#define RVM_A6M_KFN_CPU_FUNC_CID3               (34U)
 /* Perfomance counters */
-#define RVM_A6M_KFN_PERF_CYCLE_CYCCNT               (0U)
+#define RVM_A6M_KFN_PERF_CYCLE_CYCCNT           (0U)
 /* Performance counter state operations */
-#define RVM_A6M_KFN_PERF_STATE_GET                  (0U)
-#define RVM_A6M_KFN_PERF_STATE_SET                  (1U)
+#define RVM_A6M_KFN_PERF_STATE_GET              (0U)
+#define RVM_A6M_KFN_PERF_STATE_SET              (1U)
 /* Performance counter states */
-#define RVM_A6M_KFN_PERF_STATE_DISABLE              (0U)
-#define RVM_A6M_KFN_PERF_STATE_ENABLE               (1U)
+#define RVM_A6M_KFN_PERF_STATE_DISABLE          (0U)
+#define RVM_A6M_KFN_PERF_STATE_ENABLE           (1U)
 /* Performance counter value operations */
-#define RVM_A6M_KFN_PERF_VAL_GET                    (0U)
-#define RVM_A6M_KFN_PERF_VAL_SET                    (1U)
+#define RVM_A6M_KFN_PERF_VAL_GET                (0U)
+#define RVM_A6M_KFN_PERF_VAL_SET                (1U)
 /* Register read/write */
-#define RVM_A6M_KFN_DEBUG_REG_MOD_GET               (0U)
-#define RVM_A6M_KFN_DEBUG_REG_MOD_SET               RVM_POW2(16U)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_GET           (0U)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_SET           RVM_POW2(16U)
 /* General-purpose registers */
-#define RVM_A6M_KFN_DEBUG_REG_MOD_SP                (0U)
-#define RVM_A6M_KFN_DEBUG_REG_MOD_R8                (1U)
-#define RVM_A6M_KFN_DEBUG_REG_MOD_R9                (2U)
-#define RVM_A6M_KFN_DEBUG_REG_MOD_R10               (3U)
-#define RVM_A6M_KFN_DEBUG_REG_MOD_R11               (4U)
-#define RVM_A6M_KFN_DEBUG_REG_MOD_R4                (5U)
-#define RVM_A6M_KFN_DEBUG_REG_MOD_R5                (6U)
-#define RVM_A6M_KFN_DEBUG_REG_MOD_R6                (7U)
-#define RVM_A6M_KFN_DEBUG_REG_MOD_R7                (8U)
-#define RVM_A6M_KFN_DEBUG_REG_MOD_LR                (9U)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_SP            (0U)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_R8            (1U)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_R9            (2U)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_R10           (3U)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_R11           (4U)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_R4            (5U)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_R5            (6U)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_R6            (7U)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_R7            (8U)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_LR            (9U)
 /* Getters */
-#define RVM_A6M_KFN_DEBUG_REG_MOD_SP_GET            (RVM_A6M_KFN_DEBUG_REG_MOD_SP)
-#define RVM_A6M_KFN_DEBUG_REG_MOD_R8_GET            (RVM_A6M_KFN_DEBUG_REG_MOD_R8)
-#define RVM_A6M_KFN_DEBUG_REG_MOD_R9_GET            (RVM_A6M_KFN_DEBUG_REG_MOD_R9)
-#define RVM_A6M_KFN_DEBUG_REG_MOD_R10_GET           (RVM_A6M_KFN_DEBUG_REG_MOD_R10)
-#define RVM_A6M_KFN_DEBUG_REG_MOD_R11_GET           (RVM_A6M_KFN_DEBUG_REG_MOD_R11)
-#define RVM_A6M_KFN_DEBUG_REG_MOD_R4_GET            (RVM_A6M_KFN_DEBUG_REG_MOD_R4)
-#define RVM_A6M_KFN_DEBUG_REG_MOD_R5_GET            (RVM_A6M_KFN_DEBUG_REG_MOD_R5)
-#define RVM_A6M_KFN_DEBUG_REG_MOD_R6_GET            (RVM_A6M_KFN_DEBUG_REG_MOD_R6)
-#define RVM_A6M_KFN_DEBUG_REG_MOD_R7_GET            (RVM_A6M_KFN_DEBUG_REG_MOD_R7)
-#define RVM_A6M_KFN_DEBUG_REG_MOD_LR_GET            (RVM_A6M_KFN_DEBUG_REG_MOD_LR)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_SP_GET        (RVM_A6M_KFN_DEBUG_REG_MOD_SP)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_R8_GET        (RVM_A6M_KFN_DEBUG_REG_MOD_R8)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_R9_GET        (RVM_A6M_KFN_DEBUG_REG_MOD_R9)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_R10_GET       (RVM_A6M_KFN_DEBUG_REG_MOD_R10)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_R11_GET       (RVM_A6M_KFN_DEBUG_REG_MOD_R11)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_R4_GET        (RVM_A6M_KFN_DEBUG_REG_MOD_R4)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_R5_GET        (RVM_A6M_KFN_DEBUG_REG_MOD_R5)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_R6_GET        (RVM_A6M_KFN_DEBUG_REG_MOD_R6)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_R7_GET        (RVM_A6M_KFN_DEBUG_REG_MOD_R7)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_LR_GET        (RVM_A6M_KFN_DEBUG_REG_MOD_LR)
 /* Setters */
-#define RVM_A6M_KFN_DEBUG_REG_MOD_SP_SET            (RVM_A6M_KFN_DEBUG_REG_MOD_SET|RVM_A6M_KFN_DEBUG_REG_MOD_SP)
-#define RVM_A6M_KFN_DEBUG_REG_MOD_R8_SET            (RVM_A6M_KFN_DEBUG_REG_MOD_SET|RVM_A6M_KFN_DEBUG_REG_MOD_R8)
-#define RVM_A6M_KFN_DEBUG_REG_MOD_R9_SET            (RVM_A6M_KFN_DEBUG_REG_MOD_SET|RVM_A6M_KFN_DEBUG_REG_MOD_R9)
-#define RVM_A6M_KFN_DEBUG_REG_MOD_R10_SET           (RVM_A6M_KFN_DEBUG_REG_MOD_SET|RVM_A6M_KFN_DEBUG_REG_MOD_R10)
-#define RVM_A6M_KFN_DEBUG_REG_MOD_R11_SET           (RVM_A6M_KFN_DEBUG_REG_MOD_SET|RVM_A6M_KFN_DEBUG_REG_MOD_R11)
-#define RVM_A6M_KFN_DEBUG_REG_MOD_R4_SET            (RVM_A6M_KFN_DEBUG_REG_MOD_SET|RVM_A6M_KFN_DEBUG_REG_MOD_R4)
-#define RVM_A6M_KFN_DEBUG_REG_MOD_R5_SET            (RVM_A6M_KFN_DEBUG_REG_MOD_SET|RVM_A6M_KFN_DEBUG_REG_MOD_R5)
-#define RVM_A6M_KFN_DEBUG_REG_MOD_R6_SET            (RVM_A6M_KFN_DEBUG_REG_MOD_SET|RVM_A6M_KFN_DEBUG_REG_MOD_R6)
-#define RVM_A6M_KFN_DEBUG_REG_MOD_R7_SET            (RVM_A6M_KFN_DEBUG_REG_MOD_SET|RVM_A6M_KFN_DEBUG_REG_MOD_R7)
-#define RVM_A6M_KFN_DEBUG_REG_MOD_LR_SET            (RVM_A6M_KFN_DEBUG_REG_MOD_SET|RVM_A6M_KFN_DEBUG_REG_MOD_LR)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_SP_SET        (RVM_A6M_KFN_DEBUG_REG_MOD_SET|RVM_A6M_KFN_DEBUG_REG_MOD_SP)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_R8_SET        (RVM_A6M_KFN_DEBUG_REG_MOD_SET|RVM_A6M_KFN_DEBUG_REG_MOD_R8)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_R9_SET        (RVM_A6M_KFN_DEBUG_REG_MOD_SET|RVM_A6M_KFN_DEBUG_REG_MOD_R9)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_R10_SET       (RVM_A6M_KFN_DEBUG_REG_MOD_SET|RVM_A6M_KFN_DEBUG_REG_MOD_R10)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_R11_SET       (RVM_A6M_KFN_DEBUG_REG_MOD_SET|RVM_A6M_KFN_DEBUG_REG_MOD_R11)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_R4_SET        (RVM_A6M_KFN_DEBUG_REG_MOD_SET|RVM_A6M_KFN_DEBUG_REG_MOD_R4)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_R5_SET        (RVM_A6M_KFN_DEBUG_REG_MOD_SET|RVM_A6M_KFN_DEBUG_REG_MOD_R5)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_R6_SET        (RVM_A6M_KFN_DEBUG_REG_MOD_SET|RVM_A6M_KFN_DEBUG_REG_MOD_R6)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_R7_SET        (RVM_A6M_KFN_DEBUG_REG_MOD_SET|RVM_A6M_KFN_DEBUG_REG_MOD_R7)
+#define RVM_A6M_KFN_DEBUG_REG_MOD_LR_SET        (RVM_A6M_KFN_DEBUG_REG_MOD_SET|RVM_A6M_KFN_DEBUG_REG_MOD_LR)
 /* Invocation register read/write */
-#define RVM_A6M_KFN_DEBUG_INV_MOD_SP_GET            (0U)
-#define RVM_A6M_KFN_DEBUG_INV_MOD_SP_SET            (1U)
+#define RVM_A6M_KFN_DEBUG_INV_MOD_SP_GET        (0U)
+#define RVM_A6M_KFN_DEBUG_INV_MOD_SP_SET        (1U)
 /* Error register read */
-#define RVM_A6M_KFN_DEBUG_EXC_CAUSE_GET             (0U)
+#define RVM_A6M_KFN_DEBUG_EXC_CAUSE_GET         (0U)
 /* End ARMv6-M Macro *********************************************************/
 /*****************************************************************************/
 /* __RVM_PLATFORM_A6M_DEF__ */

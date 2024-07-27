@@ -3,7 +3,7 @@ Filename    : rvm_guest_rv32p.c
 Author      : pry
 Date        : 09/02/2018
 Licence     : The Unlicense; see LICENSE for details.
-Description : The guest OS Cortex-M wrapper.
+Description : The guest OS RISC-V 32-bit physical address wrapper.
 ******************************************************************************/
 
 /* Include *******************************************************************/
@@ -48,7 +48,7 @@ rvm_ret_t RVM_RV32P_Kfn_Act(rvm_cid_t Cap_Kfn,
                             rvm_ptr_t Sub_ID,
                             rvm_ptr_t* Param)
 {
-    return RVM_RV32P_Svc_Kfn((RVM_SVC_KFN<<(sizeof(rvm_ptr_t)*4U))|((rvm_ptr_t)Cap_Kfn),
+    return RVM_RV32P_Svc_Kfn((RVM_SVC_KFN<<RVM_WORD_BIT_D1)|((rvm_ptr_t)Cap_Kfn),
                              RVM_PARAM_D1(Sub_ID)|RVM_PARAM_D0(Func_ID),
                              Param);
 }
@@ -70,7 +70,7 @@ rvm_ret_t RVM_RV32P_Pgt_Entry_Mod(rvm_cid_t Cap_Kfn,
                                   rvm_ptr_t Vaddr,
                                   rvm_ptr_t Type)
 {
-    return RVM_Kfn_Act(Cap_Kfn, RVM_KFN_PGT_ENTRY_MOD, (rvm_ptr_t)Cap_Pgt, Vaddr, Type);
+    return RVM_Kfn_Act(Cap_Kfn,RVM_KFN_PGT_ENTRY_MOD,(rvm_ptr_t)Cap_Pgt,Vaddr,Type);
 }
 /* End Function:RVM_RV32P_Pgt_Entry_Mod **************************************/
 
@@ -88,7 +88,7 @@ rvm_ret_t RVM_RV32P_Int_Local_Mod(rvm_cid_t Cap_Kfn,
                                   rvm_ptr_t Operation,
                                   rvm_ptr_t Param)
 {
-    return RVM_Kfn_Act(Cap_Kfn, RVM_KFN_INT_LOCAL_MOD, Int_Num, Operation, Param);
+    return RVM_Kfn_Act(Cap_Kfn,RVM_KFN_INT_LOCAL_MOD,Int_Num,Operation,Param);
 }
 /* End Function:RVM_RV32P_Int_Local_Mod **************************************/
 
@@ -102,7 +102,7 @@ Return      : rvm_ret_t - If successful, 0; else an error code.
 rvm_ret_t RVM_RV32P_Int_Local_Trig(rvm_cid_t Cap_Kfn,
                                    rvm_ptr_t Int_Num)
 {
-    return RVM_Kfn_Act(Cap_Kfn, RVM_KFN_INT_LOCAL_TRIG, 0, Int_Num, 0);
+    return RVM_Kfn_Act(Cap_Kfn,RVM_KFN_INT_LOCAL_TRIG,0U,Int_Num,0U);
 }
 /* End Function:RVM_RV32P_Int_Local_Trig *************************************/
 
@@ -120,7 +120,7 @@ rvm_ret_t RVM_RV32P_Cache_Mod(rvm_cid_t Cap_Kfn,
                               rvm_ptr_t Operation,
                               rvm_ptr_t Param)
 {
-    return RVM_Kfn_Act(Cap_Kfn, RVM_KFN_CACHE_MOD, Cache_ID, Operation, Param);
+    return RVM_Kfn_Act(Cap_Kfn,RVM_KFN_CACHE_MOD,Cache_ID,Operation,Param);
 }
 /* End Function:RVM_RV32P_Cache_Mod ******************************************/
 
@@ -138,7 +138,7 @@ rvm_ret_t RVM_RV32P_Cache_Maint(rvm_cid_t Cap_Kfn,
                                 rvm_ptr_t Operation,
                                 rvm_ptr_t Param)
 {
-    return RVM_Kfn_Act(Cap_Kfn, RVM_KFN_CACHE_MAINT, Cache_ID, Operation, Param);
+    return RVM_Kfn_Act(Cap_Kfn,RVM_KFN_CACHE_MAINT,Cache_ID,Operation,Param);
 }
 /* End Function:RVM_RV32P_Cache_Maint ****************************************/
 
@@ -156,7 +156,7 @@ rvm_ret_t RVM_RV32P_Prfth_Mod(rvm_cid_t Cap_Kfn,
                               rvm_ptr_t Operation,
                               rvm_ptr_t Param)
 {
-    return RVM_Kfn_Act(Cap_Kfn, RVM_KFN_PRFTH_MOD, Prfth_ID, Operation, Param);
+    return RVM_Kfn_Act(Cap_Kfn,RVM_KFN_PRFTH_MOD,Prfth_ID,Operation,Param);
 }
 /* End Function:RVM_RV32P_Prfth_Mod ******************************************/
 
@@ -171,16 +171,16 @@ rvm_ret_t RVM_RV32P_Perf_CPU_Func(rvm_cid_t Cap_Kfn,
                                   rvm_ptr_t Freg_ID,
                                   rvm_ptr_t* Content)
 {
-    rvm_ptr_t Params[6];
+    rvm_ptr_t Param[6];
     rvm_ret_t Retval;
 
-    Retval=RVM_RV32P_Kfn_Act(Cap_Kfn, RVM_KFN_PERF_CPU_FUNC, Freg_ID, Params);
+    Retval=RVM_RV32P_Kfn_Act(Cap_Kfn,RVM_KFN_PERF_CPU_FUNC,Freg_ID,Param);
 
     if(Retval<0)
         return Retval;
 
     if(Content!=0)
-        Content[0]=Params[0];
+        Content[0]=Param[0];
 
     return Retval;
 }
@@ -199,7 +199,7 @@ rvm_ret_t RVM_RV32P_Perf_Mon_Mod(rvm_cid_t Cap_Kfn,
                                  rvm_ptr_t Operation,
                                  rvm_ptr_t Param)
 {
-    return RVM_Kfn_Act(Cap_Kfn, RVM_KFN_PERF_MON_MOD, Perf_ID, Operation, Param);
+    return RVM_Kfn_Act(Cap_Kfn,RVM_KFN_PERF_MON_MOD,Perf_ID,Operation,Param);
 }
 /* End Function:RVM_RV32P_Perf_Mon_Mod ***************************************/
 
@@ -216,18 +216,18 @@ rvm_ret_t RVM_RV32P_Perf_Cycle_Mod(rvm_cid_t Cap_Kfn,
                                    rvm_ptr_t Value,
                                    rvm_ptr_t* Content)
 {
-    rvm_ptr_t Params[6];
+    rvm_ptr_t Param[6];
     rvm_ret_t Retval;
 
-    Params[0]=Operation;
-    Params[1]=Value;
-    Retval=RVM_RV32P_Kfn_Act(Cap_Kfn, RVM_KFN_PERF_CYCLE_MOD, Cycle_ID, Params);
+    Param[0]=Operation;
+    Param[1]=Value;
+    Retval=RVM_RV32P_Kfn_Act(Cap_Kfn,RVM_KFN_PERF_CYCLE_MOD,Cycle_ID,Param);
 
     if(Retval<0)
         return Retval;
 
     if(Content!=RVM_NULL)
-        Content[0]=Params[0];
+        Content[0]=Param[0];
 
     return Retval;
 }
@@ -246,7 +246,7 @@ Return      : rvm_ret_t - If successful, 0; if a negative value, failed.
 rvm_ret_t RVM_RV32P_Debug_Print(rvm_cid_t Cap_Kfn,
                                 char Char)
 {
-    return RVM_Kfn_Act(Cap_Kfn, RVM_KFN_DEBUG_PRINT, (rvm_ptr_t)Char, 0U, 0U);
+    return RVM_Kfn_Act(Cap_Kfn,RVM_KFN_DEBUG_PRINT,(rvm_ptr_t)Char,0U,0U);
 }
 /* End Function:RVM_RV32P_Debug_Print ****************************************/
 
@@ -265,18 +265,18 @@ rvm_ret_t RVM_RV32P_Debug_Reg_Mod(rvm_cid_t Cap_Kfn,
                                   rvm_ptr_t Value,
                                   rvm_ptr_t* Content)
 {
-    rvm_ptr_t Params[6];
+    rvm_ptr_t Param[6];
     rvm_ret_t Retval;
 
-    Params[0]=Operation;
-    Params[1]=Value;
-    Retval=RVM_RV32P_Kfn_Act(Cap_Kfn, RVM_KFN_DEBUG_REG_MOD, (rvm_ptr_t)Cap_Thd, Params);
+    Param[0]=Operation;
+    Param[1]=Value;
+    Retval=RVM_RV32P_Kfn_Act(Cap_Kfn,RVM_KFN_DEBUG_REG_MOD,(rvm_ptr_t)Cap_Thd,Param);
 
     if(Retval<0)
         return Retval;
 
     if(Content!=0)
-        Content[0]=Params[0];
+        Content[0]=Param[0];
 
     return Retval;
 }
@@ -299,18 +299,18 @@ rvm_ret_t RVM_RV32P_Debug_Inv_Mod(rvm_cid_t Cap_Kfn,
                                   rvm_ptr_t Value,
                                   rvm_ptr_t* Content)
 {
-    rvm_ptr_t Params[6];
+    rvm_ptr_t Param[6];
     rvm_ret_t Retval;
 
-    Params[0]=RVM_PARAM_D1(Layer)|RVM_PARAM_D0(Operation);
-    Params[1]=Value;
-    Retval=RVM_RV32P_Kfn_Act(Cap_Kfn, RVM_KFN_DEBUG_INV_MOD, (rvm_ptr_t)Cap_Thd, Params);
+    Param[0]=RVM_PARAM_D1(Layer)|RVM_PARAM_D0(Operation);
+    Param[1]=Value;
+    Retval=RVM_RV32P_Kfn_Act(Cap_Kfn,RVM_KFN_DEBUG_INV_MOD,(rvm_ptr_t)Cap_Thd,Param);
 
     if(Retval<0)
         return Retval;
 
     if(Content!=0)
-        Content[0]=Params[0];
+        Content[0]=Param[0];
 
     return Retval;
 }
@@ -329,17 +329,17 @@ rvm_ret_t RVM_RV32P_Debug_Exc_Get(rvm_cid_t Cap_Kfn,
                                   rvm_ptr_t Operation,
                                   rvm_ptr_t* Content)
 {
-    rvm_ptr_t Params[6];
+    rvm_ptr_t Param[6];
     rvm_ret_t Retval;
 
-    Params[0]=RVM_PARAM_D0(Operation);
-    Retval=RVM_RV32P_Kfn_Act(Cap_Kfn, RVM_KFN_DEBUG_EXC_GET, (rvm_ptr_t)Cap_Thd, Params);
+    Param[0]=RVM_PARAM_D0(Operation);
+    Retval=RVM_RV32P_Kfn_Act(Cap_Kfn,RVM_KFN_DEBUG_EXC_GET,(rvm_ptr_t)Cap_Thd,Param);
 
     if(Retval<0)
         return Retval;
 
     if(Content!=0)
-        Content[0]=Params[0];
+        Content[0]=Param[0];
 
     return Retval;
 }
@@ -348,4 +348,3 @@ rvm_ret_t RVM_RV32P_Debug_Exc_Get(rvm_cid_t Cap_Kfn,
 /* End Of File ***************************************************************/
 
 /* Copyright (C) Evo-Devo Instrum. All rights reserved ***********************/
-
