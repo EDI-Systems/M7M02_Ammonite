@@ -97,7 +97,7 @@ Return      : None.
 void RVM_Idle(void)
 {
     /* Put us to sleep */
-    RVM_Kfn_Act(RVM_BOOT_INIT_KFN, RVM_KFN_IDLE_SLEEP, 0U, 0U, 0U);
+    RVM_Kfn_Act(RVM_BOOT_INIT_KFN,RVM_KFN_IDLE_SLEEP,0U,0U,0U);
 }
 /* End Function:RVM_Idle *****************************************************/
 

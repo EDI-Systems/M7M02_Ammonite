@@ -63,7 +63,7 @@ rvm_ptr_t RVM_Stack_Init(rvm_ptr_t Stack,
     struct RVM_RV32P_Stack* Ptr;
     
     Ptr=(struct RVM_RV32P_Stack*)(Stack+Size-
-                                  RVM_STACK_SAFE_RDCY*sizeof(rvm_ptr_t)-
+                                  RVM_STACK_SAFE_RDCY*RVM_WORD_BYTE-
                                   sizeof(struct RVM_RV32P_Stack));
 
     /* Jump to the stub so we can load the gp at start, for linker relaxation */
@@ -83,7 +83,7 @@ Return      : None.
 void RVM_Idle(void)
 {
     /* Put us to sleep */
-    RVM_Kfn_Act(RVM_BOOT_INIT_KFN, RVM_KFN_IDLE_SLEEP, 0U, 0U, 0U);
+    RVM_Kfn_Act(RVM_BOOT_INIT_KFN,RVM_KFN_IDLE_SLEEP,0U,0U,0U);
 }
 /* End Function:RVM_Idle *****************************************************/
 
@@ -117,7 +117,7 @@ rvm_ret_t RVM_RV32P_Kfn_Act(rvm_cid_t Cap_Kfn,
                             rvm_ptr_t Sub_ID,
                             rvm_ptr_t* Param)
 {
-    return RVM_RV32P_Svc_Kfn((RVM_SVC_KFN<<(sizeof(rvm_ptr_t)*4U))|((rvm_ptr_t)Cap_Kfn),
+    return RVM_RV32P_Svc_Kfn((RVM_SVC_KFN<<RVM_WORD_BIT_D1)|((rvm_ptr_t)Cap_Kfn),
                              RVM_PARAM_D1(Sub_ID)|RVM_PARAM_D0(Func_ID),
                              Param);
 }
@@ -132,7 +132,63 @@ Return      : None.
 void RVM_Thd_Print_Exc(rvm_tid_t TID)
 {
 #if(RVM_DBGLOG_ENABLE!=0U)
-    /* TODO */
+    rvm_ptr_t Cause;
+    rvm_ptr_t Addr;
+    rvm_ptr_t Value;
+    rvm_ptr_t Param[6];
+    
+    /* Get exception cause */
+    Param[0]=RVM_RV32P_KFN_DEBUG_EXC_CAUSE_GET;
+    RVM_ASSERT(RVM_RV32P_Kfn_Act(RVM_BOOT_INIT_KFN, 
+                                 RVM_KFN_DEBUG_EXC_GET,
+                                 (rvm_ptr_t)TID,
+                                 Param)==0);
+    Cause=Param[0];
+    
+    /* Get exception address */
+    Param[0]=RVM_RV32P_KFN_DEBUG_EXC_ADDR_GET;
+    RVM_ASSERT(RVM_RV32P_Kfn_Act(RVM_BOOT_INIT_KFN, 
+                                 RVM_KFN_DEBUG_EXC_GET,
+                                 (rvm_ptr_t)TID,
+                                 Param)==0);
+    Addr=Param[0];
+    
+    /* Get exception value */
+    Param[0]=RVM_RV32P_KFN_DEBUG_EXC_VALUE_GET;
+    RVM_ASSERT(RVM_RV32P_Kfn_Act(RVM_BOOT_INIT_KFN, 
+                                 RVM_KFN_DEBUG_EXC_GET,
+                                 (rvm_ptr_t)TID,
+                                 Param)==0);
+    Value=Param[0];
+    
+    /* Parse exception reason */
+    switch(Cause)
+    {
+        case RVM_RV32P_MCAUSE_IMALIGN:  RVM_DBG_S("Sftd: Instruction misaligned"); break;
+        case RVM_RV32P_MCAUSE_IACCFLT:  RVM_DBG_S("Sftd: Instruction access fault"); break;
+        case RVM_RV32P_MCAUSE_IUNDEF:   RVM_DBG_S("Sftd: Undefined instruction"); break;
+        case RVM_RV32P_MCAUSE_IBRKPT:   RVM_DBG_S("Sftd: Breakpoint"); break;
+        case RVM_RV32P_MCAUSE_LALIGN:   RVM_DBG_S("Sftd: Data load misaligned"); break;
+        case RVM_RV32P_MCAUSE_LACCFLT:  RVM_DBG_S("Sftd: Data load access fault"); break;
+        case RVM_RV32P_MCAUSE_SALIGN:   RVM_DBG_S("Sftd: Data store misaligned"); break;
+        case RVM_RV32P_MCAUSE_SACCFLT:  RVM_DBG_S("Sftd: Data store access fault"); break;
+        /* In most cases these below shall never happen, because we're assuming MCUs */
+        case RVM_RV32P_MCAUSE_U_ECALL:  RVM_DBG_S("Sftd: System call from user mode"); break;
+        case RVM_RV32P_MCAUSE_S_ECALL:  RVM_DBG_S("Sftd: System call from supervisor mode"); break;
+        case RVM_RV32P_MCAUSE_H_ECALL:  RVM_DBG_S("Sftd: System call from hypervisor mode"); break;
+        case RVM_RV32P_MCAUSE_M_ECALL:  RVM_DBG_S("Sftd: System call from machine mode"); break;
+        case RVM_RV32P_MCAUSE_IPGFLT:   RVM_DBG_S("Sftd: Instruction page fault"); break;
+        case RVM_RV32P_MCAUSE_LPGFLT:   RVM_DBG_S("Sftd: Load page fault"); break;
+        case RVM_RV32P_MCAUSE_SPGFLT:   RVM_DBG_S("Sftd: Store page fault"); break;
+        default:                        RVM_DBG_S("Sftd: Unknown cause"); break;
+    }
+    
+    /* Print value and address */
+    RVM_DBG_S(" Addr 0x");
+    RVM_DBG_H(Addr);
+    RVM_DBG_S(" Value 0x");
+    RVM_DBG_H(Value);
+    RVM_DBG_S(".\r\n");
 #endif
 }
 /* End Function:RVM_Thd_Print_Exc ********************************************/
