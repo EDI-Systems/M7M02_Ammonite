@@ -2755,7 +2755,7 @@ static void _RVM_Daemon_Init(rvm_cid_t Cap_Base,
     RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Vmmd_Thd_Cap,RVM_Sftd_Thd_Cap,RVM_Sftd_Sig_Cap,RVM_Vmmd_Thd_Cap,RVM_VMMD_PRIO)==0);
     Init_Entry=(rvm_ptr_t)RVM_Vmmd;
     Init_Stack=RVM_Stack_Init(RVM_VMMD_STACK_BASE,RVM_VMMD_STACK_SIZE,&Init_Entry,(rvm_ptr_t)__RVM_Stub);
-    RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Vmmd_Thd_Cap,Init_Entry,Init_Stack,0)==0);
+    RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Vmmd_Thd_Cap,Init_Entry,Init_Stack,0U)==0);
     RVM_DBG_S("Init: Main daemon initialization complete.\r\n");
 #endif
 }
@@ -2831,21 +2831,21 @@ static void RVM_Init(void)
     RVM_DBG_S("===============================================================================\r\n");
 
     /* Raise our own priority to the top of the system */
-    RVM_ASSERT(RVM_Thd_Sched_Prio(RVM_BOOT_INIT_THD, RVM_PREEMPT_PRIO_NUM-1U)==0);
+    RVM_ASSERT(RVM_Thd_Sched_Prio(RVM_BOOT_INIT_THD,RVM_PREEMPT_PRIO_NUM-1U)==0);
     RVM_DBG_S("Init: Preparation - priority raised.\r\n");
     
     /* Initialize RVM database */
 #if(RVM_VIRT_NUM!=0U)
     _RVM_Virt_Init();
 #endif
-    RVM_DBG_SHS("Init: Kernel object memory base @ 0x", RVM_KOM_VA_BASE, ".\r\n");
-    RVM_DBG_SHS("Init: Start creating kernel objects @ offset 0x", RVM_KOM_BOOT_FRONT, ".\r\n");
+    RVM_DBG_SHS("Init: Kernel object memory base @ 0x",RVM_KOM_VA_BASE,".\r\n");
+    RVM_DBG_SHS("Init: Start creating kernel objects @ offset 0x",RVM_KOM_BOOT_FRONT, ".\r\n");
     
     /* Create the startup thread in the init process, because the init thread
      * cannot block. Bind that to the processor, and let it have infinite budget.
      * after this the task will be handled by this task, and we will never return
      * to init unless there is nothing to run */
-    _RVM_Daemon_Init(RVM_CPT_BOOT_FRONT, RVM_KOM_BOOT_FRONT);
+    _RVM_Daemon_Init(RVM_CPT_BOOT_FRONT,RVM_KOM_BOOT_FRONT);
     RVM_DBG_S("Init: Daemon initialization done.\r\n");
     
     /* Initialize the virtual machine databases, and create whatever is needed */
@@ -2854,16 +2854,16 @@ static void RVM_Init(void)
     RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
     
     /* Delegate timeslice to safety daemon and VMM daemon */
-    RVM_ASSERT(RVM_Thd_Time_Xfer(RVM_Sftd_Thd_Cap, RVM_BOOT_INIT_THD, RVM_THD_INF_TIME)==RVM_THD_INF_TIME);
+    RVM_ASSERT(RVM_Thd_Time_Xfer(RVM_Sftd_Thd_Cap,RVM_BOOT_INIT_THD,RVM_THD_INF_TIME)==RVM_THD_INF_TIME);
 #if(RVM_VIRT_NUM!=0U)
-    RVM_ASSERT(RVM_Thd_Time_Xfer(RVM_Vmmd_Thd_Cap, RVM_BOOT_INIT_THD, RVM_THD_INF_TIME)==RVM_THD_INF_TIME);
+    RVM_ASSERT(RVM_Thd_Time_Xfer(RVM_Vmmd_Thd_Cap,RVM_BOOT_INIT_THD,RVM_THD_INF_TIME)==RVM_THD_INF_TIME);
 #endif
     RVM_DBG_S("Init: Daemon time budget initialization complete.\r\n");
     
     /* Put our priority to the lowest in system - this should get everything else running */
     RVM_DBG_S("Init: Job finished - lowering priority.\r\n");
     RVM_DBG_S("-------------------------------------------------------------------------------\r\n");
-    RVM_ASSERT(RVM_Thd_Sched_Prio(RVM_BOOT_INIT_THD, RVM_INIT_PRIO)==0);
+    RVM_ASSERT(RVM_Thd_Sched_Prio(RVM_BOOT_INIT_THD,RVM_INIT_PRIO)==0);
 
     RVM_Boot_Post_Init();
 		

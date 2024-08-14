@@ -169,7 +169,8 @@ void GCC_Gen::Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back(".KERNEL_CODE : ALIGN(4)");
     List->push_back("{");
     List->push_back("    __RME_Code_Start = .;");
-    /* ARM Cortex-M processors require that the vector table be linked upfront, whereas other processors require entry */
+    /* ARM Cortex-M processors require that the vector table be linked upfront, whereas other processors
+     * require entry to be linked first. This can change in the future when new architecture is added. */
     if((this->Chip->Platform=="A6M")||(this->Chip->Platform=="A7M")||(this->Chip->Platform=="A8M"))
     {
         List->push_back("    KEEP(*_gcc.o(.text.rme_vector))");
@@ -180,6 +181,7 @@ void GCC_Gen::Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)
         List->push_back("    KEEP(*_gcc.o(.text.rme_vector))");
     }
     List->push_back("    *(.text .text.*)");
+    List->push_back("    *(.srodata .srodata.* .sconstdata .sconstdata.*)");
     List->push_back("    *(.rodata .rodata.* .constdata .constdata.*)");
     List->push_back("    __RME_Code_End = .;");
     List->push_back("} > KCODE");
@@ -191,6 +193,10 @@ void GCC_Gen::Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back("    FILL(0xFF)");
     List->push_back("    __RME_Data_Start = .;");
     List->push_back("    __RME_Global = . + 0x800;");
+    List->push_back("    *(.sdata_begin .sdata_begin.*)");
+    List->push_back("    *(.sdata .sdata.*)");
+    List->push_back("    *(.sdata2.*)");
+    List->push_back("    *(.sdata_end .sdata_end.*)");
     List->push_back("    *(.data_begin .data_begin.*)");
     List->push_back("    *(.data .data.*)");
     List->push_back("    *(.data_end .data_end.*)");
@@ -202,6 +208,11 @@ void GCC_Gen::Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back(".KERNEL_ZERO (NOLOAD) : ALIGN(4)");
     List->push_back("{");
     List->push_back("    __RME_Zero_Start = .;");
+    List->push_back("    *(.sbss_begin .sbss_begin.*)");
+    List->push_back("    *(.sbss .sbss.*)");
+    List->push_back("    *(.sbss2.*)");
+    List->push_back("    *(SCOMMON)");
+    List->push_back("    *(.sbss_end .sbss_end.*)");
     List->push_back("    *(.bss_begin .bss_begin.*)");
     List->push_back("    *(.bss .bss.*)");
     List->push_back("    *(COMMON)");
@@ -214,6 +225,7 @@ void GCC_Gen::Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back(".KERNEL_NOINIT (NOLOAD) : ALIGN(4)");
     List->push_back("{");
     List->push_back("    __RME_Noinit_Start = .;");
+    List->push_back("    *(.snoinit .snoinit.*)");
     List->push_back("    *(.noinit .noinit.*)");
     List->push_back("    . = ALIGN(4);");
     List->push_back("    __RME_Noinit_End = .;");
@@ -303,6 +315,7 @@ void GCC_Gen::Monitor_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back("    __RVM_Code_Start = .;");
     List->push_back("    KEEP(*_gcc.o(.text.rvm_entry))");
     List->push_back("    *(.text .text.*)");
+    List->push_back("    *(.srodata .srodata.* .sconstdata .sconstdata.*)");
     List->push_back("    *(.rodata .rodata.* .constdata .constdata.*)");
     List->push_back("    . = ALIGN(4);");
     List->push_back("    __RVM_Code_End = .;");
@@ -315,6 +328,10 @@ void GCC_Gen::Monitor_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back("    FILL(0xFF)");
     List->push_back("    __RVM_Data_Start = .;");
     List->push_back("    __RVM_Global = . + 0x800;");
+    List->push_back("    *(.sdata_begin .sdata_begin.*)");
+    List->push_back("    *(.sdata .sdata.*)");
+    List->push_back("    *(.sdata2.*)");
+    List->push_back("    *(.sdata_end .sdata_end.*)");
     List->push_back("    *(.data_begin .data_begin.*)");
     List->push_back("    *(.data .data.*)");
     List->push_back("    *(.data_end .data_end.*)");
@@ -326,6 +343,11 @@ void GCC_Gen::Monitor_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back(".MONITOR_ZERO : ALIGN(4)");
     List->push_back("{");
     List->push_back("    __RVM_Zero_Start = .;");
+    List->push_back("    *(.sbss_begin .sbss_begin.*)");
+    List->push_back("    *(.sbss .sbss.*)");
+    List->push_back("    *(.sbss2.*)");
+    List->push_back("    *(SCOMMON)");
+    List->push_back("    *(.sbss_end .sbss_end.*)");
     List->push_back("    *(.bss_begin .bss_begin.*)");
     List->push_back("    *(.bss .bss.*)");
     List->push_back("    *(COMMON)");
@@ -338,6 +360,7 @@ void GCC_Gen::Monitor_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back(".MONITOR_NOINIT (NOLOAD) : ALIGN(4)");
     List->push_back("{");
     List->push_back("    __RVM_Noinit_Start = .;");
+    List->push_back("    *(.snoinit .snoinit.*)");
     List->push_back("    *(.noinit .noinit.*)");
     List->push_back("    . = ALIGN(4);");
     List->push_back("    __RVM_Noinit_End = .;");
@@ -443,7 +466,8 @@ void GCC_Gen::Process_Linker(std::unique_ptr<std::vector<std::string>>& List,
     List->push_back("/* Process descriptor segment */");
     List->push_back(".PROCESS_DESC : ALIGN(4)");
     List->push_back("{");
-    List->push_back(std::string("    KEEP(*prc_") + Prc->Name_Lower + "_desc.o(.rodata .rodata.* .constdata .constdata.*))");
+    List->push_back(std::string("    KEEP(*prc_")+Prc->Name_Lower+"_desc.o(.srodata .srodata.* .sconstdata .sconstdata.*))");
+    List->push_back(std::string("    KEEP(*prc_")+Prc->Name_Lower+"_desc.o(.rodata .rodata.* .constdata .constdata.*))");
     List->push_back("} > DESC");
     List->push_back("");
     List->push_back("/* Process code, srodata and rodata segment */");

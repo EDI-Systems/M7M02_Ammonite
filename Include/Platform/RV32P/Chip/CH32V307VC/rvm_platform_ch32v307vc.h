@@ -69,7 +69,7 @@ Description: The configuration file for CH32V307VC. The values listed here shoul
 #define RVM_RV32P_USART1_STATR_TC                       (0x00000040U)
 #define RVM_RV32P_USART1_DATAR                          RVM_RV32P_REG(0x40013804U)
 
-#if(RVM_DBGLOG_ENABLE==1U)
+#if(RVM_DBGLOG_ENABLE!=0U)
 /* Print characters to console */
 #define RVM_RV32P_PUTCHAR(CHAR) \
 do \
