@@ -436,6 +436,7 @@ struct RVM_Reg_Struct
     rvm_ptr_t X31_T6;
 };
 
+/* The coprocessor register set structure */
 #if(RVM_COP_NUM!=0U)
 #if(RVM_RV32P_COP_RVD==0U)
 /* Single-precision register set */

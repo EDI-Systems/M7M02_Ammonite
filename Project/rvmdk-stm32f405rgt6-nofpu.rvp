@@ -5,13 +5,13 @@
     <Assert_Enable>Yes</Assert_Enable>
     <Debug_Log_Enable>Yes</Debug_Log_Enable>
     <Pgtbl_Raw_Enable>No</Pgtbl_Raw_Enable>
-    <Buildsystem>Makefile</Buildsystem>
+    <Buildsystem>Keil</Buildsystem>
     <Workspace_Overwrite>No</Workspace_Overwrite>
     <Chip>
         <Platform>A7M</Platform>
         <Class>STM32F405RG</Class>
         <Name>STM32F405RGT6</Name>
-        <Coprocessor>FPV4_SP</Coprocessor>
+        <Coprocessor>None</Coprocessor>
         <Config>
             <NVIC_Grouping>P2S6</NVIC_Grouping>
             <Systick_Value>1680000</Systick_Value>
@@ -38,8 +38,8 @@
         <Extra_Kom>0x0</Extra_Kom>
         <Kom_Order>4</Kom_Order>
         <Kern_Prio>32</Kern_Prio>
-        <Buildsystem>Makefile</Buildsystem>
-        <Toolchain>GCC</Toolchain>
+        <Buildsystem>Keil</Buildsystem>
+        <Toolchain>ARMCC</Toolchain>
         <Optimization>O3</Optimization>
         <Full_Image>Yes</Full_Image>
         <Project_Output>./Kernel/Project/</Project_Output>
@@ -63,8 +63,8 @@
         <Virt_Prio>32</Virt_Prio>
         <Virt_Event>32</Virt_Event>
         <Virt_Map>32</Virt_Map>
-        <Buildsystem>Makefile</Buildsystem>
-        <Toolchain>GCC</Toolchain>
+        <Buildsystem>Keil</Buildsystem>
+        <Toolchain>ARMCC</Toolchain>
         <Optimization>O3</Optimization>
         <Project_Output>./Monitor/Project/</Project_Output>
         <Project_Overwrite>No</Project_Overwrite>
@@ -79,9 +79,9 @@
         <N0>
             <Name>Proc1</Name>
             <Extra_Captbl>9</Extra_Captbl>
-            <Coprocessor>FPV4_SP</Coprocessor>
-            <Buildsystem>Makefile</Buildsystem>
-            <Toolchain>GCC</Toolchain>
+            <Coprocessor>None</Coprocessor>
+            <Buildsystem>Keil</Buildsystem>
+            <Toolchain>ARMCC</Toolchain>
             <Optimization>O3</Optimization>
             <Project_Output>./Proc1/Project</Project_Output>
             <Project_Overwrite>No</Project_Overwrite>
@@ -153,9 +153,9 @@
         <N1>
             <Name>Proc2</Name>
             <Extra_Captbl>0</Extra_Captbl>
-            <Coprocessor>FPV4_SP</Coprocessor>
-            <Buildsystem>Makefile</Buildsystem>
-            <Toolchain>GCC</Toolchain>
+            <Coprocessor>None</Coprocessor>
+            <Buildsystem>Keil</Buildsystem>
+            <Toolchain>ARMCC</Toolchain>
             <Optimization>O3</Optimization>
             <Project_Output>./Proc2/Project</Project_Output>
             <Project_Overwrite>No</Project_Overwrite>
@@ -229,7 +229,7 @@
         <V0>
             <Name>Virt1</Name>
             <Extra_Captbl>0</Extra_Captbl>
-            <Coprocessor>FPV4_SP</Coprocessor>
+            <Coprocessor>None</Coprocessor>
             <Vector_Stack_Size>0x400</Vector_Stack_Size>
             <User_Stack_Size>0x400</User_Stack_Size>
             <Priority>5</Priority>
@@ -238,8 +238,8 @@
             <Watchdog>0</Watchdog>
             <Vector_Num>4</Vector_Num>
             <Guest_Type>RMP</Guest_Type>
-            <Buildsystem>Makefile</Buildsystem>
-            <Toolchain>GCC</Toolchain>
+            <Buildsystem>Keil</Buildsystem>
+            <Toolchain>ARMCC</Toolchain>
             <Optimization>O3</Optimization>
             <Project_Output>./Virt1/Project</Project_Output>
             <Project_Overwrite>No</Project_Overwrite>

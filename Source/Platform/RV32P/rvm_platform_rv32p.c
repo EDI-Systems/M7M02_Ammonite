@@ -95,9 +95,13 @@ Return      : rme_ptr_t - The coprocessor context size.
 ******************************************************************************/
 rvm_ptr_t RVM_Thd_Cop_Size(rvm_ptr_t Attr)
 {
+#if(RVM_COP_NUM!=0U)
     if(Attr!=RVM_RV32P_ATTR_NONE)
         return sizeof(struct RVM_RV32P_Cop_Struct);
-            
+#else
+    RVM_ASSERT(Attr==RVM_RV32P_ATTR_NONE);
+#endif
+
     return 0U;
 }
 /* End Function:RVM_Thd_Cop_Size *********************************************/

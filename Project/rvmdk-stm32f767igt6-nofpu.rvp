@@ -5,16 +5,16 @@
     <Assert_Enable>Yes</Assert_Enable>
     <Debug_Log_Enable>Yes</Debug_Log_Enable>
     <Pgtbl_Raw_Enable>No</Pgtbl_Raw_Enable>
-    <Buildsystem>Makefile</Buildsystem>
+    <Buildsystem>Keil</Buildsystem>
     <Workspace_Overwrite>No</Workspace_Overwrite>
     <Chip>
         <Platform>A7M</Platform>
-        <Class>STM32F405RG</Class>
-        <Name>STM32F405RGT6</Name>
-        <Coprocessor>FPV4_SP</Coprocessor>
+        <Class>STM32F767IG</Class>
+        <Name>STM32F767IGT6</Name>
+        <Coprocessor>None</Coprocessor>
         <Config>
             <NVIC_Grouping>P2S6</NVIC_Grouping>
-            <Systick_Value>1680000</Systick_Value>
+            <Systick_Value>2160000</Systick_Value>
         </Config>
     </Chip>
     <Extmem>
@@ -31,15 +31,15 @@
     </Shmem>
     <Kernel>
         <Code_Base>0x08000000</Code_Base>
-        <Code_Size>0x10000</Code_Size>
-        <Data_Base>0x10000000</Data_Base>
-        <Data_Size>0x3000</Data_Size>
-        <Stack_Size>0x800</Stack_Size>
+        <Code_Size>0x20000</Code_Size>
+        <Data_Base>0x20000000</Data_Base>
+        <Data_Size>0x10000</Data_Size>
+        <Stack_Size>0x1000</Stack_Size>
         <Extra_Kom>0x0</Extra_Kom>
         <Kom_Order>4</Kom_Order>
         <Kern_Prio>32</Kern_Prio>
-        <Buildsystem>Makefile</Buildsystem>
-        <Toolchain>GCC</Toolchain>
+        <Buildsystem>Keil</Buildsystem>
+        <Toolchain>ARMCC</Toolchain>
         <Optimization>O3</Optimization>
         <Full_Image>Yes</Full_Image>
         <Project_Output>./Kernel/Project/</Project_Output>
@@ -55,17 +55,17 @@
     </Kernel>
     <Monitor>
         <Code_Size>0x10000</Code_Size>
-        <Data_Size>0x4000</Data_Size>
-        <Init_Stack_Size>0x800</Init_Stack_Size>
+        <Data_Size>0x10000</Data_Size>
+        <Init_Stack_Size>0x200</Init_Stack_Size>
         <Sftd_Stack_Size>0x800</Sftd_Stack_Size>
-        <Vmmd_Stack_Size>0x800</Vmmd_Stack_Size>
+        <Vmmd_Stack_Size>0x1000</Vmmd_Stack_Size>
         <Extra_Captbl>32</Extra_Captbl>
+        <Optimization>O3</Optimization>
         <Virt_Prio>32</Virt_Prio>
         <Virt_Event>32</Virt_Event>
-        <Virt_Map>32</Virt_Map>
-        <Buildsystem>Makefile</Buildsystem>
-        <Toolchain>GCC</Toolchain>
-        <Optimization>O3</Optimization>
+        <Virt_Map>128</Virt_Map>
+        <Buildsystem>Keil</Buildsystem>
+        <Toolchain>ARMCC</Toolchain>
         <Project_Output>./Monitor/Project/</Project_Output>
         <Project_Overwrite>No</Project_Overwrite>
         <Linker_Output>./</Linker_Output>
@@ -79,11 +79,11 @@
         <N0>
             <Name>Proc1</Name>
             <Extra_Captbl>9</Extra_Captbl>
-            <Coprocessor>FPV4_SP</Coprocessor>
-            <Buildsystem>Makefile</Buildsystem>
-            <Toolchain>GCC</Toolchain>
+            <Coprocessor>None</Coprocessor>
+            <Buildsystem>Keil</Buildsystem>
+            <Toolchain>ARMCC</Toolchain>
             <Optimization>O3</Optimization>
-            <Project_Output>./Proc1/Project</Project_Output>
+            <Project_Output>./Proc1/Project/</Project_Output>
             <Project_Overwrite>No</Project_Overwrite>
             <Linker_Output>./</Linker_Output>
             <Main_Header_Output>../Include/</Main_Header_Output>
@@ -93,16 +93,16 @@
             <Memory>
                 <M0>
                     <Name>P1_Code</Name>
-                    <Base>0x08020000</Base>
-                    <Size>0x8000</Size>
+                    <Base>Auto</Base>
+                    <Size>0x10000</Size>
                     <Align>Auto</Align>
                     <Type>Code</Type>
                     <Attribute>RXBCS</Attribute>
                 </M0>
                 <M1>
                     <Name>P1_Data</Name>
-                    <Base>0x20000000</Base>
-                    <Size>0x9000</Size>
+                    <Base>Auto</Base>
+                    <Size>0x10000</Size>
                     <Align>Auto</Align>
                     <Type>Data</Type>
                     <Attribute>RWXBCS</Attribute>
@@ -111,13 +111,14 @@
             <Shmem>
                 <S0>
                     <Name>S_Data</Name>
+                    <Type>Data</Type>
                     <Attribute>RWBCS</Attribute>
                 </S0>
             </Shmem>
             <Thread>
                 <T0>
                     <Name>Thd1</Name>
-                    <Stack_Size>0x200</Stack_Size>
+                    <Stack_Size>0x1000</Stack_Size>
                     <Parameter>0x1234</Parameter>
                     <Priority>17</Priority>
                 </T0>
@@ -153,22 +154,22 @@
         <N1>
             <Name>Proc2</Name>
             <Extra_Captbl>0</Extra_Captbl>
-            <Coprocessor>FPV4_SP</Coprocessor>
-            <Buildsystem>Makefile</Buildsystem>
-            <Toolchain>GCC</Toolchain>
+            <Coprocessor>None</Coprocessor>
+            <Buildsystem>Keil</Buildsystem>
+            <Toolchain>ARMCC</Toolchain>
             <Optimization>O3</Optimization>
-            <Project_Output>./Proc2/Project</Project_Output>
+            <Project_Output>./Proc2/Project/</Project_Output>
             <Project_Overwrite>No</Project_Overwrite>
             <Linker_Output>./</Linker_Output>
-            <Main_Header_Output>../Include</Main_Header_Output>
-            <Main_Source_Output>../Source</Main_Source_Output>
-            <Entry_Source_Output>../Source</Entry_Source_Output>
+            <Main_Header_Output>../Include/</Main_Header_Output>
+            <Main_Source_Output>../Source/</Main_Source_Output>
+            <Entry_Source_Output>../Source/</Entry_Source_Output>
             <Entry_Source_Overwrite>No</Entry_Source_Overwrite>
             <Memory>
                 <M0>
                     <Name>P2_Code</Name>
                     <Base>Auto</Base>
-                    <Size>0x8000</Size>
+                    <Size>0x10000</Size>
                     <Align>Auto</Align>
                     <Type>Code</Type>
                     <Attribute>RXBCS</Attribute>
@@ -176,7 +177,7 @@
                 <M1>
                     <Name>P2_Data</Name>
                     <Base>Auto</Base>
-                    <Size>0x4000</Size>
+                    <Size>0x10000</Size>
                     <Align>Auto</Align>
                     <Type>Data</Type>
                     <Attribute>RWXBCS</Attribute>
@@ -185,13 +186,14 @@
             <Shmem>
                 <S0>
                     <Name>S_Data</Name>
+                    <Type>Data</Type>
                     <Attribute>RWBCS</Attribute>
                 </S0>
             </Shmem>
             <Thread>
                 <T0>
                     <Name>Thd1</Name>
-                    <Stack_Size>0x200</Stack_Size>
+                    <Stack_Size>0x1000</Stack_Size>
                     <Parameter>0x1234</Parameter>
                     <Priority>16</Priority>
                 </T0>
@@ -229,7 +231,7 @@
         <V0>
             <Name>Virt1</Name>
             <Extra_Captbl>0</Extra_Captbl>
-            <Coprocessor>FPV4_SP</Coprocessor>
+            <Coprocessor>None</Coprocessor>
             <Vector_Stack_Size>0x400</Vector_Stack_Size>
             <User_Stack_Size>0x400</User_Stack_Size>
             <Priority>5</Priority>
@@ -238,17 +240,17 @@
             <Watchdog>0</Watchdog>
             <Vector_Num>4</Vector_Num>
             <Guest_Type>RMP</Guest_Type>
-            <Buildsystem>Makefile</Buildsystem>
-            <Toolchain>GCC</Toolchain>
+            <Buildsystem>Keil</Buildsystem>
+            <Toolchain>ARMCC</Toolchain>
             <Optimization>O3</Optimization>
-            <Project_Output>./Virt1/Project</Project_Output>
+            <Project_Output>./Virt1/Project/</Project_Output>
             <Project_Overwrite>No</Project_Overwrite>
             <Linker_Output>./</Linker_Output>
-            <Main_Header_Output>../Include</Main_Header_Output>
-            <Main_Source_Output>../Source</Main_Source_Output>
-            <Virtual_Header_Output>../Include</Virtual_Header_Output>
+            <Main_Header_Output>../Include/</Main_Header_Output>
+            <Main_Source_Output>../Source/</Main_Source_Output>
+            <Virtual_Header_Output>../Include/</Virtual_Header_Output>
             <Virtual_Header_Overwrite>No</Virtual_Header_Overwrite>
-            <Virtual_Source_Output>../Source</Virtual_Source_Output>
+            <Virtual_Source_Output>../Source/</Virtual_Source_Output>
             <Virtual_Source_Overwrite>No</Virtual_Source_Overwrite>
             <Memory>
                 <M0>
@@ -265,7 +267,7 @@
                     <Size>0x10000</Size>
                     <Align>Auto</Align>
                     <Type>Data</Type>
-                    <Attribute>RWXBCS</Attribute>
+                    <Attribute>RWBCS</Attribute>
                 </M1>
                 <M2>
                     <Name>V_Device</Name>
@@ -279,6 +281,7 @@
             <Shmem>
                 <S0>
                     <Name>S_Data</Name>
+                    <Type>Data</Type>
                     <Attribute>RWBCS</Attribute>
                 </S0>
             </Shmem>

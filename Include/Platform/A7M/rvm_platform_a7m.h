@@ -391,8 +391,8 @@ struct RVM_Reg_Struct
     rvm_ptr_t LR;
 };
 
-/* The coprocessor register set structure. In Cortex-M, if there is a 
- * single-precision FPU, then the FPU S0-S15 is automatically pushed */
+/* The coprocessor register set structure */
+#if(RVM_COP_NUM!=0U)
 struct RVM_A7M_Cop_Struct
 {
     rvm_ptr_t S16;
@@ -412,6 +412,7 @@ struct RVM_A7M_Cop_Struct
     rvm_ptr_t S30;
     rvm_ptr_t S31;
 };
+#endif
 
 struct RVM_Exc_Struct
 {

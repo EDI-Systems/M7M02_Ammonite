@@ -2,11 +2,11 @@
 <Project>
     <Name>RVM</Name>
     <Version>1.0</Version>
-	<Assert_Enable>Yes</Assert_Enable>
-	<Debug_Log_Enable>Yes</Debug_Log_Enable>
-	<Pgtbl_Raw_Enable>No</Pgtbl_Raw_Enable>
-	<Buildsystem>Keil</Buildsystem>
-	<Workspace_Overwrite>No</Workspace_Overwrite>
+    <Assert_Enable>Yes</Assert_Enable>
+    <Debug_Log_Enable>Yes</Debug_Log_Enable>
+    <Pgtbl_Raw_Enable>No</Pgtbl_Raw_Enable>
+    <Buildsystem>Keil</Buildsystem>
+    <Workspace_Overwrite>No</Workspace_Overwrite>
     <Chip>
         <Platform>A6M</Platform>
         <Class>STM32L071CB</Class>
@@ -37,20 +37,20 @@
         <Extra_Kom>0x0</Extra_Kom>
         <Kom_Order>4</Kom_Order>
         <Kern_Prio>32</Kern_Prio>
-		<Buildsystem>Keil</Buildsystem>
-		<Toolchain>ARMCC</Toolchain>
-		<Optimization>Os</Optimization>
-		<Full_Image>Yes</Full_Image>
-		<Project_Output>./Kernel/Project/</Project_Output>
-		<Project_Overwrite>No</Project_Overwrite>
-		<Linker_Output>./</Linker_Output>
-		<Config_Header_Output>../Include/</Config_Header_Output>
-		<Boot_Header_Output>../Include/</Boot_Header_Output>
-		<Boot_Source_Output>../Source/</Boot_Source_Output>
-		<Hook_Source_Output>../Source/</Hook_Source_Output>
-		<Hook_Source_Overwrite>No</Hook_Source_Overwrite>
-		<Handler_Source_Output>../Source/</Handler_Source_Output>
-		<Handler_Source_Overwrite>No</Handler_Source_Overwrite>
+        <Buildsystem>Keil</Buildsystem>
+        <Toolchain>ARMCC</Toolchain>
+        <Optimization>Os</Optimization>
+        <Full_Image>Yes</Full_Image>
+        <Project_Output>./Kernel/Project/</Project_Output>
+        <Project_Overwrite>No</Project_Overwrite>
+        <Linker_Output>./</Linker_Output>
+        <Config_Header_Output>../Include/</Config_Header_Output>
+        <Boot_Header_Output>../Include/</Boot_Header_Output>
+        <Boot_Source_Output>../Source/</Boot_Source_Output>
+        <Hook_Source_Output>../Source/</Hook_Source_Output>
+        <Hook_Source_Overwrite>No</Hook_Source_Overwrite>
+        <Handler_Source_Output>../Source/</Handler_Source_Output>
+        <Handler_Source_Overwrite>No</Handler_Source_Overwrite>
     </Kernel>
     <Monitor>
         <Code_Size>0x8000</Code_Size>
@@ -62,33 +62,33 @@
         <Virt_Prio>32</Virt_Prio>
         <Virt_Event>32</Virt_Event>
         <Virt_Map>32</Virt_Map>
-		<Buildsystem>Keil</Buildsystem>
-		<Toolchain>ARMCC</Toolchain>
+        <Buildsystem>Keil</Buildsystem>
+        <Toolchain>ARMCC</Toolchain>
         <Optimization>Os</Optimization>
-		<Project_Output>./Monitor/Project/</Project_Output>
-		<Project_Overwrite>No</Project_Overwrite>
-		<Linker_Output>./</Linker_Output>
-		<Config_Header_Output>./Include/</Config_Header_Output>
-		<Boot_Header_Output>./Include/</Boot_Header_Output>
-		<Boot_Source_Output>./Source/</Boot_Source_Output>
-		<Hook_Source_Output>./Source/</Hook_Source_Output>
-		<Hook_Source_Overwrite>No</Hook_Source_Overwrite>
+        <Project_Output>./Monitor/Project/</Project_Output>
+        <Project_Overwrite>No</Project_Overwrite>
+        <Linker_Output>./</Linker_Output>
+        <Config_Header_Output>./Include/</Config_Header_Output>
+        <Boot_Header_Output>./Include/</Boot_Header_Output>
+        <Boot_Source_Output>./Source/</Boot_Source_Output>
+        <Hook_Source_Output>./Source/</Hook_Source_Output>
+        <Hook_Source_Overwrite>No</Hook_Source_Overwrite>
     </Monitor>
     <Native>
         <N0>
             <Name>Proc1</Name>
             <Extra_Captbl>0</Extra_Captbl>
             <Coprocessor>None</Coprocessor>
-			<Buildsystem>Keil</Buildsystem>
-			<Toolchain>ARMCC</Toolchain>
+            <Buildsystem>Keil</Buildsystem>
+            <Toolchain>ARMCC</Toolchain>
             <Optimization>Os</Optimization>
-			<Project_Output>./Proc1/Project/</Project_Output>
-			<Project_Overwrite>No</Project_Overwrite>
-			<Linker_Output>./</Linker_Output>
-			<Main_Header_Output>../Include/</Main_Header_Output>
-			<Main_Source_Output>../Source/</Main_Source_Output>
-			<Entry_Source_Output>../Source/</Entry_Source_Output>
-			<Entry_Source_Overwrite>No</Entry_Source_Overwrite>
+            <Project_Output>./Proc1/Project/</Project_Output>
+            <Project_Overwrite>No</Project_Overwrite>
+            <Linker_Output>./</Linker_Output>
+            <Main_Header_Output>../Include/</Main_Header_Output>
+            <Main_Source_Output>../Source/</Main_Source_Output>
+            <Entry_Source_Output>../Source/</Entry_Source_Output>
+            <Entry_Source_Overwrite>No</Entry_Source_Overwrite>
             <Memory>
                 <M0>
                     <Name>P1_Code</Name>
@@ -154,16 +154,16 @@
             <Name>Proc2</Name>
             <Extra_Captbl>0</Extra_Captbl>
             <Coprocessor>None</Coprocessor>
-			<Buildsystem>Keil</Buildsystem>
-			<Toolchain>ARMCC</Toolchain>
+            <Buildsystem>Keil</Buildsystem>
+            <Toolchain>ARMCC</Toolchain>
             <Optimization>Os</Optimization>
-			<Project_Output>./Proc2/Project/</Project_Output>
-			<Project_Overwrite>No</Project_Overwrite>
-			<Linker_Output>./</Linker_Output>
-			<Main_Header_Output>../Include/</Main_Header_Output>
-			<Main_Source_Output>../Source/</Main_Source_Output>
-			<Entry_Source_Output>../Source/</Entry_Source_Output>
-			<Entry_Source_Overwrite>No</Entry_Source_Overwrite>
+            <Project_Output>./Proc2/Project/</Project_Output>
+            <Project_Overwrite>No</Project_Overwrite>
+            <Linker_Output>./</Linker_Output>
+            <Main_Header_Output>../Include/</Main_Header_Output>
+            <Main_Source_Output>../Source/</Main_Source_Output>
+            <Entry_Source_Output>../Source/</Entry_Source_Output>
+            <Entry_Source_Overwrite>No</Entry_Source_Overwrite>
             <Memory>
                 <M0>
                     <Name>P2_Code</Name>
@@ -238,19 +238,19 @@
             <Period>100</Period>
             <Watchdog>0</Watchdog>
             <Vector_Num>4</Vector_Num>
-			<Guest_Type>RMP</Guest_Type>
-			<Buildsystem>Keil</Buildsystem>
-			<Toolchain>ARMCC</Toolchain>
-			<Optimization>Os</Optimization>
-			<Project_Output>./Virt1/Project/</Project_Output>
-			<Project_Overwrite>No</Project_Overwrite>
-			<Linker_Output>./</Linker_Output>
-			<Main_Header_Output>../Include/</Main_Header_Output>
-			<Main_Source_Output>../Source/</Main_Source_Output>
-			<Virtual_Header_Output>../Include/</Virtual_Header_Output>
-			<Virtual_Header_Overwrite>No</Virtual_Header_Overwrite>
-			<Virtual_Source_Output>../Source/</Virtual_Source_Output>
-			<Virtual_Source_Overwrite>No</Virtual_Source_Overwrite>
+            <Guest_Type>RMP</Guest_Type>
+            <Buildsystem>Keil</Buildsystem>
+            <Toolchain>ARMCC</Toolchain>
+            <Optimization>Os</Optimization>
+            <Project_Output>./Virt1/Project/</Project_Output>
+            <Project_Overwrite>No</Project_Overwrite>
+            <Linker_Output>./</Linker_Output>
+            <Main_Header_Output>../Include/</Main_Header_Output>
+            <Main_Source_Output>../Source/</Main_Source_Output>
+            <Virtual_Header_Output>../Include/</Virtual_Header_Output>
+            <Virtual_Header_Overwrite>No</Virtual_Header_Overwrite>
+            <Virtual_Source_Output>../Source/</Virtual_Source_Output>
+            <Virtual_Source_Overwrite>No</Virtual_Source_Overwrite>
             <Memory>
                 <M0>
                     <Name>V_Code</Name>
