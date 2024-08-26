@@ -82,7 +82,7 @@ extern "C"
 #include "Plat_Info/plat_info.hpp"
 #include "Conf_Info/conf_info.hpp"
 #include "Mem_Info/mem_info.hpp"
-#include "Gen_Tool/gen_tool.hpp"
+#include "Proj_Gen/proj_gen.hpp"
 #undef __HDR_DEF__
 
 #define __HDR_CLASS__
@@ -111,11 +111,11 @@ extern "C"
 #include "Vect_Info/vect_info.hpp"
 #include "Mem_Info/mem_info.hpp"
 
-#include "Gen_Tool/gen_tool.hpp"
-#include "Gen_Tool/Plat_Gen/plat_gen.hpp"
-#include "Gen_Tool/Build_Gen/build_gen.hpp"
-#include "Gen_Tool/Tool_Gen/tool_gen.hpp"
-#include "Gen_Tool/Guest_Gen/guest_gen.hpp"
+#include "Proj_Gen/proj_gen.hpp"
+#include "Proj_Gen/Plat_Gen/plat_gen.hpp"
+#include "Proj_Gen/Build_Gen/build_gen.hpp"
+#include "Proj_Gen/Tool_Gen/tool_gen.hpp"
+#include "Proj_Gen/Guest_Gen/guest_gen.hpp"
 #undef __HDR_CLASS__
 /* End Include ***************************************************************/
 namespace RVM_GEN
@@ -126,9 +126,13 @@ std::string Main::Kernel_Root;
 std::string Main::Monitor_Root;
 std::string Main::Guest_RMP_Root;
 std::string Main::Guest_FRT_Root;
+std::string Main::Guest_RTT_Root;
+std::string Main::Guest_UO2_Root;
+std::string Main::Guest_UO3_Root;
 std::string Main::Workspace_Output;
 ptr_t Main::Verbose=0;
 ptr_t Main::Dryrun=0;
+ptr_t Main::Benchmark=0;
 std::string Main::Time;
 /* End Global Variable *******************************************************/
 
@@ -718,7 +722,7 @@ void Main::Setup(void)
     try
     {
         /* Load platform toolset */
-        this->Gen=std::make_unique<class Gen_Tool>(this->Plat->Name,
+        this->Gen=std::make_unique<class Proj_Gen>(this->Plat->Name,
                                                    this->Proj.get(),this->Plat.get(),this->Chip.get());
 
         /* Load buildsystem toolset - only used ones will be loaded */
@@ -1828,12 +1832,36 @@ Return      : None.
                 Main::Guest_RMP_Root=Main::Path_Absolute(PATH_DIR, "", argv[Count+1]);
                 Count+=2;
             }
-            /* Input FRT root folder */
+            /* Input FreeRTOS root folder */
             if(strcmp(argv[Count],"-frt")==0)
             {
                 if(Main::Guest_FRT_Root!="")
                     Main::Error("XXXXX: More than one directory specified for the same guest.");
                 Main::Guest_FRT_Root=Main::Path_Absolute(PATH_DIR, "", argv[Count+1]);
+                Count+=2;
+            }
+            /* Input RT-Thread root folder */
+            if(strcmp(argv[Count],"-rtt")==0)
+            {
+                if(Main::Guest_RTT_Root!="")
+                    Main::Error("XXXXX: More than one directory specified for the same guest.");
+                Main::Guest_RTT_Root=Main::Path_Absolute(PATH_DIR, "", argv[Count+1]);
+                Count+=2;
+            }
+            /* Input uC/OS II root folder */
+            if(strcmp(argv[Count],"-uo2")==0)
+            {
+                if(Main::Guest_UO2_Root!="")
+                    Main::Error("XXXXX: More than one directory specified for the same guest.");
+                Main::Guest_UO2_Root=Main::Path_Absolute(PATH_DIR, "", argv[Count+1]);
+                Count+=2;
+            }
+            /* Input uC/OS III root folder */
+            if(strcmp(argv[Count],"-uo3")==0)
+            {
+                if(Main::Guest_UO3_Root!="")
+                    Main::Error("XXXXX: More than one directory specified for the same guest.");
+                Main::Guest_UO3_Root=Main::Path_Absolute(PATH_DIR, "", argv[Count+1]);
                 Count+=2;
             }
             /* Output workspace root folder */
@@ -1856,6 +1884,13 @@ Return      : None.
             {
                 Main::Dryrun=1;
                 Main::Info("Dry running mode enabled.");
+                Count+=1;
+            }
+            /* Benchmark mode */
+            else if(strcmp(argv[Count],"-b")==0)
+            {
+                Main::Benchmark=1;
+                Main::Info("Generating benchmark project - only works with default rvp.");
                 Count+=1;
             }
             else
@@ -1889,16 +1924,20 @@ Return      : None.
     catch(std::exception& Exc)
     {
         Main::Error(std::string("Command line parsing:\n")+Exc.what()+"\n"+
-                                "Usage: -p project.rvp -k kernel/ -m monitor/ -rmp rmp/ -frt frt/ -w workspace/\n"
+                                "Usage: -p project.rvp -k kernel/ -m monitor/ -rmp rmp/ -w workspace/\n"
                                 "       -p: Project description file.\n"
                                 "       -k: RME microkernel root folder.\n"
                                 "       -m: RVM hypervisor root folder.\n"
-                                "       -rmp: RMP RTOS root folder; needed when RMP is the guest.\n"
+                                "       -rmp: RMP root folder; needed when RMP is the guest.\n"
                                 "       -frt: FreeRTOS root folder; needed when FreeRTOS is the guest.\n"
+                                "       -rtt: RT-Thread root folder; needed when RT-Thread is the guest.\n"
+                                "       -uo2: uC/OS II root folder; needed when uC/OS II is the guest.\n"
+                                "       -uo3: uC/OS III root folder; needed when uC/OS III is the guest.\n"
                                 "       -w: Workspace output folder.\n"
                                 "Auxiliary parameters:\n"
                                 "       -v: Verbose mode.\n"
-                                "       -d: Perform a dry run instead of generating files.\n");
+                                "       -d: Perform a dry run instead of generating a project.\n"
+                                "       -b: Generate benchmark project (only works with default rvp).\n");
     }
 }
 /* End Function:Main::Main ***************************************************/
@@ -2426,6 +2465,7 @@ int main(int argc, char* argv[])
     try
     {
         std::unique_ptr<class Main> Main;
+
 /* Phase 1: Process command line and do parsing ******************************/
         Main=std::make_unique<class Main>(argc, argv);
         Main::Info("Running generator.");
@@ -2458,6 +2498,8 @@ int main(int argc, char* argv[])
             Main->Process_Gen();
             Main->Workspace_Gen();
         }
+
+/* Phase 5: Produce report ***************************************************/
         Main->Report_Gen();
     }
     catch(std::exception& Exc)

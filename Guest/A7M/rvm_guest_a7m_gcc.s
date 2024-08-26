@@ -105,8 +105,8 @@ RVM_Inv_Act:
     PUSH                {R4-R11}            /* Save registers */
     
     MOV                 R4,#0x10000         /* RVM_SVC_INV_ACT */
-    ORR                 R4,R0
-    MOV                 R5,R1               /* Parameter */
+    ORR                 R5,R0
+    MOV                 R6,R1               /* Parameter */
 
     SVC                 #0x00               /* System call */
     ISB

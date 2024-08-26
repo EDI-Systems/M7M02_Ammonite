@@ -20,12 +20,12 @@
     </Extmem>
     <Shmem>
         <S0>
-            <Name>Shared1</Name>
-            <Base>Auto</Base>
-            <Size>0x400</Size>
+            <Name>Device1</Name>
+            <Base>0x40000000</Base>
+            <Size>0x20000000</Size>
             <Align>Auto</Align>
-            <Type>Data</Type>
-            <Attribute>RWBCS</Attribute>
+            <Type>Device</Type>
+            <Attribute>RWS</Attribute>
         </S0>
     </Shmem>
     <Kernel>
@@ -58,13 +58,13 @@
         <Init_Stack_Size>0x800</Init_Stack_Size>
         <Sftd_Stack_Size>0x400</Sftd_Stack_Size>
         <Vmmd_Stack_Size>0x800</Vmmd_Stack_Size>
-        <Extra_Captbl>32</Extra_Captbl>
+        <Extra_Captbl>0</Extra_Captbl>
         <Virt_Prio>32</Virt_Prio>
         <Virt_Event>32</Virt_Event>
         <Virt_Map>32</Virt_Map>
         <Buildsystem>Makefile</Buildsystem>
         <Toolchain>GCC</Toolchain>
-        <Optimization>Os</Optimization>
+        <Optimization>O3</Optimization>
         <Project_Output>./Monitor/Project/</Project_Output>
         <Project_Overwrite>No</Project_Overwrite>
         <Linker_Output>./</Linker_Output>
@@ -77,7 +77,7 @@
     <Native>
         <N0>
             <Name>Proc1</Name>
-            <Extra_Captbl>9</Extra_Captbl>
+            <Extra_Captbl>0</Extra_Captbl>
             <Coprocessor>None</Coprocessor>
             <Buildsystem>Makefile</Buildsystem>
             <Toolchain>GCC</Toolchain>
@@ -91,41 +91,43 @@
             <Entry_Source_Overwrite>No</Entry_Source_Overwrite>
             <Memory>
                 <M0>
-                    <Name>Main_Code</Name>
-                    <Base>0x00010000</Base>
+                    <Name>Code1</Name>
+                    <Base>Auto</Base>
                     <Size>0x4000</Size>
-                    <Align>Auto</Align>
+                    <Align>14</Align>
                     <Type>Code</Type>
                     <Attribute>RXBCS</Attribute>
                 </M0>
                 <M1>
-                    <Name>Main_Data</Name>
-                    <Base>0x20007000</Base>
+                    <Name>Data1</Name>
+                    <Base>Auto</Base>
                     <Size>0x1000</Size>
-                    <Align>Auto</Align>
+                    <Align>12</Align>
                     <Type>Data</Type>
                     <Attribute>RWXBCS</Attribute>
                 </M1>
             </Memory>
             <Shmem>
                 <S0>
-                    <Name>Shared1</Name>
-                    <Attribute>RWBCS</Attribute>
+                    <Name>Device1</Name>
+                    <Attribute>RWS</Attribute>
                 </S0>
             </Shmem>
             <Thread>
                 <T0>
                     <Name>Thd1</Name>
-                    <Stack_Size>0x200</Stack_Size>
+                    <Stack_Size>0x400</Stack_Size>
                     <Parameter>0x1234</Parameter>
                     <Priority>17</Priority>
                 </T0>
+                <T1>
+                    <Name>Thd2</Name>
+                    <Stack_Size>0x400</Stack_Size>
+                    <Parameter>0x1234</Parameter>
+                    <Priority>16</Priority>
+                </T1>
             </Thread>
             <Invocation>
-                <I0>
-                    <Name>Inv1</Name>
-                    <Stack_Size>0x200</Stack_Size>
-                </I0>
             </Invocation>
             <Port>
                 <P0>
@@ -137,16 +139,40 @@
                 <R0>
                     <Name>Recv1</Name>
                 </R0>
+                <R1>
+                    <Name>Recv2</Name>
+                </R1>
             </Receive>
             <Send>
                 <S0>
                     <Name>Recv1</Name>
-                    <Process>Proc2</Process>
+                    <Process>Proc1</Process>
                 </S0>
+                <S1>
+                    <Name>Recv2</Name>
+                    <Process>Proc1</Process>
+                </S1>
+                <S2>
+                    <Name>Recv1</Name>
+                    <Process>Proc2</Process>
+                </S2>
+                <S3>
+                    <Name>Recv2</Name>
+                    <Process>Proc2</Process>
+                </S3>
             </Send>
             <Vector>
+                <V0>
+                    <Name>Tim4</Name>
+                    <Number>46</Number>
+                </V0>
             </Vector>
             <Kfunc>
+                <K0>
+                    <Name>Int_Local_Mod</Name>
+                    <Begin>0xF100</Begin>
+                    <End>0xF100</End>
+                </K0>
             </Kfunc>
         </N0>
         <N1>
@@ -165,58 +191,75 @@
             <Entry_Source_Overwrite>No</Entry_Source_Overwrite>
             <Memory>
                 <M0>
-                    <Name>Main_Code</Name>
+                    <Name>Code1</Name>
                     <Base>Auto</Base>
                     <Size>0x4000</Size>
-                    <Align>Auto</Align>
+                    <Align>14</Align>
                     <Type>Code</Type>
                     <Attribute>RXBCS</Attribute>
                 </M0>
                 <M1>
-                    <Name>Main_Data</Name>
+                    <Name>Data1</Name>
                     <Base>Auto</Base>
                     <Size>0x1000</Size>
-                    <Align>Auto</Align>
+                    <Align>12</Align>
                     <Type>Data</Type>
                     <Attribute>RWXBCS</Attribute>
                 </M1>
             </Memory>
             <Shmem>
                 <S0>
-                    <Name>Shared1</Name>
-                    <Attribute>RWBCS</Attribute>
+                    <Name>Device1</Name>
+                    <Attribute>RWS</Attribute>
                 </S0>
             </Shmem>
             <Thread>
                 <T0>
                     <Name>Thd1</Name>
-                    <Stack_Size>0x200</Stack_Size>
+                    <Stack_Size>0x400</Stack_Size>
+                    <Parameter>0x1234</Parameter>
+                    <Priority>17</Priority>
+                </T0>
+                <T1>
+                    <Name>Thd2</Name>
+                    <Stack_Size>0x400</Stack_Size>
                     <Parameter>0x1234</Parameter>
                     <Priority>16</Priority>
-                </T0>
+                </T1>
             </Thread>
             <Invocation>
                 <I0>
                     <Name>Inv1</Name>
-                    <Stack_Size>0x200</Stack_Size>
+                    <Stack_Size>0x400</Stack_Size>
                 </I0>
             </Invocation>
             <Port>
-                <P0>
-                    <Name>Inv1</Name>
-                    <Process>Proc1</Process>
-                </P0>
             </Port>
             <Receive>
                 <R0>
-                     <Name>Recv1</Name>
+                    <Name>Recv1</Name>
                 </R0>
+                <R1>
+                    <Name>Recv2</Name>
+                </R1>
             </Receive>
             <Send>
                 <S0>
                     <Name>Recv1</Name>
                     <Process>Proc1</Process>
                 </S0>
+                <S1>
+                    <Name>Recv2</Name>
+                    <Process>Proc1</Process>
+                </S1>
+                <S2>
+                    <Name>Recv1</Name>
+                    <Process>Proc2</Process>
+                </S2>
+                <S3>
+                    <Name>Recv2</Name>
+                    <Process>Proc2</Process>
+                </S3>
             </Send>
             <Vector>
             </Vector>
@@ -251,7 +294,7 @@
             <Virtual_Source_Overwrite>No</Virtual_Source_Overwrite>
             <Memory>
                 <M0>
-                    <Name>Main_Code</Name>
+                    <Name>Code1</Name>
                     <Base>Auto</Base>
                     <Size>0x10000</Size>
                     <Align>16</Align>
@@ -259,23 +302,19 @@
                     <Attribute>RXBCS</Attribute>
                 </M0>
                 <M1>
-                    <Name>Main_Data</Name>
+                    <Name>Data1</Name>
                     <Base>Auto</Base>
                     <Size>0x8000</Size>
-                    <Align>Auto</Align>
+                    <Align>15</Align>
                     <Type>Data</Type>
                     <Attribute>RWXBCS</Attribute>
                 </M1>
-                <M2>
-                    <Name>Main_Device</Name>
-                    <Base>0x40000000</Base>
-                    <Size>0x20000000</Size>
-                    <Align>Auto</Align>
-                    <Type>Device</Type>
-                    <Attribute>RWS</Attribute>
-                </M2>
             </Memory>
             <Shmem>
+                <S0>
+                    <Name>Device1</Name>
+                    <Attribute>RWS</Attribute>
+                </S0>
             </Shmem>
             <Send>
                 <S0>

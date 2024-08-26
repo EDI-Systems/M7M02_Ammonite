@@ -102,15 +102,19 @@ public:
     static std::string Monitor_Root;
     static std::string Guest_RMP_Root;
     static std::string Guest_FRT_Root;
+    static std::string Guest_RTT_Root;
+    static std::string Guest_UO2_Root;
+    static std::string Guest_UO3_Root;
     static std::string Workspace_Output;
     static ptr_t Verbose;
     static ptr_t Dryrun;
+    static ptr_t Benchmark;
 
     /* XML database */
     std::unique_ptr<class Proj_Info> Proj;
     std::unique_ptr<class Chip_Info> Chip;
     std::unique_ptr<class Plat_Info> Plat;
-    std::unique_ptr<class Gen_Tool> Gen;
+    std::unique_ptr<class Proj_Gen> Gen;
 
     /* void */ Main(int argc, char* argv[]);
 

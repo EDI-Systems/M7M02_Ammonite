@@ -5,7 +5,7 @@
     <Platform>RV32P</Platform>
     <Compatible>CH32V307VCT6</Compatible>
     <Vendor>WCH</Vendor>
-    <Vector>110</Vector>
+    <Vector>104</Vector>
     <Region>3</Region>
     <Iregion>0</Iregion>
     <Dregion>0</Dregion>

@@ -36,8 +36,9 @@ public:
     /* Class */
     std::string Class;
     std::string Class_Lower;
-    /* The vendor */
+    /* Full chip name */
     std::string Name;
+    std::string Name_Lower;
     /* Selected coprocessors in this project */
     std::vector<std::string> Coprocessor;
     std::set<std::string> Coprocessor_Set;

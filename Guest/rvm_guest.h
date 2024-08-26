@@ -510,9 +510,9 @@ RVM_EXTERN rvm_ret_t RVM_Hyp_Crt(rvm_cid_t Cap_Cpt,
 RVM_EXTERN rvm_ret_t RVM_Thd_Del(rvm_cid_t Cap_Cpt,
                                  rvm_cid_t Cap_Thd);
 RVM_EXTERN rvm_ret_t RVM_Thd_Exec_Set(rvm_cid_t Cap_Thd,
-                                      rvm_ptr_t Entry,
-                                      rvm_ptr_t Stack,
-                                      rvm_ptr_t Param);
+                                      void* Entry,
+                                      void* Stack,
+                                      void* Param);
 RVM_EXTERN rvm_ret_t RVM_Thd_Sched_Bind(rvm_cid_t Cap_Thd,
                                         rvm_cid_t Cap_Thd_Sched,
                                         rvm_cid_t Cap_Sig,

@@ -142,8 +142,9 @@ RVM_Inv_Act:
     SW                  x3,1*4(sp)
     SW                  x1,0*4(sp)
     
-    LI                  a2,0x10000          /* RVM_SVC_INV_ACT */
-    OR                  a0,a0,a2
+    MV                  a2,a1
+    MV                  a1,a0
+    LI                  a0,0x10000          /* RVM_SVC_INV_ACT */
     ECALL                                   /* System call */
 
     LW                  x1,0*4(sp)          /* Load GP registers except for zero, sp, a0 and a1 */

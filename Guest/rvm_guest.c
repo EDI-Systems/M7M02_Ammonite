@@ -949,22 +949,22 @@ Description : Set a thread's entry point and stack. The registers will be
               initialized with these contents.
 Input       : rvm_cid_t Cap_Thd - The capability to the thread.
                                   2-Level.
-              rvm_ptr_t Entry - The entry address of the thread.
-              rvm_ptr_t Stack - The stack address to use for execution.
-              rvm_ptr_t Param - The parameter to pass to the thread.
+              void* Entry - The entry address of the thread.
+              void* Stack - The stack address to use for execution.
+              void* Param - The parameter to pass to the thread.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 rvm_ret_t RVM_Thd_Exec_Set(rvm_cid_t Cap_Thd,
-                           rvm_ptr_t Entry,
-                           rvm_ptr_t Stack,
-                           rvm_ptr_t Param)
+                           void* Entry,
+                           void* Stack,
+                           void* Param)
 {
     return RVM_SVC(RVM_SVC_THD_EXEC_SET,
                    Cap_Thd,
-                   Entry, 
-                   Stack,
-                   Param);
+                   (rvm_ptr_t)Entry, 
+                   (rvm_ptr_t)Stack,
+                   (rvm_ptr_t)Param);
 }
 /* End Function:RVM_Thd_Exec_Set *********************************************/
 

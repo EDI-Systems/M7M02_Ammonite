@@ -1371,22 +1371,22 @@ Description : Set a thread's entry point and stack. The registers will be
               initialized with these contents.
 Input       : rvm_cid_t Cap_Thd - The capability to the thread.
                                   2-Level.
-              rvm_ptr_t Entry - The entry address of the thread.
-              rvm_ptr_t Stack - The stack address to use for execution.
-              rvm_ptr_t Param - The parameter to pass to the thread.
+              void* Entry - The entry address of the thread.
+              void* Stack - The stack address to use for execution.
+              void* Param - The parameter to pass to the thread.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 rvm_ret_t RVM_Thd_Exec_Set(rvm_cid_t Cap_Thd,
-                           rvm_ptr_t Entry,
-                           rvm_ptr_t Stack,
-                           rvm_ptr_t Param)
+                           void* Entry,
+                           void* Stack,
+                           void* Param)
 {
     return RVM_SVC(RVM_SVC_THD_EXEC_SET,
                    Cap_Thd,
-                   Entry, 
-                   Stack,
-                   Param);
+                   (rvm_ptr_t)Entry, 
+                   (rvm_ptr_t)Stack,
+                   (rvm_ptr_t)Param);
 }
 /* End Function:RVM_Thd_Exec_Set *********************************************/
 
@@ -2499,8 +2499,8 @@ static void _RVM_Boot_Thd_Init(void)
         
         /* Set execution info and transfer time */
         RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Meta_Thd_Init[Count].Thd,
-                                    Init_Entry,Init_Stack,
-                                    RVM_Meta_Thd_Init[Count].Param)==0);
+                                    (void*)Init_Entry,(void*)Init_Stack,
+                                    (void*)RVM_Meta_Thd_Init[Count].Param)==0);
         
         RVM_ASSERT(RVM_Thd_Time_Xfer(RVM_Meta_Thd_Init[Count].Thd,
                                      RVM_BOOT_INIT_THD,
@@ -2741,7 +2741,7 @@ static void _RVM_Daemon_Init(rvm_cid_t Cap_Base,
     RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Sftd_Thd_Cap,RVM_BOOT_INIT_THD,RVM_Sftd_Sig_Cap,RVM_Sftd_Thd_Cap,RVM_PREEMPT_PRIO_NUM-1U)==0);
     Init_Entry=(rvm_ptr_t)RVM_Sftd;
     Init_Stack=RVM_Stack_Init(RVM_SFTD_STACK_BASE,RVM_SFTD_STACK_SIZE,&Init_Entry,(rvm_ptr_t)__RVM_Stub);
-    RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Sftd_Thd_Cap,Init_Entry,Init_Stack,0U)==0);
+    RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Sftd_Thd_Cap,(void*)Init_Entry,(void*)Init_Stack,RVM_NULL)==0);
     RVM_DBG_S("Init: Safety daemon initialization complete.\r\n");
 
 #if(RVM_VIRT_NUM!=0U)
@@ -2755,7 +2755,7 @@ static void _RVM_Daemon_Init(rvm_cid_t Cap_Base,
     RVM_ASSERT(RVM_Thd_Sched_Bind(RVM_Vmmd_Thd_Cap,RVM_Sftd_Thd_Cap,RVM_Sftd_Sig_Cap,RVM_Vmmd_Thd_Cap,RVM_VMMD_PRIO)==0);
     Init_Entry=(rvm_ptr_t)RVM_Vmmd;
     Init_Stack=RVM_Stack_Init(RVM_VMMD_STACK_BASE,RVM_VMMD_STACK_SIZE,&Init_Entry,(rvm_ptr_t)__RVM_Stub);
-    RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Vmmd_Thd_Cap,Init_Entry,Init_Stack,0U)==0);
+    RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Vmmd_Thd_Cap,(void*)Init_Entry,(void*)Init_Stack,RVM_NULL)==0);
     RVM_DBG_S("Init: Main daemon initialization complete.\r\n");
 #endif
 }
@@ -3148,13 +3148,15 @@ static void _RVM_Virt_Recover(void)
     Init_Entry=RVM_DESC_ENTRY(RVM_Virt_Cur->Map->Desc_Base,0U);
     Init_Stack=RVM_Stack_Init(RVM_Virt_Cur->Map->Vct_Stack_Base,RVM_Virt_Cur->Map->Vct_Stack_Size,
                               &Init_Entry,RVM_DESC_STUB(RVM_Virt_Cur->Map->Desc_Base));
-    RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Virt_Cur->Map->Vct_Thd_Cap,Init_Entry,Init_Stack,0U)==0);
+    RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Virt_Cur->Map->Vct_Thd_Cap,
+                                (void*)Init_Entry,(void*)Init_Stack,RVM_NULL)==0);
     
     /* Set the execution properties for user @ position 1 */
     Init_Entry=RVM_DESC_ENTRY(RVM_Virt_Cur->Map->Desc_Base,1U);
     Init_Stack=RVM_Stack_Init(RVM_Virt_Cur->Map->Usr_Stack_Base, RVM_Virt_Cur->Map->Usr_Stack_Size,
                               &Init_Entry,RVM_DESC_STUB(RVM_Virt_Cur->Map->Desc_Base));
-    RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Virt_Cur->Map->Usr_Thd_Cap,Init_Entry,Init_Stack,0U)==0);
+    RVM_ASSERT(RVM_Thd_Exec_Set(RVM_Virt_Cur->Map->Usr_Thd_Cap,
+                                (void*)Init_Entry,(void*)Init_Stack,RVM_NULL)==0);
     
     /* Delegate infinite time to both threads - still needed because we have unbound them */
     RVM_ASSERT(RVM_Thd_Time_Xfer(RVM_Virt_Cur->Map->Vct_Thd_Cap,

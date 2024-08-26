@@ -49,8 +49,10 @@ Return      : None.
         this->Class=Main::XML_Get_String(Root,"Class","DXXXX","DXXXX");
         this->Class_Lower=this->Class;
         Main::Lower(this->Class_Lower);
-        /* Name */
+        /* Fullname */
         this->Name=Main::XML_Get_String(Root,"Name","DXXXX","DXXXX");
+        this->Name_Lower=Name;
+        Main::Lower(this->Name_Lower);
         /* Coprocessor */
         Main::XML_Get_CSV(Root,"Coprocessor",this->Coprocessor,"DXXXX","DXXXX");
         None_Filter(this->Coprocessor);

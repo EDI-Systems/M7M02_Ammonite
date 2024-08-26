@@ -21,13 +21,21 @@
     </Extmem>
     <Shmem>
         <S0>
-            <Name>S_Data</Name>
+            <Name>Shared1</Name>
             <Base>Auto</Base>
             <Size>0x400</Size>
-            <Align>Auto</Align>
+            <Align>10</Align>
             <Type>Data</Type>
             <Attribute>RWBCS</Attribute>
         </S0>
+        <S1>
+            <Name>Device1</Name>
+            <Base>0x40000000</Base>
+            <Size>0x20000000</Size>
+            <Align>Auto</Align>
+            <Type>Device</Type>
+            <Attribute>RWS</Attribute>
+        </S1>
     </Shmem>
     <Kernel>
         <Code_Base>0x08000000</Code_Base>
@@ -56,10 +64,10 @@
     <Monitor>
         <Code_Size>0x10000</Code_Size>
         <Data_Size>0x4000</Data_Size>
-        <Init_Stack_Size>0x800</Init_Stack_Size>
+        <Init_Stack_Size>0x200</Init_Stack_Size>
         <Sftd_Stack_Size>0x800</Sftd_Stack_Size>
         <Vmmd_Stack_Size>0x800</Vmmd_Stack_Size>
-        <Extra_Captbl>32</Extra_Captbl>
+        <Extra_Captbl>0</Extra_Captbl>
         <Virt_Prio>32</Virt_Prio>
         <Virt_Event>32</Virt_Event>
         <Virt_Map>32</Virt_Map>
@@ -78,12 +86,12 @@
     <Native>
         <N0>
             <Name>Proc1</Name>
-            <Extra_Captbl>9</Extra_Captbl>
+            <Extra_Captbl>0</Extra_Captbl>
             <Coprocessor>FPV4_SP</Coprocessor>
             <Buildsystem>Keil</Buildsystem>
             <Toolchain>ARMCC</Toolchain>
             <Optimization>O3</Optimization>
-            <Project_Output>./Proc1/Project</Project_Output>
+            <Project_Output>./Proc1/Project/</Project_Output>
             <Project_Overwrite>No</Project_Overwrite>
             <Linker_Output>./</Linker_Output>
             <Main_Header_Output>../Include/</Main_Header_Output>
@@ -92,41 +100,47 @@
             <Entry_Source_Overwrite>No</Entry_Source_Overwrite>
             <Memory>
                 <M0>
-                    <Name>P1_Code</Name>
-                    <Base>0x08020000</Base>
+                    <Name>Code1</Name>
+                    <Base>Auto</Base>
                     <Size>0x8000</Size>
-                    <Align>Auto</Align>
+                    <Align>15</Align>
                     <Type>Code</Type>
                     <Attribute>RXBCS</Attribute>
                 </M0>
                 <M1>
-                    <Name>P1_Data</Name>
-                    <Base>0x20000000</Base>
-                    <Size>0x9000</Size>
-                    <Align>Auto</Align>
+                    <Name>Data1</Name>
+                    <Base>Auto</Base>
+                    <Size>0x8000</Size>
+                    <Align>15</Align>
                     <Type>Data</Type>
                     <Attribute>RWXBCS</Attribute>
                 </M1>
             </Memory>
             <Shmem>
                 <S0>
-                    <Name>S_Data</Name>
+                    <Name>Shared1</Name>
                     <Attribute>RWBCS</Attribute>
                 </S0>
+                <S1>
+                    <Name>Device1</Name>
+                    <Attribute>RWS</Attribute>
+                </S1>
             </Shmem>
             <Thread>
                 <T0>
                     <Name>Thd1</Name>
-                    <Stack_Size>0x200</Stack_Size>
+                    <Stack_Size>0x1000</Stack_Size>
                     <Parameter>0x1234</Parameter>
                     <Priority>17</Priority>
                 </T0>
+                <T1>
+                    <Name>Thd2</Name>
+                    <Stack_Size>0x1000</Stack_Size>
+                    <Parameter>0x1234</Parameter>
+                    <Priority>16</Priority>
+                </T1>
             </Thread>
             <Invocation>
-                <I0>
-                    <Name>Inv1</Name>
-                    <Stack_Size>0x1000</Stack_Size>
-                </I0>
             </Invocation>
             <Port>
                 <P0>
@@ -136,18 +150,42 @@
             </Port>
             <Receive>
                 <R0>
-                     <Name>Recv1</Name>
+                    <Name>Recv1</Name>
                 </R0>
+                <R1>
+                    <Name>Recv2</Name>
+                </R1>
             </Receive>
             <Send>
                 <S0>
                     <Name>Recv1</Name>
-                    <Process>Proc2</Process>
+                    <Process>Proc1</Process>
                 </S0>
+                <S1>
+                    <Name>Recv2</Name>
+                    <Process>Proc1</Process>
+                </S1>
+                <S2>
+                    <Name>Recv1</Name>
+                    <Process>Proc2</Process>
+                </S2>
+                <S3>
+                    <Name>Recv2</Name>
+                    <Process>Proc2</Process>
+                </S3>
             </Send>
             <Vector>
+                <V0>
+                    <Name>Tim4</Name>
+                    <Number>30</Number>
+                </V0>
             </Vector>
             <Kfunc>
+                <K0>
+                    <Name>Int_Local_Mod</Name>
+                    <Begin>0xF100</Begin>
+                    <End>0xF100</End>
+                </K0>
             </Kfunc>
         </N0>
         <N1>
@@ -157,24 +195,24 @@
             <Buildsystem>Keil</Buildsystem>
             <Toolchain>ARMCC</Toolchain>
             <Optimization>O3</Optimization>
-            <Project_Output>./Proc2/Project</Project_Output>
+            <Project_Output>./Proc2/Project/</Project_Output>
             <Project_Overwrite>No</Project_Overwrite>
             <Linker_Output>./</Linker_Output>
-            <Main_Header_Output>../Include</Main_Header_Output>
-            <Main_Source_Output>../Source</Main_Source_Output>
-            <Entry_Source_Output>../Source</Entry_Source_Output>
+            <Main_Header_Output>../Include/</Main_Header_Output>
+            <Main_Source_Output>../Source/</Main_Source_Output>
+            <Entry_Source_Output>../Source/</Entry_Source_Output>
             <Entry_Source_Overwrite>No</Entry_Source_Overwrite>
             <Memory>
                 <M0>
-                    <Name>P2_Code</Name>
+                    <Name>Code1</Name>
                     <Base>Auto</Base>
                     <Size>0x8000</Size>
-                    <Align>Auto</Align>
+                    <Align>15</Align>
                     <Type>Code</Type>
                     <Attribute>RXBCS</Attribute>
                 </M0>
                 <M1>
-                    <Name>P2_Data</Name>
+                    <Name>Data1</Name>
                     <Base>Auto</Base>
                     <Size>0x4000</Size>
                     <Align>Auto</Align>
@@ -184,17 +222,27 @@
             </Memory>
             <Shmem>
                 <S0>
-                    <Name>S_Data</Name>
+                    <Name>Shared1</Name>
                     <Attribute>RWBCS</Attribute>
                 </S0>
+                <S1>
+                    <Name>Device1</Name>
+                    <Attribute>RWS</Attribute>
+                </S1>
             </Shmem>
             <Thread>
                 <T0>
                     <Name>Thd1</Name>
-                    <Stack_Size>0x200</Stack_Size>
+                    <Stack_Size>0x1000</Stack_Size>
+                    <Parameter>0x1234</Parameter>
+                    <Priority>17</Priority>
+                </T0>
+                <T1>
+                    <Name>Thd2</Name>
+                    <Stack_Size>0x1000</Stack_Size>
                     <Parameter>0x1234</Parameter>
                     <Priority>16</Priority>
-                </T0>
+                </T1>
             </Thread>
             <Invocation>
                 <I0>
@@ -203,21 +251,32 @@
                 </I0>
             </Invocation>
             <Port>
-                <P0>
-                    <Name>Inv1</Name>
-                    <Process>Proc1</Process>
-                </P0>
             </Port>
             <Receive>
                 <R0>
                     <Name>Recv1</Name>
                 </R0>
+                <R1>
+                    <Name>Recv2</Name>
+                </R1>
             </Receive>
             <Send>
                 <S0>
                     <Name>Recv1</Name>
                     <Process>Proc1</Process>
                 </S0>
+                <S1>
+                    <Name>Recv2</Name>
+                    <Process>Proc1</Process>
+                </S1>
+                <S2>
+                    <Name>Recv1</Name>
+                    <Process>Proc2</Process>
+                </S2>
+                <S3>
+                    <Name>Recv2</Name>
+                    <Process>Proc2</Process>
+                </S3>
             </Send>
             <Vector>
             </Vector>
@@ -241,46 +300,42 @@
             <Buildsystem>Keil</Buildsystem>
             <Toolchain>ARMCC</Toolchain>
             <Optimization>O3</Optimization>
-            <Project_Output>./Virt1/Project</Project_Output>
+            <Project_Output>./Virt1/Project/</Project_Output>
             <Project_Overwrite>No</Project_Overwrite>
             <Linker_Output>./</Linker_Output>
-            <Main_Header_Output>../Include</Main_Header_Output>
-            <Main_Source_Output>../Source</Main_Source_Output>
-            <Virtual_Header_Output>../Include</Virtual_Header_Output>
+            <Main_Header_Output>../Include/</Main_Header_Output>
+            <Main_Source_Output>../Source/</Main_Source_Output>
+            <Virtual_Header_Output>../Include/</Virtual_Header_Output>
             <Virtual_Header_Overwrite>No</Virtual_Header_Overwrite>
-            <Virtual_Source_Output>../Source</Virtual_Source_Output>
+            <Virtual_Source_Output>../Source/</Virtual_Source_Output>
             <Virtual_Source_Overwrite>No</Virtual_Source_Overwrite>
             <Memory>
                 <M0>
-                    <Name>V_Code</Name>
+                    <Name>Code1</Name>
                     <Base>Auto</Base>
                     <Size>0x10000</Size>
-                    <Align>Auto</Align>
+                    <Align>16</Align>
                     <Type>Code</Type>
                     <Attribute>RXBCS</Attribute>
                 </M0>
                 <M1>
-                    <Name>V_Data</Name>
+                    <Name>Data1</Name>
                     <Base>Auto</Base>
                     <Size>0x10000</Size>
-                    <Align>Auto</Align>
+                    <Align>16</Align>
                     <Type>Data</Type>
                     <Attribute>RWXBCS</Attribute>
                 </M1>
-                <M2>
-                    <Name>V_Device</Name>
-                    <Base>0x40000000</Base>
-                    <Size>0x20000000</Size>
-                    <Align>Auto</Align>
-                    <Type>Device</Type>
-                    <Attribute>RWS</Attribute>
-                </M2>
             </Memory>
             <Shmem>
                 <S0>
-                    <Name>S_Data</Name>
+                    <Name>Shared1</Name>
                     <Attribute>RWBCS</Attribute>
                 </S0>
+                <S1>
+                    <Name>Device1</Name>
+                    <Attribute>RWS</Attribute>
+                </S1>
             </Shmem>
             <Send>
                 <S0>
