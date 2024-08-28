@@ -81,14 +81,13 @@ RVM_Inv_Act             PROC
 
     MOVS                R4,#0x1             ;RVM_SVC_INV_ACT
     LSLS                R4,#16
-    ORRS                R5,R0
+    MOV                 R5,R0
     MOV                 R6,R1               ;Parameter
-                
+
     SVC                 #0x00               ;System call
     ISB
 
     MOV                 R0,R4               ;System call return value
-    
     CMP                 R2,#0x00            ;Invocation return value
     BEQ                 RVM_Inv_Act_Skip
     STR                 R5, [R2]
