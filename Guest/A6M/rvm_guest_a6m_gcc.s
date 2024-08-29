@@ -111,7 +111,7 @@ RVM_Inv_Act:
     
     MOVS                R4,#0x1             /* RVM_SVC_INV_ACT */
     LSLS                R4,#16
-    ORRS                R5,R0
+    MOV                 R5,R0
     MOV                 R6,R1               /* Parameter */
 
     SVC                 #0x00               /* System call */
