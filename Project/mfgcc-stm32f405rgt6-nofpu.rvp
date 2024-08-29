@@ -5,7 +5,7 @@
     <Assert_Enable>Yes</Assert_Enable>
     <Debug_Log_Enable>Yes</Debug_Log_Enable>
     <Pgtbl_Raw_Enable>No</Pgtbl_Raw_Enable>
-    <Buildsystem>Keil</Buildsystem>
+    <Buildsystem>Makefile</Buildsystem>
     <Workspace_Overwrite>No</Workspace_Overwrite>
     <Chip>
         <Platform>A7M</Platform>
@@ -46,8 +46,8 @@
         <Extra_Kom>0x0</Extra_Kom>
         <Kom_Order>4</Kom_Order>
         <Kern_Prio>32</Kern_Prio>
-        <Buildsystem>Keil</Buildsystem>
-        <Toolchain>ARMCC</Toolchain>
+        <Buildsystem>Makefile</Buildsystem>
+        <Toolchain>GCC</Toolchain>
         <Optimization>O3</Optimization>
         <Full_Image>Yes</Full_Image>
         <Project_Output>./Kernel/Project/</Project_Output>
@@ -71,8 +71,8 @@
         <Virt_Prio>32</Virt_Prio>
         <Virt_Event>32</Virt_Event>
         <Virt_Map>32</Virt_Map>
-        <Buildsystem>Keil</Buildsystem>
-        <Toolchain>ARMCC</Toolchain>
+        <Buildsystem>Makefile</Buildsystem>
+        <Toolchain>GCC</Toolchain>
         <Optimization>O3</Optimization>
         <Project_Output>./Monitor/Project/</Project_Output>
         <Project_Overwrite>No</Project_Overwrite>
@@ -88,8 +88,8 @@
             <Name>Proc1</Name>
             <Extra_Captbl>0</Extra_Captbl>
             <Coprocessor>None</Coprocessor>
-            <Buildsystem>Keil</Buildsystem>
-            <Toolchain>ARMCC</Toolchain>
+            <Buildsystem>Makefile</Buildsystem>
+            <Toolchain>GCC</Toolchain>
             <Optimization>O3</Optimization>
             <Project_Output>./Proc1/Project/</Project_Output>
             <Project_Overwrite>No</Project_Overwrite>
@@ -192,8 +192,8 @@
             <Name>Proc2</Name>
             <Extra_Captbl>0</Extra_Captbl>
             <Coprocessor>None</Coprocessor>
-            <Buildsystem>Keil</Buildsystem>
-            <Toolchain>ARMCC</Toolchain>
+            <Buildsystem>Makefile</Buildsystem>
+            <Toolchain>GCC</Toolchain>
             <Optimization>O3</Optimization>
             <Project_Output>./Proc2/Project/</Project_Output>
             <Project_Overwrite>No</Project_Overwrite>
@@ -297,8 +297,8 @@
             <Watchdog>0</Watchdog>
             <Vector_Num>4</Vector_Num>
             <Guest_Type>RMP</Guest_Type>
-            <Buildsystem>Keil</Buildsystem>
-            <Toolchain>ARMCC</Toolchain>
+            <Buildsystem>Makefile</Buildsystem>
+            <Toolchain>GCC</Toolchain>
             <Optimization>O3</Optimization>
             <Project_Output>./Virt1/Project/</Project_Output>
             <Project_Overwrite>No</Project_Overwrite>
