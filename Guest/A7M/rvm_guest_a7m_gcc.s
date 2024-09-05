@@ -45,14 +45,14 @@ _RVM_Entry:
     LDR                 R0,=_RVM_Data_Start
     LDR                 R1,=_RVM_Data_End
     LDR                 R2,=_RVM_Data_Load
-_RVM_Data_Load:
+_RVM_Data_Copy:
     CMP                 R0,R1
     BEQ                 _RVM_Data_Done
     LDR                 R3,[R2]
     STR                 R3,[R0]
     ADD                 R0,#0x04
     ADD                 R2,#0x04
-    B                   _RVM_Data_Load
+    B                   _RVM_Data_Copy
 _RVM_Data_Done:
     /* Clear bss zero section */
     LDR                 R0,=_RVM_Zero_Start

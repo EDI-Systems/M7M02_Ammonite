@@ -49,13 +49,13 @@ _RVM_Entry:
     LA                  a0,_RVM_Data_Load
     LA                  a1,_RVM_Data_Start
     LA                  a2,_RVM_Data_End
-_RVM_Data_Load:
+_RVM_Data_Copy:
     BEQ                 a1,a2,_RVM_Data_Done
     LW                  t0,(a0)
     SW                  t0,(a1)
     ADDI                a0,a0,4
     ADDI                a1,a1,4
-    J                   _RVM_Data_Load
+    J                   _RVM_Data_Copy
 _RVM_Data_Done:
     /* Clear bss zero section */
     LA                  a0,_RVM_Zero_Start
