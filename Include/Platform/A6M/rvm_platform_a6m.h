@@ -87,7 +87,7 @@ typedef rvm_s32_t rvm_ret_t;
 #include "rvm_platform_a6m_conf.h"
 
 /* Thread size */
-#define RVM_HYP_RAW_SIZE                        ((21U)*RVM_WORD_BYTE)
+#define RVM_HYP_RAW_SIZE                        ((22U)*RVM_WORD_BYTE)
 /* Invocation size - ARMv6-M has fixed LR */
 #define RVM_INV_RAW_SIZE                        ((8U)*RVM_WORD_BYTE)
 /* Normal page directory size */

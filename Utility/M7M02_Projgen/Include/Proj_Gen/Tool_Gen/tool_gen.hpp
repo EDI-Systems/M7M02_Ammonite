@@ -1,5 +1,5 @@
 /******************************************************************************
-Filename    : cross_gen.hpp
+Filename    : tool_gen.hpp
 Author      : pry
 Date        : 16/07/2019
 Licence     : LGPL v3+; see COPYING for details.

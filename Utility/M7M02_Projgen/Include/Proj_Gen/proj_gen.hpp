@@ -1,5 +1,5 @@
 /******************************************************************************
-Filename    : gen_tool.hpp
+Filename    : proj_gen.hpp
 Author      : pry
 Date        : 16/07/2019
 Licence     : LGPL v3+; see COPYING for details.
@@ -10,8 +10,8 @@ Description : The header for the generation tool class.
 namespace RVM_GEN
 {
 #ifdef __HDR_DEF__
-#ifndef __GEN_TOOL_DEF__
-#define __GEN_TOOL_DEF__
+#ifndef __PROJ_GEN_DEF__
+#define __PROJ_GEN_DEF__
 /*****************************************************************************/
 #define MACRO_ADD               (0)
 #define MACRO_REPLACE           (1)
@@ -29,7 +29,7 @@ namespace RVM_GEN
                                  (this->Plat->Plat->Captbl_Max): \
                                  ((TOTAL)%(this->Plat->Plat->Captbl_Max)))
 /*****************************************************************************/
-/* __GEN_TOOL_DEF__ */
+/* __PROJ_GEN_DEF__ */
 #endif
 /* __HDR_DEF__ */
 #endif
@@ -37,8 +37,8 @@ namespace RVM_GEN
 
 /* Classes *******************************************************************/
 #ifdef __HDR_CLASS__
-#ifndef __GEN_TOOL_CLASS__
-#define __GEN_TOOL_CLASS__
+#ifndef __PROJ_GEN_CLASS__
+#define __PROJ_GEN_CLASS__
 /*****************************************************************************/
 /* Generation toolset information */
 class Proj_Gen
@@ -135,7 +135,7 @@ public:
     void Workspace_Proj(void);
 };
 /*****************************************************************************/
-/* __GEN_TOOL_CLASS__ */
+/* __PROJ_GEN_CLASS__ */
 #endif
 /* __HDR_CLASS__ */
 #endif

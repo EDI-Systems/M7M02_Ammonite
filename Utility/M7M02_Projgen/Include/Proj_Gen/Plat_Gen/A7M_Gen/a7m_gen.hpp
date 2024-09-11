@@ -36,7 +36,7 @@ namespace RVM_GEN
 /* A7M kernel object size */
 #define A7M_RAW_PGT_SIZE_NOM(O)             	((4+POW2(O))*4)
 #define A7M_RAW_PGT_SIZE_TOP(O, R)          	(((1+(R)*2)*4)+A7M_RAW_PGT_SIZE_NOM(O))
-#define A7M_RAW_HYP_SIZE                        (84)
+#define A7M_RAW_HYP_SIZE                        (88)
 #define A7M_RAW_REG_SIZE                        (48)
 #define A7M_RAW_REG_FPU_SIZE                    (112)
 #define A7M_RAW_INV_SIZE                        (36)

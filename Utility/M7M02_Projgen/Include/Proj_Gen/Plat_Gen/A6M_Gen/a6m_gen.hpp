@@ -36,7 +36,7 @@ namespace RVM_GEN
 /* A6M kernel object size */
 #define A6M_RAW_PGT_SIZE_NOM(O)         		((4+POW2(O))*4)
 #define A6M_RAW_PGT_SIZE_TOP(O, R)         		(((R)*2*4)+A6M_RAW_PGT_SIZE_NOM(O))
-#define A6M_RAW_HYP_SIZE                        (84)
+#define A6M_RAW_HYP_SIZE                        (88)
 #define A6M_RAW_REG_SIZE                        (44)
 #define A6M_RAW_INV_SIZE                        (32)
 /*****************************************************************************/
