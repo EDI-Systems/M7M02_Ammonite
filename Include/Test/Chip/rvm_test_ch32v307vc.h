@@ -97,18 +97,16 @@ ISR Blocking message queue         : 1815 / 1835 / 1815
     TIM4_INTFR=0U;
     
     /* Where to send this depends on what we are testing - kernel or VM? */
+    START=RME_CNT_READ();
     if(TARGET==0U)
-    {
-        START=RME_CNT_READ();
         return RME_RVM_VCT_SIG_SELF;
-    }
     else
         return RME_RVM_VCT_SIG_INIT;
 #endif
 /* End Kernel Vector Handler *************************************************/
 
-/* Process Include ***********************************************************/
-#ifdef RVM_TEST_PROCESS_INC
+/* Native Include ************************************************************/
+#ifdef RVM_TEST_NATIVE_INC
 /* Using backup data register - not enough regions available */
 #define TARGET                  *((volatile rvm_u16_t*)(0x40006C04U))
 #define START                   *((volatile rvm_u16_t*)(0x40006C08U))
@@ -200,10 +198,10 @@ do \
 } \
 while(0)
 #endif
-/* End Process Include *******************************************************/
+/* End Native Include ********************************************************/
 
-/* Process Putchar ***********************************************************/
-#ifdef RVM_TEST_PROCESS_PUTCHAR
+/* Native Putchar ************************************************************/
+#ifdef RVM_TEST_NATIVE_PUTCHAR
 /* Hardware definitions so we don't rely on WCH HAL */
 #define USART1_STATR            *((volatile rvm_u32_t*)(0x40013800U))
 #define USART1_STATR_TC         (0x00000040U)
@@ -212,7 +210,15 @@ while(0)
     while((USART1_STATR&USART1_STATR_TC)==0U);
     USART1_DATAR=(rvm_ptr_t)(Char);
 #endif
-/* End Process Putchar *******************************************************/
+/* End Native Putchar ********************************************************/
+
+/* Virtual Include ***********************************************************/
+#ifdef RVM_TEST_VIRTUAL_INC
+/* Using backup data register - not enough regions available */
+#define TARGET                  *((volatile rvm_u16_t*)(0x40006C04U))
+#define START                   *((volatile rvm_u16_t*)(0x40006C08U))
+#endif
+/* End Virtual Include *******************************************************/
 
 /* End Of File ***************************************************************/
 

@@ -2635,17 +2635,17 @@ void Proj_Gen::Process_Inc(std::unique_ptr<std::vector<std::string>>& List,
     List->push_back("/* Include *******************************************************************/");
     List->push_back("#include \"rvm.h\"");
     List->push_back("#include \"rvm_guest.h\"");
-    /* Virtual machines use their own benchmark headers */
+    /* Virtual machines use their own benchmark headers that does the correct inclusion */
     if((Prc->Type==PROCESS_NATIVE)&&(Main::Benchmark!=0))
     {
         List->push_back("");
-        List->push_back("#define RVM_TEST_PROCESS_INC");
+        List->push_back("#define RVM_TEST_NATIVE_INC");
         List->push_back("#include \"rvm_test.h\"");
-        List->push_back("#undef RVM_TEST_PROCESS_INC");
+        List->push_back("#undef RVM_TEST_NATIVE_INC");
         List->push_back("");
-        List->push_back("#define RVM_BENCHMARK_PROCESS_INC");
+        List->push_back("#define RVM_BENCHMARK_NATIVE_INC");
         List->push_back("#include \"Test/rvm_benchmark.h\"");
-        List->push_back("#undef RVM_BENCHMARK_PROCESS_INC");
+        List->push_back("#undef RVM_BENCHMARK_NATIVE_INC");
     }
     List->push_back("/* End Include ***************************************************************/");
 }
@@ -2797,9 +2797,8 @@ void Proj_Gen::Process_Main_Hdr(class Process* Prc)
 
     Proj_Gen::Line_Write(List, Prc->Main_Header_Output+"rvm_guest_conf.h");
 
-    /* If we're running benchmark, need to generate the test header as well,
-     * but virtual machines use their own respective test headers */
-    if((Prc->Type==PROCESS_NATIVE)&&(Main::Benchmark!=0))
+    /* If we're running benchmark, need to generate the test header as well */
+    if(Main::Benchmark!=0)
     {
         Main::Info("> Generating test selection header.");
         List->clear();
@@ -3006,14 +3005,15 @@ void Proj_Gen::Process_Main_Src(class Process* Prc)
     List->push_back("#if(RVM_DBGLOG_ENABLE!=0U)");
     List->push_back("void RVM_Putchar(char Char)");
     List->push_back("{");
+    /* Virtual machines use hypercall to print */
     if(Prc->Type==PROCESS_VIRTUAL)
     	List->push_back("    RVM_Hyp_Putchar(Char);");
-    /* Putchar for benchmark mode */
+    /* Native processes have putchar for benchmark only */
     else if(Main::Benchmark!=0)
     {
-        List->push_back("#define RVM_TEST_PROCESS_PUTCHAR");
+        List->push_back("#define RVM_TEST_NATIVE_PUTCHAR");
         List->push_back("#include \"rvm_test.h\"");
-        List->push_back("#undef RVM_TEST_PROCESS_PUTCHAR");
+        List->push_back("#undef RVM_TEST_NATIVE_PUTCHAR");
     }
     else
         List->push_back("    /* Add your own code */");

@@ -6,8 +6,8 @@ License     : Unlicense; see COPYING for details.
 Description : The benchmark for RME/RVM on microcontrollers.
 ******************************************************************************/
 
-/* Process Include ***********************************************************/
-#ifdef RVM_BENCHMARK_PROCESS_INC
+/* Native Include ************************************************************/
+#ifdef RVM_BENCHMARK_NATIVE_INC
 typedef rvm_u16_t rvm_tim_t;
 /* Number of rounds to run */
 #define ROUND_NUM       10000
@@ -61,7 +61,24 @@ do \
 } \
 while(0)
 #endif
-/* End Process Include *******************************************************/
+/* End Native Include ********************************************************/
+
+/* Virtual Include ***********************************************************/
+#ifdef RVM_BENCHMARK_VIRTUAL_INC
+typedef rvm_u16_t rvm_tim_t;
+
+#define RVM_DATA() \
+do \
+{ \
+    Guest_Diff=(rvm_tim_t)RMP_CNT_READ(); \
+    Guest_Diff-=(rvm_tim_t)START; \
+    Guest_ISR_Total+=Guest_Diff; \
+    Guest_ISR_Max=(Guest_Diff>Guest_ISR_Max)?Guest_Diff:Guest_ISR_Max; \
+    Guest_ISR_Min=(Guest_Diff<Guest_ISR_Min)?Guest_Diff:Guest_ISR_Min; \
+} \
+while(0)
+#endif
+/* End Virtual Include *******************************************************/
         
 /* Process 1 Thread 1 ********************************************************/
 #ifdef RVM_BENCHMARK_PRC_PROC1_THD_THD1

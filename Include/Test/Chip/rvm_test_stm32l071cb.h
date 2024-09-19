@@ -21,18 +21,16 @@ Description : The test file for STM32L071CB.
     TIM21_SR=0U;
     
     /* Where to send this depends on what we are testing - kernel or VM? */
+    START=RME_CNT_READ();
     if(TARGET==0U)
-    {
-        START=RME_CNT_READ();
         return RME_RVM_VCT_SIG_SELF;
-    }
     else
         return RME_RVM_VCT_SIG_INIT;
 #endif
 /* End Kernel Vector Handler *************************************************/
 
-/* Process Include ***********************************************************/
-#ifdef RVM_TEST_PROCESS_INC
+/* Native Include ************************************************************/
+#ifdef RVM_TEST_NATIVE_INC
 /* Using shared memory */
 #define TARGET                  *((volatile rvm_u16_t*)(DATA_SHARED_SHARED1_BASE))
 #define START                   *((volatile rvm_u16_t*)(DATA_SHARED_SHARED1_BASE+RVM_WORD_BYTE))
@@ -116,10 +114,10 @@ do \
 } \
 while(0)
 #endif
-/* End Process Include *******************************************************/
+/* End Native Include ********************************************************/
 
-/* Process Putchar ***********************************************************/
-#ifdef RVM_TEST_PROCESS_PUTCHAR
+/* Native Putchar ************************************************************/
+#ifdef RVM_TEST_NATIVE_PUTCHAR
 /* Hardware definitions so we don't rely on STM32 HAL */
 #define USART1_ISR              *((volatile rvm_u32_t*)(0x4001381CU))
 #define USART1_TDR              *((volatile rvm_u32_t*)(0x40013828U))
@@ -127,7 +125,15 @@ while(0)
     USART1_TDR=(rvm_ptr_t)(Char);
     while((USART1_ISR&0x80U)==0U);
 #endif
-/* End Process Putchar *******************************************************/
+/* End Native Putchar ********************************************************/
+
+/* Virtual Include ***********************************************************/
+#ifdef RVM_TEST_VIRTUAL_INC
+/* Using shared memory */
+#define TARGET                  *((volatile rvm_u16_t*)(DATA_SHARED_SHARED1_BASE))
+#define START                   *((volatile rvm_u16_t*)(DATA_SHARED_SHARED1_BASE+RVM_WORD_BYTE))
+#endif
+/* End Virtual Include *******************************************************/
 
 /* End Of File ***************************************************************/
 
