@@ -13,21 +13,6 @@
         <C2>Makefile,GCC,Native</C2>
         <C3>Makefile,GCC,RMP</C3>
     </Compatible>
-    <Default>
-        <Buildsystem>Keil</Buildsystem>
-        <Toolchain>ARMCC</Toolchain>
-        <Optimization>Os</Optimization>
-        <Kernel_Code_Size>0x8000</Kernel_Code_Size>
-        <Kernel_Data_Size>0x2000</Kernel_Data_Size>
-        <Kernel_Stack_Size>0x400</Kernel_Stack_Size>
-        <Monitor_Code_Size>0x6000</Monitor_Code_Size>
-        <Monitor_Data_Size>0x1800</Monitor_Data_Size>
-        <Init_Stack_Size>0x100</Init_Stack_Size>
-        <Sftd_Stack_Size>0x100</Sftd_Stack_Size>
-        <Vctd_Stack_Size>0x400</Vctd_Stack_Size>
-        <Timd_Stack_Size>0x400</Timd_Stack_Size>
-        <Hypd_Stack_Size>0x400</Hypd_Stack_Size>
-    </Default>
     <Config>
         <C0>
             <Name>Systick_Value</Name>

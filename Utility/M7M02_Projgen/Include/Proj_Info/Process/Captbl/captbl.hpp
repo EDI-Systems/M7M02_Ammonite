@@ -36,6 +36,8 @@ public:
     ptr_t Size;
 
     /* void */ Captbl(ptr_t Front, ptr_t Size, class Process* Owner);
+
+    virtual std::string Report(void) final override;
 };
 /*****************************************************************************/
 /* __CAPTBL_CLASS__ */

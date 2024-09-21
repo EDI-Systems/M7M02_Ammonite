@@ -24,10 +24,10 @@ namespace RVM_GEN
 
 /* Every processes have the some capability slots at the front preserved.
  * For processes,
- * [0] is the event send kernel capability,
+ * [0] is the event send kernel function,
  * For virtual machines,
- * [0] is the Hypd hypercall endpoint,
- * [1] is the Vctd vector endpoint. */
+ * [0] is the Hypd hypercall endpoint (send-only),
+ * [1] is the Vctd vector endpoint (send/receive). */
 #define NATIVE_CPT_BASE         (1)
 #define VIRTUAL_CPT_BASE        (2)
 
@@ -83,7 +83,7 @@ public:
     std::vector<std::unique_ptr<class Shmem>> Shmem;
     std::map<std::string,class Shmem*> Shmem_Map;
 
-    /* Combined memory information */
+    /* Actual mapped memory information */
     std::vector<std::unique_ptr<class Mem_Info>> Memory_All;
 
     /* Cpt/Pgt */
@@ -151,6 +151,9 @@ public:
     void Global_Alloc_Vector(std::vector<class Vect_Info*>& Global);
 
     void Mem_Alloc(ptr_t Wordlength, ptr_t Hyp_Reg_Size, ptr_t Kom_Order);
+
+    void Report_Basic(std::unique_ptr<std::vector<std::string>>& List);
+    void Report_Object(std::unique_ptr<std::vector<std::string>>& List);
 };
 /*****************************************************************************/
 /* __PROCESS_CLASS__ */

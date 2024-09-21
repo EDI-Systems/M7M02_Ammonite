@@ -21,11 +21,13 @@ extern "C"
 
 #define __HDR_DEF__
 #include "rvm_gen.hpp"
+#include "Mem_Info/mem_info.hpp"
 #include "Proj_Info/Process/Pgtbl/pgtbl.hpp"
 #undef __HDR_DEF__
 
 #define __HDR_CLASS__
 #include "rvm_gen.hpp"
+#include "Mem_Info/mem_info.hpp"
 #include "Proj_Info/Kobj/kobj.hpp"
 #include "Proj_Info/Process/Pgtbl/pgtbl.hpp"
 #undef __HDR_CLASS__
@@ -65,6 +67,59 @@ Kobj(Owner)
     }
 }
 /* End Function:Pgtbl::Pgtbl *************************************************/
+
+/* Function:Pgtbl::Report *****************************************************
+Description : Report kernel object details.
+Input       : None.
+Output      : None.
+Return      : std::string - The report string.
+******************************************************************************/
+std::string Pgtbl::Report(void)
+{
+    std::string Temp;
+
+    if(this->Is_Top!=0)
+        Temp="Toplevel ";
+    else
+        Temp="Pgtbl ";
+
+    Temp+=this->Kobj::Report()+", "+
+          "base 0x"+Main::Hex(this->Base)+
+          " size "+std::to_string(this->Size_Order)+
+          " number "+std::to_string(this->Num_Order)+
+          " "+Mem_Info::Attr2Str(this->Attr);
+
+    return Temp;
+}
+/* End Function:Pgtbl::Report ************************************************/
+
+/* Function:Pgtbl::Report_Tree ************************************************
+Description : Report page table details alongside the entire tree, including self.
+Input       : std::string - The prefix to use.
+Output      : std::unique_ptr<std::vector<std::string>>& List - The text output.
+Return      : None.
+******************************************************************************/
+void Pgtbl::Report_Tree(std::unique_ptr<std::vector<std::string>>& List, std::string Prefix)
+{
+    ptr_t Count;
+    std::string Temp;
+
+    if(Prefix=="")
+        List->push_back(this->Report());
+    else
+    {
+        List->push_back(Prefix+" "+this->Report());
+        Prefix=Prefix.substr(0,Prefix.length()-3);
+    }
+
+    Prefix="    "+Prefix;
+    for(Count=0;Count<this->Pgdir.size();Count++)
+    {
+        if(Pgdir[Count]!=nullptr)
+            Pgdir[Count]->Report_Tree(List, Prefix+"["+std::to_string(Count)+"]");
+    }
+}
+/* End Function:Pgtbl::Report_Tree *******************************************/
 }
 /* End Of File ***************************************************************/
 

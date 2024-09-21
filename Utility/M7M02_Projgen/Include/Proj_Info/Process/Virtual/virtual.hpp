@@ -70,6 +70,10 @@ public:
     /* void */ Virtual(xml_node_t* Root);
 
     static ptr_t State_Alloc(ptr_t Source, ptr_t Wordlength, ptr_t Kom_Order);
+
+    virtual std::string Report(void) final override;
+
+    void Report_Virtual(std::unique_ptr<std::vector<std::string>>& List);
 };
 /*****************************************************************************/
 /* __VIRTUAL_CLASS__ */

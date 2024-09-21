@@ -106,6 +106,7 @@ public:
     static std::string Guest_UO2_Root;
     static std::string Guest_UO3_Root;
     static std::string Workspace_Output;
+    static std::string Report_Output;
     static ptr_t Verbose;
     static ptr_t Dryrun;
     static ptr_t Benchmark;
@@ -155,6 +156,8 @@ public:
     void Process_Gen(void);
     void Workspace_Gen(void);
     void Report_Gen(void);
+
+    static std::string Vec2CSV(const std::vector<std::string>& Vector);
 
     static std::string XML_Get_String(xml_node_t* Root, const std::string& Name,
                                       const std::string& Errno0, const std::string& Errno1);

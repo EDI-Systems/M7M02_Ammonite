@@ -81,6 +81,18 @@ Process(Root,PROCESS_NATIVE)
     }
 }
 /* End Function:Native::Native ***********************************************/
+
+/* Function:Native::Report ****************************************************
+Description : Report kernel object details.
+Input       : None.
+Output      : None.
+Return      : std::string - The report string.
+******************************************************************************/
+std::string Native::Report(void)
+{
+    return "Native "+this->Kobj::Report();
+}
+/* End Function:Native::Report ***********************************************/
 }
 /* End Of File ***************************************************************/
 

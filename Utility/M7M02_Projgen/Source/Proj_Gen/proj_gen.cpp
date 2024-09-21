@@ -582,7 +582,7 @@ void Proj_Gen::Macro_Mem(const std::string& Prefix,
 /* End Function:Proj_Gen::Macro_Mem ******************************************/
 
 /* Function:Proj_Gen::Boot_Hdr_Mem ********************************************
-Description : Print memory referernce for kernel config header.
+Description : Print memory reference for kernel config header.
 Input       : const std::string& Prefix;
               std::unique_ptr<std::vector<std::string>>& List - The file.
 Output      : std::unique_ptr<std::vector<std::string>>& List - The appended file.
@@ -2883,9 +2883,9 @@ void Proj_Gen::Process_Desc_Src(class Process* Prc)
     {
         List->push_back(std::string("    0x")+Main::Hex(MAGIC_VIRTUAL)+"U,");
         List->push_back(std::string("    0x")+Main::Hex(Prc->Desc_Front-2)+"U,");
-        /* For native processes, the second (lower-priority) thread's entry is always the main entry point.
-         * Because the second thread that runs the user code is low-priority, and the guest VM may have
-         * already defined a main function. We want to be as less intrusive as possible */
+        /* For VMs, the second (lower-priority) thread's entry is always the main entry point.
+         * Because the second thread that runs the user code is low-priority, and the VM may have
+         * already defined a main function. We want to be as less intrusive as possible. */
         for(const std::unique_ptr<class Thread>& Thd:Prc->Thread)
         {
             if(Thd.get()==Prc->Thread[1].get())

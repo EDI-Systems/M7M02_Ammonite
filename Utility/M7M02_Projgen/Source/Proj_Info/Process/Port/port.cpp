@@ -59,6 +59,22 @@ Kobj(Owner)
     }
 }
 /* End Function:Port::Port ***************************************************/
+
+/* Function:Port::Report ******************************************************
+Description : Report kernel object details.
+Input       : None.
+Output      : None.
+Return      : std::string - The report string.
+******************************************************************************/
+std::string Port::Report(void)
+{
+    std::string Temp;
+
+    Temp="Port "+this->Kobj::Report();
+
+    return Temp;
+}
+/* End Function:Port::Report *************************************************/
 }
 /* End Of File ***************************************************************/
 

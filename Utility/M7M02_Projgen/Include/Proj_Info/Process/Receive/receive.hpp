@@ -32,6 +32,8 @@ class Receive:public Kobj
 public:
 
     /* void */  Receive(xml_node_t* Root, class Process* Owner);
+
+    virtual std::string Report(void) final override;
 };
 /*****************************************************************************/
 /* __RECEIVE_CLASS__ */

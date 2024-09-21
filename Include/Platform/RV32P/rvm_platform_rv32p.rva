@@ -4,9 +4,9 @@
     <Version>1.0</Version>
     <Wordlength>32</Wordlength>
     <Coprocessor>RVF,RVD</Coprocessor>
-    <Guest>RMP</Guest>
     <Buildsystem>Makefile</Buildsystem>
     <Toolchain>GCC</Toolchain>
+    <Guest>RMP</Guest>
     <Compatible>
         <C0>Makefile,GCC,Native</C0>
         <C1>Makefile,GCC,RMP</C1>

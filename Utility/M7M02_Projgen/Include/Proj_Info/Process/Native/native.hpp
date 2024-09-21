@@ -35,6 +35,8 @@ public:
     ptr_t Entry_Source_Overwrite;
 
     /* void */ Native(xml_node_t* Root);
+
+    virtual std::string Report(void) final override;
 };
 /*****************************************************************************/
 /* __NATIVE_CLASS__ */

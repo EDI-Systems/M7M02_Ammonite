@@ -570,6 +570,72 @@ void Process::Mem_Alloc(ptr_t Wordlength, ptr_t Hyp_Reg_Size, ptr_t Kom_Order)
     Main::Info("> Data base 0x%llX size 0x%llX.", this->Data_Base, this->Data_Size);
 }
 /* End Function:Process::Mem_Alloc *******************************************/
+
+/* Function:Process::Report_Basic *********************************************
+Description : Report basics about the process.
+Input       : None.
+Output      : std::unique_ptr<std::vector<std::string>>& List - The text output.
+Return      : None.
+******************************************************************************/
+void Process::Report_Basic(std::unique_ptr<std::vector<std::string>>& List)
+{
+    List->push_back("Name                           : "+this->Name+"("+this->Macro_Global+")");
+    List->push_back("Buildsystem                    : "+this->Buildsystem);
+    List->push_back("Toolchain                      : "+this->Toolchain);
+    List->push_back("Enabled coprocessors           : "+Main::Vec2CSV(this->Coprocessor));
+    List->push_back("Descriptor table frontier      : "+std::to_string(this->Desc_Front));
+    List->push_back("-------------------------------------------------------------------------------");
+    List->push_back("Code base                      : 0x"+Main::Hex(this->Code_Base));
+    List->push_back("Code size                      : 0x"+Main::Hex(this->Code_Size));
+    List->push_back("Data base                      : 0x"+Main::Hex(this->Data_Base));
+    List->push_back("Data size                      : 0x"+Main::Hex(this->Data_Size));
+    List->push_back("Entry point                    : 0x"+Main::Hex(this->Code_Front));
+}
+/* End Function:Process::Report_Basic ****************************************/
+
+/* Function:Process::Report_Object ********************************************
+Description : Report kernel objects concerning the process.
+Input       : None.
+Output      : std::unique_ptr<std::vector<std::string>>& List - The text output.
+Return      : None.
+******************************************************************************/
+void Process::Report_Object(std::unique_ptr<std::vector<std::string>>& List)
+{
+    /* These include shared memory as well */
+    for(class Mem_Info* Mem:this->Memory_Code)
+        List->push_back("Code "+Mem->Report());
+    for(class Mem_Info* Mem:this->Memory_Data)
+        List->push_back("Data "+Mem->Report());
+    for(class Mem_Info* Mem:this->Memory_Device)
+        List->push_back("Device "+Mem->Report());
+    List->push_back("-------------------------------------------------------------------------------");
+    /* What is actually mapped */
+    for(std::unique_ptr<class Mem_Info>& Mem:this->Memory_All)
+        List->push_back("Actual "+Mem->Report());
+    List->push_back("-------------------------------------------------------------------------------");
+
+    /* Relevant kernel objects */
+    List->push_back(this->Captbl->Report());
+    if(this->Pgtbl!=nullptr)
+        this->Pgtbl->Report_Tree(List,"");
+    for(std::unique_ptr<class Kfunc>& Kfn:this->Kfunc)
+        List->push_back(Kfn->Report());
+    List->push_back("-------------------------------------------------------------------------------");
+    for(std::unique_ptr<class Thread>& Thd:this->Thread)
+        List->push_back(Thd->Report());
+    for(std::unique_ptr<class Invocation>& Inv:this->Invocation)
+        List->push_back(Inv->Report());
+    for(std::unique_ptr<class Port>& Prt:this->Port)
+        List->push_back(Prt->Report());
+    List->push_back("-------------------------------------------------------------------------------");
+    for(std::unique_ptr<class Receive>& Rcv:this->Receive)
+        List->push_back(Rcv->Report());
+    for(std::unique_ptr<class Send>& Snd:this->Send)
+        List->push_back(Snd->Report());
+    for(std::unique_ptr<class Vect_Info>& Vct:this->Vector)
+        List->push_back(Vct->Report());
+}
+/* End Function:Process::Report_Object ***************************************/
 }
 /* End Of File ***************************************************************/
 

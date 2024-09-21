@@ -52,7 +52,7 @@ __RVM_Entry:
     LA                  a1,__RVM_Data_Start
     LA                  a2,__RVM_Data_End
 __RVM_Data_Copy:
-    BEQ                 a1,a2,__RVM_Data_Done
+    BGEU                a1,a2,__RVM_Data_Done
     LW                  t0,(a0)
     SW                  t0,(a1)
     ADDI                a0,a0,4
@@ -63,7 +63,7 @@ __RVM_Data_Done:
     LA                  a0,__RVM_Zero_Start
     LA                  a1,__RVM_Zero_End
 __RVM_Zero_Clear:
-    BEQ                 a0,a1,__RVM_Zero_Done
+    BGEU                a0,a1,__RVM_Zero_Done
     SW                  zero,(a0)
     ADDI                a0,a0,4
     J                   __RVM_Zero_Clear

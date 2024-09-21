@@ -47,8 +47,15 @@ public:
     /* The macro denoting the global capid - for RME */
     std::string Macro_Kernel;
 
+    /* Kernel object location */
+    ptr_t Kom_Base;
+    /* Kernel object size */
+    ptr_t Kom_Size;
+
     /* void */ Kobj(class Process* Owner);
     virtual /* void */ ~Kobj(void)=0;
+
+    virtual std::string Report(void)=0;
 };
 /*****************************************************************************/
 /* __KOBJ_CLASS__ */

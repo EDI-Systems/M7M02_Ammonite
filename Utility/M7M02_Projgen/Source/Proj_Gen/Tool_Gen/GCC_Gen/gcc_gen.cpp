@@ -183,6 +183,7 @@ void GCC_Gen::Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back("    *(.text .text.*)");
     List->push_back("    *(.srodata .srodata.* .sconstdata .sconstdata.*)");
     List->push_back("    *(.rodata .rodata.* .constdata .constdata.*)");
+    List->push_back("    . = ALIGN(4);");
     List->push_back("    __RME_Code_End = .;");
     List->push_back("} > KCODE");
     List->push_back("");
@@ -335,8 +336,8 @@ void GCC_Gen::Monitor_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back("    *(.data_begin .data_begin.*)");
     List->push_back("    *(.data .data.*)");
     List->push_back("    *(.data_end .data_end.*)");
-    List->push_back("    __RVM_Data_End = .;");
     List->push_back("    . = ALIGN(4);");
+    List->push_back("    __RVM_Data_End = .;");
     List->push_back("  } > DATA AT > CODE");
     List->push_back("");
     List->push_back("/* Monitor bss segment */");
@@ -352,8 +353,8 @@ void GCC_Gen::Monitor_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back("    *(.bss .bss.*)");
     List->push_back("    *(COMMON)");
     List->push_back("    *(.bss_end .bss_end.*)");
-    List->push_back("    __RVM_Zero_End = .;");
     List->push_back("    . = ALIGN(4);");
+    List->push_back("    __RVM_Zero_End = .;");
     List->push_back("} > DATA");
     List->push_back("");
     List->push_back("/* Monitor noinit segment */");
@@ -496,8 +497,8 @@ void GCC_Gen::Process_Linker(std::unique_ptr<std::vector<std::string>>& List,
     List->push_back("    *(.data_begin .data_begin.*)");
     List->push_back("    *(.data .data.*)");
     List->push_back("    *(.data_end .data_end.*)");
-    List->push_back("    _RVM_Data_End = .;");
     List->push_back("    . = ALIGN(4);");
+    List->push_back("    _RVM_Data_End = .;");
     List->push_back("  } > DATA AT > CODE");
     List->push_back("");
     List->push_back("/* Process sbss & bss segment */");
@@ -513,8 +514,8 @@ void GCC_Gen::Process_Linker(std::unique_ptr<std::vector<std::string>>& List,
     List->push_back("    *(.bss .bss.*)");
     List->push_back("    *(COMMON)");
     List->push_back("    *(.bss_end .bss_end.*)");
-    List->push_back("    _RVM_Zero_End = .;");
     List->push_back("    . = ALIGN(4);");
+    List->push_back("    _RVM_Zero_End = .;");
     List->push_back("} > DATA");
     List->push_back("");
     List->push_back("/* Process snoinit & noinit segment */");

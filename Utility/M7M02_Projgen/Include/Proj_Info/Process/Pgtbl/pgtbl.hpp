@@ -42,12 +42,15 @@ public:
     /* The attribute (on this table, not its pages) */
     ptr_t Attr;
 
-    /* Page directories (recursively) mapped in */
+    /* Page directories (recursively) mapped in - null position indicates no pgdir */
     std::vector<std::unique_ptr<class Pgtbl>> Pgdir;
-    /* Pages mapped in - if not 0, then attr is directly here */
+    /* Pages directly mapped in - if not 0, then attr is written there */
     std::vector<ptr_t> Page;
 
     /* void */ Pgtbl(ptr_t Base, ptr_t Size_Order, ptr_t Num_Order, ptr_t Attr, class Process* Owner);
+
+    virtual std::string Report(void) final override;
+    void Report_Tree(std::unique_ptr<std::vector<std::string>>& List, std::string Prefix);
 };
 /*****************************************************************************/
 /* __PGTBL_CLASS__ */

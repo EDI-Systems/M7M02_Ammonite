@@ -54,6 +54,8 @@ dkms.conf
 # Example projects
 Project/*/
 Project/log.txt
+Project/report.txt
+Project/test.sh
 !Utility/M7M02_Bincopy/upx.exe
 !Utility/M7M02_Final/*.exe
 

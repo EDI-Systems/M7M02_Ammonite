@@ -90,6 +90,30 @@ Kobj(Owner)
     this->Priority=Priority;
 }
 /* End Function:Thread::Thread ***********************************************/
+
+/* Function:Thread::Report ****************************************************
+Description : Report kernel object details.
+Input       : None.
+Output      : None.
+Return      : std::string - The report string.
+******************************************************************************/
+std::string Thread::Report(void)
+{
+    std::string Temp;
+
+    if(this->Is_Hyp!=0)
+        Temp="Hypervisor ";
+    else
+        Temp="Thread ";
+
+    Temp+=this->Kobj::Report()+", "+
+          "stack 0x"+Main::Hex(this->Stack_Base)+"(0x"+Main::Hex(this->Stack_Size)+")"+
+          " param 0x"+Main::Hex(this->Parameter)+
+          " priority "+std::to_string(this->Priority);
+
+    return Temp;
+}
+/* End Function:Thread::Report ***********************************************/
 }
 /* End Of File ***************************************************************/
 

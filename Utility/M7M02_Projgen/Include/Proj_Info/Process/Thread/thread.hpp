@@ -48,6 +48,8 @@ public:
     /* void */ Thread(const std::string& Name,
                       ptr_t Is_Hyp, ptr_t Stack_Size, ptr_t Parameter, ptr_t Priority,
                       class Process* Owner);
+
+    virtual std::string Report(void) final override;
 };
 /*****************************************************************************/
 /* __THREAD_CLASS__ */

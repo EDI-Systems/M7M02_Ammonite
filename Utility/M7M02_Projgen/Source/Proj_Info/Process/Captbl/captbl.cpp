@@ -49,6 +49,19 @@ Kobj(Owner)
     this->Size=Size;
 }
 /* End Function:Captbl::Captbl ***********************************************/
+
+/* Function:Captbl::Report ****************************************************
+Description : Report kernel object details.
+Input       : None.
+Output      : None.
+Return      : std::string - The report string.
+******************************************************************************/
+std::string Captbl::Report(void)
+{
+    return "Captbl "+this->Kobj::Report()+
+            ", size "+std::to_string(this->Size)+" frontier "+std::to_string(this->Front);
+}
+/* End Function:Captbl::Report ***********************************************/
 }
 /* End Of File ***************************************************************/
 

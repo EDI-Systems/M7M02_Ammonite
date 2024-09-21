@@ -26,7 +26,7 @@ PROJUPPER=$(echo $PROJNAME | tr '[:lower:]' '[:upper:]')
 WORKSPACE=./$PROJUPPER/
 
 # Do the project generation
-COMMAND="$RVGEN -p $1 -k $KERNEL -m $MONITOR -rmp $RMP -frt $FRT -w $WORKSPACE -v -b"
+COMMAND="$RVGEN -p $1 -k $KERNEL -m $MONITOR -rmp $RMP -frt $FRT -w $WORKSPACE -r report.txt -v -b"
 echo $COMMAND
 $COMMAND > ./log.txt
 

@@ -36,6 +36,8 @@ public:
     ptr_t End;
 
     /* void */ Kfunc(xml_node_t* Root, class Process* Owner);
+
+    virtual std::string Report(void) final override;
 };
 /*****************************************************************************/
 /* __KFUNC_CLASS__ */

@@ -59,6 +59,22 @@ Kobj(Owner)
     }
 }
 /* End Function:Send::Send ***************************************************/
+
+/* Function:Send::Report ******************************************************
+Description : Report kernel object details.
+Input       : None.
+Output      : None.
+Return      : std::string - The report string.
+******************************************************************************/
+std::string Send::Report(void)
+{
+    std::string Temp;
+
+    Temp="Send "+this->Kobj::Report();
+
+    return Temp;
+}
+/* End Function:Send::Report *************************************************/
 }
 /* End Of File ***************************************************************/
 

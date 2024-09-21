@@ -210,6 +210,105 @@ ptr_t Proj_Info::Flag_Alloc(ptr_t Source, ptr_t Wordlength, ptr_t Kom_Order)
     return ROUND_UP_POW2(Raw,Kom_Order)*2;
 }
 /* End Function:Proj_Info::Flag_Alloc ****************************************/
+
+/* Function:Proj_Info::Report_Mem_Contain ************************************
+Description : Get all memory trunks that have something to do with the given trunk.
+Input       : None.
+Output      : ptr_t& Used - Total used memory size, in bytes.
+Return      : None.
+******************************************************************************/
+std::unique_ptr<std::vector<class Mem_Info*>> Proj_Info::Report_Mem_Contain(class Mem_Info* Target,
+                                                                            ptr_t& Used)
+{
+    std::unique_ptr<std::vector<class Mem_Info*>> Info=std::make_unique<std::vector<class Mem_Info*>>();
+    Used=0;
+
+    /* Kernel */
+    if(Target->Is_Contain(this->Kernel->Code.get())!=0)
+    {
+        Info->push_back(this->Kernel->Code.get());
+        Used+=this->Kernel->Code->Size;
+    }
+    if(Target->Is_Contain(this->Kernel->Data.get())!=0)
+    {
+        Info->push_back(this->Kernel->Data.get());
+        Used+=this->Kernel->Data->Size;
+    }
+
+    /* Monitor */
+    if(Target->Is_Contain(this->Monitor->Code.get())!=0)
+    {
+        Info->push_back(this->Monitor->Code.get());
+        Used+=this->Monitor->Code->Size;
+    }
+    if(Target->Is_Contain(this->Monitor->Data.get())!=0)
+    {
+        Info->push_back(this->Monitor->Data.get());
+        Used+=this->Monitor->Data->Size;
+    }
+
+    /* Shared */
+    for(std::unique_ptr<class Mem_Info>& Mem:this->Shmem)
+    {
+        if(Target->Is_Contain(Mem.get())!=0)
+        {
+            Info->push_back(Mem.get());
+            Used+=Mem->Size;
+        }
+    }
+
+    /* Processes */
+    for(std::unique_ptr<class Process>& Prc:this->Process)
+    {
+        for(std::unique_ptr<class Mem_Info>& Mem:Prc->Memory)
+        {
+            /* Filter out these shared ones because they are counted for above */
+            if((Mem->Is_Shared==0)&&(Target->Is_Contain(Mem.get())!=0))
+            {
+                Info->push_back(Mem.get());
+                Used+=Mem->Size;
+            }
+        }
+    }
+
+    return Info;
+}
+/* End Function:Proj_Info::Report_Mem_Contain ********************************/
+
+/* Function:Proj_Info::Report_Mem_Phys ****************************************
+Description : Generate report about physical memory.
+Input       : std::vector<std::unique_ptr<class Mem_Info>>& Memory - The memory list.
+              const std::string Header - The header to use.
+Output      : std::unique_ptr<std::vector<std::string>>& List - The text output.
+Return      : None.
+******************************************************************************/
+void Proj_Info::Report_Mem_Phys(std::unique_ptr<std::vector<std::string>>& List,
+                                std::vector<std::unique_ptr<class Mem_Info>>& Memory,
+                                const std::string Header)
+{
+    std::unique_ptr<std::vector<class Mem_Info*>> Mem_List;
+    std::string Temp;
+    ptr_t Used;
+
+    for(std::unique_ptr<class Mem_Info>& Phys:Memory)
+    {
+        Mem_List=this->Report_Mem_Contain(Phys.get(),Used);
+
+        /* List the backing memory itself */
+        switch(Phys->Type)
+        {
+            case MEM_CODE:Temp="Code";break;
+            case MEM_DATA:Temp="Data";break;
+            case MEM_DEVICE:Temp="Device";break;
+        }
+        List->push_back(Header+" "+Temp+" "+std::to_string(Used*100/Phys->Size)+"% full"+" "+Phys->Report());
+
+        /* Also list whatever segments that it backs */
+        for(class Mem_Info* Mem:*Mem_List)
+            List->push_back("- Allocation "+std::to_string(Mem->Size*100/Phys->Size)+"% "+Mem->Report());
+    }
+}
+/* End Function:Proj_Info::Report_Mem_Phys ***********************************/
 }
 /* End Of File ***************************************************************/
 

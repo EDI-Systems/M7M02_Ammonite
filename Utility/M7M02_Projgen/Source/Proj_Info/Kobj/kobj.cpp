@@ -41,6 +41,8 @@ Return      : None.
 /* void */ Kobj::Kobj(class Process* Owner)
 {
     this->Owner=Owner;
+    this->Kom_Base=0;
+    this->Kom_Size=0;
 }
 /* End Function:Kobj::Kobj ***************************************************/
 
@@ -55,6 +57,34 @@ Return      : None.
     /* Do nothing */
 }
 /* End Function:Kobj::~Kobj **************************************************/
+
+/* Function:Kobj::Report ******************************************************
+Description : Report kernel object details.
+Input       : None.
+Output      : None.
+Return      : std::string - The report string.
+******************************************************************************/
+std::string Kobj::Report(void)
+{
+    std::string Temp;
+
+    if(this->Name!="")
+        Temp=this->Name+" ";
+
+    /* This only happens for Kfunc */
+    if(this->Macro_Global!="")
+        Temp+=this->Macro_Global+"(0x"+Main::Hex(this->Cid_Global)+") ";
+
+    /* This is more prevalent */
+    if(this->Macro_Local!="")
+        Temp+=this->Macro_Local+"(0x"+Main::Hex(this->Cid_Local)+") ";
+
+    if(this->Kom_Base!=0)
+        Temp+="@ 0x"+Main::Hex(this->Kom_Base)+"(0x"+Main::Hex(this->Kom_Size)+")";
+
+    return Temp;
+}
+/* End Function:Kobj::Report *************************************************/
 }
 /* End Of File ***************************************************************/
 

@@ -34,6 +34,8 @@ public:
     std::string Process;
 
     /* void */ Port(xml_node_t* Root, class Process* Owner);
+
+    virtual std::string Report(void) final override;
 };
 /*****************************************************************************/
 /* __PORT_CLASS__ */

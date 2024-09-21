@@ -47,7 +47,7 @@ _RVM_Entry:
     LDR                 R2,=_RVM_Data_Load
 _RVM_Data_Copy:
     CMP                 R0,R1
-    BEQ                 _RVM_Data_Done
+    BPL                 _RVM_Data_Done
     LDR                 R3,[R2]
     STR                 R3,[R0]
     ADDS                R0,#0x04
@@ -60,7 +60,7 @@ _RVM_Data_Done:
     LDR                 R2,=0x00
 _RVM_Zero_Clear:
     CMP                 R0,R1
-    BEQ                 _RVM_Zero_Done
+    BPL                 _RVM_Zero_Done
     STR                 R2,[R0]
     ADDS                R0,#0x04
     B                   _RVM_Zero_Clear

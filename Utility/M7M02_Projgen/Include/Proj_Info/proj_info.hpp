@@ -83,6 +83,11 @@ public:
     void Check(void);
 
     static ptr_t Flag_Alloc(ptr_t Source, ptr_t Wordlength, ptr_t Kom_Order);
+    std::unique_ptr<std::vector<class Mem_Info*>> Report_Mem_Contain(class Mem_Info* Target,
+                                                                     ptr_t& Used);
+    void Report_Mem_Phys(std::unique_ptr<std::vector<std::string>>& List,
+                         std::vector<std::unique_ptr<class Mem_Info>>& Memory,
+                         const std::string Header);
 };
 /*****************************************************************************/
 /* __PROJ_INFO_CLASS__ */

@@ -59,6 +59,19 @@ Kobj(Owner)
     }
 }
 /* End Function:Invocation::Invocation ***************************************/
+
+/* Function:Invocation::Report ************************************************
+Description : Report kernel object details.
+Input       : None.
+Output      : None.
+Return      : std::string - The report string.
+******************************************************************************/
+std::string Invocation::Report(void)
+{
+    return "Invocation "+this->Kobj::Report()+", "+
+           "stack 0x"+Main::Hex(this->Stack_Base)+"(0x"+Main::Hex(this->Stack_Size)+")";
+}
+/* End Function:Invocation::Report *******************************************/
 }
 /* End Of File ***************************************************************/
 

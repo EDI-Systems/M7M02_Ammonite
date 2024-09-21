@@ -114,6 +114,11 @@ public:
     /* Memory fitting - called on shared/private declarations */
     ret_t Static_Fit(std::vector<class Mem_Info*>& Map);
     ret_t Auto_Fit(std::vector<class Mem_Info*>& Map);
+
+    /* Report generation */
+    static std::string Attr2Str(ptr_t Attr);
+    std::string Report(void);
+    ptr_t Is_Contain(class Mem_Info* Test);
 };
 /*****************************************************************************/
 /* __MEM_INFO_CLASS__ */

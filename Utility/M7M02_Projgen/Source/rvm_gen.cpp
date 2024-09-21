@@ -130,6 +130,7 @@ std::string Main::Guest_RTT_Root;
 std::string Main::Guest_UO2_Root;
 std::string Main::Guest_UO3_Root;
 std::string Main::Workspace_Output;
+std::string Main::Report_Output;
 ptr_t Main::Verbose=0;
 ptr_t Main::Dryrun=0;
 ptr_t Main::Benchmark=0;
@@ -1115,6 +1116,7 @@ void Main::Shmem_Add(void)
                     /* Check attributes then populate */
                     Temp=std::make_unique<class Mem_Info>(Mem->second,Shm->Attr);
                     Temp->Is_Shared=1;
+                    /* Memory_XXX also includes shared memory from this point on */
                     switch(Temp->Type)
                     {
                         case MEM_CODE:Prc->Memory_Code.push_back(Temp.get());break;
@@ -1426,7 +1428,7 @@ void Main::Kom_Alloc(ptr_t Init_Capsz)
         Cap_Front+=ROUND_DIV(this->Proj->Virtual.size(),this->Plat->Captbl_Max);
         Kom_Front+=this->Gen->Plat->Size_Cpt(this->Proj->Virtual.size());
     }
-    /* When there are no virtual machines at all, just generate one thread (sftd) and one endpoint (sftd) */
+    /* When there are no VMs at all, just generate one thread (sftd) and one endpoint (sftd) */
     else
     {
         Cap_Front+=2;
@@ -1446,7 +1448,11 @@ void Main::Kom_Alloc(ptr_t Init_Capsz)
     Kom_Front+=this->Gen->Plat->Size_Cpt(this->Proj->Monitor->Captbl.size());
     /* Capability tables themselves */
     for(class Captbl* Cpt:this->Proj->Monitor->Captbl)
-        Kom_Front+=this->Gen->Plat->Size_Cpt(Cpt->Size);
+    {
+        Cpt->Kom_Base=Kom_Front;
+        Cpt->Kom_Size=this->Gen->Plat->Size_Cpt(Cpt->Size);
+        Kom_Front+=Cpt->Kom_Size;
+    }
 
     /* Create page tables - only if we use kernel-managed page tables */
     if(this->Proj->Pgtbl_Raw_Enable==0)
@@ -1457,9 +1463,13 @@ void Main::Kom_Alloc(ptr_t Init_Capsz)
         /* Capability tables for containing page tables */
         Cap_Front+=ROUND_DIV(this->Proj->Monitor->Pgtbl.size(),this->Plat->Captbl_Max);
         Kom_Front+=this->Gen->Plat->Size_Cpt(this->Proj->Monitor->Pgtbl.size());
-        /* Page table themselves */
+        /* Page tables themselves */
         for(class Pgtbl* Pgt:this->Proj->Monitor->Pgtbl)
-            Kom_Front+=this->Gen->Plat->Size_Pgt(Pgt->Num_Order, Pgt->Is_Top);
+        {
+            Pgt->Kom_Base=Kom_Front;
+            Pgt->Kom_Size=this->Gen->Plat->Size_Pgt(Pgt->Num_Order, Pgt->Is_Top);
+            Kom_Front+=Pgt->Kom_Size;
+        }
     }
 
     /* Create processes */
@@ -1479,8 +1489,12 @@ void Main::Kom_Alloc(ptr_t Init_Capsz)
     Cap_Front+=ROUND_DIV(this->Proj->Monitor->Thread.size(),this->Plat->Captbl_Max);
     Kom_Front+=this->Gen->Plat->Size_Cpt(this->Proj->Monitor->Thread.size());
     /* Threads themselves */
-    for(const class Thread* Thd:this->Proj->Monitor->Thread)
-    	Kom_Front+=this->Gen->Plat->Size_Thread(Thd->Owner->Coprocessor,Thd->Is_Hyp);
+    for(class Thread* Thd:this->Proj->Monitor->Thread)
+    {
+        Thd->Kom_Base=Kom_Front;
+        Thd->Kom_Size=this->Gen->Plat->Size_Thread(Thd->Owner->Coprocessor,Thd->Is_Hyp);
+    	Kom_Front+=Thd->Kom_Size;
+    }
 
     /* Create invocations */
     Main::Info("> Monitor invocation cap front %lld kmem front 0x%llX.", Cap_Front, Kom_Front);
@@ -1490,7 +1504,12 @@ void Main::Kom_Alloc(ptr_t Init_Capsz)
     Cap_Front+=ROUND_DIV(this->Proj->Monitor->Invocation.size(),this->Plat->Captbl_Max);
     Kom_Front+=this->Gen->Plat->Size_Cpt(this->Proj->Monitor->Invocation.size());
     /* Invocations themselves */
-    Kom_Front+=this->Proj->Monitor->Invocation.size()*this->Gen->Plat->Size_Invocation();
+    for(class Invocation* Inv:this->Proj->Monitor->Invocation)
+    {
+        Inv->Kom_Base=Kom_Front;
+        Inv->Kom_Size=this->Gen->Plat->Size_Invocation();
+        Kom_Front+=Inv->Kom_Size;
+    }
 
     /* Create receive endpoints */
     Main::Info("> Monitor recv cap front %lld kmem front 0x%llX.", Cap_Front, Kom_Front);
@@ -1755,20 +1774,192 @@ void Main::Workspace_Gen(void)
 /* End Function:Main::Workspace_Gen ******************************************/
 
 /* Function:Main::Report_Gen **************************************************
-Description : Generate after report. This is currently not used.
+Description : Generate report about the project. This generated regardless of
+              the dry run option.
 Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
 void Main::Report_Gen(void)
 {
+    std::unique_ptr<std::vector<std::string>> List;
+
     try
     {
-    	/* Report kernel code section */
+        /* Report is purely optional */
+        if(Main::Report_Output=="")
+            return;
 
-    	/* Report kernel total data section */
+        List=std::make_unique<std::vector<std::string>>();
 
-    	/* Report kotbl space */
+        /* Report header */
+        List->push_back("===============================================================================");
+        List->push_back("                           RVM Project Generator Report");
+        List->push_back("-------------------------------------------------------------------------------");
+        List->push_back("Project name                    : "+Main::Proj->Name);
+        List->push_back("Full path                       : "+Main::Project_Input);
+        List->push_back("Generation time                 : "+Main::Time);
+
+        /* Hardware info */
+        List->push_back("===============================================================================");
+        List->push_back("                              Hardware Information");
+        List->push_back("-------------------------------------------------------------------------------");
+        List->push_back("Chip                            : "+Main::Proj->Chip->Name);
+        List->push_back("Compatible class                : "+Main::Proj->Chip->Class);
+        List->push_back("Platform architecture           : "+Main::Proj->Chip->Platform);
+        List->push_back("Hardware coprocessors           : "+Main::Vec2CSV(Main::Chip->Coprocessor));
+        List->push_back("Enabled coprocessors            : "+Main::Vec2CSV(Main::Proj->Chip->Coprocessor));
+        List->push_back("Interrupt vectors               : "+std::to_string(Main::Chip->Vector));
+        List->push_back("Main project                    : "+Main::Proj->Buildsystem);
+
+        /* Memory info - internal and external */
+        List->push_back("===============================================================================");
+        List->push_back("                               Memory Information");
+        List->push_back("-------------------------------------------------------------------------------");
+        /* List memory and their usage as well */
+        Main::Proj->Report_Mem_Phys(List,Main::Chip->Memory,"On-chip");
+        if(!Main::Proj->Extmem.empty())
+        {
+            List->push_back("-------------------------------------------------------------------------------");
+            Main::Proj->Report_Mem_Phys(List,Main::Proj->Extmem,"External");
+        }
+
+        /* Kernel info */
+        List->push_back("===============================================================================");
+        List->push_back("                             RME Kernel Information");
+        List->push_back("-------------------------------------------------------------------------------");
+        List->push_back("Buildsystem                    : "+Main::Proj->Kernel->Buildsystem);
+        List->push_back("Toolchain                      : "+Main::Proj->Kernel->Toolchain);
+        if(Main::Proj->Pgtbl_Raw_Enable==0)
+            List->push_back("Raw page table                 : Disabled");
+        else
+            List->push_back("Raw page table                 : Enabled");
+        List->push_back("Kernel priorities              : "+std::to_string(Main::Proj->Kernel->Kern_Prio));
+        List->push_back("Kernel memory base             : 0x"+Main::Hex(Main::Proj->Kernel->Kom_Base));
+        List->push_back("Kernel memory size             : 0x"+Main::Hex(Main::Proj->Kernel->Kom_Size));
+        if(Main::Proj->Kernel->Kom_Order<6)
+            List->push_back("Kernel memory order            : 6");
+        else
+            List->push_back("Kernel memory order            : "+std::to_string(Main::Proj->Kernel->Kom_Order));
+        List->push_back("Kernel object frontier         : 0x"+Main::Hex(Main::Proj->Monitor->After_Kom_Front));
+        List->push_back("Kernel object granularity      : "+std::to_string(Main::Proj->Kernel->Kom_Order));
+        List->push_back("-------------------------------------------------------------------------------");
+        List->push_back("Code base                      : 0x"+Main::Hex(Main::Proj->Kernel->Code_Base));
+        List->push_back("Code size                      : 0x"+Main::Hex(Main::Proj->Kernel->Code_Size));
+        List->push_back("Data base                      : 0x"+Main::Hex(Main::Proj->Kernel->Data_Base));
+        List->push_back("Data size                      : 0x"+Main::Hex(Main::Proj->Kernel->Data_Size));
+        List->push_back("Stack base                     : 0x"+Main::Hex(Main::Proj->Kernel->Stack_Base));
+        List->push_back("Stack size                     : 0x"+Main::Hex(Main::Proj->Kernel->Stack_Size));
+        List->push_back("Vector flag base               : 0x"+Main::Hex(Main::Proj->Kernel->Vctf_Base));
+        List->push_back("Vector flag base               : 0x"+Main::Hex(Main::Proj->Kernel->Vctf_Size));
+        List->push_back("Event flag base                : 0x"+Main::Hex(Main::Proj->Kernel->Evtf_Base));
+        List->push_back("Event flag size                : 0x"+Main::Hex(Main::Proj->Kernel->Evtf_Size));
+
+        /* Monitor info */
+        List->push_back("===============================================================================");
+        List->push_back("                           RVM Hypervisor Information");
+        List->push_back("-------------------------------------------------------------------------------");
+        List->push_back("Buildsystem                    : "+Main::Proj->Monitor->Buildsystem);
+        List->push_back("Toolchain                      : "+Main::Proj->Monitor->Toolchain);
+        if(Main::Proj->Virtual.empty())
+            List->push_back("Virtualization                 : Disabled ("+std::to_string(Main::Proj->Native.size())+" native)");
+        else
+            List->push_back("Virtualization                 : Enabled ("+std::to_string(Main::Proj->Native.size())+" native, "+
+                                                                         std::to_string(Main::Proj->Virtual.size())+" virtual)");
+        List->push_back("Virtual priorities             : "+std::to_string(Main::Proj->Monitor->Virt_Prio));
+        List->push_back("Virtual event sources          : "+std::to_string(Main::Proj->Monitor->Virt_Event));
+        List->push_back("Virtual mapping limit          : "+std::to_string(Main::Proj->Monitor->Virt_Map));
+        List->push_back("-------------------------------------------------------------------------------");
+        List->push_back("Code base                      : 0x"+Main::Hex(Main::Proj->Monitor->Code_Base));
+        List->push_back("Code size                      : 0x"+Main::Hex(Main::Proj->Monitor->Code_Size));
+        List->push_back("Data base                      : 0x"+Main::Hex(Main::Proj->Monitor->Data_Base));
+        List->push_back("Data size                      : 0x"+Main::Hex(Main::Proj->Monitor->Data_Size));
+        List->push_back("Vmmd stack base                : 0x"+Main::Hex(Main::Proj->Monitor->Vmmd_Stack_Base));
+        List->push_back("Vmmd stack size                : 0x"+Main::Hex(Main::Proj->Monitor->Vmmd_Stack_Size));
+        List->push_back("Sftd stack base                : 0x"+Main::Hex(Main::Proj->Monitor->Sftd_Stack_Base));
+        List->push_back("Sftd stack size                : 0x"+Main::Hex(Main::Proj->Monitor->Sftd_Stack_Size));
+        List->push_back("Init stack base                : 0x"+Main::Hex(Main::Proj->Monitor->Init_Stack_Base));
+        List->push_back("Init stack size                : 0x"+Main::Hex(Main::Proj->Monitor->Init_Stack_Size));
+
+        /* Kernel object info - only objects that use kernel memory are listed */
+        List->push_back("===============================================================================");
+        List->push_back("                       Concrete Kernel Object Information");
+        List->push_back("-------------------------------------------------------------------------------");
+        List->push_back("Vector frontier                : main capability table 0x"+
+                        Main::Hex(Main::Proj->Kernel->Vct_Cap_Front)+", kernel memory 0x"+Main::Hex(Main::Proj->Kernel->Vct_Kom_Front));
+        for(class Vect_Info* Vct:Main::Proj->Monitor->Vector)
+            List->push_back(Vct->Report());
+        List->push_back("-------------------------------------------------------------------------------");
+        List->push_back("Hypervisor boot-time frontier  : main capability table 0x"+
+                        Main::Hex(Main::Proj->Monitor->Before_Cap_Front)+", kernel memory 0x"+Main::Hex(Main::Proj->Monitor->Before_Kom_Front));
+        List->push_back("Virtual endpoint frontier      : main capability table 0x"+
+                        Main::Hex(Main::Proj->Monitor->Vep_Cap_Front)+", kernel memory 0x"+Main::Hex(Main::Proj->Monitor->Vep_Kom_Front));
+        List->push_back("-------------------------------------------------------------------------------");
+        List->push_back("Capability table frontier      : main capability table 0x"+
+                        Main::Hex(Main::Proj->Monitor->Cpt_Cap_Front)+", kernel memory 0x"+Main::Hex(Main::Proj->Monitor->Cpt_Kom_Front));
+        for(class Captbl* Cpt:Main::Proj->Monitor->Captbl)
+            List->push_back(Cpt->Report());
+        List->push_back("-------------------------------------------------------------------------------");
+        List->push_back("Page table frontier            : main capability table 0x"+
+                        Main::Hex(Main::Proj->Monitor->Pgt_Cap_Front)+", kernel memory 0x"+Main::Hex(Main::Proj->Monitor->Pgt_Kom_Front));
+        for(class Pgtbl* Pgt:Main::Proj->Monitor->Pgtbl)
+            List->push_back(Pgt->Report());
+        List->push_back("-------------------------------------------------------------------------------");
+        List->push_back("Process frontier               : main capability table 0x"+
+                        Main::Hex(Main::Proj->Monitor->Prc_Cap_Front)+", kernel memory 0x"+Main::Hex(Main::Proj->Monitor->Prc_Kom_Front));
+        for(class Process* Prc:Main::Proj->Monitor->Process)
+        {
+            if(Prc->Type==PROCESS_NATIVE)
+                List->push_back(static_cast<class Native*>(Prc)->Report());
+            else
+                List->push_back(static_cast<class Virtual*>(Prc)->Report());
+        }
+        List->push_back("-------------------------------------------------------------------------------");
+        List->push_back("Thread frontier                : main capability table 0x"+
+                        Main::Hex(Main::Proj->Monitor->Thd_Cap_Front)+", kernel memory 0x"+Main::Hex(Main::Proj->Monitor->Thd_Kom_Front));
+        for(class Thread* Thd:Main::Proj->Monitor->Thread)
+            List->push_back(Thd->Report());
+        List->push_back("-------------------------------------------------------------------------------");
+        List->push_back("Invocation frontier            : main capability table 0x"+
+                        Main::Hex(Main::Proj->Monitor->Inv_Cap_Front)+", kernel memory 0x"+Main::Hex(Main::Proj->Monitor->Inv_Kom_Front));
+        for(class Invocation* Inv:Main::Proj->Monitor->Invocation)
+            List->push_back(Inv->Report());
+        List->push_back("-------------------------------------------------------------------------------");
+        List->push_back("Signal frontier                : main capability table 0x"+
+                        Main::Hex(Main::Proj->Monitor->Rcv_Cap_Front)+", kernel memory 0x"+Main::Hex(Main::Proj->Monitor->Rcv_Kom_Front));
+        for(class Receive* Rcv:Main::Proj->Monitor->Receive)
+            List->push_back(Rcv->Report());
+        List->push_back("-------------------------------------------------------------------------------");
+        List->push_back("Final frontier                 : main capability table 0x"+
+                        Main::Hex(Main::Proj->Monitor->After_Cap_Front)+", kernel memory 0x"+Main::Hex(Main::Proj->Monitor->After_Kom_Front));
+
+        /* Native processes - list one by one */
+        for(class Native* Nat:Main::Proj->Native)
+        {
+            List->push_back("===============================================================================");
+            List->push_back("                           Native Process Information");
+            List->push_back("-------------------------------------------------------------------------------");
+            Nat->Report_Basic(List);
+            List->push_back("-------------------------------------------------------------------------------");
+            Nat->Report_Object(List);
+        }
+
+        /* Virtual machines - list one by one */
+        for(class Virtual* Virt:Main::Proj->Virtual)
+        {
+            List->push_back("===============================================================================");
+            List->push_back("                           Virtual Machine Information");
+            List->push_back("-------------------------------------------------------------------------------");
+            Virt->Report_Basic(List);
+            List->push_back("-------------------------------------------------------------------------------");
+            Virt->Report_Virtual(List);
+            List->push_back("-------------------------------------------------------------------------------");
+            Virt->Report_Object(List);
+        }
+        List->push_back("===============================================================================");
+
+        /* Write actual report to file */
+        Proj_Gen::Line_Write(List, Main::Report_Output);
     }
     catch(std::exception& Exc)
     {
@@ -1873,6 +2064,14 @@ Return      : None.
                 Count+=2;
             }
             /* Verbose mode */
+            else if(strcmp(argv[Count],"-r")==0)
+            {
+                if(Main::Report_Output!="")
+                    Main::Error("XXXXX: More than one report file specified.");
+                Main::Report_Output=Main::Path_Absolute(PATH_FILE, "", argv[Count+1]);
+                Count+=2;
+            }
+            /* Verbose mode */
             else if(strcmp(argv[Count],"-v")==0)
             {
                 Main::Verbose=1;
@@ -1935,12 +2134,41 @@ Return      : None.
                                 "       -uo3: uC/OS III root folder; needed when uC/OS III is the guest.\n"
                                 "       -w: Workspace output folder.\n"
                                 "Auxiliary parameters:\n"
+                                "       -r report.txt: Generate report.\n"
                                 "       -v: Verbose mode.\n"
-                                "       -d: Perform a dry run instead of generating a project.\n"
+                                "       -d: Perform a dry run instead of project generation.\n"
                                 "       -b: Generate benchmark project (only works with default rvp).\n");
     }
 }
 /* End Function:Main::Main ***************************************************/
+
+/* Function:Main::Vec2CSV *****************************************************
+Description : Convert vector of strings to CSV.
+Input       : const std::vector<std::string>& Vector - The input vector.
+              const std::string& Name - The section name.
+              const std::string& Errno0 - The first error number.
+              const std::string& Errno1 - The second error number.
+Output      : None.
+Return      : std::string - The generated string.
+******************************************************************************/
+std::string Main::Vec2CSV(const std::vector<std::string>& Vector)
+{
+    std::string Temp;
+
+    for(const std::string& Str:Vector)
+    {
+        if(Temp!="")
+            Temp+=","+Str;
+        else
+            Temp=Str;
+    }
+
+    if(Temp=="")
+        return "None";
+
+    return Temp;
+}
+/* End Function:Main::Vec2CSV ************************************************/
 
 /* Function:Main::XML_Get_String **********************************************
 Description : Get strings from the XML entry.

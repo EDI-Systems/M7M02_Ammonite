@@ -57,6 +57,22 @@ Kobj(Owner)
     }
 }
 /* End Function:Receive::Receive *********************************************/
+
+/* Function:Receive::Report ***************************************************
+Description : Report kernel object details.
+Input       : None.
+Output      : None.
+Return      : std::string - The report string.
+******************************************************************************/
+std::string Receive::Report(void)
+{
+    std::string Temp;
+
+    Temp="Receive "+this->Kobj::Report();
+
+    return Temp;
+}
+/* End Function:Receive::Report **********************************************/
 }
 /* End Of File ***************************************************************/
 

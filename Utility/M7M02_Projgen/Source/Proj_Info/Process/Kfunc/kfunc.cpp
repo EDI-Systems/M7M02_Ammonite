@@ -61,6 +61,18 @@ Kobj(Owner)
     }
 }
 /* End Function:Kfunc::Kfunc *************************************************/
+
+/* Function:Kfunc::Report *****************************************************
+Description : Report kernel object details.
+Input       : None.
+Output      : None.
+Return      : std::string - The report string.
+******************************************************************************/
+std::string Kfunc::Report(void)
+{
+    return "Kfunc "+this->Kobj::Report()+", [0x"+Main::Hex(Begin)+", 0x"+Main::Hex(End)+"]";
+}
+/* End Function:Kfunc::Report ************************************************/
 }
 /* End Of File ***************************************************************/
 

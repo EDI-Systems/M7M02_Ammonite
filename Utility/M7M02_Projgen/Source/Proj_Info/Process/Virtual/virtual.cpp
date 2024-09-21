@@ -137,6 +137,47 @@ ptr_t Virtual::State_Alloc(ptr_t Source, ptr_t Wordlength, ptr_t Kom_Order)
     return ROUND_UP_POW2(Raw, Kom_Order);
 }
 /* End Function:Virtual::State_Alloc *****************************************/
+
+/* Function:Virtual::Report ***************************************************
+Description : Report kernel object details.
+Input       : None.
+Output      : None.
+Return      : std::string - The report string.
+******************************************************************************/
+std::string Virtual::Report(void)
+{
+    return "Virtual "+this->Kobj::Report();
+}
+/* End Function:Virtual::Report **********************************************/
+
+/* Function:Virtual::Report_Virtual *******************************************
+Description : Report virtual machine specifics about the process.
+Input       : None.
+Output      : std::unique_ptr<std::vector<std::string>>& List - The text output.
+Return      : None.
+******************************************************************************/
+void Virtual::Report_Virtual(std::unique_ptr<std::vector<std::string>>& List)
+{
+    List->push_back("Virtual machine guest          : "+this->Guest_Type);
+    List->push_back("Virtual machine priority       : "+std::to_string(this->Priority));
+    List->push_back("Virtual machine timeslice      : "+std::to_string(this->Timeslice));
+    List->push_back("Virtual timer tick period      : "+std::to_string(this->Period));
+    if(this->Watchdog!=0)
+        List->push_back("Virtual watchdog               : "+std::to_string(this->Watchdog));
+    else
+        List->push_back("Virtual watchdog               : Disabled");
+    List->push_back("Virtual vectors                : "+std::to_string(this->Vector_Num));
+    List->push_back("-------------------------------------------------------------------------------");
+    List->push_back("Vector stack base              : 0x"+Main::Hex(this->Thread[0]->Stack_Base));
+    List->push_back("Vector stack size              : 0x"+Main::Hex(this->Vector_Stack_Size));
+    List->push_back("User stack base                : 0x"+Main::Hex(this->Thread[1]->Stack_Base));
+    List->push_back("User stack size                : 0x"+Main::Hex(this->User_Stack_Size));
+    List->push_back("User register base             : 0x"+Main::Hex(this->Reg_Base));
+    List->push_back("User register size             : 0x"+Main::Hex(this->Reg_Size));
+    List->push_back("State area base                : 0x"+Main::Hex(this->State_Base));
+    List->push_back("State area size                : 0x"+Main::Hex(this->State_Size));
+}
+/* End Function:Virtual::Report_Virtual **************************************/
 }
 /* End Of File ***************************************************************/
 

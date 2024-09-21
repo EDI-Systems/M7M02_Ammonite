@@ -38,6 +38,8 @@ public:
     /* void */ Vect_Info(xml_node_t* Root, class Process* Owner);
 
     void Check(void);
+
+    virtual std::string Report(void) final override;
 };
 /*****************************************************************************/
 /* __VECT_INFO_CLASS__ */

@@ -4,9 +4,9 @@
     <Version>1.0</Version>
     <Wordlength>32</Wordlength>
     <Coprocessor>FPV4_SP,FPV5_SP,FPV5_DP</Coprocessor>
-    <Guest>RMP</Guest>
     <Buildsystem>Keil,Makefile</Buildsystem>
     <Toolchain>ARMCC,GCC</Toolchain>
+    <Guest>RMP</Guest>
     <Compatible>
         <C0>Keil,ARMCC,Native</C0>
         <C1>Keil,ARMCC,RMP</C1>

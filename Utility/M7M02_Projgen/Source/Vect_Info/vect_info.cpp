@@ -86,6 +86,22 @@ void Vect_Info::Check(void)
     }
 }
 /* End Function:Vect_Info::Check *********************************************/
+
+/* Function:Vect_Info::Report *************************************************
+Description : Report kernel object details.
+Input       : None.
+Output      : None.
+Return      : std::string - The report string.
+******************************************************************************/
+std::string Vect_Info::Report(void)
+{
+    std::string Temp;
+
+    Temp="Vector "+this->Kobj::Report();
+
+    return Temp;
+}
+/* End Function:Vect_Info::Report ********************************************/
 }
 /* End Of File ***************************************************************/
 

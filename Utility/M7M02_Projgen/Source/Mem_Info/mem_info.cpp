@@ -410,6 +410,69 @@ ret_t Mem_Info::Auto_Fit(std::vector<class Mem_Info*>& Map)
     return -1;
 }
 /* End Function:Mem_Info::Auto_Fit *******************************************/
+
+/* Function:Mem_Info::Attr2Str ************************************************
+Description : Convert memory attributes to a string.
+Input       : ptr_t Attr - The attribute to convert.
+Output      : None.
+Return      : std::string - The string generated.
+******************************************************************************/
+std::string Mem_Info::Attr2Str(ptr_t Attr)
+{
+    std::string Temp;
+
+    if((Attr&MEM_READ)!=0)
+        Temp+="R";
+    if((Attr&MEM_WRITE)!=0)
+        Temp+="W";
+    if((Attr&MEM_EXECUTE)!=0)
+        Temp+="X";
+    if((Attr&MEM_BUFFER)!=0)
+        Temp+="B";
+    if((Attr&MEM_CACHE)!=0)
+        Temp+="C";
+    if((Attr&MEM_STATIC)!=0)
+        Temp+="S";
+
+    return Temp;
+}
+/* End Function:Mem_Info::Attr2Str *******************************************/
+
+/* Function:Mem_Info::Report **************************************************
+Description : Generate a simple line in the report for this memory trunk.
+Input       : None.
+Output      : None.
+Return      : std::string - The line generated.
+******************************************************************************/
+std::string Mem_Info::Report(void)
+{
+    std::string Temp;
+
+    if(this->Name!="")
+        Temp=this->Name+" ";
+
+    Temp+="0x"+Main::Hex(this->Base)+
+          " 0x"+Main::Hex(this->Size)+
+          " "+Mem_Info::Attr2Str(this->Attr);
+
+    return Temp;
+}
+/* End Function:Mem_Info::Report *********************************************/
+
+/* Function:Mem_Info::Is_Contain **********************************************
+Description : Detect if one trunk is contained in ourself.
+Input       : class Mem_Info* Test - The trunk to test.
+Output      : None.
+Return      : ptr_t - If contain, 1; else 0.
+******************************************************************************/
+ptr_t Mem_Info::Is_Contain(class Mem_Info* Test)
+{
+    if((Test->Base>=this->Base)&&(Test->Base<(this->Base+this->Size)))
+        return 1;
+
+    return 0;
+}
+/* End Function:Mem_Info::Is_Contain *****************************************/
 }
 /* End Of File ***************************************************************/
 

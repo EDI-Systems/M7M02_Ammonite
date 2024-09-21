@@ -34,6 +34,8 @@ public:
     std::string Process;
 
     /* void */ Send(xml_node_t* Root, class Process* Owner);
+
+    virtual std::string Report(void) final override;
 };
 /*****************************************************************************/
 /* __SEND_CLASS__ */

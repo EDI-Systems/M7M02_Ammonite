@@ -39,6 +39,8 @@ public:
     ptr_t Stack_Base;
  
     /* void */ Invocation(xml_node_t* Root, class Process* Owner);
+
+    virtual std::string Report(void) final override;
 };
 /*****************************************************************************/
 /* __INVOCATION_CLASS__ */
