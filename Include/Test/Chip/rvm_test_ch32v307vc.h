@@ -5,81 +5,20 @@ Date        : 27/07/2024
 License     : Unlicense; see COPYING for details.
 Description : The test file for CH32V307VC.
 
+GCC 13.2.1 -O3 (SysTick turned on, w/FPU context)
     ___  _   __ __  ___
    / _ \| | / //  |/  /    Feather-weight hypervisor
   / , _/| |/ // /|_/ /      Standard benchmark test
  /_/|_| |___//_/  /_/
 ====================================================
 Test (number in CPU cycles)        : AVG / MAX / MIN
-Yield (self)                       : 363 / 375 / 363
-Signal (self)                      : 624 / 669 / 624
-Vector                             : 528 / 556 / 524
-P1T2-S
-Signal (intra)                     : 703 / 733 / 703
-P1T2-E
-P2T2-S
-Signal (inter)                     : 725 / 735 / 725
-P2T1-S
-Yield (inter)                      : 669 / 689 / 669
-P2T1-E
-P2T2-E
-    ___   __  ___ ___
-   / _ \ /  |/  // _ \       Simple real-time kernel
-  / , _// /|_/ // ___/       Standard benchmark test
- /_/|_|/_/  /_//_/
-====================================================
-Test (number in CPU cycles)        : AVG / MAX / MIN
-Yield                              : 233 / 251 / 233
-Mailbox                            : 384 / 417 / 384
-Semaphore                          : 336 / 354 / 336
-FIFO                               : 148 / 164 / 148
-Message queue                      : 489 / 527 / 489
-Blocking message queue             : 629 / 672 / 629
-Alarm combination (1/2/3/5/7)      : 552 / 1064 / 320
-Memory allocation/free pair        : 363 / 379 / 354
-ISR Mailbox                        : 1278 / 1308 / 1278
-ISR Semaphore                      : 1230 / 1252 / 1230
-ISR Message queue                  : 1325 / 1351 / 1325
-ISR Blocking message queue         : 1417 / 1435 / 1417
-
-    ___  _   __ __  ___
-   / _ \| | / //  |/  /    Feather-weight hypervisor
-  / , _/| |/ // /|_/ /      Standard benchmark test
- /_/|_| |___//_/  /_/
-====================================================
-Test (number in CPU cycles)        : AVG / MAX / MIN
-Yield (self)                       : 356 / 370 / 356
-Signal (self)                      : 621 / 650 / 621
-Vector                             : 596 / 628 / 493
-P1T2-S
-Signal (intra)                     : 780 / 797 / 780
-P1T2-E
-P2T2-S
-Signal (inter)                     : 802 / 811 / 802
-P2T1-S
-Yield (inter)                      : 742 / 755 / 742
-P2T1-E
-P2T2-E
-Vmmd: Monitor daemon initialization complete.
-
-    ___   __  ___ ___
-   / _ \ /  |/  // _ \       Simple real-time kernel
-  / , _// /|_/ // ___/       Standard benchmark test
- /_/|_|/_/  /_//_/
-====================================================
-Test (number in CPU cycles)        : AVG / MAX / MIN
-Yield                              : 311 / 322 / 311
-Mailbox                            : 462 / 485 / 462
-Semaphore                          : 414 / 436 / 414
-FIFO                               : 148 / 167 / 148
-Message queue                      : 567 / 595 / 567
-Blocking message queue             : 704 / 734 / 704
-Alarm combination (1/2/3/5/7)      : 552 / 1062 / 320
-Memory allocation/free pair        : 363 / 376 / 354
-ISR Mailbox                        : 1682 / 1709 / 1682
-ISR Semaphore                      : 1627 / 1655 / 1627
-ISR Message queue                  : 1716 / 1740 / 1716
-ISR Blocking message queue         : 1815 / 1835 / 1815
+Yield (self, one-way)              : 362 / 373 / 362
+Signal (self)                      : 628 / 657 / 628
+Invocation (round-trip)            : 746 / 787 / 746
+Vector                             : 612 / 656 / 521
+Signal (intra)                     : 789 / 810 / 789
+Signal (inter)                     : 812 / 831 / 812
+Yield (inter, one-way)             : 748 / 769 / 748
 ******************************************************************************/
 
 /* Kernel Vector Handler *****************************************************/

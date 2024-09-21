@@ -4,6 +4,36 @@ Author      : ryp.
 Date        : 27/07/2024
 License     : Unlicense; see COPYING for details.
 Description : The test file for STM32F405RG.
+
+ARMCC 6.19 -O3 (SysTick turned on, w/FPU context)
+    ___  _   __ __  ___
+   / _ \| | / //  |/  /    Feather-weight hypervisor
+  / , _/| |/ // /|_/ /      Standard benchmark test
+ /_/|_| |___//_/  /_/
+====================================================
+Test (number in CPU cycles)        : AVG / MAX / MIN
+Yield (self, one-way)              : 324 / 532 / 324
+Signal (self)                      : 568 / 868 / 568
+Invocation (round-trip)            : 700 / 944 / 700
+Vector                             : 492 / 712 / 492
+Signal (intra)                     : 728 / 740 / 728
+Signal (inter)                     : 820 / 1044 / 784
+Yield (inter, one-way)             : 596 / 828 / 596
+
+GCC 13.2.1 -O3 (SysTick turned on, w/FPU context)
+    ___  _   __ __  ___
+   / _ \| | / //  |/  /    Feather-weight hypervisor
+  / , _/| |/ // /|_/ /      Standard benchmark test
+ /_/|_| |___//_/  /_/
+====================================================
+Test (number in CPU cycles)        : AVG / MAX / MIN
+Yield (self, one-way)              : 332 / 352 / 332
+Signal (self)                      : 540 / 660 / 540
+Invocation (round-trip)            : 692 / 848 / 692
+Vector                             : 504 / 716 / 500
+Signal (intra)                     : 752 / 976 / 752
+Signal (inter)                     : 840 / 1060 / 792
+Yield (inter, one-way)             : 604 / 992 / 604
 ******************************************************************************/
 
 /* Kernel Vector Handler *****************************************************/

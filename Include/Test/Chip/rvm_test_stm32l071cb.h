@@ -4,6 +4,36 @@ Author      : ryp.
 Date        : 27/07/2024
 License     : Unlicense; see COPYING for details.
 Description : The test file for STM32L071CB.
+
+Keil 6.19 -Oz (SysTick turned on)
+    ___  _   __ __  ___
+   / _ \| | / //  |/  /    Feather-weight hypervisor
+  / , _/| |/ // /|_/ /      Standard benchmark test
+ /_/|_| |___//_/  /_/
+====================================================
+Test (number in CPU cycles)        : AVG / MAX / MIN
+Yield (self, one-way)              : 492 / 784 / 492
+Signal (self)                      : 750 / 1040 / 750
+Invocation (round-trip)            : 968 / 1258 / 968
+Vector                             : 531 / 805 / 531
+Signal (intra)                     : 718 / 1007 / 718
+Signal (inter)                     : 810 / 1100 / 810
+Yield (inter, one-way)             : 763 / 1056 / 763
+
+GCC 13.2.1 -Os (SysTick turned on)
+    ___  _   __ __  ___
+   / _ \| | / //  |/  /    Feather-weight hypervisor
+  / , _/| |/ // /|_/ /      Standard benchmark test
+ /_/|_| |___//_/  /_/
+====================================================
+Test (number in CPU cycles)        : AVG / MAX / MIN
+Yield (self, one-way)              : 511 / 782 / 511
+Signal (self)                      : 778 / 1067 / 778
+Invocation (round-trip)            : 953 / 1245 / 953
+Vector                             : 541 / 812 / 541
+Signal (intra)                     : 728 / 1020 / 728
+Signal (inter)                     : 822 / 1109 / 822
+Yield (inter, one-way)             : 797 / 1068 / 797
 ******************************************************************************/
 
 /* Kernel Vector Handler *****************************************************/

@@ -4,6 +4,36 @@ Author      : ryp.
 Date        : 27/07/2024
 License     : Unlicense; see COPYING for details.
 Description : The test file for STM32F767IG.
+
+ARMCC 6.19 -O3 (SysTick turned on, w/FPU context)
+    ___  _   __ __  ___
+   / _ \| | / //  |/  /    Feather-weight hypervisor
+  / , _/| |/ // /|_/ /      Standard benchmark test
+ /_/|_| |___//_/  /_/
+====================================================
+Test (number in CPU cycles)        : AVG / MAX / MIN
+Yield (self, one-way)              : 262 / 520 / 260
+Signal (self)                      : 456 / 664 / 456
+Invocation (round-trip)            : 637 / 936 / 612
+Vector                             : 333 / 504 / 316
+Signal (intra)                     : 490 / 724 / 488
+Signal (inter)                     : 551 / 736 / 544
+Yield (inter, one-way)             : 445 / 660 / 428
+
+GCC 13.2.1 -O3 (SysTick turned on, w/FPU context)
+    ___  _   __ __  ___
+   / _ \| | / //  |/  /    Feather-weight hypervisor
+  / , _/| |/ // /|_/ /      Standard benchmark test
+ /_/|_| |___//_/  /_/
+====================================================
+Test (number in CPU cycles)        : AVG / MAX / MIN
+Yield (self, one-way)              : 282 / 412 / 264
+Signal (self)                      : 499 / 636 / 492
+Invocation (round-trip)            : 608 / 884 / 592
+Vector                             : 368 / 508 / 336
+Signal (intra)                     : 456 / 604 / 448
+Signal (inter)                     : 517 / 664 / 496
+Yield (inter, one-way)             : 472 / 624 / 448
 ******************************************************************************/
 
 /* Kernel Vector Handler *****************************************************/
