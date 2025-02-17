@@ -141,11 +141,12 @@ void Process::Check(void)
         }
 
         /* Every process must have at least one code and data segment, and they must be static.
-         * The primary code segment allow RXS, the primary data segment must allow RWS */
+         * The primary code segment allow RXS, the primary data segment must allow RWS. */
         if(this->Memory_Code.empty())
             Main::Error("XXXXX: No primary code section exists.");
         if(this->Memory_Data.empty())
             Main::Error("XXXXX: No primary data section exists.");
+        /* The first to appear in the list is the primary one */
         if((this->Memory_Code[0]->Attr&MEM_CODE_PRIME)!=MEM_CODE_PRIME)
             Main::Error("XXXXX: Primary code section does not have RXS attribute.");
         if((this->Memory_Data[0]->Attr&MEM_DATA_PRIME)!=MEM_DATA_PRIME)

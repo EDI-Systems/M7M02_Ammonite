@@ -247,6 +247,7 @@ void RVM_Cov_Print(void)
             
             RVM_DBG_I(Count);
             RVM_DBG_S(",");
+            
             /* We put 12 markers on a single line */
             Next++;
             if(Next>11U)
@@ -259,13 +260,13 @@ void RVM_Cov_Print(void)
             else
             {
                 RVM_COV_MARKER();
-                /* No action needed */
+                /* No action required */
             }
         }
         else
         {
             RVM_COV_MARKER();
-            /* No action needed */
+            /* No action required */
         }
     }
 }
