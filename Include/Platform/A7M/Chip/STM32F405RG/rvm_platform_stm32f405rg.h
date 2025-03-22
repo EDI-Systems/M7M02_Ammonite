@@ -11,7 +11,7 @@ Description: The configuration file for STM32F405RG. The values listed here shou
 /* Debugging *****************************************************************/
 #define RVM_ASSERT_ENABLE                               (0U)
 #define RVM_DBGLOG_ENABLE                               (1U)
-/* Kernel configurations - align with the kernel *****************************/
+/* Kernel configuration - align with the kernel ******************************/
 /* Are we using raw memory mappings? */
 #define RVM_PGT_RAW_ENABLE                              (0U)
 /* Kernel object virtual memory base */
@@ -22,19 +22,6 @@ Description: The configuration file for STM32F405RG. The values listed here shou
 #define RVM_KOM_SLOT_ORDER                              (4U)
 /* The maximum number of preemption priorities */
 #define RVM_PREEMPT_PRIO_NUM                            (32U)
-/* The maximum number of VM preemption priorities */
-#define RVM_PREEMPT_VPRIO_NUM                           (32U)
-
-/* Physical vector number, flag area base and size */
-#define RVM_PHYS_VCT_NUM                                (82U)
-#define RVM_PHYS_VCTF_BASE                              (0x10007C00U)
-#define RVM_PHYS_VCTF_SIZE                              (0x200U)
-/* Virtual event number, flag area base and size */
-#define RVM_VIRT_EVT_NUM                                (10U)
-#define RVM_VIRT_EVTF_BASE                              (0x10007E00U)
-#define RVM_VIRT_EVTF_SIZE                              (0x200U)
-/* Maximum number of mappings allowed */
-#define RVM_VIRT_MAP_NUM                                (64U)
 
 /* Size of initial capability table */
 #define RVM_INIT_CPT_SIZE                               (52U)
@@ -57,9 +44,24 @@ Description: The configuration file for STM32F405RG. The values listed here shou
 #define RVM_A7M_COP_FPV5_SP                             (0U)
 #define RVM_A7M_COP_FPV5_DP                             (0U)
 
-/* Syslib configurations *****************************************************/
-/* Stack redundancy */
-#define RVM_STACK_SAFE_RDCY                             (0x10U)
+/* Monitor configuration *****************************************************/
+/* Sleep when idle */
+#define RVM_IDLE_SLEEP_ENABLE                           (1U)
+
+/* The maximum number of VM preemption priorities */
+#define RVM_PREEMPT_VPRIO_NUM                           (32U)
+
+/* Physical vector number, flag area base and size */
+#define RVM_PHYS_VCT_NUM                                (82U)
+#define RVM_PHYS_VCTF_BASE                              (0x10007C00U)
+#define RVM_PHYS_VCTF_SIZE                              (0x200U)
+/* Virtual event number, flag area base and size */
+#define RVM_VIRT_EVT_NUM                                (10U)
+#define RVM_VIRT_EVTF_BASE                              (0x10007E00U)
+#define RVM_VIRT_EVTF_SIZE                              (0x200U)
+/* Maximum number of mappings allowed */
+#define RVM_VIRT_MAP_NUM                                (64U)
+
 /* Daemon process stack address and size, in bytes */
 #define RVM_SFTD_STACK_BASE                             (0x20000000U)
 #define RVM_SFTD_STACK_SIZE                             (1024U)

@@ -61,12 +61,13 @@
         <Handler_Source_Overwrite>No</Handler_Source_Overwrite>
     </Kernel>
     <Monitor>
-        <Code_Size>0x8000</Code_Size>
+        <Code_Size>0x6000</Code_Size>
         <Data_Size>0x1000</Data_Size>
         <Init_Stack_Size>0x100</Init_Stack_Size>
         <Sftd_Stack_Size>0x100</Sftd_Stack_Size>
         <Vmmd_Stack_Size>0x400</Vmmd_Stack_Size>
         <Extra_Captbl>0</Extra_Captbl>
+        <Idle_Sleep_Enable>Yes</Idle_Sleep_Enable>
         <Virt_Prio>32</Virt_Prio>
         <Virt_Event>32</Virt_Event>
         <Virt_Map>32</Virt_Map>
@@ -101,7 +102,7 @@
                 <M0>
                     <Name>Code1</Name>
                     <Base>Auto</Base>
-                    <Size>0x1000</Size>
+                    <Size>0x2000</Size>
                     <Align>12</Align>
                     <Type>Code</Type>
                     <Attribute>RXBCS</Attribute>
@@ -205,7 +206,7 @@
                 <M0>
                     <Name>Code1</Name>
                     <Base>Auto</Base>
-                    <Size>0x1000</Size>
+                    <Size>0x2000</Size>
                     <Align>12</Align>
                     <Type>Code</Type>
                     <Attribute>RXBCS</Attribute>

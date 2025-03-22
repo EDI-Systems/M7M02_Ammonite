@@ -1434,22 +1434,24 @@ void Proj_Gen::Monitor_Inc(std::unique_ptr<std::vector<std::string>>& List)
     std::string Temp;
 
     List->push_back("/* Include *******************************************************************/");
-    List->push_back("#include \"rvm.h\"");
     List->push_back("#include \"rvm_boot.h\"");
     List->push_back("");
     Temp=std::string("#include \"Platform/")+this->Plat->Name+"/rvm_platform_"+this->Plat->Name_Lower+".h\"";
     List->push_back("#define __HDR_DEF__");
     List->push_back(Temp);
+    List->push_back("#include \"Syslib/rvm_syslib.h\"");
     List->push_back("#include \"Monitor/rvm_monitor.h\"");
     List->push_back("#undef __HDR_DEF__");
     List->push_back("");
     List->push_back("#define __HDR_STRUCT__");
     List->push_back(Temp);
+    List->push_back("#include \"Syslib/rvm_syslib.h\"");
     List->push_back("#include \"Monitor/rvm_monitor.h\"");
     List->push_back("#undef __HDR_STRUCT__");
     List->push_back("");
     List->push_back("#define __HDR_PUBLIC__");
     List->push_back(Temp);
+    List->push_back("#include \"Syslib/rvm_syslib.h\"");
     List->push_back("#include \"Monitor/rvm_monitor.h\"");
     List->push_back("#undef __HDR_PUBLIC__");
     List->push_back("/* End Include ***************************************************************/");
@@ -1479,9 +1481,9 @@ void Proj_Gen::Monitor_Conf_Hdr(void)
     Main::Info("> Generating 'rvm_platform.h'.");
     Proj_Gen::Src_Head(List, "rvm_platform.h", "The platform selection header.");
     List->push_back("");
-    List->push_back("/* Platform Includes *********************************************************/");
+    List->push_back("/* Platform Include **********************************************************/");
     List->push_back(std::string("#include \"Platform/")+this->Plat->Name+"/rvm_platform_"+this->Plat->Name_Lower+".h\"");
-    List->push_back("/* End Platform Includes *****************************************************/");
+    List->push_back("/* End Platform Include ******************************************************/");
     List->push_back("");
     Proj_Gen::Src_Foot(List);
     Proj_Gen::Line_Write(List, Monitor->Config_Header_Output+"/rvm_platform.h");
@@ -1492,9 +1494,9 @@ void Proj_Gen::Monitor_Conf_Hdr(void)
     List->clear();
     Proj_Gen::Src_Head(List, Filename, "The chip selection header.");
     List->push_back("");
-    List->push_back("/* Platform Includes *********************************************************/");
+    List->push_back("/* Platform Include **********************************************************/");
     List->push_back(std::string("#include \"rvm_platform_")+this->Plat->Chip->Name_Lower+".h\"");
-    List->push_back("/* End Platform Includes *****************************************************/");
+    List->push_back("/* End Platform Include ******************************************************/");
     List->push_back("");
     Proj_Gen::Src_Foot(List);
     Proj_Gen::Line_Write(List, Monitor->Config_Header_Output+"rvm_platform_"+this->Plat->Name_Lower+"_conf.h");
@@ -1506,7 +1508,7 @@ void Proj_Gen::Monitor_Conf_Hdr(void)
     List=Proj_Gen::Line_Read(Main::Monitor_Root+
                              "Include/Platform/"+this->Plat->Name+"/Chip/"+this->Plat->Chip->Name+"/"+Filename);
     /* Replace general parameter macros */
-    /* Debugging control */
+    /* Debugging */
     Proj_Gen::Macro_Int(List, "RVM_ASSERT_ENABLE", this->Plat->Proj->Assert_Enable, MACRO_REPLACE);
     Proj_Gen::Macro_Int(List, "RVM_DBGLOG_ENABLE", this->Plat->Proj->Debug_Log_Enable, MACRO_REPLACE);
     /* Whether the region mappings are fixed hence the RVM should provide them */
@@ -1519,9 +1521,24 @@ void Proj_Gen::Monitor_Conf_Hdr(void)
     /* The maximum number of preemption priority levels in the system.
      * This parameter must be divisible by the word length - 32 is usually sufficient */
     Proj_Gen::Macro_Int(List, "RVM_PREEMPT_PRIO_NUM", Kernel->Kern_Prio, MACRO_REPLACE);
+    /* Initial kernel object frontier limit */
+    Proj_Gen::Macro_Int(List, "RVM_CPT_BOOT_FRONT", Monitor->Before_Cap_Front, MACRO_REPLACE);
+    Proj_Gen::Macro_Hex(List, "RVM_KOM_BOOT_FRONT", Monitor->Before_Kom_Front, MACRO_REPLACE);
+    /* Post-boot kernel object frontier limit */
+    Proj_Gen::Macro_Int(List, "RVM_CPT_DONE_FRONT", Monitor->After_Cap_Front, MACRO_REPLACE);
+    Proj_Gen::Macro_Hex(List, "RVM_KOM_DONE_FRONT", Monitor->After_Kom_Front, MACRO_REPLACE);
+    /* Set coprocessor macros - set all of them to 0 first, then modify from there */
+    Proj_Gen::Macro_Int(List, "RVM_COP_NUM", this->Plat->Proj->Chip->Coprocessor.size(), MACRO_REPLACE);
+    for(const std::string& Cop:this->Plat->Plat->Coprocessor)
+        Proj_Gen::Macro_Int(List, "RVM_"+this->Plat->Name_Upper+"_COP_"+Cop, 0, MACRO_REPLACE);
+    for(const std::string& Cop:this->Plat->Proj->Chip->Coprocessor)
+        Proj_Gen::Macro_Int(List, "RVM_"+this->Plat->Name_Upper+"_COP_"+Cop, 1, MACRO_REPLACE);
+
+    /* Monitor */
+    /* Using idle sleep or not */
+    Proj_Gen::Macro_Int(List, "RVM_IDLE_SLEEP_ENABLE", Monitor->Idle_Sleep_Enable, MACRO_REPLACE);
     /* Number of virtual priorities in the system */
     Proj_Gen::Macro_Int(List, "RVM_PREEMPT_VPRIO_NUM", Monitor->Virt_Prio, MACRO_REPLACE);
-
     /* Physical vector number, flag area base and its size */
     Proj_Gen::Macro_Int(List, "RVM_PHYS_VCT_NUM", this->Plat->Chip->Vector, MACRO_REPLACE);
     Proj_Gen::Macro_Hex(List, "RVM_PHYS_VCTF_BASE", Kernel->Vctf_Base, MACRO_REPLACE);
@@ -1538,22 +1555,6 @@ void Proj_Gen::Monitor_Conf_Hdr(void)
     Proj_Gen::Macro_Hex(List, "RVM_SFTD_STACK_SIZE", Monitor->Sftd_Stack_Size, MACRO_REPLACE);
     Proj_Gen::Macro_Hex(List, "RVM_VMMD_STACK_BASE", Monitor->Vmmd_Stack_Base, MACRO_REPLACE);
     Proj_Gen::Macro_Hex(List, "RVM_VMMD_STACK_SIZE", Monitor->Vmmd_Stack_Size, MACRO_REPLACE);
-    /* Initial kernel object frontier limit */
-    Proj_Gen::Macro_Int(List, "RVM_CPT_BOOT_FRONT", Monitor->Before_Cap_Front, MACRO_REPLACE);
-    Proj_Gen::Macro_Hex(List, "RVM_KOM_BOOT_FRONT", Monitor->Before_Kom_Front, MACRO_REPLACE);
-    /* Post-boot kernel object frontier limit */
-    Proj_Gen::Macro_Int(List, "RVM_CPT_DONE_FRONT", Monitor->After_Cap_Front, MACRO_REPLACE);
-    Proj_Gen::Macro_Hex(List, "RVM_KOM_DONE_FRONT", Monitor->After_Kom_Front, MACRO_REPLACE);
-
-    /* Stack safety redundancy, in bytes - fixed to 16 words */
-    Proj_Gen::Macro_Int(List, "RVM_STACK_SAFE_RDCY", 16, MACRO_REPLACE);
-
-    /* Set coprocessor macros - set all of them to 0 first, then modify from there */
-    Proj_Gen::Macro_Int(List, "RVM_COP_NUM", this->Plat->Proj->Chip->Coprocessor.size(), MACRO_REPLACE);
-    for(const std::string& Cop:this->Plat->Plat->Coprocessor)
-        Proj_Gen::Macro_Int(List, "RVM_"+this->Plat->Name_Upper+"_COP_"+Cop, 0, MACRO_REPLACE);
-    for(const std::string& Cop:this->Plat->Proj->Chip->Coprocessor)
-        Proj_Gen::Macro_Int(List, "RVM_"+this->Plat->Name_Upper+"_COP_"+Cop, 1, MACRO_REPLACE);
 
     /* Replace platform specific macros */
     this->Plat->Monitor_Conf_Hdr(List);
@@ -2593,6 +2594,7 @@ void Proj_Gen::Monitor_Proj(void)
     /* Extract the source paths */
     Main::Info("> Generating project source paths:");
     Library.push_back(Main::Monitor_Root+"Source/Monitor/rvm_monitor.c");
+    Library.push_back(Main::Monitor_Root+"Source/Syslib/rvm_syslib.c");
     Library.push_back(Main::Monitor_Root+"Source/Platform/"+this->Plat->Name+"/rvm_platform_"+this->Plat->Name_Lower+".c");
     Library.push_back(Main::Monitor_Root+"Source/Platform/"+this->Plat->Name+
                       "/rvm_platform_"+this->Plat->Name_Lower+"_"+Tool->Name_Lower+Tool->Suffix(TOOL_ASSEMBLER));
@@ -2634,7 +2636,6 @@ void Proj_Gen::Process_Inc(std::unique_ptr<std::vector<std::string>>& List,
 {
     List->push_back("/* Include *******************************************************************/");
     List->push_back("#include \"rvm.h\"");
-    List->push_back("#include \"rvm_guest.h\"");
     /* Virtual machines use their own benchmark headers that does the correct inclusion */
     if((Prc->Type==PROCESS_NATIVE)&&(Main::Benchmark!=0))
     {
@@ -2659,6 +2660,7 @@ Return      : None.
 ******************************************************************************/
 void Proj_Gen::Process_Main_Hdr(class Process* Prc)
 {
+    std::string Filename;
     const class Virtual* Virt;
     std::vector<std::string> Input;
     std::vector<std::string> Output;
@@ -2723,6 +2725,10 @@ void Proj_Gen::Process_Main_Hdr(class Process* Prc)
         Proj_Gen::Macro_Mem("", List, Mem);
     List->push_back("");
 
+    /* Whether using raw page table or not */
+    List->push_back("/* Page table settings */");
+    Proj_Gen::Macro_Int(List, "RVM_PGT_RAW_ENABLE", this->Plat->Proj->Pgtbl_Raw_Enable, MACRO_ADD);
+
     /* The total priority numbers */
     List->push_back("/* Total priority number */");
     Proj_Gen::Macro_Int(List, "RVM_PREEMPT_PRIO_NUM", this->Plat->Proj->Kernel->Kern_Prio, MACRO_ADD);
@@ -2757,13 +2763,13 @@ void Proj_Gen::Process_Main_Hdr(class Process* Prc)
     List->push_back("");
 
     /* Assert & debugging */
-    List->push_back("/* Debugging settings */");
+    List->push_back("/* Debugging setting */");
     Proj_Gen::Macro_Int(List, "RVM_ASSERT_ENABLE", this->Plat->Proj->Assert_Enable, MACRO_ADD);
     Proj_Gen::Macro_Int(List, "RVM_DBGLOG_ENABLE", this->Plat->Proj->Debug_Log_Enable, MACRO_ADD);
     List->push_back("");
 
     /* Set coprocessor macros - set all of them to 0 first, then modify from there */
-    List->push_back("/* Coprocessor options */");
+    List->push_back("/* Coprocessor option */");
     Proj_Gen::Macro_Int(List, "RVM_COP_NUM", Prc->Coprocessor.size(), MACRO_REPLACE);
     for(const std::string& Cop:this->Plat->Plat->Coprocessor)
         Proj_Gen::Macro_Int(List, "RVM_"+this->Plat->Name_Upper+"_COP_"+Cop, 0, MACRO_REPLACE);
@@ -2783,19 +2789,30 @@ void Proj_Gen::Process_Main_Hdr(class Process* Prc)
     /* Generate proc_xxx.h */
     Proj_Gen::Line_Write(List, Prc->Main_Header_Output+"prc_"+Prc->Name_Lower+".h");
 
-    /* Generate platform selection header */
-    Main::Info("> Generating platform selection header.");
+    /* Generate rvm_platform.h */
+    Main::Info("> Generating 'rvm_platform.h'.");
     List->clear();
-    Proj_Gen::Src_Head(List, "rvm_guest_conf.h", "The guest library configuration header.");
+    Proj_Gen::Src_Head(List, "rvm_platform.h", "The platform selection header.");
     List->push_back("");
-    List->push_back("/* Include *******************************************************************/");
-    List->push_back(std::string("#include \"prc_")+Prc->Name_Lower+".h\"");
-    List->push_back(std::string("#include \"")+this->Plat->Name_Upper+"/rvm_guest_"+this->Plat->Name_Lower+".h\"");
-    List->push_back("/* End Include ***************************************************************/");
+    List->push_back("/* Platform Include **********************************************************/");
+    List->push_back(std::string("#include \"Platform/")+this->Plat->Name+"/rvm_platform_"+this->Plat->Name_Lower+".h\"");
+    List->push_back("/* End Platform Include ******************************************************/");
     List->push_back("");
     Proj_Gen::Src_Foot(List);
+    Proj_Gen::Line_Write(List, Prc->Main_Header_Output+"rvm_platform.h");
 
-    Proj_Gen::Line_Write(List, Prc->Main_Header_Output+"rvm_guest_conf.h");
+    /* Generate rvm_platform_xxx_conf.h */
+    Filename=std::string("rvm_platform_")+this->Plat->Name_Lower+"_conf.h";
+    Main::Info(std::string("> Generating '")+Filename+"'.");
+    List->clear();
+    Proj_Gen::Src_Head(List, Filename, "The process selection header.");
+    List->push_back("");
+    List->push_back("/* Platform Include **********************************************************/");
+    List->push_back(std::string("#include \"prc_")+Prc->Name_Lower+".h\"");
+    List->push_back("/* End Platform Include ******************************************************/");
+    List->push_back("");
+    Proj_Gen::Src_Foot(List);
+    Proj_Gen::Line_Write(List, Prc->Main_Header_Output+"rvm_platform_"+this->Plat->Name_Lower+"_conf.h");
 
     /* If we're running benchmark, need to generate the test header as well */
     if(Main::Benchmark!=0)
@@ -2866,32 +2883,32 @@ void Proj_Gen::Process_Desc_Src(class Process* Prc)
     List->push_back("{");
     if(Prc->Type==PROCESS_NATIVE)
     {
-        List->push_back(std::string("    0x")+Main::Hex(MAGIC_NATIVE)+"U,");
+        List->push_back("RVM_MAGIC_NATIVE,");
         List->push_back(std::string("    0x")+Main::Hex(Prc->Desc_Front-2)+"U,");
-        /* For native processes, the first (higher-priority) thread's entry is always the main entry point
-         * that immediately follows the header, and aligned to a 16-byte boundary. This is due to some
-         * proprietary toolchains requiring an aligned address - e.g. ARMCC. */
+        /* For native processes, the first (higher-priority) thread's entry is always the main entry
+         * point that immediately follows the header, and aligned to a (at least) 16-byte boundary.
+         * This is due to some proprietary toolchains requiring an aligned address - e.g. ARMCC. */
         for(const std::unique_ptr<class Thread>& Thd:Prc->Thread)
         {
             if(Thd.get()==Prc->Thread[0].get())
-                List->push_back("    (rvm_ptr_t)_RVM_Entry,");
+                List->push_back("    (rvm_ptr_t)__RVM_Entry,");
             else
                 List->push_back(std::string("    (rvm_ptr_t)Thd_")+Thd->Name+",");
         }
     }
     else
     {
-        List->push_back(std::string("    0x")+Main::Hex(MAGIC_VIRTUAL)+"U,");
+        List->push_back("RVM_MAGIC_VIRTUAL,");
         List->push_back(std::string("    0x")+Main::Hex(Prc->Desc_Front-2)+"U,");
         /* For VMs, the second (lower-priority) thread's entry is always the main entry point.
-         * Because the second thread that runs the user code is low-priority, and the VM may have
-         * already defined a main function. We want to be as less intrusive as possible. */
+         * Because the second thread that runs the user code is low-priority, and the VM may
+         * have already defined a main function. We want to be as less intrusive as possible. */
         for(const std::unique_ptr<class Thread>& Thd:Prc->Thread)
         {
             if(Thd.get()==Prc->Thread[1].get())
             {
                 ASSERT(Thd->Name=="Usr");
-                List->push_back("    (rvm_ptr_t)_RVM_Entry,");
+                List->push_back("    (rvm_ptr_t)__RVM_Entry,");
             }
             else
             {
@@ -2902,7 +2919,7 @@ void Proj_Gen::Process_Desc_Src(class Process* Prc)
     }
     for(const std::unique_ptr<class Invocation>& Inv:Prc->Invocation)
         List->push_back(std::string("    (rvm_ptr_t)Inv_")+Inv->Name+",");
-    List->push_back("    (rvm_ptr_t)_RVM_Stub,");
+    List->push_back("    (rvm_ptr_t)__RVM_Stub,");
     List->push_back("};");
     List->push_back("/* End Public Variable *******************************************************/");
     List->push_back("");
@@ -2956,6 +2973,7 @@ void Proj_Gen::Process_Main_Src(class Process* Prc)
             List->push_back(std::string("RVM_EXTERN rvm_ret_t Inv_")+Inv->Name+"(rvm_ret_t Param);");
     }
     List->push_back("RVM_EXTERN void _RVM_Stub(void);");
+    List->push_back("void RVM_Putchar(char Char);");
     List->push_back("/* End Private Function ******************************************************/");
     List->push_back("");
 
@@ -3233,7 +3251,6 @@ void Proj_Gen::Process_Proj(class Process* Prc)
 
     /* Extract the include paths */
     Main::Info("> Generating project include paths:");
-    Include.push_back(Main::Monitor_Root+"Guest/");
     Include.push_back(Main::Monitor_Root+"Include/");
     Include.push_back(Prc->Project_Output);
     Include.push_back(Prc->Main_Header_Output);
@@ -3247,10 +3264,11 @@ void Proj_Gen::Process_Proj(class Process* Prc)
 
     /* Extract the source paths */
     Main::Info("> Generating project source paths:");
-    Library.push_back(Main::Monitor_Root+"Guest/rvm_guest.c");
-    Library.push_back(Main::Monitor_Root+"Guest/"+this->Plat->Name+"/rvm_guest_"+this->Plat->Name_Lower+".c");
-    Library.push_back(Main::Monitor_Root+"Guest/"+this->Plat->Name+
-                      "/rvm_guest_"+this->Plat->Name_Lower+"_"+Tool->Name_Lower+Tool->Suffix(TOOL_ASSEMBLER));
+    Library.push_back(Main::Monitor_Root+"Source/Virtlib/rvm_virtlib.c");
+    Library.push_back(Main::Monitor_Root+"Source/Syslib/rvm_syslib.c");
+    Library.push_back(Main::Monitor_Root+"Source/Platform/"+this->Plat->Name+"/rvm_platform_"+this->Plat->Name_Lower+".c");
+    Library.push_back(Main::Monitor_Root+"Source/Platform/"+this->Plat->Name+
+                      "/rvm_platform_"+this->Plat->Name_Lower+"_"+Tool->Name_Lower+Tool->Suffix(TOOL_ASSEMBLER));
 
     /* Hooks */
     Source.push_back(Prc->Main_Source_Output+"prc_"+Prc->Name_Lower+".c");

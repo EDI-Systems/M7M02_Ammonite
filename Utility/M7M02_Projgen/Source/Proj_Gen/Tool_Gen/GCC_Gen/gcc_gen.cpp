@@ -96,6 +96,47 @@ std::string GCC_Gen::Suffix(ptr_t Type)
 }
 /* End Function:GCC_Gen::Suffix **********************************************/
 
+/* Function:GCC_Gen::Compat_Symbol ********************************************
+Description : Generate compatibility symbols, which is the same across all scripts.
+Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
+              std::string Prefix - The prefix to append to all compatibility symbols.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void GCC_Gen::Compat_Symbol(std::unique_ptr<std::vector<std::string>>& List, std::string Prefix)
+{
+    List->push_back("/* Compatibility symbols for various architectures */");
+    List->push_back("PROVIDE(__stack = __"+Prefix+"_Stack);");
+    List->push_back("PROVIDE(__initial_sp = __"+Prefix+"_Stack);");
+    List->push_back("PROVIDE(__initial_sp$ = __"+Prefix+"_Stack);");
+    List->push_back("PROVIDE(__global_pointer = __"+Prefix+"_Global);");
+    List->push_back("PROVIDE(__global_pointer$ = __"+Prefix+"_Global);");
+    List->push_back("PROVIDE(__start = __"+Prefix+"_Entry);");
+    List->push_back("PROVIDE(_stext = __"+Prefix+"_Code_Start);");
+    List->push_back("PROVIDE(_etext = __"+Prefix+"_Code_End);");
+    List->push_back("PROVIDE(_sidata = __"+Prefix+"_Data_Load);");
+    List->push_back("PROVIDE(_sdata = __"+Prefix+"_Data_Start);");
+    List->push_back("PROVIDE(_edata = __"+Prefix+"_Data_End);");
+    List->push_back("PROVIDE(_sbss = __"+Prefix+"_Zero_Start);");
+    List->push_back("PROVIDE(_ebss = __"+Prefix+"_Zero_End);");
+    List->push_back("PROVIDE(_snoinit = __"+Prefix+"_Noinit_Start);");
+    List->push_back("PROVIDE(_enoinit = __"+Prefix+"_Noinit_End);");
+    List->push_back("PROVIDE(__text_start__ = __"+Prefix+"_Code_Start);");
+    List->push_back("PROVIDE(__text_end__ = __"+Prefix+"_Code_End);");
+    List->push_back("PROVIDE(__data_load__ = __"+Prefix+"_Data_Load);");
+    List->push_back("PROVIDE(__data_start__ = __"+Prefix+"_Data_Start);");
+    List->push_back("PROVIDE(__data_end__ = __"+Prefix+"_Data_End);");
+    List->push_back("PROVIDE(__bss_start__ = __"+Prefix+"_Zero_Start);");
+    List->push_back("PROVIDE(__bss_end__ = __"+Prefix+"_Zero_End);");
+    List->push_back("PROVIDE(__noinit_start__ = __"+Prefix+"_Noinit_Start);");
+    List->push_back("PROVIDE(__noinit_end__ = __"+Prefix+"_Noinit_End);");
+    List->push_back("PROVIDE(end = __"+Prefix+"_Noinit_End);");
+    List->push_back("PROVIDE(_end = __"+Prefix+"_Noinit_End);");
+    List->push_back("PROVIDE(__end = __"+Prefix+"_Noinit_End);");
+    List->push_back("PROVIDE(__end__ = __"+Prefix+"_Noinit_End);");
+}
+/* End Function:GCC_Gen::Compat_Symbol ***************************************/
+
 /* Function:GCC_Gen::Kernel_Linker ********************************************
 Description : Generate the RME linker script.
 Input       : std::unique_ptr<std::vector<std::string>>& List - The file.
@@ -164,7 +205,7 @@ void GCC_Gen::Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)
     }
     List->push_back("/* End Process ***************************************************************/");
     List->push_back("");
-    List->push_back("/* Kernel ********************************************************************/");
+    List->push_back("/* Section *******************************************************************/");
     List->push_back("/* Kernel code segment */");
     List->push_back(".KERNEL_CODE : ALIGN(4)");
     List->push_back("{");
@@ -232,36 +273,8 @@ void GCC_Gen::Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back("    __RME_Noinit_End = .;");
     List->push_back("} > KDATA");
     List->push_back("");
-    List->push_back("/* Compatibility symbols for various architectures */");
-    List->push_back("PROVIDE(__stack = __RME_Stack);");
-    List->push_back("PROVIDE(__initial_sp = __RME_Stack);");
-    List->push_back("PROVIDE(__initial_sp$ = __RME_Stack);");
-    List->push_back("PROVIDE(__global_pointer = __RME_Global);");
-    List->push_back("PROVIDE(__global_pointer$ = __RME_Global);");
-    List->push_back("PROVIDE(__start = __RME_Entry);");
-    List->push_back("PROVIDE(_stext = __RME_Code_Start);");
-    List->push_back("PROVIDE(_etext = __RME_Code_End);");
-    List->push_back("PROVIDE(_sidata = __RME_Data_Load);");
-    List->push_back("PROVIDE(_sdata = __RME_Data_Start);");
-    List->push_back("PROVIDE(_edata = __RME_Data_End);");
-    List->push_back("PROVIDE(_sbss = __RME_Zero_Start);");
-    List->push_back("PROVIDE(_ebss = __RME_Zero_End);");
-    List->push_back("PROVIDE(_snoinit = __RME_Noinit_Start);");
-    List->push_back("PROVIDE(_enoinit = __RME_Noinit_End);");
-    List->push_back("PROVIDE(__text_start__ = __RME_Code_Start);");
-    List->push_back("PROVIDE(__text_end__ = __RME_Code_End);");
-    List->push_back("PROVIDE(__data_load__ = __RME_Data_Load);");
-    List->push_back("PROVIDE(__data_start__ = __RME_Data_Start);");
-    List->push_back("PROVIDE(__data_end__ = __RME_Data_End);");
-    List->push_back("PROVIDE(__bss_start__ = __RME_Zero_Start);");
-    List->push_back("PROVIDE(__bss_end__ = __RME_Zero_End);");
-    List->push_back("PROVIDE(__noinit_start__ = __RME_Noinit_Start);");
-    List->push_back("PROVIDE(__noinit_end__ = __RME_Noinit_End);");
-    List->push_back("PROVIDE(end = __RME_Noinit_End);");
-    List->push_back("PROVIDE(_end = __RME_Noinit_End);");
-    List->push_back("PROVIDE(__end = __RME_Noinit_End);");
-    List->push_back("PROVIDE(__end__ = __RME_Noinit_End);");
-    List->push_back("/* End Section:.noinit *******************************************************/");
+    this->Compat_Symbol(List, "RME");
+    List->push_back("/* End Section ***************************************************************/");
     List->push_back("}");
     List->push_back("/* End Of File ***************************************************************/");
     List->push_back("");
@@ -368,35 +381,7 @@ void GCC_Gen::Monitor_Linker(std::unique_ptr<std::vector<std::string>>& List)
     List->push_back("} > DATA");
     List->push_back("}");
     List->push_back("");
-    List->push_back("/* Compatibility symbols for various architectures */");
-    List->push_back("PROVIDE(__stack = __RVM_Stack);");
-    List->push_back("PROVIDE(__initial_sp = __RVM_Stack);");
-    List->push_back("PROVIDE(__initial_sp$ = __RVM_Stack);");
-    List->push_back("PROVIDE(__global_pointer = __RVM_Global);");
-    List->push_back("PROVIDE(__global_pointer$ = __RVM_Global);");
-    List->push_back("PROVIDE(__start = __RVM_Entry);");
-    List->push_back("PROVIDE(_stext = __RVM_Code_Start);");
-    List->push_back("PROVIDE(_etext = __RVM_Code_End);");
-    List->push_back("PROVIDE(_sidata = __RVM_Data_Load);");
-    List->push_back("PROVIDE(_sdata = __RVM_Data_Start);");
-    List->push_back("PROVIDE(_edata = __RVM_Data_End);");
-    List->push_back("PROVIDE(_sbss = __RVM_Zero_Start);");
-    List->push_back("PROVIDE(_ebss = __RVM_Zero_End);");
-    List->push_back("PROVIDE(_snoinit = __RVM_Noinit_Start);");
-    List->push_back("PROVIDE(_enoinit = __RVM_Noinit_End);");
-    List->push_back("PROVIDE(__text_start__ = __RVM_Code_Start);");
-    List->push_back("PROVIDE(__text_end__ = __RVM_Code_End);");
-    List->push_back("PROVIDE(__data_load__ = __RVM_Data_Load);");
-    List->push_back("PROVIDE(__data_start__ = __RVM_Data_Start);");
-    List->push_back("PROVIDE(__data_end__ = __RVM_Data_End);");
-    List->push_back("PROVIDE(__bss_start__ = __RVM_Zero_Start);");
-    List->push_back("PROVIDE(__bss_end__ = __RVM_Zero_End);");
-    List->push_back("PROVIDE(__noinit_start__ = __RVM_Noinit_Start);");
-    List->push_back("PROVIDE(__noinit_end__ = __RVM_Noinit_End);");
-    List->push_back("PROVIDE(end = __RVM_Noinit_End);");
-    List->push_back("PROVIDE(_end = __RVM_Noinit_End);");
-    List->push_back("PROVIDE(__end = __RVM_Noinit_End);");
-    List->push_back("PROVIDE(__end__ = __RVM_Noinit_End);");
+    this->Compat_Symbol(List, "RVM");
     List->push_back("/* End Section ***************************************************************/");
     List->push_back("");
     List->push_back("/* End Of File ***************************************************************/");
@@ -454,11 +439,11 @@ void GCC_Gen::Process_Linker(std::unique_ptr<std::vector<std::string>>& List,
     List->push_back("/* End Memory ****************************************************************/");
     List->push_back("");
     List->push_back("/* Stack *********************************************************************/");
-    List->push_back("_RVM_Stack = ORIGIN(STK) + LENGTH(STK);");
+    List->push_back("__RVM_Stack = ORIGIN(STK) + LENGTH(STK);");
     List->push_back("/* End Entry Point Definitions ***********************************************/");
     List->push_back("");
     List->push_back("/* Entry *********************************************************************/");
-    List->push_back("ENTRY(_RVM_Entry)");
+    List->push_back("ENTRY(__RVM_Entry)");
     List->push_back("/* End Entry *****************************************************************/");
     List->push_back("");
     List->push_back("/* Section *******************************************************************/");
@@ -474,22 +459,22 @@ void GCC_Gen::Process_Linker(std::unique_ptr<std::vector<std::string>>& List,
     List->push_back("/* Process code, srodata and rodata segment */");
     List->push_back(".PROCESS_CODE : ALIGN(4)");
     List->push_back("{");
-    List->push_back("    _RVM_Code_Start = .;");
+    List->push_back("    __RVM_Code_Start = .;");
     List->push_back("    KEEP(*_gcc.o(.text.rvm_entry))");
     List->push_back("    *(.text .text.*)");
     List->push_back("    *(.srodata .srodata.* .sconstdata .sconstdata.*)");
     List->push_back("    *(.rodata .rodata.* .constdata .constdata.*)");
     List->push_back("    . = ALIGN(4);");
-    List->push_back("    _RVM_Code_End = .;");
+    List->push_back("    __RVM_Code_End = .;");
     List->push_back("} > CODE");
     List->push_back("");
     List->push_back("/* Process sdata & data segment */");
-    List->push_back("_RVM_Data_Load = LOADADDR(.PROCESS_DATA);");
+    List->push_back("__RVM_Data_Load = LOADADDR(.PROCESS_DATA);");
     List->push_back(".PROCESS_DATA : ALIGN(4)");
     List->push_back("{");
     List->push_back("    FILL(0xFF)");
-    List->push_back("    _RVM_Data_Start = .;");
-    List->push_back("    _RVM_Global = . + 0x800;");
+    List->push_back("    __RVM_Data_Start = .;");
+    List->push_back("    __RVM_Global = . + 0x800;");
     List->push_back("    *(.sdata_begin .sdata_begin.*)");
     List->push_back("    *(.sdata .sdata.*)");
     List->push_back("    *(.sdata2.*)");
@@ -498,13 +483,13 @@ void GCC_Gen::Process_Linker(std::unique_ptr<std::vector<std::string>>& List,
     List->push_back("    *(.data .data.*)");
     List->push_back("    *(.data_end .data_end.*)");
     List->push_back("    . = ALIGN(4);");
-    List->push_back("    _RVM_Data_End = .;");
+    List->push_back("    __RVM_Data_End = .;");
     List->push_back("  } > DATA AT > CODE");
     List->push_back("");
     List->push_back("/* Process sbss & bss segment */");
     List->push_back(".PROCESS_ZERO : ALIGN(4)");
     List->push_back("{");
-    List->push_back("    _RVM_Zero_Start = .;");
+    List->push_back("    __RVM_Zero_Start = .;");
     List->push_back("    *(.sbss_begin .sbss_begin.*)");
     List->push_back("    *(.sbss .sbss.*)");
     List->push_back("    *(.sbss2.*)");
@@ -515,49 +500,21 @@ void GCC_Gen::Process_Linker(std::unique_ptr<std::vector<std::string>>& List,
     List->push_back("    *(COMMON)");
     List->push_back("    *(.bss_end .bss_end.*)");
     List->push_back("    . = ALIGN(4);");
-    List->push_back("    _RVM_Zero_End = .;");
+    List->push_back("    __RVM_Zero_End = .;");
     List->push_back("} > DATA");
     List->push_back("");
     List->push_back("/* Process snoinit & noinit segment */");
     List->push_back(".PROCESS_NOINIT (NOLOAD) : ALIGN(4)");
     List->push_back("{");
-    List->push_back("    _RVM_Noinit_Start = .;");
+    List->push_back("    __RVM_Noinit_Start = .;");
     List->push_back("    *(.snoinit .snoinit.*)");
     List->push_back("    *(.noinit .noinit.*)");
     List->push_back("    . = ALIGN(4);");
-    List->push_back("    _RVM_Noinit_End = .;");
+    List->push_back("    __RVM_Noinit_End = .;");
     List->push_back("} > DATA");
     List->push_back("}");
     List->push_back("");
-    List->push_back("/* Compatibility symbols for various architectures */");
-    List->push_back("PROVIDE(__stack = _RVM_Stack);");
-    List->push_back("PROVIDE(__initial_sp = _RVM_Stack);");
-    List->push_back("PROVIDE(__initial_sp$ = _RVM_Stack);");
-    List->push_back("PROVIDE(__global_pointer = _RVM_Global);");
-    List->push_back("PROVIDE(__global_pointer$ = _RVM_Global);");
-    List->push_back("PROVIDE(__start = _RVM_Entry);");
-    List->push_back("PROVIDE(_stext = _RVM_Code_Start);");
-    List->push_back("PROVIDE(_etext = _RVM_Code_End);");
-    List->push_back("PROVIDE(_sidata = _RVM_Data_Load);");
-    List->push_back("PROVIDE(_sdata = _RVM_Data_Start);");
-    List->push_back("PROVIDE(_edata = _RVM_Data_End);");
-    List->push_back("PROVIDE(_sbss = _RVM_Zero_Start);");
-    List->push_back("PROVIDE(_ebss = _RVM_Zero_End);");
-    List->push_back("PROVIDE(_snoinit = _RVM_Noinit_Start);");
-    List->push_back("PROVIDE(_enoinit = _RVM_Noinit_End);");
-    List->push_back("PROVIDE(__text_start__ = _RVM_Code_Start);");
-    List->push_back("PROVIDE(__text_end__ = _RVM_Code_End);");
-    List->push_back("PROVIDE(__data_load__ = _RVM_Data_Load);");
-    List->push_back("PROVIDE(__data_start__ = _RVM_Data_Start);");
-    List->push_back("PROVIDE(__data_end__ = _RVM_Data_End);");
-    List->push_back("PROVIDE(__bss_start__ = _RVM_Zero_Start);");
-    List->push_back("PROVIDE(__bss_end__ = _RVM_Zero_End);");
-    List->push_back("PROVIDE(__noinit_start__ = _RVM_Noinit_Start);");
-    List->push_back("PROVIDE(__noinit_end__ = _RVM_Noinit_End);");
-    List->push_back("PROVIDE(end = _RVM_Noinit_End);");
-    List->push_back("PROVIDE(_end = _RVM_Noinit_End);");
-    List->push_back("PROVIDE(__end = _RVM_Noinit_End);");
-    List->push_back("PROVIDE(__end__ = _RVM_Noinit_End);");
+    this->Compat_Symbol(List, "RVM");
     List->push_back("/* End Section ***************************************************************/");
     List->push_back("");
     List->push_back("/* End Of File ***************************************************************/");

@@ -68,6 +68,7 @@
         <Sftd_Stack_Size>0x800</Sftd_Stack_Size>
         <Vmmd_Stack_Size>0x800</Vmmd_Stack_Size>
         <Extra_Captbl>0</Extra_Captbl>
+        <Idle_Sleep_Enable>Yes</Idle_Sleep_Enable>
         <Virt_Prio>32</Virt_Prio>
         <Virt_Event>32</Virt_Event>
         <Virt_Map>32</Virt_Map>

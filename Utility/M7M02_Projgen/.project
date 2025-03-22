@@ -28,7 +28,7 @@
 		<link>
 			<name>Source/xml.c</name>
 			<type>1</type>
-			<locationURI>PARENT-3-PROJECT_LOC/M5P02_Minion/Serdes/XML/xml.c</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/M5P02_Amoeba/Middleware/XML/xml.c</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

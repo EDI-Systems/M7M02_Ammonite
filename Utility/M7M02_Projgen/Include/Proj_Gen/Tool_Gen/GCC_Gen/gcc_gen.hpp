@@ -34,6 +34,8 @@ public:
 
     virtual std::string Suffix(ptr_t Type) final override;
 
+    void Compat_Symbol(std::unique_ptr<std::vector<std::string>>& List, std::string Prefix);
+
     virtual void Kernel_Linker(std::unique_ptr<std::vector<std::string>>& List) final override;
     virtual void Monitor_Linker(std::unique_ptr<std::vector<std::string>>& List) final override;
     virtual void Process_Linker(std::unique_ptr<std::vector<std::string>>& List,

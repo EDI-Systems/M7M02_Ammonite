@@ -44,6 +44,8 @@ public:
     ptr_t Vmmd_Stack_Size;
     /* Extra capability table size */
     ptr_t Extra_Captbl;
+    /* Whether to use idle sleep */
+    ptr_t Idle_Sleep_Enable;
     /* Virtual machine priorities */
     ptr_t Virt_Prio;
     /* Virtual machine events */

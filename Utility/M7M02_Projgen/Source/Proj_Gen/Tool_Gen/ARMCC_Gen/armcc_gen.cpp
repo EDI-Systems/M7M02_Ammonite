@@ -285,8 +285,8 @@ void ARMCC_Gen::Process_Linker(std::unique_ptr<std::vector<std::string>>& List,
     List->push_back("    ;Process code segment");
     List->push_back(std::string("    PROCESS_CODE 0x")+Main::Hex(Prc->Code_Front)+" 0x"+Main::Hex(Real_Code_Size));
     List->push_back("    {");
-    List->push_back("        ;Entry point assembly");
-    List->push_back(std::string("        rvm_guest_")+this->Plat->Name_Lower+"_"+Tool_Lower+".o     (RVM_ENTRY, +First)");
+    List->push_back("        ;Entry point, just after the header");
+    List->push_back("        *.o                    (RVM_ENTRY, +First)");
     List->push_back("        ;The lib code copying code");
     List->push_back("        *                      (InRoot$$Sections)");
     List->push_back("        ;The other code sections");

@@ -58,8 +58,10 @@ Return      : None.
         this->Init_Stack_Size=Main::XML_Get_Number(Root,"Init_Stack_Size","DXXXX","DXXXX");
         this->Sftd_Stack_Size=Main::XML_Get_Number(Root,"Sftd_Stack_Size","DXXXX","DXXXX");
         this->Vmmd_Stack_Size=Main::XML_Get_Number(Root,"Vmmd_Stack_Size","DXXXX","DXXXX");
-        /* Extra_Captbl */
+        /* Extra capability table size */
         this->Extra_Captbl=Main::XML_Get_Number(Root,"Extra_Captbl","DXXXX","DXXXX");
+        /* Whether to enable idle sleeping */
+        this->Idle_Sleep_Enable=Main::XML_Get_Yesno(Root,"Idle_Sleep_Enable","DXXXX","DXXXX");
         /* Virtual machine priorities */
         this->Virt_Prio=Main::XML_Get_Number(Root,"Virt_Prio","DXXXX","DXXXX");
         /* Virtual machine events */
