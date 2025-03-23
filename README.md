@@ -2,7 +2,22 @@
 	<img width="300" src="https://raw.githubusercontent.com/EDI-Systems/M7M2_MuAmmonite/master/Documents/Demo/logo.png" alt="logo">
 </h1>
 
-# Unity Platform (RVM)
+# RVM Microcontroller Hypervisor
+<div align="center">
+
+[![Github release](https://img.shields.io/github/release/EDI-Systems/M7M02_Ammonite.svg)](https://github.com/EDI-Systems/M7M02_Ammonite/releases/latest)
+[![Github commits](https://img.shields.io/github/commits-since/EDI-Systems/M7M02_Ammonite/main@{30day}.svg)](https://github.com/EDI-Systems/M7M02_Ammonite/compare/main@{30day}...main)
+[![Discord](https://img.shields.io/badge/chat-Discord-purple)](https://discord.gg/VxCFSFC6bW)
+![QQ Group](https://img.shields.io/badge/QQ_Group-1038895132-red)
+
+</div>
+<div align="center">
+
+![language](https://img.shields.io/badge/language-C-orange.svg)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/1836/badge)](https://www.bestpractices.dev/projects/1836) 
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/fb3f40e96daa42169333ba698b4fd083)](https://app.codacy.com/gh/EDI-Systems/M7M02_Ammonite/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+
+</div>
 
 点击 **[这里](README_CN.md)** 查看中文版。
 
