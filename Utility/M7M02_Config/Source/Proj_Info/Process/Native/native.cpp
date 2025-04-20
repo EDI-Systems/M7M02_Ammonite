@@ -13,6 +13,7 @@ Description : Native process information implementation.
 
 #include "wx/wx.h"
 #include "wx/xml/xml.h"
+#include "wx/filename.h"
 
 #include "map"
 #include "string"
@@ -25,7 +26,7 @@ Description : Native process information implementation.
 #define __HDR_CLASS__
 #include "rvm_cfg.hpp"
 #include "Mem_Info/mem_info.hpp"
-#include "Vect_Info/vect_info.hpp"
+#include "Proj_Info/Process/Vector/vector.hpp"
 #include "Proj_Info/Process/Shmem/shmem.hpp"
 #include "Proj_Info/Process/Thread/thread.hpp"
 #include "Proj_Info/Process/Invocation/invocation.hpp"
@@ -53,9 +54,7 @@ Return      : None.
                           const class Plat_Info* Plat):
 Process(Name,PROCESS_NATIVE,Root,Plat)
 {
-    this->Type=Type;
-    this->Name=Name;
-    /* Populate later */
+
 }
 /* End Function:Native::Native ***********************************************/
 
@@ -82,9 +81,8 @@ Process(Node, PROCESS_NATIVE)
     Trunk_Load<class Port>(Main::Simple_Load(Node,"Port"),"P",this->Port);
     /* Receive */
     Trunk_Load<class Receive>(Main::Simple_Load(Node,"Receive"),"R",this->Receive);
-
     /* Vector */
-    Trunk_Load<class Vect_Info>(Main::Simple_Load(Node,"Vector"),"V",this->Vector);
+    Trunk_Load<class Vector>(Main::Simple_Load(Node,"Vector"),"V",this->Vector);
 }
 /* End Function:Native::Native ***********************************************/
 
@@ -126,7 +124,7 @@ void Native::Save(class wxXmlNode* Parent)
     Trunk_Save<class Receive>(Main::Simple_Save(Parent,"Receive"),"R",this->Receive);
 
     /* Vector */
-    Trunk_Save<class Vect_Info>(Main::Simple_Save(Parent,"Vector"),"V",this->Vector);
+    Trunk_Save<class Vector>(Main::Simple_Save(Parent,"Vector"),"V",this->Vector);
 }
 /* End Function:Native::Save *************************************************/
 }

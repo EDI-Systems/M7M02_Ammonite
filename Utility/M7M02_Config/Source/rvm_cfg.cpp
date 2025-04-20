@@ -24,6 +24,7 @@ extern "C"
 #include "thread"
 #include "memory"
 #include "string"
+#include "vector"
 #include "algorithm"
 
 #define __HDR_DEF__
@@ -331,6 +332,45 @@ ret_t Main::Idtfr_Check(const std::string& Name)
 }
 /* End Function:Main::Idtfr_Check ********************************************/
 
+/* Function:Main::CSV_Read ****************************************************
+Description : Split a CSV into an array.
+Input       : const std::string& Input - The CSV sequence.
+Output      : std::vector<std::string>& Vector - The splitted content.
+Return      : None.
+******************************************************************************/
+void Main::CSV_Read(const std::string& Input, std::vector<std::string>& Vector)
+{
+    cnt_t Pivot;
+    ptr_t Begin;
+    ptr_t End;
+    std::string Temp;
+    std::string Push;
+
+    Temp=Input;
+
+    do
+    {
+        /* Split the element */
+        Pivot=Temp.find_first_of(",");
+        if(Pivot<0)
+            Push=Temp;
+        else
+        {
+            Push=Temp.substr(0, Pivot);
+            Temp=Temp.substr(Pivot+1);
+        }
+        /* Strip the whitespaces */
+        Begin=Push.find_first_not_of(" \t\v");
+        if(Begin!=std::string::npos)
+        {
+            End=Push.find_last_not_of(" \t\v");
+            Vector.push_back(Push.substr(Begin, End-Begin+1));
+        }
+    }
+    while(Pivot>=0);
+}
+/* End Function:Main::CSV_Read ***********************************************/
+
 /* Function:Main::Simple_Load *************************************************
 Description : Save a simple node. This includes the name only.
 Input       : class wxXmlNode* Parent - The parent node.
@@ -422,6 +462,23 @@ ptr_t Main::Num_Load(class wxXmlNode* Parent, const std::string& Expect)
 }
 /* End Function:Main::Num_Load ***********************************************/
 
+/* Function:Main::CSV_Load ****************************************************
+Description : Get comma-separated values from the XML entry.
+Input       : class wxXmlNode* Parent - The parent node.
+              const std::string& Expect - The label to expect.
+Output      : std::vector<std::string>& Vector - The CSV extracted.
+Return      : None.
+******************************************************************************/
+void Main::CSV_Load(class wxXmlNode* Parent, const std::string& Expect,
+                    std::vector<std::string>& Vector)
+{
+    std::string Temp;
+
+    Temp=Main::Text_Load(Parent, Expect);
+    Main::CSV_Read(Temp,Vector);
+}
+/* End Function:Main::CSV_Load ***********************************************/
+
 /* Function:Main::Pair_Load ***************************************************
 Description : Load a key-value pair node. This includes many subnodes.
 Input       : class wxXmlNode* Parent - The parent node.
@@ -496,45 +553,6 @@ ptr_t Main::Opt_Load(class wxXmlNode* Parent, const std::string& Expect)
     return OPTIMIZATION_O0;
 }
 /* End Function:Main::Opt_Load ***********************************************/
-
-/* Function:Main::CSV_Read ****************************************************
-Description : Split a CSV into an array.
-Input       : const std::string& Input - The CSV sequence.
-Output      : std::vector<std::string>& Output - The splitted content.
-Return      : None.
-******************************************************************************/
-void Main::CSV_Read(const std::string& Input, std::vector<std::string>& Output)
-{
-    cnt_t Pivot;
-    ptr_t Begin;
-    ptr_t End;
-    std::string Temp;
-    std::string Push;
-
-    Temp=Input;
-
-    do
-    {
-        /* Split the element */
-        Pivot=Temp.find_first_of(",");
-        if(Pivot<0)
-            Push=Temp;
-        else
-        {
-            Push=Temp.substr(0, Pivot);
-            Temp=Temp.substr(Pivot+1);
-        }
-        /* Strip the whitespaces */
-        Begin=Push.find_first_not_of(" \t\v");
-        if(Begin!=std::string::npos)
-        {
-            End=Push.find_last_not_of(" \t\v");
-            Output.push_back(Push.substr(Begin, End-Begin+1));
-        }
-    }
-    while(Pivot>=0);
-}
-/* End Function:Main::CSV_Read ***********************************************/
 
 /* Function:Main::Simple_Save *************************************************
 Description : Save a simple node. This includes the name only.

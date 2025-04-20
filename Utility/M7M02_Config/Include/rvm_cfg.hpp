@@ -192,14 +192,17 @@ public:
     static ret_t Idtfr_Check(const std::string& Name);
 
     /* Field saving/extraction generics */
+    static void CSV_Read(const std::string& Input, std::vector<std::string>& Vector);
+
     static class wxXmlNode* Simple_Load(class wxXmlNode* Parent, const std::string& Expect);
     static std::string Text_Load(class wxXmlNode* Node, const std::string& Expect);
     static ptr_t Yesno_Load(class wxXmlNode* Parent, const std::string& Expect);
     static ptr_t Num_Load(class wxXmlNode* Node, const std::string& Expect);
+    static void CSV_Load(class wxXmlNode* Parent, const std::string& Expect,
+                         std::vector<std::string>& Vector);
     static void Pair_Load(class wxXmlNode* Parent, const std::string& Expect,
                           std::map<std::string, std::string>& Map);
     static ptr_t Opt_Load(class wxXmlNode* Node, const std::string& Expect);
-    static void CSV_Read(const std::string& Input, std::vector<std::string>& Output);
 
     static class wxXmlNode* Simple_Save(class wxXmlNode* Parent, const std::string& Name);
     static class wxXmlNode* Text_Save(class wxXmlNode* Parent,

@@ -70,7 +70,7 @@ Return      : None.
     /* Load from disk */
     Document=std::make_unique<class wxXmlDocument>();
     if(Document->Load(this->Path)==false)
-        throw std::runtime_error("Cannot load project.");
+        throw std::runtime_error("Cannot load platform files.");
 
     /* Platform */
     Platform=Document->GetRoot();
@@ -82,11 +82,11 @@ Return      : None.
     /* Wordlength */
     this->Wordlength=Main::Num_Load(Platform, "Wordlength");
     /* Buildsystem */
-    Main::CSV_Read(Main::Text_Load(Platform, "Buildsystem"), this->Buildsystem);
+    Main::CSV_Load(Platform, "Buildsystem", this->Buildsystem);
     /* Toolchain */
-    Main::CSV_Read(Main::Text_Load(Platform, "Toolchain"), this->Toolchain);
+    Main::CSV_Load(Platform, "Toolchain", this->Toolchain);
     /* Guest */
-    Main::CSV_Read(Main::Text_Load(Platform, "Guest"), this->Guest);
+    Main::CSV_Load(Platform, "Guest", this->Guest);
 
     /* Compatible */
     Trunk_Load<class Compatible>(Main::Simple_Load(Platform,"Compatible"),"C",this->Compatible);

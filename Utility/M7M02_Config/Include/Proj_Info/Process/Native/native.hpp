@@ -57,7 +57,7 @@ public:
     std::vector<std::unique_ptr<class Receive>> Receive;
 
     /* Vector endpoints */
-    std::vector<std::unique_ptr<class Vect_Info>> Vector;
+    std::vector<std::unique_ptr<class Vector>> Vector;
 
     /* void */ Native(const std::string& Name,
                       const std::string& Root,

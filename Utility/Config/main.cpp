@@ -58,12 +58,11 @@ Main::Main()
     menu_bar = new Menu_Bar();
     this->SetMenuBar(menu_bar);
 
-    tool_bar = new Tool_Bar(this);
+    tool_bar =new Tool_Bar(this);
     this->SetToolBar(tool_bar);
 
     body_splitter = new Body_Splitter(this);
     Main::app_box->Add(body_splitter, 4, wxEXPAND);
-
 
     log_panel2 = new ErrorLogPanel2(this);
     Main::app_box->Add(log_panel2, 1, wxEXPAND);

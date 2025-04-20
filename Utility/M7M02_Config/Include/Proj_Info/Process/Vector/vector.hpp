@@ -1,32 +1,21 @@
 /******************************************************************************
-Filename    : vect_info.hpp
+Filename    : vector.hpp
 Author      : pry
-Date        : 13/01/2023
-License     : Proprietary; confidential.
-Description : Vector information class header.
+Date        : 16/07/2019
+Licence     : LGPL v3+; see COPYING for details.
+Description : The header for the vector class.
 ******************************************************************************/
 
 /* Define ********************************************************************/
-#ifdef __HDR_DEF__
-#ifndef __VECT_INFO_TYPE__
-#define __VECT_INFO_TYPE__
-/*****************************************************************************/
-
-/*****************************************************************************/
-/* __VECT_INFO_TYPE__ */
-#endif
-/* __HDR_DEF__ */
-#endif
-
 namespace RVM_CFG
 {
 #ifdef __HDR_DEF__
-#ifndef __VECT_INFO_DEF__
-#define __VECT_INFO_DEF__
+#ifndef __VECTOR_DEF__
+#define __VECTOR_DEF__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __VECT_INFO_DEF__ */
+/* __VECTOR_DEF__ */
 #endif
 /* __HDR_DEF__ */
 #endif
@@ -34,10 +23,11 @@ namespace RVM_CFG
 
 /* Classes *******************************************************************/
 #ifdef __HDR_CLASS__
-#ifndef __VECT_INFO_CLASS__
-#define __VECT_INFO_CLASS__
+#ifndef __VECTOR_CLASS__
+#define __VECTOR_CLASS__
 /*****************************************************************************/
-class Vect_Info
+/* The vector information */
+class Vector
 {
 public:
     /* Vector name */
@@ -45,14 +35,13 @@ public:
     /* Vector number */
     ptr_t Number;
 
-    /* void */ Vect_Info(const std::string& Name,ptr_t Number);
-    /* void */ Vect_Info(class wxXmlNode* Node);
-    /* void */ ~Vect_Info(void);
+    /* void */ Vector(class wxXmlNode* Node);
+    /* void */ ~Vector(void);
 
     void Save(class wxXmlNode* Parent);
 };
 /*****************************************************************************/
-/* __VECT_INFO_CLASS__ */
+/* __VECTOR_CLASS__ */
 #endif
 /* __HDR_CLASS__ */
 #endif

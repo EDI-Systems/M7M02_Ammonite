@@ -17,6 +17,6 @@ public:
 	wxArrayString coprocessor;
 
 	wxXmlNode* xml_root;
-private:
+private:a
 	wxXmlNode* PathToNode(const wxString& path);
 };

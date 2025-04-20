@@ -42,7 +42,6 @@ Return      : None.
 
     /* This node should directly contain the contents */
     Temp=Node->GetContent();
-
     Main::CSV_Read(Temp, List);
     if(List.size()!=3)
         throw std::runtime_error("Compatibility entry malformed.");

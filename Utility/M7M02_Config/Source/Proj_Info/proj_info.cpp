@@ -94,6 +94,8 @@ ret_t Proj_Info::Load(const std::string& Path)
 {
     class wxFileName Temp;
     std::string Name;
+    std::unique_ptr<class wxXmlDocument> Document;
+    class wxXmlNode* Project;
 
     this->Path=Path;
     Temp=Path;
@@ -115,6 +117,32 @@ ret_t Proj_Info::Load(const std::string& Path)
         wxLogDebug("The project probably does not exist. Consider permission or memory failure.");
         return -1;
     }
+
+    /* Load from disk */
+    Document=std::make_unique<class wxXmlDocument>();
+    if(Document->Load(this->Path)==false)
+        throw std::runtime_error("Cannot load project.");
+
+    /* Platform */
+    Project=Document->GetRoot();
+    if(Project->GetName()!="Project")
+        throw std::runtime_error("Project label not found.");
+
+    /* Name */
+    this->Name=Main::Text_Load(Project, "Name");
+    /* Version */
+    this->Version=Main::Text_Load(Project, "Version");
+    /* Assert */
+    this->Assert_Enable=Main::Yesno_Load(Project, "Assert_Enable");
+    /* Debug logging */
+    this->Debug_Log_Enable=Main::Yesno_Load(Project, "Debug_Log_Enable");
+    /* Raw page table */
+    this->Pgtbl_Raw_Enable=Main::Yesno_Load(Project, "Pgtbl_Raw_Enable");
+    /* Buildsystem */
+    this->Buildsystem=Main::Text_Load(Project, "Buildsystem");
+
+    /* TODO: fill in here */
+
 
     return 0;
 }

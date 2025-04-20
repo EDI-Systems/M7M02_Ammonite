@@ -52,10 +52,12 @@ public:
     std::string Name;
     /* The project version */
     std::string Version;
-    /* Whether we assume all asserts to be correct */
-    ptr_t Assert_Correct;
+    /* Whether we enable asserts */
+    ptr_t Assert_Enable;
     /* Whether we enable debug prints */
-    ptr_t Debug_Print;
+    ptr_t Debug_Log_Enable;
+    /* Whether we enable raw page tables */
+    ptr_t Pgtbl_Raw_Enable;
     /* Workspace build system */
     std::string Buildsystem;
     /* Workspace output folder & overwrite */
