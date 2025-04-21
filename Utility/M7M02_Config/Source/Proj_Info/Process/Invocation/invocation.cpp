@@ -39,7 +39,10 @@ Return      : None.
 ******************************************************************************/
 /* void */ Invocation::Invocation(class wxXmlNode* Node)
 {
-
+	/* Name */
+	this->Name=Main::Text_Load(Node,"Name");
+    /* Stack_Size */
+    this->Stack_Size=Main::Num_Load(Node,"Stack_Size");
 }
 /* End Function:Invocation::Invocation ***************************************/
 

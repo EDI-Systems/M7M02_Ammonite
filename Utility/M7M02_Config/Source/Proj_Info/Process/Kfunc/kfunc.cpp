@@ -39,7 +39,12 @@ Return      : None.
 ******************************************************************************/
 /* void */ Kfunc::Kfunc(class wxXmlNode* Node)
 {
-
+	/* Name */
+	this->Name=Main::Text_Load(Node,"Name");
+    /* Begin */
+    this->Begin=Main::Num_Load(Node,"Begin");
+    /* End */
+    this->End=Main::Num_Load(Node,"End");
 }
 /* End Function:Kfunc::Kfunc *************************************************/
 

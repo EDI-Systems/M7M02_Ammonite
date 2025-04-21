@@ -39,7 +39,8 @@ Return      : None.
 ******************************************************************************/
 /* void */ Receive::Receive(class wxXmlNode* Node)
 {
-
+	/* Name */
+	this->Name=Main::Text_Load(Node,"Name");
 }
 /* End Function:Receive::Receive *********************************************/
 

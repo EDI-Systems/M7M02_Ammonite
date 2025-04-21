@@ -40,6 +40,14 @@ namespace RVM_CFG
 class Thread
 {
 public:
+    /* Name */
+    std::string Name;
+	/* Stack_Size */
+	ptr_t Stack_Size;
+	/* Parameter */
+	ptr_t Parameter;
+	/* Priority */
+	ptr_t Priority;
 
     /* void */ Thread(class wxXmlNode* Node);
     /* void */ ~Thread(void);

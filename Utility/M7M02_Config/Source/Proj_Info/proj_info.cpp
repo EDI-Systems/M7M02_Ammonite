@@ -72,7 +72,7 @@ Input       : const std::string& Path - The path to the file.
               const std::string& Chip_Class - The class name of the chip.
               const std::string& Chip_Name - The exact name of the chip.
               const std::string& Kernel_Root - The root folder of the kernel.
-              const std::string& Monitor_Root - The root folder of the kernel.
+              const std::string& Monitor_Root - The root folder of the monitor.
 Output      : None.
 Return      : ret_t - Whether the load is successful.
 ******************************************************************************/
@@ -80,6 +80,40 @@ ret_t Proj_Info::Create(const std::string& Path,
                         const std::string& Chip_Class, const std::string& Chip_Name,
                         const std::string& Kernel_Root, const std::string& Monitor_Root)
 {
+
+	class wxFileName Temp;
+    std::string Name;
+    std::unique_ptr<class wxXmlDocument> Document;
+    class wxXmlNode* Proj;
+
+    this->Path=Path;
+    Temp=Path;
+    this->Filename=Temp.GetFullName();
+    this->Fullpath=Temp.GetFullPath();
+    this->Fulldir=Temp.GetPathWithSep();
+    this->Name=Temp.GetName();
+    this->Version=SOFTWARE_VERSION;
+
+    /* Canonicalize all of them */
+    std::replace(this->Path.begin(),this->Path.end(),'\\','/');
+    std::replace(this->Fullpath.begin(),this->Fullpath.end(),'\\','/');
+    std::replace(this->Fulldir.begin(),this->Fulldir.end(),'\\','/');
+    std::transform(this->Name.begin(),this->Name.end(),this->Name.begin(),(int(*)(int))std::toupper);
+
+    /* See if it does exist */
+    if(wxIsReadable(this->Path)==false)
+        throw std::runtime_error("The project file probably does not exist.");
+
+    /* Load from disk */
+    Document=std::make_unique<class wxXmlDocument>();
+    if(Document->Load(this->Path)==false)
+        throw std::runtime_error("Cannot load project.");
+
+    /* Project root */
+    Proj=Document->GetRoot();
+    if(Proj->GetName()!="Project")
+        throw std::runtime_error("Project root not found.");
+
 
 }
 /* End Function:Proj_Info::Create ********************************************/

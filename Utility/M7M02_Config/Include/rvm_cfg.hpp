@@ -217,6 +217,9 @@ public:
                                       const std::map<std::string, std::string>& Map);
     static class wxXmlNode* Opt_Save(class wxXmlNode* Parent,
                                      const std::string& Name, ptr_t Content);
+    static class wxXmlNode* CSV_Save(class wxXmlNode* Parent,
+            						 const std::string& Name,
+									 const std::vector<std::string>& Content);
 
     /* Output notebook updates */
     static void Output_Update(std::vector<std::string>& Reply,ptr_t Panel,ptr_t Append);

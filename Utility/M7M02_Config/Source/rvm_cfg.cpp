@@ -713,6 +713,40 @@ class wxXmlNode* Main::Opt_Save(class wxXmlNode* Parent,
 }
 /* End Function:Main::Opt_Save ***********************************************/
 
+/* Function:Main::CSV_Save *************************************************
+Description : Save the type of vector<string>, use ',' to connect
+Input       : class wxXmlNode* Parent - The parent node.
+              const std::string& Name - The name of the label.
+              const std::vector<string>& - The CSV content
+Output      : None.
+Return      : class wxXmlNode* - The node added.
+******************************************************************************/
+class wxXmlNode* Main::CSV_Save(class wxXmlNode* Parent, const std::string& Name,
+		const std::vector<std::string>& Content)
+{
+    class wxXmlNode* Temp_N;
+    class wxXmlNode* Temp_C;
+
+    /* Add to content - null node helps to preserve the pair even if it is empty */
+    Temp_N=new wxXmlNode(nullptr,wxXML_ELEMENT_NODE,Name);
+    /* Use ',' to connect every element of content*/
+    std::string Temp_Content="";
+    if(!Content.empty()){
+    	Temp_Content=Content[0];
+        for(cnt_t Cnt=1;Cnt<Content.size();Cnt++){
+        	Temp_Content.append(","+Content[Cnt]);
+        }
+    }
+
+    Temp_C=new wxXmlNode(wxXML_TEXT_NODE,wxEmptyString,Temp_Content);
+    /* Add in this way so that the sequence is preserved */
+    Temp_N->AddChild(Temp_C);
+    Parent->AddChild(Temp_N);
+
+    return Temp_N;
+}
+/* End Function:Main::CSV_Save ********************************************/
+
 ///* Function:Main::Output_Update ***********************************************
 //Description : Update the output panel.
 //Input       : std::vector<std::string>& Reply - The replies to show.

@@ -40,7 +40,7 @@ Return      : None.
 ******************************************************************************/
 /* void */ Chip_Info::Chip_Info(const std::string& Path)
 {
-    class wxFileName Temp;
+	class wxFileName Temp;
     std::string Name;
     std::unique_ptr<class wxXmlDocument> Document;
     class wxXmlNode* Chip;

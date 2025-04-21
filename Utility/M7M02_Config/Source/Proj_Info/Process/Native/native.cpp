@@ -122,7 +122,6 @@ void Native::Save(class wxXmlNode* Parent)
     Trunk_Save<class Port>(Main::Simple_Save(Parent,"Port"),"P",this->Port);
     /* Receive */
     Trunk_Save<class Receive>(Main::Simple_Save(Parent,"Receive"),"R",this->Receive);
-
     /* Vector */
     Trunk_Save<class Vector>(Main::Simple_Save(Parent,"Vector"),"V",this->Vector);
 }

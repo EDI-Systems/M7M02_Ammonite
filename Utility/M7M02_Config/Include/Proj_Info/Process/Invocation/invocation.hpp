@@ -40,6 +40,10 @@ namespace RVM_CFG
 class Invocation
 {
 public:
+	/* Name */
+	std::string Name;
+	/* Stack_Size */
+	ptr_t Stack_Size;
 
     /* void */ Invocation(class wxXmlNode* Node);
     /* void */ ~Invocation(void);

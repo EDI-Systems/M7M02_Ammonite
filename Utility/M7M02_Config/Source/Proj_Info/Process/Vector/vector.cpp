@@ -41,8 +41,6 @@ Return      : None.
 ******************************************************************************/
 /* void */ Vector::Vector(class wxXmlNode* Node)
 {
-    std::string Temp;
-
     /* Name */
     this->Name=Main::Text_Load(Node,"Name");
     /* Number */

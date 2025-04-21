@@ -58,7 +58,28 @@ Return      : None.
 ******************************************************************************/
 /* void */ Process::Process(class wxXmlNode* Node, ptr_t Type)
 {
-
+	/* The common items of Native and VM */
+	/* Name */
+	this->Name = Main::Text_Load(Node, "Name");
+	/* Extra_Captbl */
+	this->Extra_Captbl = Main::Num_Load(Node, "Extra_Captbl");
+	/* Coprocessor */
+	 Main::CSV_Load(Node,"Coprocessor",this->Coprocessor);
+	/* Buildsystem */
+	this->Buildsystem = Main::Text_Load(Node, "Buildsystem");
+	/* Toolchain */
+	this->Toolchain = Main::Text_Load(Node, "Toolchain");
+	/* Optimization */
+	this->Optimization = Main::Opt_Load(Node, "Optimization");
+	/* Project output & overwrite */
+	this->Project_Output = Main::Text_Load(Node, "Project_Output");
+	this->Project_Overwrite = Main::Yesno_Load(Node, "Project_Overwrite");
+	/* Linker_Output */
+	this->Linker_Output = Main::Text_Load(Node, "Linker_Output");
+	/* Main_Header_Output */
+	this->Main_Header_Output = Main::Text_Load(Node, "Main_Header_Output");
+	/* Main_Source_Output */
+	this->Main_Source_Output = Main::Text_Load(Node, "Main_Source_Output");
 }
 /* End Function:Process::Process *********************************************/
 
@@ -82,7 +103,28 @@ Return      : None.
 ******************************************************************************/
 void Process::Save(class wxXmlNode* Parent)
 {
-
+	/* Name */
+    Main::Text_Save(Parent,"Name",this->Name);
+	/* Extra_Captbl */
+    Main::Num_Save(Parent,"Extra_Captbl",this->Extra_Captbl);
+	/* Coprocessor */
+	 Main::CSV_Save(Parent,"Coprocessor",this->Coprocessor);
+	/* Buildsystem */
+	 Main::Text_Save(Parent,"Buildsystem",this->Buildsystem);
+	/* Toolchain */
+	 Main::Text_Save(Parent,"Toolchain",this->Toolchain);
+	/* Optimization */
+	 Main::Opt_Save(Parent,"Optimization",this->Optimization);
+	/* roject_Output */
+	 Main::Text_Save(Parent,"Project_Output",this->Project_Output);
+	/* Project_Overwrite */
+	 Main::Yesno_Save(Parent,"Project_Overwrite",this->Project_Overwrite);
+	/* Linker_Output */
+	 Main::Text_Save(Parent,"Linker_Output",this->Linker_Output);
+	/* Main_Header_Output */
+	 Main::Text_Save(Parent,"Main_Header_Output",this->Main_Header_Output);
+	/* Main_Source_Output */
+	 Main::Text_Save(Parent,"Main_Source_Output",this->Main_Source_Output);
 }
 /* End Function:Process::Save ************************************************/
 }

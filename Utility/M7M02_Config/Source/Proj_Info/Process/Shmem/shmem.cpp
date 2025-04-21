@@ -1,9 +1,9 @@
 /******************************************************************************
-Filename    : thread.cpp
-Author      : pry
-Date        : 13/01/2023
+Filename    : shmem.cpp
+Author      : lbc
+Date        : 21/04/2025
 Licence     : The Unlicense; see LICENSE for details.
-Description : Thread information implementation.
+Description : Shmem information implementation.
 ******************************************************************************/
 
 /* Include *******************************************************************/
@@ -20,59 +20,55 @@ Description : Thread information implementation.
 #include "memory"
 
 #define __HDR_DEF__
-#include "Proj_Info/Process/Thread/thread.hpp"
+#include "Proj_Info/Process/Shmem/shmem.hpp"
 #undef __HDR_DEF__
 
 #define __HDR_CLASS__
 #include "rvm_cfg.hpp"
-#include "Proj_Info/Process/Thread/thread.hpp"
+#include "Proj_Info/Process/Shmem/shmem.hpp"
 #undef __HDR_CLASS__
 /* End Include ***************************************************************/
 namespace RVM_CFG
 {
-/* Function:Thread::Thread ****************************************************
-Description : Constructor for thread information.
+/* Function:Shmem::Shmem ********************************************
+Description : Constructor for shmem information.
 Input       : class wxXmlNode* Node - The node containing information.
               ptr_t Type - Whether this is a native process or a VM.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Thread::Thread(class wxXmlNode* Node)
+/* void */ Shmem::Shmem(class wxXmlNode* Node)
 {
 	/* Name */
 	this->Name=Main::Text_Load(Node,"Name");
-    /* Stack_Size */
-    this->Stack_Size=Main::Num_Load(Node,"Stack_Size");
-    /* Parameter */
-    this->Parameter=Main::Num_Load(Node,"Parameter");
-    /* Priority */
-    this->Priority=Main::Num_Load(Node,"Priority");
+    /* Attributes */
+    this->Attr=Main::Num_Load(Node,"Attributes");
 }
-/* End Function:Thread::Thread ***********************************************/
+/* End Function:Shmem::Shmem ***************************************/
 
-/* Function:Thread::~Thread ***************************************************
-Description : Destructor for thread information.
+/* Function:Shmem::~Shmem *******************************************
+Description : Destructor for shmem information.
 Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Thread::~Thread(void)
+/* void */ Shmem::~Shmem(void)
 {
 
 }
-/* End Function:Thread::~Thread **********************************************/
+/* End Function:Shmem::~Shmem **************************************/
 
-/* Function:Thread::Save ******************************************************
-Description : Save thread information to XML file.
+/* Function:Shmem::Save **************************************************
+Description : Save shmem information to XML file.
 Input       : class wxXmlNode* Parent - The parent node.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Thread::Save(class wxXmlNode* Parent)
+void Shmem::Save(class wxXmlNode* Parent)
 {
 
 }
-/* End Function:Thread::Save *************************************************/
+/* End Function:Shmem::Save *********************************************/
 }
 /* End Of File ***************************************************************/
 

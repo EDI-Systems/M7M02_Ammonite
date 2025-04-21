@@ -41,6 +41,28 @@ namespace RVM_CFG
 class Process
 {
 public:
+	/* The common items of Native and VM */
+	/* Name */
+	std::string Name;
+	/* Extra_Captbl */
+	ptr_t Extra_Captbl;
+    /* Coprocessor */
+    std::vector<std::string> Coprocessor;
+	/* Buildsystem */
+	std::string Buildsystem;
+	/* Toolchain */
+	std::string Toolchain;
+	/* Optimization */
+	ptr_t Optimization;
+	/* Project output & overwrite */
+    std::string Project_Output;
+    ptr_t Project_Overwrite;
+	/* Linker_Output */
+    std::string Linker_Output;
+	/* Main_Header_Output */
+    std::string Main_Header_Output;
+	/* Main_Source_Output */
+    std::string Main_Source_Output;
 
 
     /* void */ Process(const std::string& Name,

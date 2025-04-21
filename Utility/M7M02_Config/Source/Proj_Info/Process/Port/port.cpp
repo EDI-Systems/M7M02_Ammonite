@@ -39,7 +39,10 @@ Return      : None.
 ******************************************************************************/
 /* void */ Port::Port(class wxXmlNode* Node)
 {
-
+	/* Name */
+	this->Name=Main::Text_Load(Node,"Name");
+	/* Process */
+	this->Process=Main::Text_Load(Node,"Process");
 }
 /* End Function:Port::Port ***************************************************/
 
