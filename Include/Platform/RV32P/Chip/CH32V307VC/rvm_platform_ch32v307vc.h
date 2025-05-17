@@ -11,7 +11,7 @@ Description: The configuration file for CH32V307VC. The values listed here shoul
 /* Debugging *****************************************************************/
 #define RVM_ASSERT_ENABLE                               (0U)
 #define RVM_DBGLOG_ENABLE                               (1U)
-/* Kernel configuration - align with the kernel ******************************/
+/* Kernel ********************************************************************/
 /* Are we using raw memory mappings? */
 #define RVM_PGT_RAW_ENABLE                              (1U)
 /* Kernel object virtual memory base */
@@ -43,7 +43,7 @@ Description: The configuration file for CH32V307VC. The values listed here shoul
 #define RVM_RV32P_COP_RVF                               (1U)
 #define RVM_RV32P_COP_RVD                               (0U)
 
-/* Monitor configuration *****************************************************/
+/* Monitor *******************************************************************/
 /* Sleep when idle */
 #define RVM_IDLE_SLEEP_ENABLE                           (1U)
 
@@ -67,6 +67,8 @@ Description: The configuration file for CH32V307VC. The values listed here shoul
 #define RVM_VMMD_STACK_BASE                             (0x20000000U)
 #define RVM_VMMD_STACK_SIZE                             (1024U)
 
+/* Chip specific *************************************************************/
+/* USART register */
 #define RVM_RV32P_USART1_STATR                          RVM_RV32P_REG(0x40013800U)
 #define RVM_RV32P_USART1_STATR_TC                       (0x00000040U)
 #define RVM_RV32P_USART1_DATAR                          RVM_RV32P_REG(0x40013804U)

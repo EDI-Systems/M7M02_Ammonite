@@ -11,7 +11,7 @@ Description: The configuration file for STM32F767IG. The values listed here shou
 /* Debugging *****************************************************************/
 #define RVM_ASSERT_ENABLE                               (0U)
 #define RVM_DBGLOG_ENABLE                               (1U)
-/* Kernel configuration - align with the kernel ******************************/
+/* Kernel ********************************************************************/
 /* Are we using raw memory mappings? */
 #define RVM_PGT_RAW_ENABLE                              (0U)
 /* Kernel object virtual memory base */
@@ -44,7 +44,7 @@ Description: The configuration file for STM32F767IG. The values listed here shou
 #define RVM_A7M_COP_FPV5_SP                             (1U)
 #define RVM_A7M_COP_FPV5_DP                             (1U)
 
-/* Monitor configuration *****************************************************/
+/* Monitor *******************************************************************/
 /* Sleep when idle */
 #define RVM_IDLE_SLEEP_ENABLE                           (1U)
 
@@ -68,6 +68,8 @@ Description: The configuration file for STM32F767IG. The values listed here shou
 #define RVM_VMMD_STACK_BASE                             (0x20000000U)
 #define RVM_VMMD_STACK_SIZE                             (1024U)
 
+/* Chip specific *************************************************************/
+/* USART register */
 #define RVM_A7M_USART1_ISR                              RVM_A7M_REG(0x4001101CU)
 #define RVM_A7M_USART1_TDR                              RVM_A7M_REG(0x40011028U)
 
