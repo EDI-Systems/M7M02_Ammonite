@@ -1046,12 +1046,12 @@ void Proj_Gen::Kernel_Boot_Src(void)
     List->push_back("    {");
     List->push_back("        case RME_RVM_VCT_SIG_ALL:");
     List->push_back("        {");
-    List->push_back("            _RME_Kern_Snd(Endp);");
+    List->push_back("            _RME_Kern_Snd(Endp,1U);");
     List->push_back("            return 1U;");
     List->push_back("        }");
     List->push_back("        case RME_RVM_VCT_SIG_SELF:");
     List->push_back("        {");
-    List->push_back("            _RME_Kern_Snd(Endp);");
+    List->push_back("            _RME_Kern_Snd(Endp,1U);");
     List->push_back("            _RME_Kern_High(Reg,RME_CPU_LOCAL());");
     List->push_back("            return 0U;");
     List->push_back("        }");

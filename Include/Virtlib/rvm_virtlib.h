@@ -82,6 +82,7 @@ struct RVM_Handler_Struct
 #if(RVM_VIRT_LIB_ENABLE!=0U)
 static volatile struct RVM_Handler_Struct RVM_Handler;
 static volatile rvm_ptr_t RVM_Int_Mask;
+static volatile rvm_ptr_t RVM_Int_Disable;
 static volatile rvm_ptr_t RVM_Vct_Pend;
 /* Paramater space location provided for assembly convenience */
 volatile struct RVM_Param* const RVM_Usr_Param=RVM_PARAM;
