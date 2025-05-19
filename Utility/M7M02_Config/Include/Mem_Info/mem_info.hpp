@@ -39,6 +39,9 @@ namespace RVM_CFG
 
 /* Memory placement */
 #define MEM_AUTO            ((ptr_t)(-1LL))
+
+/* Align is not exist */
+#define ALIGN_INVALID       (123456)
 /*****************************************************************************/
 /* __MEM_INFO_DEF__ */
 #endif
@@ -64,9 +67,10 @@ public:
     ptr_t Type;
     /* Access attributes */
     ptr_t Attr;
+    /* Align */
+    ptr_t Align;
 
-    /* void */ Mem_Info(const std::string& Name,
-                        ptr_t Base, ptr_t Size, ptr_t Type, ptr_t Attr);
+    /* void */ Mem_Info(const std::string& Name,ptr_t Base, ptr_t Size, ptr_t Type, ptr_t Attr,ptr_t Align);
     /* void */ Mem_Info(class wxXmlNode* Node);
     /* void */ ~Mem_Info(void);
 

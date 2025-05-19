@@ -40,14 +40,16 @@ namespace RVM_CFG
 class Kfunc
 {
 public:
-	/* Name */
-	std::string Name;
-	/* Begin */
-	ptr_t Begin;
-	/* End */
-	ptr_t End;
+    /* Name */
+    std::string Name;
+    /* Begin */
+    ptr_t Begin;
+    /* End */
+    ptr_t End;
 
     /* void */ Kfunc(class wxXmlNode* Node);
+    /* void */ Kfunc(const std::string& Name,const ptr_t& Begin,const ptr_t& End);
+
     /* void */ ~Kfunc(void);
 
     virtual void Save(class wxXmlNode* Parent);

@@ -40,12 +40,13 @@ namespace RVM_CFG
 class Send
 {
 public:
-	/* Name */
-	std::string Name;
-	/* Process */
-	std::string Process;
+    /* Name */
+    std::string Name;
+    /* Process */
+    std::string Process;
 
     /* void */ Send(class wxXmlNode* Node);
+    /* void */ Send(const std::string& Name, const std::string& Process);
     /* void */ ~Send(void);
 
     void Save(class wxXmlNode* Parent);

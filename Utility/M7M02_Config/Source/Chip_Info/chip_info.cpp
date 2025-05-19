@@ -61,7 +61,7 @@ Return      : None.
 
     /* See if it does exist */
     if(wxIsReadable(this->Path)==false)
-        throw std::runtime_error("The platform file probably does not exist. Consider permission or memory failure.");
+        throw std::runtime_error("The chip file probably does not exist. Consider permission or memory failure.");
 
     /* Load from disk */
     Document=std::make_unique<class wxXmlDocument>();

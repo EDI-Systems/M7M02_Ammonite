@@ -3,7 +3,7 @@ Filename    : receive.cpp
 Author      : pry
 Date        : 13/01/2023
 Licence     : The Unlicense; see LICENSE for details.
-Description : Receive endpoint information implementation.
+Description : Receive information implementation.
 ******************************************************************************/
 
 /* Include *******************************************************************/
@@ -31,7 +31,7 @@ Description : Receive endpoint information implementation.
 namespace RVM_CFG
 {
 /* Function:Receive::Receive **************************************************
-Description : Constructor for receive endpoint information.
+Description : Constructor for receive information.
 Input       : class wxXmlNode* Node - The node containing information.
               ptr_t Type - Whether this is a native process or a VM.
 Output      : None.
@@ -39,13 +39,26 @@ Return      : None.
 ******************************************************************************/
 /* void */ Receive::Receive(class wxXmlNode* Node)
 {
-	/* Name */
-	this->Name=Main::Text_Load(Node,"Name");
+    /* Name */
+    this->Name=Main::Text_Load(Node,"Name");
+}
+/* End Function:Receive::Receive *********************************************/
+
+/* Function:Receive::Receive **************************************************
+Description : Constructor for receive information.
+Input       : const std::string& Name - The name.
+Output      : None.
+Return      : None.
+******************************************************************************/
+/* void */ Receive::Receive(const std::string& Name)
+{
+    /* Name */
+    this->Name=Name;
 }
 /* End Function:Receive::Receive *********************************************/
 
 /* Function:Receive::~Receive *************************************************
-Description : Destructor for thread information.
+Description : Destructor for receive information.
 Input       : None.
 Output      : None.
 Return      : None.
@@ -64,7 +77,8 @@ Return      : None.
 ******************************************************************************/
 void Receive::Save(class wxXmlNode* Parent)
 {
-
+    /* Name */
+    Main::Text_Save(Parent,"Name",this->Name);
 }
 /* End Function:Receive::Save ************************************************/
 }

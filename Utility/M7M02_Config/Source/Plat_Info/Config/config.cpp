@@ -19,12 +19,12 @@ Description : Configuration information implementation.
 #include "memory"
 
 #define __HDR_DEF__
-#include "Conf_Info/conf_info.hpp"
+#include <Plat_Info/Config/config.hpp>
 #undef __HDR_DEF__
 
 #define __HDR_CLASS__
 #include "rvm_cfg.hpp"
-#include "Conf_Info/conf_info.hpp"
+#include <Plat_Info/Config/config.hpp>
 #undef __HDR_CLASS__
 /* End Include ***************************************************************/
 namespace RVM_CFG

@@ -24,7 +24,13 @@ namespace RVM_CFG
 #ifndef __SHMEM_DEF__
 #define __SHMEM_DEF__
 /*****************************************************************************/
-
+/* Memory access permissions */
+#define MEM_READ            POW2(0)
+#define MEM_WRITE           POW2(1)
+#define MEM_EXECUTE         POW2(2)
+#define MEM_BUFFER          POW2(3)
+#define MEM_CACHE           POW2(4)
+#define MEM_STATIC          POW2(5)
 /*****************************************************************************/
 /* __SHMEM_DEF__ */
 #endif
@@ -45,8 +51,18 @@ public:
     /* Attributes */
     ptr_t Attr;
 
-    /* void */ Shmem(const std::string& Name, ptr_t Attr);
+//    /* Memory type */
+//    ptr_t Type;
+//    /* Base address */
+//    ptr_t Base;
+//    /* Size */
+//    ptr_t Size;
+//    /* Align */
+//    ptr_t Align;
+
     /* void */ Shmem(class wxXmlNode* Node);
+//    /* void */ Shmem(const std::string& Name, ptr_t Attr,ptr_t Type, ptr_t Base, ptr_t Size, ptr_t Align);
+    /* void */ Shmem(const std::string& Name, ptr_t Attr);
     /* void */ ~Shmem(void);
 
     void Save(class wxXmlNode* Parent);

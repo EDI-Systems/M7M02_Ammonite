@@ -30,7 +30,7 @@ Description : Shmem information implementation.
 /* End Include ***************************************************************/
 namespace RVM_CFG
 {
-/* Function:Shmem::Shmem ********************************************
+/* Function:Shmem::Shmem ******************************************************
 Description : Constructor for shmem information.
 Input       : class wxXmlNode* Node - The node containing information.
               ptr_t Type - Whether this is a native process or a VM.
@@ -39,14 +39,68 @@ Return      : None.
 ******************************************************************************/
 /* void */ Shmem::Shmem(class wxXmlNode* Node)
 {
+    std::string Attr;
+
 	/* Name */
 	this->Name=Main::Text_Load(Node,"Name");
-    /* Attributes */
-    this->Attr=Main::Num_Load(Node,"Attributes");
-}
-/* End Function:Shmem::Shmem ***************************************/
 
-/* Function:Shmem::~Shmem *******************************************
+    /* Attribute */
+    this->Attr=0;
+    Attr=Main::Text_Load(Node,"Attribute");
+    if(Attr.rfind('R')!=std::string::npos)
+        this->Attr|=MEM_READ;
+    if(Attr.rfind('W')!=std::string::npos)
+        this->Attr|=MEM_WRITE;
+    if(Attr.rfind('X')!=std::string::npos)
+        this->Attr|=MEM_EXECUTE;
+    if(this->Attr==0)
+        throw std::runtime_error("Attribute does not allow any access and is malformed.");
+    if(Attr.rfind('B')!=std::string::npos)
+        this->Attr|=MEM_BUFFER;
+    if(Attr.rfind('C')!=std::string::npos)
+        this->Attr|=MEM_CACHE;
+    if(Attr.rfind('S')!=std::string::npos)
+        this->Attr|=MEM_STATIC;
+}
+/* End Function:Shmem::Shmem *************************************************/
+//
+///* Function:Shmem::Shmem ******************************************************
+//Description : Constructor for shmem information.
+//Input       : const std::string& Name
+//              ptr_t Attr
+//Output      : None.
+//Return      : None.
+//******************************************************************************/
+///* void */ Shmem::Shmem(const std::string& Name, ptr_t Attr,ptr_t Type,ptr_t Base, ptr_t Size, ptr_t Align)
+//{
+//    /* Name */
+//    this->Name=Name;
+//    /* Attributes */
+//    this->Attr=Attr;
+//    this->Base=Base;
+//    this->Size=Size;
+//    this->Type=Type;
+//    this->Align=Align;
+//}
+///* End Function:Shmem::Shmem ***********************************************/
+
+/* Function:Shmem::Shmem ******************************************************
+Description : Constructor for shmem information.
+Input       : const std::string& Name
+              ptr_t Attr
+Output      : None.
+Return      : None.
+******************************************************************************/
+/* void */ Shmem::Shmem(const std::string& Name, ptr_t Attr)
+{
+    /* Name */
+    this->Name=Name;
+    /* Attributes */
+    this->Attr=Attr;
+}
+/* End Function:Shmem::Shmem *************************************************/
+
+/* Function:Shmem::~Shmem *****************************************************
 Description : Destructor for shmem information.
 Input       : None.
 Output      : None.
@@ -56,9 +110,9 @@ Return      : None.
 {
 
 }
-/* End Function:Shmem::~Shmem **************************************/
+/* End Function:Shmem::~Shmem ************************************************/
 
-/* Function:Shmem::Save **************************************************
+/* Function:Shmem::Save *******************************************************
 Description : Save shmem information to XML file.
 Input       : class wxXmlNode* Parent - The parent node.
 Output      : None.
@@ -66,9 +120,28 @@ Return      : None.
 ******************************************************************************/
 void Shmem::Save(class wxXmlNode* Parent)
 {
+    std::string Attr;
 
+    /* Name */
+    Main::Text_Save(Parent,"Name",this->Name);
+
+    /* Attribute */
+    if((this->Attr&MEM_READ)!=0)
+        Attr+="R";
+    if((this->Attr&MEM_WRITE)!=0)
+        Attr+="W";
+    if((this->Attr&MEM_EXECUTE)!=0)
+        Attr+="E";
+    if((this->Attr&MEM_BUFFER)!=0)
+        Attr+="B";
+    if((this->Attr&MEM_CACHE)!=0)
+        Attr+="C";
+    if((this->Attr&MEM_STATIC)!=0)
+        Attr+="S";
+
+    Main::Text_Save(Parent,"Attribute",Attr);
 }
-/* End Function:Shmem::Save *********************************************/
+/* End Function:Shmem::Save **************************************************/
 }
 /* End Of File ***************************************************************/
 

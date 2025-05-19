@@ -63,9 +63,12 @@ public:
                       const std::string& Root,
                       const class Plat_Info* Plat);
     /* void */ Native(class wxXmlNode* Node);
+    /* change */
+    /* void */ Native(const std::string& Name);
     /* void */ ~Native(void);
 
     virtual void Save(class wxXmlNode* Parent) final override;
+    //void Save(class wxXmlNode* Parent);
 };
 /*****************************************************************************/
 /* __NATIVE_CLASS__ */

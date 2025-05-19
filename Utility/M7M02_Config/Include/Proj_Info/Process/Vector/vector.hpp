@@ -36,6 +36,7 @@ public:
     ptr_t Number;
 
     /* void */ Vector(class wxXmlNode* Node);
+    /* void */ Vector(const std::string& Name,const ptr_t& Number);
     /* void */ ~Vector(void);
 
     void Save(class wxXmlNode* Parent);

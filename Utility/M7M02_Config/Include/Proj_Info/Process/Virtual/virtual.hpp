@@ -40,23 +40,23 @@ namespace RVM_CFG
 class Virtual:public Process
 {
 public:
-	/* Virtual only, begin */
-	/* Stack_Size */
-	ptr_t Vector_Stack_Size;
-	ptr_t User_Stack_Size;
+    /* Virtual only, begin */
+    /* Stack_Size */
+    ptr_t Vector_Stack_Size;
+    ptr_t User_Stack_Size;
 
-	/* Priority */
-	ptr_t Priority;
-	/* Timeslice */
-	ptr_t Timeslice;
-	/* Period */
-	ptr_t Period;
-	/* Watchdog */
-	ptr_t Watchdog;
-	/* Vector_Num */
-	ptr_t Vector_Num;
-	/* Guest_Type */
-	std::string Guest_Type;
+    /* Priority */
+    ptr_t Priority;
+    /* Timeslice */
+    ptr_t Timeslice;
+    /* Period */
+    ptr_t Period;
+    /* Watchdog */
+    ptr_t Watchdog;
+    /* Vector_Num */
+    ptr_t Vector_Num;
+    /* Guest_Type */
+    std::string Guest_Type;
 
     /* Virtual header source output & overwrite */
     std::string Virtual_Header_Output;
@@ -67,27 +67,16 @@ public:
     ptr_t Virtual_Source_Overwrite;
 	/* Virtual only, end */
 
-    /* Memory */
-    std::vector<std::unique_ptr<class Mem_Info>> Memory;
-
-    /* Shmem */
-    std::vector<std::unique_ptr<class Shmem>> Shmem;
-
-    /* Send */
-    std::vector<std::unique_ptr<class Send>> Send;
-
-    /* Kfunc */
-    std::vector<std::unique_ptr<class Kfunc>> Kfunc;
-
-
-
     /* void */ Virtual(const std::string& Name,
-                      const std::string& Root,
-                      const class Plat_Info* Plat);
+                       const std::string& Root,
+                       const class Plat_Info* Plat);
     /* void */ Virtual(class wxXmlNode* Node);
+    /* change */
+    /* void */ Virtual(const std::string& Name);
     /* void */ ~Virtual(void);
 
     virtual void Save(class wxXmlNode* Parent) final override;
+    //void Save(class wxXmlNode* Parent);
 };
 /*****************************************************************************/
 /* __VIRTUAL_CLASS__ */

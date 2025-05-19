@@ -138,20 +138,19 @@ Return      : None.
 void File_Menu::On_New_Proj(class wxCommandEvent& Event)
 {
     std::string Path;
-    class wxFileDialog* File;
+    std::unique_ptr<wxFileDialog> File;
 
     wxLogDebug("File_Menu::On_New_Proj");
 
     /* Let the user choose a filename */
-    File=new class wxFileDialog(RVM_CFG_App::Main,_("New File"),wxT(""),wxT(""),
-                                _("Project File")+wxT(" (*.rvp)|*.rvp"),
-                                wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
+    File=std::make_unique<wxFileDialog>(RVM_CFG_App::Main,_("New Project"),wxT(""),wxT(""),
+                                        _("Project File")+wxT(" (*.rvp)|*.rvp"),
+                                        wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
     if(File->ShowModal()!=wxID_OK)
         return;
     Path=File->GetPath();
-    File->Destroy();
 
-    //Main::File_New(Path);
+    Main::Proj_New(Path);
 }
 /* End Function:File_Menu::On_New_Proj ***************************************/
 
@@ -164,20 +163,18 @@ Return      : None.
 void File_Menu::On_Open_Proj(class wxCommandEvent& Event)
 {
     std::string Path;
-    class wxFileDialog* File;
+    std::unique_ptr<class wxFileDialog> File;
 
     wxLogDebug("File_Menu::On_Open_Proj");
 
     /* Let the user choose a filename */
-    File=new class wxFileDialog(RVM_CFG_App::Main,_("Open File"),wxT(""),wxT(""),
-                                _("Project File")+wxT(" (*.rvp)|*.rvp|"),
-                                wxFD_OPEN|wxFD_FILE_MUST_EXIST);
+    File=std::make_unique<class wxFileDialog>(RVM_CFG_App::Main,_("Open File"),wxT(""),wxT(""),
+                                              _("Project File")+wxT(" (*.rvp)|*.rvp"),
+                                              wxFD_OPEN|wxFD_FILE_MUST_EXIST);
     if(File->ShowModal()!=wxID_OK)
         return;
     Path=File->GetPath();
-    File->Destroy();
-
-    //Main::File_Open(Path);
+    Main::Proj_Open(Path);
 }
 /* End Function:File_Menu::On_Open_Proj **************************************/
 
@@ -203,7 +200,7 @@ Return      : None.
 void File_Menu::On_Save_Proj(class wxCommandEvent& Event)
 {
     wxLogDebug("File_Menu::On_Save_Proj");
-    //Main::Proj_Save();
+    Main::Proj_Save();
 }
 /* End Function:File_Menu::On_Save_File **************************************/
 
@@ -216,20 +213,22 @@ Return      : None.
 void File_Menu::On_Save_As(class wxCommandEvent& Event)
 {
     std::string Path;
-    class wxFileDialog* File;
+    std::unique_ptr<wxFileDialog> File;
 
     wxLogDebug("File_Menu::On_Save_As");
+    if(Main::Check_And_Save_Current_Edit()!=0)
+        return;
+    if(Main::Check_And_Save_All()!=0)
+        return;
 
-    /* Let the user choose a filename - may only save as the old type */
-    File=new class wxFileDialog(RVM_CFG_App::Main,_("Save File As"),wxT(""),wxT(""),
-                                _("Project File")+wxT(" (*.rvp)|*.rvp"),
-                                wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
+    /* Let the user choose a filename and location */
+    File=std::make_unique<wxFileDialog>(RVM_CFG_App::Main,_("Save File As"),wxT(""),wxT(""),
+                                        _("Project File")+wxT(" (*.rvp)|*.rvp"),
+                                        wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
     if(File->ShowModal()!=wxID_OK)
         return;
     Path=File->GetPath();
-    File->Destroy();
-
-    //Main::Proj_Save_As(Path);
+    Main::Proj_Save_As(Path);
 }
 /* End Function:File_Menu::On_Save_As ****************************************/
 }

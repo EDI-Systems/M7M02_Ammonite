@@ -3,7 +3,7 @@ Filename    : sned.cpp
 Author      : lbc
 Date        : 21/04/2025
 Licence     : The Unlicense; see LICENSE for details.
-Description : Send information implementation.
+Description : Send implementation.
 ******************************************************************************/
 
 /* Include *******************************************************************/
@@ -30,8 +30,8 @@ Description : Send information implementation.
 /* End Include ***************************************************************/
 namespace RVM_CFG
 {
-/* Function:Send::Send **************************************************
-Description : Constructor for send information.
+/* Function:Send::Send ********************************************************
+Description : Constructor for send.
 Input       : class wxXmlNode* Node - The node containing information.
               ptr_t Type - Whether this is a native process or a VM.
 Output      : None.
@@ -44,9 +44,23 @@ Return      : None.
 	/* Process */
 	this->Process=Main::Text_Load(Node,"Process");
 }
-/* End Function:Send::Send *********************************************/
+/* End Function:Send::Send ***************************************************/
 
-/* Function:Send::~Send *************************************************
+/* Function:Send::Send ********************************************************
+Description : Constructor for send.
+Input       : class wxXmlNode* Node - The node containing information.
+              ptr_t Type - Whether this is a native process or a VM.
+Output      : None.
+Return      : None.
+******************************************************************************/
+/* void */ Send::Send(const std::string& Name, const std::string& Process)
+{
+   this->Name=Name;
+   this->Process=Process;
+}
+/* End Function:Send::Send ***************************************************/
+
+/* Function:Send::~Send *******************************************************
 Description : Destructor for Send information.
 Input       : None.
 Output      : None.
@@ -56,9 +70,9 @@ Return      : None.
 {
 
 }
-/* End Function:Send::~Send ********************************************/
+/* End Function:Send::~Send **************************************************/
 
-/* Function:Send::Save *****************************************************
+/* Function:Send::Save ********************************************************
 Description : Save send information to XML file.
 Input       : class wxXmlNode* Parent - The parent node.
 Output      : None.
@@ -66,9 +80,12 @@ Return      : None.
 ******************************************************************************/
 void Send::Save(class wxXmlNode* Parent)
 {
-
+    /* Name */
+    Main::Text_Save(Parent,"Name",this->Name);
+    /* Process */
+    Main::Text_Save(Parent,"Process",this->Process);
 }
-/* End Function:Send::Save ************************************************/
+/* End Function:Send::Save ***************************************************/
 }
 /* End Of File ***************************************************************/
 

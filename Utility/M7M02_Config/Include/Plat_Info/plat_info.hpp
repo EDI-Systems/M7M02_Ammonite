@@ -52,6 +52,8 @@ public:
     std::string Version;
     /* Whether we assume all asserts to be correct */
     ptr_t Wordlength;
+    /* List of Coprocessor */
+    std::vector<std::string> Coprocessor;
     /* Allowed build systems */
     std::vector<std::string> Buildsystem;
     /* Allowed toolchains */
