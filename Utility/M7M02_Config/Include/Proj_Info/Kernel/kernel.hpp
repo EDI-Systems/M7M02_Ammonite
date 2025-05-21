@@ -40,8 +40,7 @@ namespace RVM_CFG
 class Kernel
 {
 public:
-    /* Kernel source root folder */
-    std::string Kernel_Root;
+
     /* Code base & size */
     ptr_t Code_Base;
     ptr_t Code_Size;
@@ -84,6 +83,7 @@ public:
     /* void */ Kernel(const std::string& Kernel_Root,
                       const class Plat_Info* Plat,
                       const class Plat_Info* Chip);
+    /* void */ Kernel(const class Plat_Info* Plat_Info, const class Chip_Info* Chip_Info);
     /* void */ Kernel(class wxXmlNode* Node);
     /* void */ ~Kernel(void);
 

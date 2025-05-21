@@ -1,3 +1,4 @@
+
 /******************************************************************************
 Filename    : rvm_cfg.cpp
 Author      : pry
@@ -43,6 +44,7 @@ extern "C"
 #include "wx/metafile.h"
 #include "wx/mimetype.h"
 #include "wx/dnd.h"
+#include "wx/regex.h"
 
 extern "C"
 {
@@ -82,10 +84,38 @@ extern "C"
 //#include "Option_Notebook/Proc_Snd_Panel/proc_snd_panel.hpp"
 //#include "Option_Notebook/Proc_Vct_Panel/proc_vct_panel.hpp"
 //#include "Option_Notebook/Proc_Kfn_Panel/proc_kfn_panel.hpp"
-#include "Option_Notebook/option_notebook.hpp"
+//#include "Option_Notebook/option_notebook.hpp"
+
+/* option panels begin*/
+#include "Option_Panel/option_panel.hpp"
+//#include "Option_Panel/Basic_Notebook/basic_notebook.hpp"
+//#include "Option_Panel/Basic_Notebook/Basic_Panel/basic_panel.hpp"
+//#include "Option_Panel/Kernel_Notebook/kernel_notebook.hpp"
+//#include "Option_Panel/Monitor_Notebook/monitor_notebook.hpp"
+#include "Option_Panel/Native_Notebook/native_notebook.hpp"
+#include "Option_Panel/Native_Notebook/Native_Basic_Panel/native_basic_panel.hpp"
+#include "Option_Panel/Virtual_Notebook/virtual_notebook.hpp"
+#include "Option_Panel/Virtual_Notebook/Virtual_Basic_Panel/virtual_basic_panel.hpp"
+
+#include "Option_Panel/Basic_Panel/basic_panel.hpp"
+#include "Option_Panel/Memory_Notebook/memory_notebook.hpp"
+//#include "Option_Panel/Memory_Panel/memory_panel.hpp"
+#include "Option_Panel/Kernel_Panel/kernel_panel.hpp"
+#include "Option_Panel/Monitor_Panel/monitor_panel.hpp"
+
+/* option panels end*/
+
+/* data begin */
+#include "Plat_Info/plat_info.hpp"
+#include "Plat_Info/Compatible/compatible.hpp"
+#include "Plat_Info/Config/config.hpp"
+#include "Chip_Info/chip_info.hpp"
+/* data end */
+
 #include "Output_Notebook/output_notebook.hpp"
 
 #include "Config_Tree/config_tree.hpp"
+#include "Config_Tree/Config_Popup/config_popup.hpp"
 
 #include "Menu_Bar/menu_bar.hpp"
 #include "Tool_Bar/tool_bar.hpp"
@@ -96,8 +126,13 @@ extern "C"
 #include "Proj_Info/Kernel/kernel.hpp"
 #include "Proj_Info/Monitor/monitor.hpp"
 #include "Proj_Info/Process/process.hpp"
+#include "Proj_Info/Process/Native/native.hpp"
 #include "Proj_Info/Process/Virtual/virtual.hpp"
 #include "Proj_Info/proj_info.hpp"
+
+#include "Setting_Dialog/setting_dialog.hpp"
+#include "Choose_Dialog/choose_dialog.hpp"
+#include "Name_Dialog/name_dialog.hpp"
 #undef __HDR_CLASS__
 /* End Include ***************************************************************/
 namespace RVM_CFG
@@ -109,11 +144,24 @@ class Main* RVM_CFG_App::Main=nullptr;
 std::string Main::Exe_Folder="";
 
 /* Application states */
-ptr_t Main::UI_State=UI_NONE;
+ptr_t Main::UI_State=UI_NONE+1;
 ptr_t Main::Save_State=SAVE_NONE;
 
+/* Three key relative paths of RVM, RME, RMP */
+std::string Main::RVM_Path="";
+std::string Main::RME_Path="";
+std::string Main::RMP_Path="";
+
+/* Platform and chip */
+std::string Main::Platform="";
+std::string Main::Chip="";
+std::string Main::Type="";
+
+/* The largest number ever used by native process and virtual machine */
+cnt_t Main::Native_Cnt=0;
+cnt_t Main::Virtual_Cnt=0;
+
 /* Lower-level classes */
-class Proj_Info* Main::Proj=nullptr;
 class Menu_Bar* Main::Menu_Bar=nullptr;
 class Tool_Bar* Main::Tool_Bar=nullptr;
 class wxPanel* Main::App_Panel=nullptr;
@@ -121,11 +169,31 @@ class wxBoxSizer* Main::App_Sizer=nullptr;
 class wxBoxSizer* Main::Config_Sizer=nullptr;
 class Config_Tree* Main::Config=nullptr;
 class wxBoxSizer* Main::Option_Sizer=nullptr;
-class Option_Notebook* Main::Option=nullptr;
-class Output_Notebook* Main::Output=nullptr;
+class Option_Panel* Main::Option=nullptr;
+//class Output_Notebook* Main::Output=nullptr;
+class wxTextCtrl* Main::Output_Text=nullptr;
 class Status_Bar* Main::Status_Bar=nullptr;
 
 class About_Dialog* Main::About_Dialog=nullptr;
+class Setting_Dialog* Main::Setting_Dialog=nullptr;
+class Choose_Dialog* Main::Choose_Dialog=nullptr;
+class Name_Dialog* Main::Name_Dialog=nullptr;
+
+/* option panels  */
+class wxWindow* Main::Last_Option=nullptr;
+class Basic_Panel* Main::Basic_Panel=nullptr;
+class Memory_Notebook* Main::Memory_Notebook=nullptr;
+class Kernel_Panel* Main::Kernel_Panel=nullptr;
+class Monitor_Panel* Main::Monitor_Panel=nullptr;
+class Native_Notebook* Main::Native_Notebook=nullptr;
+class Virtual_Notebook* Main::Virtual_Notebook=nullptr;
+
+/* data  */
+std::unique_ptr<class Plat_Info> Main::Plat_Info=nullptr;
+std::unique_ptr<class Chip_Info> Main::Chip_Info=nullptr;
+std::unique_ptr<class Proj_Info> Main::Proj_Info=nullptr;
+
+
 /* End Global Variables ******************************************************/
 
 /* Function:Main::Main ********************************************************
@@ -135,10 +203,11 @@ Output      : None.
 Return      : None.
 ******************************************************************************/
 /* void */ Main::Main(void):
-wxFrame(nullptr,wxID_ANY,SOFTWARE_NAME,wxDefaultPosition,I2P(wxSize(1024,768)),
+wxFrame(nullptr,wxID_ANY,SOFTWARE_NAME,wxDefaultPosition,I2P(wxSize(1024,800)),
         wxSYSTEM_MENU|wxCLOSE_BOX|wxCAPTION|wxCLIP_CHILDREN)
 {
-    this->SetSize(I2P(wxSize(1024,768)));
+    //I2P(wxSize(1024,768)
+    this->SetSize(I2P(wxSize(1024,800)));
     this->Center();
 
     try
@@ -171,10 +240,13 @@ wxFrame(nullptr,wxID_ANY,SOFTWARE_NAME,wxDefaultPosition,I2P(wxSize(1024,768)),
         Main::Config_Sizer->Add(Main::Config, 1, wxEXPAND);
 
         Main::Option_Sizer=new class wxBoxSizer(wxVERTICAL);
-        Main::Option=new class Option_Notebook(Main::App_Panel);
-        Main::Option_Sizer->Add(Main::Option, 4, wxEXPAND);
-        Main::Output=new class Output_Notebook(Main::App_Panel);
-        Main::Option_Sizer->Add(Main::Output, 1, wxEXPAND);
+        Main::Option=new class Option_Panel(Main::App_Panel);
+        Main::Option_Sizer->Add(Main::Option, 8, wxEXPAND);
+
+//        Main::Output=new class Output_Notebook(Main::App_Panel);
+//        Main::Option_Sizer->Add(Main::Output, 1, wxEXPAND);
+        Main::Output_Text=new class wxTextCtrl(Main::App_Panel,wxID_ANY);
+        Main::Option_Sizer->Add(Main::Output_Text, 1, wxEXPAND);
 
         Main::Config_Sizer->Add(Main::Option_Sizer, 4, wxEXPAND);
         Main::App_Sizer->Add(Main::Config_Sizer, 1, wxEXPAND);
@@ -186,14 +258,42 @@ wxFrame(nullptr,wxID_ANY,SOFTWARE_NAME,wxDefaultPosition,I2P(wxSize(1024,768)),
         this->SetStatusBar(Main::Status_Bar);
 
         /* Create the heavy-handed dialogs so that they load super-fast */
-//        Main::Proj_Dialog=new class Proj_Dialog(this);
-//        Main::Proj_Dialog->Hide();
-//        Main::Proc_Dialog=new class Proc_Dialog(this);
-//        Main::Proc_Dialog->Hide();
-//        Main::Virt_Dialog=new class Virt_Dialog(this);
-//        Main::Virt_Dialog->Hide();
         Main::About_Dialog=new class About_Dialog(this);
         Main::About_Dialog->Hide();
+        /* Create setting dialog */
+        Main::Setting_Dialog=new class Setting_Dialog(this);
+        Main::Setting_Dialog->Hide();
+        /* Create choose dialog */
+        Main::Choose_Dialog=new class Choose_Dialog(this);
+        Main::Choose_Dialog->Hide();
+        /* Create name dialog */
+        Main::Name_Dialog=new class Name_Dialog(this);
+        Main::Name_Dialog->Hide();
+
+        /* Option panel */
+        Main::Basic_Panel=new class Basic_Panel(Main::Option);
+        Main::Option->Main_Sizer->Add(Main::Basic_Panel,1,wxEXPAND);
+        Main::Basic_Panel->Hide();
+
+        Main::Memory_Notebook=new class Memory_Notebook(Main::Option);
+        Main::Option->Main_Sizer->Add(Main::Memory_Notebook,1,wxEXPAND);
+        Main::Memory_Notebook->Hide();
+
+        Main::Kernel_Panel=new class Kernel_Panel(Main::Option);
+        Main::Option->Main_Sizer->Add(Main::Kernel_Panel,1,wxEXPAND);
+        Main::Kernel_Panel->Hide();
+
+        Main::Monitor_Panel=new class Monitor_Panel(Main::Option);
+        Main::Option->Main_Sizer->Add(Main::Monitor_Panel,1,wxEXPAND);
+        Main::Monitor_Panel->Hide();
+
+        Main::Native_Notebook=new class Native_Notebook(Main::Option);
+        Main::Option->Main_Sizer->Add(Main::Native_Notebook,1,wxEXPAND);
+        Main::Native_Notebook->Hide();
+
+        Main::Virtual_Notebook=new class Virtual_Notebook(Main::Option);
+        Main::Option->Main_Sizer->Add(Main::Virtual_Notebook,1,wxEXPAND);
+        Main::Virtual_Notebook->Hide();
 
         this->Refresh();
     }
@@ -388,7 +488,6 @@ class wxXmlNode* Main::Simple_Load(class wxXmlNode* Parent, const std::string& E
         if(Child->GetName()==Expect)
             return Child;
     }
-
     throw std::runtime_error(Expect+": No such label found.");
 }
 /* End Function:Main::Simple_Load ********************************************/
@@ -405,7 +504,6 @@ Return      : std::string - The content returned.
 std::string Main::Text_Load(class wxXmlNode* Parent, const std::string& Expect)
 {
     class wxXmlNode* Text;
-
     Text=Main::Simple_Load(Parent,Expect)->GetChildren();
     if(Text==nullptr)
         return "";
@@ -659,6 +757,41 @@ class wxXmlNode* Main::Num_Save(class wxXmlNode* Parent,
 }
 /* End Function:Main::Num_Save ***********************************************/
 
+/* Function:Main::CSV_Save *************************************************
+Description : Save the CSV, use ',' to connect.
+Input       : class wxXmlNode* Parent - The parent node.
+              const std::string& Name - The name of the label.
+              const std::vector<string>& - The CSV content.
+Output      : None.
+Return      : class wxXmlNode* - The node added.
+******************************************************************************/
+class wxXmlNode* Main::CSV_Save(class wxXmlNode* Parent, const std::string& Name,
+                                const std::vector<std::string>& Content)
+{
+    ptr_t Count;
+    std::string List;
+    class wxXmlNode* Temp_N;
+    class wxXmlNode* Temp_C;
+
+    /* Add to content - null node helps to preserve the pair even if it is empty */
+    Temp_N=new wxXmlNode(nullptr,wxXML_ELEMENT_NODE,Name);
+    /* Use ',' to connect every element of content*/
+    if(!Content.empty())
+    {
+        List=Content[0];
+        for(Count=1;Count<Content.size();Count++)
+            List+=","+Content[Count];
+    }
+
+    Temp_C=new wxXmlNode(wxXML_TEXT_NODE,wxEmptyString,List);
+    /* Add in this way so that the sequence is preserved */
+    Temp_N->AddChild(Temp_C);
+    Parent->AddChild(Temp_N);
+
+    return Temp_N;
+}
+/* End Function:Main::CSV_Save ********************************************/
+
 /* Function:Main::Pair_Save ***************************************************
 Description : Save a key-value pair node. This includes many subnodes.
 Input       : class wxXmlNode* Parent - The parent node.
@@ -713,6 +846,877 @@ class wxXmlNode* Main::Opt_Save(class wxXmlNode* Parent,
 }
 /* End Function:Main::Opt_Save ***********************************************/
 
+/* Function:Main::File_List ***************************************************
+Description : List all concrete files in a folder. The list only includes the
+              filename.
+Input       : const std::string& Path - The path for this folder. It could be
+                                        a relative one or an absolute one.
+Output      : std::vector<std::string>& List - The list containing concrete files.
+Return      : ret_t - If 0, folder empty; else -1.
+******************************************************************************/
+ret_t Main::File_List(const std::string& Path, std::vector<std::string>& List)
+{
+    ret_t Empty;
+    size_t Pos;
+    std::string Abspath;
+
+    wxLogDebug("Main::File_List");
+
+    List.clear();
+    Empty=0;
+
+    /* Canonicalize first, just in case */
+    Abspath=Main::Path_Absolute(PATH_DIR, "", Path);
+
+#ifdef WIN32
+    WIN32_FIND_DATAA Find;
+    void* Handle;
+    std::string Search_Path;
+    std::string Filename;
+
+    /* Forge the search path */
+    Search_Path = Abspath+"*";
+
+    /* Search for files - use the multibyte version */
+    Handle=FindFirstFileA(Search_Path.c_str(),&Find);
+    if(Handle==INVALID_HANDLE_VALUE)
+        wxLogDebug("Windows FindFirstFile failed for path '%s', maybe wrong path.",Abspath.c_str());
+    else
+    {
+        do
+        {
+            Filename=Find.cFileName;
+            if((Filename!=".")&&(Filename!=".."))
+                Empty=-1;
+            /* We only need files whose extension that matches whatever is listed here */
+            if((Find.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)==0)
+            {
+                wxLogDebug("Processing file '%s'.",Find.cFileName);
+                Pos=Filename.find_last_of('.');
+                /* Does the file ever have a extension? */
+                if((Pos==0)||(Pos==std::string::npos))
+                {
+                    wxLogDebug("File '%s' doesn't have a name or extension, not included.",Find.cFileName);
+                    continue;
+                }
+                List.push_back(Filename);
+            }
+        }
+        while(FindNextFileA(Handle,&Find)!=0);
+        if(GetLastError()!=ERROR_NO_MORE_FILES)
+            wxLogDebug("Windows FindNextFile failed for path '%s', maybe wrong path.",Abspath.c_str());
+        FindClose(Handle);
+    }
+#else
+#error THIS IS NEVER TESTED ON LINUX
+    DIR* Dir;
+    struct dirent* Info;
+    std::string Filename;
+
+    /* Search for files */
+    Dir=opendir(this->Abspath.c_str());
+    if(Dir==0)
+        Main::Info("Linux opendir failed for path '%s', maybe wrong path.",this->Relpath);
+    else
+    {
+        while(1)
+        {
+            Info=readdir(Dir);
+            if(Info==0)
+                break;
+            Filename=Info->d_name;
+            if((Filename!=".")&&(Filename!=".."))
+                Empty=-1;
+            /* We only need files whose extension that matches whatever is listed here */
+            if(Info->d_type!=DT_DIR)
+            {
+                /* Does the file ever have a extension? */
+                Pos=Extension.find_last_of('.');
+                if((Pos==0)||(Pos==std::string::npos))
+                {
+                    Main::Info("File '%s' doesn't have a name or extension, not included.",Info->d_name);
+                    continue;
+                }
+                List.push_back(Filename);
+            }
+        }
+        closedir(Dir);
+    }
+#endif
+
+    std::sort(List.begin(),List.end());
+    return Empty;
+}
+/* End Function:Main::File_List ************************************************/
+
+/* Function:Main::Dir_List *****************************************************
+Description : List all concrete dir in a folder. The list only includes the
+              dir name.
+Input       : const std::string& Path - The path for this folder. It could be
+                                        a relative one or an absolute one.
+Output      : std::vector<std::string>& List - The list containing concrete files.
+Return      : ret_t - If 0, folder empty; else -1.
+********************************************************************************/
+ret_t Main::Dir_List(const std::string& Path, std::vector<std::string>& List)
+{
+    ret_t Empty;
+    size_t Pos;
+    std::string Abspath;
+
+    wxLogDebug("Main::Dir_List");
+
+    List.clear();
+    Empty=0;
+
+    /* Canonicalize first, just in case */
+    Abspath=Main::Path_Absolute(PATH_DIR, "", Path);
+
+#ifdef WIN32
+    WIN32_FIND_DATAA Find;
+    void* Handle;
+    std::string Search_Path;
+    std::string Filename;
+
+    /* Forge the search path */
+    Search_Path = Abspath + "*";
+    /* Search for files - use the multibyte version */
+    Handle = FindFirstFileA(Search_Path.c_str(), &Find);
+    if (Handle == INVALID_HANDLE_VALUE) {
+        wxLogDebug("Windows FindFirstFile failed for path '%s'.", Abspath.c_str());
+    } else {
+        do {
+            Filename = Find.cFileName;
+            if ((Filename != ".") && (Filename != ".."))
+                Empty = -1;
+            else
+                continue;
+            /* Dir only*/
+            if ((Find.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
+                List.push_back(Filename);
+            }
+        } while (FindNextFileA(Handle, &Find) != 0);
+
+        if (GetLastError() != ERROR_NO_MORE_FILES)
+            wxLogDebug("Windows FindNextFile failed for path '%s'.", Abspath.c_str());
+
+        FindClose(Handle);
+    }
+#else
+#error THIS IS NEVER TESTED ON LINUX
+    DIR* Dir;
+    struct dirent* Info;
+    std::string Filename;
+
+    /* Search for files */
+    Dir=opendir(this->Abspath.c_str());
+    if(Dir==0)
+        Main::Info("Linux opendir failed for path '%s', maybe wrong path.",this->Relpath);
+    else
+    {
+        while(1)
+        {
+            Info=readdir(Dir);
+            if(Info==0)
+                break;
+            Filename=Info->d_name;
+            if((Filename!=".")&&(Filename!=".."))
+                Empty=-1;
+            else
+                continue;
+            /* We only need dir whose extension that matches whatever is listed here */
+            if(Info->d_type==DT_DIR)
+            {
+                /* Does the file ever have a extension? */
+                Pos=Extension.find_last_of('.');
+                if((Pos==0)||(Pos==std::string::npos))
+                {
+                    Main::Info("File '%s' doesn't have a name or extension, not included.",Info->d_name);
+                    continue;
+                }
+                List.push_back(Filename);
+            }
+        }
+        closedir(Dir);
+    }
+#endif
+
+    std::sort(List.begin(),List.end());
+    return Empty;
+}
+/* End Function:Main::File_List ************************************************/
+
+/* Function:Main::Row_Swap ******************************************************
+Description : Swap two rows in a given grid.
+Input       : class wxGrid* Grid - The grid to swap contents.
+              ptr_t First - The position of the first row.
+              ptr_t Second - The position of the second row.
+Output      : None.
+Return      : None.
+********************************************************************************/
+void Main::Row_Swap(class wxGrid* Grid,ptr_t First,ptr_t Second)
+{
+    cnt_t Count;
+    class wxString Temp;
+
+    wxLogDebug("Main::Row_Swap");
+
+    /* See if the grid have the two rows. If it doesn't contain either of the two, bug */
+    ASSERT(First<(ptr_t)Grid->GetNumberRows(),"First row exceeded grid size.");
+    ASSERT(Second<(ptr_t)Grid->GetNumberRows(),"First row exceeded grid size.");
+
+    /* Swap the content one by one. Validators are left aside because they're irrelevant */
+    for(Count=0;Count<Grid->GetNumberCols();Count++)
+    {
+        Temp=Grid->GetCellValue(First,Count);
+        Grid->SetCellValue(First,Count,Grid->GetCellValue(Second,Count));
+        Grid->SetCellValue(Second,Count,Temp);
+    }
+}
+/* End Function:Main::Row_Swap *************************************************/
+
+/* Function:Main::Row_Get *******************************************************
+Description : Get the currently selected row in a given grid. If more than one
+              row is selected, we're returning -1.
+Input       : class wxGrid* Grid - The grid to check.
+Output      : None.
+Return      : ret_t - The row selected. If nothing, -1.
+********************************************************************************/
+ret_t Main::Row_Get(class wxGrid* Grid)
+{
+    class wxArrayInt Rows;
+
+    //wxLogDebug("Main::Row_Get");
+
+    /* See if any line is selected. If no, we can't do anything */
+    Rows=Grid->GetSelectedRows();
+    if((Rows.IsEmpty())||(Rows.GetCount()!=1))
+        return -1;
+    return Rows[0];
+}
+/* End Function:Main::Row_Get **************************************************/
+
+/* Function:Main::Row_Add *******************************************************
+Description : Add one row in a given grid.
+Input       : class wxGrid* Grid - The grid to add a row.
+Output      : None.
+Return      : ret_t - The position that the row is at.
+********************************************************************************/
+ret_t Main::Row_Add(class wxGrid* Grid)
+{
+    ret_t Row;
+
+    //wxLogDebug("Main::Row_Add");
+
+    Row=Main::Row_Get(Grid);
+    /* If nothing is selected, or multiple ones are selected, we add to the end */
+    if(Row==-1)
+        Row=Grid->GetNumberRows();
+    else
+        Row+=1;
+    Grid->InsertRows(Row,1,false);
+    Grid->SelectRow(Row);
+
+    return Row;
+}
+/* End Function:Main::Row_Add **************************************************/
+
+/* Function:Main::Row_Pick ******************************************************
+Description : Pick one row in a given grid, should the user select more than one.
+Input       : class wxGrid* Grid - The grid to pick one row.
+Output      : None.
+Return      : None.
+********************************************************************************/
+void Main::Row_Pick(class wxGrid* Grid)
+{
+    class wxArrayInt Rows;
+
+    //wxLogDebug("Main::Row_Pick");
+
+    Rows=Grid->GetSelectedRows();
+    /* No need to pick, nothing or only one selected */
+    if((Rows.IsEmpty())||(Rows.Count()==1))
+        return;
+    Grid->SelectRow(Rows[0]);
+}
+/* End Function:Main::Row_Pick *************************************************/
+
+/* Function:Main::Row_Remove ****************************************************
+Description : Remove one row in a given grid.
+Input       : class wxGrid* Grid - The grid to remove a row.
+Output      : None.
+Return      : None.
+********************************************************************************/
+void Main::Row_Remove(class wxGrid* Grid)
+{
+    ret_t Row;
+    ret_t Remain;
+    class wxString Temp;
+
+    //wxLogDebug("Main::Row_Remove");
+
+    Row=Main::Row_Get(Grid);
+    if(Row==-1)
+        return;
+
+    Grid->DeleteRows(Row);
+    Remain=Grid->GetNumberRows();
+    if(Remain!=0)
+    {
+        if(Row>=Remain)
+            Grid->SelectRow(Remain-1);
+        else
+            Grid->SelectRow(Row);
+    }
+}
+/* End Function:Main::Row_Remove ***********************************************/
+
+/* Function:Main::Row_Move_Up ***************************************************
+Description : Move a selected row up in a given grid.
+Input       : class wxGrid* Grid - The grid to operate.
+Output      : None.
+Return      : None.
+********************************************************************************/
+void Main::Row_Move_Up(class wxGrid* Grid)
+{
+    ret_t Row;
+    class wxString Temp;
+
+    //wxLogDebug("Main::Row_Move_Up");
+
+    Row=Main::Row_Get(Grid);
+    if((Row==-1)||(Row==0))
+        return;
+
+    Main::Row_Swap(Grid,Row,Row-1);
+    Grid->SelectRow(Row-1);
+}
+/* End Function:Main::Row_Move_Up **********************************************/
+
+/* Function:Main::Row_Move_Down *************************************************
+Description : Move a selected row down in a given grid.
+Input       : class wxGrid* Grid - The grid to operate.
+Output      : None.
+Return      : None.
+********************************************************************************/
+void Main::Row_Move_Down(class wxGrid* Grid)
+{
+    ret_t Row;
+    class wxString Temp;
+
+    //wxLogDebug("Main::Row_Move_Down");
+
+    Row=Main::Row_Get(Grid);
+    if((Row==-1)||(Row==(Grid->GetNumberRows()-1)))
+        return;
+
+    Main::Row_Swap(Grid,Row,Row+1);
+    Grid->SelectRow(Row+1);
+}
+/* End Function:Main::Row_Move_Down ********************************************/
+
+/* Function:Main::Row_Reorder ***************************************************
+Description : Update sequence number of the grid.
+Input       : class wxGrid* Grid - The grid to operate.
+Output      : None.
+Return      : None.
+********************************************************************************/
+void Main::Row_Reorder(class wxGrid* Grid)
+{
+    ret_t Row;
+
+    for(Row=0;Row<(cnt_t)Grid->GetNumberRows();++Row)
+        Grid->SetCellValue(Row,0,std::to_string(Row+1));
+}
+/* End Function:Main::Row_Reorder **********************************************/
+
+/* Function:Main::Row_Clear_Content *********************************************
+Description : Clear the grid content.
+Input       : class wxGrid* Grid - The grid to operate.
+Output      : None.
+Return      : None.
+********************************************************************************/
+void Main::Gird_Clear_Content(class wxGrid* Grid)
+{
+    ret_t Row;
+    ret_t Tot_Row;
+
+    Tot_Row = Grid->GetNumberRows();
+    //wxLogDebug("Main::Row_Clear_Content: Total %lld",Tot_Row);
+    for (Row=Tot_Row;Row>0;--Row)
+        Grid->DeleteRows(Row-1);
+}
+/* End Function:Main::Row_Clear_Content ****************************************/
+
+/* Function:Main::Num_GZ_Check **************************************************
+Description : Check whether 'Num' is a valid decimal positive integer, 0, 00, 01
+              are not allow.
+Input       : std::string Num - The number that needs check.
+Output      : None.
+Return      : ret_t - If 0, check pass; else -1.
+********************************************************************************/
+ret_t Main::Num_GZ_Check(std::string Num)
+{
+    if(Num=="")
+        return -1;
+    /* 0, 00, 01 are not allow */
+    if((Num.size()>1||Num.size()==1)&&Num[0]=='0')
+        return -1;
+    if(Num.find_first_not_of("0123456789")!=Num.npos)
+        return -1;
+    return 0;
+}
+/* End Function:Main::Num_GZ_Check *********************************************/
+
+/* Function:Main::Num_GEZ_Check *************************************************
+Description : Check whether 'Num' is a valid decimal nonnegative integer.
+Input       : std::string Num - The number that needs check.
+Output      : None.
+Return      : ret_t - If 0, check pass; else -1.
+********************************************************************************/
+ret_t Main::Num_GEZ_Check(std::string Num)
+{
+    if(Num=="")
+        return -1;
+//    /* Leading zeros are not allowed, such as '0x01' */
+//    if (Num.size()>1&&Num[0]=='0')
+//        return -1;
+    if(Num.find_first_not_of("0123456789")!=Num.npos)
+        return -1;
+    return 0;
+}
+/* End Function:Main::Num_GEZ_Check ********************************************/
+
+/* Function:Main::Num_GEZ_Hex_Check *********************************************
+Description : Check whether 'Num' is a valid hexadecimal nonnegative integer.
+Input       : std::string Num - The number that needs check.
+Output      : None.
+Return      : ret_t - If 0, check pass; else -1.
+********************************************************************************/
+ret_t Main::Num_GEZ_Hex_Check(std::string Num)
+{
+    if(Num.size()<2)
+        return -1;
+    if(Num[0]!='0'||(Num[1]!='x'&&Num[1]!='X'))
+        return -1;
+    Num=Num.substr(2);
+
+    if(Num=="")
+        return -1;
+//    /* Leading zeros are not allowed, such as '0x01' */
+//    if (Num.size()>1&&Num[0]=='0')
+//        return -1;
+    if(Num.find_first_not_of("ABCDEFabcdef0123456789")!=Num.npos)
+        return -1;
+    return 0;
+}
+/* End Function:Main::Num_GEZ_Hex_Check ****************************************/
+
+/* Function:Main::Row_Name_Check ************************************************
+Description : Check if any name is repeated.
+Input       : const ptr_t& Type - Whether to allow the name to be a blank string.
+              class wxGrid* Grid - The grid that needs check.
+              const ptr_t& Name_Col - The column of Name.
+              const std::string& Location - The location of the grid.
+Output      : None.
+Return      : ret_t - If 0, check pass; else -1.
+********************************************************************************/
+ret_t Main::Row_Name_Check(class wxGrid* Grid, const std::string& Location, const ptr_t& Type, const ptr_t& Name_Col)
+{
+    cnt_t Row;
+    std::string Name;
+    std::string Name_Upper;
+    std::set<std::string>Unique_Name_Check;
+
+    if(Type==BLANK_NAME_FORBID)
+    {
+        for(Row=0;Row<(cnt_t)Grid->GetNumberRows();Row++)
+        {
+            /* Name */
+            Name=Grid->GetCellValue(Row,Name_Col);
+            Name_Upper=Grid->GetCellValue(Row,Name_Col).Upper();
+            if(Main::Idtfr_Check(Name_Upper))
+                    {
+                        Main::Msgbox_Show(Grid,MSGBOX_ERROR,
+                                          _(Location),
+                                          _("There is a invalid C identifier, row "+std::to_string(Row+1)));
+                        return -1;
+                    }
+
+            /* Identifiers must be unique regardless of case */
+            if(Unique_Name_Check.find(Name_Upper)==Unique_Name_Check.end())
+                Unique_Name_Check.insert(Name_Upper);
+            else
+            {
+                Main::Msgbox_Show(Grid,MSGBOX_ERROR,
+                                  _(Location),
+                                  _("Identifiers must be unique regardless of case, "+
+                                  Name+" is repeated, row "+std::to_string(Row+1)));
+                return -1;
+            }
+        }
+        return 0;
+    }
+    else if(Type==BLANK_NAME_PERMIT)
+    {
+        for(Row=0;Row<(cnt_t)Grid->GetNumberRows();Row++)
+        {
+            /* Name */
+            Name=Grid->GetCellValue(Row,Name_Col);
+            Name_Upper=Grid->GetCellValue(Row,Name_Col).Upper();
+            /* Identifiers must be unique regardless of case */
+            if(Name!="")
+            {
+                if(Unique_Name_Check.find(Name_Upper)==Unique_Name_Check.end())
+                    Unique_Name_Check.insert(Name_Upper);
+                else
+                {
+                    Main::Msgbox_Show(Grid,MSGBOX_ERROR,
+                                      _(Location),
+                                      _("Identifiers must be unique regardless of case, "+
+                                      Name+" is repeated, or you can leave it blank, row "+std::to_string(Row+1)));
+                    return -1;
+                }
+            }
+        }
+        return 0;
+    }
+    wxLogError("No BLANK_NAME_FORBID or BLANK_NAME_PERMIT is specified");
+    return -1;
+}
+/* End Function:Main::Row_Name_Check *******************************************/
+
+/* Function:Main::Comp_Check ****************************************************
+Description : check if it is a legal path
+Input       : const wxString& Guest - The guest type.
+              const wxString& Toolchain - The toolchain.
+              const wxString& Buildsystem - The buildsystem.
+Output      : None.
+Return      : ret_t - If 0, check pass; else -1.
+********************************************************************************/
+ret_t Main::Comp_Check(const wxString& Buildsystem, const wxString& Toolchain, const wxString& Guest)
+{
+    for(const std::unique_ptr<class Compatible>&Comp : Main::Plat_Info->Compatible)
+        if(Buildsystem==Comp->Buildsystem&&Toolchain==Comp->Toolchain&&Guest==Comp->Guest)
+            return 0;
+    return -1;
+}
+/* End Function:Main::Comp_Check ***********************************************/
+
+
+/* Function:Main::File_Validate *************************************************
+Description : See if the filename or path is valid. The filename must be all lower
+              case letters plus the 0-9 and _.
+Input       : const std::string& File - The name or path to validate.
+Output      : None.
+Return      : ret_t - If 0, valid; else invalid.
+********************************************************************************/
+ret_t Main::File_Validate(const std::string& Filename)
+{
+    std::string Ext;
+    std::string Name;
+    class wxFileName Temp;
+
+    wxLogDebug("Main::File_Validate");
+
+    Temp=Filename;
+    Name=Temp.GetName();
+    Ext=Temp.GetExt();
+
+    /* Name and extension cannot be empty */
+    if((Name=="")||(Ext==""))
+        return -1;
+
+    /* Name and suffix cannot include anything suspicious */
+    if(Name.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyz_")!=Name.npos)
+        return -1;
+    if(Ext.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyz_")!=Ext.npos)
+        return -1;
+
+    /* May not begin with a number */
+    if((Name[0]>='0')&&(Name[0]<='9'))
+        return -1;
+    if((Ext[0]>='0')&&(Ext[0]<='9'))
+        return -1;
+
+    return 0;
+}
+/* End Function:Main::File_Validate ********************************************/
+
+/* Function:Main::Check_And_Save_Current_Edit ***********************************
+Description : Check and try to save the current panel. Note: If a certain panel is
+              currently being shown, the user may have modified its information,
+              so it needs to be checked and saved. This function is necessary before
+              Check_And_Save_All, especially when you finish editing a panel and leave
+              it in a shown state before clicking Save or Save As.
+Input       : None.
+Output      : None.
+Return      : ret_t - If 0, check pass; else -1.
+********************************************************************************/
+ret_t Main::Check_And_Save_Current_Edit()
+{
+    /* Check and try to save the current panel */
+    if(Main::Basic_Panel->IsShown())
+    {
+        if(Main::Basic_Panel->Check())
+            return -1;
+        Main::Basic_Panel->Save();
+    }
+    else if(Main::Memory_Notebook->IsShown())
+    {
+        if(Main::Memory_Notebook->Check())
+            return -1;
+        Main::Memory_Notebook->Save();
+    }
+    else if(Main::Kernel_Panel->IsShown())
+    {
+        if(Main::Kernel_Panel->Check())
+            return -1;
+        Main::Kernel_Panel->Save();
+    }
+    else if(Main::Monitor_Panel->IsShown())
+    {
+        if(Main::Monitor_Panel->Check())
+            return -1;
+        Main::Monitor_Panel->Save();
+    }
+    else if(Main::Native_Notebook->IsShown())
+    {
+        if(Main::Native_Notebook->Check())
+            return -1;
+        Main::Native_Notebook->Save();
+    }
+    else if(Main::Virtual_Notebook->IsShown())
+    {
+        if(Main::Virtual_Notebook->Check())
+            return -1;
+        Main::Virtual_Notebook->Save();
+    }
+    return 0;
+}
+/* End Function:Main::Check_And_Save_Current_Edit ******************************/
+
+///* Function:Main::Check_And_Save_ALL ********************************************
+//Description : Load information from Proj_Info into the GUI in sequence and check its
+//              validity (the validation can only be performed via the GUI). If the
+//              information is valid, save it.()
+//Input       : None.
+//Output      : None.
+//Return      : ret_t - If 0, check pass; else -1.
+//********************************************************************************/
+//ret_t Main::Check_And_Save_All()
+//{
+//    /* Basic configuration */
+//    Main::Basic_Panel->Load();
+//    if(Basic_Panel->Check()!=0)
+//    {
+//        if(Main::Last_Option!=nullptr)
+//            Main::Last_Option->Hide();
+//        Main::Basic_Panel->Show();
+//        Main::Option->Layout();
+//        Main::Last_Option=Main::Basic_Panel;
+//        return -1;
+//    }
+//    Main::Basic_Panel->Save();
+//
+//    /* Memory notebook */
+//    Main::Memory_Notebook->Load();
+//    if(Memory_Notebook->Check()!=0)
+//    {
+//        if(Main::Last_Option!=nullptr)
+//            Main::Last_Option->Hide();
+//        Main::Memory_Notebook->Show();
+//        Main::Option->Layout();
+//        Main::Last_Option=Main::Memory_Notebook;
+//        return -1;
+//    }
+//    Main::Memory_Notebook->Save();
+//
+//    /* Kernel configuration */
+//    Main::Kernel_Panel->Load();
+//    if(Kernel_Panel->Check()!=0)
+//    {
+//        if(Main::Last_Option!=nullptr)
+//            Main::Last_Option->Hide();
+//        Main::Kernel_Panel->Show();
+//        Main::Option->Layout();
+//        Main::Last_Option=Main::Kernel_Panel;
+//        return -1;
+//    }
+//    Main::Kernel_Panel->Save();
+//
+//    /* Monitor configuration */
+//    Main::Monitor_Panel->Load();
+//    if(Monitor_Panel->Check()!=0)
+//    {
+//        if(Main::Last_Option!=nullptr)
+//            Main::Last_Option->Hide();
+//        Main::Monitor_Panel->Show();
+//        Main::Option->Layout();
+//        Main::Last_Option=Main::Monitor_Panel;
+//        return -1;
+//    }
+//    Main::Monitor_Panel->Save();
+//
+//    /* Native process configuration */
+//    for(std::unique_ptr<class Native>&Native : Main::Proj_Info->Native)
+//    {
+//
+//        Main::Native_Notebook->Load(Native->Name);
+//        if(Main::Native_Notebook->Check()!=0)
+//        {
+//            if(Main::Last_Option!=nullptr)
+//                Main::Last_Option->Hide();
+//            Main::Native_Notebook->Show();
+//            Main::Option->Layout();
+//            Main::Last_Option=Main::Native_Notebook;
+//            return -1;
+//        }
+//        Main::Native_Notebook->Save();
+//    }
+//
+//    /* Virtual machine configuration */
+//    for(std::unique_ptr<class Virtual>&Virtual : Main::Proj_Info->Virtual)
+//    {
+//        Main::Virtual_Notebook->Load(Virtual->Name);
+//        if(Main::Virtual_Notebook->Check()!=0)
+//        {
+//            if(Main::Last_Option!=nullptr)
+//                Main::Last_Option->Hide();
+//            Main::Virtual_Notebook->Show();
+//            Main::Option->Layout();
+//            Main::Last_Option=Main::Virtual_Notebook;
+//            return -1;
+//        }
+//        Main::Virtual_Notebook->Save();
+//    }
+//    return 0;
+//}
+///* End Function:Main::Check_And_Save_ALL ***************************************/
+
+/* Function:Main::Update_GUI ****************************************************
+Description : Chip config ,coprocessor, build system, tool chain, and guest can be
+              load only after loading Plat_Info and Chip_Info. Load these necessary
+              information, then update the config tree and show default panel.
+Input       : None.
+Output      : None.
+Return      : None.
+********************************************************************************/
+void Main::GUI_Update()
+{
+    if(!Main::Plat_Info)
+    {
+        Main::Msgbox_Show(RVM_CFG_App::Main,MSGBOX_ERROR,
+                          _("GUI_Update"),
+                          _("Platform information is wrong"));
+        return;
+    }
+    if(!Main::Chip_Info)
+    {
+        Main::Msgbox_Show(RVM_CFG_App::Main,MSGBOX_ERROR,
+                          _("GUI_Update"),
+                          _("Chip information is wrong"));
+        return;
+    }
+
+    /* Update chip configuration, coprocessor, build system, tool chain and guest*/
+    Main::Basic_Panel->Config_Set();
+    Main::Basic_Panel->Coprocessor_Set();
+    Main::Basic_Panel->Compatible_Set();
+    Main::Kernel_Panel->Compatible_Set();
+    Main::Kernel_Panel->Kernel_Prio_Set();
+    Main::Monitor_Panel->Compatible_Set();
+    Main::Monitor_Panel->Virt_Prio_Set();
+    Main::Monitor_Panel->Virt_Event_Set();
+    Main::Native_Notebook->Basic->Coprocessor_Set();
+    Main::Native_Notebook->Basic->Compatible_Set();
+    Main::Virtual_Notebook->Basic->Coprocessor_Set();
+    Main::Virtual_Notebook->Basic->Compatible_Set();
+
+    /* Update config tree */
+    Main::Config->Root_Text=Main::Proj_Info->Name;
+    Main::Config->Load();
+    for(std::unique_ptr<class Native>&It : Main::Proj_Info->Native)
+    {
+        Main::Config->AppendItem(Main::Config->Native_Config,It->Name);
+    }
+    for(std::unique_ptr<class Virtual>&It : Main::Proj_Info->Virtual)
+    {
+        Main::Config->AppendItem(Main::Config->Virtual_Config,It->Name);
+    }
+    Main::Config->ExpandAll();
+    Main::Config->Show();
+
+    /* Show default panel */
+    Main::Basic_Panel->Load();
+    Main::Basic_Panel->Show();
+    Main::Last_Option=Main::Basic_Panel;
+    Main::Option->Layout();
+}
+/* End Function:Main::Update_GUI ***********************************************/
+
+/* Function:Main::Plat_Load *****************************************************
+Description : Load the .rva file and list the available chips that belong to the
+              platform selected by user.
+Input       : const std::string& Plat - The platform selected by user.
+Output      : None.
+Return      : std::vector<std::string> - The available chips.
+********************************************************************************/
+std::vector<std::string> Main::Plat_Load(const std::string& Plat)
+{
+    std::string Abs_Path;
+    std::vector<std::string> Chip_Vec;
+
+    wxLogDebug("Main::Load_Plat");
+    /* Try to get .rva */
+    Abs_Path=Main::Path_Absolute(PATH_DIR,
+                                wxPathOnly(wxStandardPaths::Get().GetExecutablePath()).ToStdString(),
+                                Main::RVM_Path+"Include/Platform/"+
+                                Plat);
+    wxLogDebug("Main::Load_Plat .rva is in %s",Abs_Path);
+    Main::Plat_Info=std::make_unique<class Plat_Info>(Abs_Path+"/rvm_platform_"+Plat+".rva");
+
+    /* Get chips selections */
+    Abs_Path=Abs_Path+"Chip/";
+
+    Main::Dir_List(Abs_Path,Chip_Vec);
+
+    return Chip_Vec;
+}
+/* End Function:Main::Plat_Load ************************************************/
+
+/* Function:Main::Chip_Load *****************************************************
+Description : Load the .rvc file and list the specific type of chip that belong to
+              the chip class selected by user.
+Input       : const std::string& Plat - The platform selected by user.
+              const std::string& Chip - The chip class selected by user.
+Output      : None.
+Return      : std::vector<std::string> - The specific type of chip.
+********************************************************************************/
+std::vector<std::string> Main::Chip_Load(const std::string& Plat,const std::string& Chip)
+{
+    std::string Abs_Path;
+    std::vector<std::string> Type_Vec;
+
+    wxLogDebug("Main::Load_Plat_and_Chip");
+    /* Try to get .rva */
+    Abs_Path=Main::Path_Absolute(PATH_DIR,
+                                wxPathOnly(wxStandardPaths::Get().GetExecutablePath()).ToStdString(),
+                                Main::RVM_Path+"Include/Platform/"+
+                                Plat);
+
+    /* Get chips selections */
+    Abs_Path=Abs_Path+"Chip/";
+    Abs_Path=Abs_Path+Chip+"/rvm_platform_"+Chip+".rvc";
+    wxLogDebug("Choose_Dialog::On_After_Chip: .rvc is in %s",Abs_Path);
+    Main::Chip_Info=std::make_unique<class Chip_Info>(Abs_Path);
+
+    for(std::string&Cop : Main::Chip_Info->Compatible)
+        Type_Vec.push_back(Cop);
+
+    return Type_Vec;
+}
+/* End Function:Main::Chip_Load ************************************************/
+
 ///* Function:Main::Output_Update ***********************************************
 //Description : Update the output panel.
 //Input       : std::vector<std::string>& Reply - The replies to show.
@@ -763,6 +1767,164 @@ class wxXmlNode* Main::Opt_Save(class wxXmlNode* Parent,
 //}
 ///* End Function:Main::Output_Clear *******************************************/
 
+/* Function:Main::Settings ****************************************************
+Description : Set locations of the folders.
+              <Settings>
+                  <Path>
+                      <RME> </RME> stored as relative path to this software.
+                      <RVM> </RVM>
+                      <RMP> </RMP>
+                  </Path>
+              </Settings>
+              rme location, rvm location, rmp location -> use xml  .rvi
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Setting(void)
+{
+    class wxXmlNode* Root;
+    class wxString Exe_Path;
+    class wxString Rvi_Path;
+    class wxXmlDocument Doc;
+
+    /* log */
+    wxLogDebug("Main::Setting");
+
+    /* preferences check if the locations are set or not, if not, pop up and tell user to set this */
+    Exe_Path=wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
+    Rvi_Path=Exe_Path+"/setting.rvi";
+    wxLogDebug(Rvi_Path);
+    if (wxFileExists(Exe_Path+wxFileName::GetPathSeparator()+"setting.rvi"))
+    {
+        wxLogDebug("The Setting.rvi is existed");
+        if (Doc.Load(Rvi_Path))
+        {
+            Root=Doc.GetRoot();
+            Main::RVM_Path=Main::Text_Load(Root, "RVM");
+            Main::RME_Path=Main::Text_Load(Root, "RME");
+            Main::RMP_Path=Main::Text_Load(Root, "RMP");
+            wxLogDebug("RVM_Path has been set %s",Main::RVM_Path);
+            wxLogDebug("RME_Path has been set %s",Main::RME_Path);
+            wxLogDebug("RMP_Path has been set %s",Main::RMP_Path);
+        }
+    }
+    else
+    {
+        wxLogDebug("The Setting.rvi is not existed");
+        Main::Setting_Begin();
+    }
+}
+/* End Function:Main::Proj_New ***********************************************/
+
+/* Function:Main::Path_Absolute ***********************************************
+Description : Get the canonicalized absolute path for a file or a folder.
+Input       : ptr_t Type - The path type.
+              const std::string& Root - The root path; when empty, it is treated
+                                        as the current working directory.
+              const std::string& Path - The potentially relative path.
+Output      : None.
+Return      : std::string - The canonicalized absolute path.
+******************************************************************************/
+std::string Main::Path_Absolute(ptr_t Type,
+                                const std::string& Root, const std::string& Path)
+{
+    std::string Abspath;
+    class wxFileName Temp;
+
+    wxLogDebug("Main::Path_Absolute - %s - %s", Root.c_str(), Path.c_str());
+
+    if(Path=="")
+        return "";
+
+    /* Canonicalize the full path to absolute path */
+    Temp=Path;
+    /* If we don't have any root, just drop in the path */
+    if(Root!="")
+    {
+        /* Take care of volume labels like C:\ (Windows) or / (Linux) */
+        if((Temp.GetVolume()=="")&&(Path.front()!='/'))
+            Temp=Root+Path;
+    }
+    Temp.MakeAbsolute();
+    Abspath=Temp.GetFullPath();
+    std::replace(Abspath.begin(),Abspath.end(),'\\','/');
+
+    /* If this is a folder, end it with the delimiter if it doesn't already have one */
+    if((Type==PATH_DIR)&&(Abspath.back()!='/'))
+        Abspath+="/";
+
+    return Abspath;
+}
+/* End Function:Main::Path_Absolute ******************************************/
+
+/* Function:Main::Path_Relative ***********************************************
+Description : Get the canonicalized relative path for a file or a folder.
+Input       : ptr_t Type - The path type.
+              const std::string& Root - The root path, must not be empty.
+              const std::string& Path - The potentially full path.
+Output      : None.
+Return      : std::string - The canonicalized relative path.
+******************************************************************************/
+std::string Main::Path_Relative(ptr_t Type,
+                                const std::string& Root, const std::string& Path)
+{
+    std::string Relpath;
+    class wxFileName Temp;
+
+    wxLogDebug("Main::Path_Relative - %s - %s", Root.c_str(), Path.c_str());
+
+    if(Path=="")
+        return "";
+
+    /* Compute relative path */
+    Temp=Path;
+    Temp.MakeAbsolute();
+    Temp.MakeRelativeTo(Root);
+    Relpath=Temp.GetFullPath();
+    /* Take care of volume labels like C:\ (Windows) or / (Linux) */
+    if((Temp.GetVolume()=="")&&(Path.front()!='/'))
+        Relpath=std::string("./")+Relpath;
+    /* Canonicalize */
+    std::replace(Relpath.begin(),Relpath.end(),'\\','/');
+
+    /* If this is a folder, end it with the delimiter if it doesn't already have one */
+    if((Type==PATH_DIR)&&(Relpath.back()!='/'))
+        Relpath+="/";
+
+    return Relpath;
+}
+/* End Function:Main::Path_Relative ******************************************/
+
+/* Function:Main::Setting_Begin ***********************************************
+Description : Show setting dialog.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Setting_Begin(void)
+{
+    wxLogDebug("Main::Setting_Begin");
+    Main::Setting_Dialog->Set_Setting(Main::RVM_Path, Main::RME_Path, Main::RMP_Path);
+    Main::Setting_Dialog->ShowModal();
+}
+/* End Function:Main::Setting_Begin ******************************************/
+
+/* Function:Main::Choose_Begin ************************************************
+Description : Show choose dialog.
+Input       : const std::string& Path - The path of the newly created file.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Choose_Begin(const std::string& Path)
+{
+    wxLogDebug("Main::Modal_Begin");
+    Main::Choose_Dialog->RVP_File_Path=Path;
+    Main::Choose_Dialog->Load();
+    Main::Choose_Dialog->ShowModal();
+}
+/* End Function:Main::Choose_Begin *******************************************/
+
 /* Function:Main::Proj_New ****************************************************
 Description : Create a new file, at the location specified by the full path.
 Input       : const std::string& Path - The path, including the suffix.
@@ -772,6 +1934,54 @@ Return      : None.
 void Main::Proj_New(const std::string& Path)
 {
     wxLogDebug("Main::Proj_New");
+
+    /* Filename should not include anything suspicious */
+    if(Main::File_Validate(Path)!=0)
+    {
+        Main::Msgbox_Show(RVM_CFG_App::Main, MSGBOX_ERROR,
+                          _("New"),
+                          _("Filenames may only contain lower case letters, numbers and underscores, and may not begin with numbers."));
+        return;
+    }
+
+    /* Detect path empty */
+    if((Path=="")||(Path.length()<=4))
+    {
+        Main::Msgbox_Show(RVM_CFG_App::Main, MSGBOX_ERROR,
+                          _("New"),
+                          _("Cannot create project at the location."));
+        return;
+    }
+
+    /* preferences check if the locations are set or not, if not, pop up and tell user to set this */
+    if(!wxFileName::DirExists(Main::RVM_Path)||!wxFileName::DirExists(Main::RME_Path))
+    {
+        wxLogDebug("Check RVM path and RME path");
+        wxLogDebug("Invalid RVM path: %s",Main::RVM_Path);
+        wxLogDebug("Invalid RME path: %s",Main::RME_Path);
+        Main::Msgbox_Show(RVM_CFG_App::Main, MSGBOX_ERROR,
+                          _("New"),
+                          _("Invalid RVM path or invalid RME path, please set again."));
+        Main::Setting_Begin();
+    }
+    else
+    {
+        wxLogDebug("Valid RVM path: %s",Main::RVM_Path);
+        wxLogDebug("Valid RME path: %s",Main::RME_Path);
+    }
+
+    /* choose platform and chip. */
+    Main::Choose_Begin(Path);
+    if(Main::Platform==""||Main::Chip=="")
+    {
+        Main::Msgbox_Show(RVM_CFG_App::Main, MSGBOX_ERROR,
+                          _("New"),
+                          _("Failed to create the new project, platform or chip is valid."));
+        wxLogDebug("Choose right platform and chip");
+        return;
+    }
+
+    Main::GUI_Update();
 }
 /* End Function:Main::Proj_New ***********************************************/
 
@@ -784,6 +1994,23 @@ Return      : None.
 void Main::Proj_Open(const std::string& Path)
 {
     wxLogDebug("Main::Proj_Open");
+
+    /* Detect path empty */
+    if((Path=="")||(Path.length()<=4))
+    {
+        Main::Msgbox_Show(RVM_CFG_App::Main, MSGBOX_ERROR,
+                          _("Open"),
+                          _("Cannot open project at the location."));
+        return;
+    }
+
+    /* Create a new Proj_Info */
+    Main::Proj_Info=std::make_unique<class Proj_Info>();
+    Main::Proj_Info.get()->Load(Path);
+
+    Main::Plat_Load(Main::Proj_Info->Chip->Platform);
+    Main::Chip_Load(Main::Proj_Info->Chip->Platform,Main::Proj_Info->Chip->Class);
+    Main::GUI_Update();
 }
 /* End Function:Main::Proj_Open **********************************************/
 
@@ -809,8 +2036,18 @@ void Main::Proj_Save(void)
 {
     wxLogDebug("Main::Proj_Save");
 
+    if(Main::Check_And_Save_Current_Edit()!=0)
+        return;
+//    if(Main::Check_And_Save_All()!=0)
+//        return;
+
     /* Update save status */
     Main::State_Set(STATE_SAVE,SAVE_NONE);
+
+    if(Main::Proj_Info->Save()!=0)
+        wxMessageBox("Fail");
+    else
+        wxMessageBox("Success");
 }
 /* End Function:Main::Proj_Save **********************************************/
 
@@ -826,6 +2063,41 @@ void Main::Proj_Save_As(const std::string& Path)
 
     /* Update save status */
     Main::State_Set(STATE_SAVE,SAVE_NONE);
+    Main::Proj_Info->Path=Path;
+
+    /* There should currently be a project, or we cannot save file */
+    if(Main::Proj_Info==nullptr)
+    {
+        Main::Msgbox_Show(RVM_CFG_App::Main, MSGBOX_ERROR,
+                          _("Save As"),
+                          _("There should currently be a project, or we cannot save file"));
+        return;
+    }
+
+    /* Filename should not include anything suspicious */
+    if(Main::File_Validate(Path)!=0)
+    {
+        Main::Msgbox_Show(RVM_CFG_App::Main, MSGBOX_ERROR,
+                          _("Save As"),
+                          _("Filenames may only contain lower case letters, numbers and underscores, and may not begin with numbers."));
+        return;
+    }
+
+    /* Detect path empty */
+    if((Path=="")||(Path.length()<=4))
+    {
+        Main::Msgbox_Show(RVM_CFG_App::Main, MSGBOX_ERROR,
+                          _("Save As"),
+                          _("Cannot create project at the location."));
+        return;
+    }
+
+    /* Write to disk */
+    if(Main::Proj_Info->Save()!=0)
+        wxMessageBox("Fail");
+    else
+        wxMessageBox("Success");
+
 }
 /* End Function:Main::Proj_Save_As *******************************************/
 
@@ -882,9 +2154,9 @@ void Main::State_Update(ptr_t Type)
 {
     Main::Menu_Bar->State_Set(Type);
     Main::Tool_Bar->State_Set(Type);
-    Main::Config->State_Set(Type);
-    Main::Option->State_Set(Type);
-    Main::Output->State_Set(Type);
+    //Main::Config->State_Set(Type);
+    //Main::Option->State_Set(Type);
+    //Main::Output->State_Set(Type);
     Main::Status_Bar->State_Set(Type);
 }
 /* End Function:Main::State_Update *******************************************/
@@ -975,6 +2247,9 @@ bool RVM_CFG_App::OnInit(void)
     /* Start application */
     RVM_CFG_App::Main=new class Main();
     RVM_CFG_App::Main->Show();
+
+    /* Setting check */
+   RVM_CFG_App::Main->Setting();
 
     return true;
 }

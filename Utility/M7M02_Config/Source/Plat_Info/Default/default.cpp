@@ -37,35 +37,37 @@ Return      : None.
 ******************************************************************************/
 /* void */ Default::Default(class wxXmlNode* Node)
 {
-    /* Buildsystem */
-    this->Buildsystem=Main::Text_Load(Node,"Buildsystem");
-    /* Toolchain */
-    this->Toolchain=Main::Text_Load(Node,"Toolchain");
-    /* Optimization */
-    this->Optimization=Main::Opt_Load(Node,"Optimization");
+    if(Node){
+        /* Buildsystem */
+        this->Buildsystem=Main::Text_Load(Node,"Buildsystem");
+        /* Toolchain */
+        this->Toolchain=Main::Text_Load(Node,"Toolchain");
+        /* Optimization */
+        this->Optimization=Main::Opt_Load(Node,"Optimization");
 
-    /* Kernel_Code_Size */
-    this->Kernel_Code_Size=Main::Num_Load(Node,"Kernel_Code_Size");
-    /* Kernel_Data_Size */
-    this->Kernel_Data_Size=Main::Num_Load(Node,"Kernel_Data_Size");
-    /* Kernel_Stack_Size */
-    this->Kernel_Stack_Size=Main::Num_Load(Node,"Kernel_Stack_Size");
+        /* Kernel_Code_Size */
+        this->Kernel_Code_Size=Main::Num_Load(Node,"Kernel_Code_Size");
+        /* Kernel_Data_Size */
+        this->Kernel_Data_Size=Main::Num_Load(Node,"Kernel_Data_Size");
+        /* Kernel_Stack_Size */
+        this->Kernel_Stack_Size=Main::Num_Load(Node,"Kernel_Stack_Size");
 
-    /* Monitor_Code_Size */
-    this->Monitor_Code_Size=Main::Num_Load(Node,"Monitor_Code_Size");
-    /* Monitor_Data_Size */
-    this->Monitor_Data_Size=Main::Num_Load(Node,"Monitor_Data_Size");
+        /* Monitor_Code_Size */
+        this->Monitor_Code_Size=Main::Num_Load(Node,"Monitor_Code_Size");
+        /* Monitor_Data_Size */
+        this->Monitor_Data_Size=Main::Num_Load(Node,"Monitor_Data_Size");
 
-    /* Init_Stack_Size */
-    this->Init_Stack_Size=Main::Num_Load(Node,"Init_Stack_Size");
-    /* Sftd_Stack_Size */
-    this->Sftd_Stack_Size=Main::Num_Load(Node,"Sftd_Stack_Size");
-    /* Vctd_Stack_Size */
-    this->Vctd_Stack_Size=Main::Num_Load(Node,"Vctd_Stack_Size");
-    /* Timd_Stack_Size */
-    this->Timd_Stack_Size=Main::Num_Load(Node,"Timd_Stack_Size");
-    /* Hypd_Stack_Size */
-    this->Hypd_Stack_Size=Main::Num_Load(Node,"Hypd_Stack_Size");
+        /* Init_Stack_Size */
+        this->Init_Stack_Size=Main::Num_Load(Node,"Init_Stack_Size");
+        /* Sftd_Stack_Size */
+        this->Sftd_Stack_Size=Main::Num_Load(Node,"Sftd_Stack_Size");
+        /* Vctd_Stack_Size */
+        this->Vctd_Stack_Size=Main::Num_Load(Node,"Vctd_Stack_Size");
+        /* Timd_Stack_Size */
+        this->Timd_Stack_Size=Main::Num_Load(Node,"Timd_Stack_Size");
+        /* Hypd_Stack_Size */
+        this->Hypd_Stack_Size=Main::Num_Load(Node,"Hypd_Stack_Size");
+    }
 }
 /* End Function:Default::Default *********************************************/
 

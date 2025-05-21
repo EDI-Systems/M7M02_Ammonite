@@ -41,6 +41,37 @@ namespace RVM_CFG
 class Process
 {
 public:
+    /* The common items of Native and VM */
+    /* Name */
+    std::string Name;
+    std::string Name_Upper;
+    /* Extra_Captbl */
+    ptr_t Extra_Captbl;
+    /* Coprocessor */
+    std::vector<std::string> Coprocessor;
+    /* Buildsystem */
+    std::string Buildsystem;
+    /* Toolchain */
+    std::string Toolchain;
+    /* Optimization */
+    ptr_t Optimization;
+    /* Project output & overwrite */
+    std::string Project_Output;
+    ptr_t Project_Overwrite;
+    /* Linker_Output */
+    std::string Linker_Output;
+    /* Main_Header_Output */
+    std::string Main_Header_Output;
+    /* Main_Source_Output */
+    std::string Main_Source_Output;
+    /* Memory */
+    std::vector<std::unique_ptr<class Mem_Info>> Memory;
+    /* Shmem */
+    std::vector<std::unique_ptr<class Shmem>> Shmem;
+    /* Send */
+    std::vector<std::unique_ptr<class Send>> Send;
+    /* Kfunc */
+    std::vector<std::unique_ptr<class Kfunc>> Kfunc;
 
 
     /* void */ Process(const std::string& Name,
@@ -48,9 +79,12 @@ public:
                        const std::string& Root,
                        const class Plat_Info* Plat);
     /* void */ Process(class wxXmlNode* Node, ptr_t Type);
+    /* Change */
+    /* void */ Process(const std::string& Name);
     /* void */ ~Process(void);
 
     virtual void Save(class wxXmlNode* Parent)=0;
+    //void Save(class wxXmlNode* Parent);
 };
 /*****************************************************************************/
 /* __PROCESS_CLASS__ */
