@@ -112,9 +112,8 @@ public:
     ret_t Check();
 
     void Coprocessor_Set(void);
-    void Buildsystem_Toolchain_Set(void);
+    void Compatible_Set(void);
     void On_Toolchain_Change(class wxCommandEvent& Event);
-    void On_Buildsystem_Change(class wxCommandEvent& Event);
     void On_Rename(class wxMouseEvent& Event);
 };
 /*****************************************************************************/

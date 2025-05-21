@@ -107,7 +107,7 @@ wxPanel(Parent,wxID_ANY)
         this->Buildsystem=new class wxChoice(this,wxID_ANY);
         this->Buildsystem_Sizer->Add(this->Buildsystem_Label,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
         this->Buildsystem_Sizer->Add(this->Buildsystem,3,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        //this->Buildsystem->Bind(wxEVT_CHOICE, &Virtual_Basic_Panel::On_Buildsystem_Change, this, this->Buildsystem->GetId());
+        this->Buildsystem->Bind(wxEVT_CHOICE, &Virtual_Basic_Panel::On_Buildsystem_Change, this, this->Buildsystem->GetId());
 
         this->Optimization_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Optimization_Label=new class wxStaticText(this,wxID_ANY,_("Optimization"));
@@ -127,7 +127,6 @@ wxPanel(Parent,wxID_ANY)
         this->Guest_Type=new class wxChoice(this,wxID_ANY);
         this->Guest_Type_Sizer->Add(this->Guest_Type_Label,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
         this->Guest_Type_Sizer->Add(this->Guest_Type,3,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        //this->Guest_Type->Bind(wxEVT_CHOICE, &Virtual_Basic_Panel::On_Guest_Change, this, this->Guest_Type->GetId());
 
         this->Sizer3_1->Add(this->Toolchain_Sizer,6,wxEXPAND);
         this->Sizer3_1->AddStretchSpacer(1);
@@ -568,31 +567,28 @@ void Virtual_Basic_Panel::Coprocessor_Set()
 }
 /* End Function:Virtual_Basic_Panel::Coprocessor_Set *************************/
 
-/* Function:Virtual_Basic_Panel::Buildsystem_Toolchain_Guest_Set **************
-Description : Set buildsystem, toolchain and guest.
+/* Function:Virtual_Basic_Panel::Compatible_Set *******************************
+Description : Set build system, tool chain and guest.
 Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Virtual_Basic_Panel::Buildsystem_Toolchain_Guest_Set()
+void Virtual_Basic_Panel::Compatible_Set()
 {
+    this->Toolchain->Clear();
+    this->Guest_Type->Clear();
+    this->Buildsystem->Clear();
     for(std::unique_ptr<class Compatible>& Comp : Main::Plat_Info->Compatible)
     {
-        if(this->Buildsystem->FindString(Comp->Buildsystem)==wxNOT_FOUND)
-            this->Buildsystem->Append(Comp->Buildsystem);
         if(this->Toolchain->FindString(Comp->Toolchain)==wxNOT_FOUND)
             this->Toolchain->Append(Comp->Toolchain);
+        if(this->Buildsystem->FindString(Comp->Buildsystem)==wxNOT_FOUND)
+            this->Buildsystem->Append(Comp->Buildsystem);
         if(this->Guest_Type->FindString(Comp->Guest)==wxNOT_FOUND&&Comp->Guest!="Native")
             this->Guest_Type->Append(Comp->Guest);
     }
-    if(this->Buildsystem->GetCount()>0)
-        this->Buildsystem->SetSelection(0);
-    if(this->Toolchain->GetCount()>0)
-        this->Toolchain->SetSelection(0);
-    if(this->Guest_Type->GetCount()>0)
-        this->Guest_Type->SetSelection(0);
 }
-/* End Function:Virtual_Basic_Panel::Buildsystem_Toolchain_Guest_Set *********/
+/* End Function:Virtual_Basic_Panel::Compatible_Set **************************/
 
 /* Function:Virtual_Basic_Panel::On_Trans_Hex *********************************
 Description : To Hex.
@@ -621,7 +617,7 @@ void Virtual_Basic_Panel::On_Trans_Hex(class wxFocusEvent& Event)
 /* End Function:Virtual_Basic_Panel::Check ***********************************/
 
 /* Function:Virtual_Basic_Panel::On_Toolchain_Change **************************
-Description : Get the first build system and guest which are compatible.
+Description : Configure a compatible build system based on the tool chain settings.
 Input       : class wxFocusEvent& Event - The event.
 Output      : None.
 Return      : None.
@@ -631,64 +627,42 @@ void Virtual_Basic_Panel::On_Toolchain_Change(class wxCommandEvent& Event)
     std::string Toolchain;
 
     Toolchain=this->Toolchain->GetStringSelection();
+
+    this->Buildsystem->Clear();
     for(std::unique_ptr<class Compatible>& Comp : Main::Plat_Info->Compatible)
-    {
-        if(Toolchain==Comp->Toolchain)
-        {
-            this->Guest_Type->SetStringSelection(Comp->Guest);
-            this->Buildsystem->SetStringSelection(Comp->Buildsystem);
-            break;
-        }
-    }
+        if(Toolchain==Comp->Toolchain&&this->Buildsystem->FindString(Comp->Buildsystem)==wxNOT_FOUND)
+            this->Buildsystem->Append(Comp->Buildsystem);
+    /* Default selection */
+    if(this->Buildsystem->GetCount()>0)
+        this->Buildsystem->SetSelection(0);
 }
 /* End Function:Virtual_Basic_Panel::On_Toolchain_Change *********************/
 
 /* Function:Virtual_Basic_Panel::On_Buildsystem_Change ************************
-Description : Get the first tool chain and guest which are compatible.
+Description : Configure a compatible guest based on the tool chain and build system
+              settings.
 Input       : class wxFocusEvent& Event - The event.
 Output      : None.
 Return      : None.
 ******************************************************************************/
 void Virtual_Basic_Panel::On_Buildsystem_Change(class wxCommandEvent& Event)
 {
+    std::string Toolchain;
     std::string Buildsystem;
 
+    Toolchain=this->Toolchain->GetStringSelection();
     Buildsystem=this->Buildsystem->GetStringSelection();
+
+    this->Guest_Type->Clear();
+
     for(std::unique_ptr<class Compatible>& Comp : Main::Plat_Info->Compatible)
-    {
-        if(Buildsystem==Comp->Buildsystem)
-        {
-            this->Guest_Type->SetStringSelection(Comp->Guest);
-            this->Toolchain->SetStringSelection(Comp->Toolchain);
-            break;
-        }
-    }
+        if(Toolchain==Comp->Toolchain&&Buildsystem==Comp->Buildsystem&&this->Buildsystem->FindString(Comp->Guest)==wxNOT_FOUND)
+            this->Guest_Type->Append(Comp->Guest);
+    /* Default selection */
+    if(this->Guest_Type->GetCount()>0)
+        this->Guest_Type->SetSelection(0);
 }
 /* End Function:Virtual_Basic_Panel::On_Buildsystem_Change *******************/
-
-/* Function:Virtual_Basic_Panel::On_Guest_Change ******************************
-Description : Get the first tool chain and build system which are compatible.
-Input       : class wxFocusEvent& Event - The event.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Virtual_Basic_Panel::On_Guest_Change(class wxCommandEvent& Event)
-{
-    std::string Guest;
-
-    Guest=this->Guest_Type->GetStringSelection();
-    for(std::unique_ptr<class Compatible>& Comp : Main::Plat_Info->Compatible)
-    {
-        if(Guest==Comp->Guest)
-        {
-            this->Toolchain->SetStringSelection(Comp->Toolchain);
-            this->Buildsystem->SetStringSelection(Comp->Buildsystem);
-            break;
-        }
-    }
-}
-/* End Function:Virtual_Basic_Panel::On_Guest_Change *************************/
-
 
 /* Function:Virtual_Basic_Panel::On_Rename ************************************
 Description : Pop up a rename dialog, and rename this native machine.
@@ -704,6 +678,7 @@ void Virtual_Basic_Panel::On_Rename(class wxMouseEvent& Event)
     /* Cookie is a typedef, not a class */
     wxTreeItemIdValue Cookie;
     class wxTreeItemId Child;
+    class wxString Project_Output_Path;
 
     /* Get the original name */
     Original=this->Name->GetValue();
@@ -733,6 +708,14 @@ void Virtual_Basic_Panel::On_Rename(class wxMouseEvent& Event)
         }
         /* Update this native process panel */
         this->Name->SetValue(Current);
+
+        /* Update the project output if it meets the format requirements.*/
+        Project_Output_Path=this->Project_Output->GetValue();
+        if(Project_Output_Path.starts_with("./"+Original))
+        {
+            Project_Output_Path.Replace(Original,Current);
+            this->Project_Output->SetValue(Project_Output_Path);
+        }
     }
 }
 /* End Function:Virtual_Basic_Panel::On_Rename *******************************/

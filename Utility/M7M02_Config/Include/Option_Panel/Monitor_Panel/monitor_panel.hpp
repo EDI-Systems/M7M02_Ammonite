@@ -82,11 +82,11 @@ public:
 
     class wxBoxSizer* Virt_Prio_Sizer;
     class wxStaticText* Virt_Prio_Label;
-    class wxTextCtrl* Virt_Prio;
+    class wxChoice* Virt_Prio;
 
     class wxBoxSizer* Virt_Event_Sizer;
     class wxStaticText* Virt_Event_Label;
-    class wxTextCtrl* Virt_Event;
+    class wxChoice* Virt_Event;
 
     class wxBoxSizer* Virt_Map_Sizer;
     class wxStaticText* Virt_Map_Label;
@@ -139,18 +139,17 @@ public:
     class wxTextCtrl* Hook_Source_Output;
     class wxCheckBox* Hook_Source_Overwrite;
 
-    ret_t Has_Been_Shown;
-
     /* void */ Monitor_Panel(class wxWindow*parent);
     /* void */ ~Monitor_Panel(void);
 
     void Load(void);
     void Save(void);
     ret_t Check(void);
-    void Buildsystem_Toolchain_Set(void);
+    void Compatible_Set(void);
+    void Virt_Prio_Set(void);
+    void Virt_Event_Set(void);
     void On_Trans_Hex(class wxFocusEvent& Event);
     void On_Toolchain_Change(class wxCommandEvent& Event);
-    void On_Buildsystem_Change(class wxCommandEvent& Event);
 };
 /*****************************************************************************/
 /* __MONITOR_PANEL_CLASS__ */

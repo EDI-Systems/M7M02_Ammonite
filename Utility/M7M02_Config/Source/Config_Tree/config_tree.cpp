@@ -119,7 +119,7 @@ void Config_Tree::Load(void)
     this->Basic_Config_Text=_("Basic Config");
     this->Memory_Config_Text=_("Memory Config");
     this->Kernel_Config_Text=_("Kernel Config");
-    this->Monitor_Config_Text=_("Monirot Config");
+    this->Monitor_Config_Text=_("Monitor Config");
     this->Native_Config_Text=_("Native Process Config");
     this->Virtual_Config_Text=_("Virtual Process Config");
 
@@ -219,14 +219,13 @@ ret_t Config_Tree::Option_Open(const std::string& Select_Text, const ptr_t& Type
     if(Main::Last_Option!=nullptr)
         Main::Last_Option->Hide();
 
-    /* Load and show the selected page */
+    /* Load and show the selected panel */
     switch(Type)
     {
         case SELECT_DETAIL_BASIC:
         {
             Main::Basic_Panel->Load();
             Main::Basic_Panel->Show();
-            Main::Basic_Panel->Has_Been_Shown=HAS_SHOWN;
             Main::Last_Option=Main::Basic_Panel;
             break;
         }
@@ -234,7 +233,6 @@ ret_t Config_Tree::Option_Open(const std::string& Select_Text, const ptr_t& Type
         {
             Main::Memory_Notebook->Load();
             Main::Memory_Notebook->Show();
-            Main::Memory_Notebook->Has_Been_Shown=HAS_SHOWN;
             Main::Last_Option=Main::Memory_Notebook;
             break;
         }
@@ -242,7 +240,6 @@ ret_t Config_Tree::Option_Open(const std::string& Select_Text, const ptr_t& Type
         {
             Main::Kernel_Panel->Load();
             Main::Kernel_Panel->Show();
-            Main::Kernel_Panel->Has_Been_Shown=HAS_SHOWN;
             Main::Last_Option=Main::Kernel_Panel;
             break;
         }
@@ -250,7 +247,6 @@ ret_t Config_Tree::Option_Open(const std::string& Select_Text, const ptr_t& Type
         {
             Main::Monitor_Panel->Load();
             Main::Monitor_Panel->Show();
-            Main::Monitor_Panel->Has_Been_Shown=HAS_SHOWN;
             Main::Last_Option=Main::Monitor_Panel;
             break;
         }
@@ -258,7 +254,6 @@ ret_t Config_Tree::Option_Open(const std::string& Select_Text, const ptr_t& Type
         {
             Main::Native_Notebook->Load(Select_Text);
             Main::Native_Notebook->Show();
-            Main::Native_Notebook->Has_Been_Shown=HAS_SHOWN;
             Main::Last_Option=Main::Native_Notebook;
             break;
         }
@@ -266,7 +261,6 @@ ret_t Config_Tree::Option_Open(const std::string& Select_Text, const ptr_t& Type
         {
             Main::Virtual_Notebook->Load(Select_Text);
             Main::Virtual_Notebook->Show();
-            Main::Virtual_Notebook->Has_Been_Shown=HAS_SHOWN;
             Main::Last_Option=Main::Virtual_Notebook;
             break;
         }

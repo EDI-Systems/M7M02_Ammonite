@@ -511,7 +511,6 @@ std::string Main::Text_Load(class wxXmlNode* Parent, const std::string& Expect)
         throw std::runtime_error(Expect+": Label does not contain any text.");
 
     return std::string(Text->GetContent());
-
 }
 /* End Function:Main::Text_Load **********************************************/
 
@@ -1496,103 +1495,103 @@ ret_t Main::Check_And_Save_Current_Edit()
 }
 /* End Function:Main::Check_And_Save_Current_Edit ******************************/
 
-/* Function:Main::Check_And_Save_ALL ********************************************
-Description : Load information from Proj_Info into the GUI in sequence and check its
-              validity (the validation can only be performed via the GUI). If the
-              information is valid, save it.
-Input       : None.
-Output      : None.
-Return      : ret_t - If 0, check pass; else -1.
-********************************************************************************/
-ret_t Main::Check_And_Save_All()
-{
-    /* Basic configuration */
-    Main::Basic_Panel->Load();
-    if(Basic_Panel->Check()!=0)
-    {
-        if(Main::Last_Option!=nullptr)
-            Main::Last_Option->Hide();
-        Main::Basic_Panel->Show();
-        Main::Option->Layout();
-        Main::Last_Option=Main::Basic_Panel;
-        return -1;
-    }
-    Main::Basic_Panel->Save();
-
-    /* Memory notebook */
-    Main::Memory_Notebook->Load();
-    if(Memory_Notebook->Check()!=0)
-    {
-        if(Main::Last_Option!=nullptr)
-            Main::Last_Option->Hide();
-        Main::Memory_Notebook->Show();
-        Main::Option->Layout();
-        Main::Last_Option=Main::Memory_Notebook;
-        return -1;
-    }
-    Main::Memory_Notebook->Save();
-
-    /* Kernel configuration */
-    Main::Kernel_Panel->Load();
-    if(Kernel_Panel->Check()!=0)
-    {
-        if(Main::Last_Option!=nullptr)
-            Main::Last_Option->Hide();
-        Main::Kernel_Panel->Show();
-        Main::Option->Layout();
-        Main::Last_Option=Main::Kernel_Panel;
-        return -1;
-    }
-    Main::Kernel_Panel->Save();
-
-    /* Monitor configuration */
-    Main::Monitor_Panel->Load();
-    if(Monitor_Panel->Check()!=0)
-    {
-        if(Main::Last_Option!=nullptr)
-            Main::Last_Option->Hide();
-        Main::Monitor_Panel->Show();
-        Main::Option->Layout();
-        Main::Last_Option=Main::Monitor_Panel;
-        return -1;
-    }
-    Main::Monitor_Panel->Save();
-
-    /* Native process configuration */
-    for(std::unique_ptr<class Native>&Native : Main::Proj_Info->Native)
-    {
-
-        Main::Native_Notebook->Load(Native->Name);
-        if(Main::Native_Notebook->Check()!=0)
-        {
-            if(Main::Last_Option!=nullptr)
-                Main::Last_Option->Hide();
-            Main::Native_Notebook->Show();
-            Main::Option->Layout();
-            Main::Last_Option=Main::Native_Notebook;
-            return -1;
-        }
-        Main::Native_Notebook->Save();
-    }
-
-    /* Virtual machine configuration */
-    for(std::unique_ptr<class Virtual>&Virtual : Main::Proj_Info->Virtual)
-    {
-        Main::Virtual_Notebook->Load(Virtual->Name);
-        if(Main::Virtual_Notebook->Check()!=0)
-        {
-            if(Main::Last_Option!=nullptr)
-                Main::Last_Option->Hide();
-            Main::Virtual_Notebook->Show();
-            Main::Option->Layout();
-            Main::Last_Option=Main::Virtual_Notebook;
-            return -1;
-        }
-        Main::Virtual_Notebook->Save();
-    }
-    return 0;
-}
-/* End Function:Main::Check_And_Save_ALL ***************************************/
+///* Function:Main::Check_And_Save_ALL ********************************************
+//Description : Load information from Proj_Info into the GUI in sequence and check its
+//              validity (the validation can only be performed via the GUI). If the
+//              information is valid, save it.()
+//Input       : None.
+//Output      : None.
+//Return      : ret_t - If 0, check pass; else -1.
+//********************************************************************************/
+//ret_t Main::Check_And_Save_All()
+//{
+//    /* Basic configuration */
+//    Main::Basic_Panel->Load();
+//    if(Basic_Panel->Check()!=0)
+//    {
+//        if(Main::Last_Option!=nullptr)
+//            Main::Last_Option->Hide();
+//        Main::Basic_Panel->Show();
+//        Main::Option->Layout();
+//        Main::Last_Option=Main::Basic_Panel;
+//        return -1;
+//    }
+//    Main::Basic_Panel->Save();
+//
+//    /* Memory notebook */
+//    Main::Memory_Notebook->Load();
+//    if(Memory_Notebook->Check()!=0)
+//    {
+//        if(Main::Last_Option!=nullptr)
+//            Main::Last_Option->Hide();
+//        Main::Memory_Notebook->Show();
+//        Main::Option->Layout();
+//        Main::Last_Option=Main::Memory_Notebook;
+//        return -1;
+//    }
+//    Main::Memory_Notebook->Save();
+//
+//    /* Kernel configuration */
+//    Main::Kernel_Panel->Load();
+//    if(Kernel_Panel->Check()!=0)
+//    {
+//        if(Main::Last_Option!=nullptr)
+//            Main::Last_Option->Hide();
+//        Main::Kernel_Panel->Show();
+//        Main::Option->Layout();
+//        Main::Last_Option=Main::Kernel_Panel;
+//        return -1;
+//    }
+//    Main::Kernel_Panel->Save();
+//
+//    /* Monitor configuration */
+//    Main::Monitor_Panel->Load();
+//    if(Monitor_Panel->Check()!=0)
+//    {
+//        if(Main::Last_Option!=nullptr)
+//            Main::Last_Option->Hide();
+//        Main::Monitor_Panel->Show();
+//        Main::Option->Layout();
+//        Main::Last_Option=Main::Monitor_Panel;
+//        return -1;
+//    }
+//    Main::Monitor_Panel->Save();
+//
+//    /* Native process configuration */
+//    for(std::unique_ptr<class Native>&Native : Main::Proj_Info->Native)
+//    {
+//
+//        Main::Native_Notebook->Load(Native->Name);
+//        if(Main::Native_Notebook->Check()!=0)
+//        {
+//            if(Main::Last_Option!=nullptr)
+//                Main::Last_Option->Hide();
+//            Main::Native_Notebook->Show();
+//            Main::Option->Layout();
+//            Main::Last_Option=Main::Native_Notebook;
+//            return -1;
+//        }
+//        Main::Native_Notebook->Save();
+//    }
+//
+//    /* Virtual machine configuration */
+//    for(std::unique_ptr<class Virtual>&Virtual : Main::Proj_Info->Virtual)
+//    {
+//        Main::Virtual_Notebook->Load(Virtual->Name);
+//        if(Main::Virtual_Notebook->Check()!=0)
+//        {
+//            if(Main::Last_Option!=nullptr)
+//                Main::Last_Option->Hide();
+//            Main::Virtual_Notebook->Show();
+//            Main::Option->Layout();
+//            Main::Last_Option=Main::Virtual_Notebook;
+//            return -1;
+//        }
+//        Main::Virtual_Notebook->Save();
+//    }
+//    return 0;
+//}
+///* End Function:Main::Check_And_Save_ALL ***************************************/
 
 /* Function:Main::Update_GUI ****************************************************
 Description : Chip config ,coprocessor, build system, tool chain, and guest can be
@@ -1619,16 +1618,19 @@ void Main::GUI_Update()
         return;
     }
 
-    /* Update chip config, coprocessor, build system, tool chain and guest*/
+    /* Update chip configuration, coprocessor, build system, tool chain and guest*/
     Main::Basic_Panel->Config_Set();
     Main::Basic_Panel->Coprocessor_Set();
-    Main::Basic_Panel->Buildsystem_Set();
-    Main::Kernel_Panel->Buildsystem_Toolchain_Set();
-    Main::Monitor_Panel->Buildsystem_Toolchain_Set();
+    Main::Basic_Panel->Compatible_Set();
+    Main::Kernel_Panel->Compatible_Set();
+    Main::Kernel_Panel->Kernel_Prio_Set();
+    Main::Monitor_Panel->Compatible_Set();
+    Main::Monitor_Panel->Virt_Prio_Set();
+    Main::Monitor_Panel->Virt_Event_Set();
     Main::Native_Notebook->Basic->Coprocessor_Set();
-    Main::Native_Notebook->Basic->Buildsystem_Toolchain_Set();
+    Main::Native_Notebook->Basic->Compatible_Set();
     Main::Virtual_Notebook->Basic->Coprocessor_Set();
-    Main::Virtual_Notebook->Basic->Buildsystem_Toolchain_Guest_Set();
+    Main::Virtual_Notebook->Basic->Compatible_Set();
 
     /* Update config tree */
     Main::Config->Root_Text=Main::Proj_Info->Name;
@@ -1647,7 +1649,6 @@ void Main::GUI_Update()
     /* Show default panel */
     Main::Basic_Panel->Load();
     Main::Basic_Panel->Show();
-    Main::Basic_Panel->Has_Been_Shown=HAS_SHOWN;
     Main::Last_Option=Main::Basic_Panel;
     Main::Option->Layout();
 }
@@ -2037,8 +2038,8 @@ void Main::Proj_Save(void)
 
     if(Main::Check_And_Save_Current_Edit()!=0)
         return;
-    if(Main::Check_And_Save_All()!=0)
-        return;
+//    if(Main::Check_And_Save_All()!=0)
+//        return;
 
     /* Update save status */
     Main::State_Set(STATE_SAVE,SAVE_NONE);

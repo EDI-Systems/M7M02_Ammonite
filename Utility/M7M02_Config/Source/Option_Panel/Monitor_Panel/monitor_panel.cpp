@@ -42,7 +42,7 @@ Output      : None.
 Return      : None.
 ******************************************************************************/
 /* void */ Monitor_Panel::Monitor_Panel(class wxWindow* Parent):
-wxPanel(Parent,wxID_ANY),Has_Been_Shown(HAS_NOT_SHOWN)
+wxPanel(Parent,wxID_ANY)
 {
     try
     {
@@ -109,13 +109,13 @@ wxPanel(Parent,wxID_ANY),Has_Been_Shown(HAS_NOT_SHOWN)
 
         this->Virt_Prio_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Virt_Prio_Label=new class wxStaticText(this,wxID_ANY,_("VM Priority"));
-        this->Virt_Prio=new class wxTextCtrl(this,wxID_ANY);
+        this->Virt_Prio=new class wxChoice(this,wxID_ANY);
         this->Virt_Prio_Sizer->Add(this->Virt_Prio_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
         this->Virt_Prio_Sizer->Add(this->Virt_Prio,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Virt_Event_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Virt_Event_Label=new class wxStaticText(this,wxID_ANY,_("VM Event"));
-        this->Virt_Event=new class wxTextCtrl(this,wxID_ANY);
+        this->Virt_Event=new class wxChoice(this,wxID_ANY);
         this->Virt_Event_Sizer->Add(this->Virt_Event_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
         this->Virt_Event_Sizer->Add(this->Virt_Event,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
@@ -151,7 +151,6 @@ wxPanel(Parent,wxID_ANY),Has_Been_Shown(HAS_NOT_SHOWN)
         this->Buildsystem=new class wxChoice(this,wxID_ANY);
         this->Buildsystem_Sizer->Add(this->Buildsystem_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
         this->Buildsystem_Sizer->Add(this->Buildsystem,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        //this->Buildsystem->Bind(wxEVT_CHOICE, &Monitor_Panel::On_Buildsystem_Change, this, this->Buildsystem->GetId());
 
         this->Optimization_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Optimization_Label=new class wxStaticText(this,wxID_ANY,_("Optimization"));
@@ -269,7 +268,7 @@ Return      : None.
 }
 /* End Function:Monitor_Panel::Monitor_Panel *********************************/
 
-/* Function:Monitor_Panel::Load *************************************
+/* Function:Monitor_Panel::Load ***********************************************
 Description : Load.
 Input       : None.
 Output      : None.
@@ -292,9 +291,9 @@ void Monitor_Panel::Load(void)
     std::sprintf(Buf, "%lld", Main::Proj_Info->Monitor->Extra_Captbl);
     this->Extra_Captbl->SetValue(Buf);
     std::sprintf(Buf, "%lld", Main::Proj_Info->Monitor->Virt_Prio);
-    this->Virt_Prio->SetValue(Buf);
+    this->Virt_Prio->SetStringSelection(Buf);
     std::sprintf(Buf, "%lld", Main::Proj_Info->Monitor->Virt_Event);
-    this->Virt_Event->SetValue(Buf);
+    this->Virt_Event->SetStringSelection(Buf);
     std::sprintf(Buf, "%lld", Main::Proj_Info->Monitor->Virt_Map);
     this->Virt_Map->SetValue(Buf);
     this->Buildsystem->SetStringSelection(Main::Proj_Info->Monitor->Buildsystem);
@@ -310,9 +309,9 @@ void Monitor_Panel::Load(void)
     this->Hook_Source_Output->SetValue(Main::Proj_Info->Monitor->Hook_Source_Output);
     this->Hook_Source_Overwrite->SetValue(Main::Proj_Info->Monitor->Hook_Source_Overwrite);
 }
-/* End Function:Monitor_Panel::Load *********************************/
+/* End Function:Monitor_Panel::Load ******************************************/
 
-/* Function:Monitor_Panel::Save *************************************
+/* Function:Monitor_Panel::Save ***********************************************
 Description : Save.
 Input       : None.
 Output      : None.
@@ -326,8 +325,10 @@ void Monitor_Panel::Save(void)
     Main::Proj_Info->Monitor->Sftd_Stack_Size=std::stoull(this->Sftd_Stack_Size->GetValue().ToStdString(),0,0);
     Main::Proj_Info->Monitor->Vmmd_Stack_Size=std::stoull(this->Vmmd_Stack_Size->GetValue().ToStdString(),0,0);
     Main::Proj_Info->Monitor->Extra_Captbl=std::stoull(this->Extra_Captbl->GetValue().ToStdString(),0,0);
-    Main::Proj_Info->Monitor->Virt_Prio=std::stoull(this->Virt_Prio->GetValue().ToStdString(),0,0);
-    Main::Proj_Info->Monitor->Virt_Event=std::stoull(this->Virt_Event->GetValue().ToStdString(),0,0);
+    Main::Proj_Info->Monitor->Virt_Prio=std::stoull(this->Virt_Prio->GetStringSelection().ToStdString(),0,0);
+    Main::Proj_Info->Monitor->Virt_Event=std::stoull(this->Virt_Event->GetStringSelection().ToStdString(),0,0);
+//    Main::Proj_Info->Monitor->Virt_Prio=std::stoull(this->Virt_Prio->GetValue().ToStdString(),0,0);
+//    Main::Proj_Info->Monitor->Virt_Event=std::stoull(this->Virt_Event->GetValue().ToStdString(),0,0);
     Main::Proj_Info->Monitor->Virt_Map=std::stoull(this->Virt_Map->GetValue().ToStdString(),0,0);
     Main::Proj_Info->Monitor->Buildsystem=this->Buildsystem->GetStringSelection();
     Main::Proj_Info->Monitor->Toolchain=this->Toolchain->GetStringSelection();
@@ -342,9 +343,9 @@ void Monitor_Panel::Save(void)
     Main::Proj_Info->Monitor->Hook_Source_Output=this->Hook_Source_Output->GetValue();
     Main::Proj_Info->Monitor->Hook_Source_Overwrite=this->Hook_Source_Overwrite->GetValue();
 }
-/* End Function:Monitor_Panel::Save *********************************/
+/* End Function:Monitor_Panel::Save ******************************************/
 
-/* Function:Monitor_Panel::Check ****************************************
+/* Function:Monitor_Panel::Check **********************************************
 Description : Check the basic information settings.
 Input       : None.
 Output      : None.
@@ -402,14 +403,14 @@ ret_t Monitor_Panel::Check(void)
                           _("Extra capability table is not a valid positive integer"));
         return -1;
     }
-    if(Main::Num_GEZ_Check(this->Virt_Prio->GetValue().ToStdString())!=0)
+    if(Main::Num_GEZ_Check(this->Virt_Prio->GetStringSelection().ToStdString())!=0)
     {
         Main::Msgbox_Show(this, MSGBOX_ERROR,
                           _("Monitor Config"),
                           _("Virtual priority is not a valid positive integer"));
         return -1;
     }
-    if(Main::Num_GEZ_Check(this->Virt_Event->GetValue().ToStdString())!=0)
+    if(Main::Num_GEZ_Check(this->Virt_Event->GetStringSelection().ToStdString())!=0)
     {
         Main::Msgbox_Show(this, MSGBOX_ERROR,
                           _("Monitor Config"),
@@ -424,33 +425,40 @@ ret_t Monitor_Panel::Check(void)
         return -1;
     }
 
-    /* If user don't use a virtual machine, Virtual Priority can be filled with 0 */
-    this->Virt_Prio->GetValue().ToLongLong(&Virt_Prio_Val,10);
-    if(Main::Proj_Info->Virtual.size()!=0&&Virt_Prio_Val==0)
-    {
-        Main::Msgbox_Show(this, MSGBOX_ERROR,
-                          _("Monitor Config"),
-                          _("If user don't use a virtual machine, virtual priority can be filled with 0"));
-        return -1;
-    }
+//    /* If user don't use a virtual machine, Virtual Priority can be filled with 0 */
+//    this->Virt_Prio->GetStringSelection().ToLongLong(&Virt_Prio_Val,10);
+//    if(Main::Proj_Info->Virtual.size()!=0&&Virt_Prio_Val==0)
+//    {
+//        Main::Msgbox_Show(this, MSGBOX_ERROR,
+//                          _("Monitor Config"),
+//                          _("If user don't use a virtual machine, virtual priority can be filled with 0"));
+//        return -1;
+//    }
     /* Virtual Event cannot be set to 0 when using a virtual machine */
-    this->Virt_Event->GetValue().ToLongLong(&Virt_Event_Val,10);
-    if(Main::Proj_Info->Virtual.size()!=0&&Virt_Event_Val==0)
+//    this->Virt_Event->GetStringSelection().ToLongLong(&Virt_Event_Val,10);
+//    if(Main::Proj_Info->Virtual.size()!=0&&Virt_Event_Val==0)
+//    {
+//        Main::Msgbox_Show(this, MSGBOX_ERROR,
+//                          _("Monitor Config"),
+//                          _("Virtual event cannot be set to 0 when using a virtual machine"));
+//        return -1;
+//    }
+    if(Virt_Event_Val>1024)
     {
         Main::Msgbox_Show(this, MSGBOX_ERROR,
                           _("Monitor Config"),
-                          _("Virtual event cannot be set to 0 when using a virtual machine"));
+                          _("Virtual event cannot exceed the hard limit of 1024."));
         return -1;
     }
-    /* Virtual Map cannot be set to 0 when using a virtual machine */
-    this->Virt_Map->GetValue().ToLongLong(&Virt_Map_Val,10);
-    if(Main::Proj_Info->Virtual.size()!=0&&Virt_Map_Val==0)
-    {
-        Main::Msgbox_Show(this, MSGBOX_ERROR,
-                          _("Monitor Config"),
-                          _("Virtual map cannot be set to 0 when using a virtual machine"));
-        return -1;
-    }
+//    /* Virtual Map cannot be set to 0 when using a virtual machine */
+//    this->Virt_Map->GetValue().ToLongLong(&Virt_Map_Val,10);
+//    if(Main::Proj_Info->Virtual.size()!=0&&Virt_Map_Val==0)
+//    {
+//        Main::Msgbox_Show(this, MSGBOX_ERROR,
+//                          _("Monitor Config"),
+//                          _("Virtual map cannot be set to 0 when using a virtual machine"));
+//        return -1;
+//    }
     /* Virtual Map must be greater than or equal to Virtual Event */
     if(Virt_Map_Val<Virt_Event_Val)
     {
@@ -525,31 +533,72 @@ ret_t Monitor_Panel::Check(void)
 }
 /* End Function:Monitor_Panel::Check *****************************************/
 
-/* Function:Monitor_Panel::Buildsystem_Toolchain_Set **************************
-Description : Set buildsystem and toolchain.
+/* Function:Monitor_Panel::Compatible_Set *************************************
+Description : Set build system and tool chain.
 Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Monitor_Panel::Buildsystem_Toolchain_Set()
+void Monitor_Panel::Compatible_Set()
 {
+    this->Toolchain->Clear();
+    this->Buildsystem->Clear();
     for(std::unique_ptr<class Compatible>& Comp : Main::Plat_Info->Compatible)
     {
-        if(this->Buildsystem->FindString(Comp->Buildsystem)==wxNOT_FOUND)
-            this->Buildsystem->Append(Comp->Buildsystem);
         if(this->Toolchain->FindString(Comp->Toolchain)==wxNOT_FOUND)
             this->Toolchain->Append(Comp->Toolchain);
+        if(this->Buildsystem->FindString(Comp->Buildsystem)==wxNOT_FOUND)
+            this->Buildsystem->Append(Comp->Buildsystem);
     }
-    if(this->Buildsystem->GetCount()>0)
-        this->Buildsystem->SetSelection(0);
-    if(this->Toolchain->GetCount()>0)
-        this->Toolchain->SetSelection(0);
 }
 /* End Function:Monitor_Panel::Buildsystem_Toolchain_Set *********************/
 
-/* Function:Monitor_Panel::On_Trans_Hex ***************************************
-Description : To Hex.
+/* Function:Monitor_Panel::Virt_Prio_Set ************************************
+Description : Set virtual priority according to word length.
 Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Monitor_Panel::Virt_Prio_Set()
+{
+    cnt_t Cnt;
+    ptr_t Word_Length;
+
+    Word_Length=Main::Plat_Info->Wordlength;
+
+    this->Virt_Prio->Clear();
+    this->Virt_Prio->Append("0");
+    for(Cnt=1;Cnt<=4;++Cnt)
+        this->Virt_Prio->Append(std::to_string(Word_Length*Cnt));
+
+}
+/* End Function:Monitor_Panel::Kernel_Prio_Set *******************************/
+
+/* Function:Monitor_Panel::Virt_Event_Set *************************************
+Description : Set virtual event according to word length.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Monitor_Panel::Virt_Event_Set()
+{
+    cnt_t Cnt;
+    ptr_t Word_Length;
+
+    Word_Length=Main::Plat_Info->Wordlength;
+
+    this->Virt_Event->Clear();
+    this->Virt_Event->Append("0");
+    for(Cnt=1;Cnt<=4;++Cnt)
+        this->Virt_Event->Append(std::to_string(Word_Length*Cnt));
+
+}
+/* End Function:Monitor_Panel::Virt_Event_Set ********************************/
+
+/* Function:Monitor_Panel::On_Trans_Hex ***************************************
+Description : Convert the content of the control to upper case letters and add
+              the '0x'  as prefix.
+Input       : class wxFocusEvent& Event - The event.
 Output      : None.
 Return      : None.
 ******************************************************************************/
@@ -574,7 +623,7 @@ void Monitor_Panel::On_Trans_Hex(wxFocusEvent& Event)
 /* End Function:Monitor_Panel::On_Trans_Hex **********************************/
 
 /* Function:Monitor_Panel::On_Toolchain_Change ********************************
-Description : Get the first buildsystem which is compatible.
+Description : Configure a compatible build system based on the tool chain settings.
 Input       : class wxFocusEvent& Event - The event.
 Output      : None.
 Return      : None.
@@ -584,38 +633,16 @@ void Monitor_Panel::On_Toolchain_Change(class wxCommandEvent& Event)
     std::string Toolchain;
 
     Toolchain=this->Toolchain->GetStringSelection();
+
+    this->Buildsystem->Clear();
     for(std::unique_ptr<class Compatible>& Comp : Main::Plat_Info->Compatible)
-    {
-        if(Toolchain==Comp->Toolchain)
-        {
-            this->Buildsystem->SetStringSelection(Comp->Buildsystem);
-            break;
-        }
-    }
+        if(Toolchain==Comp->Toolchain&&this->Buildsystem->FindString(Comp->Buildsystem)==wxNOT_FOUND)
+            this->Buildsystem->Append(Comp->Buildsystem);
+    /* Default selection */
+    if(this->Buildsystem->GetCount()>0)
+        this->Buildsystem->SetSelection(0);
 }
 /* End Function:Monitor_Panel::On_Toolchain_Change ***************************/
-
-/* Function:Monitor_Panel::On_Buildsystem_Change ******************************
-Description : Get the first toolchain which is compatible.
-Input       : class wxFocusEvent& Event - The event.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Monitor_Panel::On_Buildsystem_Change(class wxCommandEvent& Event)
-{
-    std::string Buildsystem;
-
-    Buildsystem=this->Buildsystem->GetStringSelection();
-    for(std::unique_ptr<class Compatible>& Comp : Main::Plat_Info->Compatible)
-    {
-        if(Buildsystem==Comp->Buildsystem)
-        {
-            this->Toolchain->SetStringSelection(Comp->Toolchain);
-            break;
-        }
-    }
-}
-/* End Function:Monitor_Panel::On_Buildsystem_Change *************************/
 
 }
 /* End Of File ***************************************************************/

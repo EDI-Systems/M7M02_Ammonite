@@ -135,13 +135,13 @@ ret_t Send_Panel::Check(void)
     /* TODO */
     for(Row=0;Row<(cnt_t)this->Grid->GetNumberRows();Row++)
     {
-        if(this->Grid->GetCellBackgroundColour(Row,1)==*wxRED||this->Grid->GetCellBackgroundColour(Row,2)==*wxRED)
-        {
-            Main::Msgbox_Show(this, MSGBOX_ERROR,
-                              _(this->Location),
-                              _("There is a invalid row, row "+std::to_string(Row+1)));
-            return -1;
-        }
+//        if(this->Grid->GetCellBackgroundColour(Row,1)==*wxRED||this->Grid->GetCellBackgroundColour(Row,2)==*wxRED)
+//        {
+//            Main::Msgbox_Show(this, MSGBOX_ERROR,
+//                              _(this->Location),
+//                              _("There is a invalid row, row "+std::to_string(Row+1)));
+//            return -1;
+//        }
 
         /* Process */
         Process=this->Grid->GetCellValue(Row,1);
@@ -223,24 +223,64 @@ void Send_Panel::Load(const std::vector<std::unique_ptr<class Send>>&Send)
         Name=Send[Row]->Name;
         this->Grid->SetCellValue(Row,2,Name);
 
+        /* Set the wxChoice to the 'Receive' option corresponding to the 'Process' */
         Iter=this->Pro_Rec.find(Process);
         if(Iter!=this->Pro_Rec.end())
             this->Grid->SetCellEditor(Row,2,new class wxGridCellChoiceEditor(Iter->second));
-
-        if(Iter==this->Pro_Rec.end())
-        {
-            this->Grid->SetCellValue(Row,1,Process+"(Invalid)");
-            this->Grid->SetCellValue(Row,2,Name+"(Invalid)");
-            this->Grid->SetCellBackgroundColour(Row,1,*wxRED);
-            this->Grid->SetCellBackgroundColour(Row,2,*wxRED);
-        }
-        else if(Iter!=this->Pro_Rec.end()&&Iter->second.Index(Name)==wxNOT_FOUND)
-        {
-            this->Grid->SetCellValue(Row,2,Name+"(Invalid)");
-            this->Grid->SetCellBackgroundColour(Row,2,*wxRED);
-        }
     }
     Main::Row_Reorder(this->Grid);
+
+//    cnt_t Row;
+//    std::string Name;
+//    std::string Process;
+//    class wxArrayString Rec;
+//    std::map<std::string,wxArrayString>::iterator Iter;
+//
+//    /* Update the information of "Native" and its "Receive" */
+//    this->Pro_Option.Clear();
+//    this->Pro_Rec.clear();
+//    for(const std::unique_ptr<class Native>&Native : Main::Proj_Info->Native)
+//    {
+//        Rec.Clear();
+//        for(const std::unique_ptr<class Receive>& Receive : Native->Receive)
+//            Rec.push_back(Receive->Name);
+//        this->Pro_Rec.insert(std::make_pair(Native->Name,Rec));
+//        this->Pro_Option.push_back(Native->Name);
+//    }
+//
+//    /* Clear the grid */
+//    Main::Gird_Clear_Content(this->Grid);
+//
+//    /* Fill in the grid*/
+//    for(Row=0;Row<(cnt_t)Send.size();Row++)
+//    {
+//        this->Add_Func();
+//        /* Process */
+//        Process=Send[Row]->Process;
+//        this->Grid->SetCellValue(Row,1,Process);
+//
+//        /* Name will be fill in, whether valid or not */
+//        Name=Send[Row]->Name;
+//        this->Grid->SetCellValue(Row,2,Name);
+//
+//        Iter=this->Pro_Rec.find(Process);
+//        if(Iter!=this->Pro_Rec.end())
+//            this->Grid->SetCellEditor(Row,2,new class wxGridCellChoiceEditor(Iter->second));
+//
+//        if(Iter==this->Pro_Rec.end())
+//        {
+//            this->Grid->SetCellValue(Row,1,Process+"(Invalid)");
+//            this->Grid->SetCellValue(Row,2,Name+"(Invalid)");
+//            this->Grid->SetCellBackgroundColour(Row,1,*wxRED);
+//            this->Grid->SetCellBackgroundColour(Row,2,*wxRED);
+//        }
+//        else if(Iter!=this->Pro_Rec.end()&&Iter->second.Index(Name)==wxNOT_FOUND)
+//        {
+//            this->Grid->SetCellValue(Row,2,Name+"(Invalid)");
+//            this->Grid->SetCellBackgroundColour(Row,2,*wxRED);
+//        }
+//    }
+//    Main::Row_Reorder(this->Grid);
 }
 /* End Function:Send_Panel::Load *********************************************/
 
@@ -371,17 +411,17 @@ void Send_Panel::On_Change(class wxGridEvent& Event)
                     this->Grid->SetCellValue(Row,2,Iter->second[0]);
                 else
                     this->Grid->SetCellValue(Row,2,"");
-                this->Grid->SetCellBackgroundColour(Row,1,*wxWHITE);
-                this->Grid->SetCellBackgroundColour(Row,2,*wxWHITE);
+//                this->Grid->SetCellBackgroundColour(Row,1,*wxWHITE);
+//                this->Grid->SetCellBackgroundColour(Row,2,*wxWHITE);
             }
             break;
         }
-        case 2:
-        {
-            this->Grid->SetCellBackgroundColour(Row,1,*wxWHITE);
-            this->Grid->SetCellBackgroundColour(Row,2,*wxWHITE);
-            break;
-        }
+//        case 2:
+//        {
+//            this->Grid->SetCellBackgroundColour(Row,1,*wxWHITE);
+//            this->Grid->SetCellBackgroundColour(Row,2,*wxWHITE);
+//            break;
+//        }
         default:break;
     }
     Event.Skip();
@@ -413,7 +453,7 @@ void Send_Panel::Add_Func()
     if(this->Pro_Option.size()>0)
     {
         Default_Process=this->Pro_Option[0];
-        this->Grid->SetCellValue(Row,1,this->Pro_Option[0]);
+        this->Grid->SetCellValue(Row,1,Default_Process);
         this->Grid->SetCellEditor(Row,2,new class wxGridCellChoiceEditor(this->Pro_Rec.find(Default_Process)->second));
         if(this->Pro_Rec.find(Default_Process)->second.size()>0)
             this->Grid->SetCellValue(Row,2,this->Pro_Rec.find(Default_Process)->second[0]);

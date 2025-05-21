@@ -156,13 +156,17 @@ ret_t Shmem_Panel::Check(void)
 
     for(Row=0;Row<(cnt_t)this->Grid->GetNumberRows();Row++)
     {
-        if(this->Grid->GetCellBackgroundColour(Row,1)==*wxRED)
-        {
-            Main::Msgbox_Show(this, MSGBOX_ERROR,
-                              _(this->Location),
-                              _("There is a invalid row, row "+std::to_string(Row+1)));
-            return -1;
-        }
+        /* 'Type' is a read-only cell, so if it is empty or 'invalid', that means
+         *  this memory is not exist in shared memory */
+
+        /* But since we are not performing cross-checks at the moment, this error will remain */
+//        if(this->Grid->GetCellValue(Row,2)==""||this->Grid->GetCellValue(Row,2)=="Invalid")
+//        {
+//            Main::Msgbox_Show(this, MSGBOX_ERROR,
+//                              _(this->Location),
+//                              _("There is a invalid row, row "+std::to_string(Row+1)));
+//            return -1;
+//        }
     }
     return 0;
 }
@@ -183,7 +187,6 @@ void Shmem_Panel::Load(const std::vector<std::unique_ptr<class Shmem>>&Shmem)
     std::string Name;
     std::vector<std::unique_ptr<class Mem_Info>>::iterator Mem_It;
 
-
     wxLogDebug("Shmem_Panel::Load %d",Shmem.size());
 
     /* Fill in the information */
@@ -201,13 +204,15 @@ void Shmem_Panel::Load(const std::vector<std::unique_ptr<class Shmem>>&Shmem)
          * of "Attribute" should be set when I know the specific "Name". */
         this->Add_Func();
 
+        /* Name */
         Name=Shmem[Row]->Name;
+        this->Grid->SetCellValue(Row, 1, Name);
+
+        /* The information is come from shared memory */
         for(const std::unique_ptr<class Mem_Info>&Mem : Main::Proj_Info->Shmem)
         {
             if(Mem->Name==Name)
             {
-                /* Name */
-                this->Grid->SetCellValue(Row, 1, Name);
                 /* Type */
                 this->Grid->SetCellValue(Row, 2, this->Type_Option[Mem->Type]);
                 /* Base */
@@ -232,12 +237,9 @@ void Shmem_Panel::Load(const std::vector<std::unique_ptr<class Shmem>>&Shmem)
                     this->Grid->SetCellValue(Row, 5, Buf);
                 }
 
-                /* The state of "Attribute", not the value of "Attribute".
-                 * Now I can know which one is read-only. */
+                /* The state of "Attribute" - which one is read-only. */
                 for(AttrCnt=0;AttrCnt<6;++AttrCnt)
                 {
-                    /* It is the "Attribute* of shared memory of this project,
-                     * instead of the shared memory of any "Native" or "Virtual". */
                     if((Mem->Attr>>(AttrCnt))&1)
                     {
                         /* Can be selected */
@@ -264,27 +266,134 @@ void Shmem_Panel::Load(const std::vector<std::unique_ptr<class Shmem>>&Shmem)
                 }
                 break;
             }
-
-
-        }
-        if(this->Grid->GetCellValue(Row, 1)=="")
-        {
-            /* Name always be filled in, whether valid or not */
-            this->Grid->SetCellValue(Row,1,Name);
-            this->Grid->SetCellBackgroundColour(Row,1,*wxRED);
-            this->Grid->SetCellValue(Row, 2, "Invalid");
-            this->Grid->SetCellValue(Row, 3, "Invalid");
-            this->Grid->SetCellValue(Row, 4, "Invalid");
-            this->Grid->SetCellValue(Row, 5, "Invalid");
-            for(AttrCnt=0;AttrCnt<6;++AttrCnt)
+            else
             {
-                this->Grid->SetCellValue(Row,6+AttrCnt,"");
-                this->Grid->SetReadOnly(Row,6+AttrCnt,true);
-                this->Grid->SetCellBackgroundColour(Row,6+AttrCnt,*wxLIGHT_GREY);
+                /* Type */
+                this->Grid->SetCellValue(Row, 2, "Invalid");
+                /* Base */
+                this->Grid->SetCellValue(Row, 3, "Invalid");
+                /* Size */
+                this->Grid->SetCellValue(Row, 4, "Invalid");
+                /* Align */
+                this->Grid->SetCellValue(Row, 5, "Invalid");
+                /* Attribute */
+                for(AttrCnt=0;AttrCnt<6;++AttrCnt)
+                {
+                    this->Grid->SetCellValue(Row,6+AttrCnt,"");
+                    this->Grid->SetReadOnly(Row,6+AttrCnt,true);
+                }
             }
         }
     }
     Main::Row_Reorder(this->Grid);
+//    cnt_t Row;
+//    char Buf[32];
+//    cnt_t AttrCnt;
+//    std::string Name;
+//    std::vector<std::unique_ptr<class Mem_Info>>::iterator Mem_It;
+//
+//
+//    wxLogDebug("Shmem_Panel::Load %d",Shmem.size());
+//
+//    /* Fill in the information */
+//    this->Name_Option.Clear();
+//    for(const std::unique_ptr<class Mem_Info>&Mem : Main::Proj_Info->Shmem)
+//        this->Name_Option.push_back(Mem->Name);
+//    /* Clear the grid */
+//    Main::Gird_Clear_Content(this->Grid);
+//
+//    /* Fill in the grid*/
+//    for(Row=0;Row<(cnt_t)Shmem.size();Row++)
+//    {
+//        /* When I add a new row, I do not know the state of "Attribute",
+//         * which one can be write, which one is read-only, so the state
+//         * of "Attribute" should be set when I know the specific "Name". */
+//        this->Add_Func();
+//
+//        Name=Shmem[Row]->Name;
+//        for(const std::unique_ptr<class Mem_Info>&Mem : Main::Proj_Info->Shmem)
+//        {
+//            if(Mem->Name==Name)
+//            {
+//                /* Name */
+//                this->Grid->SetCellValue(Row, 1, Name);
+//                /* Type */
+//                this->Grid->SetCellValue(Row, 2, this->Type_Option[Mem->Type]);
+//                /* Base */
+//                if(Mem->Base==MEM_AUTO)
+//                    this->Grid->SetCellValue(Row, 3, "Auto");
+//                else
+//                {
+//                    std::sprintf(Buf, "0x%llX", Mem->Base);
+//                    this->Grid->SetCellValue(Row, 3, Buf);
+//                }
+//
+//                /* Size */
+//                std::sprintf(Buf, "0x%llX", Mem->Size);
+//                this->Grid->SetCellValue(Row, 4, Buf);
+//
+//                /* Align */
+//                if(Mem->Align==MEM_AUTO)
+//                    this->Grid->SetCellValue(Row, 5, "Auto");
+//                else
+//                {
+//                    std::sprintf(Buf, "%lld", Mem->Align);
+//                    this->Grid->SetCellValue(Row, 5, Buf);
+//                }
+//
+//                /* The state of "Attribute", not the value of "Attribute".
+//                 * Now I can know which one is read-only. */
+//                for(AttrCnt=0;AttrCnt<6;++AttrCnt)
+//                {
+//                    /* It is the "Attribute* of shared memory of this project,
+//                     * instead of the shared memory of any "Native" or "Virtual". */
+//                    if((Mem->Attr>>(AttrCnt))&1)
+//                    {
+//                        /* Can be selected */
+//                        this->Grid->SetCellValue(Row,6+AttrCnt,"1");
+//                        this->Grid->SetReadOnly(Row,6+AttrCnt,false);
+//                        this->Grid->SetCellBackgroundColour(Row,6+AttrCnt,*wxWHITE);
+//                    }
+//                    else
+//                    {
+//                        this->Grid->SetCellValue(Row,6+AttrCnt,"");
+//                        this->Grid->SetReadOnly(Row,6+AttrCnt,true);
+//                        this->Grid->SetCellBackgroundColour(Row,6+AttrCnt,*wxLIGHT_GREY);
+//
+//                    }
+//                }
+//                /* Attribute */
+//                for(AttrCnt=0;AttrCnt<6;++AttrCnt)
+//                {
+//                    /* However, this "Attribute" must be a SUBSET of the "Attribute" of shared memory of this project  */
+//                    if(((Shmem[Row].get()->Attr>>(AttrCnt))&1)&&!this->Grid->IsReadOnly(Row,6+AttrCnt))
+//                        this->Grid->SetCellValue(Row,6+AttrCnt,"1");
+//                    else
+//                        this->Grid->SetCellValue(Row,6+AttrCnt,"");
+//                }
+//                break;
+//            }
+//
+//
+//        }
+//        if(this->Grid->GetCellValue(Row, 1)=="")
+//        {
+//            /* Name always be filled in, whether valid or not */
+//            this->Grid->SetCellValue(Row,1,Name);
+//            this->Grid->SetCellBackgroundColour(Row,1,*wxRED);
+//            this->Grid->SetCellValue(Row, 2, "Invalid");
+//            this->Grid->SetCellValue(Row, 3, "Invalid");
+//            this->Grid->SetCellValue(Row, 4, "Invalid");
+//            this->Grid->SetCellValue(Row, 5, "Invalid");
+//            for(AttrCnt=0;AttrCnt<6;++AttrCnt)
+//            {
+//                this->Grid->SetCellValue(Row,6+AttrCnt,"");
+//                this->Grid->SetReadOnly(Row,6+AttrCnt,true);
+//                this->Grid->SetCellBackgroundColour(Row,6+AttrCnt,*wxLIGHT_GREY);
+//            }
+//        }
+//    }
+//    Main::Row_Reorder(this->Grid);
 }
 /* End Function:Shmem_Panel::Load ********************************************/
 
@@ -345,8 +454,6 @@ void Shmem_Panel::On_Add(class wxCommandEvent& Event)
     Main::Row_Reorder(this->Grid);
 }
 /* End Function:Shmem_Panel::On_Add ******************************************/
-
-
 
 /* Function:Shmem_Panel::On_Remove ********************************************
 Description : wxEVT_BUTTON handler for 'Remove'.
@@ -430,8 +537,8 @@ void Shmem_Panel::On_Change(class wxGridEvent& Event)
             {
                 if(Mem->Name==Name)
                 {
-                    /* Maybe a invalid shared memory translate a valid one */
-                    this->Grid->SetCellBackgroundColour(Row, 1, *wxWHITE);
+//                    /* Maybe a invalid shared memory translate a valid one */
+//                    this->Grid->SetCellBackgroundColour(Row, 1, *wxWHITE);
 
                     /* Type */
                     switch(Mem->Type)

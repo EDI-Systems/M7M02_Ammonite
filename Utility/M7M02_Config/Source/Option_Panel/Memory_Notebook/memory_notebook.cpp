@@ -43,7 +43,7 @@ Output      : None.
 Return      : None.
 ******************************************************************************/
 /* void */ Memory_Notebook::Memory_Notebook(class wxWindow* Parent):
-wxNotebook(Parent,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxNB_TOP),Has_Been_Shown(HAS_NOT_SHOWN)
+wxNotebook(Parent,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxNB_TOP)
 {
     try
     {

@@ -185,8 +185,6 @@ wxPanel(Parent,wxID_ANY)
 
         this->SetSizer(this->Main_Sizer);
         this->Layout();
-
-
     }
     catch(std::exception& Exc)
     {
@@ -384,30 +382,28 @@ void Native_Basic_Panel::Coprocessor_Set()
 }
 /* End Function:Native_Basic_Panel::Coprocessor_Set **************************/
 
-/* Function:Native_Basic_Panel::Buildsystem_Toolchain_Set *********************
+/* Function:Native_Basic_Panel::Compatible_Set ********************************
 Description : Set build system and tool chain.
 Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Native_Basic_Panel::Buildsystem_Toolchain_Set()
+void Native_Basic_Panel::Compatible_Set()
 {
+    this->Toolchain->Clear();
+    this->Buildsystem->Clear();
     for(std::unique_ptr<class Compatible>& Comp : Main::Plat_Info->Compatible)
     {
-        if(this->Buildsystem->FindString(Comp->Buildsystem)==wxNOT_FOUND)
-            this->Buildsystem->Append(Comp->Buildsystem);
         if(this->Toolchain->FindString(Comp->Toolchain)==wxNOT_FOUND)
             this->Toolchain->Append(Comp->Toolchain);
+        if(this->Buildsystem->FindString(Comp->Buildsystem)==wxNOT_FOUND)
+            this->Buildsystem->Append(Comp->Buildsystem);
     }
-    if(this->Buildsystem->GetCount()>0)
-        this->Buildsystem->SetSelection(0);
-    if(this->Toolchain->GetCount()>0)
-        this->Toolchain->SetSelection(0);
 }
-/* End Function:Native_Basic_Panel::Buildsystem_Toolchain_Set ****************/
+/* End Function:Native_Basic_Panel::Compatible_Set ***************************/
 
 /* Function:Native_Basic_Panel::On_Toolchain_Change ***************************
-Description : Get the first build system which is compatible.
+Description : Configure a compatible build system based on the tool chain settings.
 Input       : class wxFocusEvent& Event - The event.
 Output      : None.
 Return      : None.
@@ -417,38 +413,16 @@ void Native_Basic_Panel::On_Toolchain_Change(class wxCommandEvent& Event)
     std::string Toolchain;
 
     Toolchain=this->Toolchain->GetStringSelection();
+
+    this->Buildsystem->Clear();
     for(std::unique_ptr<class Compatible>& Comp : Main::Plat_Info->Compatible)
-    {
-        if(Toolchain==Comp->Toolchain)
-        {
-            this->Buildsystem->SetStringSelection(Comp->Buildsystem);
-            break;
-        }
-    }
+        if(Toolchain==Comp->Toolchain&&this->Buildsystem->FindString(Comp->Buildsystem)==wxNOT_FOUND)
+            this->Buildsystem->Append(Comp->Buildsystem);
+    /* Default selection */
+    if(this->Buildsystem->GetCount()>0)
+        this->Buildsystem->SetSelection(0);
 }
 /* End Function:Native_Basic_Panel::On_Toolchain_Change **********************/
-
-/* Function:Native_Basic_Panel::On_Buildsystem_Change *************************
-Description : Get the first tool chain which is compatible.
-Input       : class wxFocusEvent& Event - The event.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Native_Basic_Panel::On_Buildsystem_Change(class wxCommandEvent& Event)
-{
-    std::string Buildsystem;
-
-    Buildsystem=this->Buildsystem->GetStringSelection();
-    for(std::unique_ptr<class Compatible>& Comp : Main::Plat_Info->Compatible)
-    {
-        if(Buildsystem==Comp->Buildsystem)
-        {
-            this->Toolchain->SetStringSelection(Comp->Toolchain);
-            break;
-        }
-    }
-}
-/* End Function:Native_Basic_Panel::On_Buildsystem_Change ********************/
 
 /* Function:Native_Basic_Panel::On_Rename *************************************
 Description : Pop up a rename dialog, and rename this native process.
@@ -464,6 +438,7 @@ void Native_Basic_Panel::On_Rename(class wxMouseEvent& Event)
     /* Cookie is a typedef, not a class */
     wxTreeItemIdValue Cookie;
     class wxTreeItemId Child;
+    class wxString Project_Output_Path;
 
     /* Get the original name */
     Original=this->Name->GetValue();
@@ -480,6 +455,7 @@ void Native_Basic_Panel::On_Rename(class wxMouseEvent& Event)
     {
         if (!Main::Config->Native_Config.IsOk())
             return;
+
         /* Update config tree */
         Child=Main::Config->GetFirstChild(Main::Config->Native_Config,Cookie);
         while (Child.IsOk())
@@ -493,6 +469,14 @@ void Native_Basic_Panel::On_Rename(class wxMouseEvent& Event)
         }
         /* Update this native process panel */
         this->Name->SetValue(Current);
+
+        /* Update the project output if it meets the format requirements.*/
+        Project_Output_Path=this->Project_Output->GetValue();
+        if(Project_Output_Path.starts_with("./"+Original))
+        {
+            Project_Output_Path.Replace(Original,Current);
+            this->Project_Output->SetValue(Project_Output_Path);
+        }
     }
 }
 /* End Function:Native_Basic_Panel::On_Rename ********************************/

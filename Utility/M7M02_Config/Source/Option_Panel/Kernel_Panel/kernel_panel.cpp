@@ -28,8 +28,10 @@ Description : Kernel panel implementation.
 #include "rvm_cfg.hpp"
 #include "Proj_Info/proj_info.hpp"
 #include "Proj_Info/Kernel/kernel.hpp"
+
 #include "Plat_Info/plat_info.hpp"
 #include "Plat_Info/Compatible/compatible.hpp"
+
 #include "Option_Panel/Kernel_Panel/kernel_panel.hpp"
 #undef __HDR_CLASS__
 /* End Include ***************************************************************/
@@ -42,7 +44,7 @@ Output      : None.
 Return      : None.
 ******************************************************************************/
 /* void */ Kernel_Panel::Kernel_Panel(class wxWindow* Parent):
-wxPanel(Parent,wxID_ANY),Has_Been_Shown(HAS_NOT_SHOWN)
+wxPanel(Parent,wxID_ANY)
 {
     try
     {
@@ -81,16 +83,6 @@ wxPanel(Parent,wxID_ANY),Has_Been_Shown(HAS_NOT_SHOWN)
         this->Kern_Prio_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Kern_Prio_Label=new class wxStaticText(this,wxID_ANY,_("Kernel Priority"));
         this->Kern_Prio=new class wxChoice(this,wxID_ANY);
-        this->Kern_Prio->Append("4");
-        this->Kern_Prio->Append("8");
-        this->Kern_Prio->Append("16");
-        this->Kern_Prio->Append("32");
-        this->Kern_Prio->Append("64");
-        this->Kern_Prio->Append("128");
-        this->Kern_Prio->Append("256");
-        this->Kern_Prio->Append("512");
-        this->Kern_Prio->Append("1024");
-        this->Kern_Prio->SetSelection(0);
         this->Kern_Prio_Sizer->Add(this->Kern_Prio_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
         this->Kern_Prio_Sizer->Add(this->Kern_Prio,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
@@ -120,15 +112,10 @@ wxPanel(Parent,wxID_ANY),Has_Been_Shown(HAS_NOT_SHOWN)
         this->Kom_Order_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Kom_Order_Label=new class wxStaticText(this,wxID_ANY,_("KOM Order"));
         this->Kom_Order=new class wxChoice(this,wxID_ANY);
+        /* This option is a power of 2 */
+        this->Kom_Order->Append("3");
         this->Kom_Order->Append("4");
-        this->Kom_Order->Append("8");
-        this->Kom_Order->Append("16");
-        this->Kom_Order->Append("32");
-        this->Kom_Order->Append("64");
-        this->Kom_Order->Append("128");
-        this->Kom_Order->Append("256");
-        this->Kom_Order->Append("512");
-        this->Kom_Order->Append("1024");
+        this->Kom_Order->Append("5");
         this->Kom_Order->SetSelection(0);
         this->Kom_Order_Sizer->Add(this->Kom_Order_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
         this->Kom_Order_Sizer->Add(this->Kom_Order,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
@@ -289,7 +276,7 @@ Return      : None.
 /* End Function:Kernel_Panel::~Kernel_Panel **********************************/
 
 /* Function:Kernel_Panel::Load ************************************************
-Description : Load information from Proj_Info into the this panel.
+Description : Load information onto kernel panel."
 Input       : None.
 Output      : None.
 Return      : None.
@@ -333,7 +320,7 @@ void Kernel_Panel::Load(void)
 /* End Function:Kernel_Panel::Load *******************************************/
 
 /* Function:Kernel_Panel::Save ************************************************
-Description : Save information to Proj_Info.
+Description : Save information to project information.
 Input       : None.
 Output      : None.
 Return      : None.
@@ -367,7 +354,7 @@ void Kernel_Panel::Save(void)
 /* End Function:Kernel_Panel::Save *******************************************/
 
 /* Function:Kernel_Panel::Check ***********************************************
-Description : Check whether the current panel contains any errors..
+Description : Check whether the kernel panel contains any errors..
 Input       : None.
 Output      : None.
 Return      : ret_t - if 0, no error exists; else -1.
@@ -509,31 +496,49 @@ ret_t Kernel_Panel::Check(void)
 }
 /* End Function:Kernel_Panel::Check ******************************************/
 
-/* Function:Kernel_Panel::Buildsystem_Toolchain_Set ***************************
+/* Function:Kernel_Panel::Compatible_Set **************************************
 Description : Set build system and tool chain.
 Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Kernel_Panel::Buildsystem_Toolchain_Set()
+void Kernel_Panel::Compatible_Set()
 {
+    this->Toolchain->Clear();
+    this->Buildsystem->Clear();
     for(std::unique_ptr<class Compatible>& Comp : Main::Plat_Info->Compatible)
     {
-        if(this->Buildsystem->FindString(Comp->Buildsystem)==wxNOT_FOUND)
-            this->Buildsystem->Append(Comp->Buildsystem);
         if(this->Toolchain->FindString(Comp->Toolchain)==wxNOT_FOUND)
             this->Toolchain->Append(Comp->Toolchain);
+        if(this->Buildsystem->FindString(Comp->Buildsystem)==wxNOT_FOUND)
+            this->Buildsystem->Append(Comp->Buildsystem);
     }
-    if(this->Buildsystem->GetCount()>0)
-        this->Buildsystem->SetSelection(0);
-    if(this->Toolchain->GetCount()>0)
-        this->Toolchain->SetSelection(0);
 }
-/* End Function:Kernel_Panel::Buildsystem_Toolchain_Set **********************/
+/* End Function:Kernel_Panel::Compatible_Set *********************************/
+
+/* Function:Kernel_Panel::Kernel_Prio_Set *************************************
+Description : Set kernel priority according to word length.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Kernel_Panel::Kernel_Prio_Set()
+{
+    cnt_t Cnt;
+    ptr_t Word_Length;
+
+    Word_Length=Main::Plat_Info->Wordlength;
+
+    this->Kern_Prio->Clear();
+    for(Cnt=1;Cnt<=4;++Cnt)
+        this->Kern_Prio->Append(std::to_string(Word_Length*Cnt));
+
+}
+/* End Function:Kernel_Panel::Kernel_Prio_Set ********************************/
 
 /* Function:Kernel_Panel::On_Trans_Hex ****************************************
-Description : Convert the content of the control to uppercase letters and add
-              the '0x' prefix.
+Description : Convert the content of the control to upper case letters and add
+              the '0x'  as prefix.
 Input       : class wxFocusEvent& Event - The event.
 Output      : None.
 Return      : None.
@@ -559,7 +564,7 @@ void Kernel_Panel::On_Trans_Hex(class wxFocusEvent& Event)
 /* End Function:Kernel_Panel::On_Trans_Hex ***********************************/
 
 /* Function:Kernel_Panel::On_Toolchain_Change *********************************
-Description : Get the first build system which is compatible.
+Description : Configure a compatible build system based on the tool chain settings.
 Input       : class wxFocusEvent& Event - The event.
 Output      : None.
 Return      : None.
@@ -569,38 +574,16 @@ void Kernel_Panel::On_Toolchain_Change(class wxCommandEvent& Event)
     std::string Toolchain;
 
     Toolchain=this->Toolchain->GetStringSelection();
+
+    this->Buildsystem->Clear();
     for(std::unique_ptr<class Compatible>& Comp : Main::Plat_Info->Compatible)
-    {
-        if(Toolchain==Comp->Toolchain)
-        {
-            this->Buildsystem->SetStringSelection(Comp->Buildsystem);
-            break;
-        }
-    }
+        if(Toolchain==Comp->Toolchain&&this->Buildsystem->FindString(Comp->Buildsystem)==wxNOT_FOUND)
+            this->Buildsystem->Append(Comp->Buildsystem);
+    /* Default selection */
+    if(this->Buildsystem->GetCount()>0)
+        this->Buildsystem->SetSelection(0);
 }
 /* End Function:Kernel_Panel::On_Toolchain_Change ****************************/
-
-/* Function:Kernel_Panel::On_Buildsystem_Change *******************************
-Description : Get the first tool chain which is compatible.
-Input       : class wxFocusEvent& Event - The event.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Kernel_Panel::On_Buildsystem_Change(class wxCommandEvent& Event)
-{
-    std::string Buildsystem;
-
-    Buildsystem=this->Buildsystem->GetStringSelection();
-    for(std::unique_ptr<class Compatible>& Comp : Main::Plat_Info->Compatible)
-    {
-        if(Buildsystem==Comp->Buildsystem)
-        {
-            this->Toolchain->SetStringSelection(Comp->Toolchain);
-            break;
-        }
-    }
-}
-/* End Function:Kernel_Panel::On_Buildsystem_Change **************************/
 
 }
 /* End Of File ***************************************************************/

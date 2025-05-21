@@ -149,8 +149,8 @@ while(0)
 #define BLANK_NAME_PERMIT                   (1)
 
 /* Whether the panel has been shown  */
-#define HAS_NOT_SHOWN                       (0)
-#define HAS_SHOWN                           (1)
+//#define HAS_NOT_SHOWN                       (0)
+//#define HAS_SHOWN                           (1)
 /*****************************************************************************/
 /* __RVM_CFG_DEF__ */
 #endif
@@ -286,7 +286,8 @@ public:
     static ret_t Comp_Check(const wxString& Buildsystem, const wxString& Toolchain, const wxString& Guest);
     static ret_t File_Validate(const std::string& Filename);
     static ret_t Check_And_Save_Current_Edit(void);
-    static ret_t Check_And_Save_All(void);
+    /* if no cross-check is performed, then this function is not necessary. */
+    //static ret_t Check_And_Save_All(void);
     static void GUI_Update(void);
     static std::vector<std::string> Plat_Load(const std::string& Plat);
     static std::vector<std::string> Chip_Load(const std::string& Plat,const std::string& Chip);

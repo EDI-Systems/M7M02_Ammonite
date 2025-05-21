@@ -3,7 +3,7 @@ Filename    : basic_panel.hpp
 Author      : lbc
 Date        : 24/04/2025
 Licence     : The Unlicense; see LICENSE for details.
-Description : basic information class header.
+Description : Basic panel class header.
 ******************************************************************************/
 
 /* Define ********************************************************************/
@@ -108,8 +108,6 @@ public:
     std::map<std::string, class wxTextCtrl*>Config_Range;
     std::map<std::string, class wxChoice*>Config_Choice;
 
-    ret_t Has_Been_Shown;
-
     /* void */ Basic_Panel(class wxWindow*parent);
     /* void */ ~Basic_Panel(void);
 
@@ -119,7 +117,7 @@ public:
 
     void Coprocessor_Set(void);
     void Config_Set(void);
-    void Buildsystem_Set(void);
+    void Compatible_Set(void);
     void On_Rename(class wxMouseEvent& Event);
 };
 /*****************************************************************************/

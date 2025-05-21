@@ -46,14 +46,11 @@ public:
     class Send_Panel* Send;
     class Kfunc_Panel* Kfunc;
 
-    //std::string Virtual_Name;
-    ret_t Has_Been_Shown;
-
     /* void */ Virtual_Notebook(class wxWindow*parent);
     /* void */ ~Virtual_Notebook(void);
 
     void Load(const std::string& Virtual_Name);
-    void Save();
+    void Save(void);
     ret_t Check(void);
     ret_t Check(ptr_t Page);
     void On_Config(class wxBookCtrlEvent& Event);

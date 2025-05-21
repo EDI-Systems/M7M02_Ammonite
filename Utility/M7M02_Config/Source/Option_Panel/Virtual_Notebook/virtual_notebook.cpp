@@ -48,7 +48,7 @@ Output      : None.
 Return      : None.
 ******************************************************************************/
 /* void */ Virtual_Notebook::Virtual_Notebook(class wxWindow* Parent):
-wxNotebook(Parent,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxNB_TOP),Has_Been_Shown(HAS_NOT_SHOWN)
+wxNotebook(Parent,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxNB_TOP)
 {
     try
     {
@@ -108,23 +108,23 @@ ret_t Virtual_Notebook::Check(void)
 /* End Function:Virtual_Notebook::Check **************************************/
 
 /* Function:Virtual_Notebook::Load ********************************************
-Description : Load
-Input       : const std::string& Key.
+Description : Load the information of virtual machine from data model to GUI.
+Input       : const std::string& Virtual_Name - The name of virtual machine.
 Output      : None.
 Return      : None.
 ******************************************************************************/
 void Virtual_Notebook::Load(const std::string& Virtual_Name)
 {
-    std::map<std::string, Virtual*>::iterator Iter;
+    std::map<std::string, class Virtual*>::iterator Iter;
 
     /* Find */
     Iter=Main::Proj_Info->Virtual_Map.find(Virtual_Name);
     if(Iter==Main::Proj_Info->Virtual_Map.end())
     {
-        wxLogDebug("Virtual_Notebook::Save: Cannot find %s",Virtual_Name);
+        wxLogDebug("Virtual_Notebook::Load: Cannot find %s",Virtual_Name);
         return;
     }
-    wxLogDebug("Virtual_Notebook::Save: %s has been saved",Virtual_Name);
+    wxLogDebug("Virtual_Notebook::Load: %s has been found",Virtual_Name);
 
     this->Basic->Load(Iter->second);
     this->Memory->Load(Iter->second->Memory);

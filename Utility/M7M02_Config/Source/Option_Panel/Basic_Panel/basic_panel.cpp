@@ -46,15 +46,13 @@ Description : Basic panel implementation.
 namespace RVM_CFG
 {
 /* Function:Basic_Panel::Basic_Panel ******************************************
-Description : Constructor for basic information. This panel include
-              name, version, assert, debug, page table, build system
-              and workspace.
+Description : Constructor for basic panel.
 Input       : class wxWindow* Parent - The parent window.
 Output      : None.
 Return      : None.
 ******************************************************************************/
 /* void */ Basic_Panel::Basic_Panel(class wxWindow* Parent):
-wxPanel(Parent,wxID_ANY),Has_Been_Shown(HAS_NOT_SHOWN)
+wxPanel(Parent,wxID_ANY)
 {
     try
     {
@@ -184,7 +182,7 @@ wxPanel(Parent,wxID_ANY),Has_Been_Shown(HAS_NOT_SHOWN)
 /* End Function:Basic_Panel::Basic_Panel *************************************/
 
 /* Function:Basic_Panel::~Basic_Panel *****************************************
-Description : Destructor for sheet notebook.
+Description : Destructor for basic panel.
 Input       : None.
 Output      : None.
 Return      : None.
@@ -196,7 +194,7 @@ Return      : None.
 /* End Function:Basic_Panel::Basic_Panel *************************************/
 
 /* Function:Basic_Panel::Load *************************************************
-Description : Load.
+Description : Load the information onto the basic panel.
 Input       : None.
 Output      : None.
 Return      : None.
@@ -463,13 +461,13 @@ void Basic_Panel::Config_Set()
 }
 /* End Function:Basic_Panel::Config_Set **************************************/
 
-/* Function:Basic_Panel::Buildsystem_Set **************************************
+/* Function:Basic_Panel::Compatible_Set ***************************************
 Description : Set build system.
 Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Basic_Panel::Buildsystem_Set()
+void Basic_Panel::Compatible_Set()
 {
     for(std::unique_ptr<class Compatible>& Comp : Main::Plat_Info->Compatible)
         if(this->Buildsystem->FindString(Comp->Buildsystem)==wxNOT_FOUND)

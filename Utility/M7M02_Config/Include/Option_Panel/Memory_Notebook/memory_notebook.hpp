@@ -44,8 +44,6 @@ public:
     class Memory_Panel*Shmem_Panel;
     class Chip_Memory_Panel*Chip_Memory_Panel;
 
-    ret_t Has_Been_Shown;
-
     /* void */ Memory_Notebook(class wxWindow*parent);
     /* void */ ~Memory_Notebook(void);
 

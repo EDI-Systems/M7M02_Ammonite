@@ -1,5 +1,5 @@
 /******************************************************************************
-Filename    : kernel panel.hpp
+Filename    : kernel_panel.hpp
 Author      : lbc
 Date        : 24/04/2025
 Licence     : The Unlicense; see LICENSE for details.
@@ -41,7 +41,6 @@ class Kernel_Panel:public wxPanel
 {
 public:
     class wxBoxSizer* Main_Sizer;
-
 
     class wxStaticBoxSizer* Sizer1;
     class wxStaticBoxSizer* Sizer2;
@@ -141,18 +140,16 @@ public:
     class wxTextCtrl* Handler_Source_Output;
     class wxCheckBox* Handler_Source_Overwrite;
 
-    ret_t Has_Been_Shown;
-
     /* void */ Kernel_Panel(class wxWindow*parent);
     /* void */ ~Kernel_Panel(void);
 
     void Load(void);
     void Save(void);
     ret_t Check(void);
-    void Buildsystem_Toolchain_Set(void);
+    void Compatible_Set(void);
+    void Kernel_Prio_Set(void);
     void On_Trans_Hex(class wxFocusEvent& Event);
     void On_Toolchain_Change(class wxCommandEvent& Event);
-    void On_Buildsystem_Change(class wxCommandEvent& Event);
 };
 /*****************************************************************************/
 /* __KERNEL_PANEL_CLASS__ */

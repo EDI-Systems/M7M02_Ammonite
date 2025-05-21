@@ -51,9 +51,6 @@ public:
     class Vector_Panel* Vector;
     class Kfunc_Panel* Kfunc;
 
-    //std::string Native_Name;
-    ret_t Has_Been_Shown;
-
     /* void */ Native_Notebook(class wxWindow*parent);
     /* void */ ~Native_Notebook(void);
 

@@ -56,7 +56,7 @@ Description : Config popup-menu class implementation.
 /* End Include ***************************************************************/
 namespace RVM_CFG
 {
-/* Function:Config_Popup::Config_Popup ********************************************
+/* Function:Config_Popup::Config_Popup ****************************************
 Description : Constructor for file popup menu.
 Input       : class Config_Tree* Tree - The tree that this menu corresponds to.
 Output      : None.
@@ -163,13 +163,23 @@ Return      : ret_t - Return 1 if this native process was renamed successfully.
 ******************************************************************************/
 ret_t Config_Popup::Native_Rename(const std::string& Original, const std::string& Current)
 {
+    class wxString Project_Output_Path;
     if(Main::Proj_Info->Native_Rename(Original,Current))
     {
         /* If relative native notebook or virtual notebook is shown,
          * the GUI also needs to be updated, otherwise the Proj_Info
          * will be affected after auto save */
         if(Main::Native_Notebook->IsShown()&&Main::Native_Notebook->Basic->Name->GetValue()==Original)
+        {
             Main::Native_Notebook->Basic->Name->SetValue(Current);
+            /* Update the path of project output if it meets the format requirements */
+            Project_Output_Path= Main::Native_Notebook->Basic->Project_Output->GetValue();
+            if(Project_Output_Path.starts_with("./"+Original))
+            {
+                Project_Output_Path.Replace(Original,Current);
+                Main::Native_Notebook->Basic->Project_Output->SetValue(Project_Output_Path);
+            }
+        }
         this->Tree->SetItemText(this->Tree->Active,Current);
         return 1;
     }
@@ -186,11 +196,22 @@ Return      : ret_t - Return 1 if this virtual machine was renamed successfully.
 ******************************************************************************/
 ret_t Config_Popup::Virtual_Rename(const std::string& Original, const std::string& Current)
 {
+    class wxString Project_Output_Path;
     if(Main::Proj_Info->Virtual_Rename(Original,Current))
     {
         /* The same as native process rename */
         if(Main::Virtual_Notebook->IsShown()&&Main::Virtual_Notebook->Basic->Name->GetValue()==Original)
+        {
             Main::Virtual_Notebook->Basic->Name->SetValue(Current);
+            /* Update the path of project output if it meets the format requirements */
+            Project_Output_Path= Main::Virtual_Notebook->Basic->Project_Output->GetValue();
+            if(Project_Output_Path.starts_with("./"+Original))
+            {
+                Project_Output_Path.Replace(Original,Current);
+                Main::Virtual_Notebook->Basic->Project_Output->SetValue(Project_Output_Path);
+            }
+
+        }
         this->Tree->SetItemText(this->Tree->Active,Current);
         return 1;
     }

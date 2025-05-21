@@ -55,7 +55,7 @@ Output      : None.
 Return      : None.
 ******************************************************************************/
 /* void */ Native_Notebook::Native_Notebook(class wxWindow* Parent):
-wxNotebook(Parent,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxNB_TOP),Has_Been_Shown(HAS_NOT_SHOWN)
+wxNotebook(Parent,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxNB_TOP)
 {
     try
     {

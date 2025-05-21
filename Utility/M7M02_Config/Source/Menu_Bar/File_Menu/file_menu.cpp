@@ -218,8 +218,8 @@ void File_Menu::On_Save_As(class wxCommandEvent& Event)
     wxLogDebug("File_Menu::On_Save_As");
     if(Main::Check_And_Save_Current_Edit()!=0)
         return;
-    if(Main::Check_And_Save_All()!=0)
-        return;
+//    if(Main::Check_And_Save_All()!=0)
+//        return;
 
     /* Let the user choose a filename and location */
     File=std::make_unique<wxFileDialog>(RVM_CFG_App::Main,_("Save File As"),wxT(""),wxT(""),

@@ -429,6 +429,7 @@ Return      : ret_t - Return 1, if the native process is renamed successfully.
 ret_t Proj_Info::Native_Rename(const std::string& Original,const std::string& Current)
 {
     std::string Current_Upper;
+    class wxString Project_Output_Path;
     std::map<std::string,class Native*>::iterator Map_Iter;
 
     /* Used to check for repeated names */
@@ -446,6 +447,7 @@ ret_t Proj_Info::Native_Rename(const std::string& Original,const std::string& Cu
         if(It->Name_Upper==Current_Upper)
             return 0;
 
+    /* Delete the original information */
     Map_Iter=this->Native_Map.find(Original);
     this->Native_Map.erase(Map_Iter);
     for(std::unique_ptr<class Native>&It : this->Native)
@@ -458,6 +460,14 @@ ret_t Proj_Info::Native_Rename(const std::string& Original,const std::string& Cu
             It->Name_Upper=Current_Upper;
 
             this->Native_Map.insert(std::make_pair(Current,It.get()));
+
+            /* Update the path of project output if it meets the format requirements */
+            Project_Output_Path=It->Project_Output;
+            if(Project_Output_Path.starts_with("./"+Original))
+            {
+                Project_Output_Path.Replace(Original,Current);
+                It->Project_Output=Project_Output_Path;
+            }
             return 1;
         }
     }
@@ -476,6 +486,7 @@ Return      : ret_t - Return 1, if the virtual machine is renamed successfully.
 ret_t Proj_Info::Virtual_Rename(const std::string& Original,const std::string& Current)
 {
     std::string Current_Upper;
+    class wxString Project_Output_Path;
     std::map<std::string,class Virtual*>::iterator Map_Iter;
 
     /* Used to check for repeated names */
@@ -493,6 +504,7 @@ ret_t Proj_Info::Virtual_Rename(const std::string& Original,const std::string& C
         if(It->Name_Upper==Current_Upper)
             return 0;
 
+    /* Delete the original information */
     Map_Iter=this->Virtual_Map.find(Original);
     this->Virtual_Map.erase(Map_Iter);
 
@@ -506,6 +518,14 @@ ret_t Proj_Info::Virtual_Rename(const std::string& Original,const std::string& C
             It->Name_Upper=Current_Upper;
 
             this->Virtual_Map.insert(std::make_pair(Current,It.get()));
+
+            /* Update the path of project output if it meets the format requirements */
+            Project_Output_Path=It->Project_Output;
+            if(Project_Output_Path.starts_with("./"+Original))
+            {
+                Project_Output_Path.Replace(Original,Current);
+                It->Project_Output=Project_Output_Path;
+            }
             return 1;
         }
     }
