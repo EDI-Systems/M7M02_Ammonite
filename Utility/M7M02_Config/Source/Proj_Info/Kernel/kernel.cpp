@@ -34,18 +34,36 @@ namespace RVM_CFG
 /* Function:Kernel::Kernel ****************************************************
 Description : Default constructor for kernel information. This will initialize
               with the platform/chip description file.
-Input       : const std::string& Kernel_Root - The kernel root folder.
-              const class Plat_Info* Plat - The platform information.
+Input       : const class Plat_Info* Plat - The platform information.
               const class Chip_Info* Chip - The chip information.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Kernel::Kernel(const std::string& Kernel_Root,
-                          const class Plat_Info* Plat,
-                          const class Plat_Info* Chip)
+/* void */ Kernel::Kernel(const class Plat_Info* Plat, const class Chip_Info* Chip)
 {
-    this->Kernel_Root=Kernel_Root;
-    /* Populate later */
+    /* Set default value */
+    this->Code_Base=0;
+    this->Code_Size=0;
+    this->Data_Base=0;
+    this->Data_Size=0;
+    this->Stack_Size=0;
+    this->Extra_Kom=0;
+    this->Kom_Order=16;
+    this->Kern_Prio=32;
+    this->Buildsystem="Makefile";
+    this->Toolchain="GCC";
+    this->Optimization=0;
+    this->Full_Image=0;
+    this->Project_Output="./Kernel/Project/";
+    this->Project_Overwrite=0;
+    this->Linker_Output="./";
+    this->Config_Header_Output="../Include/";
+    this->Boot_Header_Output="../Include/";
+    this->Boot_Source_Output="../Source/";
+    this->Hook_Source_Output="../Source/";
+    this->Hook_Source_Overwrite=0;
+    this->Handler_Source_Output="../Source/";
+    this->Handler_Source_Overwrite=0;
 }
 /* End Function:Kernel::Kernel ***********************************************/
 
@@ -57,8 +75,6 @@ Return      : None.
 ******************************************************************************/
 /* void */ Kernel::Kernel(class wxXmlNode* Node)
 {
-    /* Kernel_Root */
-    this->Kernel_Root=Main::Text_Load(Node,"Kernel_Root");
     /* Code_Base */
     this->Code_Base=Main::Num_Load(Node,"Code_Base");
     /* Code_Size */
@@ -126,8 +142,6 @@ Return      : None.
 ******************************************************************************/
 void Kernel::Save(class wxXmlNode* Parent)
 {
-    /* Kernel_Root */
-    Main::Text_Save(Parent,"Kernel_Root",this->Kernel_Root);
     /* Code_Base */
     Main::Hex_Save(Parent,"Code_Base",4,this->Code_Base);
     /* Code_Size */

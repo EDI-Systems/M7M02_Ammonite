@@ -46,14 +46,22 @@ public:
     std::string Class;
     /* Exact chip name */
     std::string Name;
+    /* Coprocessor */
+    std::vector<std::string> Coprocessor;
     /* The configuration option values */
     std::map<std::string,std::string> Config;
 
-    /* void */ Chip(const std::string& Name, const class Chip_Info* Chip);
+//    /* void */ Chip(const std::string& Name, const class Chip_Info* Chip);
     /* void */ Chip(class wxXmlNode* Node);
+    /* void */ Chip(const class Plat_Info* Plat_Info, const class Chip_Info* Chip_Info,
+                    const std::string& Platform, const std::string& Class,
+                    const std::string& Name);
     /* void */ ~Chip(void);
 
     void Save(class wxXmlNode* Parent);
+    void Save(const std::string& Platform, const std::string& Class,
+              const std::string& Name,std::vector<std::string> Coprocessor,
+              std::map<std::string,std::string>Config);
 };
 /*****************************************************************************/
 /* __CHIP_CLASS__ */

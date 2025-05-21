@@ -45,6 +45,8 @@ public:
     class wxToolBarToolBase* Save_Proj;
     class wxToolBarToolBase* Generate;
     class wxToolBarToolBase* Validate;
+    class wxToolBarToolBase* Setting;
+    //class wxToolBarToolBase* Modal;
 
     /* void */ Tool_Bar(class wxWindow* Parent);
     /* void */ ~Tool_Bar(void);
@@ -56,6 +58,8 @@ public:
     void On_Save_Proj(class wxCommandEvent& Event);
     void On_Generate(class wxCommandEvent& Event);
     void On_Validate(class wxCommandEvent& Event);
+    void On_Setting(class wxCommandEvent& Event);
+    //void On_Modal(class wxCommandEvent& Event);
 };
 /*****************************************************************************/
 /* __TOOL_BAR_CLASS__ */

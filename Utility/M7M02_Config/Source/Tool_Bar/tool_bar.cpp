@@ -64,8 +64,17 @@ wxToolBar(Parent,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxTB_HORIZONTAL|wxTB_F
         this->Validate=this->AddTool(wxID_ANY,_("Validate"),wxBitmap(Validate_Icon),_("Validate"));
         this->Bind(wxEVT_TOOL,&Tool_Bar::On_Validate,this,this->Validate->GetId());
 
+        this->AddSeparator();
+
+        /* New items */
+        this->Setting=this->AddTool(wxID_ANY,_("Setting"),wxBitmap(Validate_Icon),_("Setting"));
+        this->Bind(wxEVT_TOOL,&Tool_Bar::On_Setting,this,this->Setting->GetId());
+
         this->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_3DFACE));
         this->Realize();
+
+
+
     }
     catch(std::exception& Exc)
     {
@@ -134,20 +143,19 @@ Return      : None.
 void Tool_Bar::On_New_Proj(class wxCommandEvent& Event)
 {
     std::string Path;
-    class wxFileDialog* File;
+    std::unique_ptr<wxFileDialog> File;
 
     wxLogDebug("Tool_Bar::On_New_Proj");
 
-    /* Let the user choose a filename */
-    File=new class wxFileDialog(RVM_CFG_App::Main,_("New Project"),wxT(""),wxT(""),
-                                _("Project File")+wxT(" (*.rvp)|*.rvp"),
-                                wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
+    /* Let the user choose a filename and location */
+    File=std::make_unique<wxFileDialog>(RVM_CFG_App::Main,_("New Project"),wxT(""),wxT(""),
+                                        _("Project File")+wxT(" (*.rvp)|*.rvp"),
+                                        wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
     if(File->ShowModal()!=wxID_OK)
         return;
     Path=File->GetPath();
-    File->Destroy();
 
-    //Main::File_New(Path);
+    Main::Proj_New(Path);
 }
 /* End Function:Tool_Bar::On_New_Proj ****************************************/
 
@@ -160,20 +168,16 @@ Return      : None.
 void Tool_Bar::On_Open_Proj(class wxCommandEvent& Event)
 {
     std::string Path;
-    class wxFileDialog* File;
-
-    wxLogDebug("Tool_Bar::On_Open_Proj");
-
+    std::unique_ptr<class wxFileDialog> File;
+    wxLogDebug("Debug Tool Bar::0n open File");
     /* Let the user choose a filename */
-    File=new class wxFileDialog(RVM_CFG_App::Main,_("Open File"),wxT(""),wxT(""),
-                                _("Project File")+wxT(" (*.rvp)|*.rvp"),
-                                wxFD_OPEN|wxFD_FILE_MUST_EXIST);
+    File=std::make_unique<class wxFileDialog>(RVM_CFG_App::Main,_("Open File"),wxT(""),wxT(""),
+                                              _("Project File")+wxT(" (*.rvp)|*.rvp"),
+                                              wxFD_OPEN|wxFD_FILE_MUST_EXIST);
     if(File->ShowModal()!=wxID_OK)
         return;
     Path=File->GetPath();
-    File->Destroy();
-
-    //Main::File_Open(Path);
+    Main::Proj_Open(Path);
 }
 /* End Function:Tool_Bar::On_Open_Proj ***************************************/
 
@@ -186,7 +190,7 @@ Return      : None.
 void Tool_Bar::On_Save_Proj(class wxCommandEvent& Event)
 {
     wxLogDebug("Tool_Bar::On_Save_Proj");
-    //Main::File_Save();
+    Main::Proj_Save();
 }
 /* End Function:Tool_Bar::On_Save_Proj ***************************************/
 
@@ -201,7 +205,7 @@ void Tool_Bar::On_Generate(class wxCommandEvent& Event)
     wxLogDebug("Tool_Bar::On_Generate");
     //Main::Compile_Begin();
 }
-/* End Function:Tool_Bar::On_Generate *****************************************/
+/* End Function:Tool_Bar::On_Generate ****************************************/
 
 /* Function:Tool_Bar::On_Validate *********************************************
 Description : wxEVT_TOOL handler for 'Debug'.
@@ -215,6 +219,33 @@ void Tool_Bar::On_Validate(class wxCommandEvent& Event)
     //Main::Validate_Begin();
 }
 /* End Function:Tool_Bar::On_Validate ****************************************/
+
+/* Function:Tool_Bar::On_Setting **********************************************
+Description : wxEVT_TOOL handler for 'Setting'.
+Input       : class wxCommandEvent& Event - The event.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Tool_Bar::On_Setting(class wxCommandEvent& Event)
+{
+    wxLogDebug("Tool_Bar::On_Setting");
+    Main::Setting_Begin();
+}
+/* End Function:Tool_Bar::On_Setting *****************************************/
+
+///* Function:Tool_Bar::On_Modal ************************************************
+//Description : wxEVT_TOOL handler for 'Modal'.
+//Input       : class wxCommandEvent& Event - The event.
+//Output      : None.
+//Return      : None.
+//******************************************************************************/
+//void Tool_Bar::On_Modal(class wxCommandEvent& Event)
+//{
+//    wxLogDebug("Tool_Bar::On_Modal");
+//    Main::Modal_Begin();
+//}
+///* End Function:Tool_Bar::On_Modal *******************************************/
+
 }
 /* End Of File ***************************************************************/
 

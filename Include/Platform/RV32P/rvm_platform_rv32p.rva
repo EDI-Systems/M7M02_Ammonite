@@ -17,6 +17,7 @@
             <Macro>RME_RV32P_OSTIM_VALUE</Macro>
             <Type>Range</Type>
             <Range>100,16777215</Range>
+            <Default>168000</Default>
         </C0>
     </Config>
 </Platform>

@@ -40,8 +40,11 @@ namespace RVM_CFG
 class Receive
 {
 public:
+	/* Name */
+	std::string Name;
 
     /* void */ Receive(class wxXmlNode* Node);
+    /* void */ Receive(const std::string& Name);
     /* void */ ~Receive(void);
 
     void Save(class wxXmlNode* Parent);

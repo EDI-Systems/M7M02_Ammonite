@@ -41,12 +41,26 @@ Return      : None.
 ******************************************************************************/
 /* void */ Vector::Vector(class wxXmlNode* Node)
 {
-    std::string Temp;
-
     /* Name */
     this->Name=Main::Text_Load(Node,"Name");
     /* Number */
     this->Number=Main::Num_Load(Node,"Number");
+}
+/* End Function:Vector::Vector ***********************************************/
+
+/* Function:Vector::Vector ****************************************************
+Description : Parse the vector section of a particular chip.
+Input       : const std::string& Name - The name.
+              const ptr_t& Number - The number.
+Output      : None.
+Return      : None.
+******************************************************************************/
+/* void */ Vector::Vector(const std::string& Name,const ptr_t& Number)
+{
+    /* Name */
+    this->Name=Name;
+    /* Number */
+    this->Number=Number;
 }
 /* End Function:Vector::Vector ***********************************************/
 
@@ -70,7 +84,10 @@ Return      : None.
 ******************************************************************************/
 void Vector::Save(class wxXmlNode* Parent)
 {
-
+    /* Name */
+    Main::Text_Save(Parent,"Name",this->Name);
+    /* Number */
+    Main::Num_Save(Parent,"Number",this->Number);
 }
 /* End Function:Vector::Save *************************************************/
 }

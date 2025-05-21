@@ -46,16 +46,23 @@ public:
     class wxMenuItem* Delete_Item;
     class wxMenuItem* Generate;
     class wxMenuItem* Validate;
+    class wxMenuItem* Rename;
 
     /* void */ Config_Popup(class Config_Tree* Tree);
     /* void */ ~Config_Popup(void);
 
-    void State_Set(ptr_t Type);
+    ret_t Native_Add(const std::string& Name);
+    ret_t Virtual_Add(const std::string& Name);
+    ret_t Native_Rename(const std::string& Original, const std::string& Current);
+    ret_t Virtual_Rename(const std::string& Original, const std::string& Current);
+
+    void State_Set(void);
 
     void On_New_Item(class wxCommandEvent& Event);
     void On_Delete_Item(class wxCommandEvent& Event);
     void On_Generate(class wxCommandEvent& Event);
     void On_Validate(class wxCommandEvent& Event);
+    void On_Rename(class wxCommandEvent& Event);
 };
 /*****************************************************************************/
 /* __CONFIG_POPUP_CLASS__ */

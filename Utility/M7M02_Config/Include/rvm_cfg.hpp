@@ -42,6 +42,7 @@ namespace RVM_CFG
 /* Debugging mode */
 #ifndef __OPTIMIZE__
 #define DEBUG
+/* __OPTIMIZE__ */
 #endif
 /* Language override */
 /* #define LANGUAGE_OVERRIDE                   wxLANGUAGE_ENGLISH */
@@ -54,6 +55,7 @@ namespace RVM_CFG
 #else
 #define NDEBUG
 #define wxUSE_LOG_DEBUG                     (0)
+/* DEBUG */
 #endif
 
 /* Throw error, and rescue some unsaved files */
@@ -115,6 +117,10 @@ while(0)
 #define OUTPUT_INFO                         (0)
 #define OUTPUT_STATUS                       (1)
 
+/* Path flags, from C4G02_Develop_P/Include/sdm_ide.hpp */
+#define PATH_FILE                           (0)
+#define PATH_DIR                            (1)
+
 /* High-DPI support (premature) */
 #ifndef HIGH_DPI_DISABLE
 #define I2P(X)                              RVM_CFG_App::Main->FromDIP(X)
@@ -127,6 +133,7 @@ while(0)
 #define P2I(X)                              (X)
 #define F2P(X)                              (X)
 #define P2F(X)                              (X)
+/* HIGH_DPI_DISABLE */
 #endif
 
 /* Optimization level */
@@ -136,6 +143,14 @@ while(0)
 #define OPTIMIZATION_O3                     (3)
 #define OPTIMIZATION_OF                     (4)
 #define OPTIMIZATION_OS                     (5)
+
+/* Whether to allow the name to be empty  */
+#define BLANK_NAME_FORBID                   (0)
+#define BLANK_NAME_PERMIT                   (1)
+
+/* Whether the panel has been shown  */
+//#define HAS_NOT_SHOWN                       (0)
+//#define HAS_SHOWN                           (1)
 /*****************************************************************************/
 /* __RVM_CFG_DEF__ */
 #endif
@@ -158,8 +173,19 @@ public:
     static ptr_t UI_State;
     static ptr_t Save_State;
 
-    /* Project information - need to be manually deleted */
-    static class Proj_Info* Proj;
+    /* Three key relative paths of RVM, RME, RMP */
+    static std::string RVM_Path;
+    static std::string RME_Path;
+    static std::string RMP_Path;
+
+    /* Platform and chip */
+    static std::string Platform;
+    static std::string Chip;
+    static std::string Type;
+
+    /* The largest number ever used by native process and virtual machine */
+    static cnt_t Native_Cnt;
+    static cnt_t Virtual_Cnt;
 
     /* Lower-level classes */
     static class Menu_Bar* Menu_Bar;
@@ -169,11 +195,30 @@ public:
     static class wxBoxSizer* Config_Sizer;
     static class Config_Tree* Config;
     static class wxBoxSizer* Option_Sizer;
-    static class Option_Notebook* Option;
-    static class Output_Notebook* Output;
+    static class Option_Panel* Option;
+    //static class Output_Notebook* Output;
+    static class wxTextCtrl* Output_Text;
     static class Status_Bar* Status_Bar;
 
     static class About_Dialog* About_Dialog;
+    static class Setting_Dialog* Setting_Dialog;
+    static class Choose_Dialog* Choose_Dialog;
+    static class Name_Dialog* Name_Dialog;
+
+    /* Option Panel */
+    static class wxWindow* Last_Option;
+
+    static class Basic_Panel* Basic_Panel;
+    static class Memory_Notebook* Memory_Notebook;
+    static class Kernel_Panel* Kernel_Panel;
+    static class Monitor_Panel* Monitor_Panel;
+    static class Native_Notebook* Native_Notebook;
+    static class Virtual_Notebook* Virtual_Notebook;
+
+    /* Data */
+    static std::unique_ptr<class Plat_Info> Plat_Info;
+    static std::unique_ptr<class Chip_Info> Chip_Info;
+    static std::unique_ptr<class Proj_Info> Proj_Info;
 
     /* void */ Main(void);
     /* void */ ~Main(void);
@@ -212,22 +257,61 @@ public:
     static class wxXmlNode* Yesno_Save(class wxXmlNode* Parent, const std::string& Name, ptr_t Yesno);
     static class wxXmlNode* Num_Save(class wxXmlNode* Parent,
                                      const std::string& Name, ptr_t Content);
+    static class wxXmlNode* CSV_Save(class wxXmlNode* Parent,
+            						 const std::string& Name,
+            						 const std::vector<std::string>& Content);
     static class wxXmlNode* Pair_Save(class wxXmlNode* Parent,
                                       const std::string& Name,
                                       const std::map<std::string, std::string>& Map);
     static class wxXmlNode* Opt_Save(class wxXmlNode* Parent,
                                      const std::string& Name, ptr_t Content);
 
-    /* Output notebook updates */
-    static void Output_Update(std::vector<std::string>& Reply,ptr_t Panel,ptr_t Append);
-    static void Output_Clear(ptr_t Panel);
+    /* New functions */
+    static ret_t File_List(const std::string& Path, std::vector<std::string>& List);
+    static ret_t Dir_List(const std::string& Path, std::vector<std::string>& List);
+    static void Row_Swap(class wxGrid* Grid,ptr_t First,ptr_t Second);
+    static ret_t Row_Get(class wxGrid* Grid);
+    static ret_t Row_Add(class wxGrid* Grid);
+    static void Row_Pick(class wxGrid* Grid);
+    static void Row_Remove(class wxGrid* Grid);
+    static void Row_Move_Up(class wxGrid* Grid);
+    static void Row_Move_Down(class wxGrid* Grid);
+    static void Row_Reorder(class wxGrid* Grid);
+    static void Gird_Clear_Content(class wxGrid* Grid);
+    static ret_t Num_GZ_Check(std::string Num);
+    static ret_t Num_GEZ_Check(std::string Num);
+    static ret_t Num_GEZ_Hex_Check(std::string Num);
+    static ret_t Row_Name_Check(class wxGrid* Grid, const std::string& Location,
+                                const ptr_t& Type=BLANK_NAME_FORBID, const ptr_t& Name_Col=0);
+    static ret_t Comp_Check(const wxString& Buildsystem, const wxString& Toolchain, const wxString& Guest);
+    static ret_t File_Validate(const std::string& Filename);
+    static ret_t Check_And_Save_Current_Edit(void);
+    /* if no cross-check is performed, then this function is not necessary. */
+    //static ret_t Check_And_Save_All(void);
+    static void GUI_Update(void);
+    static std::vector<std::string> Plat_Load(const std::string& Plat);
+    static std::vector<std::string> Chip_Load(const std::string& Plat,const std::string& Chip);
+
+    /* Output notebook updates, which both have been invalid */
+    /*static void Output_Update(std::vector<std::string>& Reply,ptr_t Panel,ptr_t Append); */
+    /*static void Output_Clear(ptr_t Panel); */
+
+    /* Preference setting */
+    static void Setting(void);
+    static std::string Path_Absolute(ptr_t Type,
+                                     const std::string& Root, const std::string& Path);
+    static std::string Path_Relative(ptr_t Type,
+                                     const std::string& Root, const std::string& Path);
+    /* Tool bar click function */
+    static void Setting_Begin(void);
+    static void Choose_Begin(const std::string& Path);
 
     /* Project operations */
-    void Proj_New(const std::string& Path);
-    void Proj_Open(const std::string& Path);
-    void Proj_Close(void);
-    void Proj_Save(void);
-    void Proj_Save_As(const std::string& Path);
+    static void Proj_New(const std::string& Path);
+    static void Proj_Open(const std::string& Path);
+    static void Proj_Close(void);
+    static void Proj_Save(void);
+    static void Proj_Save_As(const std::string& Path);
 
     /* Manuals */
     static void Manual_Open(const std::string& Manual);
@@ -256,6 +340,7 @@ public:
     static LONG WINAPI OnSystemFatalException(EXCEPTION_POINTERS* Exc);
 #else
     static void OnSystemFatalException(int Exc);
+/* WIN32 */
 #endif
 };
 
@@ -269,6 +354,7 @@ Return      : None.
 template <typename ELEM>
 void Trunk_Load(class wxXmlNode* Root, const std::string& Prefix, std::vector<std::unique_ptr<ELEM>>& Vect)
 {
+
     class wxXmlNode* Temp;
     cnt_t Count;
 

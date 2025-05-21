@@ -41,8 +41,12 @@ Return      : None.
     std::vector<std::string> List;
 
     /* This node should directly contain the contents */
-    Temp=Node->GetContent();
+    /* GetNodeContent() instead of GetContent() */
+    Temp=Node->GetNodeContent();
     Main::CSV_Read(Temp, List);
+
+    /* wxLogDebug("Compatible: %d",List.size()); */
+    /* wxLogDebug("Compatible: %s",Temp); */
     if(List.size()!=3)
         throw std::runtime_error("Compatibility entry malformed.");
 

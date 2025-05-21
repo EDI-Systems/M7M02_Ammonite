@@ -40,8 +40,18 @@ namespace RVM_CFG
 class Thread
 {
 public:
+    /* Name */
+    std::string Name;
+    /* Stack_Size */
+    ptr_t Stack_Size;
+    /* Parameter */
+    ptr_t Parameter;
+    /* Priority */
+    ptr_t Priority;
 
     /* void */ Thread(class wxXmlNode* Node);
+    /* void */ Thread(const std::string Name,const ptr_t& Stack_Size,
+                      const ptr_t& Parameter,const ptr_t& Priority);
     /* void */ ~Thread(void);
 
     virtual void Save(class wxXmlNode* Parent);

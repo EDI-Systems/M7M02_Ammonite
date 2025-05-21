@@ -40,20 +40,22 @@ namespace RVM_CFG
 class Monitor
 {
 public:
-    /* Monitor source root folder */
-    std::string Monitor_Root;
     /* Code size */
     ptr_t Code_Size;
     /* Data size */
     ptr_t Data_Size;
-    /* Stack sizes */
+    /* Stack sizes, three of them are old items */
     ptr_t Init_Stack_Size;
     ptr_t Sftd_Stack_Size;
     ptr_t Vctd_Stack_Size;
-    ptr_t Timd_Stack_Size;
-    ptr_t Hypd_Stack_Size;
+//    ptr_t Timd_Stack_Size;
+//    ptr_t Hypd_Stack_Size;
+    /* Vmmd_Stack_Size, this is a new item */
+    ptr_t Vmmd_Stack_Size;
     /* Extra capability table slots */
     ptr_t Extra_Captbl;
+    /* Idle_Sleep_Enable, this is a new item */
+    ptr_t Idle_Sleep_Enable;
     /* Virtual machine priorities */
     ptr_t Virt_Prio;
     /* Number of virtual events */
@@ -80,9 +82,7 @@ public:
     std::string Hook_Source_Output;
     ptr_t Hook_Source_Overwrite;
 
-    /* void */ Monitor(const std::string& Kernel_Root,
-                       const class Plat_Info* Plat,
-                       const class Plat_Info* Chip);
+    /* void */ Monitor(const class Plat_Info* Plat_Info, const class Chip_Info* Chip_Info);
     /* void */ Monitor(class wxXmlNode* Node);
     /* void */ ~Monitor(void);
 

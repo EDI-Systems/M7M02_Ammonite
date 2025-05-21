@@ -61,8 +61,10 @@ public:
     /* Workspace build system */
     std::string Buildsystem;
     /* Workspace output folder & overwrite */
-    std::string Workspace_Output;
+    /* Workspace_Output is not in current version */
+    /* std::string Workspace_Output; */
     ptr_t Workspace_Overwrite;
+
     /* Chip information */
     std::unique_ptr<class Chip> Chip;
 
@@ -80,19 +82,26 @@ public:
     std::unique_ptr<class Kernel> Kernel;
     /* The RVM user-library information */
     std::unique_ptr<class Monitor> Monitor;
-    /* The process information */
-    //std::vector<std::unique_ptr<class Process>> Process;
-    //std::map<std::string,class Process*> Process_Map;
-    /* The virtual machine information - some processes are VMs */
-    //std::vector<class Virtual*> Virtual;
+
+    /* The Native information */
+    std::vector<std::unique_ptr<class Native>> Native;
+    std::map<std::string,class Native*> Native_Map;
+
+    /* The VM information */
+    std::vector<std::unique_ptr<class Virtual>> Virtual;
+    std::map<std::string,class Virtual*> Virtual_Map;
 
     /* void */ Proj_Info(void);
     /* void */ ~Proj_Info(void);
 
     /* Load up the project file */
     ret_t Create(const std::string& Path,
-                 const std::string& Chip_Class, const std::string& Chip_Name,
-                 const std::string& Kernel_Root, const std::string& Monitor_Root);
+                 const std::string& Chip_Class, const std::string& Chip_Name);
+    /* Change, begin */
+    ret_t Create(const std::string& Path,
+                 const Plat_Info* Plat_Info, const Chip_Info* Chip_Info,
+                 const std::string& Plat_Name, const std::string& Chip_Class, const std::string& Chip_Name);
+    /* Change, end */
     ret_t Load(const std::string& Path);
 
     /* Save the project file */
@@ -100,6 +109,13 @@ public:
 
     /* Path conversion */
     std::string Rel_Conv(const std::string& Relpath,ptr_t Type);
+
+    ret_t Native_Remove(const std::string& Name);
+    ret_t Virtual_Remove(const std::string& Name);
+    ret_t Native_Rename(const std::string& Original,const std::string& Current);
+    ret_t Virtual_Rename(const std::string& Original,const std::string& Current);
+    ret_t Native_Add(const std::string& Name);
+    ret_t Virtual_Add(const std::string& Name);
 };
 /*****************************************************************************/
 /* __PROJ_INFO_CLASS__ */
