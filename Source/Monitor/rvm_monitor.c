@@ -1166,21 +1166,25 @@ static void _RVM_Virt_Switch(struct RVM_Virt_Struct* From,
         /* No action required */
     }
     
-    /* Just change the thread's priorities - use 2x version to minimize delay */
-    if(From!=RVM_NULL)
+    /* Just change the thread's priorities - use 4x version to minimize delay */
+    if((From!=RVM_NULL)&&(To!=RVM_NULL))
+    {
+        RVM_COV_MARKER();
+        
+        RVM_ASSERT(RVM_Thd_Sched_Prio4(From->Map->Usr_Thd_Cap, RVM_WAIT_PRIO,
+                                       From->Map->Vct_Thd_Cap, RVM_WAIT_PRIO,
+                                       To->Map->Usr_Thd_Cap, RVM_VUSR_PRIO,
+                                       To->Map->Vct_Thd_Cap, RVM_VVCT_PRIO)==0);
+    }
+    /* Can't have a situation where both is not RVM_NULL in the branches below */
+    else if(From!=RVM_NULL)
     {
         RVM_COV_MARKER();
         
         RVM_ASSERT(RVM_Thd_Sched_Prio2(From->Map->Usr_Thd_Cap, RVM_WAIT_PRIO,
                                        From->Map->Vct_Thd_Cap, RVM_WAIT_PRIO)==0);
     }
-    else
-    {
-        RVM_COV_MARKER();
-        /* No action required */
-    }
-    
-    if(To!=RVM_NULL)
+    else if(To!=RVM_NULL)
     {
         RVM_COV_MARKER();
         
@@ -1271,7 +1275,7 @@ static void _RVM_Virt_Vct_Snd(struct RVM_List* Array,
         
         /* Set the corresponding virtual vector activation flag */
         Virt->Map->State_Base->Flag.Vct[Map->Vct_Num]=1U;
-        RVM_ASSERT(RVM_Sig_Snd(Virt->Map->Vct_Sig_Cap)==0);
+        RVM_ASSERT(RVM_Sig_Snd(Virt->Map->Vct_Sig_Cap,1U)==0);
         
         /* If it is waiting, notify it of new interrupts */
         if(RVM_VM_STATE(Virt->Sched.State)==RVM_VM_WAITING)
@@ -1446,7 +1450,7 @@ static void _RVM_Tim_Snd(struct RVM_Virt_Struct* Virt)
     {
         RVM_COV_MARKER();
         
-        RVM_ASSERT(RVM_Sig_Snd(Virt->Map->Vct_Sig_Cap)==0);
+        RVM_ASSERT(RVM_Sig_Snd(Virt->Map->Vct_Sig_Cap,1U)==0);
     }
     else
     {
@@ -1669,7 +1673,7 @@ static rvm_ret_t _RVM_Hyp_Int_Ena(void)
     {
         RVM_COV_MARKER();
         
-        RVM_ASSERT(RVM_Sig_Snd(RVM_Virt_Cur->Map->Vct_Sig_Cap)==0);
+        RVM_ASSERT(RVM_Sig_Snd(RVM_Virt_Cur->Map->Vct_Sig_Cap,1U)==0);
     }
     else
     {
@@ -2751,7 +2755,7 @@ static void RVM_Sftd(void)
             _RVM_Virt_Recover((rvm_s8_t*)"Sftd");
             
             /* Trigger the context switch ASAP */
-            RVM_ASSERT(RVM_Sig_Snd(RVM_BOOT_INIT_VCT)==0);
+            RVM_ASSERT(RVM_Sig_Snd(RVM_BOOT_INIT_VCT,1U)==0);
             
             RVM_DBG_S("Sftd: Recovered.\r\n");
 #else

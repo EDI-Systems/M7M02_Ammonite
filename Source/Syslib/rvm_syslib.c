@@ -1508,9 +1508,9 @@ rvm_ret_t RVM_Thd_Sched_Prio(rvm_cid_t Cap_Thd,
 {
     return RVM_SVC(RVM_SVC_THD_SCHED_PRIO,
                    1U,
-                   RVM_PARAM_D1(Prio)|RVM_PARAM_D0(Cap_Thd),
+                   RVM_PARAM_D0(Cap_Thd),
                    0U, 
-                   0U);
+                   RVM_PARAM_Q0(Prio));
 }
 /* End Function:RVM_Thd_Sched_Prio *******************************************/
 
@@ -1536,9 +1536,9 @@ rvm_ret_t RVM_Thd_Sched_Prio2(rvm_cid_t Cap_Thd0,
 {
     return RVM_SVC(RVM_SVC_THD_SCHED_PRIO,
                    2U,
-                   RVM_PARAM_D1(Prio0)|RVM_PARAM_D0(Cap_Thd0),
-                   RVM_PARAM_D1(Prio1)|RVM_PARAM_D0(Cap_Thd1), 
-                   0U);
+                   RVM_PARAM_D1(Cap_Thd1)|RVM_PARAM_D0(Cap_Thd0),
+                   0U, 
+                   RVM_PARAM_Q1(Prio1)|RVM_PARAM_Q0(Prio0));
 }
 /* End Function:RVM_Thd_Sched_Prio2 ******************************************/
 
@@ -1569,11 +1569,50 @@ rvm_ret_t RVM_Thd_Sched_Prio3(rvm_cid_t Cap_Thd0,
 {
     return RVM_SVC(RVM_SVC_THD_SCHED_PRIO,
                    3U,
-                   RVM_PARAM_D1(Prio0)|RVM_PARAM_D0(Cap_Thd0),
-                   RVM_PARAM_D1(Prio1)|RVM_PARAM_D0(Cap_Thd1), 
-                   RVM_PARAM_D1(Prio2)|RVM_PARAM_D0(Cap_Thd2));
+                   RVM_PARAM_D1(Cap_Thd1)|RVM_PARAM_D0(Cap_Thd0),
+                   RVM_PARAM_D0(Cap_Thd2), 
+                   RVM_PARAM_Q2(Prio2)|RVM_PARAM_Q1(Prio1)|RVM_PARAM_Q0(Prio0));
 }
 /* End Function:RVM_Thd_Sched_Prio3 ******************************************/
+
+/* Function:RVM_Thd_Sched_Prio4 ***********************************************
+Description : Change a thread's priority level. This can only be called from
+              the core that has the thread binded. Quad thread version.
+              This system call can cause a potential context switch.
+              It is impossible to set a thread's priority beyond its maximum 
+              priority. 
+Input       : rvm_cid_t Cap_Thd0 - The capability to the first thread.
+                                   2-Level.
+              rvm_ptr_t Prio0 - The priority level, higher is more critical.
+              rvm_cid_t Cap_Thd1 - The capability to the second thread.
+                                   2-Level.
+              rvm_ptr_t Prio1 - The priority level, higher is more critical.
+              rvm_cid_t Cap_Thd2 - The capability to the third thread.
+                                   2-Level.
+              rvm_ptr_t Prio2 - The priority level, higher is more critical.
+              rvm_cid_t Cap_Thd3 - The capability to the fourth thread.
+                                   2-Level.
+              rvm_ptr_t Prio3 - The priority level, higher is more critical.
+Output      : None.
+Return      : rvm_ret_t - If successful, 0; or an error code.
+******************************************************************************/
+rvm_ret_t RVM_Thd_Sched_Prio4(rvm_cid_t Cap_Thd0,
+                              rvm_ptr_t Prio0,
+                              rvm_cid_t Cap_Thd1,
+                              rvm_ptr_t Prio1,
+                              rvm_cid_t Cap_Thd2,
+                              rvm_ptr_t Prio2,
+                              rvm_cid_t Cap_Thd3,
+                              rvm_ptr_t Prio3)
+{
+    return RVM_SVC(RVM_SVC_THD_SCHED_PRIO,
+                   4U,
+                   RVM_PARAM_D1(Cap_Thd1)|RVM_PARAM_D0(Cap_Thd0),
+                   RVM_PARAM_D1(Cap_Thd3)|RVM_PARAM_D0(Cap_Thd2), 
+                   RVM_PARAM_Q3(Prio3)|RVM_PARAM_Q2(Prio2)|
+                   RVM_PARAM_Q1(Prio1)|RVM_PARAM_Q0(Prio0));
+}
+/* End Function:RVM_Thd_Sched_Prio4 ******************************************/
 
 /* Function:RVM_Thd_Sched_Free ************************************************
 Description : Free a thread from its current binding. This function can only be
@@ -1729,15 +1768,18 @@ Description : Try to send to a signal endpoint. This system call can cause
               a potential context switch.
 Input       : rvm_cid_t Cap_Sig - The capability to the signal.
                                   2-Level.
+              rme_ptr_t Number - The number of signals to send, which must not
+                                 be zero or exceed RVM_SIG_MAX_SND.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0, or an error code.
 ******************************************************************************/
-rvm_ret_t RVM_Sig_Snd(rvm_cid_t Cap_Sig)
+rvm_ret_t RVM_Sig_Snd(rvm_cid_t Cap_Sig,
+                      rvm_ptr_t Number)
 {
     return RVM_SVC(RVM_SVC_SIG_SND,
                    0U,
                    Cap_Sig,
-                   0U, 
+                   Number, 
                    0U);
 }
 /* End Function:RVM_Sig_Snd **************************************************/

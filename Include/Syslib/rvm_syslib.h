@@ -204,6 +204,8 @@ while(0)
 #define RVM_THD_TIMEOUT_FLAG                        RVM_POW2(RVM_WORD_BIT-3U)
 /* Thread creation */
 #define RVM_THD_SVC(ATTR,IS_HYP,SVC)                (RVM_FIELD(ATTR,7U)|RVM_FIELD(IS_HYP,6U)|(SVC))
+/* Signal send number limit */
+#define RVM_SIG_MAX_SND                             RVM_MASK_WORD_D
     
 /* Size of kernel objects */
 /* Rounded size of each object */
@@ -882,6 +884,12 @@ struct RVM_Vctf
 #endif
 };
 
+/* The following are the two areas shared between the VM and the VMM. We
+ * don't combine them into a single struct because we are unsure how large
+ * each struct is. The RVM_State has a Flag field whose size is dependent
+ * on the number of virtual interrupts, while the RVM_Thd_Reg has a Cop
+ * field whose size is dependent on the coprocessor register set. */
+
 /* State block */
 struct RVM_State
 {
@@ -900,7 +908,7 @@ struct RVM_Thd_Reg
     struct RVM_Reg_Struct Reg;
     struct RVM_Exc_Struct Exc;
     /* Just like the Vct[] field above, this expands as needed; also, this don't
-     * when there are no coprocessors. See size reporting macro for details. */
+     * exist when there are no coprocessors. See size reporting macro for details. */
     rvm_ptr_t Cop[1];
 };
 /*****************************************************************************/
@@ -1135,6 +1143,14 @@ __RVM_EXTERN__ rvm_ret_t RVM_Thd_Sched_Prio3(rvm_cid_t Cap_Thd0,
                                              rvm_ptr_t Prio1,
                                              rvm_cid_t Cap_Thd2,
                                              rvm_ptr_t Prio2);
+__RVM_EXTERN__ rvm_ret_t RVM_Thd_Sched_Prio4(rvm_cid_t Cap_Thd0,
+                                             rvm_ptr_t Prio0,
+                                             rvm_cid_t Cap_Thd1,
+                                             rvm_ptr_t Prio1,
+                                             rvm_cid_t Cap_Thd2,
+                                             rvm_ptr_t Prio2,
+                                             rvm_cid_t Cap_Thd3,
+                                             rvm_ptr_t Prio3);
 __RVM_EXTERN__ rvm_ret_t RVM_Thd_Sched_Free(rvm_cid_t Cap_Thd);
 __RVM_EXTERN__ rvm_ret_t RVM_Thd_Sched_Rcv(rvm_cid_t Cap_Thd);
 __RVM_EXTERN__ rvm_ret_t RVM_Thd_Time_Xfer(rvm_cid_t Cap_Thd_Dst,
@@ -1148,7 +1164,8 @@ __RVM_EXTERN__ rvm_ret_t RVM_Sig_Crt(rvm_cid_t Cap_Cpt,
                                      rvm_cid_t Cap_Sig);
 __RVM_EXTERN__ rvm_ret_t RVM_Sig_Del(rvm_cid_t Cap_Cpt,
                                      rvm_cid_t Cap_Sig);
-__RVM_EXTERN__ rvm_ret_t RVM_Sig_Snd(rvm_cid_t Cap_Sig);
+__RVM_EXTERN__ rvm_ret_t RVM_Sig_Snd(rvm_cid_t Cap_Sig,
+                                     rvm_ptr_t Number);
 __RVM_EXTERN__ rvm_ret_t RVM_Sig_Rcv(rvm_cid_t Cap_Sig,
                                      rvm_ptr_t Option);
                                  

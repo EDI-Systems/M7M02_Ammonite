@@ -687,6 +687,80 @@ void Main::Reference_Check(void)
 }
 /* End Function:Main::Reference_Check ****************************************/
 
+/* Function:Main::Genpath_Check ***********************************************
+Description : Check whether the paths used for project generation are valid.
+              The rules are very simple: no projects should share the same
+              output paths. As an exception, kernel and monitor can be mixed
+              because they share no filenames in common.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Genpath_Check(void)
+{
+    class Native* Nat;
+    class Virtual* Virt;
+    std::string Abspath;
+    std::map<std::string,class Process*> Path_Map;
+
+    try
+    {
+        /* Kernel  */
+        Path_Check<std::string,class Process>(this->Proj->Kernel->Project_Output,nullptr,Path_Map,"XXXXX","Project_Output");
+        Path_Check<std::string,class Process>(this->Proj->Kernel->Linker_Output,nullptr,Path_Map,"XXXXX","Linker_Output");
+        Path_Check<std::string,class Process>(this->Proj->Kernel->Config_Header_Output,nullptr,Path_Map,"XXXXX","Config_Header_Output");
+        Path_Check<std::string,class Process>(this->Proj->Kernel->Boot_Header_Output,nullptr,Path_Map,"XXXXX","Boot_Header_Output");
+        Path_Check<std::string,class Process>(this->Proj->Kernel->Boot_Source_Output,nullptr,Path_Map,"XXXXX","Boot_Source_Output");
+        Path_Check<std::string,class Process>(this->Proj->Kernel->Hook_Source_Output,nullptr,Path_Map,"XXXXX","Hook_Source_Output");
+        Path_Check<std::string,class Process>(this->Proj->Kernel->Handler_Source_Output,nullptr,Path_Map,"XXXXX","Handler_Source_Output");
+
+        /* Monitor */
+        Path_Check<std::string,class Process>(this->Proj->Monitor->Project_Output,nullptr,Path_Map,"XXXXX","Project_Output");
+        Path_Check<std::string,class Process>(this->Proj->Monitor->Linker_Output,nullptr,Path_Map,"XXXXX","Linker_Output");
+        Path_Check<std::string,class Process>(this->Proj->Monitor->Config_Header_Output,nullptr,Path_Map,"XXXXX","Config_Header_Output");
+        Path_Check<std::string,class Process>(this->Proj->Monitor->Boot_Header_Output,nullptr,Path_Map,"XXXXX","Boot_Header_Output");
+        Path_Check<std::string,class Process>(this->Proj->Monitor->Boot_Source_Output,nullptr,Path_Map,"XXXXX","Boot_Source_Output");
+        Path_Check<std::string,class Process>(this->Proj->Monitor->Hook_Source_Output,nullptr,Path_Map,"XXXXX","Hook_Source_Output");
+
+        /* Processes */
+        for(std::unique_ptr<class Process>& Prc:this->Proj->Process)
+        {
+            try
+            {
+                /* Output paths that are common to all processes */
+                Path_Check<std::string,class Process>(Prc->Project_Output,Prc.get(),Path_Map,"XXXXX","Project_Output");
+                Path_Check<std::string,class Process>(Prc->Linker_Output,Prc.get(),Path_Map,"XXXXX","Linker_Output");
+                Path_Check<std::string,class Process>(Prc->Main_Header_Output,Prc.get(),Path_Map,"XXXXX","Main_Header_Output");
+                Path_Check<std::string,class Process>(Prc->Main_Source_Output,Prc.get(),Path_Map,"XXXXX","Main_Source_Output");
+
+                /* Native process output paths */
+                if(Prc->Type==PROCESS_NATIVE)
+                {
+                    Nat=static_cast<class Native*>(Prc.get());
+                    Path_Check<std::string,class Process>(Nat->Entry_Source_Output,Prc.get(),Path_Map,"XXXXX","Entry_Source_Output");
+                }
+                /* Virtual machine output paths */
+                else
+                {
+                    Virt=static_cast<class Virtual*>(Prc.get());
+                    Path_Check<std::string,class Process>(Virt->Virtual_Header_Output,Prc.get(),Path_Map,"XXXXX","Virtual_Header_Output");
+                    Path_Check<std::string,class Process>(Virt->Virtual_Source_Output,Prc.get(),Path_Map,"XXXXX","Virtual_Source_Output");
+                }
+
+            }
+            catch(std::exception& Exc)
+            {
+                Main::Error(std::string("Process: ")+Prc->Name+"\n"+Exc.what());
+            }
+        }
+    }
+    catch(std::exception& Exc)
+    {
+        Main::Error(std::string("Output path overlapping:\n")+Exc.what());
+    }
+}
+/* End Function:Main::Genpath_Check ******************************************/
+
 /* Function:Main::Check *******************************************************
 Description : Check whether the configurations make sense.
 Input       : None.
@@ -703,6 +777,7 @@ void Main::Check(void)
         this->Physical_Check();
         this->Static_Check();
         this->Reference_Check();
+        this->Genpath_Check();
     }
     catch(std::exception& Exc)
     {

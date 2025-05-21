@@ -50,8 +50,9 @@ Return      : None.
 #if(RVM_VIRT_LIB_ENABLE!=0U)
 void RVM_Virt_Init(void)
 {
-    /* Interrupt masked on boot, no vector pending */
+    /* Interrupt masked/disabled on boot, no vector pending */
     RVM_Int_Mask=1U;
+    RVM_Int_Disable=1U;
     RVM_Vct_Pend=0U;
     
     /* Clean up all shared global variables - the RVM would clean it for us on
@@ -121,7 +122,7 @@ rvm_ret_t RVM_Virt_Vct_Trig(rvm_ptr_t Vct_Num)
         {
             RVM_COV_MARKER();
             
-            RVM_ASSERT(RVM_Sig_Snd(RVM_SIG_VCT)==0);
+            RVM_ASSERT(RVM_Sig_Snd(RVM_SIG_VCT,1U)==0);
         }
         else
         {
@@ -190,12 +191,11 @@ void RVM_Virt_Int_Unmask(void)
     RVM_Int_Mask=0U;
     
     /* Trigger interrupt processing if there are pending ones */
-    if(RVM_Vct_Pend!=0U)
+    if((RVM_Int_Disable==0U)&&(RVM_Vct_Pend!=0U))
     {
         RVM_COV_MARKER();
         
-        RVM_Vct_Pend=0U;
-        RVM_ASSERT(RVM_Sig_Snd(RVM_SIG_VCT)==0);
+        RVM_ASSERT(RVM_Sig_Snd(RVM_SIG_VCT,1U)==0);
     }
     else
     {
@@ -221,11 +221,11 @@ void RVM_Virt_Yield(void)
     {
         RVM_COV_MARKER();
         
-        if(RVM_Int_Mask==0U)
+        if((RVM_Int_Disable==0U)&&(RVM_Int_Mask==0U))
         {
             RVM_COV_MARKER();
             
-            RVM_ASSERT(RVM_Sig_Snd(RVM_SIG_VCT)==0);
+            RVM_ASSERT(RVM_Sig_Snd(RVM_SIG_VCT,1U)==0);
         }
         else
         {
@@ -281,7 +281,7 @@ rvm_ret_t RVM_Hyp(rvm_ptr_t Number,
     
     /* Set the number, do the hypercall */
     Arg->Number=Number;
-    RVM_ASSERT(RVM_Sig_Snd(RVM_SIG_HYP)==0);
+    RVM_ASSERT(RVM_Sig_Snd(RVM_SIG_HYP,1U)==0);
     
     /* The call must be processed */
     RVM_ASSERT(Arg->Number==RVM_HYP_SPURIOUS);
@@ -320,16 +320,52 @@ void RVM_Hyp_Reboot(void)
 
 /* Function:RVM_Hyp_Int_Ena ***************************************************
 Description : Enable interrupts. This must be successful so it does not have
-              a return value.
+              a return value. This is more than a mere hypercall, because the 
+              nesting relationships of RVM_Hyp_Int_Ena and RVM_Int_Mask have the
+              following four cases:
+              1. RVM_Hyp_Int_Dis - RVM_Int_Mask - RVM_Int_Unmask - RVM_Hyp_Int_Ena
+                 This case is fine because after disabling interrupts no interrupts
+                 could be pending after RVM_Int_Mask, and RVM_Hyp_Int_Ena does not
+                 need to trigger Vct pending interrupt processing anyway.
+              2. RVM_Int_Mask - RVM_Hyp_Int_Dis - RVM_Hyp_Int_Ena - RVM_Int_Unmask
+                 This case is also fine because any pending interrupts between 
+                 RVM_Int_Mask and RVM_Hyp_Int_Dis will be triggered for processing
+                 at the final RVM_Int_Unmask.
+              3. RVM_Hyp_Int_Dis - RVM_Int_Mask - RVM_Hyp_Int_Ena - RVM_Int_Unmask
+                 This case is fine as well because it's impossible to have pending
+                 interrupts at all.
+              4. RVM_Int_Mask - RVM_Hyp_Int_Dis - RVM_Int_Unmask - RVM_Hyp_Int_Ena
+                 This case would be the most problematic, and the RVM_Hyp_Int_Ena
+                 at the end must be responsible for triggering Vct pending interrupt
+                 processing. Hence, we must add this mechanism to RVM_Hyp_Int_Ena,
+                 and to facilitate that we need another variable RVM_Int_Disable to
+                 avoid consulting hypervisor for interrupt disabling state.
 Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
 void RVM_Hyp_Int_Ena(void)
 {
+    RVM_Int_Disable=0U;
+    
     /* Must be successful */
-    RVM_Int_Mask=0U;
     RVM_Hyp(RVM_HYP_INT_ENA,0U,0U,0U,0U);
+    
+    /* Trigger interrupt processing if there are pending ones. No race
+     * conditions are possible between this and the RVM_Int_Unmask's
+     * equivalent portion because one of them must be able to enter the
+     * sending branch, thus no interrupts will be erronously delayed. */
+    if((RVM_Int_Mask==0U)&&(RVM_Vct_Pend!=0U))
+    {
+        RVM_COV_MARKER();
+        
+        RVM_ASSERT(RVM_Sig_Snd(RVM_SIG_VCT,1U)==0);
+    }
+    else
+    {
+        RVM_COV_MARKER();
+        /* No operation required */
+    }
 }
 /* End Function:RVM_Hyp_Int_Ena **********************************************/
 
@@ -342,9 +378,10 @@ Return      : None.
 ******************************************************************************/
 void RVM_Hyp_Int_Dis(void)
 {
+    RVM_Int_Disable=1U;
+    
     /* Must be successful */
     RVM_Hyp(RVM_HYP_INT_DIS,0U,0U,0U,0U);
-    RVM_Int_Mask=1U;
 }
 /* End Function:RVM_Hyp_Int_Dis **********************************************/
 
@@ -554,16 +591,16 @@ void RVM_Vct_Loop(void)
         /* Block on the receive endpoint */
         RVM_ASSERT(RVM_Sig_Rcv(RVM_SIG_VCT,RVM_RCV_BM)>=0);
         
-        /* Only try to get interrupts if we didn't mask it */
-        if(RVM_Int_Mask==0U)
+        /* Try to get interrupts if interrupt enabled and we didn't mask it */
+        if((RVM_Int_Disable==0U)&&(RVM_Int_Mask==0U))
         {
             RVM_COV_MARKER();
             
             /* Indicate vector execution mode active */
             RVM_STATE->Vct_Act=1U;
-            /* Clear the pending flag */
+            /* Clear the pending flag - set when we can't process immediately */
             RVM_Vct_Pend=0U;
-            /* Look for interrupts to handle from the first */
+            /* Look for interrupts to handle from the first vector number */
             Vct_Num=RVM_Vct_Get();
             
             /* Handle the vectors here - all vectors tail-chained */
@@ -584,7 +621,7 @@ void RVM_Vct_Loop(void)
                 Vct_Num=RVM_Vct_Get();
             }
             
-            /* Handle timer interrupts */
+            /* Handle timer interrupts if needed */
             if(RVM_VCTF->Tim!=0U)
             {
                 RVM_COV_MARKER();
@@ -637,7 +674,7 @@ void RVM_Vct_Loop(void)
         {
             RVM_COV_MARKER();
             
-            /* Vector pending, will try to process when we enable interrupts */
+            /* Vector pending, will try to process when we can later */
             RVM_Vct_Pend=1U;
         }
     }

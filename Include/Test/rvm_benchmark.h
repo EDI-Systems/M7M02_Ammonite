@@ -122,7 +122,7 @@ while(0)
     for(Count=0;Count<ROUND_NUM;Count++)
     {
         START=RVM_CNT_READ();
-        RVM_ASSERT(RVM_Sig_Snd(SND_RECV1_PRC_PROC1)==0);
+        RVM_ASSERT(RVM_Sig_Snd(SND_RECV1_PRC_PROC1,1U)==0);
         RVM_ASSERT(RVM_Sig_Rcv(RCV_RECV1,RVM_RCV_BM)>=0);
         END=RVM_CNT_READ();
         RVM_DATA();
@@ -145,7 +145,7 @@ while(0)
     
     /* Tell the process 1 thread 2 that it should run, this is to avoid having
      * nothing running in the process so that the virtual machine don't run */
-    RVM_ASSERT(RVM_Sig_Snd(SND_RECV2_PRC_PROC1)==0);
+    RVM_ASSERT(RVM_Sig_Snd(SND_RECV2_PRC_PROC1,1U)==0);
     
     /* Interrupt test */
     RVM_INIT();
@@ -173,7 +173,7 @@ while(0)
     RVM_LIST("Signal (intra)                    ");
     
     /* Tell the process 2 thread 2 that it should run */
-    RVM_ASSERT(RVM_Sig_Snd(SND_RECV2_PRC_PROC2)==0);
+    RVM_ASSERT(RVM_Sig_Snd(SND_RECV2_PRC_PROC2,1U)==0);
     
     /* Signal inter test */
     RVM_INIT();
@@ -186,7 +186,7 @@ while(0)
     RVM_LIST("Signal (inter)                    ");
     
     /* Tell the process 2 thread 1 that it should run */
-    RVM_ASSERT(RVM_Sig_Snd(SND_RECV1_PRC_PROC2)==0);
+    RVM_ASSERT(RVM_Sig_Snd(SND_RECV1_PRC_PROC2,1U)==0);
     
     /* Yield inter */
     RVM_INIT();
@@ -222,7 +222,7 @@ while(0)
     for(Count=0;Count<ROUND_NUM;Count++)
     {
         START=RVM_CNT_READ();
-        RVM_ASSERT(RVM_Sig_Snd(SND_RECV1_PRC_PROC1)>=0);
+        RVM_ASSERT(RVM_Sig_Snd(SND_RECV1_PRC_PROC1,1U)>=0);
     }
     
     /* Test done, block on the signal forever */
@@ -271,7 +271,7 @@ while(0)
     for(Count=0;Count<ROUND_NUM;Count++)
     {
         START=RVM_CNT_READ();
-        RVM_ASSERT(RVM_Sig_Snd(SND_RECV1_PRC_PROC1)>=0);
+        RVM_ASSERT(RVM_Sig_Snd(SND_RECV1_PRC_PROC1,1U)>=0);
     }
     
     /* Test done, block on the signal forever */

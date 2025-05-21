@@ -130,6 +130,7 @@ public:
     void Physical_Check(void);
     void Static_Check(void);
     void Reference_Check(void);
+    void Genpath_Check(void);
     void Check(void);
 
     void Setup(void);
@@ -302,6 +303,29 @@ void Duplicate_Check(std::vector<STRING>& Vect, std::set<STRING>& Set,
             Set.insert(Var);
         else
             Main::Error(std::string(Errno)+": Duplicate "+Field+" '"+To_String(Var)+"' found in '"+Section+"' section.");
+    }
+}
+
+template <typename STRING, typename PRC>
+void Path_Check(const STRING& Path, PRC* Prc, std::map<STRING, PRC*>& Map,
+                const std::string& Errno, const std::string& Field)
+{
+    std::string Abspath;
+    typename std::map<STRING,PRC*>::iterator Iter;
+
+    Abspath=Main::Path_Absolute(PATH_DIR,".",Path);
+    Iter=Map.find(Abspath);
+    if(Iter==Map.end())
+        Map.insert(std::pair<STRING,PRC*>(Abspath,Prc));
+    else
+    {
+        if(Iter->second!=Prc)
+        {
+            if(Iter->second==nullptr)
+                Main::Error(std::string(Errno)+": Path '"+Field+"' has already been used in kernel or monitor.");
+            else
+                Main::Error(std::string(Errno)+": Path '"+Field+"' has already been used in process '"+Iter->second->Name+"'.");
+        }
     }
 }
 /*****************************************************************************/
