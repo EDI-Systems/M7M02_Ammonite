@@ -39,9 +39,26 @@ Return      : None.
 ******************************************************************************/
 /* void */ Port::Port(class wxXmlNode* Node)
 {
-
+    /* Name */
+    this->Name=Main::Text_Load(Node,"Name");
+    /* Process */
+    this->Process=Main::Text_Load(Node,"Process");
 }
 /* End Function:Port::Port ***************************************************/
+
+/* Function:Port::Port **************************************************
+Description : Constructor for send information.
+Input       : class wxXmlNode* Node - The node containing information.
+              ptr_t Type - Whether this is a native process or a VM.
+Output      : None.
+Return      : None.
+******************************************************************************/
+/* void */ Port::Port(const std::string& Name, const std::string& Process)
+{
+   this->Name=Name;
+   this->Process=Process;
+}
+/* End Function:Port::Port *********************************************/
 
 /* Function:Port::~Port *******************************************************
 Description : Destructor for thread information.
@@ -63,6 +80,10 @@ Return      : None.
 ******************************************************************************/
 void Port::Save(class wxXmlNode* Parent)
 {
+    /* Name */
+    Main::Text_Save(Parent,"Name",this->Name);
+    /* Process */
+    Main::Text_Save(Parent,"Process",this->Process);
 
 }
 /* End Function:Port::Save ***************************************************/

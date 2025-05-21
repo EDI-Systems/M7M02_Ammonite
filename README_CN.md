@@ -188,5 +188,8 @@ Click **[HERE](README.md)** for English version.
 
 &emsp;&emsp;请阅读[CONTRIBUTING.md](CONTRIBUTING.md)文档来获得关于行为规范和提交代码的相关信息。
 
-## EDI 工程信息
-&emsp;&emsp;演进 - 中生 - 菊石 (M7M2 R2T1)
+### EDI 工程信息
+- M7M02 R3T1
+
+### 杰出贡献者
+- 李璧辰 - 微内核配置器的图形界面适配。

@@ -28,9 +28,10 @@ Description : Platform information implementation.
 
 #define __HDR_CLASS__
 #include "rvm_cfg.hpp"
-#include "Conf_Info/conf_info.hpp"
+/* #include "Conf_Info/conf_info.hpp" */
 #include "Plat_Info/Compatible/compatible.hpp"
 #include "Plat_Info/Default/default.hpp"
+#include "Plat_Info/Config/config.hpp"
 #include "Plat_Info/plat_info.hpp"
 #undef __HDR_CLASS__
 /* End Include ***************************************************************/
@@ -44,16 +45,21 @@ Return      : None.
 ******************************************************************************/
 /* void */ Plat_Info::Plat_Info(const std::string& Path)
 {
-    class wxFileName Temp;
-    std::string Name;
-    std::unique_ptr<class wxXmlDocument> Document;
-    class wxXmlNode* Platform;
+    wxLogDebug("Plat_Info::Plat_Info: %s",Path);
 
-    this->Path=Path;
+    std::string Name;
+    class wxFileName Temp;
+    class wxXmlNode* Platform;
+    std::unique_ptr<class wxXmlDocument> Document;
+
     Temp=Path;
+    this->Path=Path;
+    /* File name, including suffix */
     this->Filename=Temp.GetFullName();
     this->Fullpath=Temp.GetFullPath();
+    /* The location of the file */
     this->Fulldir=Temp.GetPathWithSep();
+    /* File name without suffix */
     this->Name=Temp.GetName();
     this->Version=SOFTWARE_VERSION;
 
@@ -79,8 +85,13 @@ Return      : None.
 
     /* Name */
     this->Name=Main::Text_Load(Platform, "Name");
+    wxLogDebug(wxString(this->Name));
+    /* Version */
+    this->Version=Main::Text_Load(Platform,"Version");
     /* Wordlength */
     this->Wordlength=Main::Num_Load(Platform, "Wordlength");
+    /* Coprocessor */
+    Main::CSV_Load(Platform, "Coprocessor", this->Coprocessor);
     /* Buildsystem */
     Main::CSV_Load(Platform, "Buildsystem", this->Buildsystem);
     /* Toolchain */
@@ -92,7 +103,7 @@ Return      : None.
     Trunk_Load<class Compatible>(Main::Simple_Load(Platform,"Compatible"),"C",this->Compatible);
 
     /* Default options */
-    this->Default=std::make_unique<class Default>(Main::Simple_Load(Platform,"Default"));
+    //this->Default=std::make_unique<class Default>(Main::Simple_Load(Platform,"Default"));
 
     /* Configs */
     Trunk_Load<class Conf_Info>(Main::Simple_Load(Platform,"Config"),"C",this->Config);

@@ -32,24 +32,6 @@ Description : Monitor information implementation.
 namespace RVM_CFG
 {
 /* Function:Monitor::Monitor ****************************************************
-Description : Default constructor for kernel information. This will initialize
-              with the platform/chip description file.
-Input       : const std::string& Monitor_Root - The kernel root folder.
-              const class Plat_Info* Plat - The platform information.
-              const class Chip_Info* Chip - The chip information.
-Output      : None.
-Return      : None.
-******************************************************************************/
-/* void */ Monitor::Monitor(const std::string& Monitor_Root,
-                            const class Plat_Info* Plat,
-                            const class Plat_Info* Chip)
-{
-    this->Monitor_Root=Monitor_Root;
-    /* Populate later */
-}
-/* End Function:Monitor::Monitor ***********************************************/
-
-/* Function:Monitor::Monitor ****************************************************
 Description : Constructor for kernel information.
 Input       : class wxXmlNode* Node - The node containing information.
 Output      : None.
@@ -57,8 +39,6 @@ Return      : None.
 ******************************************************************************/
 /* void */ Monitor::Monitor(class wxXmlNode* Node)
 {
-    /* Monitor_Root */
-    this->Monitor_Root=Main::Text_Load(Node,"Monitor_Root");
     /* Code_Size */
     this->Code_Size=Main::Num_Load(Node,"Code_Size");
     /* Data_Size */
@@ -67,14 +47,18 @@ Return      : None.
     this->Init_Stack_Size=Main::Num_Load(Node,"Init_Stack_Size");
     /* Sftd_Stack_Size */
     this->Sftd_Stack_Size=Main::Num_Load(Node,"Sftd_Stack_Size");
-    /* Vctd_Stack_Size */
-    this->Vctd_Stack_Size=Main::Num_Load(Node,"Vctd_Stack_Size");
-    /* Timd_Stack_Size */
-    this->Timd_Stack_Size=Main::Num_Load(Node,"Timd_Stack_Size");
-    /* Hypd_Stack_Size */
-    this->Hypd_Stack_Size=Main::Num_Load(Node,"Hypd_Stack_Size");
+//    /* Vctd_Stack_Size (Old Item) */
+//    this->Vctd_Stack_Size=Main::Num_Load(Node,"Vctd_Stack_Size");
+//    /* Timd_Stack_Size (Old Item)  */
+//    this->Timd_Stack_Size=Main::Num_Load(Node,"Timd_Stack_Size");
+//    /* Hypd_Stack_Size (Old Item)  */
+//    this->Hypd_Stack_Size=Main::Num_Load(Node,"Hypd_Stack_Size");
+    /* Vmmd_Stack_Size, this is a new item */
+    this->Vmmd_Stack_Size=Main::Num_Load(Node,"Vmmd_Stack_Size");
     /* Extra_Captbl */
     this->Extra_Captbl=Main::Num_Load(Node,"Extra_Captbl");
+    /* Idle_Sleep_Enable, this is a new item */
+    this->Idle_Sleep_Enable=Main::Yesno_Load(Node,"Idle_Sleep_Enable");
     /* Virt_Prio */
     this->Virt_Prio=Main::Num_Load(Node,"Virt_Prio");
     /* Virt_Event */
@@ -106,6 +90,39 @@ Return      : None.
 }
 /* End Function:Monitor::Monitor ***********************************************/
 
+/* Function:Monitor::Monitor ****************************************************
+Description : Constructor for kernel information.
+Input       : class wxXmlNode* Node - The node containing information.
+Output      : None.
+Return      : None.
+******************************************************************************/
+/* void */ Monitor::Monitor(const class Plat_Info* Plat_Info, const class Chip_Info* Chip_Info)
+{
+    /* Set default value */
+    this->Code_Size=0;
+    this->Data_Size=0;
+    this->Init_Stack_Size=0;
+    this->Sftd_Stack_Size=0;
+    this->Vmmd_Stack_Size=0;
+    this->Extra_Captbl=0;
+    this->Idle_Sleep_Enable=0;
+    this->Virt_Prio=32;
+    this->Virt_Event=32;
+    this->Virt_Map=32;
+    this->Buildsystem="Makefile";
+    this->Toolchain="GCC";
+    this->Optimization=0;
+    this->Project_Output="./Monitor/Project/";
+    this->Project_Overwrite=0;
+    this->Linker_Output="./";
+    this->Config_Header_Output="../Include/";
+    this->Boot_Header_Output="../Include/";;
+    this->Boot_Source_Output="../Source/";
+    this->Hook_Source_Output="../Source/";
+    this->Hook_Source_Overwrite=0;
+}
+/* End Function:Monitor::Monitor ***********************************************/
+
 /* Function:Monitor::~Monitor ***************************************************
 Description : Destructor for kernel information.
 Input       : None.
@@ -126,8 +143,6 @@ Return      : None.
 ******************************************************************************/
 void Monitor::Save(class wxXmlNode* Parent)
 {
-    /* Monitor_Root */
-    Main::Text_Save(Parent,"Monitor_Root",this->Monitor_Root);
     /* Code_Size */
     Main::Hex_Save(Parent,"Code_Size",4,this->Code_Size);
     /* Data_Size */
@@ -136,14 +151,18 @@ void Monitor::Save(class wxXmlNode* Parent)
     Main::Hex_Save(Parent,"Init_Stack_Size",4,this->Init_Stack_Size);
     /* Sftd_Stack_Size */
     Main::Hex_Save(Parent,"Sftd_Stack_Size",4,this->Sftd_Stack_Size);
-    /* Vctd_Stack_Size */
-    Main::Hex_Save(Parent,"Vctd_Stack_Size",4,this->Vctd_Stack_Size);
-    /* Timd_Stack_Size */
-    Main::Hex_Save(Parent,"Timd_Stack_Size",4,this->Timd_Stack_Size);
-    /* Hypd_Stack_Size */
-    Main::Hex_Save(Parent,"Hypd_Stack_Size",4,this->Hypd_Stack_Size);
+    /* Vctd_Stack_Size, this is an old item */
+//    Main::Hex_Save(Parent,"Vctd_Stack_Size",4,this->Vctd_Stack_Size);
+//    /* Timd_Stack_Size, this is an old item */
+//    Main::Hex_Save(Parent,"Timd_Stack_Size",4,this->Timd_Stack_Size);
+//    /* Hypd_Stack_Size, this is an old item */
+//    Main::Hex_Save(Parent,"Hypd_Stack_Size",4,this->Hypd_Stack_Size);
+//    /* Vmmd_Stack_Size, this is a new item */
+    Main::Hex_Save(Parent,"Vmmd_Stack_Size",4,this->Vmmd_Stack_Size);
     /* Extra_Captbl */
     Main::Num_Save(Parent,"Extra_Captbl",this->Extra_Captbl);
+    /* Idle_Sleep_Enable, this is a new item */
+    Main::Yesno_Save(Parent,"Idle_Sleep_Enable",this->Idle_Sleep_Enable);
     /* Virt_Prio */
     Main::Num_Save(Parent,"Virt_Prio",this->Virt_Prio);
     /* Virt_Event */

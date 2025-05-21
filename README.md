@@ -203,5 +203,8 @@ This software is an official work of EDI, and thus belongs to the **public domai
 
 &ensp;&ensp;&ensp;&ensp;Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 
-## EDI Project Information
-&ensp;&ensp;&ensp;&ensp;Mutate - Mesazoa - Ammonite (M7M2 R2T1)
+### EDI Project Information
+- M7M02 R3T1
+
+### Starring Contributors
+- Bichen Li - Graphical User Interface for Project Generator.

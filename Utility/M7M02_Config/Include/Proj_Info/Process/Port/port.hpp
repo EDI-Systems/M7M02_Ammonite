@@ -40,8 +40,13 @@ namespace RVM_CFG
 class Port
 {
 public:
+    /* Name */
+    std::string Name;
+    /* Process */
+    std::string Process;
 
     /* void */ Port(class wxXmlNode* Node);
+    /* void */ Port(const std::string& Name, const std::string& Process);
     /* void */ ~Port(void);
 
     virtual void Save(class wxXmlNode* Parent);
