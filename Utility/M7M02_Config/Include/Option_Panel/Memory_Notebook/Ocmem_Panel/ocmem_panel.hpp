@@ -1,19 +1,19 @@
 /******************************************************************************
-Filename    : memory_panel.hpp
+Filename    : ocmem_panel.hpp
 Author      : lbc
 Date        : 16/05/2025
 Licence     : The Unlicense; see LICENSE for details.
-Description : Chip memory information class header.
+Description : On-chip memory information class header.
 ******************************************************************************/
 
 /* Define ********************************************************************/
 #ifdef __HDR_DEF__
-#ifndef __CHIP_MEMORY_PANEL_TYPE__
-#define __CHIP_MEMORY_PANEL_TYPE__
+#ifndef __OCMEM_PANEL_TYPE__
+#define __OCMEM_PANEL_TYPE__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __CHIP_MEMORY_PANEL_TYPE__ */
+/* __OCMEM_PANEL_TYPE__ */
 #endif
 /* __HDR_DEF__ */
 #endif
@@ -21,8 +21,8 @@ Description : Chip memory information class header.
 namespace RVM_CFG
 {
 #ifdef __HDR_DEF__
-#ifndef __CHIP_MEMORY_PANEL_DEF__
-#define __CHIP_MEMORY_PANEL_DEF__
+#ifndef __OCMEM_PANEL_DEF__
+#define __OCMEM_PANEL_DEF__
 /*****************************************************************************/
 /* Memory type - Code, Data, Device */
 #define MEM_CODE            0
@@ -40,7 +40,7 @@ namespace RVM_CFG
 /* Memory placement */
 #define MEM_AUTO            ((ptr_t)(-1LL))
 /*****************************************************************************/
-/* __CHIP_MEMORY_PANEL_DEF__ */
+/* __OCMEM_PANEL_DEF__ */
 #endif
 /* __HDR_DEF__ */
 #endif
@@ -48,10 +48,10 @@ namespace RVM_CFG
 
 /* Classes *******************************************************************/
 #ifdef __HDR_CLASS__
-#ifndef __CHIP_MEMORY_PANEL_CLASS__
-#define __CHIP_MEMORY_PANEL_CLASS__
+#ifndef __OCMEM_PANEL_CLASS__
+#define __OCMEM_PANEL_CLASS__
 /*****************************************************************************/
-class Chip_Memory_Panel:public wxPanel
+class Ocmem_Panel:public wxPanel
 {
 public:
     class wxBoxSizer* Border_Sizer;
@@ -59,15 +59,13 @@ public:
 
     class wxGrid* Grid;
 
-    /* void */ Chip_Memory_Panel(class wxWindow*parent);
-    /* void */ ~Chip_Memory_Panel(void);
+    /* void */ Ocmem_Panel(class wxWindow* Parent);
+    /* void */ ~Ocmem_Panel(void);
 
     void Load(const std::vector<std::unique_ptr<class Mem_Info>>& Chip_Mem);
-    void On_Grid(class wxGridRangeSelectEvent& Event);
-    void Add_Func(void);
 };
 /*****************************************************************************/
-/* __CHIP_MEMORY_PANEL_CLASS__ */
+/* __OCMEM_PANEL_CLASS__ */
 #endif
 /* __HDR_CLASS__ */
 #endif

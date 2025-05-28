@@ -53,8 +53,6 @@ public:
 
     ret_t Native_Add(const std::string& Name);
     ret_t Virtual_Add(const std::string& Name);
-    ret_t Native_Rename(const std::string& Original, const std::string& Current);
-    ret_t Virtual_Rename(const std::string& Original, const std::string& Current);
 
     void State_Set(void);
 

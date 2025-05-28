@@ -44,15 +44,14 @@ class Basic_Panel:public wxPanel
 public:
 
     class wxBoxSizer* Main_Sizer;
-    class wxStaticBoxSizer* Sizer1;
-    class wxStaticBoxSizer* Sizer2;
-    //class wxStaticBoxSizer* Sizer3;
-    class wxStaticBoxSizer* Sizer4;
-    class wxStaticBoxSizer* Sizer5;
+    class wxStaticBoxSizer* Basic_Sizer;
+    class wxStaticBoxSizer* Workspace_Sizer;
+    class wxStaticBoxSizer* Target_Sizer;
+    class wxStaticBoxSizer* Specific_Sizer;
 
     /* Group 1 */
-    class wxBoxSizer* Sizer1_1;
-    class wxBoxSizer* Sizer1_2;
+    class wxBoxSizer* Basic_Line1_Sizer;
+    class wxBoxSizer* Basic_Line2_Sizer;
 
     class wxStaticText* Name_Label;
     class wxTextCtrl* Name;
@@ -71,7 +70,7 @@ public:
     class wxBoxSizer* Pgtbl_Raw_Enable_Sizer;
 
     /* Group 2 */
-    class wxBoxSizer* Sizer2_1;
+    class wxBoxSizer* Workspace_Line1_Sizer;
 
     class wxStaticText* Buildsystem_Label;
     class wxChoice* Buildsystem;
@@ -81,16 +80,13 @@ public:
     class wxCheckBox* Workspace_Overwrite;
     class wxBoxSizer* Workspace_Overwrite_Sizer;
 
-    /* Group 3 */
-    //class wxBoxSizer* Sizer3_1;
-
     class wxStaticText* Coprocessor_Label;
-    class std::map<std::string,wxCheckBox*> Coprocessor;
+    std::map<std::string,wxCheckBox*> Coprocessor;
     class wxBoxSizer* Coprocessor_Sizer;
 
     /* Group 4 */
-    class wxBoxSizer* Sizer4_1;
-    class wxBoxSizer* Sizer4_2;
+    class wxBoxSizer* Target_Line1_Sizer;
+    class wxBoxSizer* Target_Line2_Sizer;
 
     class wxStaticText* Platform_Label;
     class wxTextCtrl* Platform;
@@ -108,17 +104,18 @@ public:
     std::map<std::string, class wxTextCtrl*>Config_Range;
     std::map<std::string, class wxChoice*>Config_Choice;
 
-    /* void */ Basic_Panel(class wxWindow*parent);
+    /* void */ Basic_Panel(class wxWindow* Parent);
     /* void */ ~Basic_Panel(void);
 
     void Load(void);
-    void Save(void);
     ret_t Check(void);
+    void Save(void);
 
     void Coprocessor_Set(void);
+    void Buildsystem_Set(void);
     void Config_Set(void);
-    void Compatible_Set(void);
-    void On_Rename(class wxMouseEvent& Event);
+
+    void On_Name_Text(class wxMouseEvent& Event);
 };
 /*****************************************************************************/
 /* __BASIC_PANEL_CLASS__ */

@@ -35,24 +35,6 @@ Description :  information implementation.
 namespace RVM_CFG
 {
 /* Function:Process::Process **************************************************
-Description : Default constructor for process information.
-Input       : const std::string& Name - The exact chip name.
-              ptr_t Type - The type of the process, native or virtual.
-              const std::string& Root - The root folder path.
-              const class Plat_Info* Plat - The platform information.
-Output      : None.
-Return      : None.
-******************************************************************************/
-/* void */ Process::Process(const std::string& Name,
-                            ptr_t Type,
-                            const std::string& Root,
-                            const class Plat_Info* Plat)
-{
-
-}
-/* End Function:Process::Process *********************************************/
-
-/* Function:Process::Process **************************************************
 Description : Constructor for process information.
 Input       : class wxXmlNode* Node - The node containing information.
               ptr_t Type - The type of the process, native or virtual.
@@ -99,10 +81,11 @@ Return      : None.
 /* Function:Process::Process *************************************************
 Description : Destructor for process information.
 Input       : const std::string& Name - The name of process.
+              ptr_t Type - The type of the process, native or virtual.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Process::Process(const std::string& Name)
+/* void */ Process::Process(const std::string& Name, ptr_t Type)
 {
     /* Set default value */
     this->Name=Name;

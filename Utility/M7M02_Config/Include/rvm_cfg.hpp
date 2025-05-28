@@ -144,13 +144,9 @@ while(0)
 #define OPTIMIZATION_OF                     (4)
 #define OPTIMIZATION_OS                     (5)
 
-/* Whether to allow the name to be empty  */
-#define BLANK_NAME_FORBID                   (0)
-#define BLANK_NAME_PERMIT                   (1)
-
-/* Whether the panel has been shown  */
-//#define HAS_NOT_SHOWN                       (0)
-//#define HAS_SHOWN                           (1)
+/* Whether to allow the name to be empty in checks */
+#define BLANK_FORBID                        (0)
+#define BLANK_ALLOW                         (1)
 /*****************************************************************************/
 /* __RVM_CFG_DEF__ */
 #endif
@@ -169,19 +165,14 @@ public:
     /* Executable path */
     static std::string Exe_Folder;
 
+    /* Source path */
+    static std::string RME_Folder;
+    static std::string RVM_Folder;
+    static std::string RMP_Folder;
+
     /* Application states */
     static ptr_t UI_State;
     static ptr_t Save_State;
-
-    /* Three key relative paths of RVM, RME, RMP */
-    static std::string RVM_Path;
-    static std::string RME_Path;
-    static std::string RMP_Path;
-
-    /* Platform and chip */
-    static std::string Platform;
-    static std::string Chip;
-    static std::string Type;
 
     /* The largest number ever used by native process and virtual machine */
     static cnt_t Native_Cnt;
@@ -193,27 +184,19 @@ public:
     static class wxPanel* App_Panel;
     static class wxBoxSizer* App_Sizer;
     static class wxBoxSizer* Config_Sizer;
-    static class Config_Tree* Config;
+    static class Config_Tree* Config_Tree;
     static class wxBoxSizer* Option_Sizer;
-    static class Option_Panel* Option;
-    //static class Output_Notebook* Output;
+    static class Option_Panel* Option_Panel;
     static class wxTextCtrl* Output_Text;
     static class Status_Bar* Status_Bar;
 
     static class About_Dialog* About_Dialog;
     static class Setting_Dialog* Setting_Dialog;
-    static class Choose_Dialog* Choose_Dialog;
+    static class Target_Dialog* Target_Dialog;
     static class Name_Dialog* Name_Dialog;
 
     /* Option Panel */
     static class wxWindow* Last_Option;
-
-    static class Basic_Panel* Basic_Panel;
-    static class Memory_Notebook* Memory_Notebook;
-    static class Kernel_Panel* Kernel_Panel;
-    static class Monitor_Panel* Monitor_Panel;
-    static class Native_Notebook* Native_Notebook;
-    static class Virtual_Notebook* Virtual_Notebook;
 
     /* Data */
     static std::unique_ptr<class Plat_Info> Plat_Info;
@@ -266,9 +249,15 @@ public:
     static class wxXmlNode* Opt_Save(class wxXmlNode* Parent,
                                      const std::string& Name, ptr_t Content);
 
-    /* New functions */
+    /* File operation helpers */
     static ret_t File_List(const std::string& Path, std::vector<std::string>& List);
     static ret_t Dir_List(const std::string& Path, std::vector<std::string>& List);
+
+    /* Renaming helpers */
+    static void Native_Rename(const std::string& Original, const std::string& Current);
+    static void Virtual_Rename(const std::string& Original, const std::string& Current);
+
+    /* Grid operation helpers */
     static void Row_Swap(class wxGrid* Grid,ptr_t First,ptr_t Second);
     static ret_t Row_Get(class wxGrid* Grid);
     static ret_t Row_Add(class wxGrid* Grid);
@@ -277,24 +266,49 @@ public:
     static void Row_Move_Up(class wxGrid* Grid);
     static void Row_Move_Down(class wxGrid* Grid);
     static void Row_Reorder(class wxGrid* Grid);
-    static void Gird_Clear_Content(class wxGrid* Grid);
-    static ret_t Num_GZ_Check(std::string Num);
-    static ret_t Num_GEZ_Check(std::string Num);
-    static ret_t Num_GEZ_Hex_Check(std::string Num);
-    static ret_t Row_Name_Check(class wxGrid* Grid, const std::string& Location,
-                                const ptr_t& Type=BLANK_NAME_FORBID, const ptr_t& Name_Col=0);
-    static ret_t Comp_Check(const wxString& Buildsystem, const wxString& Toolchain, const wxString& Guest);
+
+    /* Memory grid operation helpers */
+    static ptr_t Mem_Type_Get(class wxGrid* Grid, ptr_t Row, ptr_t Col);
+    static void Mem_Type_Set(ptr_t Type, class wxGrid* Grid, ptr_t Row, ptr_t Col);
+    static ptr_t Mem_Attr_Get(class wxGrid* Grid, ptr_t Row, ptr_t Col);
+    static void Mem_Attr_Set(ptr_t Attr, class wxGrid* Grid, ptr_t Row, ptr_t Col);
+
+    /* Name grid operation helpers */
+    static ret_t Name_Check(class wxGrid* Grid, ptr_t Col,
+                            const class wxString& Caption, ptr_t Blank_Allow);
+
+    /* Choice helpers */
+    static void Choice_Refill(class wxChoice* Choice, const std::vector<std::string>& Avail);
+
+    /* Coprocessor checkbox helpers */
+    static void Coprocessor_Refill(class wxWindow* Parent,
+                                   class wxStaticText*& Cop_Label,
+                                   class wxBoxSizer*& Cop_Sizer,
+                                   std::map<std::string,wxCheckBox*>& Cop_Map);
+    static void Coprocessor_Load(const std::vector<std::string>& Cop_List,
+                                 std::map<std::string,wxCheckBox*>& Cop_Map);
+    static void Coprocessor_Save(std::vector<std::string>& Cop_List,
+                                 const std::map<std::string,wxCheckBox*>& Cop_Map);
+
+    /* Number checker/validator */
+    static std::string Num2Dec(const std::string& Num);
+    static std::string Num2Hex(const std::string& Num);
+    static ret_t Dec_Check(class wxWindow* Parent, const class wxString& Num,
+                           const class wxString& Section, const class wxString& Field);
+    static ret_t Dec_Pos_Check(class wxWindow* Parent, const class wxString& Num,
+                               const class wxString& Section, const class wxString& Field);
+    static ret_t Hex_Check(class wxWindow* Parent, const class wxString& Num,
+                           const class wxString& Section, const class wxString& Field);
+    static ret_t Hex_Pos_Check(class wxWindow* Parent, const class wxString& Num,
+                               const class wxString& Section, const class wxString& Field);
+
+    /* Combination compatibility validator */
     static ret_t File_Validate(const std::string& Filename);
-    static ret_t Check_And_Save_Current_Edit(void);
+
     /* if no cross-check is performed, then this function is not necessary. */
-    //static ret_t Check_And_Save_All(void);
     static void GUI_Update(void);
     static std::vector<std::string> Plat_Load(const std::string& Plat);
     static std::vector<std::string> Chip_Load(const std::string& Plat,const std::string& Chip);
-
-    /* Output notebook updates, which both have been invalid */
-    /*static void Output_Update(std::vector<std::string>& Reply,ptr_t Panel,ptr_t Append); */
-    /*static void Output_Clear(ptr_t Panel); */
 
     /* Preference setting */
     static void Setting(void);
@@ -304,7 +318,7 @@ public:
                                      const std::string& Root, const std::string& Path);
     /* Tool bar click function */
     static void Setting_Begin(void);
-    static void Choose_Begin(const std::string& Path);
+    static void Target_Begin(const std::string& Path);
 
     /* Project operations */
     static void Proj_New(const std::string& Path);

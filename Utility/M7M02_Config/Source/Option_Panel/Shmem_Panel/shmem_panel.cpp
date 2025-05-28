@@ -23,6 +23,7 @@ Description : Shmem panel implementation.
 #include "string"
 
 #define __HDR_DEF__
+#include "Mem_Info/mem_info.hpp"
 #include "Option_Panel/Shmem_Panel/shmem_panel.hpp"
 #undef __HDR_DEF__
 
@@ -39,19 +40,14 @@ namespace RVM_CFG
 /* Function:Shmem_Panel::Shmem_Panel ******************************************
 Description : Constructor for shared memory information.
 Input       : class wxWindow* Parent - The parent window.
-              const std::string& _Loction - The loction where the error occurred.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Shmem_Panel::Shmem_Panel(class wxWindow* Parent, const std::string& _Location):
-wxPanel(Parent,wxID_ANY),Location(_Location)
+/* void */ Shmem_Panel::Shmem_Panel(class wxWindow* Parent):
+wxPanel(Parent,wxID_ANY)
 {
     try
     {
-        this->Type_Option.Add("Code");
-        this->Type_Option.Add("Data");
-        this->Type_Option.Add("Device");
-
         this->SetBackgroundColour(Parent->GetBackgroundColour());
 
         this->Border_Sizer=new class wxBoxSizer(wxVERTICAL);
@@ -84,7 +80,7 @@ wxPanel(Parent,wxID_ANY),Location(_Location)
         this->Grid->CreateGrid(0,12,wxGrid::wxGridSelectRows);
         this->Grid->HideRowLabels();
         this->Grid->SetColLabelSize(I2P(32));
-        this->Grid->SetColLabelValue(0,_(""));
+        this->Grid->SetColLabelValue(0,"#");
         this->Grid->SetColLabelValue(1,_("Name"));
         this->Grid->SetColLabelValue(2,_("Type"));
         this->Grid->SetColLabelValue(3,_("Base"));
@@ -97,11 +93,11 @@ wxPanel(Parent,wxID_ANY),Location(_Location)
         this->Grid->SetColLabelValue(10,_("C"));
         this->Grid->SetColLabelValue(11,_("S"));
         this->Grid->SetColSize(0,I2P(30));
-        this->Grid->SetColSize(1,I2P(110));
+        this->Grid->SetColSize(1,I2P(160));
         this->Grid->SetColSize(2,I2P(120));
-        this->Grid->SetColSize(3,I2P(130));
-        this->Grid->SetColSize(4,I2P(130));
-        this->Grid->SetColSize(5,I2P(150));
+        this->Grid->SetColSize(3,I2P(120));
+        this->Grid->SetColSize(4,I2P(120));
+        this->Grid->SetColSize(5,I2P(120));
         this->Grid->SetColSize(6,I2P(20));
         this->Grid->SetColSize(7,I2P(20));
         this->Grid->SetColSize(8,I2P(20));
@@ -111,8 +107,7 @@ wxPanel(Parent,wxID_ANY),Location(_Location)
         this->Grid->DisableDragRowSize();
         this->Grid->DisableDragColSize();
         this->Bind(wxEVT_GRID_RANGE_SELECT,&Shmem_Panel::On_Grid,this,this->Grid->GetId());
-        this->Bind(wxEVT_GRID_CELL_CHANGED, &Shmem_Panel::On_Change, this);
-
+        this->Bind(wxEVT_GRID_CELL_CHANGED,&Shmem_Panel::On_Change,this);
 
         this->Main_Sizer->Add(this->Grid,100,wxEXPAND);
         this->Main_Sizer->AddStretchSpacer(1);
@@ -137,9 +132,177 @@ Return      : None.
 ******************************************************************************/
 /* void */ Shmem_Panel::~Shmem_Panel(void)
 {
-
+    this->Unbind(wxEVT_GRID_RANGE_SELECT,&Shmem_Panel::On_Grid,this,this->Grid->GetId());
+    this->Unbind(wxEVT_GRID_CELL_CHANGED, &Shmem_Panel::On_Change, this);
 }
 /* End Function:Shmem_Panel::Shmem_Panel *************************************/
+
+/* Function:Shmem_Panel::Row_Add *********************************************
+Description : Add a new row to the grid and set the cells to appropriate controls.
+Input       : None.
+Output      : None.
+Return      : ret_t - The row returned.
+******************************************************************************/
+ret_t Shmem_Panel::Row_Add(void)
+{
+    ret_t Row;
+    cnt_t Cnt;
+
+    wxLogDebug("Shmem_Panel::On_Add");
+
+    Row=Main::Row_Add(this->Grid);
+
+    this->Grid->SetCellEditor(Row,1,new class wxGridCellChoiceEditor(this->Shmem_List));
+
+    /* Attribution */
+    for(Cnt=6;Cnt<12;Cnt++)
+    {
+        this->Grid->SetCellEditor(Row,Cnt,new class wxGridCellBoolEditor());
+        this->Grid->SetCellRenderer(Row,Cnt,new class wxGridCellBoolRenderer());
+    }
+
+    /* Type, base, size and align are read only */
+    this->Grid->SetReadOnly(Row, 0, true);
+    this->Grid->SetReadOnly(Row, 2, true);
+    this->Grid->SetReadOnly(Row, 3, true);
+    this->Grid->SetReadOnly(Row, 4, true);
+    this->Grid->SetReadOnly(Row, 5, true);
+
+    /* Which attributes are editable are decided later */
+
+    return Row;
+}
+/* End Function:Shmem_Panel::Row_Add ****************************************/
+
+/* Function:Shmem_Panel::Grid_Editable ***************************************
+Description : Set a grid editable.
+Input       : cnt_t Row - The row.
+              cnt_t Col - The column.
+              ptr_t Editable - Whether to set the grid as read-only.
+Output      : None.
+Return      : ret_t - The row returned.
+******************************************************************************/
+void Shmem_Panel::Grid_Editable(cnt_t Row, cnt_t Col, ptr_t Editable)
+{
+    if(Editable==0)
+    {
+        this->Grid->SetCellValue(Row,Col,"0");
+        this->Grid->SetReadOnly(Row,Col,true);
+        this->Grid->SetCellBackgroundColour(Row,Col,*wxLIGHT_GREY);
+    }
+    else
+    {
+        /* We won't set ones, but definitely clears zeros to filter attr out */
+        this->Grid->SetReadOnly(Row,Col,false);
+        this->Grid->SetCellBackgroundColour(Row,Col,*wxWHITE);
+    }
+}
+/* End Function:Shmem_Panel::Grid_Editable ***********************************/
+
+/* Function:Shmem_Panel::Load_Row *********************************************
+Description : Load the rest of the row, assuming that the name has been loaded.
+Input       : cnt_t Row - The row.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Shmem_Panel::Load_Row(cnt_t Row)
+{
+    char Buf[32];
+    std::string Name;
+
+    Name=this->Grid->GetCellValue(Row, 1);
+
+    /* Set grids to invalid beforehand */
+    this->Grid->SetCellValue(Row, 2, _("Invalid"));
+    this->Grid->SetCellValue(Row, 3, _("Invalid"));
+    this->Grid->SetCellValue(Row, 4, _("Invalid"));
+    this->Grid->SetCellValue(Row, 5, _("Invalid"));
+
+    /* Find the corresponding shared memory block */
+    for(const std::unique_ptr<class Mem_Info>&Mem:Main::Proj_Info->Shmem)
+    {
+        /* If we can find it, set attributes accordingly, and if we can't, just leave it alone */
+        if(Mem->Name==Name)
+        {
+            /* Type */
+            Main::Mem_Type_Set(Mem->Type,this->Grid,Row,2);
+
+            /* Base */
+            if(Mem->Base==MEM_AUTO)
+                this->Grid->SetCellValue(Row, 3, "Auto");
+            else
+            {
+                std::sprintf(Buf, "0x%llX", Mem->Base);
+                this->Grid->SetCellValue(Row, 3, Buf);
+            }
+
+            /* Size */
+            std::sprintf(Buf, "0x%llX", Mem->Size);
+            this->Grid->SetCellValue(Row, 4, Buf);
+
+            /* Align */
+            if(Mem->Align==MEM_AUTO)
+                this->Grid->SetCellValue(Row, 5, "Auto");
+            else
+            {
+                std::sprintf(Buf, "%lld", Mem->Align);
+                this->Grid->SetCellValue(Row, 5, Buf);
+            }
+
+            /* Attributes must be a subset of the original */
+            this->Grid_Editable(Row,6,Mem->Attr&MEM_READ);
+            this->Grid_Editable(Row,7,Mem->Attr&MEM_WRITE);
+            this->Grid_Editable(Row,8,Mem->Attr&MEM_EXECUTE);
+            this->Grid_Editable(Row,9,Mem->Attr&MEM_BUFFER);
+            this->Grid_Editable(Row,10,Mem->Attr&MEM_CACHE);
+            this->Grid_Editable(Row,11,Mem->Attr&MEM_STATIC);
+
+            break;
+        }
+    }
+}
+/* End Function:Shmem_Panel::Load_Row ****************************************/
+
+/* Function:Shmem_Panel::Load *************************************************
+Description : Load information from Proj_Info into the this panel.
+Input       : const std::vector<std::unique_ptr<class Shmem>>&Shmem - The
+              corresponding data structure.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Shmem_Panel::Load(const std::vector<std::unique_ptr<class Shmem>>& Shmem)
+{
+    cnt_t Row;
+
+    wxLogDebug("Shmem_Panel::Load %d",Shmem.size());
+
+    /* Gather all shared memory for reference */
+    this->Shmem_List.Clear();
+    for(const std::unique_ptr<class Mem_Info>&Mem : Main::Proj_Info->Shmem)
+        this->Shmem_List.push_back(Mem->Name);
+
+    /* Clean up the grid */
+    if(this->Grid->GetNumberRows()!=0)
+        this->Grid->DeleteRows(0,this->Grid->GetNumberRows());
+
+    /* Fill in the grid */
+    for(Row=0;Row<(cnt_t)Shmem.size();Row++)
+    {
+        this->Row_Add();
+
+        /* Name */
+        this->Grid->SetCellValue(Row,1,Shmem[Row]->Name);
+
+        /* Original attributes - those not allowed will be filtered out */
+        Main::Mem_Attr_Set(Shmem[Row]->Attr,this->Grid,Row,6);
+
+        /* The rest */
+        this->Load_Row(Row);
+    }
+
+    Main::Row_Reorder(this->Grid);
+}
+/* End Function:Shmem_Panel::Load ********************************************/
 
 /* Function:Shmem_Panel::Check ************************************************
 Description : Check whether the current panel contains any errors.
@@ -149,253 +312,13 @@ Return      : ret_t - if 0, no error exists; else -1.
 ******************************************************************************/
 ret_t Shmem_Panel::Check(void)
 {
-    cnt_t Row;
-
-    if(Main::Row_Name_Check(this->Grid,this->Location,BLANK_NAME_FORBID,1)!=0)
+    /* Only name needs to be checked because other stuff were checked in place */
+    if(Main::Name_Check(this->Grid,1,_("Shared Memory"),BLANK_FORBID)!=0)
         return -1;
 
-    for(Row=0;Row<(cnt_t)this->Grid->GetNumberRows();Row++)
-    {
-        /* 'Type' is a read-only cell, so if it is empty or 'invalid', that means
-         *  this memory is not exist in shared memory */
-
-        /* But since we are not performing cross-checks at the moment, this error will remain */
-//        if(this->Grid->GetCellValue(Row,2)==""||this->Grid->GetCellValue(Row,2)=="Invalid")
-//        {
-//            Main::Msgbox_Show(this, MSGBOX_ERROR,
-//                              _(this->Location),
-//                              _("There is a invalid row, row "+std::to_string(Row+1)));
-//            return -1;
-//        }
-    }
     return 0;
 }
 /* End Function:Shmem_Panel::Check *******************************************/
-
-/* Function:Shmem_Panel::Load *************************************************
-Description : Load information from Proj_Info into the this panel.
-Input       : const std::vector<std::unique_ptr<class Shmem>>&Shmem - The
-              corresponding data structure.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Shmem_Panel::Load(const std::vector<std::unique_ptr<class Shmem>>&Shmem)
-{
-    cnt_t Row;
-    char Buf[32];
-    cnt_t AttrCnt;
-    std::string Name;
-    std::vector<std::unique_ptr<class Mem_Info>>::iterator Mem_It;
-
-    wxLogDebug("Shmem_Panel::Load %d",Shmem.size());
-
-    /* Fill in the information */
-    this->Name_Option.Clear();
-    for(const std::unique_ptr<class Mem_Info>&Mem : Main::Proj_Info->Shmem)
-        this->Name_Option.push_back(Mem->Name);
-    /* Clear the grid */
-    Main::Gird_Clear_Content(this->Grid);
-
-    /* Fill in the grid*/
-    for(Row=0;Row<(cnt_t)Shmem.size();Row++)
-    {
-        /* When I add a new row, I do not know the state of "Attribute",
-         * which one can be write, which one is read-only, so the state
-         * of "Attribute" should be set when I know the specific "Name". */
-        this->Add_Func();
-
-        /* Name */
-        Name=Shmem[Row]->Name;
-        this->Grid->SetCellValue(Row, 1, Name);
-
-        /* The information is come from shared memory */
-        for(const std::unique_ptr<class Mem_Info>&Mem : Main::Proj_Info->Shmem)
-        {
-            if(Mem->Name==Name)
-            {
-                /* Type */
-                this->Grid->SetCellValue(Row, 2, this->Type_Option[Mem->Type]);
-                /* Base */
-                if(Mem->Base==MEM_AUTO)
-                    this->Grid->SetCellValue(Row, 3, "Auto");
-                else
-                {
-                    std::sprintf(Buf, "0x%llX", Mem->Base);
-                    this->Grid->SetCellValue(Row, 3, Buf);
-                }
-
-                /* Size */
-                std::sprintf(Buf, "0x%llX", Mem->Size);
-                this->Grid->SetCellValue(Row, 4, Buf);
-
-                /* Align */
-                if(Mem->Align==MEM_AUTO)
-                    this->Grid->SetCellValue(Row, 5, "Auto");
-                else
-                {
-                    std::sprintf(Buf, "%lld", Mem->Align);
-                    this->Grid->SetCellValue(Row, 5, Buf);
-                }
-
-                /* The state of "Attribute" - which one is read-only. */
-                for(AttrCnt=0;AttrCnt<6;++AttrCnt)
-                {
-                    if((Mem->Attr>>(AttrCnt))&1)
-                    {
-                        /* Can be selected */
-                        this->Grid->SetCellValue(Row,6+AttrCnt,"1");
-                        this->Grid->SetReadOnly(Row,6+AttrCnt,false);
-                        this->Grid->SetCellBackgroundColour(Row,6+AttrCnt,*wxWHITE);
-                    }
-                    else
-                    {
-                        this->Grid->SetCellValue(Row,6+AttrCnt,"");
-                        this->Grid->SetReadOnly(Row,6+AttrCnt,true);
-                        this->Grid->SetCellBackgroundColour(Row,6+AttrCnt,*wxLIGHT_GREY);
-
-                    }
-                }
-                /* Attribute */
-                for(AttrCnt=0;AttrCnt<6;++AttrCnt)
-                {
-                    /* However, this "Attribute" must be a SUBSET of the "Attribute" of shared memory of this project  */
-                    if(((Shmem[Row].get()->Attr>>(AttrCnt))&1)&&!this->Grid->IsReadOnly(Row,6+AttrCnt))
-                        this->Grid->SetCellValue(Row,6+AttrCnt,"1");
-                    else
-                        this->Grid->SetCellValue(Row,6+AttrCnt,"");
-                }
-                break;
-            }
-            else
-            {
-                /* Type */
-                this->Grid->SetCellValue(Row, 2, "Invalid");
-                /* Base */
-                this->Grid->SetCellValue(Row, 3, "Invalid");
-                /* Size */
-                this->Grid->SetCellValue(Row, 4, "Invalid");
-                /* Align */
-                this->Grid->SetCellValue(Row, 5, "Invalid");
-                /* Attribute */
-                for(AttrCnt=0;AttrCnt<6;++AttrCnt)
-                {
-                    this->Grid->SetCellValue(Row,6+AttrCnt,"");
-                    this->Grid->SetReadOnly(Row,6+AttrCnt,true);
-                }
-            }
-        }
-    }
-    Main::Row_Reorder(this->Grid);
-//    cnt_t Row;
-//    char Buf[32];
-//    cnt_t AttrCnt;
-//    std::string Name;
-//    std::vector<std::unique_ptr<class Mem_Info>>::iterator Mem_It;
-//
-//
-//    wxLogDebug("Shmem_Panel::Load %d",Shmem.size());
-//
-//    /* Fill in the information */
-//    this->Name_Option.Clear();
-//    for(const std::unique_ptr<class Mem_Info>&Mem : Main::Proj_Info->Shmem)
-//        this->Name_Option.push_back(Mem->Name);
-//    /* Clear the grid */
-//    Main::Gird_Clear_Content(this->Grid);
-//
-//    /* Fill in the grid*/
-//    for(Row=0;Row<(cnt_t)Shmem.size();Row++)
-//    {
-//        /* When I add a new row, I do not know the state of "Attribute",
-//         * which one can be write, which one is read-only, so the state
-//         * of "Attribute" should be set when I know the specific "Name". */
-//        this->Add_Func();
-//
-//        Name=Shmem[Row]->Name;
-//        for(const std::unique_ptr<class Mem_Info>&Mem : Main::Proj_Info->Shmem)
-//        {
-//            if(Mem->Name==Name)
-//            {
-//                /* Name */
-//                this->Grid->SetCellValue(Row, 1, Name);
-//                /* Type */
-//                this->Grid->SetCellValue(Row, 2, this->Type_Option[Mem->Type]);
-//                /* Base */
-//                if(Mem->Base==MEM_AUTO)
-//                    this->Grid->SetCellValue(Row, 3, "Auto");
-//                else
-//                {
-//                    std::sprintf(Buf, "0x%llX", Mem->Base);
-//                    this->Grid->SetCellValue(Row, 3, Buf);
-//                }
-//
-//                /* Size */
-//                std::sprintf(Buf, "0x%llX", Mem->Size);
-//                this->Grid->SetCellValue(Row, 4, Buf);
-//
-//                /* Align */
-//                if(Mem->Align==MEM_AUTO)
-//                    this->Grid->SetCellValue(Row, 5, "Auto");
-//                else
-//                {
-//                    std::sprintf(Buf, "%lld", Mem->Align);
-//                    this->Grid->SetCellValue(Row, 5, Buf);
-//                }
-//
-//                /* The state of "Attribute", not the value of "Attribute".
-//                 * Now I can know which one is read-only. */
-//                for(AttrCnt=0;AttrCnt<6;++AttrCnt)
-//                {
-//                    /* It is the "Attribute* of shared memory of this project,
-//                     * instead of the shared memory of any "Native" or "Virtual". */
-//                    if((Mem->Attr>>(AttrCnt))&1)
-//                    {
-//                        /* Can be selected */
-//                        this->Grid->SetCellValue(Row,6+AttrCnt,"1");
-//                        this->Grid->SetReadOnly(Row,6+AttrCnt,false);
-//                        this->Grid->SetCellBackgroundColour(Row,6+AttrCnt,*wxWHITE);
-//                    }
-//                    else
-//                    {
-//                        this->Grid->SetCellValue(Row,6+AttrCnt,"");
-//                        this->Grid->SetReadOnly(Row,6+AttrCnt,true);
-//                        this->Grid->SetCellBackgroundColour(Row,6+AttrCnt,*wxLIGHT_GREY);
-//
-//                    }
-//                }
-//                /* Attribute */
-//                for(AttrCnt=0;AttrCnt<6;++AttrCnt)
-//                {
-//                    /* However, this "Attribute" must be a SUBSET of the "Attribute" of shared memory of this project  */
-//                    if(((Shmem[Row].get()->Attr>>(AttrCnt))&1)&&!this->Grid->IsReadOnly(Row,6+AttrCnt))
-//                        this->Grid->SetCellValue(Row,6+AttrCnt,"1");
-//                    else
-//                        this->Grid->SetCellValue(Row,6+AttrCnt,"");
-//                }
-//                break;
-//            }
-//
-//
-//        }
-//        if(this->Grid->GetCellValue(Row, 1)=="")
-//        {
-//            /* Name always be filled in, whether valid or not */
-//            this->Grid->SetCellValue(Row,1,Name);
-//            this->Grid->SetCellBackgroundColour(Row,1,*wxRED);
-//            this->Grid->SetCellValue(Row, 2, "Invalid");
-//            this->Grid->SetCellValue(Row, 3, "Invalid");
-//            this->Grid->SetCellValue(Row, 4, "Invalid");
-//            this->Grid->SetCellValue(Row, 5, "Invalid");
-//            for(AttrCnt=0;AttrCnt<6;++AttrCnt)
-//            {
-//                this->Grid->SetCellValue(Row,6+AttrCnt,"");
-//                this->Grid->SetReadOnly(Row,6+AttrCnt,true);
-//                this->Grid->SetCellBackgroundColour(Row,6+AttrCnt,*wxLIGHT_GREY);
-//            }
-//        }
-//    }
-//    Main::Row_Reorder(this->Grid);
-}
-/* End Function:Shmem_Panel::Load ********************************************/
 
 /* Function:Shmem_Panel::Save *************************************************
 Description : Save information to Proj_Info.
@@ -407,7 +330,6 @@ Return      : None.
 ******************************************************************************/
 void Shmem_Panel::Save(std::vector<std::unique_ptr<class Shmem>>&Shmem)
 {
-
     cnt_t Row;
     ptr_t Attr;
     std::string Name;
@@ -421,24 +343,12 @@ void Shmem_Panel::Save(std::vector<std::unique_ptr<class Shmem>>&Shmem)
         Name=this->Grid->GetCellValue(Row,1).ToStdString();
 
         /* Attribute */
-        Attr=0;
-        if(this->Grid->GetCellValue(Row,6)=="1")
-            Attr|=MEM_READ;;
-        if(this->Grid->GetCellValue(Row,7)=="1")
-            Attr|=MEM_WRITE;
-        if(this->Grid->GetCellValue(Row,8)=="1")
-            Attr|=MEM_EXECUTE;
-        if(this->Grid->GetCellValue(Row,9)=="1")
-            Attr|=MEM_BUFFER;
-        if(this->Grid->GetCellValue(Row,10)=="1")
-            Attr|=MEM_CACHE;
-        if(this->Grid->GetCellValue(Row,11)=="1")
-            Attr|=MEM_STATIC;
+        Attr=Main::Mem_Attr_Get(this->Grid, Row, 6);
 
         Shmem.push_back(std::make_unique<class Shmem>(Name,Attr));
     }
-    wxLogDebug("Shmem_Panel::Save: %d block",this->Grid->GetNumberRows());
 
+    wxLogDebug("Shmem_Panel::Save: %d block",this->Grid->GetNumberRows());
 }
 /* End Function:Shmem_Panel::Save ********************************************/
 
@@ -450,7 +360,9 @@ Return      : None.
 ******************************************************************************/
 void Shmem_Panel::On_Add(class wxCommandEvent& Event)
 {
-    this->Add_Func();
+    wxLogDebug("Shmem_Panel::On_Remove");
+
+    this->Row_Add();
     Main::Row_Reorder(this->Grid);
 }
 /* End Function:Shmem_Panel::On_Add ******************************************/
@@ -464,6 +376,7 @@ Return      : None.
 void Shmem_Panel::On_Remove(class wxCommandEvent& Event)
 {
     wxLogDebug("Shmem_Panel::On_Remove");
+
     Main::Row_Remove(this->Grid);
     Main::Row_Reorder(this->Grid);
 }
@@ -478,6 +391,7 @@ Return      : None.
 void Shmem_Panel::On_Move_Up(class wxCommandEvent& Event)
 {
     wxLogDebug("Shmem_Panel::On_Move_Up");
+
     Main::Row_Move_Up(this->Grid);
     Main::Row_Reorder(this->Grid);
 }
@@ -492,6 +406,7 @@ Return      : None.
 void Shmem_Panel::On_Move_Down(class wxCommandEvent& Event)
 {
     wxLogDebug("Shmem_Panel::On_Move_Down");
+
     Main::Row_Move_Down(this->Grid);
     Main::Row_Reorder(this->Grid);
 }
@@ -506,8 +421,8 @@ Return      : None.
 void Shmem_Panel::On_Grid(class wxGridRangeSelectEvent& Event)
 {
     wxLogDebug("Shmem_Panel::On_Grid");
+
     Main::Row_Pick(this->Grid);
-    Main::Row_Reorder(this->Grid);
 }
 /* End Function:Shmem_Panel::On_Grid *****************************************/
 
@@ -521,124 +436,22 @@ void Shmem_Panel::On_Change(class wxGridEvent& Event)
 {
     ret_t Row;
     ret_t Col;
-    char Buf[64];
-    cnt_t AttrCnt;
-    std::string Name;
 
     Row=Event.GetRow();
     Col=Event.GetCol();
 
-    switch (Col)
+    /* Changing name, need to load the rest again */
+    if(Col==1)
     {
-        case 1:
-        {
-            Name=this->Grid->GetCellValue(Row,Col);
-            for(const std::unique_ptr<class Mem_Info>&Mem : Main::Proj_Info->Shmem)
-            {
-                if(Mem->Name==Name)
-                {
-//                    /* Maybe a invalid shared memory translate a valid one */
-//                    this->Grid->SetCellBackgroundColour(Row, 1, *wxWHITE);
-
-                    /* Type */
-                    switch(Mem->Type)
-                    {
-                        case MEM_CODE:this->Grid->SetCellValue(Row,2,"Code");break;
-                        case MEM_DATA:this->Grid->SetCellValue(Row,2,"Data");break;
-                        case MEM_DEVICE:this->Grid->SetCellValue(Row,2,"Device");break;
-                        default:ASSERT(0,"Memory type is invalid.");
-                    }
-
-                    /* Base */
-                    if(Mem->Base==MEM_AUTO)
-                        this->Grid->SetCellValue(Row,3,"Auto");
-                    else
-                    {
-                        std::sprintf(Buf, "0x%llx",Mem->Base);
-                        this->Grid->SetCellValue(Row, 3,Buf);
-                    }
-
-                    /* Size */
-                    std::sprintf(Buf, "0x%llx",Mem->Size);
-                    this->Grid->SetCellValue(Row,4,Buf);
-
-                    /* Align */
-                    if(Mem->Align==MEM_AUTO)
-                        this->Grid->SetCellValue(Row,5,"Auto");
-                    else
-                    {
-                        std::sprintf(Buf, "%llu",Mem->Align);
-                        this->Grid->SetCellValue(Row,5,Buf);
-                    }
-
-                    /* Attribute */
-                    for(AttrCnt=0;AttrCnt<6;++AttrCnt)
-                    {
-                        if((Mem->Attr>>(AttrCnt))&1)
-                        {
-                            /* Can be selected */
-                            this->Grid->SetCellValue(Row,6+AttrCnt,"1");
-                            this->Grid->SetReadOnly(Row,6+AttrCnt,false);
-                            this->Grid->SetCellBackgroundColour(Row,6+AttrCnt,*wxWHITE);
-                        }
-                        else
-                        {
-                            this->Grid->SetCellValue(Row,6+AttrCnt,"");
-                            this->Grid->SetReadOnly(Row,6+AttrCnt,true);
-                            this->Grid->SetCellBackgroundColour(Row,6+AttrCnt,*wxLIGHT_GREY);
-
-                        }
-                    }
-                    break;
-                }
-            }
-            break;
-        }
-        default:break;
+        /* Default attributes is everything */
+        Main::Mem_Attr_Set(MEM_ALL,this->Grid,Row,6);
+        /* Filter out those allowed by the shared memory */
+        this->Load_Row(Row);
     }
+
     Event.Skip();
 }
-/* End Function:Shmem_Panel::On_Change *************************************/
-
-/* Function:Shmem_Panel::Add_Func *******************************************
-Description : Add a new row to the grid and set the cells to appropriate controls.
-Input       : None.
-Output      : None.
-Return      : None.
-****************************************************************************/
-void Shmem_Panel::Add_Func()
-{
-
-    ret_t Row;
-    cnt_t Cnt;
-
-    wxLogDebug("Shmem_Panel::On_Add");
-
-    Row=Main::Row_Add(this->Grid);
-
-    this->Grid->SetCellEditor(Row,1,new class wxGridCellChoiceEditor(this->Name_Option));
-
-    /* Attribution */
-    for(Cnt=6;Cnt<12;Cnt++)
-    {
-        this->Grid->SetCellEditor(Row,Cnt,new wxGridCellBoolEditor());
-        this->Grid->SetCellRenderer(Row, Cnt, new wxGridCellBoolRenderer());
-    }
-
-    /* Type, base, size and align are read only */
-    this->Grid->SetReadOnly(Row, 0, true);
-    this->Grid->SetReadOnly(Row, 2, true);
-    this->Grid->SetReadOnly(Row, 3, true);
-    this->Grid->SetReadOnly(Row, 4, true);
-    this->Grid->SetReadOnly(Row, 5, true);
-    this->Grid->SetCellBackgroundColour(Row, 0, *wxLIGHT_GREY);
-    this->Grid->SetCellBackgroundColour(Row, 2, *wxLIGHT_GREY);
-    this->Grid->SetCellBackgroundColour(Row, 3, *wxLIGHT_GREY);
-    this->Grid->SetCellBackgroundColour(Row, 4, *wxLIGHT_GREY);
-    this->Grid->SetCellBackgroundColour(Row, 5, *wxLIGHT_GREY);
-}
-/* End Function:Shmem_Panel::Add_Func ****************************************/
-
+/* End Function:Shmem_Panel::On_Change ***************************************/
 }
 /* End Of File ***************************************************************/
 

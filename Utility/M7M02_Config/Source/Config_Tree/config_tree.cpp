@@ -30,24 +30,14 @@ Description : Config tree implementation.
 #include "rvm_cfg.hpp"
 #include "Config_Tree/Config_Popup/config_popup.hpp"
 #include "Config_Tree/config_tree.hpp"
-/* option panels begin*/
-#include "Option_Panel/option_panel.hpp"
-#include "Option_Panel/Native_Notebook/native_notebook.hpp"
-#include "Option_Panel/Virtual_Notebook/virtual_notebook.hpp"
 
-#include "Option_Panel/Basic_Panel/basic_panel.hpp"
-#include "Option_Panel/Memory_Notebook/memory_notebook.hpp"
-#include "Option_Panel/Memory_Notebook/Extmem_Panel/extmem_panel.hpp"
-#include "Option_Panel/Memory_Panel/memory_panel.hpp"
-#include "Option_Panel/Kernel_Panel/kernel_panel.hpp"
-#include "Option_Panel/Monitor_Panel/monitor_panel.hpp"
+#include "Option_Panel/option_panel.hpp"
 
 #include "Proj_Info/proj_info.hpp"
 #include "Proj_Info/Process/process.hpp"
 #include "Proj_Info/Process/Native/native.hpp"
 #include "Proj_Info/Process/Virtual/virtual.hpp"
 #include "Mem_Info/mem_info.hpp"
-/* option panels end*/
 #undef __HDR_CLASS__
 /* End Include ***************************************************************/
 namespace RVM_CFG
@@ -93,6 +83,7 @@ Return      : None.
     this->Unbind(wxEVT_TREE_ITEM_MENU,&Config_Tree::On_Menu,this);
     this->Unbind(wxEVT_TREE_BEGIN_DRAG,&Config_Tree::On_Drag_Begin,this);
     this->Unbind(wxEVT_TREE_END_DRAG,&Config_Tree::On_Drag_End,this);
+
     /* The pop-ups does not have a parent and must be explicitly deleted */
     delete this->Popup;
 }
@@ -107,34 +98,29 @@ Return      : None.
 void Config_Tree::Load(void)
 {
     class wxTreeItemId Root;
-    class wxTreeItemId Basic_Config;
-    class wxTreeItemId Memory_Config;
-    class wxTreeItemId Kernel_Config;
-    class wxTreeItemId Monitor_Config;
 
     wxLogDebug("Config_Tree::Load");
-
-    if(this->Root_Text=="")
-        this->Root_Text=_("Project");
-    this->Basic_Config_Text=_("Basic Config");
-    this->Memory_Config_Text=_("Memory Config");
-    this->Kernel_Config_Text=_("Kernel Config");
-    this->Monitor_Config_Text=_("Monitor Config");
-    this->Native_Config_Text=_("Native Process Config");
-    this->Virtual_Config_Text=_("Virtual Process Config");
 
     /* Start from a clean tree */
     this->DeleteAllItems();
 
-    /* Create tree */
-    Root=this->AddRoot(_(this->Root_Text));
-    Basic_Config=this->AppendItem(Root,_(this->Basic_Config_Text));
-    Memory_Config=this->AppendItem(Root,_(this->Memory_Config_Text));
-    Kernel_Config=this->AppendItem(Root,_(this->Kernel_Config_Text));
-    Monitor_Config=this->AppendItem(Root,_(this->Monitor_Config_Text));
+    /* Create tree - showing basic config by default as always */
+    Root=this->AddRoot(Main::Proj_Info->Name);
+    this->Basic_Config=this->AppendItem(Root,_("Basic Config"));
+    this->Bold=this->Basic_Config;
+    this->SetItemBold(this->Bold);
+    this->AppendItem(Root,_("Memory Config"));
+    this->AppendItem(Root,_("Kernel Config"));
+    this->AppendItem(Root,_("Monitor Config"));
+    this->Native_Config=this->AppendItem(Root,_("Native Process Config"));
+    this->Virtual_Config=this->AppendItem(Root,_("Virtual Machine Config"));
 
-    this->Native_Config=this->AppendItem(Root,_(this->Native_Config_Text));
-    this->Virtual_Config=this->AppendItem(Root,_(this->Virtual_Config_Text));
+    /* Update config tree */
+    for(std::unique_ptr<class Native>&It : Main::Proj_Info->Native)
+        this->AppendItem(this->Native_Config,It->Name);
+
+    for(std::unique_ptr<class Virtual>&It : Main::Proj_Info->Virtual)
+        this->AppendItem(this->Virtual_Config,It->Name);
 
     /* Expand all nodes by default */
     this->ExpandAll();
@@ -158,19 +144,19 @@ ret_t Config_Tree::Detail(class wxTreeItemId& Select)
         return -1;
     Select_Text=this->GetItemText(Select);
 
-    if(Select_Text==this->Root_Text)
+    if(Select_Text==this->GetItemText(this->GetRootItem()))
         this->Select_Detail=SELECT_DETAIL_ROOT;
-    else if(Select_Text==this->Basic_Config_Text)
+    else if(Select_Text==_("Basic Config"))
         this->Select_Detail=SELECT_DETAIL_BASIC;
-    else if(Select_Text==this->Memory_Config_Text)
+    else if(Select_Text==_("Memory Config"))
         this->Select_Detail=SELECT_DETAIL_MEMORY;
-    else if(Select_Text==this->Kernel_Config_Text)
+    else if(Select_Text==_("Kernel Config"))
         this->Select_Detail=SELECT_DETAIL_KERNEL;
-    else if(Select_Text==this->Monitor_Config_Text)
+    else if(Select_Text==_("Monitor Config"))
         this->Select_Detail=SELECT_DETAIL_MONITOR;
-    else if(Select_Text==this->Native_Config_Text)
+    else if(Select_Text==_("Native Process Config"))
         this->Select_Detail=SELECT_DETAIL_NATIVE;
-    else if(Select_Text==this->Virtual_Config_Text)
+    else if(Select_Text==_("Virtual Machine Config"))
         this->Select_Detail=SELECT_DETAIL_VIRTUAL;
     else
     {
@@ -184,9 +170,66 @@ ret_t Config_Tree::Detail(class wxTreeItemId& Select)
             return -1;
         }
     }
+
     return 0;
 }
 /* End Function:Config_Tree::Detail ******************************************/
+
+/* Function:Config_Tree::Native_Rename ****************************************
+Description : Rename the native process and update the config tree.
+Input       : const std::string& Original - The original name of native process.
+              const std::string& Current - The current name of native process.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Config_Tree::Native_Rename(const std::string& Original, const std::string& Current)
+{
+    /* Cookie is a typedef, not a class */
+    wxTreeItemIdValue Cookie;
+    class wxTreeItemId Child;
+
+    Child=this->GetFirstChild(this->Native_Config,Cookie);
+    while(Child.IsOk()==true)
+    {
+        if(this->GetItemText(Child)==Original)
+        {
+            this->SetItemText(Child,Current);
+            return;
+        }
+        Child=this->GetNextChild(this->Native_Config,Cookie);
+    }
+
+    ASSERT(0,"No such child found in native tree!");
+}
+/* End Function:Config_Tree::Native_Rename ***********************************/
+
+/* Function:Config_Tree::Virtual_Rename ***************************************
+Description : Rename the native process and update the config tree.
+Input       : const std::string& Original - The original name of native process.
+              const std::string& Current - The current name of native process.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Config_Tree::Virtual_Rename(const std::string& Original, const std::string& Current)
+{
+    /* Cookie is a typedef, not a class */
+    wxTreeItemIdValue Cookie;
+    class wxTreeItemId Child;
+
+    Child=this->GetFirstChild(this->Virtual_Config,Cookie);
+    while(Child.IsOk()==true)
+    {
+        if(this->GetItemText(Child)==Original)
+        {
+            this->SetItemText(Child,Current);
+            return;
+        }
+        Child=this->GetNextChild(this->Virtual_Config,Cookie);
+    }
+
+    ASSERT(0,"No such child found in virtual tree!");
+}
+/* End Function:Config_Tree::Virtual_Rename **********************************/
 
 /* Function:Config_Tree::State_Set ********************************************
 Description : Set the current UI state, and decide what controls are usable.
@@ -199,82 +242,6 @@ void Config_Tree::State_Set(void)
     this->Popup->State_Set();
 }
 /* End Function:Config_Tree::State_Set ***************************************/
-
-/* Function:Config_Tree::Option_Open ******************************************
-Description : Open clicked option.
-Input       : const std::string& Select_Text - The name of selected tree item.
-Input       : ptr_t Type - The type for selected tree item.
-Output      : None.
-Return      : 0 for OK
-******************************************************************************/
-ret_t Config_Tree::Option_Open(const std::string& Select_Text, const ptr_t& Type)
-{
-
-    wxLogDebug("Config_Tree::Option_Open: %s",Select_Text);
-
-    /* Check and try to save the current panel */
-    if(Main::Check_And_Save_Current_Edit()!=0)
-        return -1;
-
-    if(Main::Last_Option!=nullptr)
-        Main::Last_Option->Hide();
-
-    /* Load and show the selected panel */
-    switch(Type)
-    {
-        case SELECT_DETAIL_BASIC:
-        {
-            Main::Basic_Panel->Load();
-            Main::Basic_Panel->Show();
-            Main::Last_Option=Main::Basic_Panel;
-            break;
-        }
-        case SELECT_DETAIL_MEMORY:
-        {
-            Main::Memory_Notebook->Load();
-            Main::Memory_Notebook->Show();
-            Main::Last_Option=Main::Memory_Notebook;
-            break;
-        }
-        case SELECT_DETAIL_KERNEL:
-        {
-            Main::Kernel_Panel->Load();
-            Main::Kernel_Panel->Show();
-            Main::Last_Option=Main::Kernel_Panel;
-            break;
-        }
-        case SELECT_DETAIL_MONITOR:
-        {
-            Main::Monitor_Panel->Load();
-            Main::Monitor_Panel->Show();
-            Main::Last_Option=Main::Monitor_Panel;
-            break;
-        }
-        case SELECT_DETAIL_NATIVE_CHILD:
-        {
-            Main::Native_Notebook->Load(Select_Text);
-            Main::Native_Notebook->Show();
-            Main::Last_Option=Main::Native_Notebook;
-            break;
-        }
-        case SELECT_DETAIL_VIRTUAL_CHILD:
-        {
-            Main::Virtual_Notebook->Load(Select_Text);
-            Main::Virtual_Notebook->Show();
-            Main::Last_Option=Main::Virtual_Notebook;
-            break;
-        }
-        default:
-        {
-            return -1;
-            break;
-        }
-    }
-
-    Main::Option->Layout();
-    return 0;
-}
-/* End Function:Config_Tree::Option_Open *************************************/
 
 /* Function:Config_Tree::On_Activate ******************************************
 Description : wxEVT_TREE_ITEM_ACTIVATED handler for 'Selection activate'.
@@ -289,22 +256,30 @@ void Config_Tree::On_Activate(class wxTreeEvent& Event)
 
     wxLogDebug("Config_Tree::On_Activate");
 
-
     Select=Event.GetItem();
     Select_Text=this->GetItemText(Select);
 
-    /* Project root, native process config and virtual machine config won't be selected */
-    if(Select_Text==this->Root_Text||Select_Text==this->Native_Config_Text||Select_Text==this->Virtual_Config_Text)
+    /* Project root, native process config and virtual machine config
+     * won't be selected here and they don't have an option panel. */
+    if((Select_Text==this->GetItemText(this->GetRootItem()))||
+       (Select_Text==_("Native Process Config"))||
+       (Select_Text==_("Virtual Machine Config")))
     {
         this->UnselectAll();
         return;
     }
 
-    /* Try to open the option panel */
+    /* See what is selected, or nothing at all */
     if(this->Detail(Select)!=0)
         return;
 
-    this->Option_Open(Select_Text,this->Select_Detail);
+    /* Paint in bold the selected entry */
+    if(this->Bold.IsOk())
+        this->SetItemBold(this->Bold,false);
+    this->Bold=Select;
+    this->SetItemBold(Select);
+
+    Main::Option_Panel->Option_Show(Select_Text,this->Select_Detail);
 }
 /* End Function:Config_Tree::On_Activate *************************************/
 
@@ -346,16 +321,16 @@ void Config_Tree::On_Drag_Begin(class wxTreeEvent& Event)
 
     wxLogDebug("Config_Tree::On_Drag_Begin");
 
-    /* See what is this - only allow sheets */
+    /* See what is this - only allow dragging processes */
     Select=Event.GetItem();
     if(this->Detail(Select)!=0)
         return;
 
-    if(this->Select_Detail==SELECT_DETAIL_VIRTUAL||this->Select_Detail==SELECT_DETAIL_NATIVE||this->Select_Detail==SELECT_DETAIL_ROOT)
+    if((this->Select_Detail!=SELECT_DETAIL_NATIVE_CHILD)&&
+       (this->Select_Detail!=SELECT_DETAIL_VIRTUAL_CHILD))
         return;
 
     this->Drag=Select;
-
     Event.Allow();
 }
 /* End Function:Config_Tree::On_Drag_Begin ***********************************/
@@ -369,55 +344,66 @@ Return      : None.
 ******************************************************************************/
 void Config_Tree::On_Drag_End(class wxTreeEvent& Event)
 {
-
     std::string Drag_Text;
     wxTreeItemIdValue Cookie;
     class wxTreeItemId Target;
     class wxTreeItemId Child;
     class wxTreeItemId Insert_After;
-    class wxTreeItemId Parent_Of_Drag;
-    class wxTreeItemId Parent_Of_Target;
+    class wxTreeItemId Parent_Drag;
+    class wxTreeItemId Parent_Target;
 
     wxLogDebug("Config_Tree::On_Drag_End");
 
-    if (!this->Drag.IsOk())
+    if(!this->Drag.IsOk())
         return;
 
-    Target = Event.GetItem();
-    if (!Target.IsOk()||Target==this->Drag)
+    /* Dragging to oneself or elsewhere is not honored */
+    Target=Event.GetItem();
+    if((!Target.IsOk())||(Target==this->Drag))
         return;
 
-    Parent_Of_Drag=this->GetItemParent(this->Drag);
-    Parent_Of_Target=this->GetItemParent(Target);
+    Parent_Drag=this->GetItemParent(this->Drag);
+    Parent_Target=this->GetItemParent(Target);
 
     /* The two nodes must belong to the same parent node */
-    if (Parent_Of_Drag!=Parent_Of_Target)
+    if(Parent_Drag!=Parent_Target)
         return;
 
     /* Get the item text of the drag */
     Drag_Text=this->GetItemText(this->Drag);
 
     /* Find the position to insert */
-    Child=this->GetFirstChild(Parent_Of_Target,Cookie);
-    while (Child.IsOk())
+    Child=this->GetFirstChild(Parent_Target,Cookie);
+    while(Child.IsOk())
     {
-        if (Child==Target)
+        if(Child==Target)
         {
             Insert_After=Child;
             break;
         }
-        Child=this->GetNextChild(Parent_Of_Target,Cookie);
+        Child=this->GetNextChild(Parent_Target,Cookie);
     }
 
-    /* Delete the original node - the drag */
-    this->Delete(this->Drag);
-    /* Insert */
-    this->InsertItem(Parent_Of_Target,Insert_After,Drag_Text);
-    /* Reset */
-    this->Drag = wxTreeItemId();
+    /* Retain original bold status while inserting */
+    if(this->IsBold(this->Drag))
+    {
+        this->Delete(this->Drag);
+        this->Bold=this->InsertItem(Parent_Target,Insert_After,Drag_Text);
+        this->SetItemBold(this->Bold);
+    }
+    else
+    {
+        this->Delete(this->Drag);
+        this->InsertItem(Parent_Target,Insert_After,Drag_Text);
+    }
+
+    /* Need to reflect this change to the project, too */
+    if(Parent_Drag==this->Native_Config)
+        Main::Proj_Info->Native_Move(Drag_Text,std::string(this->GetItemText(Insert_After)));
+    else
+        Main::Proj_Info->Virtual_Move(Drag_Text,std::string(this->GetItemText(Insert_After)));
 }
 /* End Function:Config_Tree::On_Drag_End *************************************/
-
 
 /* Function:Config_Drop::OnDropFiles ******************************************
 Description : Drop project onto the tree to open it.

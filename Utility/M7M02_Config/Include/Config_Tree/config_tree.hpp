@@ -24,21 +24,6 @@ namespace RVM_CFG
 #ifndef __CONFIG_TREE_DEF__
 #define __CONFIG_TREE_DEF__
 /*****************************************************************************/
-//#define SELECT_DETAIL_NONE          (0)
-//#define SELECT_DETAIL_KERNEL        (1)
-//#define SELECT_DETAIL_MONITOR       (2)
-//#define SELECT_DETAIL_FOLDER        (3)
-//#define SELECT_DETAIL_VIRTUAL       (4)
-//#define SELECT_DETAIL_PROCESS       (5)
-//
-///* New define */
-//#define SELECT_DETAIL_UN_PROCESS    (6)
-//#define SELECT_DETAIL_NATIVE_ROOT   (7)
-//#define SELECT_DETAIL_VIRTUAL_ROOT  (8)
-//#define SELECT_DETAIL_NATIVE_CHILD  (9)
-//#define SELECT_DETAIL_VIRTUAL_CHILD (10)
-
-
 #define SELECT_DETAIL_NONE                  (0)
 #define SELECT_DETAIL_ROOT                  (1)
 #define SELECT_DETAIL_BASIC                 (2)
@@ -76,22 +61,15 @@ public:
 class Config_Tree:public wxTreeCtrl
 {
 public:
-
-    /* Name of tree item */
-    std::string Root_Text;
-    std::string Basic_Config_Text;
-    std::string Memory_Config_Text;
-    std::string Kernel_Config_Text;
-    std::string Monitor_Config_Text;
-    std::string Native_Config_Text;
-    std::string Virtual_Config_Text;
-
-    /* Native and Virtual may need to have child nodes added. */
+    /* This is the default and need to keep it */
+    class wxTreeItemId Basic_Config;
+    /* We may add child to these nodes and need to keep them */
     class wxTreeItemId Native_Config;
     class wxTreeItemId Virtual_Config;
 
     ptr_t Select_Detail;
     class wxTreeItemId Drag;
+    class wxTreeItemId Bold;
     class wxTreeItemId Active;
 
     class Config_Popup* Popup;
@@ -102,8 +80,10 @@ public:
     void Load(void);
     ret_t Detail(class wxTreeItemId& Select);
 
+    void Native_Rename(const std::string& Original, const std::string& Current);
+    void Virtual_Rename(const std::string& Original, const std::string& Current);
+
     void State_Set(void);
-    ret_t Option_Open(const std::string& Select_Text, const ptr_t& Type);
 
     void On_Activate(class wxTreeEvent& Event);
     void On_Menu(class wxTreeEvent& Event);

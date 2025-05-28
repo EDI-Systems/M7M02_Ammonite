@@ -1714,11 +1714,19 @@ static rvm_ret_t _RVM_Hyp_Int_Dis(void)
 /* End Function:_RVM_Hyp_Int_Dis *********************************************/
 
 /* Function:_RVM_Hyp_Vct_Phys *************************************************
-Description : Register the virtual machine's virtual vector with a physical vector.
+Description : Register the virtual machine's virtual vector with a physical
+              vector. Each physical vector may only be mapped to each virtual
+              machine once, and each virtual vector may only be mapped to by one
+              physical vector or event source. These restrictions are purely
+              artificial to hold potential messy mappings at bay; however, it is
+              possible to map the same physical vector to two or more distinct
+              virtual machines, in which case all of these virtual machines will
+              be notified of the physical interrupt.
+              The restrictios above also apply to the _RVM_Hyp_Vct_Evt below.
 Input       : rvm_ptr_t Phys_Num - The physical vector number.
               rvm_ptr_t Vct_Num - The virtual vector number.
 Output      : None.
-Return      : rvm_ret_t - If successful, the interrupt registration ID; or an error code.
+Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 static rvm_ret_t _RVM_Hyp_Vct_Phys(rvm_ptr_t Phys_Num,
                                    rvm_ptr_t Vct_Num)
@@ -1823,11 +1831,11 @@ static rvm_ret_t _RVM_Hyp_Vct_Phys(rvm_ptr_t Phys_Num,
 /* End Function:_RVM_Hyp_Vct_Phys ********************************************/
 
 /* Function:_RVM_Hyp_Vct_Evt **************************************************
-Description : Register the virtual machine's virtual vector with an event channel.
-Input       : rvm_ptr_t Evt_Num - The event number.
+Description : Register the virtual machine's virtual vector with an event source.
+Input       : rvm_ptr_t Evt_Num - The event source number.
               rvm_ptr_t Vct_Num - The virtual vector number.
 Output      : None.
-Return      : rvm_ret_t - If successful, the event channel ID; or an error code.
+Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 static rvm_ret_t _RVM_Hyp_Vct_Evt(rvm_ptr_t Evt_Num,
                                   rvm_ptr_t Vct_Num)

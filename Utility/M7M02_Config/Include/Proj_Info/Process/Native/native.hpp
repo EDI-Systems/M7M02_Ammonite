@@ -59,9 +59,6 @@ public:
     /* Vector endpoints */
     std::vector<std::unique_ptr<class Vector>> Vector;
 
-    /* void */ Native(const std::string& Name,
-                      const std::string& Root,
-                      const class Plat_Info* Plat);
     /* void */ Native(class wxXmlNode* Node);
     /* change */
     /* void */ Native(const std::string& Name);

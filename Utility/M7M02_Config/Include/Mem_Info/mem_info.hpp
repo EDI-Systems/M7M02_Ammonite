@@ -25,9 +25,9 @@ namespace RVM_CFG
 #define __MEM_INFO_DEF__
 /*****************************************************************************/
 /* Memory type - Code, Data, Device */
-#define MEM_CODE            0
-#define MEM_DATA            1
-#define MEM_DEVICE          2
+#define MEM_CODE            (0)
+#define MEM_DATA            (1)
+#define MEM_DEVICE          (2)
 
 /* Memory access permissions */
 #define MEM_READ            POW2(0)
@@ -36,6 +36,7 @@ namespace RVM_CFG
 #define MEM_BUFFER          POW2(3)
 #define MEM_CACHE           POW2(4)
 #define MEM_STATIC          POW2(5)
+#define MEM_ALL             (MEM_READ|MEM_WRITE|MEM_EXECUTE|MEM_BUFFER|MEM_CACHE|MEM_STATIC)
 
 /* Memory placement */
 #define MEM_AUTO            ((ptr_t)(-1LL))

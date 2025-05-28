@@ -30,6 +30,7 @@ Description : File menu class implementation.
 #define __HDR_CLASS__
 #include "rvm_cfg.hpp"
 #include "Menu_Bar/File_Menu/file_menu.hpp"
+#include "Option_Panel/option_panel.hpp"
 #undef __HDR_CLASS__
 /* End Include ***************************************************************/
 namespace RVM_CFG
@@ -187,7 +188,7 @@ Return      : None.
 void File_Menu::On_Close_Proj(class wxCommandEvent& Event)
 {
     wxLogDebug("File_Menu::On_Close_Proj");
-    //Main::Proj_Close();
+    Main::Proj_Close();
 }
 /* End Function:File_Menu::On_Close_File *************************************/
 
@@ -216,10 +217,8 @@ void File_Menu::On_Save_As(class wxCommandEvent& Event)
     std::unique_ptr<wxFileDialog> File;
 
     wxLogDebug("File_Menu::On_Save_As");
-    if(Main::Check_And_Save_Current_Edit()!=0)
+    if(Main::Option_Panel->Current_Save()!=0)
         return;
-//    if(Main::Check_And_Save_All()!=0)
-//        return;
 
     /* Let the user choose a filename and location */
     File=std::make_unique<wxFileDialog>(RVM_CFG_App::Main,_("Save File As"),wxT(""),wxT(""),

@@ -40,13 +40,13 @@ namespace RVM_CFG
 class Virtual_Notebook:public wxNotebook
 {
 public:
-    class Virtual_Basic_Panel* Basic;
+    class Virtual_Panel* Basic;
     class Memory_Panel* Memory;
     class Shmem_Panel* Shmem;
     class Send_Panel* Send;
     class Kfunc_Panel* Kfunc;
 
-    /* void */ Virtual_Notebook(class wxWindow*parent);
+    /* void */ Virtual_Notebook(class wxWindow* Parent);
     /* void */ ~Virtual_Notebook(void);
 
     void Load(const std::string& Virtual_Name);

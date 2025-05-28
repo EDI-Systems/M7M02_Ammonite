@@ -73,18 +73,11 @@ public:
     /* Kfunc */
     std::vector<std::unique_ptr<class Kfunc>> Kfunc;
 
-
-    /* void */ Process(const std::string& Name,
-                       ptr_t Type,
-                       const std::string& Root,
-                       const class Plat_Info* Plat);
     /* void */ Process(class wxXmlNode* Node, ptr_t Type);
-    /* Change */
-    /* void */ Process(const std::string& Name);
+    /* void */ Process(const std::string& Name, ptr_t Type);
     /* void */ ~Process(void);
 
     virtual void Save(class wxXmlNode* Parent)=0;
-    //void Save(class wxXmlNode* Parent);
 };
 /*****************************************************************************/
 /* __PROCESS_CLASS__ */

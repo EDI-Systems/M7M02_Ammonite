@@ -69,6 +69,29 @@ public:
 
     /* void */ Plat_Info(const std::string& Path);
     /* void */ ~Plat_Info(void);
+
+    /* Check compatibility */
+    ret_t Compat_Check(const std::string& Toolchain,
+                       const std::string& Buildsystem);
+    ret_t Compat_Check(const std::string& Toolchain,
+                       const std::string& Buildsystem,
+                       const std::string& Guest);
+
+    /* Find compatibles for buildsystem */
+    void Buildsystem_Workspace(std::vector<std::string>& Build_Avail);
+
+    /* Find compatibles for native */
+    void Toolchain_Native(std::vector<std::string>& Tool_Avail);
+    void Buildsystem_Native(const std::string& Toolchain,
+                            std::vector<std::string>& Build_Avail);
+
+    /* Find compatibles for virtual */
+    void Toolchain_Virtual(std::vector<std::string>& Tool_Avail);
+    void Buildsystem_Virtual(const std::string& Toolchain,
+                             std::vector<std::string>& Build_Avail);
+    void Guest_Virtual(const std::string& Toolchain,
+                       const std::string& Buildsystem,
+                       std::vector<std::string>& Guest_Avail);
 };
 /*****************************************************************************/
 /* __PLAT_INFO_CLASS__ */

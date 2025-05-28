@@ -319,7 +319,8 @@ struct RVM_Virt_Struct
 };
 #endif
 
-/* Interrupt flags between RME and RVM */
+/* Interrupt flags between RME and RVM - actual number of flags depends
+ * on the number of physical interrupts or events actually declared */
 struct RVM_Flag
 {
     /* Whether this group is locked */

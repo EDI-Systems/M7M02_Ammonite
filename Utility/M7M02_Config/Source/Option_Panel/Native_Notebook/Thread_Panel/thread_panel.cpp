@@ -37,12 +37,11 @@ namespace RVM_CFG
 /* Function:Thread_Panel::Thread_Panel ****************************************
 Description : Constructor for thread panel.
 Input       : class wxWindow* Parent - The parent window.
-              const std::string& _Loction - The location where the error occurred.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Thread_Panel::Thread_Panel(class wxWindow* Parent, const std::string& _Location):
-wxPanel(Parent,wxID_ANY),Location(_Location)
+/* void */ Thread_Panel::Thread_Panel(class wxWindow* Parent):
+wxPanel(Parent,wxID_ANY)
 {
     try
     {
@@ -78,20 +77,20 @@ wxPanel(Parent,wxID_ANY),Location(_Location)
         this->Grid->CreateGrid(0,5,wxGrid::wxGridSelectRows);
         this->Grid->HideRowLabels();
         this->Grid->SetColLabelSize(I2P(32));
-        this->Grid->SetColLabelValue(0,_(""));
+        this->Grid->SetColLabelValue(0,"#");
         this->Grid->SetColLabelValue(1,_("Name"));
         this->Grid->SetColLabelValue(2,_("Stack Size"));
         this->Grid->SetColLabelValue(3,_("Parameter"));
         this->Grid->SetColLabelValue(4,_("Priority"));
         this->Grid->SetColSize(0,I2P(30));
-        this->Grid->SetColSize(1,I2P(125));
+        this->Grid->SetColSize(1,I2P(130));
         this->Grid->SetColSize(2,I2P(215));
         this->Grid->SetColSize(3,I2P(215));
         this->Grid->SetColSize(4,I2P(200));
         this->Grid->DisableDragRowSize();
         this->Grid->DisableDragColSize();
         this->Bind(wxEVT_GRID_RANGE_SELECT,&Thread_Panel::On_Grid,this,this->Grid->GetId());
-        this->Bind(wxEVT_GRID_CELL_CHANGED, &Thread_Panel::On_Change, this);
+        this->Bind(wxEVT_GRID_CELL_CHANGED,&Thread_Panel::On_Change,this);
 
         this->Main_Sizer->Add(this->Grid,100,wxEXPAND);
         this->Main_Sizer->AddStretchSpacer(1);
@@ -120,6 +119,69 @@ Return      : None.
 }
 /* End Function:Thread_Panel::Thread_Panel ***********************************/
 
+/* Function:Thread_Panel::Row_Add *********************************************
+Description : Add a new row to the grid and set the cells to appropriate controls.
+Input       : None.
+Output      : None.
+Return      : ret_t - The row added.
+******************************************************************************/
+ret_t Thread_Panel::Row_Add(void)
+{
+    ret_t Row;
+
+    wxLogDebug("Thread_Panel::Row_Add");
+    Row=Main::Row_Add(this->Grid);
+
+    /* Default value */
+    this->Grid->SetReadOnly(Row, 0, true);
+
+    return Row;
+}
+/* End Function:Thread_Panel::Row_Add ****************************************/
+
+/* Function:Thread_Panel::Load ************************************************
+Description : Load information from Proj_Info into the this panel.
+Input       : const std::vector<std::unique_ptr<class Thread>>&Thread - The
+              corresponding data structure.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Thread_Panel::Load(const std::vector<std::unique_ptr<class Thread>>& Thread)
+{
+    cnt_t Row;
+    char Buf[32];
+
+    wxLogDebug("Thread_Panel::Load %d",Thread.size());
+
+    /* Clean up the grid */
+    if(this->Grid->GetNumberRows()!=0)
+        this->Grid->DeleteRows(0,this->Grid->GetNumberRows());
+
+    /* Fill in the grid*/
+    for(Row=0;Row<(cnt_t)Thread.size();Row++)
+    {
+        this->Row_Add();
+
+        /* Name */
+        this->Grid->SetCellValue(Row, 1, Thread[Row]->Name);
+
+        /* Stack_Size */
+        std::sprintf(Buf, "0x%llX", Thread[Row]->Stack_Size);
+        this->Grid->SetCellValue(Row, 2, Buf);
+
+        /* Parameter */
+        std::sprintf(Buf, "0x%llX", Thread[Row]->Parameter);
+        this->Grid->SetCellValue(Row, 3, Buf);
+
+        /* Priority */
+        std::sprintf(Buf, "%lld", Thread[Row]->Priority);
+        this->Grid->SetCellValue(Row, 4, Buf);
+    }
+
+    Main::Row_Reorder(this->Grid);
+}
+/* End Function:Thread_Panel::Load *******************************************/
+
 /* Function:Thread_Panel::Check ***********************************************
 Description : Check whether the current panel contains any errors.
 Input       : None.
@@ -137,59 +199,59 @@ ret_t Thread_Panel::Check(void)
     std::string Parameter;
     std::string Stack_Size;
 
-    if(Main::Row_Name_Check(this->Grid,this->Location,BLANK_NAME_FORBID,1))
+    if(Main::Name_Check(this->Grid,1,_("Thread"),BLANK_FORBID))
         return -1;
 
     for(Row=0;Row<(cnt_t)this->Grid->GetNumberRows();Row++)
     {
         /* Stack Size */
         Stack_Size=this->Grid->GetCellValue(Row,2);
-        if(Main::Num_GEZ_Hex_Check(Stack_Size)!=0)
-        {
-            Main::Msgbox_Show(this,MSGBOX_ERROR,
-                              _(this->Location),
-                              _("Stack size is not a valid hexadecimal nonnegative integer, row "+std::to_string(Row+1)));
-            return -1;
-        }
+//        if(Main::Num_GEZ_Hex_Check(Stack_Size)!=0)
+//        {
+//            Main::Msgbox_Show(this,MSGBOX_ERROR,
+//                              _(this->Location),
+//                              _("Stack size is not a valid hexadecimal nonnegative integer, row "+std::to_string(Row+1)));
+//            return -1;
+//        }
 
         /* Parameter */
         Parameter=this->Grid->GetCellValue(Row,3);
-        if(Main::Num_GEZ_Hex_Check(Parameter)!=0)
-        {
-            Main::Msgbox_Show(this,MSGBOX_ERROR,
-                              _(this->Location),
-                              _("Parameter is not a valid hexadecimal nonnegative integer, row "+std::to_string(Row+1)));
-            return -1;
-        }
+//        if(Main::Num_GEZ_Hex_Check(Parameter)!=0)
+//        {
+//            Main::Msgbox_Show(this,MSGBOX_ERROR,
+//                              _(this->Location),
+//                              _("Parameter is not a valid hexadecimal nonnegative integer, row "+std::to_string(Row+1)));
+//            return -1;
+//        }
 
         /* Priority */
         Priority=this->Grid->GetCellValue(Row,4);
         if(Priority=="")
         {
             Main::Msgbox_Show(this,MSGBOX_ERROR,
-                              _(this->Location),
+                    _("Thread"),
                               _("Priority is not a valid decimal positive integer, row "+std::to_string(Row+1)));
             return -1;
         }
         Priority_Val=std::stoll(Priority,0,0);
         Kern_Prio=Main::Proj_Info->Kernel->Kern_Prio;
-        if(Main::Num_GZ_Check(Priority)){
-            Main::Msgbox_Show(this,MSGBOX_ERROR,
-                                 _(this->Location),
-                                 _("Priority is not a valid decimal positive integer, row "+std::to_string(Row+1)));
-            return -1;
-        }
+//        if(Main::Num_GZ_Check(Priority)){
+//            Main::Msgbox_Show(this,MSGBOX_ERROR,
+//                                 _(this->Location),
+//                                 _("Priority is not a valid decimal positive integer, row "+std::to_string(Row+1)));
+//            return -1;
+//        }
         if(Priority_Val<5)
         {
             Main::Msgbox_Show(this,MSGBOX_ERROR,
-                                 _(this->Location),
+                    _("Thread"),
                                  _("Priority must be greater than or equal to 5, row "+std::to_string(Row+1)));
             return -1;
         }
         if(Priority_Val>Kern_Prio-2)
         {
             Main::Msgbox_Show(this,MSGBOX_ERROR,
-                                 _(this->Location),
+                    _("Thread"),
                                  _("Priority must be less than or equal to "+std::to_string(Kern_Prio-2)+
                                    ", because Kernel Priority is "+std::to_string(Kern_Prio)+", row "+
                                    std::to_string(Row+1)));
@@ -201,46 +263,6 @@ ret_t Thread_Panel::Check(void)
 }
 /* End Function:Thread_Panel::Check ******************************************/
 
-/* Function:Thread_Panel::Load ************************************************
-Description : Load information from Proj_Info into the this panel.
-Input       : const std::vector<std::unique_ptr<class Thread>>&Thread - The
-              corresponding data structure.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Thread_Panel::Load(const std::vector<std::unique_ptr<class Thread>>&Thread)
-{
-    cnt_t Row;
-    char Buf[32];
-
-    wxLogDebug("Thread_Panel::Load %d",Thread.size());
-
-    /* Clear the grid */
-    Main::Gird_Clear_Content(this->Grid);
-
-    /* Fill in the grid*/
-    for(Row=0;Row<(cnt_t)Thread.size();Row++)
-    {
-        this->Add_Func();
-        /* Name */
-        this->Grid->SetCellValue(Row, 1, Thread[Row].get()->Name);
-
-        /* Stack_Size */
-        std::sprintf(Buf, "0x%llX", Thread[Row].get()->Stack_Size);
-        this->Grid->SetCellValue(Row, 2, Buf);
-
-        /* Parameter */
-        std::sprintf(Buf, "0x%llX", Thread[Row].get()->Parameter);
-        this->Grid->SetCellValue(Row, 3, Buf);
-
-        /* Priority */
-        std::sprintf(Buf, "%lld", Thread[Row].get()->Priority);
-        this->Grid->SetCellValue(Row, 4, Buf);
-    }
-    Main::Row_Reorder(this->Grid);
-}
-/* End Function:Thread_Panel::Load *******************************************/
-
 /* Function:Thread_Panel::Save ************************************************
 Description : Save information to Proj_Info.
 Input       : std::vector<std::unique_ptr<class Thread>>&Thread - The corresponding
@@ -249,7 +271,7 @@ Output      : std::vector<std::unique_ptr<class Thread>>&Thread - The correspond
               data structure, which will be modified.
 Return      : None.
 ******************************************************************************/
-void Thread_Panel::Save(std::vector<std::unique_ptr<class Thread>>&Thread)
+void Thread_Panel::Save(std::vector<std::unique_ptr<class Thread>>& Thread)
 {
     cnt_t Row;
     ptr_t Priority;
@@ -274,8 +296,8 @@ void Thread_Panel::Save(std::vector<std::unique_ptr<class Thread>>&Thread)
 
         Thread.push_back(std::make_unique<class Thread>(Name,Stack_Size,Parameter,Priority));
     }
-    wxLogDebug("Thread_Panel::Save: %d block",this->Grid->GetNumberRows());
 
+    wxLogDebug("Thread_Panel::Save: %d block",this->Grid->GetNumberRows());
 }
 /* End Function:Thread_Panel::Save ******************************************/
 
@@ -287,12 +309,21 @@ Return      : None.
 *****************************************************************************/
 void Thread_Panel::On_Add(class wxCommandEvent& Event)
 {
-    this->Add_Func();
+    ret_t Row;
+
+    wxLogDebug("Thread_Panel::On_Add");
+
+    Row=this->Row_Add();
+
+    this->Grid->SetCellValue(Row, 2, "0xFFFF");
+    this->Grid->SetCellValue(Row, 3, "0xFFFF");
+    this->Grid->SetCellValue(Row, 4, "5");
+
     Main::Row_Reorder(this->Grid);
 }
-/* End Function:Thread_Panel::On_Add ****************************************/
+/* End Function:Thread_Panel::On_Add *****************************************/
 
-/* Function:Thread_Panel::On_Remove ******************************************
+/* Function:Thread_Panel::On_Remove *******************************************
 Description : wxEVT_BUTTON handler for 'Remove'.
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.
@@ -301,6 +332,7 @@ Return      : None.
 void Thread_Panel::On_Remove(class wxCommandEvent& Event)
 {
     wxLogDebug("Thread_Panel::On_Remove");
+
     Main::Row_Remove(this->Grid);
     Main::Row_Reorder(this->Grid);
 }
@@ -315,6 +347,7 @@ Return      : None.
 void Thread_Panel::On_Move_Up(class wxCommandEvent& Event)
 {
     wxLogDebug("Thread_Panel::On_Move_Up");
+
     Main::Row_Move_Up(this->Grid);
     Main::Row_Reorder(this->Grid);
 }
@@ -329,6 +362,7 @@ Return      : None.
 void Thread_Panel::On_Move_Down(class wxCommandEvent& Event)
 {
     wxLogDebug("Thread_Panel::On_Move_Down");
+
     Main::Row_Move_Down(this->Grid);
     Main::Row_Reorder(this->Grid);
 }
@@ -343,6 +377,7 @@ Return      : None.
 void Thread_Panel::On_Grid(class wxGridRangeSelectEvent& Event)
 {
     wxLogDebug("Thread_Panel::On_Grid");
+
     Main::Row_Pick(this->Grid);
     Main::Row_Reorder(this->Grid);
 }
@@ -358,56 +393,18 @@ void Thread_Panel::On_Change(class wxGridEvent& Event)
 {
     ret_t Row;
     ret_t Col;
-    class wxString Num;
 
-    wxLogDebug("Extmem_Panel::On_Change");
+    wxLogDebug("Thread_Panel::On_Change");
 
     Row=Event.GetRow();
     Col=Event.GetCol();
 
-    switch (Col)
-    {
-        case 2:
-        case 3:
-        {
-            Num=this->Grid->GetCellValue(Row,Col).Upper();
-            if (Num.starts_with("0X"))
-                Num[1]='x';
-            else
-                Num="0x"+Num;
-            this->Grid->SetCellValue(Row,Col,Num);
-            break;
-        }
-        default:break;
-    }
+    if((Col==2)||(Col==3))
+        this->Grid->SetCellValue(Row,Col,Main::Num2Hex(std::string(this->Grid->GetCellValue(Row,Col))));
+
     Event.Skip();
 }
-/* End Function:Thread_Panel::On_Change *************************************/
-
-
-/* Function:Thread_Panel::Add_Func *******************************************
-Description : Add a new row to the grid and set the cells to appropriate controls.
-Input       : None.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Thread_Panel::Add_Func()
-{
-    ret_t Row;
-
-    wxLogDebug("Thread_Panel::On_Add");
-
-    Row=Main::Row_Add(this->Grid);
-
-    /* Default value */
-    this->Grid->SetReadOnly(Row, 0, true);
-    this->Grid->SetCellBackgroundColour(Row, 0, *wxLIGHT_GREY);
-
-    this->Grid->SetCellValue(Row, 2, "0xFFFF");
-    this->Grid->SetCellValue(Row, 3, "0xFFFF");
-    this->Grid->SetCellValue(Row, 4, "5");
-}
-/* End Function:Thread_Panel::Add_Func ***************************************/
+/* End Function:Thread_Panel::On_Change **************************************/
 }
 /* End Of File ***************************************************************/
 

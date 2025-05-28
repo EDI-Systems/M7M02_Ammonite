@@ -42,15 +42,15 @@ class Monitor_Panel:public wxPanel
 public:
     class wxBoxSizer* Main_Sizer;
 
-    class wxStaticBoxSizer* Sizer1;
-    class wxStaticBoxSizer* Sizer2;
-    class wxStaticBoxSizer* Sizer3;
-    class wxStaticBoxSizer* Sizer4;
+    class wxStaticBoxSizer* Basic_Sizer;
+    class wxStaticBoxSizer* Hyper_Sizer;
+    class wxStaticBoxSizer* Build_Sizer;
+    class wxStaticBoxSizer* Output_Sizer;
 
-    /* Group 1 */
-    class wxBoxSizer* Sizer1_1;
-    class wxBoxSizer* Sizer1_2;
-    class wxBoxSizer* Sizer1_3;
+    /* Basic options */
+    class wxBoxSizer* Basic_Line1_Sizer;
+    class wxBoxSizer* Basic_Line2_Sizer;
+    class wxBoxSizer* Basic_Line3_Sizer;
 
     class wxBoxSizer* Code_Size_Sizer;
     class wxStaticText* Code_Size_Label;
@@ -72,9 +72,9 @@ public:
     class wxStaticText* Vmmd_Stack_Size_Label;
     class wxTextCtrl* Vmmd_Stack_Size;
 
-    /* Group 2 */
-    class wxBoxSizer* Sizer2_1;
-    class wxBoxSizer* Sizer2_2;
+    /* Hypervisor options */
+    class wxBoxSizer* Hyper_Line1_Sizer;
+    class wxBoxSizer* Hyper_Line2_Sizer;
 
     class wxBoxSizer* Extra_Captbl_Sizer;
     class wxStaticText* Extra_Captbl_Label;
@@ -92,9 +92,9 @@ public:
     class wxStaticText* Virt_Map_Label;
     class wxTextCtrl* Virt_Map;
 
-    /* Group 3 */
-    class wxBoxSizer* Sizer3_1;
-    class wxBoxSizer* Sizer3_2;
+    /* Buildsystem options */
+    class wxBoxSizer* Build_Line1_Sizer;
+    class wxBoxSizer* Build_Line2_Sizer;
 
     class wxBoxSizer* Toolchain_Sizer;
     class wxStaticText* Toolchain_Label;
@@ -139,17 +139,20 @@ public:
     class wxTextCtrl* Hook_Source_Output;
     class wxCheckBox* Hook_Source_Overwrite;
 
-    /* void */ Monitor_Panel(class wxWindow*parent);
+    /* void */ Monitor_Panel(class wxWindow* Parent);
     /* void */ ~Monitor_Panel(void);
 
     void Load(void);
-    void Save(void);
     ret_t Check(void);
-    void Compatible_Set(void);
+    void Save(void);
+
+    void Toolchain_Set(void);
+    void Buildsystem_Set(const class wxString& Toolchain);
     void Virt_Prio_Set(void);
     void Virt_Event_Set(void);
-    void On_Trans_Hex(class wxFocusEvent& Event);
-    void On_Toolchain_Change(class wxCommandEvent& Event);
+
+    void On_Text_Hex(class wxFocusEvent& Event);
+    void On_Toolchain(class wxCommandEvent& Event);
 };
 /*****************************************************************************/
 /* __MONITOR_PANEL_CLASS__ */

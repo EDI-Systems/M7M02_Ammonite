@@ -41,9 +41,9 @@ Description : Config popup-menu class implementation.
 //#include "Option_Panel/Basic_Notebook/basic_notebook.hpp"
 #include "Option_Panel/Basic_Panel/basic_panel.hpp"
 #include "Option_Panel/Native_Notebook/native_notebook.hpp"
-#include "Option_Panel/Native_Notebook/Native_Basic_Panel/native_basic_panel.hpp"
+#include "Option_Panel/Native_Notebook/Native_Panel/native_panel.hpp"
 #include "Option_Panel/Virtual_Notebook/virtual_notebook.hpp"
-#include "Option_Panel/Virtual_Notebook/Virtual_Basic_Panel/virtual_basic_panel.hpp"
+#include "Option_Panel/Virtual_Notebook/Virtual_Panel/virtual_panel.hpp"
 
 #include "Proj_Info/Process/Native/native.hpp"
 #include "Proj_Info/Process/Send/send.hpp"
@@ -116,21 +116,20 @@ Return      : None.
 Description : Add a new native process and update the config tree.
 Input       : const std::string& Name - The name of new native process.
 Output      : None.
-Return      : ret_t - Return 1 if this native process was added successfully.
+Return      : ret_t - Return 0 if this native process was added successfully.
 ******************************************************************************/
 ret_t Config_Popup::Native_Add(const std::string& Name)
 {
-    if(Main::Proj_Info->Native_Add(Name))
+    if(Main::Proj_Info->Native_Add(Name)==0)
     {
         this->Tree->AppendItem(this->Tree->Native_Config,Name);
         this->Tree->Expand(this->Tree->Native_Config);
         wxLogDebug("Config_Tree::Add_Native: Success");
-        return 1;
+        return 0;
     }
+
     wxLogDebug("Config_Tree::Add_Native: Fail");
-    return 0;
-
-
+    return -1;
 }
 /* End Function:Config_Popup::Native_Add *************************************/
 
@@ -138,86 +137,22 @@ ret_t Config_Popup::Native_Add(const std::string& Name)
 Description : Add a new virtual machine and update the config tree.
 Input       : const std::string& Name - The name of new vitual machine.
 Output      : None.
-Return      : ret_t - Return 1 if this virtual machine was added successfully.
+Return      : ret_t - Return 0 if this virtual machine was added successfully.
 ******************************************************************************/
 ret_t Config_Popup::Virtual_Add(const std::string& Name)
 {
-    if(Main::Proj_Info->Virtual_Add(Name))
+    if(Main::Proj_Info->Virtual_Add(Name)==0)
     {
         this->Tree->AppendItem(this->Tree->Virtual_Config,Name);
         this->Tree->Expand(this->Tree->Virtual_Config);
         wxLogDebug("Config_Tree::Add_Virtual: Success");
-        return 1;
+        return 0;
     }
+
     wxLogDebug("Config_Tree::Add_Virtual: Fail");
-    return 0;
+    return -1;
 }
 /* End Function:Config_Popup::Virtual_Add ************************************/
-
-/* Function:Config_Popup::Native_Rename ***************************************
-Description : Rename the native process and update the config tree.
-Input       : const std::string& Original - The original name of native process.
-              const std::string& Current - The current name of native process.
-Output      : None.
-Return      : ret_t - Return 1 if this native process was renamed successfully.
-******************************************************************************/
-ret_t Config_Popup::Native_Rename(const std::string& Original, const std::string& Current)
-{
-    class wxString Project_Output_Path;
-    if(Main::Proj_Info->Native_Rename(Original,Current))
-    {
-        /* If relative native notebook or virtual notebook is shown,
-         * the GUI also needs to be updated, otherwise the Proj_Info
-         * will be affected after auto save */
-        if(Main::Native_Notebook->IsShown()&&Main::Native_Notebook->Basic->Name->GetValue()==Original)
-        {
-            Main::Native_Notebook->Basic->Name->SetValue(Current);
-            /* Update the path of project output if it meets the format requirements */
-            Project_Output_Path= Main::Native_Notebook->Basic->Project_Output->GetValue();
-            if(Project_Output_Path.starts_with("./"+Original))
-            {
-                Project_Output_Path.Replace(Original,Current);
-                Main::Native_Notebook->Basic->Project_Output->SetValue(Project_Output_Path);
-            }
-        }
-        this->Tree->SetItemText(this->Tree->Active,Current);
-        return 1;
-    }
-    return 0;
-}
-/* End Function:Config_Popup::Native_Rename **********************************/
-
-/* Function:Config_Popup::Virtual_Rename ***************************************
-Description : Rename the virtual machine and update the config tree.
-Input       : const std::string& Original - The original name of virtual machine.
-              const std::string& Current - The current name of virtual machine.
-Output      : None.
-Return      : ret_t - Return 1 if this virtual machine was renamed successfully.
-******************************************************************************/
-ret_t Config_Popup::Virtual_Rename(const std::string& Original, const std::string& Current)
-{
-    class wxString Project_Output_Path;
-    if(Main::Proj_Info->Virtual_Rename(Original,Current))
-    {
-        /* The same as native process rename */
-        if(Main::Virtual_Notebook->IsShown()&&Main::Virtual_Notebook->Basic->Name->GetValue()==Original)
-        {
-            Main::Virtual_Notebook->Basic->Name->SetValue(Current);
-            /* Update the path of project output if it meets the format requirements */
-            Project_Output_Path= Main::Virtual_Notebook->Basic->Project_Output->GetValue();
-            if(Project_Output_Path.starts_with("./"+Original))
-            {
-                Project_Output_Path.Replace(Original,Current);
-                Main::Virtual_Notebook->Basic->Project_Output->SetValue(Project_Output_Path);
-            }
-
-        }
-        this->Tree->SetItemText(this->Tree->Active,Current);
-        return 1;
-    }
-    return 0;
-}
-/* End Function:Config_Popup::Native_Rename **********************************/
 
 /* Function:Config_Popup::State_Set *******************************************
 Description : Set the current UI state, and decide what controls are usable.
@@ -345,27 +280,33 @@ void Config_Popup::On_Delete_Item(class wxCommandEvent& Event)
     {
         case SELECT_DETAIL_NATIVE_CHILD:
         {
-            if(Main::Proj_Info->Native_Remove(Select_Text))
+            if(Main::Proj_Info->Native_Remove(Select_Text)==0)
             {
                 this->Tree->Delete(this->Tree->Active);
-                if(Main::Native_Notebook->IsShown())
-                    Main::Native_Notebook->Hide();
-                /* When switch around other panel, the removed native_notebook won't try to save,
-                 * because this removed one has been hidden */
+                if(Main::Option_Panel->Native_Notebook->IsShown())
+                {
+                    Main::Option_Panel->Window_Switch(Main::Option_Panel->Basic_Panel);
+                    this->Tree->Bold=this->Tree->Basic_Config;
+                    this->Tree->SetItemBold(this->Tree->Bold);
+                }
             }
             break;
         }
         case SELECT_DETAIL_VIRTUAL_CHILD:
         {
-            if(Main::Proj_Info->Virtual_Remove(Select_Text))
+            if(Main::Proj_Info->Virtual_Remove(Select_Text)==0)
             {
                 this->Tree->Delete(this->Tree->Active);
-                if(Main::Virtual_Notebook->IsShown())
-                    Main::Virtual_Notebook->Hide();
-                /* The same as removing an native notebook */
+                if(Main::Option_Panel->Virtual_Notebook->IsShown())
+                {
+                    Main::Option_Panel->Window_Switch(Main::Option_Panel->Basic_Panel);
+                    this->Tree->Bold=this->Tree->Basic_Config;
+                    this->Tree->SetItemBold(this->Tree->Bold);
+                }
             }
             break;
         }
+        default:break;
     }
 }
 /* End Function:Config_Popup::On_Delete_Item *********************************/
@@ -394,7 +335,6 @@ void Config_Popup::On_Validate(class wxCommandEvent& Event)
 }
 /* End Function:Config_Popup::On_Validate ************************************/
 
-
 /* Function:Config_Popup::On_Rename *******************************************
 Description : wxEVT_MENU handler for 'Validate'.
 Input       : class wxCommandEvent& Event - The event.
@@ -403,37 +343,35 @@ Return      : None.
 ******************************************************************************/
 void Config_Popup::On_Rename(class wxCommandEvent& Event)
 {
-    ptr_t State_Rename;
     std::string Current;
     std::string Original;
 
     Original=this->Tree->GetItemText(this->Tree->Active);
 
     Main::Name_Dialog->Load(Original);
-    State_Rename=Main::Name_Dialog->ShowModal();
-
-    if (State_Rename!=wxID_OK)
+    if(Main::Name_Dialog->ShowModal()!=wxID_OK)
         return;
+
+    /* Name must be OK at this point */
     Current=Main::Name_Dialog->Name_Get();
     switch(this->Tree->Select_Detail)
     {
         case SELECT_DETAIL_ROOT:
         {
-            this->Tree->Root_Text=_(Current);
             this->Tree->SetItemText(this->Tree->Active,Current);
-            Main::Basic_Panel->Name->SetValue(Current);
+            Main::Option_Panel->Basic_Panel->Name->SetValue(Current);
             break;
         }
         case SELECT_DETAIL_NATIVE_CHILD:
         {
-            if(this->Native_Rename(Original,Current))
-                wxLogDebug("Config_Popup::On_Rename: %s -> %s, Native Process",Original,Current);
+            Main::Native_Rename(Original,Current);
+            wxLogDebug("Config_Popup::On_Rename: %s -> %s, Native Process",Original,Current);
             break;
         }
         case SELECT_DETAIL_VIRTUAL_CHILD:
         {
-            if(this->Virtual_Rename(Original,Current))
-                wxLogDebug("Config_Popup::On_Rename: %s -> %s, Virtual Machine",Original,Current);
+            Main::Virtual_Rename(Original,Current);
+            wxLogDebug("Config_Popup::On_Rename: %s -> %s, Virtual Machine",Original,Current);
             break;
         }
         default:break;

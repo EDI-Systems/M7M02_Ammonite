@@ -65,11 +65,7 @@ public:
     /* Virtual source output & overwrite */
     std::string Virtual_Source_Output;
     ptr_t Virtual_Source_Overwrite;
-	/* Virtual only, end */
 
-    /* void */ Virtual(const std::string& Name,
-                       const std::string& Root,
-                       const class Plat_Info* Plat);
     /* void */ Virtual(class wxXmlNode* Node);
     /* change */
     /* void */ Virtual(const std::string& Name);

@@ -13,8 +13,11 @@ Description : Setting dialog class implementation.
 
 #include "wx/wx.h"
 #include "wx/xml/xml.h"
-#include <wx/stdpaths.h>
-#include <wx/filename.h>
+#include "wx/stdpaths.h"
+#include "wx/filename.h"
+#include "wx/validate.h"
+#include "wx/valnum.h"
+#include "wx/filepicker.h"
 
 #include "map"
 #include "string"
@@ -39,7 +42,7 @@ Output      : None.
 Return      : None.
 ******************************************************************************/
 /* void */ Setting_Dialog::Setting_Dialog(class wxWindow* Parent):
-wxDialog(Parent,wxID_ANY,_("Settings"),wxDefaultPosition,I2P(wxSize(512,230)))
+wxDialog(Parent,wxID_ANY,_("Settings"),wxDefaultPosition,I2P(wxSize(512,240)))
 {
     this->Center();
 
@@ -49,43 +52,41 @@ wxDialog(Parent,wxID_ANY,_("Settings"),wxDefaultPosition,I2P(wxSize(512,230)))
         this->Bind(wxEVT_CLOSE_WINDOW, &Setting_Dialog::On_Close, this);
 
         /* GUI */
-        this->SetMinSize(I2P(wxSize(512,600)));
-
         this->Main_Sizer=new class wxBoxSizer(wxVERTICAL);
-        this->RVM_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->RME_Sizer=new class wxBoxSizer(wxHORIZONTAL);
+        this->RVM_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->RMP_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Button_Sizer=new class wxBoxSizer(wxHORIZONTAL);
 
+        this->Required_Sizer=new class wxStaticBoxSizer(wxVERTICAL,this,_("Essential Folders"));
 
-        this->Required_Path_Sizer=new class wxStaticBoxSizer(wxVERTICAL,this,_("Essential Path"));
-        this->RVM_Label=new class wxStaticText(this,wxID_ANY,_("RVM Path"));
-        this->RVM_Text=new class wxTextCtrl(this,wxID_ANY,wxT(""),wxDefaultPosition,wxDefaultSize,wxTE_READONLY);
-        this->RVM_Path=new class wxButton(this,wxID_ANY,_("..."),wxDefaultPosition,I2P(wxSize(20,0)));
-        this->Bind(wxEVT_BUTTON,&Setting_Dialog::On_RVM_Path,this,this->RVM_Path->GetId());
-        this->RVM_Sizer->Add(RVM_Label,1,wxALL,I2P(5));
-        this->RVM_Sizer->Add(RVM_Text,4,wxALL,I2P(5));
-        this->RVM_Sizer->Add(RVM_Path,0,wxALL|wxEXPAND,I2P(5));
-        this->Required_Path_Sizer->Add(this->RVM_Sizer,0,wxEXPAND);
+        this->RME_Label=new class wxStaticText(this,wxID_ANY,_("RME Folder"));
+        this->RME_Picker=new class wxDirPickerCtrl(this,wxID_ANY,wxT(""),_("Select RME Folder"),
+                                                   wxDefaultPosition,I2P(wxSize(425,-1)),wxDIRP_USE_TEXTCTRL|wxDIRP_DIR_MUST_EXIST|wxDIRP_SMALL);
+        this->RME_Picker->GetTextCtrl()->SetEditable(false);
+        this->Bind(wxEVT_DIRPICKER_CHANGED,&Setting_Dialog::On_RME_Picker,this,this->RME_Picker->GetId());
+        this->RME_Sizer->Add(this->RME_Label,1,wxALL,I2P(5));
+        this->RME_Sizer->Add(this->RME_Picker,4,wxALL,I2P(5));
+        this->Required_Sizer->Add(this->RME_Sizer,0,wxEXPAND);
 
-        this->RME_Label=new class wxStaticText(this,wxID_ANY,_("RME Path"));
-        this->RME_Text=new class wxTextCtrl(this,wxID_ANY,wxT(""),wxDefaultPosition,wxDefaultSize,wxTE_READONLY);
-        this->RME_Path=new class wxButton(this,wxID_ANY,_("..."),wxDefaultPosition,I2P(wxSize(20,0)));
-        this->Bind(wxEVT_BUTTON,&Setting_Dialog::On_RME_Path,this,this->RME_Path->GetId());
-        this->RME_Sizer->Add(RME_Label,1,wxALL,I2P(5));
-        this->RME_Sizer->Add(RME_Text,4,wxALL,I2P(5));
-        this->RME_Sizer->Add(RME_Path,0,wxALL|wxEXPAND,I2P(5));
-        this->Required_Path_Sizer->Add(this->RME_Sizer,0,wxEXPAND);
+        this->RVM_Label=new class wxStaticText(this,wxID_ANY,_("RVM Folder"));
+        this->RVM_Picker=new class wxDirPickerCtrl(this,wxID_ANY,wxT(""),_("Select RVM Folder"),
+                                                   wxDefaultPosition,I2P(wxSize(425,-1)),wxDIRP_USE_TEXTCTRL|wxDIRP_DIR_MUST_EXIST|wxDIRP_SMALL);
+        this->RVM_Picker->GetTextCtrl()->SetEditable(false);
+        this->Bind(wxEVT_DIRPICKER_CHANGED,&Setting_Dialog::On_RVM_Picker,this,this->RVM_Picker->GetId());
+        this->RVM_Sizer->Add(this->RVM_Label,1,wxALL,I2P(5));
+        this->RVM_Sizer->Add(this->RVM_Picker,4,wxALL,I2P(5));
+        this->Required_Sizer->Add(this->RVM_Sizer,0,wxEXPAND);
 
-        this->Optional_Path_Sizer=new class wxStaticBoxSizer(wxVERTICAL,this,_("Optional Path"));
-        this->RMP_Label=new class wxStaticText(this,wxID_ANY,_("RMP Path"));
-        this->RMP_Text=new class wxTextCtrl(this,wxID_ANY,wxT(""),wxDefaultPosition,wxDefaultSize,wxTE_READONLY);
-        this->RMP_Path=new class wxButton(this,wxID_ANY,_("..."),wxDefaultPosition,I2P(wxSize(20,0)));
-        this->Bind(wxEVT_BUTTON,&Setting_Dialog::On_RMP_Path,this,this->RMP_Path->GetId());
-        this->RMP_Sizer->Add(RMP_Label,1,wxALL,I2P(5));
-        this->RMP_Sizer->Add(RMP_Text,4,wxALL,I2P(5));
-        this->RMP_Sizer->Add(RMP_Path,0,wxALL|wxEXPAND,I2P(5));
-        this->Optional_Path_Sizer->Add(this->RMP_Sizer,0,wxEXPAND);
+        this->Optional_Sizer=new class wxStaticBoxSizer(wxVERTICAL,this,_("Optional Folders"));
+        this->RMP_Label=new class wxStaticText(this,wxID_ANY,_("RMP Folder"));
+        this->RMP_Picker=new class wxDirPickerCtrl(this,wxID_ANY,wxT(""),_("Select RMP Folder"),
+                                                   wxDefaultPosition,I2P(wxSize(425,-1)),wxDIRP_USE_TEXTCTRL|wxDIRP_DIR_MUST_EXIST|wxDIRP_SMALL);
+        this->RMP_Picker->GetTextCtrl()->SetEditable(false);
+        this->Bind(wxEVT_DIRPICKER_CHANGED,&Setting_Dialog::On_RVM_Picker,this,this->RME_Picker->GetId());
+        this->RMP_Sizer->Add(this->RMP_Label,1,wxALL,I2P(5));
+        this->RMP_Sizer->Add(this->RMP_Picker,4,wxALL,I2P(5));
+        this->Optional_Sizer->Add(this->RMP_Sizer,0,wxEXPAND);
 
         this->Confirm=new class wxButton(this,wxID_ANY,_("Confirm"));
         this->Bind(wxEVT_BUTTON,&Setting_Dialog::On_Confirm,this,this->Confirm->GetId());
@@ -105,9 +106,9 @@ wxDialog(Parent,wxID_ANY,_("Settings"),wxDefaultPosition,I2P(wxSize(512,230)))
         this->Button_Sizer->Add(this->Default,0,wxALL,I2P(5));
         this->Button_Sizer->AddStretchSpacer(1);
 
-        this->Main_Sizer->Add(this->Required_Path_Sizer, 0, wxEXPAND|wxALL,I2P(5));
-        this->Main_Sizer->AddSpacer(5);
-        this->Main_Sizer->Add(this->Optional_Path_Sizer, 0, wxEXPAND|wxALL,I2P(5));
+        this->Main_Sizer->Add(this->Required_Sizer, 0, wxEXPAND|wxALL,I2P(5));
+        this->Main_Sizer->AddStretchSpacer(1);
+        this->Main_Sizer->Add(this->Optional_Sizer, 0, wxEXPAND|wxALL,I2P(5));
         this->Main_Sizer->Add(this->Button_Sizer, 0, wxEXPAND);
 
         this->SetSizer(this->Main_Sizer);
@@ -132,6 +133,76 @@ Return      : None.
 }
 /* End Function:Setting_Dialog::~Setting_Dialog ******************************/
 
+/* Function:Setting_Dialog::Load **********************************************
+Description : Load path settings.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Setting_Dialog::Load(void)
+{
+    wxLogDebug("Setting_Dialog::Load");
+
+    this->RME_Picker->SetPath(Main::RME_Folder);
+    this->RVM_Picker->SetPath(Main::RVM_Folder);
+    this->RMP_Picker->SetPath(Main::RMP_Folder);
+}
+/* End Function:Setting_Dialog::Load *****************************************/
+
+/* Function:Setting_Dialog::On_RME_Picker *************************************
+Description : wxEVT_DIRPICKER_CHANGED handler for 'RME_Picker'.
+Input       : class wxFileDirPickerEvent& Event - The event.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Setting_Dialog::On_RME_Picker(class wxCommandEvent& Event)
+{
+    std::string Path;
+
+    wxLogDebug("Setting_Dialog::On_RME_Picker");
+
+    Path=this->RME_Picker->GetPath();
+    Main::Path_Relative(PATH_DIR, Main::Exe_Folder, Path);
+    this->RME_Picker->SetPath(Path);
+}
+/* End Function:Setting_Dialog::On_RME_Folder ********************************/
+
+/* Function:Setting_Dialog::On_RVM_Picker *************************************
+Description : wxEVT_DIRPICKER_CHANGED handler for 'RVM_Picker'.
+Input       : class wxFileDirPickerEvent& Event - The event.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Setting_Dialog::On_RVM_Picker(class wxCommandEvent& Event)
+{
+    std::string Path;
+
+    wxLogDebug("Setting_Dialog::On_RVM_Picker");
+
+    Path=this->RVM_Picker->GetPath();
+    Main::Path_Relative(PATH_DIR, Main::Exe_Folder, Path);
+    this->RVM_Picker->SetPath(Path);
+}
+/* End Function:Setting_Dialog::On_RVM_Picker ********************************/
+
+/* Function:Setting_Dialog::On_RMP_Picker *************************************
+Description : wxEVT_DIRPICKER_CHANGED handler for 'RMP_Picker'.
+Input       : class wxFileDirPickerEvent& Event - The event.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Setting_Dialog::On_RMP_Picker(class wxCommandEvent& Event)
+{
+    std::string Path;
+
+    wxLogDebug("Setting_Dialog::On_RMP_Picker");
+
+    Path=this->RMP_Picker->GetPath();
+    Main::Path_Relative(PATH_DIR, Main::Exe_Folder, Path);
+    this->RMP_Picker->SetPath(Path);
+}
+/* End Function:Setting_Dialog::On_RMP_Picker ********************************/
+
 /* Function:Setting_Dialog::On_Close ******************************************
 Description : Hide setting dialog after 'close' button is clicked.
 Input       : class wxCloseEvent& Event - The event..
@@ -147,13 +218,13 @@ void Setting_Dialog::On_Close(class wxCloseEvent& Event)
 /* Function:Setting_Dialog::On_Confirm ****************************************
 Description : wxEVT_BUTTON handler for 'Confirm',
               and set locations of the folders.
-              <Settings>
+              <Setting>
                   <Path>
                       <RME> </RME> stored as relative path to this software.
                       <RVM> </RVM>
                       <RMP> </RMP>
                   </Path>
-              </Settings>
+              </Setting>
               rme location, rvm location, rmp location -> use xml  .rvi
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.
@@ -161,44 +232,33 @@ Return      : None.
 ******************************************************************************/
 void Setting_Dialog::On_Confirm(class wxCommandEvent& Event)
 {
+    class wxXmlNode* Root;
+    std::unique_ptr<class wxXmlDocument> Doc;
+
     wxLogDebug("Setting_Dialog::On_Confirm");
-
-    wxXmlNode*Root;
-    wxXmlDocument Doc;
-    wxString Exe_Path;
-
-    if(this->RVM_Text->GetValue()==""||this->RME_Text->GetValue()=="")
-    {
-        wxLogDebug("ERROR!!!Essential path is empty!!!");
-        return;
-    }
 
     /* Root will be delete with Doc after Doc.SetRoot */
     Root=new wxXmlNode(nullptr, wxXML_ELEMENT_NODE, "Setting");
-    Main::Text_Save(Root,"RVM",this->RVM_Text->GetValue().ToStdString());
-    Main::Text_Save(Root,"RME",this->RME_Text->GetValue().ToStdString());
-    Main::Text_Save(Root,"RMP",this->RMP_Text->GetValue().ToStdString());
-    Doc.SetRoot(Root);
+    Doc=std::make_unique<class wxXmlDocument>();
+    Doc->SetRoot(Root);
 
-    Exe_Path=wxPathOnly(wxStandardPaths::Get().GetExecutablePath());
+    Main::Text_Save(Root,"RME",std::string(this->RME_Picker->GetPath()));
+    Main::Text_Save(Root,"RVM",std::string(this->RVM_Picker->GetPath()));
+    Main::Text_Save(Root,"RMP",std::string(this->RMP_Picker->GetPath()));
 
     /* Save setting.rvi */
-    if (Doc.Save(Exe_Path+ wxFileName::GetPathSeparator() + "setting.rvi"))
-        wxLogDebug("The setting.rvi has been made successfully in %s.",Exe_Path);
-    else
-        wxLogDebug("Failed to make the setting.rvi");
+    Doc->Save(Main::Exe_Folder+"setting.rvi");
 
     /* Save the variables in Main */
-    Main::RVM_Path=this->RVM_Text->GetValue();
-    Main::RME_Path=this->RME_Text->GetValue();
-    Main::RMP_Path=this->RMP_Text->GetValue();
+    Main::RME_Folder=this->RME_Picker->GetPath();
+    Main::RVM_Folder=this->RVM_Picker->GetPath();
+    Main::RMP_Folder=this->RMP_Picker->GetPath();
 
-    wxLogDebug("RVM_Path has been set %s",Main::RVM_Path);
-    wxLogDebug("RME_Path has been set %s",Main::RME_Path);
-    wxLogDebug("RMP_Path has been set %s",Main::RMP_Path);
+    wxLogDebug("RME_Path has been set %s",Main::RME_Folder);
+    wxLogDebug("RVM_Path has been set %s",Main::RVM_Folder);
+    wxLogDebug("RMP_Path has been set %s",Main::RMP_Folder);
 
     this->Hide();
-
 }
 /* End Function:Setting_Dialog::On_Confirm ***********************************/
 
@@ -222,147 +282,23 @@ Return      : None.
 ******************************************************************************/
 void Setting_Dialog::On_Restore(class wxCommandEvent& Event)
 {
-    Main::Setting_Dialog->Set_Setting(Main::RVM_Path, Main::RME_Path, Main::RMP_Path);
+    this->Load();
 }
 /* End Function:Setting_Dialog::On_Restore ***********************************/
 
 /* Function:Setting_Dialog::On_Default ****************************************
 Description : wxEVT_BUTTON handler for 'Default'.
-Input       : class wxCommandEvent& Event - The event..
+Input       : class wxCommandEvent& Event - The event.
 Output      : None.
 Return      : None.
 ******************************************************************************/
 void Setting_Dialog::On_Default(class wxCommandEvent& Event)
 {
-    this->RVM_Text->SetValue("./../../../../M7M02_Ammonite/");
-    this->RME_Text->SetValue("./../../../../M5P01_Prokaron/");
-    this->RMP_Text->SetValue("./../../../../M7M01_Eukaron/");
+    this->RME_Picker->SetPath("./../../../../M5P01_Prokaron/");
+    this->RVM_Picker->SetPath("./../../../../M7M02_Ammonite/");
+    this->RMP_Picker->SetPath("./../../../../M7M01_Eukaron/");
 }
 /* End Function:Setting_Dialog::On_Default ***********************************/
-
-/* Function:Setting_Dialog::On_RME_Folder *************************************
-Description : wxEVT_BUTTON handler for 'RME_Folder'.
-Input       : class wxCommandEvent& Event - The event..
-Output      : None.
-Return      : None.
-******************************************************************************/
-
-/* Function:Setting_Dialog::On_RVM_Folder *************************************
-Description : wxEVT_BUTTON handler for 'RVM_Folder'.
-Input       : class wxCommandEvent& Event - The event..
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Setting_Dialog::On_RVM_Path(class wxCommandEvent& Event)
-{
-    std::string Rel_Path;
-
-    wxLogDebug("Setting_Dialog::On_Folder");
-
-    Rel_Path=this->Rel_Path_Get();
-    if(Rel_Path=="")
-    {
-        Main::Msgbox_Show(RVM_CFG_App::Main, MSGBOX_ERROR,
-                          _("Setting"),
-                          _("RVM Path is invalid."));
-        return;
-    }
-    this->RVM_Text->SetValue(Rel_Path);
-}
-/* End Function:Setting_Dialog::On_RVM_Folder ********************************/
-
-/* Function:Setting_Dialog::On_RME_Folder *************************************
-Description : wxEVT_BUTTON handler for 'RME_Folder'.
-Input       : class wxCommandEvent& Event - The event..
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Setting_Dialog::On_RME_Path(class wxCommandEvent& Event)
-{
-    wxLogDebug("Setting_Dialog::On_Folder");
-    std::string Rel_Path;
-    Rel_Path=this->Rel_Path_Get();
-    if(Rel_Path=="")
-    {
-        Main::Msgbox_Show(RVM_CFG_App::Main, MSGBOX_ERROR,
-                          _("Setting"),
-                          _("RME Path is invalid."));
-        return;
-    }
-    this->RME_Text->SetValue(Rel_Path);
-}
-/* End Function:Setting_Dialog::On_RME_Folder ********************************/
-
-/* Function:Setting_Dialog::On_RMP_Folder *************************************
-Description : wxEVT_BUTTON handler for 'RMP_Folder'.
-Input       : class wxCommandEvent& Event - The event..
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Setting_Dialog::On_RMP_Path(class wxCommandEvent& Event)
-{
-    std::string Rel_Path;
-
-    wxLogDebug("Setting_Dialog::On_Folder");
-
-    Rel_Path=this->Rel_Path_Get();
-    if(Rel_Path=="")
-    {
-        Main::Msgbox_Show(RVM_CFG_App::Main, MSGBOX_ERROR,
-                          _("Setting"),
-                          _("RMP Path is invalid."));
-        return;
-    }
-    this->RMP_Text->SetValue(Rel_Path);
-}
-/* End Function:Setting_Dialog::On_RMP_Folder ********************************/
-
-/* Function:Setting_Dialog::Set_Setting ***************************************
-Description : Set rvm, rme, rmp text in the setting dialog.
-Input       : const std::string& rvm - The path of rvm,
-              const std::string& rme - The path of rme,
-              const std::string& rmp - The path of rmp.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Setting_Dialog::Set_Setting(const std::string& rvm,const std::string& rme,
-                                 const std::string& rmp)
-{
-    wxLogDebug("Setting_Dialog::Set_Setting");
-    this->RVM_Text->SetValue(rvm);
-    this->RME_Text->SetValue(rme);
-    this->RMP_Text->SetValue(rmp);
-}
-/* End Function:Setting_Dialog::On_RMP_Folder ********************************/
-
-/* Function:Setting_Dialog::Rel_Path_Get **************************************
-Description : Get the relative path from this program.
-Input       : None.
-Output      : None.
-Return      : std::string - The relative path.
-******************************************************************************/
-std::string Setting_Dialog::Rel_Path_Get()
-{
-    wxLogDebug("Setting_Dialog::Folder_Function");
-
-    std::string Path;
-    std::string Exe_Path;
-    std::unique_ptr<class wxDirDialog>Dir;
-
-    /* Let the user choose the folder */
-    Dir=std::make_unique<class wxDirDialog>(this,_(""),wxT(""),
-                                            wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
-    if(Dir->ShowModal()!=wxID_OK)
-        return "";
-    Path=Dir->GetPath();
-
-    /* Get the location of this executable program */
-    Exe_Path = wxPathOnly(wxStandardPaths::Get().GetExecutablePath()).ToStdString();
-
-    /* Return relative path */
-    return Main::Path_Relative(PATH_DIR, Exe_Path, Path);
-}
-/* End Function:Setting_Dialog::Rel_Path_Get *********************************/
 }
 /* End Of File ***************************************************************/
 

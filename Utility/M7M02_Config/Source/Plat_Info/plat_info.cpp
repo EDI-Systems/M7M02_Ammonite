@@ -28,7 +28,6 @@ Description : Platform information implementation.
 
 #define __HDR_CLASS__
 #include "rvm_cfg.hpp"
-/* #include "Conf_Info/conf_info.hpp" */
 #include "Plat_Info/Compatible/compatible.hpp"
 #include "Plat_Info/Default/default.hpp"
 #include "Plat_Info/Config/config.hpp"
@@ -121,6 +120,170 @@ Return      : None.
 
 }
 /* End Function:Plat_Info::~Plat_Info ****************************************/
+
+/* Function:Plat_Info::Compat_Check *******************************************
+Description : Check whether the option is compatible, for kernel and monitor.
+Input       : const std::string& Toolchain - The current toolchain.
+              const std::string& Buildsystem - The current buildsystem.
+Output      : None.
+Return      : ret_t - If compatible, 0; else -1.
+******************************************************************************/
+ret_t Plat_Info::Compat_Check(const std::string& Toolchain,
+                              const std::string& Buildsystem)
+{
+    for(const std::unique_ptr<class Compatible>& Compat:this->Compatible)
+    {
+        if(Compat->Guest=="Native")
+        {
+            if((Compat->Buildsystem==Buildsystem)&&(Compat->Toolchain==Toolchain))
+                return 0;
+        }
+    }
+
+    return -1;
+}
+/* End Function:Plat_Info::Compat_Check **************************************/
+
+/* Function:Plat_Info::Compat_Check *******************************************
+Description : Check whether the option is compatible, for kernel and monitor.
+Input       : const std::string& Toolchain - The current toolchain.
+              const std::string& Buildsystem - The current buildsystem.
+              const std::string& Guest - The guest operating system.
+Output      : None.
+Return      : ret_t - If compatible, 0; else -1.
+******************************************************************************/
+ret_t Plat_Info::Compat_Check(const std::string& Toolchain,
+                              const std::string& Buildsystem,
+                              const std::string& Guest)
+{
+    for(const std::unique_ptr<class Compatible>& Compat:this->Compatible)
+    {
+        if(Compat->Guest==Guest)
+        {
+            if((Compat->Buildsystem==Buildsystem)&&(Compat->Toolchain==Toolchain))
+                return 0;
+        }
+    }
+
+    return -1;
+}
+/* End Function:Plat_Info::Compat_Check **************************************/
+
+/* Function:Plat_Info::Buildsystem_Workspace **********************************
+Description : Find valid buildsystem options for the workspace.
+Input       : None.
+Output      : std::vector<std::string>& Build_Avail - The possible buildsystems.
+Return      : None.
+******************************************************************************/
+void Plat_Info::Buildsystem_Workspace(std::vector<std::string>& Build_Avail)
+{
+    Build_Avail.clear();
+
+    for(const std::unique_ptr<class Compatible>& Compat:this->Compatible)
+    {
+        if(Compat->Guest=="Native")
+            Build_Avail.push_back(Compat->Buildsystem);
+    }
+}
+/* End Function:Plat_Info::Buildsystem_Workspace *****************************/
+
+/* Function:Plat_Info::Toolchain_Native ***************************************
+Description : Find valid toolchain options for native processes.
+Input       : None.
+Output      : std::vector<std::string>& Build_Avail - The possible toolchains.
+Return      : None.
+******************************************************************************/
+void Plat_Info::Toolchain_Native(std::vector<std::string>& Tool_Avail)
+{
+    Tool_Avail.clear();
+
+    for(const std::unique_ptr<class Compatible>& Compat:this->Compatible)
+    {
+        if(Compat->Guest=="Native")
+            Tool_Avail.push_back(Compat->Toolchain);
+    }
+}
+/* End Function:Plat_Info::Toolchain_Native **********************************/
+
+/* Function:Plat_Info::Buildsystem_Native *************************************
+Description : Find valid buildsystem options given the toolchain.
+Input       : const std::string& Toolchain - The current toolchain.
+Output      : std::vector<std::string>& Build_Avail - The possible buildsystems.
+Return      : None.
+******************************************************************************/
+void Plat_Info::Buildsystem_Native(const std::string& Toolchain,
+                                   std::vector<std::string>& Build_Avail)
+{
+    Build_Avail.clear();
+
+    for(const std::unique_ptr<class Compatible>& Compat:this->Compatible)
+    {
+        if((Compat->Guest=="Native")&&(Compat->Toolchain==Toolchain))
+            Build_Avail.push_back(Compat->Buildsystem);
+    }
+}
+/* End Function:Plat_Info::Buildsystem_Native ********************************/
+
+/* Function:Plat_Info::Toolchain_Virtual **************************************
+Description : Find valid toolchain options for virtual machines.
+Input       : None.
+Output      : std::vector<std::string>& Build_Avail - The possible toolchains.
+Return      : None.
+******************************************************************************/
+void Plat_Info::Toolchain_Virtual(std::vector<std::string>& Tool_Avail)
+{
+    Tool_Avail.clear();
+
+    for(const std::unique_ptr<class Compatible>& Compat:this->Compatible)
+    {
+        if(Compat->Guest!="Native")
+            Tool_Avail.push_back(Compat->Toolchain);
+    }
+}
+/* End Function:Plat_Info::Toolchain_Virtual *********************************/
+
+/* Function:Plat_Info::Buildsystem_Virtual ************************************
+Description : Find valid buildsystem options given the toolchain.
+Input       : const std::string& Toolchain - The current toolchain.
+Output      : std::vector<std::string>& Build_Avail - The possible buildsystems.
+Return      : None.
+******************************************************************************/
+void Plat_Info::Buildsystem_Virtual(const std::string& Toolchain,
+                                    std::vector<std::string>& Build_Avail)
+{
+    Build_Avail.clear();
+
+    for(const std::unique_ptr<class Compatible>& Compat:this->Compatible)
+    {
+        if((Compat->Guest!="Native")&&(Compat->Toolchain==Toolchain))
+            Build_Avail.push_back(Compat->Buildsystem);
+    }
+}
+/* End Function:Plat_Info::Buildsystem_Virtual *******************************/
+
+/* Function:Plat_Info::Guest_Virtual ******************************************
+Description : Find valid guest options given the toolchain and buildsystem.
+Input       : const std::string& Toolchain - The current toolchain.
+              const std::string& Buildsystem - The current buildsystem.
+Output      : std::vector<std::string>& Build_Avail - The possible buildsystems.
+Return      : None.
+******************************************************************************/
+void Plat_Info::Guest_Virtual(const std::string& Toolchain,
+                              const std::string& Buildsystem,
+                              std::vector<std::string>& Guest_Avail)
+{
+    Guest_Avail.clear();
+
+    for(const std::unique_ptr<class Compatible>& Compat:this->Compatible)
+    {
+        if((Compat->Buildsystem==Buildsystem)&&(Compat->Toolchain==Toolchain))
+        {
+            if(Compat->Guest!="Native")
+                Guest_Avail.push_back(Compat->Guest);
+        }
+    }
+}
+/* End Function:Plat_Info::Guest_Virtual *************************************/
 }
 /* End Of File ***************************************************************/
 

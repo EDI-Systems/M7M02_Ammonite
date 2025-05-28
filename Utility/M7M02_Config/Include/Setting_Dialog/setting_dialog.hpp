@@ -43,44 +43,41 @@ class Setting_Dialog:public wxDialog
 public:
     class wxBoxSizer* Main_Sizer;
 
-    class wxStaticText* RVM_Label;
-    class wxBoxSizer* RVM_Sizer;
-    class wxTextCtrl* RVM_Text;
+    class wxStaticBoxSizer* Required_Sizer;
 
     class wxStaticText* RME_Label;
     class wxBoxSizer* RME_Sizer;
-    class wxTextCtrl* RME_Text;
+    class wxDirPickerCtrl* RME_Picker;
+
+    class wxStaticText* RVM_Label;
+    class wxBoxSizer* RVM_Sizer;
+    class wxDirPickerCtrl* RVM_Picker;
+
+    class wxStaticBoxSizer* Optional_Sizer;
 
     class wxStaticText* RMP_Label;
     class wxBoxSizer* RMP_Sizer;
-    class wxTextCtrl* RMP_Text;
+    class wxDirPickerCtrl* RMP_Picker;
 
-    class wxStaticBoxSizer* Required_Path_Sizer;
-    class wxStaticBoxSizer* Optional_Path_Sizer;
-
-    class wxButton* RVM_Path;
-    class wxButton* RME_Path;
-    class wxButton* RMP_Path;
+    class wxBoxSizer* Button_Sizer;
     class wxButton* Confirm;
     class wxButton* Cancel;
     class wxButton* Restore;
     class wxButton* Default;
-    class wxBoxSizer* Button_Sizer;
 
     Setting_Dialog(class wxWindow* Parent);
     ~Setting_Dialog(void);
 
+    void Load(void);
+
+    void On_RVM_Picker(class wxCommandEvent& Event);
+    void On_RME_Picker(class wxCommandEvent& Event);
+    void On_RMP_Picker(class wxCommandEvent& Event);
     void On_Close(class wxCloseEvent& Event);
     void On_Confirm(class wxCommandEvent& Event);
     void On_Cancel(class wxCommandEvent& Event);
     void On_Restore(class wxCommandEvent& Event);
     void On_Default(class wxCommandEvent& Event);
-    void On_RVM_Path(class wxCommandEvent& Event);
-    void On_RME_Path(class wxCommandEvent& Event);
-    void On_RMP_Path(class wxCommandEvent& Event);
-    void Set_Setting(const std::string& rvm,const std::string& rme,const std::string& rmp);
-    std::string Rel_Path_Get(void);
-
 };
 /*****************************************************************************/
 /* __SETTING_DIALOG_CLASS__ */

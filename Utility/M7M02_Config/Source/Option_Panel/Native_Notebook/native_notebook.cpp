@@ -21,6 +21,7 @@ Description : Native process notebook implementation.
 
 #define __HDR_DEF__
 #include "Option_Panel/Native_Notebook/native_notebook.hpp"
+#include "Option_Panel/Memory_Panel/memory_panel.hpp"
 #undef __HDR_DEF__
 
 #define __HDR_CLASS__
@@ -31,7 +32,7 @@ Description : Native process notebook implementation.
 #include "Proj_Info/Process/Native/native.hpp"
 
 #include "Option_Panel/Native_Notebook/native_notebook.hpp"
-#include "Option_Panel/Native_Notebook/Native_Basic_Panel/native_basic_panel.hpp"
+#include "Option_Panel/Native_Notebook/Native_Panel/native_panel.hpp"
 #include "Option_Panel/Native_Notebook/Thread_Panel/thread_panel.hpp"
 #include "Option_Panel/Native_Notebook/Invocation_Panel/invocation_panel.hpp"
 #include "Option_Panel/Native_Notebook/Port_Panel/port_panel.hpp"
@@ -59,16 +60,18 @@ wxNotebook(Parent,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxNB_TOP)
 {
     try
     {
-        this->Basic=new class Native_Basic_Panel(this);
-        this->Memory=new class Memory_Panel(this,"Native process - Memory",BLANK_NAME_PERMIT);
-        this->Shmem=new class Shmem_Panel(this,"Native process - Shared memory");
-        this->Thread=new class Thread_Panel(this,"Native process - Thread");
-        this->Invocation=new class Invocation_Panel(this,"Native process - Invocation");
-        this->Port=new class Port_Panel(this,"Native process - Port");
-        this->Receive=new class Receive_Panel(this,"Native process - Receive");
-        this->Send=new class Send_Panel(this,"Native process - Send");
-        this->Vector=new class Vector_Panel(this,"Native process - Vector");
-        this->Kfunc=new class Kfunc_Panel(this,"Native process - Kfunc");
+        this->SetBackgroundColour(Parent->GetBackgroundColour());
+
+        this->Basic=new class Native_Panel(this);
+        this->Memory=new class Memory_Panel(this,MEM_PANEL_PRIVATE);
+        this->Shmem=new class Shmem_Panel(this);
+        this->Thread=new class Thread_Panel(this);
+        this->Invocation=new class Invocation_Panel(this);
+        this->Port=new class Port_Panel(this);
+        this->Receive=new class Receive_Panel(this);
+        this->Send=new class Send_Panel(this);
+        this->Vector=new class Vector_Panel(this);
+        this->Kfunc=new class Kfunc_Panel(this);
 
         this->AddPage(this->Basic,_("Basic "));
         this->AddPage(this->Memory,_("Memory"));
@@ -131,41 +134,7 @@ void Native_Notebook::Load(const std::string& Native_Name)
     this->Vector->Load(Iter->second->Vector);
     this->Kfunc->Load(Iter->second->Kfunc);
 }
-/* End Function:Native_Notebook::Save ****************************************/
-
-/* Function:Native_Notebook::Save *********************************************
-Description : Find the corresponding Native process and save the contents from
-              the GUI to the information layer.
-Input       : None.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Native_Notebook::Save()
-{
-    std::string Native_Name;
-    std::map<std::string, Native*>::iterator Iter;
-
-    Native_Name=this->Basic->Name->GetValue();
-    Iter=Main::Proj_Info->Native_Map.find(Native_Name);
-    if(Iter==Main::Proj_Info->Native_Map.end())
-    {
-        wxLogError("Native_Notebook::Save: Cannot find %s",Native_Name);
-        return;
-    }
-    wxLogDebug("Native_Notebook::Save: Find %s",Native_Name);
-    this->Basic->Save(Iter->second);
-    this->Memory->Save(Iter->second->Memory);
-    this->Shmem->Save(Iter->second->Shmem);
-    this->Thread->Save(Iter->second->Thread);
-    this->Invocation->Save(Iter->second->Invocation);
-
-    this->Port->Save(Iter->second->Port);
-    this->Receive->Save(Iter->second->Receive);
-    this->Send->Save(Iter->second->Send);
-    this->Vector->Save(Iter->second->Vector);
-    this->Kfunc->Save(Iter->second->Kfunc);
-}
-/* End Function:Native_Notebook::Save ****************************************/
+/* End Function:Native_Notebook::Load ****************************************/
 
 /* Function:Native_Notebook::Check ********************************************
 Description : Check the page. If there are any issues, make sure that the user
@@ -204,6 +173,40 @@ ret_t Native_Notebook::Check()
     return 0;
 }
 /* End Function:Native_Notebook::Check ***************************************/
+
+/* Function:Native_Notebook::Save *********************************************
+Description : Find the corresponding Native process and save the contents from
+              the GUI to the information layer.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Native_Notebook::Save(void)
+{
+    std::string Native_Name;
+    std::map<std::string, Native*>::iterator Iter;
+
+    Native_Name=this->Basic->Name->GetValue();
+    Iter=Main::Proj_Info->Native_Map.find(Native_Name);
+    if(Iter==Main::Proj_Info->Native_Map.end())
+    {
+        wxLogError("Native_Notebook::Save: Cannot find %s",Native_Name);
+        return;
+    }
+    wxLogDebug("Native_Notebook::Save: Find %s",Native_Name);
+    this->Basic->Save(Iter->second);
+    this->Memory->Save(Iter->second->Memory);
+    this->Shmem->Save(Iter->second->Shmem);
+    this->Thread->Save(Iter->second->Thread);
+    this->Invocation->Save(Iter->second->Invocation);
+
+    this->Port->Save(Iter->second->Port);
+    this->Receive->Save(Iter->second->Receive);
+    this->Send->Save(Iter->second->Send);
+    this->Vector->Save(Iter->second->Vector);
+    this->Kfunc->Save(Iter->second->Kfunc);
+}
+/* End Function:Native_Notebook::Save ****************************************/
 
 /* Function:Native_Notebook::Check ********************************************
 Description : Check whether the current panel contains any errors.
@@ -251,7 +254,6 @@ void Native_Notebook::On_Config(class wxBookCtrlEvent& Event)
         Event.Veto();
 }
 /* End Function:Native_Notebook::On_Config ***********************************/
-
 }
 /* End Of File ***************************************************************/
 

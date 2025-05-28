@@ -41,23 +41,6 @@ Description : Virtual process information implementation.
 /* End Include ***************************************************************/
 namespace RVM_CFG
 {
-/* Function:Virutual::Process *************************************************
-Description : Default constructor for process information.
-Input       : const std::string& Name - The exact chip name.
-              const std::string& Root - The root folder path.
-              const class Plat_Info* Plat - The platform information.
-Output      : None.
-Return      : None.
-******************************************************************************/
-/* void */ Virtual::Virtual(const std::string& Name,
-                            const std::string& Root,
-                            const class Plat_Info* Plat):
-Process(Name,PROCESS_NATIVE,Root,Plat)
-{
-
-}
-/* End Function:Virtual::Virtual *********************************************/
-
 /* Function:Virtual::Virtual **************************************************
 Description : Constructor for VM information.
 Input       : class wxXmlNode* Node - The node containing information.
@@ -65,7 +48,7 @@ Output      : None.
 Return      : None.
 ******************************************************************************/
 /* void */ Virtual::Virtual(class wxXmlNode* Node):
-Process(Node, PROCESS_NATIVE)
+Process(Node, PROCESS_VIRTUAL)
 {
     /* Vector_Stack_Size */
     this->Vector_Stack_Size=Main::Num_Load(Node,"Vector_Stack_Size");
@@ -94,7 +77,6 @@ Process(Node, PROCESS_NATIVE)
 }
 /* End Function:Virtual::Virtual *********************************************/
 
-
 /* Function:Virtual::Virtual **************************************************
 Description : Constructor for VM information.
 Input       : None.
@@ -102,7 +84,7 @@ Output      : None.
 Return      : None.
 ******************************************************************************/
 /* void */ Virtual::Virtual(const std::string& Name):
-Process(Name)
+Process(Name, PROCESS_VIRTUAL)
 {
     /* Set default value */
     this->Vector_Stack_Size=0;
