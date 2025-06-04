@@ -1,4 +1,3 @@
-
 /******************************************************************************
 Filename    : rvm_cfg.cpp
 Author      : pry
@@ -107,15 +106,18 @@ std::string Main::Exe_Folder;
 std::string Main::RVM_Folder;
 std::string Main::RME_Folder;
 std::string Main::RMP_Folder;
+std::string Main::FRT_Folder;
+std::string Main::RTT_Folder;
+std::string Main::UO2_Folder;
+std::string Main::UO3_Folder;
+std::string Main::MPY_Folder;
+
+/* Preferences */
+ptr_t Main::Generate_Report=0;
+ptr_t Main::Open_Report=0;
 
 /* Application states */
-ptr_t Main::UI_State=UI_NONE+1;
-ptr_t Main::Save_State=SAVE_NONE;
-
-
-/* The largest number ever used by native process and virtual machine */
-cnt_t Main::Native_Cnt=0;
-cnt_t Main::Virtual_Cnt=0;
+ptr_t Main::UI_State=UI_NONE;
 
 /* Lower-level classes */
 class Menu_Bar* Main::Menu_Bar=nullptr;
@@ -157,7 +159,7 @@ wxFrame(nullptr,wxID_ANY,SOFTWARE_NAME,wxDefaultPosition,I2P(wxSize(1024,800)),
         wxLogDebug(wxT("Main::Main"));
 
         /* Set icon */
-        this->SetIcon(wxIcon(M7M02_Logo));
+        this->SetIcon(wxIcon(Logo_Icon));
 
         /* This is a singleton. If this is not nullptr, we must have initialized it */
         ASSERT(RVM_CFG_App::Main==nullptr,"This application is a singleton.");
@@ -187,7 +189,8 @@ wxFrame(nullptr,wxID_ANY,SOFTWARE_NAME,wxDefaultPosition,I2P(wxSize(1024,800)),
         Main::Option_Panel=new class Option_Panel(Main::App_Panel);
         Main::Option_Sizer->Add(Main::Option_Panel, 11, wxEXPAND);
 
-        Main::Output_Text=new class wxTextCtrl(Main::App_Panel,wxID_ANY);
+        Main::Output_Text=new class wxTextCtrl(Main::App_Panel,wxID_ANY,wxT(""),wxDefaultPosition,wxDefaultSize,
+                                               wxTE_MULTILINE|wxVSCROLL|wxTE_READONLY);
         Main::Option_Sizer->Add(Main::Output_Text, 1, wxEXPAND);
 
         Main::Config_Sizer->Add(Main::Option_Sizer, 4, wxEXPAND);
@@ -211,7 +214,12 @@ wxFrame(nullptr,wxID_ANY,SOFTWARE_NAME,wxDefaultPosition,I2P(wxSize(1024,800)),
         /* Create name dialog */
         Main::Name_Dialog=new class Name_Dialog(this);
         Main::Name_Dialog->Hide();
+
+        Main::State_Set(STATE_UI,UI_NONE);
         this->Refresh();
+
+        /* File consistency check */
+        Main::Startup_Consistency();
     }
     catch(std::exception& Exc)
     {
@@ -347,6 +355,34 @@ ret_t Main::Idtfr_Check(const std::string& Name)
     return 0;
 }
 /* End Function:Main::Idtfr_Check ********************************************/
+
+/* Function:Main::Startup_Consistency *****************************************
+Description : Check basic file consistency. lcucl.exe and sdmtp.exe must be
+              present at all times; the software will refuse to run if either
+              one of them are missing.
+              This check is not performed when debugging is on.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Startup_Consistency(void)
+{
+    wxLogDebug("Main::Startup_Consistency");
+
+#ifndef DEBUG
+    if((wxIsExecutable(Main::Exe_Folder+"rvgen.exe")==false)||
+       (wxIsExecutable(Main::Exe_Folder+"bincopy.exe")==false))
+    {
+        /* Delete the Sheet and return */
+        Main::Msgbox_Show(RVM_CFG_App::Main,MSGBOX_ERROR,
+                          _("File Consistency Check"),
+                          _("Vital components (rvgen.exe and bincopy.exe) are either missing or not executable.\n")+
+                          _("Please check if the anti-virus software has accidentally damaged or blocked them."));
+        exit(-1);
+    }
+#endif
+}
+/* End Function:Main::Startup_Consistency ************************************/
 
 /* Function:Main::CSV_Read ****************************************************
 Description : Split a CSV into an array.
@@ -1745,106 +1781,6 @@ std::vector<std::string> Main::Chip_Load(const std::string& Plat,const std::stri
 }
 /* End Function:Main::Chip_Load **********************************************/
 
-///* Function:Main::Output_Update ***********************************************
-//Description : Update the output panel.
-//Input       : std::vector<std::string>& Reply - The replies to show.
-//              ptr_t Panel - The panel to show onto.
-//              ptr_t Append - Whether to append to it.
-//Output      : None.
-//Return      : None.
-//******************************************************************************/
-//void Main::Output_Update(std::vector<std::string>& Reply,ptr_t Panel,ptr_t Append)
-//{
-//    class wxTextCtrl* Text;
-//
-//    switch(Panel)
-//    {
-//        case OUTPUT_GEN:Text=Main::Info_Text;break;
-//        case OUTPUT_PROC:Text=Main::Status_Text;break;
-//        case OUTPUT_STAT:Text=Main::Status_Text;break;
-//        default:ASSERT(0,"Panel is invalid.");
-//    }
-//
-//    /* Post text to the panel */
-//    if(Append==0)
-//        Text->Clear();
-//    for(std::string& Temp:Reply)
-//    {
-//        if(Temp.back()!='\n')
-//            Text->AppendText(Temp+"\n");
-//        else
-//            Text->AppendText(Temp);
-//    }
-//}
-///* End Function:Main::Output_Update ****************************************/
-//
-///* Function:Main::Output_Clear **********************************************
-//Description : Clear the output panel.
-//Input       : ptr_t Panel - The panel to clear.
-//Output      : None.
-//Return      : None.
-//****************************************************************************/
-//void Main::Output_Clear(ptr_t Panel)
-//{
-//    switch(Panel)
-//    {
-//        case OUTPUT_INFO:Main::Info_Text->Clear();break;
-//        case OUTPUT_STATUS:Main::Status_Text->Clear();break;
-//        default:ASSERT(0,"Panel is invalid.");
-//    }
-//}
-///* End Function:Main::Output_Clear *****************************************/
-
-/* Function:Main::Settings ****************************************************
-Description : Set locations of the folders.
-              <Settings>
-                  <Path>
-                      <RME> </RME> stored as relative path to this software.
-                      <RVM> </RVM>
-                      <RMP> </RMP>
-                  </Path>
-              </Settings>
-              rme location, rvm location, rmp location -> use xml  .rvi
-Input       : None.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Main::Setting(void)
-{
-    class wxXmlNode* Root;
-    class wxString Exe_Path;
-    class wxString Rvi_Path;
-    class wxXmlDocument Doc;
-
-    /* log */
-    wxLogDebug("Main::Setting");
-
-    /* preferences check if the locations are set or not, if not, pop up and tell user to set this */
-    Exe_Path=wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath();
-    Rvi_Path=Exe_Path+"/setting.rvi";
-    wxLogDebug(Rvi_Path);
-    if (wxFileExists(Exe_Path+wxFileName::GetPathSeparator()+"setting.rvi"))
-    {
-        wxLogDebug("The Setting.rvi is existed");
-        if (Doc.Load(Rvi_Path))
-        {
-            Root=Doc.GetRoot();
-            Main::RME_Folder=Main::Text_Load(Root, "RME");
-            Main::RVM_Folder=Main::Text_Load(Root, "RVM");
-            Main::RMP_Folder=Main::Text_Load(Root, "RMP");
-            wxLogDebug("RME_Path has been set %s",Main::RME_Folder);
-            wxLogDebug("RVM_Path has been set %s",Main::RVM_Folder);
-            wxLogDebug("RMP_Path has been set %s",Main::RMP_Folder);
-        }
-    }
-    else
-    {
-        wxLogDebug("The Setting.rvi is not existed");
-        Main::Setting_Begin();
-    }
-}
-/* End Function:Main::Proj_New ***********************************************/
-
 /* Function:Main::Path_Absolute ***********************************************
 Description : Get the canonicalized absolute path for a file or a folder.
 Input       : ptr_t Type - The path type.
@@ -1924,20 +1860,6 @@ std::string Main::Path_Relative(ptr_t Type,
 }
 /* End Function:Main::Path_Relative ******************************************/
 
-/* Function:Main::Setting_Begin ***********************************************
-Description : Show setting dialog.
-Input       : None.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Main::Setting_Begin(void)
-{
-    wxLogDebug("Main::Setting_Begin");
-    Main::Setting_Dialog->Load();
-    Main::Setting_Dialog->ShowModal();
-}
-/* End Function:Main::Setting_Begin ******************************************/
-
 /* Function:Main::Proj_New ****************************************************
 Description : Create a new file, at the location specified by the full path.
 Input       : const std::string& Path - The path, including the suffix.
@@ -1956,7 +1878,7 @@ void Main::Proj_New(const std::string& Path)
     if(Main::File_Validate(Path)!=0)
     {
         Main::Msgbox_Show(RVM_CFG_App::Main, MSGBOX_ERROR,
-                          _("New"),
+                          _("New Project"),
                           _("Filenames may only contain lower case letters, numbers and underscores, and may not begin with numbers."));
         return;
     }
@@ -1967,8 +1889,8 @@ void Main::Proj_New(const std::string& Path)
         wxLogDebug("Invalid RME path: %s",Main::RME_Folder);
         wxLogDebug("Invalid RVM path: %s",Main::RVM_Folder);
         Main::Msgbox_Show(RVM_CFG_App::Main, MSGBOX_ERROR,
-                          _("New"),
-                          _("Invalid RVM path or invalid RME path, please set again."));
+                          _("New Project"),
+                          _("Nonexistent RVM or RME folder. Please check settings."));
         return;
     }
     else
@@ -1977,10 +1899,21 @@ void Main::Proj_New(const std::string& Path)
         wxLogDebug("Valid RVM path: %s",Main::RVM_Folder);
     }
 
-    /* Choose a target */
-    Main::Target_Dialog->Load();
-    if(Main::Target_Dialog->ShowModal()!=wxID_OK)
+    try
+    {
+        /* Choose a target */
+        Main::Target_Dialog->Load();
+        if(Main::Target_Dialog->ShowModal()!=wxID_OK)
+            return;
+    }
+    catch(std::exception& Exc)
+    {
+        wxLogDebug(Exc.what());
+        Main::Msgbox_Show(RVM_CFG_App::Main, MSGBOX_ERROR,
+                          _("New Project"),
+                          _("The RVM folder might be incorrect, outdated or damaged. Please check settings."));
         return;
+    }
 
     Chipname=Main::Target_Dialog->Chipname->GetStringSelection();
 
@@ -1992,6 +1925,7 @@ void Main::Proj_New(const std::string& Path)
     /* Update GUI */
     Main::Config_Tree->Load();
     Main::Option_Panel->Load();
+    Main::State_Set(STATE_UI, UI_PROJ);
 }
 /* End Function:Main::Proj_New ***********************************************/
 
@@ -2033,8 +1967,8 @@ void Main::Proj_Open(const std::string& Path)
         wxLogDebug("Invalid RME path: %s",Main::RME_Folder);
         wxLogDebug("Invalid RVM path: %s",Main::RVM_Folder);
         Main::Msgbox_Show(RVM_CFG_App::Main, MSGBOX_ERROR,
-                          _("New"),
-                          _("Invalid RVM path or invalid RME path, please set again."));
+                          _("Open Project"),
+                          _("Nonexistent RVM or RME folder. Please check settings."));
         return;
     }
     else
@@ -2045,13 +1979,32 @@ void Main::Proj_Open(const std::string& Path)
 
     /* Load project, platform and chip information */
     Main::Proj_Info=std::make_unique<class Proj_Info>();
-    Main::Proj_Info->Existing_Load(Path);
-    Main::Plat_Load(Main::Proj_Info->Chip->Platform);
-    Main::Chip_Load(Main::Proj_Info->Chip->Platform,Main::Proj_Info->Chip->Class);
+    if(Main::Proj_Info->Existing_Load(Path)!=0)
+    {
+        Main::Msgbox_Show(RVM_CFG_App::Main, MSGBOX_WARN,
+                          _("Open Project"),
+                          _("The project file is corrupted."));
+    }
+
+    try
+    {
+        Main::Plat_Load(Main::Proj_Info->Chip->Platform);
+        Main::Chip_Load(Main::Proj_Info->Chip->Platform,Main::Proj_Info->Chip->Class);
+    }
+    catch(std::exception& Exc)
+    {
+        wxLogDebug(Exc.what());
+        Main::Proj_Info=nullptr;
+        Main::Msgbox_Show(RVM_CFG_App::Main, MSGBOX_ERROR,
+                          _("Open Project"),
+                          _("The RVM folder might be incorrect, outdated or damaged. Please check settings."));
+        return;
+    }
 
     /* Update GUI */
     Main::Config_Tree->Load();
     Main::Option_Panel->Load();
+    Main::State_Set(STATE_UI, UI_PROJ);
 }
 /* End Function:Main::Proj_Open **********************************************/
 
@@ -2059,20 +2012,39 @@ void Main::Proj_Open(const std::string& Path)
 Description : Close the current open project.
 Input       : None.
 Output      : None.
-Return      : None.
+Return      : ret_t - If 0, successful; else -1.
 ******************************************************************************/
-void Main::Proj_Close(void)
+ret_t Main::Proj_Close(void)
 {
     wxLogDebug("Main::Proj_Close");
+
+    /* There shouldn't currently be a project */
+    ASSERT(Main::Proj_Info!=nullptr,"Cannot close project when no project is open.");
+
+    /* Save the current panel to data structure first */
+    if(Main::Option_Panel->Current_Save()!=0)
+        return -1;
+
+    /* See if the project is saved */
+    if(Main::Proj_Info->Change_Detect()!=0)
+    {
+        if(Main::Msgbox_Show(Main::Option_Panel,MSGBOX_ASK,_("Close Project"),
+                             _("The project haven't been saved. Close anyway?"))!=wxID_OK)
+            return -1;
+    }
 
     /* Hide everything */
     Main::Config_Tree->DeleteAllItems();
     Main::Option_Panel->Window_Current->Hide();
+    Main::State_Set(STATE_UI, UI_NONE);
+    Main::Output_Clear();
 
     /* Destroy all info */
     Main::Proj_Info=nullptr;
     Main::Plat_Info=nullptr;
     Main::Chip_Info=nullptr;
+
+    return 0;
 }
 /* End Function:Main::Proj_Close *********************************************/
 
@@ -2136,6 +2108,168 @@ void Main::Proj_Save_As(const std::string& Path)
 }
 /* End Function:Main::Proj_Save_As *******************************************/
 
+/* Function:Main::Output_Update ***********************************************
+Description : Update the output panel.
+Input       : std::vector<std::string>& Reply - The replies to show.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Output_Update(std::vector<std::string>& Reply)
+{
+    Main::Output_Text->Clear();
+    for(std::string& Temp:Reply)
+    {
+        if(Temp.back()!='\n')
+            Main::Output_Text->AppendText(Temp+"\n");
+        else
+            Main::Output_Text->AppendText(Temp);
+    }
+}
+/* End Function:Main::Output_Update ******************************************/
+
+/* Function:Main::Output_Clear ************************************************
+Description : Clear the output panel.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Output_Clear(void)
+{
+    Main::Output_Text->Clear();
+}
+/* End Function:Main::Output_Clear *******************************************/
+
+/* Function:Main::Setting_Begin ***********************************************
+Description : Show setting dialog.
+Input       : None.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Setting_Begin(void)
+{
+    wxLogDebug("Main::Setting_Begin");
+    Main::Setting_Dialog->Load();
+    Main::Setting_Dialog->ShowModal();
+}
+/* End Function:Main::Setting_Begin ******************************************/
+
+/* Function:Main::Generate_Begin **********************************************
+Description : Begin project generation.
+Input       : ptr_t Generate - Whether to really generate stuff.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Main::Generate_Begin(ptr_t Generate)
+{
+    ret_t Retval;
+    std::string Command;
+    std::string Workspace;
+    class wxExecuteEnv Env;
+    class wxArrayString Output;
+    class wxArrayString Error;
+    std::vector<std::string> Reply;
+    class wxMimeTypesManager Manager;
+    std::unique_ptr<class wxDirDialog> Dir;
+
+    wxLogDebug("Main::Generate_Begin");
+
+    /* Check if the exe's are in place; if not, complain */
+
+    /* See if the project is saved - if not, ask whether the user wants to save it */
+    if(Main::Proj_Info->Change_Detect()!=0)
+    {
+        if(Main::Msgbox_Show(Main::Option_Panel,MSGBOX_ASK,_("Generate Project"),
+                             _("The project haven't been saved. Still proceed?"))!=wxID_OK)
+            return;
+    }
+
+    /* Pop up a directory picker to choose workspace location */
+    if(Generate!=0)
+    {
+        Dir=std::make_unique<class wxDirDialog>(Main::Option_Panel,_(""),wxT(""),
+                                                wxDD_DEFAULT_STYLE|wxDD_DIR_MUST_EXIST);
+        if(Dir->ShowModal()!=wxID_OK)
+            return;
+        Workspace=Dir->GetPath();
+        /* Return relative path */
+        Workspace=Main::Path_Relative(PATH_DIR, Main::Exe_Folder, Workspace);
+    }
+    /* If this is a dryrun, just use current location */
+    else
+        Workspace=Main::Exe_Folder;
+
+    /* Launch directory is the same as the executable folder */
+    Env.cwd=Main::Path_Absolute(PATH_DIR, Main::Exe_Folder, "");
+    if(Generate!=0)
+        Command=std::string("================ ")+_("Running Generation")+" ================";
+    else
+        Command=std::string("================ ")+_("Running Validation")+" ================";
+    Reply.push_back(Command);
+
+    /* Remove report in the workspace folder, if it exists */
+    if(wxIsReadable(Workspace+"report.txt"))
+        wxRemoveFile(Workspace+"report.txt");
+
+    /* Assemble generation command */
+    Command=Main::Exe_Folder+"rvgen.exe"+
+            " -p "+Main::Proj_Info->Path+
+            " -k "+Main::RME_Folder+
+            " -m "+Main::RVM_Folder+
+            " -rmp "+Main::RMP_Folder+
+            " -frt "+Main::FRT_Folder+
+            " -rtt "+Main::RTT_Folder+
+            " -uo2 "+Main::UO2_Folder+
+            " -uo3 "+Main::UO3_Folder+
+            " -mpy "+Main::MPY_Folder+
+            " -w "+Workspace;
+
+    /* See if we need to generate report */
+    if(Main::Generate_Report!=0)
+        Command+=" -r "+Workspace+"report.txt";
+
+    /* If this is not a dryrun, generate report */
+    if(Generate==0)
+        Command+=" -d ";
+
+    /* We run in verbose mode when debugging */
+#ifdef DEBUG
+    Command+=" -v";
+#endif
+
+    /* Execute the command */
+    wxLogDebug("Main::Generate_Begin - %s",Command.c_str());
+    Retval=wxExecute(Command,Output,Error,0,&Env);
+    /* Post output to panel */
+    for(class wxString& Temp:Output)
+        Reply.push_back(std::string(Temp));
+    for(class wxString& Temp:Error)
+        Reply.push_back(std::string(Temp));
+
+    /* See if this was terminated because of error */
+    if(Generate!=0)
+    {
+        if(Retval==0)
+            Command=_("Generation successful.");
+        else
+            Command=_("There were errors in the generation.");
+    }
+    else
+    {
+        if(Retval==0)
+            Command=_("Validation successful.");
+        else
+            Command=_("There were errors in the validation.");
+    }
+
+    /* Pop-up report.txt if it exists and we specified opening */
+    if((Retval==0)&&(Main::Open_Report!=0)&&(wxIsReadable(Workspace+"report.txt")))
+        wxExecute(Manager.GetFileTypeFromExtension("TXT")->GetOpenCommand(Workspace+"report.txt"));
+
+    Reply.push_back(Command);
+    Main::Output_Update(Reply);
+}
+/* End Function:Main::Generate_Begin *****************************************/
+
 /* Function:Main::Manual_Open *************************************************
 Description : Open the manual.
 Input       : const std::string& Manual - The name of the manual.
@@ -2151,9 +2285,7 @@ void Main::Manual_Open(const std::string& Manual)
     wxLogDebug("Main::Manual_Open");
 
     /* Make filename according to version */
-    Path=std::string("M7M02_")+
-         "R"+std::to_string(FIRMWARE_VERSION>>8)+"T"+std::to_string(FIRMWARE_VERSION&0xFF)+
-         "_"+Manual+"_Manual.pdf";
+    Path=std::string("M7M02_")+SOFTWARE_VERSION+"_"+Manual+"_Manual.pdf";
 
     Locale=wxLocale::GetSystemLanguage();
     if((Locale==wxLANGUAGE_CHINESE)||
@@ -2206,7 +2338,6 @@ void Main::State_Set(ptr_t Type, ptr_t State)
     switch(Type)
     {
         case STATE_UI:Main::UI_State=State;break;
-        case STATE_SAVE:Main::Save_State=State;break;
         default:ASSERT(0,"Wrong state specified.");
     }
 
@@ -2228,6 +2359,16 @@ void Main::On_Close_Window(class wxCloseEvent& Event)
     /* See if we can veto this event. If we can't, then this is forced */
     if(Event.CanVeto()==false)
         exit(-1);
+
+    /* Close project if it is open */
+    if(Main::Proj_Info!=nullptr)
+    {
+        if(Main::Proj_Close()!=0)
+        {
+            Event.Veto();
+            return;
+        }
+    }
 
     /* We don't exit directly here - wait for wxWidgets to clean everything up */
     Event.Skip();
@@ -2279,9 +2420,6 @@ bool RVM_CFG_App::OnInit(void)
     /* Start application */
     RVM_CFG_App::Main=new class Main();
     RVM_CFG_App::Main->Show();
-
-    /* Setting check */
-   RVM_CFG_App::Main->Setting();
 
     return true;
 }

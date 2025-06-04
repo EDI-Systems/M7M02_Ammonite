@@ -59,7 +59,7 @@ public:
     ret_t Current_Save(void);
 
     void Window_Switch(class wxWindow* Window_Next);
-    void Option_Show(const std::string& Select_Text, ptr_t Type);
+    ret_t Option_Show(const std::string& Select_Text, ptr_t Type);
     void Native_Rename(const std::string& Original,const std::string& Current);
     void Virtual_Rename(const std::string& Original,const std::string& Current);
 };

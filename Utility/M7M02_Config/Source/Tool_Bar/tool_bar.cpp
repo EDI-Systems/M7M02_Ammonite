@@ -20,6 +20,7 @@ Description : Build toolbar class implementation.
 #include "Image/save_proj.xpm"
 #include "Image/generate.xpm"
 #include "Image/validate.xpm"
+#include "Image/setting.xpm"
 
 #include "map"
 #include "memory"
@@ -37,7 +38,7 @@ Description : Build toolbar class implementation.
 namespace RVM_CFG
 {
 /* Function:Tool_Bar::Tool_Bar ************************************************
-Description : Constructor for Tool_Bar.
+Description : Constructor for tool bar.
 Input       : class wxWindow* Parent - The parent window.
 Output      : None.
 Return      : None.
@@ -66,15 +67,11 @@ wxToolBar(Parent,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxTB_HORIZONTAL|wxTB_F
 
         this->AddSeparator();
 
-        /* New items */
-        this->Setting=this->AddTool(wxID_ANY,_("Setting"),wxBitmap(Validate_Icon),_("Setting"));
+        this->Setting=this->AddTool(wxID_ANY,_("Settings"),wxBitmap(Setting_Icon),_("Settings"));
         this->Bind(wxEVT_TOOL,&Tool_Bar::On_Setting,this,this->Setting->GetId());
 
         this->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_3DFACE));
         this->Realize();
-
-
-
     }
     catch(std::exception& Exc)
     {
@@ -113,6 +110,7 @@ void Tool_Bar::State_Set(ptr_t Type)
         {
             this->EnableTool(this->New_Proj->GetId(),true);
             this->EnableTool(this->Open_Proj->GetId(),true);
+            this->EnableTool(this->Save_Proj->GetId(),false);
             this->EnableTool(this->Generate->GetId(),false);
             this->EnableTool(this->Validate->GetId(),false);
         }
@@ -120,16 +118,10 @@ void Tool_Bar::State_Set(ptr_t Type)
         {
             this->EnableTool(this->New_Proj->GetId(),false);
             this->EnableTool(this->Open_Proj->GetId(),false);
+            this->EnableTool(this->Save_Proj->GetId(),true);
             this->EnableTool(this->Generate->GetId(),true);
             this->EnableTool(this->Validate->GetId(),true);
         }
-    }
-    else if(Type==STATE_SAVE)
-    {
-        if(Main::Save_State==SAVE_NONE)
-            this->EnableTool(this->Save_Proj->GetId(),false);
-        else
-            this->EnableTool(this->Save_Proj->GetId(),true);
     }
 }
 /* End Function:Tool_Bar::State_Set ******************************************/
@@ -169,7 +161,9 @@ void Tool_Bar::On_Open_Proj(class wxCommandEvent& Event)
 {
     std::string Path;
     std::unique_ptr<class wxFileDialog> File;
-    wxLogDebug("Debug Tool Bar::0n open File");
+
+    wxLogDebug("Tool_Bar::On_Open_Proj");
+
     /* Let the user choose a filename */
     File=std::make_unique<class wxFileDialog>(RVM_CFG_App::Main,_("Open File"),wxT(""),wxT(""),
                                               _("Project File")+wxT(" (*.rvp)|*.rvp"),
@@ -203,7 +197,7 @@ Return      : None.
 void Tool_Bar::On_Generate(class wxCommandEvent& Event)
 {
     wxLogDebug("Tool_Bar::On_Generate");
-    //Main::Compile_Begin();
+    Main::Generate_Begin(1);
 }
 /* End Function:Tool_Bar::On_Generate ****************************************/
 
@@ -216,7 +210,7 @@ Return      : None.
 void Tool_Bar::On_Validate(class wxCommandEvent& Event)
 {
     wxLogDebug("Tool_Bar::On_Validate");
-    //Main::Validate_Begin();
+    Main::Generate_Begin(0);
 }
 /* End Function:Tool_Bar::On_Validate ****************************************/
 
@@ -232,20 +226,6 @@ void Tool_Bar::On_Setting(class wxCommandEvent& Event)
     Main::Setting_Begin();
 }
 /* End Function:Tool_Bar::On_Setting *****************************************/
-
-///* Function:Tool_Bar::On_Modal ************************************************
-//Description : wxEVT_TOOL handler for 'Modal'.
-//Input       : class wxCommandEvent& Event - The event.
-//Output      : None.
-//Return      : None.
-//******************************************************************************/
-//void Tool_Bar::On_Modal(class wxCommandEvent& Event)
-//{
-//    wxLogDebug("Tool_Bar::On_Modal");
-//    Main::Modal_Begin();
-//}
-///* End Function:Tool_Bar::On_Modal *******************************************/
-
 }
 /* End Of File ***************************************************************/
 

@@ -101,9 +101,6 @@ Return      : None.
     /* Compatible */
     Trunk_Load<class Compatible>(Main::Simple_Load(Platform,"Compatible"),"C",this->Compatible);
 
-    /* Default options */
-    //this->Default=std::make_unique<class Default>(Main::Simple_Load(Platform,"Default"));
-
     /* Configs */
     Trunk_Load<class Conf_Info>(Main::Simple_Load(Platform,"Config"),"C",this->Config);
 }

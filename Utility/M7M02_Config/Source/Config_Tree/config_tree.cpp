@@ -273,13 +273,15 @@ void Config_Tree::On_Activate(class wxTreeEvent& Event)
     if(this->Detail(Select)!=0)
         return;
 
-    /* Paint in bold the selected entry */
+    /* See if we can activate that panel (current one has no errors) */
+    if(Main::Option_Panel->Option_Show(Select_Text,this->Select_Detail)!=0)
+        return;
+
+    /* Yes we can, and paint in bold the selected entry */
     if(this->Bold.IsOk())
         this->SetItemBold(this->Bold,false);
     this->Bold=Select;
     this->SetItemBold(Select);
-
-    Main::Option_Panel->Option_Show(Select_Text,this->Select_Detail);
 }
 /* End Function:Config_Tree::On_Activate *************************************/
 

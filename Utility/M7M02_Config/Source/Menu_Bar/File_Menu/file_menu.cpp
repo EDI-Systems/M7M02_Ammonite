@@ -120,13 +120,6 @@ void File_Menu::State_Set(ptr_t Type)
             this->Save_As->Enable(true);
         }
     }
-    else if(Type==STATE_SAVE)
-    {
-        if(Main::Save_State==SAVE_NONE)
-            this->Save_Proj->Enable(false);
-        else
-            this->Save_Proj->Enable(true);
-    }
 }
 /* End Function:File_Menu::State_Set *****************************************/
 

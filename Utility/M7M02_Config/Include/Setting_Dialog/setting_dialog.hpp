@@ -43,7 +43,12 @@ class Setting_Dialog:public wxDialog
 public:
     class wxBoxSizer* Main_Sizer;
 
-    class wxStaticBoxSizer* Required_Sizer;
+    class wxStaticBoxSizer* Preference_Sizer;
+    class wxBoxSizer* Preference_Line1_Sizer;
+    class wxCheckBox* Generate_Report;
+    class wxCheckBox* Open_Report;
+
+    class wxStaticBoxSizer* Core_Component_Sizer;
 
     class wxStaticText* RME_Label;
     class wxBoxSizer* RME_Sizer;
@@ -53,11 +58,33 @@ public:
     class wxBoxSizer* RVM_Sizer;
     class wxDirPickerCtrl* RVM_Picker;
 
-    class wxStaticBoxSizer* Optional_Sizer;
+    class wxStaticBoxSizer* Guest_OS_Sizer;
 
     class wxStaticText* RMP_Label;
     class wxBoxSizer* RMP_Sizer;
     class wxDirPickerCtrl* RMP_Picker;
+
+    class wxStaticText* FRT_Label;
+    class wxBoxSizer* FRT_Sizer;
+    class wxDirPickerCtrl* FRT_Picker;
+
+    class wxStaticText* RTT_Label;
+    class wxBoxSizer* RTT_Sizer;
+    class wxDirPickerCtrl* RTT_Picker;
+
+    class wxStaticText* UO2_Label;
+    class wxBoxSizer* UO2_Sizer;
+    class wxDirPickerCtrl* UO2_Picker;
+
+    class wxStaticText* UO3_Label;
+    class wxBoxSizer* UO3_Sizer;
+    class wxDirPickerCtrl* UO3_Picker;
+
+    class wxStaticBoxSizer* Guest_Script_Sizer;
+
+    class wxStaticText* MPY_Label;
+    class wxBoxSizer* MPY_Sizer;
+    class wxDirPickerCtrl* MPY_Picker;
 
     class wxBoxSizer* Button_Sizer;
     class wxButton* Confirm;
@@ -68,11 +95,14 @@ public:
     Setting_Dialog(class wxWindow* Parent);
     ~Setting_Dialog(void);
 
-    void Load(void);
+    void File_Load(void);
+    void File_Save(void);
 
-    void On_RVM_Picker(class wxCommandEvent& Event);
-    void On_RME_Picker(class wxCommandEvent& Event);
-    void On_RMP_Picker(class wxCommandEvent& Event);
+    void Load(void);
+    void Save(void);
+
+    void On_Generate_Report(class wxCommandEvent& Event);
+    void On_Dir_Picker(class wxFileDirPickerEvent& Event);
     void On_Close(class wxCloseEvent& Event);
     void On_Confirm(class wxCommandEvent& Event);
     void On_Cancel(class wxCommandEvent& Event);

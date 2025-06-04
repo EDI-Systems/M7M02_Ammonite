@@ -65,15 +65,15 @@ wxPanel(Parent,wxID_ANY)
         this->Name_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Name_Label=new class wxStaticText(this,wxID_ANY,_("Name"));
         this->Name=new class wxTextCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxDefaultSize,wxTE_READONLY);
-        this->Name_Sizer->Add(this->Name_Label,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Name_Sizer->Add(this->Name,3,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Name_Sizer->Add(this->Name_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Name_Sizer->Add(this->Name,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
         this->Name->Bind(wxEVT_LEFT_DOWN, &Virtual_Panel::On_Name, this);
 
         this->Extra_Captbl_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Extra_Captbl_Label=new class wxStaticText(this,wxID_ANY,_("Extra Capability Slot"));
         this->Extra_Captbl=new class wxTextCtrl(this,wxID_ANY);
-        this->Extra_Captbl_Sizer->Add(this->Extra_Captbl_Label,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Extra_Captbl_Sizer->Add(this->Extra_Captbl,3,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Extra_Captbl_Sizer->Add(this->Extra_Captbl_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Extra_Captbl_Sizer->Add(this->Extra_Captbl,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Coprocessor_Sizer=new class wxBoxSizer(wxHORIZONTAL);
 
@@ -92,15 +92,15 @@ wxPanel(Parent,wxID_ANY)
         this->Toolchain_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Toolchain_Label=new class wxStaticText(this,wxID_ANY,_("Toolchain"));
         this->Toolchain=new class wxChoice(this,wxID_ANY);
-        this->Toolchain_Sizer->Add(this->Toolchain_Label,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Toolchain_Sizer->Add(this->Toolchain,3,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Toolchain_Sizer->Add(this->Toolchain_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Toolchain_Sizer->Add(this->Toolchain,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
         this->Bind(wxEVT_CHOICE, &Virtual_Panel::On_Toolchain, this, this->Toolchain->GetId());
 
         this->Buildsystem_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Buildsystem_Label=new class wxStaticText(this,wxID_ANY,_("Buildsystem"));
         this->Buildsystem=new class wxChoice(this,wxID_ANY);
-        this->Buildsystem_Sizer->Add(this->Buildsystem_Label,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Buildsystem_Sizer->Add(this->Buildsystem,3,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Buildsystem_Sizer->Add(this->Buildsystem_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Buildsystem_Sizer->Add(this->Buildsystem,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
         this->Bind(wxEVT_CHOICE, &Virtual_Panel::On_Buildsystem, this, this->Buildsystem->GetId());
 
         this->Optimization_Sizer=new class wxBoxSizer(wxHORIZONTAL);
@@ -113,14 +113,14 @@ wxPanel(Parent,wxID_ANY)
         this->Optimization->Append("-Of");
         this->Optimization->Append("-Os");
         this->Optimization->SetSelection(0);
-        this->Optimization_Sizer->Add(this->Optimization_Label,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Optimization_Sizer->Add(this->Optimization,3,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Optimization_Sizer->Add(this->Optimization_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Optimization_Sizer->Add(this->Optimization,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Guest_Sizer=new class wxBoxSizer(wxHORIZONTAL);
-        this->Guest_Label=new class wxStaticText(this,wxID_ANY,_("Guest Type"));
+        this->Guest_Label=new class wxStaticText(this,wxID_ANY,_("Guest Environment"));
         this->Guest=new class wxChoice(this,wxID_ANY);
-        this->Guest_Sizer->Add(this->Guest_Label,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Guest_Sizer->Add(this->Guest,3,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Guest_Sizer->Add(this->Guest_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Guest_Sizer->Add(this->Guest,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Build_Line1_Sizer->Add(this->Toolchain_Sizer,6,wxEXPAND);
         this->Build_Line1_Sizer->AddStretchSpacer(1);
@@ -144,45 +144,45 @@ wxPanel(Parent,wxID_ANY)
         this->Vector_Stack_Size_Label=new class wxStaticText(this,wxID_ANY,_("Vector Stack Size"));
         this->Vector_Stack_Size=new class wxTextCtrl(this,wxID_ANY);
         this->Vector_Stack_Size->Bind(wxEVT_KILL_FOCUS, &Virtual_Panel::On_Text_Hex, this);
-        this->Vector_Stack_Size_Sizer->Add(this->Vector_Stack_Size_Label,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Vector_Stack_Size_Sizer->Add(this->Vector_Stack_Size,3,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Vector_Stack_Size_Sizer->Add(this->Vector_Stack_Size_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Vector_Stack_Size_Sizer->Add(this->Vector_Stack_Size,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->User_Stack_Size_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->User_Stack_Size_Label=new class wxStaticText(this,wxID_ANY,_("User Stack Size"));
         this->User_Stack_Size=new class wxTextCtrl(this,wxID_ANY);
         this->User_Stack_Size->Bind(wxEVT_KILL_FOCUS, &Virtual_Panel::On_Text_Hex, this);
-        this->User_Stack_Size_Sizer->Add(this->User_Stack_Size_Label,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->User_Stack_Size_Sizer->Add(this->User_Stack_Size,3,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->User_Stack_Size_Sizer->Add(this->User_Stack_Size_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->User_Stack_Size_Sizer->Add(this->User_Stack_Size,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Priority_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Priority_Label=new class wxStaticText(this,wxID_ANY,_("Virtual Priority Number"));
         this->Priority=new class wxTextCtrl(this,wxID_ANY);
-        this->Priority_Sizer->Add(this->Priority_Label,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Priority_Sizer->Add(this->Priority,3,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Priority_Sizer->Add(this->Priority_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Priority_Sizer->Add(this->Priority,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Timeslice_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Timeslice_Label=new class wxStaticText(this,wxID_ANY,_("VM Timeslice Ticks"));
         this->Timeslice=new class wxTextCtrl(this,wxID_ANY);
-        this->Timeslice_Sizer->Add(this->Timeslice_Label,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Timeslice_Sizer->Add(this->Timeslice,3,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Timeslice_Sizer->Add(this->Timeslice_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Timeslice_Sizer->Add(this->Timeslice,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Period_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Period_Label=new class wxStaticText(this,wxID_ANY,_("Periodic Timer Ticks"));
         this->Period=new class wxTextCtrl(this,wxID_ANY);
-        this->Period_Sizer->Add(this->Period_Label,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Period_Sizer->Add(this->Period,3,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Period_Sizer->Add(this->Period_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Period_Sizer->Add(this->Period,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Watchdog_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Watchdog_Label=new class wxStaticText(this,wxID_ANY,_("Watchdog Timeout Ticks"));
         this->Watchdog=new class wxTextCtrl(this,wxID_ANY);
-        this->Watchdog_Sizer->Add(this->Watchdog_Label,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Watchdog_Sizer->Add(this->Watchdog,3,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Watchdog_Sizer->Add(this->Watchdog_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Watchdog_Sizer->Add(this->Watchdog,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Vector_Num_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Vector_Num_Label=new class wxStaticText(this,wxID_ANY,_("Virtual Vector Number"));
         this->Vector_Num=new class wxTextCtrl(this,wxID_ANY);
-        this->Vector_Num_Sizer->Add(this->Vector_Num_Label,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Vector_Num_Sizer->Add(this->Vector_Num,3,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Vector_Num_Sizer->Add(this->Vector_Num_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Vector_Num_Sizer->Add(this->Vector_Num,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Virt_Line1_Sizer->Add(this->Vector_Stack_Size_Sizer,6,wxEXPAND);
         this->Virt_Line1_Sizer->AddStretchSpacer(1);

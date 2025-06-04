@@ -48,6 +48,9 @@ public:
     std::string Fullpath;
     std::string Fulldir;
 
+    /* Cache of the existing project's XML, for comparison */
+    std::unique_ptr<class wxStringOutputStream> Cache;
+
     /* The name of the project */
     std::string Name;
     /* The project version */
@@ -100,7 +103,9 @@ public:
     ret_t Existing_Load(const std::string& Path);
 
     /* Save the project file */
-    ret_t Save(void);
+    void Doc_Save(std::unique_ptr<class wxXmlDocument>& Document);
+    ret_t Change_Detect(void);
+    void Save(void);
 
     /* Path conversion */
     std::string Rel_Conv(const std::string& Relpath,ptr_t Type);

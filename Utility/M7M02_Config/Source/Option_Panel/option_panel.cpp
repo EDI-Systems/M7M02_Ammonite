@@ -220,15 +220,15 @@ Description : Show the appropriate option window accordingly.
 Input       : const std::string& Select_Text - The name of selected tree item.
               ptr_t Type - The type for selected tree item.
 Output      : None.
-Return      : None.
+Return      : ret_t - If the switch is successful, 0; else -1.
 ******************************************************************************/
-void Option_Panel::Option_Show(const std::string& Select_Text, ptr_t Type)
+ret_t Option_Panel::Option_Show(const std::string& Select_Text, ptr_t Type)
 {
     wxLogDebug("Option_Panel::Option_Open: %s",Select_Text);
 
     /* Check and try to save the current panel */
     if(this->Current_Save()!=0)
-        return;
+        return -1;
 
     /* Load and show the selected panel */
     switch(Type)
@@ -271,6 +271,8 @@ void Option_Panel::Option_Show(const std::string& Select_Text, ptr_t Type)
         }
         default:break;
     }
+
+    return 0;
 }
 /* End Function:Option_Panel::Option_Show ************************************/
 

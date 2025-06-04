@@ -44,9 +44,9 @@ public:
 
     class wxMenuItem* New_Item;
     class wxMenuItem* Delete_Item;
+    class wxMenuItem* Rename_Item;
     class wxMenuItem* Generate;
     class wxMenuItem* Validate;
-    class wxMenuItem* Rename;
 
     /* void */ Config_Popup(class Config_Tree* Tree);
     /* void */ ~Config_Popup(void);
@@ -58,9 +58,9 @@ public:
 
     void On_New_Item(class wxCommandEvent& Event);
     void On_Delete_Item(class wxCommandEvent& Event);
+    void On_Rename_Item(class wxCommandEvent& Event);
     void On_Generate(class wxCommandEvent& Event);
     void On_Validate(class wxCommandEvent& Event);
-    void On_Rename(class wxCommandEvent& Event);
 };
 /*****************************************************************************/
 /* __CONFIG_POPUP_CLASS__ */

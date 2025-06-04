@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Setting>
+  <Generate_Report>Yes</Generate_Report>
+  <Open_Report>Yes</Open_Report>
+  <RME>./../../../M7M01_Eukaron/</RME>
+  <RVM>./../../../M7M02_Ammonite/</RVM>
+  <RMP>./../../../M5P01_Prokaron/</RMP>
+  <FRT>./../../../M7M00_Guest/FreeRTOS/</FRT>
+  <RTT>./../../../M7M00_Guest/RTThread/</RTT>
+  <UO2>./../../../M7M00_Guest/uCOSII/</UO2>
+  <UO3>./../../../M7M00_Guest/uCOSIII/</UO3>
+  <MPY>./../../../M7M00_Guest/MicroPython/</MPY>
+</Setting>

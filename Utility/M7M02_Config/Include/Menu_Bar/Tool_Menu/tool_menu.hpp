@@ -45,6 +45,7 @@ public:
     class wxMenuItem* Rcv_View;
     class wxMenuItem* Generate;
     class wxMenuItem* Validate;
+    class wxMenuItem* Setting;
 
     /* void */ Tool_Menu(void);
     /* void */ ~Tool_Menu(void);
@@ -56,6 +57,7 @@ public:
     void On_Rcv_View(class wxCommandEvent& Event);
     void On_Generate(class wxCommandEvent& Event);
     void On_Validate(class wxCommandEvent& Event);
+    void On_Setting(class wxCommandEvent& Event);
 };
 /*****************************************************************************/
 /* __TOOL_MENU_CLASS__ */

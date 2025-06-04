@@ -1,5 +1,6 @@
 
 rm -rf ./M7M02_Final/rvgen.exe
+rm -rf ./M7M02_Final/config.exe
 
 # run in parallel
 

@@ -76,6 +76,10 @@ Return      : None.
         this->Append(this->Delete_Item);
         this->Bind(wxEVT_MENU,&Config_Popup::On_Delete_Item,this,this->Delete_Item->GetId());
 
+        this->Rename_Item=new wxMenuItem(this,wxID_ANY,_("Rename Item"));
+        this->Append(this->Rename_Item);
+        this->Bind(wxEVT_MENU,&Config_Popup::On_Rename_Item,this,this->Rename_Item->GetId());
+
         this->AppendSeparator();
 
         this->Generate=new wxMenuItem(this,wxID_ANY,_("Generate"));
@@ -85,10 +89,6 @@ Return      : None.
         this->Validate=new wxMenuItem(this,wxID_ANY,_("Validate"));
         this->Append(this->Validate);
         this->Bind(wxEVT_MENU,&Config_Popup::On_Validate,this,this->Validate->GetId());
-
-        this->Rename=new wxMenuItem(this,wxID_ANY,_("Rename"));
-        this->Append(this->Rename);
-        this->Bind(wxEVT_MENU,&Config_Popup::On_Rename,this,this->Rename->GetId());
     }
     catch(std::exception& Exc)
     {
@@ -107,6 +107,7 @@ Return      : None.
 {
     this->Unbind(wxEVT_MENU,&Config_Popup::On_New_Item,this);
     this->Unbind(wxEVT_MENU,&Config_Popup::On_Delete_Item,this);
+    this->Unbind(wxEVT_MENU,&Config_Popup::On_Rename_Item,this);
     this->Unbind(wxEVT_MENU,&Config_Popup::On_Generate,this);
     this->Unbind(wxEVT_MENU,&Config_Popup::On_Validate,this);
 }
@@ -168,9 +169,9 @@ void Config_Popup::State_Set(void)
         {
             this->New_Item->Enable(false);
             this->Delete_Item->Enable(false);
+            this->Rename_Item->Enable(true);
             this->Generate->Enable(false);
             this->Validate->Enable(false);
-            this->Rename->Enable(true);
             break;
         }
         case SELECT_DETAIL_BASIC:
@@ -180,9 +181,9 @@ void Config_Popup::State_Set(void)
         {
             this->New_Item->Enable(false);
             this->Delete_Item->Enable(false);
+            this->Rename_Item->Enable(false);
             this->Generate->Enable(true);
             this->Validate->Enable(true);
-            this->Rename->Enable(false);
             break;
         }
         case SELECT_DETAIL_NATIVE:
@@ -190,9 +191,9 @@ void Config_Popup::State_Set(void)
         {
             this->New_Item->Enable(true);
             this->Delete_Item->Enable(false);
+            this->Rename_Item->Enable(false);
             this->Generate->Enable(false);
             this->Validate->Enable(false);
-            this->Rename->Enable(false);
             break;
         }
         case SELECT_DETAIL_NATIVE_CHILD:
@@ -200,26 +201,26 @@ void Config_Popup::State_Set(void)
         {
             this->New_Item->Enable(true);
             this->Delete_Item->Enable(true);
+            this->Rename_Item->Enable(true);
             this->Generate->Enable(true);
             this->Validate->Enable(true);
-            this->Rename->Enable(true);
             break;
         }
         default:
         {
             this->New_Item->Enable(false);
             this->Delete_Item->Enable(false);
+            this->Rename_Item->Enable(false);
             this->Generate->Enable(false);
             this->Validate->Enable(false);
-            this->Rename->Enable(false);
             break;
         }
     }
 }
-/* End Function:Config_Popup::State_Set ****************************************/
+/* End Function:Config_Popup::State_Set **************************************/
 
-/* Function:Config_Popup::On_New_Item *******************************************
-Description : wxEVT_MENU handler for 'New Item'.
+/* Function:Config_Popup::On_New_Item *****************************************
+Description : wxEVT_MENU handler for 'New_Item'.
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.
 Return      : None.
@@ -228,46 +229,56 @@ void Config_Popup::On_New_Item(class wxCommandEvent& Event)
 {
     std::string Name;
 
+    /* We won't reload the rename dialog in case the user wants to inherit something */
     switch(this->Tree->Select_Detail)
     {
         case SELECT_DETAIL_NATIVE_CHILD:
         case SELECT_DETAIL_NATIVE:
         {
-            /* Create a default name */
-            Name="Default_Native_Process"+std::to_string(++Main::Native_Cnt);
-            /* Rename */
-            Main::Name_Dialog->Load(Name);
-            /* New name is valid */
-            if (Main::Name_Dialog->ShowModal()==wxID_OK)
+            /* Until user supply a valid name */
+            while(1)
             {
-                Name=Main::Name_Dialog->Name_Get();
-                this->Native_Add(Name);
+                if(Main::Name_Dialog->ShowModal()==wxID_OK)
+                    Name=Main::Name_Dialog->Name_Get();
+                else
+                    break;
+
+                if(this->Native_Add(Name)==0)
+                    break;
+
+                Main::Msgbox_Show(RVM_CFG_App::Main,MSGBOX_ERROR, _("New Item"),
+                                  _("Process name must be a valid and distinct C identifier."));
             }
+
             break;
         }
         case SELECT_DETAIL_VIRTUAL_CHILD:
         case SELECT_DETAIL_VIRTUAL:
         {
-            Name="Default_Virtual_Machine"+std::to_string(++Main::Virtual_Cnt);
-            Main::Name_Dialog->Load(Name);
-            if (Main::Name_Dialog->ShowModal()==wxID_OK)
+            /* Until user supply a valid name */
+            while(1)
             {
-                Name=Main::Name_Dialog->Name_Get();
-                this->Virtual_Add(Name);
+                if(Main::Name_Dialog->ShowModal()==wxID_OK)
+                    Name=Main::Name_Dialog->Name_Get();
+                else
+                    break;
+
+                if(this->Native_Add(Name)==0)
+                    break;
+
+                Main::Msgbox_Show(RVM_CFG_App::Main,MSGBOX_ERROR, _("New Item"),
+                                  _("Process name must be a valid and distinct C identifier."));
             }
-            break;
-        }
-        default:
-        {
 
             break;
         }
+        default:break;
     }
 }
-/* End Function:Config_Popup::On_New_File ************************************/
+/* End Function:Config_Popup::On_New_Item ************************************/
 
 /* Function:Config_Popup::On_Delete_Item **************************************
-Description : wxEVT_MENU handler for 'Delete Item'.
+Description : wxEVT_MENU handler for 'Delete_Item'.
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.
 Return      : None.
@@ -276,6 +287,7 @@ void Config_Popup::On_Delete_Item(class wxCommandEvent& Event)
 {
     std::string Select_Text;
     Select_Text=this->Tree->GetItemText(this->Tree->Active);
+
     switch(this->Tree->Select_Detail)
     {
         case SELECT_DETAIL_NATIVE_CHILD:
@@ -311,37 +323,13 @@ void Config_Popup::On_Delete_Item(class wxCommandEvent& Event)
 }
 /* End Function:Config_Popup::On_Delete_Item *********************************/
 
-/* Function:Config_Popup::On_Generate *****************************************
-Description : wxEVT_MENU handler for 'Generate'.
+/* Function:Config_Popup::On_Rename_Item **************************************
+Description : wxEVT_MENU handler for 'Rename_Item'.
 Input       : class wxCommandEvent& Event - The event.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Config_Popup::On_Generate(class wxCommandEvent& Event)
-{
-    wxLogDebug("Config_Popup::On_Generate");
-}
-/* End Function:Config_Popup::On_Generate ************************************/
-
-/* Function:Config_Popup::On_Validate *****************************************
-Description : wxEVT_MENU handler for 'Validate'.
-Input       : class wxCommandEvent& Event - The event.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Config_Popup::On_Validate(class wxCommandEvent& Event)
-{
-    /* TODO */
-}
-/* End Function:Config_Popup::On_Validate ************************************/
-
-/* Function:Config_Popup::On_Rename *******************************************
-Description : wxEVT_MENU handler for 'Validate'.
-Input       : class wxCommandEvent& Event - The event.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Config_Popup::On_Rename(class wxCommandEvent& Event)
+void Config_Popup::On_Rename_Item(class wxCommandEvent& Event)
 {
     std::string Current;
     std::string Original;
@@ -377,7 +365,31 @@ void Config_Popup::On_Rename(class wxCommandEvent& Event)
         default:break;
     }
 }
-/* End Function:Config_Popup::On_Rename **************************************/
+/* End Function:Config_Popup::On_Rename_Item *********************************/
+
+/* Function:Config_Popup::On_Generate *****************************************
+Description : wxEVT_MENU handler for 'Generate'.
+Input       : class wxCommandEvent& Event - The event.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Config_Popup::On_Generate(class wxCommandEvent& Event)
+{
+    wxLogDebug("Config_Popup::On_Generate");
+}
+/* End Function:Config_Popup::On_Generate ************************************/
+
+/* Function:Config_Popup::On_Validate *****************************************
+Description : wxEVT_MENU handler for 'Validate'.
+Input       : class wxCommandEvent& Event - The event.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Config_Popup::On_Validate(class wxCommandEvent& Event)
+{
+    /* TODO */
+}
+/* End Function:Config_Popup::On_Validate ************************************/
 }
 /* End Of File ***************************************************************/
 

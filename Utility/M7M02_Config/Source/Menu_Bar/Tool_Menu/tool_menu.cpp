@@ -14,6 +14,10 @@ Description : Tool menu class implementation.
 #include "wx/wx.h"
 #include "wx/xml/xml.h"
 
+#include "Image/generate_small.xpm"
+#include "Image/validate_small.xpm"
+#include "Image/setting_small.xpm"
+
 #include "map"
 #include "set"
 #include "string"
@@ -59,12 +63,21 @@ Return      : None.
         this->AppendSeparator();
 
         this->Generate=new wxMenuItem(this,wxID_ANY,_("Generate(&G)\tCtrl+Shift+G"));
+        this->Generate->SetBitmap(wxBitmap(Generate_Icon_Small));
         this->Append(this->Generate);
         this->Bind(wxEVT_MENU,&Tool_Menu::On_Generate,this,this->Generate->GetId());
 
         this->Validate=new wxMenuItem(this,wxID_ANY,_("Validate(&V)\tCtrl+Shift+V"));
+        this->Validate->SetBitmap(wxBitmap(Validate_Icon_Small));
         this->Append(this->Validate);
         this->Bind(wxEVT_MENU,&Tool_Menu::On_Validate,this,this->Validate->GetId());
+
+        this->AppendSeparator();
+
+        this->Setting=new wxMenuItem(this,wxID_ANY,_("Settings(&V)\tCtrl+Shift+S"));
+        this->Setting->SetBitmap(wxBitmap(Setting_Icon_Small));
+        this->Append(this->Setting);
+        this->Bind(wxEVT_MENU,&Tool_Menu::On_Setting,this,this->Setting->GetId());
     }
     catch(std::exception& Exc)
     {
@@ -128,6 +141,10 @@ Return      : None.
 void Tool_Menu::On_Shm_View(class wxCommandEvent& Event)
 {
     wxLogDebug("Tool_Menu::On_Shm_View");
+
+    Main::Msgbox_Show(RVM_CFG_App::Main, MSGBOX_ERROR,
+                      _("Tool Menu"),
+                      _("This tool is not available in the current version yet."));
 }
 /* End Function:Tool_Menu::On_Shm_View ***************************************/
 
@@ -140,6 +157,10 @@ Return      : None.
 void Tool_Menu::On_Inv_View(class wxCommandEvent& Event)
 {
     wxLogDebug("Tool_Menu::On_Inv_View");
+
+    Main::Msgbox_Show(RVM_CFG_App::Main, MSGBOX_ERROR,
+                      _("Tool Menu"),
+                      _("This tool is not available in the current version yet."));
 }
 /* End Function:Tool_Menu::On_Inv_View ***************************************/
 
@@ -152,6 +173,10 @@ Return      : None.
 void Tool_Menu::On_Rcv_View(class wxCommandEvent& Event)
 {
     wxLogDebug("Tool_Menu::On_Rcv_View");
+
+    Main::Msgbox_Show(RVM_CFG_App::Main, MSGBOX_ERROR,
+                      _("Tool Menu"),
+                      _("This tool is not available in the current version yet."));
 }
 /* End Function:Tool_Menu::On_Rcv_View ***************************************/
 
@@ -164,6 +189,7 @@ Return      : None.
 void Tool_Menu::On_Generate(class wxCommandEvent& Event)
 {
     wxLogDebug("Tool_Menu::On_Generate");
+    Main::Generate_Begin(1);
 }
 /* End Function:Tool_Menu::On_Generate ***************************************/
 
@@ -176,8 +202,22 @@ Return      : None.
 void Tool_Menu::On_Validate(class wxCommandEvent& Event)
 {
     wxLogDebug("Tool_Menu::On_Validate");
+    Main::Generate_Begin(0);
 }
 /* End Function:Tool_Menu::On_Validate ***************************************/
+
+/* Function:Tool_Menu::On_Setting *********************************************
+Description : wxEVT_MENU handler for 'Validate'.
+Input       : class wxCommandEvent& Event - The event.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Tool_Menu::On_Setting(class wxCommandEvent& Event)
+{
+    wxLogDebug("Tool_Menu::On_Setting");
+    Main::Setting_Begin();
+}
+/* End Function:Tool_Menu::On_Setting ****************************************/
 }
 /* End Of File ***************************************************************/
 

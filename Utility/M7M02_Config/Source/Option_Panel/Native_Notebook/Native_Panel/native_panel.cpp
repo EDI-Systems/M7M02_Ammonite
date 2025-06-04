@@ -66,15 +66,15 @@ wxPanel(Parent,wxID_ANY)
         this->Name_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Name_Label=new class wxStaticText(this,wxID_ANY,_("Name"));
         this->Name=new class wxTextCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxDefaultSize,wxTE_READONLY);
-        this->Name_Sizer->Add(this->Name_Label,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Name_Sizer->Add(this->Name,3,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Name_Sizer->Add(this->Name_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Name_Sizer->Add(this->Name,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
         this->Name->Bind(wxEVT_LEFT_DOWN, &Native_Panel::On_Name, this);
 
         this->Extra_Captbl_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Extra_Captbl_Label=new class wxStaticText(this,wxID_ANY,_("Extra Capability Slot Number"));
         this->Extra_Captbl=new class wxTextCtrl(this,wxID_ANY);
-        this->Extra_Captbl_Sizer->Add(this->Extra_Captbl_Label,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Extra_Captbl_Sizer->Add(this->Extra_Captbl,3,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Extra_Captbl_Sizer->Add(this->Extra_Captbl_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Extra_Captbl_Sizer->Add(this->Extra_Captbl,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Coprocessor_Sizer=new class wxBoxSizer(wxHORIZONTAL);
 
@@ -93,15 +93,15 @@ wxPanel(Parent,wxID_ANY)
         this->Toolchain_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Toolchain_Label=new class wxStaticText(this,wxID_ANY,_("Toolchain"));
         this->Toolchain=new class wxChoice(this,wxID_ANY);
-        this->Toolchain_Sizer->Add(this->Toolchain_Label,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Toolchain_Sizer->Add(this->Toolchain,3,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Toolchain_Sizer->Add(this->Toolchain_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Toolchain_Sizer->Add(this->Toolchain,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
         this->Bind(wxEVT_CHOICE, &Native_Panel::On_Toolchain, this, this->Toolchain->GetId());
 
         this->Buildsystem_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Buildsystem_Label=new class wxStaticText(this,wxID_ANY,_("Buildsystem"));
         this->Buildsystem=new class wxChoice(this,wxID_ANY);
-        this->Buildsystem_Sizer->Add(this->Buildsystem_Label,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Buildsystem_Sizer->Add(this->Buildsystem,3,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Buildsystem_Sizer->Add(this->Buildsystem_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Buildsystem_Sizer->Add(this->Buildsystem,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Optimization_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Optimization_Label=new class wxStaticText(this,wxID_ANY,_("Optimization"));
@@ -113,8 +113,8 @@ wxPanel(Parent,wxID_ANY)
         this->Optimization->Append("-Of");
         this->Optimization->Append("-Os");
         this->Optimization->SetSelection(0);
-        this->Optimization_Sizer->Add(this->Optimization_Label,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Optimization_Sizer->Add(this->Optimization,3,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Optimization_Sizer->Add(this->Optimization_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Optimization_Sizer->Add(this->Optimization,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Build_Line1_Sizer->Add(this->Toolchain_Sizer,6,wxEXPAND);
         this->Build_Line1_Sizer->AddStretchSpacer(1);

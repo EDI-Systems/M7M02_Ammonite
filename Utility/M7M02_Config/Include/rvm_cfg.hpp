@@ -79,8 +79,7 @@ while(0)
 #define __FUNC__                            __func__
 
 /* Software version - increase only */
-#define FIRMWARE_VERSION                    (0x0101)
-#define SOFTWARE_VERSION                    ("R3T1-0000-20230110")
+#define SOFTWARE_VERSION                    ("R3T1")
 #define SOFTWARE_NAME                       _("RVM Virtual Machine Monitor Config Generator")
 
 /* Option yes/no */
@@ -100,22 +99,13 @@ while(0)
 
 /* State Types */
 #define STATE_UI                            (0)
-#define STATE_SAVE                          (1)
 
 /* UI states */
 #define UI_NONE                             (0)
 #define UI_PROJ                             (1)
 
-/* Save states */
-#define SAVE_NONE                           (0)
-#define SAVE_CUR                            (1)
-
 /* Power of 2 */
 #define POW2(X)                             (1UL<<(X))
-
-/* Panels */
-#define OUTPUT_INFO                         (0)
-#define OUTPUT_STATUS                       (1)
 
 /* Path flags, from C4G02_Develop_P/Include/sdm_ide.hpp */
 #define PATH_FILE                           (0)
@@ -169,14 +159,18 @@ public:
     static std::string RME_Folder;
     static std::string RVM_Folder;
     static std::string RMP_Folder;
+    static std::string FRT_Folder;
+    static std::string RTT_Folder;
+    static std::string UO2_Folder;
+    static std::string UO3_Folder;
+    static std::string MPY_Folder;
+
+    /* Preferences */
+    static ptr_t Generate_Report;
+    static ptr_t Open_Report;
 
     /* Application states */
     static ptr_t UI_State;
-    static ptr_t Save_State;
-
-    /* The largest number ever used by native process and virtual machine */
-    static cnt_t Native_Cnt;
-    static cnt_t Virtual_Cnt;
 
     /* Lower-level classes */
     static class Menu_Bar* Menu_Bar;
@@ -218,6 +212,9 @@ public:
                              const class wxString& Caption, const class wxString& Text);
     /* Identifier checking */
     static ret_t Idtfr_Check(const std::string& Name);
+
+    /* Start-up checks */
+    void Startup_Consistency(void);
 
     /* Field saving/extraction generics */
     static void CSV_Read(const std::string& Input, std::vector<std::string>& Vector);
@@ -302,30 +299,32 @@ public:
     static ret_t Hex_Pos_Check(class wxWindow* Parent, const class wxString& Num,
                                const class wxString& Section, const class wxString& Field);
 
-    /* Combination compatibility validator */
+    /* Path validator */
     static ret_t File_Validate(const std::string& Filename);
+    /* Path conversion */
+    static std::string Path_Absolute(ptr_t Type,
+                                     const std::string& Root, const std::string& Path);
+    static std::string Path_Relative(ptr_t Type,
+                                     const std::string& Root, const std::string& Path);
 
     /* if no cross-check is performed, then this function is not necessary. */
     static void GUI_Update(void);
     static std::vector<std::string> Plat_Load(const std::string& Plat);
     static std::vector<std::string> Chip_Load(const std::string& Plat,const std::string& Chip);
 
-    /* Preference setting */
-    static void Setting(void);
-    static std::string Path_Absolute(ptr_t Type,
-                                     const std::string& Root, const std::string& Path);
-    static std::string Path_Relative(ptr_t Type,
-                                     const std::string& Root, const std::string& Path);
-    /* Tool bar click function */
-    static void Setting_Begin(void);
-    static void Target_Begin(const std::string& Path);
-
     /* Project operations */
     static void Proj_New(const std::string& Path);
     static void Proj_Open(const std::string& Path);
-    static void Proj_Close(void);
+    static ret_t Proj_Close(void);
     static void Proj_Save(void);
     static void Proj_Save_As(const std::string& Path);
+
+    static void Output_Update(std::vector<std::string>& Reply);
+    static void Output_Clear(void);
+
+    /* Tool bar click function */
+    static void Setting_Begin(void);
+    static void Generate_Begin(ptr_t Generate);
 
     /* Manuals */
     static void Manual_Open(const std::string& Manual);

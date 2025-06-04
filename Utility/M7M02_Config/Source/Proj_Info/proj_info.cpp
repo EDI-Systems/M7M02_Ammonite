@@ -13,9 +13,10 @@ Description : Project information implementation.
 
 #include "wx/wx.h"
 #include "wx/xml/xml.h"
+#include "wx/sstream.h"
 #include "wx/filename.h"
 
-#include <set>
+#include "set"
 #include "map"
 #include "string"
 #include "memory"
@@ -81,7 +82,7 @@ Input       : const std::string& Path - The path to the file.
               const class Chip_Info* Chip_Info - The chip information.
               const std::string& Chipname - The exact name of the chip.
 Output      : None.
-Return      : ret_t - Whether the load is successful.
+Return      : ret_t - Always successful.
 ******************************************************************************/
 ret_t Proj_Info::Default_Load(const std::string& Path,
                               const class Plat_Info* Plat_Info,
@@ -132,6 +133,9 @@ ret_t Proj_Info::Default_Load(const std::string& Path,
     /* The RME kernel information */
     this->Monitor=std::make_unique<class Monitor>(Plat_Info, Chip_Info);
 
+    /* Project cache - empty because it has never been saved */
+    this->Cache=std::make_unique<class wxStringOutputStream>();
+
     return 0;
 }
 /* End Function:Proj_Info::Default_Load **************************************/
@@ -140,7 +144,7 @@ ret_t Proj_Info::Default_Load(const std::string& Path,
 Description : Load an existing project.
 Input       : const std::string& Path - The path.
 Output      : None.
-Return      : ret_t - Whether the load is successful.
+Return      : ret_t - If successful, 0; else -1.
 ******************************************************************************/
 ret_t Proj_Info::Existing_Load(const std::string& Path)
 {
@@ -166,7 +170,7 @@ ret_t Proj_Info::Existing_Load(const std::string& Path)
     /* See if it does exist */
     if(wxIsReadable(this->Path)==false)
     {
-        wxLogDebug("The project probably does not exist. Consider permission or memory failure.");
+        wxLogDebug("The project does not exist. Consider permission or memory failure.");
         return -1;
     }
 
@@ -230,27 +234,33 @@ ret_t Proj_Info::Existing_Load(const std::string& Path)
 
         for(std::unique_ptr<class Virtual>&It:this->Virtual)
             this->Virtual_Map.insert(std::make_pair(It->Name,It.get()));
+
+        /* Project cache - must use a new document derived from the save because wxXML
+         * will use self-closing tags by default, interfering with closing checks. */
+        Document=std::make_unique<class wxXmlDocument>();
+        this->Cache=std::make_unique<class wxStringOutputStream>();
+
+        this->Doc_Save(Document);
+        Document->Save(*(this->Cache));
     }
-    catch(const std::exception& Expect)
+    catch(const std::exception& Exc)
     {
-        Main::Msgbox_Show(RVM_CFG_App::Main, MSGBOX_WARN,
-                          _("Project information load"),
-                          _(std::string(Expect.what())+" The file is corrupted, and some features may not work properly."));
+        wxLogDebug(Exc.what());
+        return -1;
     }
 
     return 0;
 }
 /* End Function:Proj_Info::Existing_Load *************************************/
 
-/* Function:Proj_Info::Save ***************************************************
-Description : Save the project to disk.
-Input       : None.
+/* Function:Proj_Info::Doc_Save ***********************************************
+Description : Save the project to XML document.
+Input       : std::unique_ptr<class wxXmlDocument>& Document - The XML document.
 Output      : None.
-Return      : ret_t - Whether the save is successful.
+Return      : None.
 ******************************************************************************/
-ret_t Proj_Info::Save(void)
+void Proj_Info::Doc_Save(std::unique_ptr<class wxXmlDocument>& Document)
 {
-    std::unique_ptr<class wxXmlDocument> Document;
     class wxXmlNode* Project;
 
     /* Main project file structure */
@@ -284,13 +294,64 @@ ret_t Proj_Info::Save(void)
     /* Virtual machine */
     Trunk_Save<class Virtual>(Main::Simple_Save(Project,"Virtual"),"V",this->Virtual);
 
-    /* Write to disk */
-    Document=std::make_unique<class wxXmlDocument>();
+    /* Attach root node to document */
     Document->SetRoot(Project);
-    if(Document->Save(this->Path)==false)
+}
+/* End Function:Proj_Info::Doc_Save ******************************************/
+
+/* Function:Proj_Info::Change_Detect ******************************************
+Description : See if the project info has changed since the last save. We'd just
+              drop everything to XML and see if that changes, because attaching
+              hooks too all widgets are just too tedious.
+Input       : None.
+Output      : None.
+Return      : ret_t - If saved, 0; else -1.
+******************************************************************************/
+ret_t Proj_Info::Change_Detect(void)
+{
+    std::unique_ptr<class wxXmlDocument> Document;
+    std::unique_ptr<class wxStringOutputStream> Stream;
+
+    Document=std::make_unique<class wxXmlDocument>();
+    Stream=std::make_unique<class wxStringOutputStream>();
+
+    this->Doc_Save(Document);
+    Document->Save(*Stream);
+
+    /* See if there are any changes - cannot use raw compare on references */
+    if(Stream->GetString().Cmp(this->Cache->GetString())!=0)
+    {
+        wxLogDebug("Proj_Info::Change_Detect - changes detected");
         return -1;
+    }
+    else
+        wxLogDebug("Proj_Info::Change_Detect - no change detected");
 
     return 0;
+}
+/* End Function:Proj_Info::Change_Detect *************************************/
+
+/* Function:Proj_Info::Save ***************************************************
+Description : Save the project to disk.
+Input       : std::unique_ptr<class wxXmlDocument>& Document - The XML document.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Proj_Info::Save(void)
+{
+    std::unique_ptr<class wxXmlDocument> Document;
+    std::unique_ptr<class wxStringOutputStream> Stream;
+
+    Document=std::make_unique<class wxXmlDocument>();
+    Stream=std::make_unique<class wxStringOutputStream>();
+
+    /* Save to disk */
+    this->Doc_Save(Document);
+    Document->Save(this->Path);
+
+    /* And update cache as well */
+    Document->Save(*Stream);
+    this->Cache=std::move(Stream);
 }
 /* End Function:Proj_Info::Save **********************************************/
 
