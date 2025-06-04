@@ -1282,7 +1282,7 @@ static void _RVM_Virt_Vct_Snd(struct RVM_List* Array,
         {
             RVM_COV_MARKER();
             
-            RVM_VM_STATE_SET(RVM_Virt_Cur->Sched.State,RVM_VM_RUNNING);
+            RVM_VM_STATE_SET(Virt->Sched.State,RVM_VM_RUNNING);
             _RVM_Run_Ins(Virt);
         }
         else
