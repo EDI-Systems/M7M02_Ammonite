@@ -40,7 +40,7 @@ namespace RVM_CFG
 class Native_Notebook:public wxNotebook
 {
 public:
-    class Native_Basic_Panel* Basic;
+    class Native_Panel* Basic;
     class Memory_Panel* Memory;
     class Shmem_Panel* Shmem;
     class Thread_Panel* Thread;
@@ -51,16 +51,15 @@ public:
     class Vector_Panel* Vector;
     class Kfunc_Panel* Kfunc;
 
-    /* void */ Native_Notebook(class wxWindow*parent);
+    /* void */ Native_Notebook(class wxWindow* Parent);
     /* void */ ~Native_Notebook(void);
 
     void Load(const std::string& Native_Name);
-    void Save();
     ret_t Check(void);
     ret_t Check(ptr_t Page);
-    void On_Config(class wxBookCtrlEvent& Event);
+    void Save(void);
 
-//    void On_Config_Changed(class wxBookCtrlEvent& Event);
+    void On_Config(class wxBookCtrlEvent& Event);
 };
 /*****************************************************************************/
 /* __NATIVE_NOTEBOOK_CLASS__ */

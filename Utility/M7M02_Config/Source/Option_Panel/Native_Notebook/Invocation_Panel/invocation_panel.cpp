@@ -26,7 +26,9 @@ Description : Invocation panel implementation.
 
 #define __HDR_CLASS__
 #include "rvm_cfg.hpp"
+
 #include "Option_Panel/Native_Notebook/Invocation_Panel/invocation_panel.hpp"
+
 #include "Proj_Info/Process/Invocation/invocation.hpp"
 #undef __HDR_CLASS__
 /* End Include ***************************************************************/
@@ -35,12 +37,11 @@ namespace RVM_CFG
 /* Function:Invocation_Panel::Invocation_Panel ********************************
 Description : Constructor for invocation panel.
 Input       : class wxWindow* Parent - The parent window.
-              const std::string& _Loction - The location where the error occurred.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Invocation_Panel::Invocation_Panel(class wxWindow* Parent, const std::string& _Location):
-wxPanel(Parent,wxID_ANY),Location(_Location)
+/* void */ Invocation_Panel::Invocation_Panel(class wxWindow* Parent):
+wxPanel(Parent,wxID_ANY)
 {
     try
     {
@@ -76,16 +77,16 @@ wxPanel(Parent,wxID_ANY),Location(_Location)
         this->Grid->CreateGrid(0,3,wxGrid::wxGridSelectRows);
         this->Grid->HideRowLabels();
         this->Grid->SetColLabelSize(I2P(32));
-        this->Grid->SetColLabelValue(0,_(""));
+        this->Grid->SetColLabelValue(0,"#");
         this->Grid->SetColLabelValue(1,_("Name"));
         this->Grid->SetColLabelValue(2,_("Stack Size"));
         this->Grid->SetColSize(0,I2P(30));
-        this->Grid->SetColSize(1,I2P(385));
-        this->Grid->SetColSize(2,I2P(385));
+        this->Grid->SetColSize(1,I2P(380));
+        this->Grid->SetColSize(2,I2P(380));
         this->Grid->DisableDragRowSize();
         this->Grid->DisableDragColSize();
         this->Bind(wxEVT_GRID_RANGE_SELECT,&Invocation_Panel::On_Grid,this,this->Grid->GetId());
-        this->Bind(wxEVT_GRID_CELL_CHANGED, &Invocation_Panel::On_Change, this);
+        this->Bind(wxEVT_GRID_CELL_CHANGED,&Invocation_Panel::On_Change,this);
 
         this->Main_Sizer->Add(this->Grid,100,wxEXPAND);
         this->Main_Sizer->AddStretchSpacer(1);
@@ -110,42 +111,32 @@ Return      : None.
 ******************************************************************************/
 /* void */ Invocation_Panel::~Invocation_Panel(void)
 {
-
+    this->Unbind(wxEVT_GRID_RANGE_SELECT,&Invocation_Panel::On_Grid,this,this->Grid->GetId());
+    this->Unbind(wxEVT_GRID_CELL_CHANGED,&Invocation_Panel::On_Change,this);
 }
 /* End Function:Invocation_Panel::Invocation_Panel ***************************/
 
-
-/* Function:Invocation_Panel::Check *******************************************
-Description : Check whether the current panel contains any errors.
+/* Function:Invocation_Panel::Row_Add *****************************************
+Description : Add a new line to this panel, setting the controls of the grids.
+              The values still needs to be filled in later.
 Input       : None.
 Output      : None.
-Return      : ret_t - if 0, no error exists; else -1.
+Return      : ret_t - The position the row is at.
 ******************************************************************************/
-ret_t Invocation_Panel::Check(void)
+ret_t Invocation_Panel::Row_Add(void)
 {
-    cnt_t Row;
-    std::string Stack_Size;
-    class wxArrayString UniqueName;
+    ret_t Row;
 
-    if(Main::Row_Name_Check(this->Grid,this->Location,BLANK_NAME_FORBID,1))
-        return -1;
+    wxLogDebug("Invocation_Panel::Row_Add");
 
-    for(Row=0;Row<(cnt_t)this->Grid->GetNumberRows();Row++)
-    {
-        /* Stack Size */
-        Stack_Size=this->Grid->GetCellValue(Row,2);
-        if(Main::Num_GEZ_Hex_Check(Stack_Size)!=0)
-        {
-            Main::Msgbox_Show(this,MSGBOX_ERROR,
-                              _(this->Location),
-                              _("Stack size is not a valid hexadecimal nonnegative integer, row "+std::to_string(Row+1)));
-            return -1;
-        }
-    }
+    Row=Main::Row_Add(this->Grid);
 
-    return 0;
+    /* Default value */
+    this->Grid->SetReadOnly(Row, 0, true);
+
+    return Row;
 }
-/* End Function:Invocation_Panel::Check **************************************/
+/* End Function:Invocation_Panel::Row_Add ************************************/
 
 /* Function:Invocation_Panel::Load ********************************************
 Description : Load information from Proj_Info into the this panel.
@@ -161,13 +152,14 @@ void Invocation_Panel::Load(const std::vector<std::unique_ptr<class Invocation>>
 
     wxLogDebug("Invocation_Panel::Load %d",Invocation.size());
 
-    /* Clear the grid */
-    Main::Gird_Clear_Content(this->Grid);
+    /* Clean up the grid */
+    if(this->Grid->GetNumberRows()!=0)
+        this->Grid->DeleteRows(0,this->Grid->GetNumberRows());
 
     /* Fill in the grid*/
     for(Row=0;Row<(cnt_t)Invocation.size();Row++)
     {
-        this->Add_Func();
+        this->Row_Add();
 
         /* Name */
         this->Grid->SetCellValue(Row, 1, Invocation[Row]->Name);
@@ -176,9 +168,35 @@ void Invocation_Panel::Load(const std::vector<std::unique_ptr<class Invocation>>
         std::sprintf(Buf, "0x%llX", Invocation[Row]->Stack_Size);
         this->Grid->SetCellValue(Row, 2, Buf);
     }
+
     Main::Row_Reorder(this->Grid);
 }
 /* End Function:Invocation_Panel::Load ***************************************/
+
+/* Function:Invocation_Panel::Check *******************************************
+Description : Check whether the current panel contains any errors.
+Input       : None.
+Output      : None.
+Return      : ret_t - if 0, no error exists; else -1.
+******************************************************************************/
+ret_t Invocation_Panel::Check(void)
+{
+    cnt_t Row;
+
+    if(Main::Name_Check(this->Grid,1,_("Invocation"),BLANK_FORBID))
+        return -1;
+
+    for(Row=0;Row<(cnt_t)this->Grid->GetNumberRows();Row++)
+    {
+        /* Stack Size */
+        if(Main::Hex_Check(this,this->Grid->GetCellValue(Row,2),
+                           _("Invocation"),_("Stack Size")+_(" at row ")+std::to_string(Row+1))!=0)
+            return -1;
+    }
+
+    return 0;
+}
+/* End Function:Invocation_Panel::Check **************************************/
 
 /* Function:Invocation_Panel::Save ********************************************
 Description : Save information to Proj_Info.
@@ -195,22 +213,20 @@ void Invocation_Panel::Save(std::vector<std::unique_ptr<class Invocation>>&Invoc
     std::string Name;
 
     wxLogDebug("Invocation_Panel::Save");
-    Invocation.clear();
 
+    Invocation.clear();
     for(Row=0;Row<(cnt_t)this->Grid->GetNumberRows();Row++)
     {
-
         /* Name */
-        Name=this->Grid->GetCellValue(Row,1).ToStdString();
+        Name=this->Grid->GetCellValue(Row,1);
 
         /* Stack_Size */
-        Stack_Size=std::stoull(this->Grid->GetCellValue(Row,2).ToStdString(),0,0);
+        Stack_Size=std::stoull(std::string(this->Grid->GetCellValue(Row,2)),0,0);
 
         Invocation.push_back(std::make_unique<class Invocation>(Name,Stack_Size));
     }
-
 }
-/* End Function:Invocation_Panel::Save ***********************************/
+/* End Function:Invocation_Panel::Save ***************************************/
 
 /* Function:Invocation_Panel::On_Add ******************************************
 Description : wxEVT_BUTTON handler for 'Add'.
@@ -220,7 +236,11 @@ Return      : None.
 ******************************************************************************/
 void Invocation_Panel::On_Add(class wxCommandEvent& Event)
 {
-    this->Add_Func();
+    ret_t Row;
+
+    Row=this->Row_Add();
+    this->Grid->SetCellValue(Row, 2, "0x1000");
+
     Main::Row_Reorder(this->Grid);
 }
 /* End Function:Invocation_Panel::On_Add *************************************/
@@ -234,6 +254,7 @@ Return      : None.
 void Invocation_Panel::On_Remove(class wxCommandEvent& Event)
 {
     wxLogDebug("Invocation_Panel::On_Remove");
+
     Main::Row_Remove(this->Grid);
     Main::Row_Reorder(this->Grid);
 }
@@ -248,6 +269,7 @@ Return      : None.
 void Invocation_Panel::On_Move_Up(class wxCommandEvent& Event)
 {
     wxLogDebug("Invocation_Panel::On_Move_Up");
+
     Main::Row_Move_Up(this->Grid);
     Main::Row_Reorder(this->Grid);
 }
@@ -262,6 +284,7 @@ Return      : None.
 void Invocation_Panel::On_Move_Down(class wxCommandEvent& Event)
 {
     wxLogDebug("Invocation_Panel::On_Move_Down");
+
     Main::Row_Move_Down(this->Grid);
     Main::Row_Reorder(this->Grid);
 }
@@ -276,8 +299,8 @@ Return      : None.
 void Invocation_Panel::On_Grid(class wxGridRangeSelectEvent& Event)
 {
     wxLogDebug("Invocation_Panel::On_Grid");
+
     Main::Row_Pick(this->Grid);
-    Main::Row_Reorder(this->Grid);
 }
 /* End Function:Invocation_Panel::On_Grid ************************************/
 
@@ -298,45 +321,12 @@ void Invocation_Panel::On_Change(class wxGridEvent& Event)
     Row=Event.GetRow();
     Col=Event.GetCol();
 
-    switch (Col)
-    {
-        case 2:
-        {
-            Num=this->Grid->GetCellValue(Row,Col).Upper();
-            if (Num.starts_with("0X"))
-                Num[1]='x';
-            else
-                Num="0x"+Num;
-            this->Grid->SetCellValue(Row,Col,Num);
-            break;
-        }
-        default:break;
-    }
+    if(Col==2)
+        this->Grid->SetCellValue(Row,2,Main::Num2Hex(std::string(this->Grid->GetCellValue(Row,2))));
+
     Event.Skip();
 }
 /* End Function:Invocation_Panel::On_Change **********************************/
-
-/* Function:Invocation_Panel::Add_Func ****************************************
-Description : Add a new row to the grid and set the cells to appropriate controls.
-Input       : None.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Invocation_Panel::Add_Func()
-{
-    ret_t Row;
-
-    wxLogDebug("Invocation_Panel::On_Add");
-
-    Row=Main::Row_Add(this->Grid);
-
-    /* Default value */
-    this->Grid->SetReadOnly(Row, 0, true);
-    this->Grid->SetCellBackgroundColour(Row, 0, *wxLIGHT_GREY);
-
-    this->Grid->SetCellValue(Row, 2, "0xFFFF");
-}
-/* End Function:Invocation_Panel::Add_Func ***********************************/
 }
 /* End Of File ***************************************************************/
 

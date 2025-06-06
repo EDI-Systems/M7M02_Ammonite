@@ -53,19 +53,20 @@ public:
 
     std::string Location;
 
-    /* void */ Receive_Panel(class wxWindow*parent, const std::string& Location);
+    /* void */ Receive_Panel(class wxWindow* Parent);
     /* void */ ~Receive_Panel(void);
 
-    ret_t Check(void);
+    ret_t Row_Add(void);
 
     void Load(const std::vector<std::unique_ptr<class Receive>>&Receive);
+    ret_t Check(void);
     void Save(std::vector<std::unique_ptr<class Receive>>&Receive);
+
     void On_Add(class wxCommandEvent& Event);
     void On_Remove(class wxCommandEvent& Event);
     void On_Move_Up(class wxCommandEvent& Event);
     void On_Move_Down(class wxCommandEvent& Event);
     void On_Grid(class wxGridRangeSelectEvent& Event);
-    void Add_Func(void);
 };
 /*****************************************************************************/
 /* __RECEIVE_PANEL_CLASS__ */

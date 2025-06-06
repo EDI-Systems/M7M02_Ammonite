@@ -40,11 +40,11 @@ namespace RVM_CFG
 class Memory_Notebook:public wxNotebook
 {
 public:
-    class Extmem_Panel*Extmem_Panel;
-    class Memory_Panel*Shmem_Panel;
-    class Chip_Memory_Panel*Chip_Memory_Panel;
+    class Extmem_Panel* Extmem_Panel;
+    class Memory_Panel* Shmem_Panel;
+    class Ocmem_Panel* Ocmem_Panel;
 
-    /* void */ Memory_Notebook(class wxWindow*parent);
+    /* void */ Memory_Notebook(class wxWindow* Parent);
     /* void */ ~Memory_Notebook(void);
 
     void Load(void);

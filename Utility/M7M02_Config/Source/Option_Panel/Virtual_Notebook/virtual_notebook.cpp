@@ -21,6 +21,7 @@ Description : Virtual notebook implementation.
 
 #define __HDR_DEF__
 #include "Option_Panel/Virtual_Notebook/virtual_notebook.hpp"
+#include "Option_Panel/Memory_Panel/memory_panel.hpp"
 #undef __HDR_DEF__
 
 #define __HDR_CLASS__
@@ -31,7 +32,7 @@ Description : Virtual notebook implementation.
 #include "Proj_Info/Process/Virtual/virtual.hpp"
 
 #include "Option_Panel/Virtual_Notebook/virtual_notebook.hpp"
-#include "Option_Panel/Virtual_Notebook/Virtual_Basic_Panel/virtual_basic_panel.hpp"
+#include "Option_Panel/Virtual_Notebook/Virtual_Panel/virtual_panel.hpp"
 #include "Option_Panel/Memory_Panel/memory_panel.hpp"
 #include "Option_Panel/Shmem_Panel/shmem_panel.hpp"
 #include "Option_Panel/Send_Panel/send_panel.hpp"
@@ -41,8 +42,7 @@ Description : Virtual notebook implementation.
 namespace RVM_CFG
 {
 /* Function:Virtual_Notebook::Virtual_Notebook ********************************
-Description : Constructor for virtual machine notebook. This notebook include
-              basic information, memory, shmem, send, kfunc.
+Description : Constructor for virtual machine notebook.
 Input       : class wxWindow* Parent - The parent window.
 Output      : None.
 Return      : None.
@@ -52,11 +52,13 @@ wxNotebook(Parent,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxNB_TOP)
 {
     try
     {
-        this->Basic=new class Virtual_Basic_Panel(this);
-        this->Memory=new class Memory_Panel(this,"Virtual machine - Memory",BLANK_NAME_PERMIT);
-        this->Shmem=new class Shmem_Panel(this,"Virtual machine - Shared memory");
-        this->Send=new class Send_Panel(this,"Virtual machine - Send");
-        this->Kfunc=new class Kfunc_Panel(this,"Virtual machine - Kfunc");
+        this->SetBackgroundColour(Parent->GetBackgroundColour());
+
+        this->Basic=new class Virtual_Panel(this);
+        this->Memory=new class Memory_Panel(this,MEM_PANEL_PRIVATE);
+        this->Shmem=new class Shmem_Panel(this);
+        this->Send=new class Send_Panel(this);
+        this->Kfunc=new class Kfunc_Panel(this);
 
         this->AddPage(this->Basic,_("Basic"));
         this->AddPage(this->Memory,_("Memory"));

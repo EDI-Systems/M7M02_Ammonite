@@ -39,12 +39,11 @@ namespace RVM_CFG
 /* Function:Port_Panel::Port_Panel ******************************************
 Description : Constructor for port information.
 Input       : class wxWindow* Parent - The parent window.
-              const std::string& _Loction - The location where the error occurred.
 Output      : None.
 Return      : None.
 ****************************************************************************/
-/* void */ Port_Panel::Port_Panel(class wxWindow* Parent,  const std::string& _Location):
-wxPanel(Parent,wxID_ANY),Location(_Location)
+/* void */ Port_Panel::Port_Panel(class wxWindow* Parent):
+wxPanel(Parent,wxID_ANY)
 {
     try
     {
@@ -80,12 +79,12 @@ wxPanel(Parent,wxID_ANY),Location(_Location)
         this->Grid->CreateGrid(0,3,wxGrid::wxGridSelectRows);
         this->Grid->HideRowLabels();
         this->Grid->SetColLabelSize(I2P(32));
-        this->Grid->SetColLabelValue(0,_(""));
+        this->Grid->SetColLabelValue(0,"#");
         this->Grid->SetColLabelValue(1,_("Process"));
         this->Grid->SetColLabelValue(2,_("Name"));
         this->Grid->SetColSize(0,I2P(30));
-        this->Grid->SetColSize(1,I2P(385));
-        this->Grid->SetColSize(2,I2P(385));
+        this->Grid->SetColSize(1,I2P(380));
+        this->Grid->SetColSize(2,I2P(380));
         this->Grid->DisableDragRowSize();
         this->Grid->DisableDragColSize();
         this->Bind(wxEVT_GRID_RANGE_SELECT,&Port_Panel::On_Grid,this,this->Grid->GetId());
@@ -114,9 +113,36 @@ Return      : None.
 ****************************************************************************/
 /* void */ Port_Panel::~Port_Panel(void)
 {
-
+    this->Bind(wxEVT_GRID_RANGE_SELECT,&Port_Panel::On_Grid,this,this->Grid->GetId());
+    this->Bind(wxEVT_GRID_CELL_CHANGED, &Port_Panel::On_Change, this);
 }
 /* End Function:Port_Panel::Port_Panel *************************************/
+
+/* Function:Port_Panel::Add_Func ********************************************
+Description : Add a new row to the grid and set the cells to appropriate
+              controls.
+Input       : None.
+Output      : None.
+Return      : ret_t - The row added.
+****************************************************************************/
+ret_t Port_Panel::Row_Add(void)
+{
+    ret_t Row;
+
+    wxLogDebug("Port_Panel::On_Add");
+
+    Row=Main::Row_Add(this->Grid);
+
+    /* Default value */
+    this->Grid->SetReadOnly(Row,0,true);
+
+    /* Try to load the default choice */
+    this->Grid->SetCellEditor(Row,1,new class wxGridCellChoiceEditor(this->Proc_List));
+    this->Grid->SetCellEditor(Row,2,new class wxGridCellChoiceEditor());
+
+    return Row;
+}
+/* End Function:Port_Panel::On_Add ******************************************/
 
 /* Function:Port_Panel::Check ***********************************************
 Description : Check whether the current panel contains any errors.
@@ -134,20 +160,12 @@ ret_t Port_Panel::Check(void)
 
     for(Row=0;Row<(cnt_t)this->Grid->GetNumberRows();Row++)
     {
-//        if(this->Grid->GetCellBackgroundColour(Row,1)==*wxRED||this->Grid->GetCellBackgroundColour(Row,2)==*wxRED)
-//        {
-//            Main::Msgbox_Show(this, MSGBOX_ERROR,
-//                              _(this->Location),
-//                              _("There is a invalid row, row "+std::to_string(Row+1)));
-//            return -1;
-//        }
-
         /* Process */
         Process=this->Grid->GetCellValue(Row,1);
         if(Process=="")
         {
             Main::Msgbox_Show(this, MSGBOX_ERROR,
-                              _(this->Location),
+                              _("Port"),
                               _("Process is invalid, row "+std::to_string(Row+1)));
             return -1;
         }
@@ -157,19 +175,19 @@ ret_t Port_Panel::Check(void)
         if(Name=="")
         {
             Main::Msgbox_Show(this, MSGBOX_ERROR,
-                              _(this->Location),
+                              _("Port"),
                               _("Name is invalid, row "+std::to_string(Row+1)));
             return -1;
         }
 
-        /* The combination of process and name cannot be exactly the same */
+        /* Can't declare the same pair again */
         Check_Pair=std::make_pair(Process,Name);
         if(Unique.find(Check_Pair)==Unique.end())
             Unique.insert(Check_Pair);
         else
         {
             Main::Msgbox_Show(this, MSGBOX_ERROR,
-                              _(this->Location),
+                              _("Port"),
                               _(Process+" and "+Name+" is repeated, row "+std::to_string(Row+1)));
             return -1;
         }
@@ -190,95 +208,45 @@ Return      : None.
 void Port_Panel::Load(const std::vector<std::unique_ptr<class Port>>&Port)
 {
     cnt_t Row;
-    std::string Name;
-    std::string Process;
     class wxArrayString Inv;
-    std::map<std::string,wxArrayString>::iterator Iter;
+    std::map<std::string, class wxArrayString>::iterator Iter;
 
-    /* Update the information of "Native" and its "Receive" */
-    this->Pro_Option.Clear();
-    this->Pro_Inv.clear();
-    for(const std::unique_ptr<class Native>&Native : Main::Proj_Info->Native)
+    /* The invocation targets could only exist in native processes */
+    this->Inv_List.clear();
+    this->Proc_List.Clear();
+    for(const std::unique_ptr<class Native>&Native:Main::Proj_Info->Native)
     {
-        Inv.Clear();
-        for(const std::unique_ptr<class Invocation>& Invocation : Native->Invocation)
+        Inv.clear();
+
+        for(const std::unique_ptr<class Invocation>& Invocation:Native->Invocation)
             Inv.push_back(Invocation->Name);
-        this->Pro_Inv.insert(std::make_pair(Native->Name,Inv));
-        this->Pro_Option.push_back(Native->Name);
+
+        this->Proc_List.push_back(Native->Name);
+        this->Inv_List.insert(std::make_pair(Native->Name,Inv));
     }
 
-    /* Clear the grid */
-    Main::Gird_Clear_Content(this->Grid);
+    /* Clean up the grid */
+    if(this->Grid->GetNumberRows()!=0)
+        this->Grid->DeleteRows(0,this->Grid->GetNumberRows());
 
     /* Fill in the grid*/
     for(Row=0;Row<(cnt_t)Port.size();Row++)
     {
-        this->Add_Func();
+        this->Row_Add();
+
         /* Process */
-        Process=Port[Row]->Process;
-        this->Grid->SetCellValue(Row,1,Process);
+        this->Grid->SetCellValue(Row,1,Port[Row]->Process);
 
         /* Name will be fill in, whether valid or not */
-        Name=Port[Row]->Name;
-        this->Grid->SetCellValue(Row,2,Name);
+        this->Grid->SetCellValue(Row,2,Port[Row]->Name);
 
-        /* Set the wxChoice to the 'Invocation' option corresponding to the 'Process' */
-        Iter=this->Pro_Inv.find(Process);
-        if(Iter!=this->Pro_Inv.end())
+        /* Set the wxChoice available invocation choices */
+        Iter=this->Inv_List.find(Port[Row]->Process);
+        if(Iter!=this->Inv_List.end())
             this->Grid->SetCellEditor(Row,2,new class wxGridCellChoiceEditor(Iter->second));
     }
+
     Main::Row_Reorder(this->Grid);
-//    cnt_t Row;
-//    std::string Name;
-//    std::string Process;
-//    class wxArrayString Inv;
-//    std::map<std::string,wxArrayString>::iterator Iter;
-//
-//    /* Update the information of "Native" and its "Receive" */
-//    this->Pro_Option.Clear();
-//    this->Pro_Inv.clear();
-//    for(const std::unique_ptr<class Native>&Native : Main::Proj_Info->Native)
-//    {
-//        Inv.Clear();
-//        for(const std::unique_ptr<class Invocation>& Invocation : Native->Invocation)
-//            Inv.push_back(Invocation->Name);
-//        this->Pro_Inv.insert(std::make_pair(Native->Name,Inv));
-//        this->Pro_Option.push_back(Native->Name);
-//    }
-//
-//    /* Clear the grid */
-//    Main::Gird_Clear_Content(this->Grid);
-//
-//    /* Fill in the grid*/
-//    for(Row=0;Row<(cnt_t)Port.size();Row++)
-//    {
-//        this->Add_Func();
-//        /* Process */
-//        Process=Port[Row]->Process;
-//        this->Grid->SetCellValue(Row,1,Process);
-//
-//        /* Name will be fill in, whether valid or not */
-//        Name=Port[Row]->Name;
-//        this->Grid->SetCellValue(Row,2,Name);
-//
-//        Iter=this->Pro_Inv.find(Process);
-//        if(Iter!=this->Pro_Inv.end())
-//            this->Grid->SetCellEditor(Row,2,new class wxGridCellChoiceEditor(Iter->second));
-//
-//        if(Iter==this->Pro_Inv.end())
-//        {
-//            this->Grid->SetCellValue(Row,1,Process+"(Invalid)");
-//            this->Grid->SetCellValue(Row,2,Name+"(Invalid)");
-//            this->Grid->SetCellBackgroundColour(Row,1,*wxRED);
-//            this->Grid->SetCellBackgroundColour(Row,2,*wxRED);
-//        }
-//        else if(Iter!=this->Pro_Inv.end()&&Iter->second.Index(Name)==wxNOT_FOUND)
-//        {
-//            this->Grid->SetCellValue(Row,2,Name+"(Invalid)");
-//            this->Grid->SetCellBackgroundColour(Row,2,*wxRED);
-//        }
-//    }
-//    Main::Row_Reorder(this->Grid);
 }
 /* End Function:Port_Panel::Load *********************************************/
 
@@ -300,13 +268,14 @@ void Port_Panel::Save(std::vector<std::unique_ptr<class Port>>&Port)
     for(Row=0;Row<(cnt_t)this->Grid->GetNumberRows();Row++)
     {
         /* Process */
-        Process=this->Grid->GetCellValue(Row,1).ToStdString();
+        Process=this->Grid->GetCellValue(Row,1);
 
         /* Name */
-        Name=this->Grid->GetCellValue(Row,2).ToStdString();
+        Name=this->Grid->GetCellValue(Row,2);
 
         Port.push_back(std::make_unique<class Port>(Name,Process));
     }
+
     wxLogDebug("Port_Panel::Save: %d block",this->Grid->GetNumberRows());
 }
 /* End Function:Port_Panel::Save *******************************************/
@@ -319,7 +288,23 @@ Return      : None.
 ****************************************************************************/
 void Port_Panel::On_Add(class wxCommandEvent& Event)
 {
-    this->Add_Func();
+    ret_t Row;
+    std::string Default;
+
+    wxLogDebug("Port_Panel::On_Add");
+
+    Row=this->Row_Add();
+
+    /* Try to supply default value */
+    if(this->Proc_List.size()>0)
+    {
+        Default=this->Proc_List[0];
+        this->Grid->SetCellValue(Row,1,Default);
+        this->Grid->SetCellEditor(Row,2,new class wxGridCellChoiceEditor(this->Inv_List.find(Default)->second));
+        if(this->Inv_List.find(Default)->second.size()>0)
+            this->Grid->SetCellValue(Row,2,this->Inv_List.find(Default)->second[0]);
+    }
+
     Main::Row_Reorder(this->Grid);
 }
 /* End Function:Port_Panel::On_Add ******************************************/
@@ -333,6 +318,7 @@ Return      : None.
 void Port_Panel::On_Remove(class wxCommandEvent& Event)
 {
     wxLogDebug("Port_Panel::On_Remove");
+
     Main::Row_Remove(this->Grid);
     Main::Row_Reorder(this->Grid);
 }
@@ -347,6 +333,7 @@ Return      : None.
 void Port_Panel::On_Move_Up(class wxCommandEvent& Event)
 {
     wxLogDebug("Port_Panel::On_Move_Up");
+
     Main::Row_Move_Up(this->Grid);
     Main::Row_Reorder(this->Grid);
 }
@@ -361,6 +348,7 @@ Return      : None.
 void Port_Panel::On_Move_Down(class wxCommandEvent& Event)
 {
     wxLogDebug("Port_Panel::On_Move_Down");
+
     Main::Row_Move_Down(this->Grid);
     Main::Row_Reorder(this->Grid);
 }
@@ -375,8 +363,8 @@ Return      : None.
 void Port_Panel::On_Grid(class wxGridRangeSelectEvent& Event)
 {
     wxLogDebug("Port_Panel::On_Grid");
+
     Main::Row_Pick(this->Grid);
-    Main::Row_Reorder(this->Grid);
 }
 /* End Function:Port_Panel::On_Grid ******************************************/
 
@@ -397,70 +385,24 @@ void Port_Panel::On_Change(class wxGridEvent& Event)
     Row=Event.GetRow();
     Col=Event.GetCol();
 
-    switch (Col)
+    if(Col==1)
     {
-        case 1:
+        Iter=this->Inv_List.find(std::string(this->Grid->GetCellValue(Row,1)));
+        if(Iter!=this->Inv_List.end())
         {
-            Iter=this->Pro_Inv.find(this->Grid->GetCellValue(Row,Col).ToStdString());
-            if(Iter!=this->Pro_Inv.end())
-            {
-                this->Grid->SetCellEditor(Row,2,new class wxGridCellChoiceEditor(Iter->second));
-                /* If there is any 'Invocation' in current native process, load the first one as the default value,
-                 * else clean the cell of 'Name' */
-                if(Iter->second.size()>0)
-                    this->Grid->SetCellValue(Row,2,Iter->second[0]);
-                else
-                    this->Grid->SetCellValue(Row,2,"");
-//                this->Grid->SetCellBackgroundColour(Row,1,*wxWHITE);
-//                this->Grid->SetCellBackgroundColour(Row,2,*wxWHITE);
-            }
-            break;
+            this->Grid->SetCellEditor(Row,2,new class wxGridCellChoiceEditor(Iter->second));
+            /* If there is any 'Invocation' in current native process, load the
+             * first one as the default value, or we clean the cell of 'Name' */
+            if(Iter->second.size()>0)
+                this->Grid->SetCellValue(Row,2,Iter->second[0]);
+            else
+                this->Grid->SetCellValue(Row,2,"");
         }
-//        case 2:
-//        {
-//            this->Grid->SetCellBackgroundColour(Row,1,*wxWHITE);
-//            this->Grid->SetCellBackgroundColour(Row,2,*wxWHITE);
-//            break;
-//        }
-        default:break;
     }
+
     Event.Skip();
 }
-/* End Function:Port_Panel::On_Change **************************************/
-
-/* Function:Port_Panel::Add_Func ********************************************
-Description : Add a new row to the grid and set the cells to appropriate
-              controls.
-Input       : None.
-Output      : None.
-Return      : None.
-****************************************************************************/
-void Port_Panel::Add_Func()
-{
-    ret_t Row;;
-    std::string Default_Process;
-
-    wxLogDebug("Port_Panel::On_Add");
-
-    Row=Main::Row_Add(this->Grid);
-
-    /* Default value */
-    this->Grid->SetReadOnly(Row,0,true);
-    this->Grid->SetCellBackgroundColour(Row,0,*wxLIGHT_GREY);
-
-    /* Try to load the default choice */
-    this->Grid->SetCellEditor(Row,1,new class wxGridCellChoiceEditor(this->Pro_Option));
-    this->Grid->SetCellEditor(Row,2,new class wxGridCellChoiceEditor());
-    if(this->Pro_Option.size()>0)
-    {
-        Default_Process=this->Pro_Option[0];
-        this->Grid->SetCellValue(Row,1,Default_Process);
-        this->Grid->SetCellEditor(Row,2,new class wxGridCellChoiceEditor(this->Pro_Inv.find(Default_Process)->second));
-        if(this->Pro_Inv.find(Default_Process)->second.size()>0)
-            this->Grid->SetCellValue(Row,2,this->Pro_Inv.find(Default_Process)->second[0]);
-    }
-}
-/* End Function:Port_Panel::On_Add ******************************************/
+/* End Function:Port_Panel::On_Change ****************************************/
 }
 /* End Of File ***************************************************************/
 

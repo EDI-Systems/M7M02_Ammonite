@@ -51,26 +51,25 @@ public:
     class wxButton* Move_Up;
     class wxButton* Move_Down;
 
-    /* The options of native process */
-    class wxArrayString Pro_Option;
-    /* The options of natvie process and relative 'Receive' */
-    std::map<std::string,class wxArrayString> Pro_Rec;
-    std::string Location;
+    /* List holding all possible choices - using wx types for simplicity */
+    class wxArrayString Proc_List;
+    std::map<std::string,class wxArrayString> Recv_List;
 
-    /* void */ Send_Panel(class wxWindow*parent, const std::string& Location);
+    /* void */ Send_Panel(class wxWindow* Parent);
     /* void */ ~Send_Panel(void);
 
-    ret_t Check(void);
+    ret_t Row_Add(void);
 
     void Load(const std::vector<std::unique_ptr<class Send>>&Send);
+    ret_t Check(void);
     void Save(std::vector<std::unique_ptr<class Send>>&Send);
+
     void On_Add(class wxCommandEvent& Event);
     void On_Remove(class wxCommandEvent& Event);
     void On_Move_Up(class wxCommandEvent& Event);
     void On_Move_Down(class wxCommandEvent& Event);
     void On_Grid(class wxGridRangeSelectEvent& Event);
     void On_Change(class wxGridEvent& Event);
-    void Add_Func(void);
 };
 /*****************************************************************************/
 /* __SEND_PANEL_CLASS__ */

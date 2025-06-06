@@ -214,7 +214,6 @@ void Mem_Info::Save(class wxXmlNode* Parent)
         else
             Main::Num_Save(Parent,"Align",this->Align);
     }
-
 }
 /* End Function:Mem_Info::Save ***********************************************/
 }

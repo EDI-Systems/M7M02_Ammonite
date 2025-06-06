@@ -51,24 +51,25 @@ public:
     class wxButton* Move_Up;
     class wxButton* Move_Down;
 
-    class wxArrayString Pro_Option;
-    std::map<std::string, class wxArrayString>Pro_Inv;
-    std::string Location;
+    /* List holding all possible choices - using wx types for simplicity */
+    class wxArrayString Proc_List;
+    std::map<std::string,class wxArrayString> Inv_List;
 
-    /* void */ Port_Panel(class wxWindow*parent, const std::string& Location);
+    /* void */ Port_Panel(class wxWindow* Parent);
     /* void */ ~Port_Panel(void);
 
-    ret_t Check(void);
+    ret_t Row_Add(void);
 
     void Load(const std::vector<std::unique_ptr<class Port>>&Port);
+    ret_t Check(void);
     void Save(std::vector<std::unique_ptr<class Port>>&Port);
+
     void On_Add(class wxCommandEvent& Event);
     void On_Remove(class wxCommandEvent& Event);
     void On_Move_Up(class wxCommandEvent& Event);
     void On_Move_Down(class wxCommandEvent& Event);
     void On_Grid(class wxGridRangeSelectEvent& Event);
     void On_Change(class wxGridEvent& Event);
-    void Add_Func(void);
 };
 /*****************************************************************************/
 /* __PORT_PANEL_CLASS__ */

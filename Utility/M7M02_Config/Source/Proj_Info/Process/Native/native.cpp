@@ -41,23 +41,6 @@ Description : Native process information implementation.
 /* End Include ***************************************************************/
 namespace RVM_CFG
 {
-/* Function:Native::Process ***************************************************
-Description : Default constructor for process information.
-Input       : const std::string& Name - The exact chip name.
-              const std::string& Root - The root folder path.
-              const class Plat_Info* Plat - The platform information.
-Output      : None.
-Return      : None.
-******************************************************************************/
-/* void */ Native::Native(const std::string& Name,
-                          const std::string& Root,
-                          const class Plat_Info* Plat):
-Process(Name,PROCESS_NATIVE,Root,Plat)
-{
-
-}
-/* End Function:Native::Native ***********************************************/
-
 /* Function:Native::Native ****************************************************
 Description : Constructor for process information.
 Input       : class wxXmlNode* Node - The node containing information.
@@ -94,7 +77,7 @@ Output      : None.
 Return      : None.
 ******************************************************************************/
 /* void */ Native::Native(const std::string& Name):
-Process(Name)
+Process(Name, PROCESS_NATIVE)
 {
     /* Set default value */
     this->Entry_Source_Output="../Source/";

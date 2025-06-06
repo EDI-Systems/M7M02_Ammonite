@@ -45,10 +45,6 @@ wxPanel(Parent,wxID_ANY)
 {
     try
     {
-        this->Type_Option.Add("Code");
-        this->Type_Option.Add("Data");
-        this->Type_Option.Add("Device");
-
         this->SetBackgroundColour(Parent->GetBackgroundColour());
 
         this->Border_Sizer=new class wxBoxSizer(wxVERTICAL);
@@ -81,7 +77,7 @@ wxPanel(Parent,wxID_ANY)
         this->Grid->CreateGrid(0,10,wxGrid::wxGridSelectRows);
         this->Grid->HideRowLabels();
         this->Grid->SetColLabelSize(I2P(32));
-        this->Grid->SetColLabelValue(0,_(""));
+        this->Grid->SetColLabelValue(0,"#");
         this->Grid->SetColLabelValue(1,_("Type"));
         this->Grid->SetColLabelValue(2,_("Base"));
         this->Grid->SetColLabelValue(3,_("Size"));
@@ -133,45 +129,40 @@ Return      : None.
 }
 /* End Function:Extmem_Panel::Extmem_Panel ***********************************/
 
-/* Function:Extmem_Panel::Check ***********************************************
-Description : Check whether the current panel contains any errors.
+/* Function:Extmem_Panel::Row_Add **********************************************
+Description : Add a new line to this panel, setting the controls of the grids.
+              The values still needs to be filled in later.
 Input       : None.
 Output      : None.
-Return      : ret_t - if 0, no error exists; else -1.
+Return      : ret_t - The position the row is at.
 ******************************************************************************/
-ret_t Extmem_Panel::Check(void)
+ret_t Extmem_Panel::Row_Add(void)
 {
-    cnt_t Row;
-    std::string Base;
-    std::string Size;
+    ret_t Row;
+    cnt_t Cnt;
+    class wxArrayString Type;
 
-    for(Row=0;Row<(cnt_t)this->Grid->GetNumberRows();Row++)
+    wxLogDebug("Extmem_Panel::Row_Add");
+
+    Row=Main::Row_Add(this->Grid);
+    this->Grid->SetReadOnly(Row, 0, true);
+
+    /* Type */
+    Type.Add(_("Code"));
+    Type.Add(_("Data"));
+    Type.Add(_("Device"));
+    this->Grid->SetCellEditor(Row,1,new class wxGridCellChoiceEditor(Type));
+
+    /* Attributes */
+    for(Cnt=4;Cnt<10;Cnt++)
     {
-        /* Base */
-        Base=this->Grid->GetCellValue(Row,2);
-        if(Main::Num_GEZ_Hex_Check(Base)!=0)
-        {
-            Main::Msgbox_Show(this, MSGBOX_ERROR,
-                              _("Extra Memory"),
-                              _("Base is not a valid hexadecimal nonnegative integer"));
-            return -1;
-        }
-
-        /* Size */
-        Size=this->Grid->GetCellValue(Row,3);
-        if(Main::Num_GEZ_Hex_Check(Size)!=0)
-        {
-            Main::Msgbox_Show(this, MSGBOX_ERROR,
-                              _("Extra Memory"),
-                              _("Size is not a valid hexadecimal nonnegative integer"));
-            return -1;
-        }
-
+        this->Grid->SetCellEditor(Row, Cnt, new wxGridCellBoolEditor());
+        this->Grid->SetCellRenderer(Row, Cnt, new wxGridCellBoolRenderer());
     }
 
-    return 0;
+    return Row;
 }
-/* End Function:Extmem_Panel::Check *****************************************/
+/* End Function:Extmem_Panel::Row_Add *****************************************/
 
 /* Function:Extmem_Panel::Load ***********************************************
 Description : Load information from Proj_Info into the this panel.
@@ -183,42 +174,63 @@ Return      : None.
 void Extmem_Panel::Load(const std::vector<std::unique_ptr<class Mem_Info>>&Memory)
 {
     cnt_t Row;
-    cnt_t AttrCnt;
     char Buf[32];
 
     wxLogDebug("Extmem_Panel::Load %d",Memory.size());
 
-    /* Clear the grid */
-    Main::Gird_Clear_Content(this->Grid);
+    /* Clean up the grid */
+    if(this->Grid->GetNumberRows()!=0)
+        this->Grid->DeleteRows(0,this->Grid->GetNumberRows());
 
     /* Fill in the grid*/
     for(Row=0;Row<(cnt_t)Memory.size();Row++)
     {
-        this->Add_Func();
+        this->Row_Add();
 
         /* Type */
-        this->Grid->SetCellValue(Row, 1, this->Type_Option[Memory[Row]->Type]);
+        Main::Mem_Type_Set(Memory[Row]->Type,this->Grid,Row,1);
 
         /* Base */
-        std::sprintf(Buf, "0x%llX", Memory[Row].get()->Base);
+        std::sprintf(Buf, "0x%llX", Memory[Row]->Base);
         this->Grid->SetCellValue(Row, 2, Buf);
 
         /* Size */
-        std::sprintf(Buf, "0x%llX", Memory[Row].get()->Size);
+        std::sprintf(Buf, "0x%llX", Memory[Row]->Size);
         this->Grid->SetCellValue(Row, 3, Buf);
 
         /* Attribute */
-        for(AttrCnt=0;AttrCnt<6;++AttrCnt)
-        {
-            if((Memory[Row].get()->Attr>>(AttrCnt))&1)
-                this->Grid->SetCellValue(Row,4+AttrCnt,"1");
-            else
-                this->Grid->SetCellValue(Row,4+AttrCnt,wxEmptyString);
-        }
+        Main::Mem_Attr_Set(Memory[Row]->Attr,this->Grid,Row,4);
     }
     Main::Row_Reorder(this->Grid);
 }
 /* End Function:Extmem_Panel::Load *******************************************/
+
+/* Function:Extmem_Panel::Check ***********************************************
+Description : Check whether the current panel contains any errors.
+Input       : None.
+Output      : None.
+Return      : ret_t - if 0, no error exists; else -1.
+******************************************************************************/
+ret_t Extmem_Panel::Check(void)
+{
+    cnt_t Row;
+
+    for(Row=0;Row<(cnt_t)this->Grid->GetNumberRows();Row++)
+    {
+        /* Base */
+        if(Main::Hex_Check(this,this->Grid->GetCellValue(Row,2),
+                           _("Extra Memory"),_("Base")+_(" at row ")+std::to_string(Row+1))!=0)
+            return -1;
+
+        /* Size */
+        if(Main::Hex_Pos_Check(this,this->Grid->GetCellValue(Row,3),
+                               _("Extra Memory"),_("Size")+_(" at row ")+std::to_string(Row+1))!=0)
+            return -1;
+    }
+
+    return 0;
+}
+/* End Function:Extmem_Panel::Check ******************************************/
 
 /* Function:Extmem_Panel::Save ************************************************
 Description : Save information to Proj_Info.
@@ -243,41 +255,22 @@ void Extmem_Panel::Save(std::vector<std::unique_ptr<class Mem_Info>>&Memory)
     for(Row=0;Row<(cnt_t)this->Grid->GetNumberRows();Row++)
     {
         /* Type */
-        if(this->Grid->GetCellValue(Row,1)=="Code")
-            Type=MEM_CODE;
-        else if(this->Grid->GetCellValue(Row,1)=="Data")
-            Type=MEM_DATA;
-        else if(this->Grid->GetCellValue(Row,1)=="Device")
-            Type=MEM_DEVICE;
-        else
-            throw std::runtime_error("Memory Type is malformed.");
+        Type=Main::Mem_Type_Get(this->Grid,Row,1);
 
         /* Base */
-        Base=std::stoull(this->Grid->GetCellValue(Row,2).ToStdString(),0,0);
+        Base=std::stoull(std::string(this->Grid->GetCellValue(Row,2)),0,0);
 
         /* Size */
-        Size=std::stoull(this->Grid->GetCellValue(Row,3).ToStdString(),0,0);
+        Size=std::stoull(std::string(this->Grid->GetCellValue(Row,3)),0,0);
 
         /* Attribute */
-        Attr=0;
-        if(this->Grid->GetCellValue(Row,4)=="1")
-            Attr|=MEM_READ;;
-        if(this->Grid->GetCellValue(Row,5)=="1")
-            Attr|=MEM_WRITE;
-        if(this->Grid->GetCellValue(Row,6)=="1")
-            Attr|=MEM_EXECUTE;
-        if(this->Grid->GetCellValue(Row,7)=="1")
-            Attr|=MEM_BUFFER;
-        if(this->Grid->GetCellValue(Row,8)=="1")
-            Attr|=MEM_CACHE;
-        if(this->Grid->GetCellValue(Row,9)=="1")
-            Attr|=MEM_STATIC;
+        Attr=Main::Mem_Attr_Get(this->Grid,Row,4);
 
         /* Name and align do not exist */
         Memory.push_back(std::make_unique<class Mem_Info>("",Base,Size,Type,Attr,ALIGN_INVALID));
     }
-    wxLogDebug("Extmem_Panel::Save: %d block",this->Grid->GetNumberRows());
 
+    wxLogDebug("Extmem_Panel::Save: %d block",this->Grid->GetNumberRows());
 }
 /* End Function:Extmem_Panel::Save *******************************************/
 
@@ -289,7 +282,17 @@ Return      : None.
 ******************************************************************************/
 void Extmem_Panel::On_Add(class wxCommandEvent& Event)
 {
-    this->Add_Func();
+    ret_t Row;
+
+    wxLogDebug("Extmem_Panel::On_Add");
+
+    Row=this->Row_Add();
+
+    /* Default to data memory */
+    Main::Mem_Type_Set(MEM_DATA,this->Grid,Row,1);
+    this->Grid->SetCellValue(Row, 2, "0xC00000000");
+    this->Grid->SetCellValue(Row, 3, "0x40000");
+    Main::Mem_Attr_Set(MEM_READ|MEM_WRITE|MEM_CACHE|MEM_BUFFER|MEM_STATIC,this->Grid,Row,4);
     Main::Row_Reorder(this->Grid);
 }
 /* End Function:Extmem_Panel::On_Add *****************************************/
@@ -303,6 +306,7 @@ Return      : None.
 void Extmem_Panel::On_Remove(class wxCommandEvent& Event)
 {
     wxLogDebug("Extmem_Panel::On_Remove");
+
     Main::Row_Remove(this->Grid);
     Main::Row_Reorder(this->Grid);
 }
@@ -317,6 +321,7 @@ Return      : None.
 void Extmem_Panel::On_Move_Up(class wxCommandEvent& Event)
 {
     wxLogDebug("Extmem_Panel::On_Move_Up");
+
     Main::Row_Move_Up(this->Grid);
     Main::Row_Reorder(this->Grid);
 }
@@ -331,6 +336,7 @@ Return      : None.
 void Extmem_Panel::On_Move_Down(class wxCommandEvent& Event)
 {
     wxLogDebug("Extmem_Panel::On_Move_Down");
+
     Main::Row_Move_Down(this->Grid);
     Main::Row_Reorder(this->Grid);
 }
@@ -345,8 +351,8 @@ Return      : None.
 void Extmem_Panel::On_Grid(class wxGridRangeSelectEvent& Event)
 {
     wxLogDebug("Extmem_Panel::On_Grid");
+
     Main::Row_Pick(this->Grid);
-    Main::Row_Reorder(this->Grid);
 }
 /* End Function:Extmem_Panel::On_Grid ****************************************/
 
@@ -367,100 +373,33 @@ void Extmem_Panel::On_Change(class wxGridEvent& Event)
 
     Row=Event.GetRow();
     Col=Event.GetCol();
-    switch (Col)
+    switch(Col)
     {
+        /* If type ever changes, default attributes to that type */
         case 1:
         {
             Type=this->Grid->GetCellValue(Row,Col);
             if(Type=="Code")
-            {
-                this->Grid->SetCellValue(Row,4,"1");
-                this->Grid->SetCellValue(Row,5,"");
-                this->Grid->SetCellValue(Row,6,"1");
-                this->Grid->SetCellValue(Row,7,"1");
-                this->Grid->SetCellValue(Row,8,"1");
-                this->Grid->SetCellValue(Row,9,"1");
-            }
+                Main::Mem_Attr_Set(MEM_READ|MEM_EXECUTE|MEM_CACHE|MEM_BUFFER|MEM_STATIC,this->Grid,Row,4);
             else if(Type=="Data")
-            {
-                this->Grid->SetCellValue(Row,4,"1");
-                this->Grid->SetCellValue(Row,5,"1");
-                this->Grid->SetCellValue(Row,6,"");
-                this->Grid->SetCellValue(Row,7,"1");
-                this->Grid->SetCellValue(Row,8,"1");
-                this->Grid->SetCellValue(Row,9,"1");
-            }
+                Main::Mem_Attr_Set(MEM_READ|MEM_WRITE|MEM_CACHE|MEM_BUFFER|MEM_STATIC,this->Grid,Row,4);
             else if(Type=="Device")
-            {
-                this->Grid->SetCellValue(Row,4,"1");
-                this->Grid->SetCellValue(Row,5,"1");
-                this->Grid->SetCellValue(Row,6,"");
-                this->Grid->SetCellValue(Row,7,"");
-                this->Grid->SetCellValue(Row,8,"");
-                this->Grid->SetCellValue(Row,9,"1");
-            }
+                Main::Mem_Attr_Set(MEM_READ|MEM_WRITE|MEM_STATIC,this->Grid,Row,4);
             break;
         }
+        /* If address and base changes, always prettyform them later */
         case 2:
         case 3:
         {
-            Num=this->Grid->GetCellValue(Row,Col);
-            Num=Num.Upper();
-            if (Num.starts_with("0X"))
-                Num[1]='x';
-            else
-                Num="0x"+Num;
-            this->Grid->SetCellValue(Row,Col,Num);
+            this->Grid->SetCellValue(Row,Col,Main::Num2Hex(std::string(this->Grid->GetCellValue(Row,Col))));
             break;
         }
         default:break;
     }
+
     Event.Skip();
 }
 /* End Function:Extmem_Panel::On_Change **************************************/
-
-/* Function:Extmem_Panel::Add_Func ********************************************
-Description : Add a new row to the grid and set the cells to appropriate
-              controls.
-Input       : None.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Extmem_Panel::Add_Func()
-{
-    ret_t Row;
-    cnt_t Cnt;
-
-    wxLogDebug("Extmem_Panel::On_Add");
-
-    Row=Main::Row_Add(this->Grid);
-
-    /* Type include "Code", "Data" and "Device" */
-    this->Grid->SetCellEditor(Row,1,new class wxGridCellChoiceEditor(this->Type_Option));
-
-
-    /* Attribution */
-    for(Cnt=4;Cnt<10;Cnt++)
-    {
-        this->Grid->SetCellEditor(Row,Cnt,new wxGridCellBoolEditor());
-        this->Grid->SetCellRenderer(Row, Cnt, new wxGridCellBoolRenderer());
-    }
-
-    /* Default value */
-
-    this->Grid->SetReadOnly(Row,0,true);
-    this->Grid->SetCellBackgroundColour(Row,0,*wxLIGHT_GREY);
-    this->Grid->SetCellValue(Row, 1, this->Type_Option[0]);
-    this->Grid->SetCellValue(Row, 2, "0xFFFF");
-    this->Grid->SetCellValue(Row, 3, "0xFFFF");
-    this->Grid->SetCellValue(Row,4,"1");
-    this->Grid->SetCellValue(Row,5,"");
-    this->Grid->SetCellValue(Row,6,"1");
-    this->Grid->SetCellValue(Row,7,"1");
-    this->Grid->SetCellValue(Row,8,"1");
-    this->Grid->SetCellValue(Row,9,"1");
-}
-/* End Function:Extmem_Panel::Add_Func ***************************************/
 
 }
 /* End Of File ***************************************************************/

@@ -1,19 +1,19 @@
 /******************************************************************************
-Filename    : choose dialog.hpp
+Filename    : option_panel.hpp
 Author      : lbc
-Date        : 23/04/2025
-License     : Proprietary; confidential.
-Description : Choose dialog class header.
+Date        : 24/04/2025
+Licence     : The Unlicense; see LICENSE for details.
+Description : Option panel class header.
 ******************************************************************************/
 
 /* Define ********************************************************************/
 #ifdef __HDR_DEF__
-#ifndef __CHOOSE_DIALOG_TYPE__
-#define __CHOOSE_DIALOG_TYPE__
+#ifndef __OPTION_PANEL_TYPE__
+#define __OPTION_PANEL_TYPE__
 /*****************************************************************************/
 
 /*****************************************************************************/
-/* __CHOOSE_DIALOG_TYPE__ */
+/* __OPTION_PANEL_TYPE__ */
 #endif
 /* __HDR_DEF__ */
 #endif
@@ -21,13 +21,13 @@ Description : Choose dialog class header.
 namespace RVM_CFG
 {
 #ifdef __HDR_DEF__
-#ifndef __CHOOSE_DIALOG_DEF__
-#define __CHOOSE_DIALOG_DEF__
+#ifndef __OPTION_PANEL_DEF__
+#define __OPTION_PANEL_DEF__
 /*****************************************************************************/
-/* My define */
-#define TEST _("TEST")
+#define PROCESS_NATIVE      0
+#define PROCESS_VIRTUAL     1
 /*****************************************************************************/
-/* __CHOOSE_DIALOG_DEF__ */
+/* __OPTION_PANEL_DEF__ */
 #endif
 /* __HDR_DEF__ */
 #endif
@@ -35,45 +35,36 @@ namespace RVM_CFG
 
 /* Classes *******************************************************************/
 #ifdef __HDR_CLASS__
-#ifndef __CHOOSE_DIALOG_CLASS__
-#define __CHOOSE_DIALOG_CLASS__
+#ifndef __OPTION_PANEL_CLASS__
+#define __OPTION_PANEL_CLASS__
 /*****************************************************************************/
-class Choose_Dialog:public wxDialog
+class Option_Panel:public wxPanel
 {
 public:
-    /* Path of the newly created file */
-    std::string RVP_File_Path;
-
     class wxBoxSizer* Main_Sizer;
-    class wxBoxSizer* Plat_Sizer;
-    class wxBoxSizer* Chip_Sizer;;
-    class wxBoxSizer* Type_Sizer;
-    class wxBoxSizer* Button_Sizer;
 
-    class wxStaticBoxSizer* Plat_And_Chip_Sizer;
+    class wxWindow* Window_Current;
 
-    class wxChoice* Plat;
-    class wxStaticText* Plat_Label;
-    class wxChoice* Chip;
-    class wxStaticText* Chip_Label;
-    class wxChoice* Type;
-    class wxStaticText* Type_Label;
+    class Basic_Panel* Basic_Panel;
+    class Memory_Notebook* Memory_Notebook;
+    class Kernel_Panel* Kernel_Panel;
+    class Monitor_Panel* Monitor_Panel;
+    class Native_Notebook* Native_Notebook;
+    class Virtual_Notebook* Virtual_Notebook;
 
-    class wxButton* Confirm;
-    class wxButton* Cancel;
+    /* void */ Option_Panel(class wxWindow* Parent);
+    /* void */ ~Option_Panel(void);
 
-    Choose_Dialog(class wxWindow* Parent);
-    ~Choose_Dialog(void);
-
-    void On_Close(class wxCloseEvent& Event);
-    void On_Confirm(class wxCommandEvent& Event);
-    void On_Cancel(class wxCommandEvent& Event);
-    void On_Platform_Change(class wxCommandEvent& Event);
-    void On_Chip_Change(class wxCommandEvent& Event);
     void Load(void);
+    ret_t Current_Save(void);
+
+    void Window_Switch(class wxWindow* Window_Next);
+    ret_t Option_Show(const std::string& Select_Text, ptr_t Type);
+    void Native_Rename(const std::string& Original,const std::string& Current);
+    void Virtual_Rename(const std::string& Original,const std::string& Current);
 };
 /*****************************************************************************/
-/* __CHOOSE_DIALOG_CLASS__ */
+/* __OPTION_PANEL_CLASS__ */
 #endif
 /* __HDR_CLASS__ */
 #endif

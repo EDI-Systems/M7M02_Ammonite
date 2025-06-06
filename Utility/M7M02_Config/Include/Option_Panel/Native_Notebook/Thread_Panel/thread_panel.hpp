@@ -51,22 +51,21 @@ public:
     class wxButton* Move_Up;
     class wxButton* Move_Down;
 
-    std::string Location;
-
-    /* void */ Thread_Panel(class wxWindow*parent, const std::string& Location);
+    /* void */ Thread_Panel(class wxWindow* Parent);
     /* void */ ~Thread_Panel(void);
 
-    ret_t Check(void);
+    ret_t Row_Add(void);
 
     void Load(const std::vector<std::unique_ptr<class Thread>>&Thread);
+    ret_t Check(void);
     void Save(std::vector<std::unique_ptr<class Thread>>&Thread);
+
     void On_Add(class wxCommandEvent& Event);
     void On_Remove(class wxCommandEvent& Event);
     void On_Move_Up(class wxCommandEvent& Event);
     void On_Move_Down(class wxCommandEvent& Event);
     void On_Grid(class wxGridRangeSelectEvent& Event);
     void On_Change(class wxGridEvent& Event);
-    void Add_Func(void);
 };
 /*****************************************************************************/
 /* __THREAD_PANEL_CLASS__ */

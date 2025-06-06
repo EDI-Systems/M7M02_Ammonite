@@ -42,8 +42,8 @@ Return      : None.
 /* void */ Kernel::Kernel(const class Plat_Info* Plat, const class Chip_Info* Chip)
 {
     /* Set default value */
-    this->Code_Base=0;
-    this->Code_Size=0;
+    this->Code_Base=0x08000000;
+    this->Code_Size=0x1000;
     this->Data_Base=0;
     this->Data_Size=0;
     this->Stack_Size=0;

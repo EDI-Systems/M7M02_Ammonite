@@ -560,6 +560,7 @@ void Proj_Gen::Macro_Mem(const std::string& Prefix,
 {
     std::string Macro;
 
+    /* If the memory does not have a name, we don't generate macros for them */
     if(Mem->Name=="")
         return;
 

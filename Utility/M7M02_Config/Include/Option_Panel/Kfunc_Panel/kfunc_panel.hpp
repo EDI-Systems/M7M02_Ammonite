@@ -53,20 +53,21 @@ public:
 
     std::string Location;
 
-    /* void */ Kfunc_Panel(class wxWindow*parent, const std::string& Location);
+    /* void */ Kfunc_Panel(class wxWindow* Parent);
     /* void */ ~Kfunc_Panel(void);
 
-    ret_t Check(void);
+    ret_t Row_Add(void);
 
     void Load(const std::vector<std::unique_ptr<class Kfunc>>&Kfunc);
+    ret_t Check(void);
     void Save(std::vector<std::unique_ptr<class Kfunc>>&Kfunc);
+
     void On_Add(class wxCommandEvent& Event);
     void On_Remove(class wxCommandEvent& Event);
     void On_Move_Up(class wxCommandEvent& Event);
     void On_Move_Down(class wxCommandEvent& Event);
     void On_Grid(class wxGridRangeSelectEvent& Event);
     void On_Change(class wxGridEvent& Event);
-    void Add_Func(void);
 };
 /*****************************************************************************/
 /* __KFUNC_PANEL_CLASS__ */

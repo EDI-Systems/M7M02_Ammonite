@@ -25,11 +25,13 @@ Description : Monitor panel implementation.
 
 #define __HDR_CLASS__
 #include "rvm_cfg.hpp"
+
+#include "Option_Panel/Monitor_Panel/monitor_panel.hpp"
+
 #include "Proj_Info/Proj_info.hpp"
 #include "Proj_Info/Monitor/monitor.hpp"
 #include "Plat_Info/plat_info.hpp"
 #include "Plat_Info/Compatible/compatible.hpp"
-#include "Option_Panel/Monitor_Panel/monitor_panel.hpp"
 #undef __HDR_CLASS__
 /* End Include ***************************************************************/
 namespace RVM_CFG
@@ -46,111 +48,123 @@ wxPanel(Parent,wxID_ANY)
 {
     try
     {
+        this->SetBackgroundColour(Parent->GetBackgroundColour());
+
         this->Main_Sizer=new class wxBoxSizer(wxVERTICAL);
 
-        /* Group 1 */
-        this->Sizer1=new class wxStaticBoxSizer(wxVERTICAL,this,_("Sizer1"));
-        this->Sizer1_1=new class wxBoxSizer(wxHORIZONTAL);
-        this->Sizer1_2=new class wxBoxSizer(wxHORIZONTAL);
-        this->Sizer1_3=new class wxBoxSizer(wxHORIZONTAL);
+        /* Basic options */
+        this->Basic_Sizer=new class wxStaticBoxSizer(wxVERTICAL,this,_("Basic Options"));
+        this->Basic_Line1_Sizer=new class wxBoxSizer(wxHORIZONTAL);
+        this->Basic_Line2_Sizer=new class wxBoxSizer(wxHORIZONTAL);
+        this->Basic_Line3_Sizer=new class wxBoxSizer(wxHORIZONTAL);
 
         this->Code_Size_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Code_Size_Label=new class wxStaticText(this,wxID_ANY,_("Code Size"));
         this->Code_Size=new class wxTextCtrl(this,wxID_ANY);
+        this->Code_Size->Bind(wxEVT_KILL_FOCUS, &Monitor_Panel::On_Text_Hex, this);
         this->Code_Size_Sizer->Add(this->Code_Size_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Code_Size_Sizer->Add(this->Code_Size,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Code_Size_Sizer->Add(this->Code_Size,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Data_Size_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Data_Size_Label=new class wxStaticText(this,wxID_ANY,_("Data Size"));
         this->Data_Size=new class wxTextCtrl(this,wxID_ANY);
+        this->Data_Size->Bind(wxEVT_KILL_FOCUS, &Monitor_Panel::On_Text_Hex, this);
         this->Data_Size_Sizer->Add(this->Data_Size_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Data_Size_Sizer->Add(this->Data_Size,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Data_Size_Sizer->Add(this->Data_Size,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Init_Stack_Size_Sizer=new class wxBoxSizer(wxHORIZONTAL);
-        this->Init_Stack_Size_Label=new class wxStaticText(this,wxID_ANY,_("Initial Stack Size"));
+        this->Init_Stack_Size_Label=new class wxStaticText(this,wxID_ANY,_("Init Daemon Stack Size"));
         this->Init_Stack_Size=new class wxTextCtrl(this,wxID_ANY);
+        this->Init_Stack_Size->Bind(wxEVT_KILL_FOCUS, &Monitor_Panel::On_Text_Hex, this);
         this->Init_Stack_Size_Sizer->Add(this->Init_Stack_Size_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Init_Stack_Size_Sizer->Add(this->Init_Stack_Size,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Init_Stack_Size_Sizer->Add(this->Init_Stack_Size,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Sftd_Stack_Size_Sizer=new class wxBoxSizer(wxHORIZONTAL);
-        this->Sftd_Stack_Size_Label=new class wxStaticText(this,wxID_ANY,_("SFTD Stack Size"));
+        this->Sftd_Stack_Size_Label=new class wxStaticText(this,wxID_ANY,_("Safety Daemon Stack Size"));
         this->Sftd_Stack_Size=new class wxTextCtrl(this,wxID_ANY);
+        this->Sftd_Stack_Size->Bind(wxEVT_KILL_FOCUS, &Monitor_Panel::On_Text_Hex, this);
         this->Sftd_Stack_Size_Sizer->Add(this->Sftd_Stack_Size_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Sftd_Stack_Size_Sizer->Add(this->Sftd_Stack_Size,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Sftd_Stack_Size_Sizer->Add(this->Sftd_Stack_Size,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Vmmd_Stack_Size_Sizer=new class wxBoxSizer(wxHORIZONTAL);
-        this->Vmmd_Stack_Size_Label=new class wxStaticText(this,wxID_ANY,_("VMMD Stack Size"));
+        this->Vmmd_Stack_Size_Label=new class wxStaticText(this,wxID_ANY,_("VMM Daemon Stack Size"));
         this->Vmmd_Stack_Size=new class wxTextCtrl(this,wxID_ANY);
+        this->Vmmd_Stack_Size->Bind(wxEVT_KILL_FOCUS, &Monitor_Panel::On_Text_Hex, this);
         this->Vmmd_Stack_Size_Sizer->Add(this->Vmmd_Stack_Size_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Vmmd_Stack_Size_Sizer->Add(this->Vmmd_Stack_Size,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Vmmd_Stack_Size_Sizer->Add(this->Vmmd_Stack_Size,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
-        this->Sizer1_1->Add(this->Code_Size_Sizer,6,wxEXPAND);
-        this->Sizer1_1->AddStretchSpacer(1);
-        this->Sizer1_1->Add(this->Data_Size_Sizer,6,wxEXPAND);
-        this->Sizer1_2->Add(this->Init_Stack_Size_Sizer,6,wxEXPAND);
-        this->Sizer1_2->AddStretchSpacer(1);
-        this->Sizer1_2->Add(this->Sftd_Stack_Size_Sizer,6,wxEXPAND);
-        this->Sizer1_3->Add(this->Vmmd_Stack_Size_Sizer,6,wxEXPAND);
-        this->Sizer1_3->AddStretchSpacer(7);
-        this->Sizer1->Add(this->Sizer1_1,0,wxEXPAND);
-        this->Sizer1->Add(this->Sizer1_2,0,wxEXPAND);
-        this->Sizer1->Add(this->Sizer1_3,0,wxEXPAND);
+        this->Basic_Line1_Sizer->Add(this->Code_Size_Sizer,6,wxEXPAND);
+        this->Basic_Line1_Sizer->AddStretchSpacer(1);
+        this->Basic_Line1_Sizer->Add(this->Data_Size_Sizer,6,wxEXPAND);
 
-        /* Group 2 */
-        this->Sizer2=new class wxStaticBoxSizer(wxVERTICAL,this,_("Sizer2"));
-        this->Sizer2_1=new class wxBoxSizer(wxHORIZONTAL);
-        this->Sizer2_2=new class wxBoxSizer(wxHORIZONTAL);
+        this->Basic_Line2_Sizer->Add(this->Init_Stack_Size_Sizer,6,wxEXPAND);
+        this->Basic_Line2_Sizer->AddStretchSpacer(1);
+        this->Basic_Line2_Sizer->Add(this->Sftd_Stack_Size_Sizer,6,wxEXPAND);
+
+        this->Basic_Line3_Sizer->Add(this->Vmmd_Stack_Size_Sizer,6,wxEXPAND);
+        this->Basic_Line3_Sizer->AddStretchSpacer(7);
+
+        this->Basic_Sizer->Add(this->Basic_Line1_Sizer,0,wxEXPAND);
+        this->Basic_Sizer->Add(this->Basic_Line2_Sizer,0,wxEXPAND);
+        this->Basic_Sizer->Add(this->Basic_Line3_Sizer,0,wxEXPAND);
+
+        /* Hypervisor options */
+        this->Hyper_Sizer=new class wxStaticBoxSizer(wxVERTICAL,this,_("Hypervisor Options"));
+        this->Hyper_Line1_Sizer=new class wxBoxSizer(wxHORIZONTAL);
+        this->Hyper_Line2_Sizer=new class wxBoxSizer(wxHORIZONTAL);
 
         this->Extra_Captbl_Sizer=new class wxBoxSizer(wxHORIZONTAL);
-        this->Extra_Captbl_Label=new class wxStaticText(this,wxID_ANY,_("Extra Captbl"));
+        this->Extra_Captbl_Label=new class wxStaticText(this,wxID_ANY,_("Extra Capability Slot Number"));
         this->Extra_Captbl=new class wxTextCtrl(this,wxID_ANY);
         this->Extra_Captbl_Sizer->Add(this->Extra_Captbl_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Extra_Captbl_Sizer->Add(this->Extra_Captbl,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Extra_Captbl_Sizer->Add(this->Extra_Captbl,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Virt_Prio_Sizer=new class wxBoxSizer(wxHORIZONTAL);
-        this->Virt_Prio_Label=new class wxStaticText(this,wxID_ANY,_("VM Priority"));
+        this->Virt_Prio_Label=new class wxStaticText(this,wxID_ANY,_("VM Priority Number"));
         this->Virt_Prio=new class wxChoice(this,wxID_ANY);
         this->Virt_Prio_Sizer->Add(this->Virt_Prio_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Virt_Prio_Sizer->Add(this->Virt_Prio,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Virt_Prio_Sizer->Add(this->Virt_Prio,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Virt_Event_Sizer=new class wxBoxSizer(wxHORIZONTAL);
-        this->Virt_Event_Label=new class wxStaticText(this,wxID_ANY,_("VM Event"));
+        this->Virt_Event_Label=new class wxStaticText(this,wxID_ANY,_("VM Event Source Number"));
         this->Virt_Event=new class wxChoice(this,wxID_ANY);
         this->Virt_Event_Sizer->Add(this->Virt_Event_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Virt_Event_Sizer->Add(this->Virt_Event,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Virt_Event_Sizer->Add(this->Virt_Event,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Virt_Map_Sizer=new class wxBoxSizer(wxHORIZONTAL);
-        this->Virt_Map_Label=new class wxStaticText(this,wxID_ANY,_("VM Map"));
+        this->Virt_Map_Label=new class wxStaticText(this,wxID_ANY,_("VM Vector Mapping Number"));
         this->Virt_Map=new class wxTextCtrl(this,wxID_ANY);
         this->Virt_Map_Sizer->Add(this->Virt_Map_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Virt_Map_Sizer->Add(this->Virt_Map,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Virt_Map_Sizer->Add(this->Virt_Map,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
-        this->Sizer2_1->Add(this->Extra_Captbl_Sizer,6,wxEXPAND);
-        this->Sizer2_1->AddStretchSpacer(1);
-        this->Sizer2_1->Add(this->Virt_Prio_Sizer,6,wxEXPAND);
-        this->Sizer2_2->Add(this->Virt_Event_Sizer,6,wxEXPAND);
-        this->Sizer2_2->AddStretchSpacer(1);
-        this->Sizer2_2->Add(this->Virt_Map_Sizer,6,wxEXPAND);
-        this->Sizer2->Add(this->Sizer2_1,0,wxEXPAND);
-        this->Sizer2->Add(this->Sizer2_2,0,wxEXPAND);
+        this->Hyper_Line1_Sizer->Add(this->Extra_Captbl_Sizer,6,wxEXPAND);
+        this->Hyper_Line1_Sizer->AddStretchSpacer(1);
+        this->Hyper_Line1_Sizer->Add(this->Virt_Prio_Sizer,6,wxEXPAND);
 
-        /* Group 3 */
-        this->Sizer3=new class wxStaticBoxSizer(wxVERTICAL,this,_("Sizer3"));
-        this->Sizer3_1=new class wxBoxSizer(wxHORIZONTAL);
-        this->Sizer3_2=new class wxBoxSizer(wxHORIZONTAL);
+        this->Hyper_Line2_Sizer->Add(this->Virt_Event_Sizer,6,wxEXPAND);
+        this->Hyper_Line2_Sizer->AddStretchSpacer(1);
+        this->Hyper_Line2_Sizer->Add(this->Virt_Map_Sizer,6,wxEXPAND);
+
+        this->Hyper_Sizer->Add(this->Hyper_Line1_Sizer,0,wxEXPAND);
+        this->Hyper_Sizer->Add(this->Hyper_Line2_Sizer,0,wxEXPAND);
+
+        /* Buildsystem options */
+        this->Build_Sizer=new class wxStaticBoxSizer(wxVERTICAL,this,_("Buildsystem Options"));
+        this->Build_Line1_Sizer=new class wxBoxSizer(wxHORIZONTAL);
+        this->Build_Line2_Sizer=new class wxBoxSizer(wxHORIZONTAL);
 
         this->Toolchain_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Toolchain_Label=new class wxStaticText(this,wxID_ANY,_("Toolchain"));
         this->Toolchain=new class wxChoice(this,wxID_ANY);
+        this->Bind(wxEVT_CHOICE, &Monitor_Panel::On_Toolchain, this, this->Toolchain->GetId());
         this->Toolchain_Sizer->Add(this->Toolchain_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Toolchain_Sizer->Add(this->Toolchain,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Toolchain->Bind(wxEVT_CHOICE, &Monitor_Panel::On_Toolchain_Change, this, this->Toolchain->GetId());
+        this->Toolchain_Sizer->Add(this->Toolchain,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Buildsystem_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Buildsystem_Label=new class wxStaticText(this,wxID_ANY,_("Buildsystem"));
         this->Buildsystem=new class wxChoice(this,wxID_ANY);
         this->Buildsystem_Sizer->Add(this->Buildsystem_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Buildsystem_Sizer->Add(this->Buildsystem,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Buildsystem_Sizer->Add(this->Buildsystem,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Optimization_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Optimization_Label=new class wxStaticText(this,wxID_ANY,_("Optimization"));
@@ -163,25 +177,27 @@ wxPanel(Parent,wxID_ANY)
         this->Optimization->Append("-Os");
         this->Optimization->SetSelection(0);
         this->Optimization_Sizer->Add(this->Optimization_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Optimization_Sizer->Add(this->Optimization,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Optimization_Sizer->Add(this->Optimization,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Idle_Sleep_Enable_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Idle_Sleep_Enable_Label=new class wxStaticText(this,wxID_ANY,_("Idle Sleep Enable"));
         this->Idle_Sleep_Enable=new class wxCheckBox(this,wxID_ANY,wxEmptyString);
         this->Idle_Sleep_Enable_Sizer->Add(this->Idle_Sleep_Enable_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Idle_Sleep_Enable_Sizer->Add(this->Idle_Sleep_Enable,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Idle_Sleep_Enable_Sizer->Add(this->Idle_Sleep_Enable,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
-        this->Sizer3_1->Add(this->Toolchain_Sizer,6,wxEXPAND);
-        this->Sizer3_1->AddStretchSpacer(1);
-        this->Sizer3_1->Add(this->Buildsystem_Sizer,6,wxEXPAND);
-        this->Sizer3_2->Add(this->Optimization_Sizer,6,wxEXPAND);
-        this->Sizer3_2->AddStretchSpacer(1);
-        this->Sizer3_2->Add(this->Idle_Sleep_Enable_Sizer,6,wxEXPAND);
-        this->Sizer3->Add(this->Sizer3_1,0,wxEXPAND);
-        this->Sizer3->Add(this->Sizer3_2,0,wxEXPAND);
+        this->Build_Line1_Sizer->Add(this->Toolchain_Sizer,6,wxEXPAND);
+        this->Build_Line1_Sizer->AddStretchSpacer(1);
+        this->Build_Line1_Sizer->Add(this->Buildsystem_Sizer,6,wxEXPAND);
 
-        /* Group 4 */
-        this->Sizer4=new class wxStaticBoxSizer(wxVERTICAL,this,_("Sizer4"));
+        this->Build_Line2_Sizer->Add(this->Optimization_Sizer,6,wxEXPAND);
+        this->Build_Line2_Sizer->AddStretchSpacer(1);
+        this->Build_Line2_Sizer->Add(this->Idle_Sleep_Enable_Sizer,6,wxEXPAND);
+
+        this->Build_Sizer->Add(this->Build_Line1_Sizer,0,wxEXPAND);
+        this->Build_Sizer->Add(this->Build_Line2_Sizer,0,wxEXPAND);
+
+        /* Output options */
+        this->Output_Sizer=new class wxStaticBoxSizer(wxVERTICAL,this,_("Output Options"));
 
         this->Project_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Project_Output_Label=new class wxStaticText(this,wxID_ANY,_("Project Output"));
@@ -227,27 +243,20 @@ wxPanel(Parent,wxID_ANY)
         this->Hook_Source_Sizer->Add(this->Hook_Source_Output,16,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
         this->Hook_Source_Sizer->Add(this->Hook_Source_Overwrite,3,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
-        this->Sizer4->Add(this->Project_Sizer,0,wxEXPAND);
-        this->Sizer4->Add(this->Linker_Output_Sizer,0,wxEXPAND);
-        this->Sizer4->Add(this->Config_Header_Output_Sizer,0,wxEXPAND);
-        this->Sizer4->Add(this->Boot_Header_Output_Sizer,0,wxEXPAND);
-        this->Sizer4->Add(this->Boot_Source_Output_Sizer,0,wxEXPAND);
-        this->Sizer4->Add(this->Hook_Source_Sizer,0,wxEXPAND);
+        this->Output_Sizer->Add(this->Project_Sizer,0,wxEXPAND);
+        this->Output_Sizer->Add(this->Linker_Output_Sizer,0,wxEXPAND);
+        this->Output_Sizer->Add(this->Config_Header_Output_Sizer,0,wxEXPAND);
+        this->Output_Sizer->Add(this->Boot_Header_Output_Sizer,0,wxEXPAND);
+        this->Output_Sizer->Add(this->Boot_Source_Output_Sizer,0,wxEXPAND);
+        this->Output_Sizer->Add(this->Hook_Source_Sizer,0,wxEXPAND);
 
-
-        this->Main_Sizer->Add(this->Sizer1,0,wxEXPAND|wxALL,I2P(5));
-        this->Main_Sizer->Add(this->Sizer2,0,wxEXPAND|wxALL,I2P(5));
-        this->Main_Sizer->Add(this->Sizer3,0,wxEXPAND|wxALL,I2P(5));
-        this->Main_Sizer->Add(this->Sizer4,0,wxEXPAND|wxALL,I2P(5));
+        this->Main_Sizer->Add(this->Basic_Sizer,0,wxEXPAND|wxALL,I2P(5));
+        this->Main_Sizer->Add(this->Hyper_Sizer,0,wxEXPAND|wxALL,I2P(5));
+        this->Main_Sizer->Add(this->Build_Sizer,0,wxEXPAND|wxALL,I2P(5));
+        this->Main_Sizer->Add(this->Output_Sizer,0,wxEXPAND|wxALL,I2P(5));
 
         this->SetSizer(this->Main_Sizer);
         this->Layout();
-
-        this->Code_Size->Bind(wxEVT_KILL_FOCUS, &Monitor_Panel::On_Trans_Hex, this);
-        this->Data_Size->Bind(wxEVT_KILL_FOCUS, &Monitor_Panel::On_Trans_Hex, this);
-        this->Init_Stack_Size->Bind(wxEVT_KILL_FOCUS, &Monitor_Panel::On_Trans_Hex, this);
-        this->Sftd_Stack_Size->Bind(wxEVT_KILL_FOCUS, &Monitor_Panel::On_Trans_Hex, this);
-        this->Vmmd_Stack_Size->Bind(wxEVT_KILL_FOCUS, &Monitor_Panel::On_Trans_Hex, this);
     }
     catch(std::exception& Exc)
     {
@@ -264,7 +273,13 @@ Return      : None.
 ******************************************************************************/
 /* void */ Monitor_Panel::~Monitor_Panel(void)
 {
-
+    this->Unbind(wxEVT_CHOICE, &Monitor_Panel::On_Toolchain, this, this->Toolchain->GetId());
+    /* Have to bind to the text itself because we are processing window events on it directly */
+    this->Code_Size->Unbind(wxEVT_KILL_FOCUS, &Monitor_Panel::On_Text_Hex, this);
+    this->Data_Size->Unbind(wxEVT_KILL_FOCUS, &Monitor_Panel::On_Text_Hex, this);
+    this->Init_Stack_Size->Unbind(wxEVT_KILL_FOCUS, &Monitor_Panel::On_Text_Hex, this);
+    this->Sftd_Stack_Size->Unbind(wxEVT_KILL_FOCUS, &Monitor_Panel::On_Text_Hex, this);
+    this->Vmmd_Stack_Size->Unbind(wxEVT_KILL_FOCUS, &Monitor_Panel::On_Text_Hex, this);
 }
 /* End Function:Monitor_Panel::Monitor_Panel *********************************/
 
@@ -288,16 +303,23 @@ void Monitor_Panel::Load(void)
     this->Sftd_Stack_Size->SetValue(Buf);
     std::sprintf(Buf, "0x%llX", Main::Proj_Info->Monitor->Vmmd_Stack_Size);
     this->Vmmd_Stack_Size->SetValue(Buf);
+
     std::sprintf(Buf, "%lld", Main::Proj_Info->Monitor->Extra_Captbl);
     this->Extra_Captbl->SetValue(Buf);
+
+    /* If the selections are not within the allowed numbers, just give the first */
     std::sprintf(Buf, "%lld", Main::Proj_Info->Monitor->Virt_Prio);
-    this->Virt_Prio->SetStringSelection(Buf);
+    if(this->Virt_Prio->SetStringSelection(Buf)==false)
+        this->Virt_Prio->SetSelection(0);
     std::sprintf(Buf, "%lld", Main::Proj_Info->Monitor->Virt_Event);
-    this->Virt_Event->SetStringSelection(Buf);
+    if(this->Virt_Event->SetStringSelection(Buf)==false)
+        this->Virt_Event->SetSelection(0);
+
     std::sprintf(Buf, "%lld", Main::Proj_Info->Monitor->Virt_Map);
     this->Virt_Map->SetValue(Buf);
-    this->Buildsystem->SetStringSelection(Main::Proj_Info->Monitor->Buildsystem);
     this->Toolchain->SetStringSelection(Main::Proj_Info->Monitor->Toolchain);
+    this->Buildsystem_Set(this->Toolchain->GetStringSelection());
+    this->Buildsystem->SetStringSelection(Main::Proj_Info->Monitor->Buildsystem);
     this->Optimization->SetSelection(Main::Proj_Info->Monitor->Optimization);
 
     this->Project_Output->SetValue(Main::Proj_Info->Monitor->Project_Output);
@@ -310,6 +332,99 @@ void Monitor_Panel::Load(void)
     this->Hook_Source_Overwrite->SetValue(Main::Proj_Info->Monitor->Hook_Source_Overwrite);
 }
 /* End Function:Monitor_Panel::Load ******************************************/
+
+/* Function:Monitor_Panel::Check **********************************************
+Description : Check the basic information settings.
+Input       : None.
+Output      : None.
+Return      : ret_t - 0 for OK, -1 for error.
+******************************************************************************/
+ret_t Monitor_Panel::Check(void)
+{
+    ptr_t Virt_Map_Val;
+    ptr_t Virt_Event_Val;
+
+    if(Main::Hex_Pos_Check(this,this->Code_Size->GetValue(),_("Monitor Config"),_("Code size"))!=0)
+        return -1;
+    if(Main::Hex_Pos_Check(this,this->Data_Size->GetValue(),_("Monitor Config"),_("Data size"))!=0)
+        return -1;
+    if(Main::Hex_Pos_Check(this,this->Init_Stack_Size->GetValue(),_("Monitor Config"),_("Init daemon stack size"))!=0)
+        return -1;
+    if(Main::Hex_Pos_Check(this,this->Init_Stack_Size->GetValue(),_("Monitor Config"),_("Init daemon stack size"))!=0)
+        return -1;
+    if(Main::Hex_Pos_Check(this,this->Sftd_Stack_Size->GetValue(),_("Monitor Config"),_("Safety daemon stack size"))!=0)
+        return -1;
+    if(Main::Hex_Pos_Check(this,this->Vmmd_Stack_Size->GetValue(),_("Monitor Config"),_("VMM daemon stack size"))!=0)
+        return -1;
+
+    if(Main::Dec_Check(this,this->Extra_Captbl->GetValue(),_("Monitor Config"),_("Extra capability slot"))!=0)
+        return -1;
+
+    if(Main::Dec_Pos_Check(this,this->Virt_Map->GetValue(),_("Monitor Config"),_("VM interrupt map block"))!=0)
+        return -1;
+
+    /* Virtual Map must be greater than or equal to Virtual Event */
+    Virt_Event_Val=std::stoull(std::string(this->Virt_Event->GetStringSelection()));
+    Virt_Map_Val=std::stoull(std::string(this->Virt_Map->GetValue()));
+    if(Virt_Map_Val<Virt_Event_Val)
+    {
+        Main::Msgbox_Show(this, MSGBOX_ERROR,
+                          _("Monitor Config"),
+                          _("Virtual map must be greater than or equal to the number of event sources."));
+        return -1;
+    }
+
+    if(this->Project_Output->GetValue()=="")
+    {
+        Main::Msgbox_Show(this,MSGBOX_ERROR,
+                          _("Monitor Config"),
+                          _("The project output folder is unspecified."));
+        return -1;
+    }
+
+    if(this->Linker_Output->GetValue()=="")
+    {
+        Main::Msgbox_Show(this,MSGBOX_ERROR,
+                          _("Monitor Config"),
+                          _("The linker output folder is unspecified."));
+        return -1;
+    }
+
+    if(this->Config_Header_Output->GetValue()=="")
+    {
+        Main::Msgbox_Show(this,MSGBOX_ERROR,
+                          _("Monitor Config"),
+                          _("The config header output folder is unspecified."));
+        return -1;
+    }
+
+    if(this->Boot_Header_Output->GetValue()=="")
+    {
+        Main::Msgbox_Show(this,MSGBOX_ERROR,
+                          _("Monitor Config"),
+                          _("The boot header output folder is unspecified."));
+        return -1;
+    }
+
+    if(this->Boot_Source_Output->GetValue()=="")
+    {
+        Main::Msgbox_Show(this,MSGBOX_ERROR,
+                          _("Monitor Config"),
+                          _("The boot source output folder is unspecified."));
+        return -1;
+    }
+
+    if(this->Hook_Source_Output->GetValue()=="")
+    {
+        Main::Msgbox_Show(this,MSGBOX_ERROR,
+                          _("Monitor Config"),
+                          _("The hook source output folder is unspecified."));
+        return -1;
+    }
+
+    return 0;
+}
+/* End Function:Monitor_Panel::Check *****************************************/
 
 /* Function:Monitor_Panel::Save ***********************************************
 Description : Save.
@@ -327,8 +442,6 @@ void Monitor_Panel::Save(void)
     Main::Proj_Info->Monitor->Extra_Captbl=std::stoull(this->Extra_Captbl->GetValue().ToStdString(),0,0);
     Main::Proj_Info->Monitor->Virt_Prio=std::stoull(this->Virt_Prio->GetStringSelection().ToStdString(),0,0);
     Main::Proj_Info->Monitor->Virt_Event=std::stoull(this->Virt_Event->GetStringSelection().ToStdString(),0,0);
-//    Main::Proj_Info->Monitor->Virt_Prio=std::stoull(this->Virt_Prio->GetValue().ToStdString(),0,0);
-//    Main::Proj_Info->Monitor->Virt_Event=std::stoull(this->Virt_Event->GetValue().ToStdString(),0,0);
     Main::Proj_Info->Monitor->Virt_Map=std::stoull(this->Virt_Map->GetValue().ToStdString(),0,0);
     Main::Proj_Info->Monitor->Buildsystem=this->Buildsystem->GetStringSelection();
     Main::Proj_Info->Monitor->Toolchain=this->Toolchain->GetStringSelection();
@@ -345,232 +458,59 @@ void Monitor_Panel::Save(void)
 }
 /* End Function:Monitor_Panel::Save ******************************************/
 
-/* Function:Monitor_Panel::Check **********************************************
-Description : Check the basic information settings.
-Input       : None.
-Output      : None.
-Return      : ret_t - 0 for OK, -1 for error.
-******************************************************************************/
-ret_t Monitor_Panel::Check(void)
-{
-    ret_t Virt_Map_Val;
-    ret_t Virt_Prio_Val;
-    ret_t Virt_Event_Val;
-    std::string Comp_Sug;
-    std::string Toolchain;
-    std::string Buildsystem;
-    class wxArrayString Comp_Buildsystem;
-
-    if(Main::Num_GEZ_Hex_Check(this->Code_Size->GetValue().ToStdString())!=0)
-    {
-        Main::Msgbox_Show(this, MSGBOX_ERROR,
-                          _("Monitor Config"),
-                          _("Code size is not a valid hexadecimal nonnegative integer"));
-        return -1;
-    }
-    if(Main::Num_GEZ_Hex_Check(this->Data_Size->GetValue().ToStdString())!=0)
-    {
-        Main::Msgbox_Show(this, MSGBOX_ERROR,
-                          _("Monitor Config"),
-                          _("Data size is not a valid hexadecimal nonnegative integer"));
-        return -1;
-    }
-    if(Main::Num_GEZ_Hex_Check(this->Init_Stack_Size->GetValue().ToStdString())!=0)
-    {
-        Main::Msgbox_Show(this, MSGBOX_ERROR,
-                          _("Monitor Config"),
-                          _("Initial stack size is not a valid hexadecimal nonnegative integer"));
-        return -1;
-    }
-    if(Main::Num_GEZ_Hex_Check(this->Sftd_Stack_Size->GetValue().ToStdString())!=0)
-    {
-        Main::Msgbox_Show(this, MSGBOX_ERROR,
-                          _("Monitor Config"),
-                          _("SFTD stack size is not a valid hexadecimal nonnegative integer"));
-        return -1;
-    }
-    if(Main::Num_GEZ_Hex_Check(this->Vmmd_Stack_Size->GetValue().ToStdString())!=0)
-    {
-        Main::Msgbox_Show(this, MSGBOX_ERROR,
-                          _("Monitor Config"),
-                          _("VMMD stack size is not a valid hexadecimal nonnegative integer"));
-        return -1;
-    }
-    if(Main::Num_GEZ_Check(this->Extra_Captbl->GetValue().ToStdString())!=0)
-    {
-        Main::Msgbox_Show(this, MSGBOX_ERROR,
-                          _("Monitor Config"),
-                          _("Extra capability table is not a valid positive integer"));
-        return -1;
-    }
-    if(Main::Num_GEZ_Check(this->Virt_Prio->GetStringSelection().ToStdString())!=0)
-    {
-        Main::Msgbox_Show(this, MSGBOX_ERROR,
-                          _("Monitor Config"),
-                          _("Virtual priority is not a valid positive integer"));
-        return -1;
-    }
-    if(Main::Num_GEZ_Check(this->Virt_Event->GetStringSelection().ToStdString())!=0)
-    {
-        Main::Msgbox_Show(this, MSGBOX_ERROR,
-                          _("Monitor Config"),
-                          _("Virtual event is not a valid positive integer"));
-        return -1;
-    }
-    if(Main::Num_GEZ_Check(this->Virt_Map->GetValue().ToStdString())!=0)
-    {
-        Main::Msgbox_Show(this, MSGBOX_ERROR,
-                          _("Monitor Config"),
-                          _("Virtual map is not a valid positive integer"));
-        return -1;
-    }
-
-//    /* If user don't use a virtual machine, Virtual Priority can be filled with 0 */
-//    this->Virt_Prio->GetStringSelection().ToLongLong(&Virt_Prio_Val,10);
-//    if(Main::Proj_Info->Virtual.size()!=0&&Virt_Prio_Val==0)
-//    {
-//        Main::Msgbox_Show(this, MSGBOX_ERROR,
-//                          _("Monitor Config"),
-//                          _("If user don't use a virtual machine, virtual priority can be filled with 0"));
-//        return -1;
-//    }
-    /* Virtual Event cannot be set to 0 when using a virtual machine */
-//    this->Virt_Event->GetStringSelection().ToLongLong(&Virt_Event_Val,10);
-//    if(Main::Proj_Info->Virtual.size()!=0&&Virt_Event_Val==0)
-//    {
-//        Main::Msgbox_Show(this, MSGBOX_ERROR,
-//                          _("Monitor Config"),
-//                          _("Virtual event cannot be set to 0 when using a virtual machine"));
-//        return -1;
-//    }
-    if(Virt_Event_Val>1024)
-    {
-        Main::Msgbox_Show(this, MSGBOX_ERROR,
-                          _("Monitor Config"),
-                          _("Virtual event cannot exceed the hard limit of 1024."));
-        return -1;
-    }
-//    /* Virtual Map cannot be set to 0 when using a virtual machine */
-//    this->Virt_Map->GetValue().ToLongLong(&Virt_Map_Val,10);
-//    if(Main::Proj_Info->Virtual.size()!=0&&Virt_Map_Val==0)
-//    {
-//        Main::Msgbox_Show(this, MSGBOX_ERROR,
-//                          _("Monitor Config"),
-//                          _("Virtual map cannot be set to 0 when using a virtual machine"));
-//        return -1;
-//    }
-    /* Virtual Map must be greater than or equal to Virtual Event */
-    if(Virt_Map_Val<Virt_Event_Val)
-    {
-        Main::Msgbox_Show(this, MSGBOX_ERROR,
-                          _("Monitor Config"),
-                          _("Virtual map must be greater than or equal to Virtual Event"));
-        return -1;
-    }
-
-    if(this->Project_Output->GetValue()=="")
-    {
-        Main::Msgbox_Show(this,MSGBOX_ERROR,
-                          _("Monitor Config"),
-                          _("The project output folder is unspecified."));
-        return -1;
-    }
-    if(this->Linker_Output->GetValue()=="")
-    {
-        Main::Msgbox_Show(this,MSGBOX_ERROR,
-                          _("Monitor Config"),
-                          _("The linker output folder is unspecified."));
-        return -1;
-    }
-    if(this->Config_Header_Output->GetValue()=="")
-    {
-        Main::Msgbox_Show(this,MSGBOX_ERROR,
-                          _("Monitor Config"),
-                          _("The config header output folder is unspecified."));
-        return -1;
-    }
-    if(this->Boot_Header_Output->GetValue()=="")
-    {
-        Main::Msgbox_Show(this,MSGBOX_ERROR,
-                          _("Monitor Config"),
-                          _("The boot header output folder is unspecified."));
-        return -1;
-    }
-    if(this->Boot_Source_Output->GetValue()=="")
-    {
-        Main::Msgbox_Show(this,MSGBOX_ERROR,
-                          _("Monitor Config"),
-                          _("The boot source output folder is unspecified."));
-        return -1;
-    }
-    if(this->Hook_Source_Output->GetValue()=="")
-    {
-        Main::Msgbox_Show(this,MSGBOX_ERROR,
-                          _("Monitor Config"),
-                          _("The hook source output folder is unspecified."));
-        return -1;
-    }
-
-    /*  Compatible */
-    Buildsystem=this->Buildsystem->GetStringSelection();
-    Toolchain=this->Toolchain->GetStringSelection();
-    if(Main::Comp_Check(Buildsystem,Toolchain,"Native")!=0)
-    {
-        for(const std::unique_ptr<class Compatible>&Comp : Main::Plat_Info->Compatible)
-        {
-            if(Toolchain==Comp->Toolchain&&Comp_Buildsystem.Index(Comp->Buildsystem)==wxNOT_FOUND)
-            {
-                Comp_Buildsystem.push_back(Comp->Buildsystem);
-                Comp_Sug=Comp_Sug+Comp->Toolchain+", "+Comp->Buildsystem+"\n";
-            }
-        }
-        Main::Msgbox_Show(this, MSGBOX_ERROR,
-                          _("Monitor Config"),
-                          _("Compatibility error, you may try:\n"+Comp_Sug));
-        return -1;
-    }
-    return 0;
-}
-/* End Function:Monitor_Panel::Check *****************************************/
-
-/* Function:Monitor_Panel::Compatible_Set *************************************
-Description : Set build system and tool chain.
+/* Function:Monitor_Panel::Toolchain_Set **************************************
+Description : Set the collection of possible tool chains.
 Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Monitor_Panel::Compatible_Set()
+void Monitor_Panel::Toolchain_Set(void)
 {
-    this->Toolchain->Clear();
-    this->Buildsystem->Clear();
-    for(std::unique_ptr<class Compatible>& Comp : Main::Plat_Info->Compatible)
-    {
-        if(this->Toolchain->FindString(Comp->Toolchain)==wxNOT_FOUND)
-            this->Toolchain->Append(Comp->Toolchain);
-        if(this->Buildsystem->FindString(Comp->Buildsystem)==wxNOT_FOUND)
-            this->Buildsystem->Append(Comp->Buildsystem);
-    }
-}
-/* End Function:Monitor_Panel::Buildsystem_Toolchain_Set *********************/
+    std::vector<std::string> Tool_Avail;
 
-/* Function:Monitor_Panel::Virt_Prio_Set ************************************
+    wxLogDebug("Kernel_Panel::Toolchain_Set");
+
+    /* Ask for possible toolchains */
+    Main::Plat_Info->Toolchain_Native(Tool_Avail);
+    Main::Choice_Refill(this->Toolchain,Tool_Avail);
+}
+/* End Function:Monitor_Panel::Toolchain_Set *********************************/
+
+/* Function:Monitor_Panel::Buildsystem_Set ************************************
+Description : Set build system given the toolchain choice.
+Input       : const class wxString& Toolchain - The chosen toolchain.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Monitor_Panel::Buildsystem_Set(const class wxString& Toolchain)
+{
+    std::vector<std::string> Build_Avail;
+
+    wxLogDebug("Kernel_Panel::Buildsystem_Set");
+
+    /* Ask for possible toolchains */
+    Main::Plat_Info->Buildsystem_Native(std::string(Toolchain),Build_Avail);
+    Main::Choice_Refill(this->Buildsystem,Build_Avail);
+}
+/* End Function:Monitor_Panel::Buildsystem_Set *******************************/
+
+/* Function:Monitor_Panel::Virt_Prio_Set **************************************
 Description : Set virtual priority according to word length.
 Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Monitor_Panel::Virt_Prio_Set()
+void Monitor_Panel::Virt_Prio_Set(void)
 {
-    cnt_t Cnt;
-    ptr_t Word_Length;
-
-    Word_Length=Main::Plat_Info->Wordlength;
+    cnt_t Count;
 
     this->Virt_Prio->Clear();
-    this->Virt_Prio->Append("0");
-    for(Cnt=1;Cnt<=4;++Cnt)
-        this->Virt_Prio->Append(std::to_string(Word_Length*Cnt));
 
+    /* We allow priorities from 1-4 wordlength within the GUI */
+    for(Count=1;Count<=4;Count++)
+        this->Virt_Prio->Append(std::to_string(Main::Plat_Info->Wordlength*Count));
+
+    this->Virt_Prio->SetSelection(0);
 }
 /* End Function:Monitor_Panel::Kernel_Prio_Set *******************************/
 
@@ -580,70 +520,58 @@ Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Monitor_Panel::Virt_Event_Set()
+void Monitor_Panel::Virt_Event_Set(void)
 {
-    cnt_t Cnt;
-    ptr_t Word_Length;
-
-    Word_Length=Main::Plat_Info->Wordlength;
+    cnt_t Count;
 
     this->Virt_Event->Clear();
-    this->Virt_Event->Append("0");
-    for(Cnt=1;Cnt<=4;++Cnt)
-        this->Virt_Event->Append(std::to_string(Word_Length*Cnt));
 
+    /* We allow events from 1-4 wordlength within the GUI */
+    for(Count=1;Count<=4;Count++)
+        this->Virt_Event->Append(std::to_string(Main::Plat_Info->Wordlength*Count));
+
+    this->Virt_Prio->SetSelection(0);
 }
 /* End Function:Monitor_Panel::Virt_Event_Set ********************************/
 
-/* Function:Monitor_Panel::On_Trans_Hex ***************************************
-Description : Convert the content of the control to upper case letters and add
-              the '0x'  as prefix.
+/* Function:Monitor_Panel::On_Text_Hex ****************************************
+Description : wxEVT_KILL_FOCUS handler for all text input boxes that should
+              normally contain a hex integer.
 Input       : class wxFocusEvent& Event - The event.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Monitor_Panel::On_Trans_Hex(wxFocusEvent& Event)
+void Monitor_Panel::On_Text_Hex(class wxFocusEvent& Event)
 {
-    class wxString Value;
-    class wxTextCtrl* Temp;
+    class wxTextCtrl* Text;
 
-    Temp=dynamic_cast<wxTextCtrl*>(Event.GetEventObject());
-    if (Temp)
-    {
-        Value=Temp->GetValue();
-        Value=Value.Upper();
-        if (Value.starts_with("0X"))
-            Value[1]='x';
-        else
-            Value="0x"+Value;
-        Temp->SetValue(Value);
-    }
+    Text=dynamic_cast<class wxTextCtrl*>(Event.GetEventObject());
+    if(Text!=nullptr)
+        Text->SetValue(Main::Num2Hex(std::string(Text->GetValue())));
+
     Event.Skip();
 }
-/* End Function:Monitor_Panel::On_Trans_Hex **********************************/
+/* End Function:Monitor_Panel::On_Text_Hex ***********************************/
 
-/* Function:Monitor_Panel::On_Toolchain_Change ********************************
-Description : Configure a compatible build system based on the tool chain settings.
-Input       : class wxFocusEvent& Event - The event.
+/* Function:Monitor_Panel::On_Toolchain ***************************************
+Description : wxEVT_CHOICE handler for 'Toolchain'.
+Input       : class wxCommandEvent& Event - The event.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Monitor_Panel::On_Toolchain_Change(class wxCommandEvent& Event)
+void Monitor_Panel::On_Toolchain(class wxCommandEvent& Event)
 {
-    std::string Toolchain;
+    class wxString Toolchain;
+    class wxString Buildsystem;
 
     Toolchain=this->Toolchain->GetStringSelection();
+    Buildsystem=this->Buildsystem->GetStringSelection();
 
-    this->Buildsystem->Clear();
-    for(std::unique_ptr<class Compatible>& Comp : Main::Plat_Info->Compatible)
-        if(Toolchain==Comp->Toolchain&&this->Buildsystem->FindString(Comp->Buildsystem)==wxNOT_FOUND)
-            this->Buildsystem->Append(Comp->Buildsystem);
-    /* Default selection */
-    if(this->Buildsystem->GetCount()>0)
-        this->Buildsystem->SetSelection(0);
+    /* Recreate options if the current one is invalid */
+    if(Main::Plat_Info->Compat_Check(std::string(Toolchain), std::string(Buildsystem))!=0)
+        this->Buildsystem_Set(Toolchain);
 }
-/* End Function:Monitor_Panel::On_Toolchain_Change ***************************/
-
+/* End Function:Monitor_Panel::On_Toolchain **********************************/
 }
 /* End Of File ***************************************************************/
 

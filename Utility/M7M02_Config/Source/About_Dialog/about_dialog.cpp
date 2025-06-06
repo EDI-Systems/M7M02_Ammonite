@@ -14,8 +14,6 @@ Description : About information dialog implementation.
 #include "wx/wx.h"
 #include "wx/xml/xml.h"
 
-#include "Image/company_logo.xpm"
-
 #include "map"
 #include "set"
 #include "string"
@@ -54,19 +52,12 @@ wxDialog(Parent,wxID_ANY,_("About Program"),wxDefaultPosition,I2P(wxSize(512,600
 
         this->Content_Sizer=new class wxBoxSizer(wxVERTICAL);
 
-        this->Logo=new class wxStaticBitmap(this,wxID_ANY,wxBitmap(Company_Logo));
-        this->Content_Sizer->Add(this->Logo,1,wxEXPAND);
+        //this->Logo=new class wxStaticBitmap(this,wxID_ANY,wxBitmap(Company_Logo));
+        //this->Content_Sizer->Add(this->Logo,1,wxEXPAND);
         this->Content_Sizer->AddStretchSpacer(1);
         this->Text=new class wxTextCtrl(this,wxID_ANY,
                                         SOFTWARE_NAME+"\n"+
-                                        _("Version:")+" "+SOFTWARE_VERSION+"\n"+
-                                        _("(C) Copyright WindIOT Co.,Ltd. All rights reserved.")+"\n\n"+
-                                        _("WindIOT and the WindIOT logo are registered trademarks of the WindIOT Co.,Ltd.")+"\n"+
-                                        _("Other names may be trademarks of their respective owners.")+"\n\n"+
-                                        _("This program and its components is protected by copyright law and international treaties.")+"\n"+
-                                        _("Unauthorized reproduction or distribution of this program, or any portion of it may result in severe civil and criminal penalties.")+"\n\n"+
-                                        _("By using this software service, you agree to the EULA located at the root folder of the installation.")+"\n"+
-                                        _("See EULA_XX.txt for details of terms."),
+                                        _("Version:")+" "+SOFTWARE_VERSION+"\n",
                                         wxDefaultPosition,wxDefaultSize,wxTE_MULTILINE|wxTE_READONLY|wxTE_NO_VSCROLL);
         this->Content_Sizer->Add(this->Text,100,wxEXPAND);
         this->Content_Sizer->AddStretchSpacer(1);

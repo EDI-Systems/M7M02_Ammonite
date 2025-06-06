@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/PR-SVG-20010719/DTD/svg10.dtd">
+<svg width="5cm" height="5cm" viewBox="400 240 100 99" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <line style="fill: none; fill-opacity:0; stroke-width: 2.35099e-037; stroke: #ffffff" x1="400" y1="240" x2="500" y2="240"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 2.35099e-037; stroke: #ffffff" x1="400" y1="240" x2="400" y2="340"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 2.35099e-037; stroke: #ffffff" x1="400" y1="340" x2="500" y2="340"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 2.35099e-037; stroke: #ffffff" x1="500" y1="240" x2="500" y2="340"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 4; stroke: #000000" x1="476" y1="300" x2="496" y2="300"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 4; stroke: #000000" x1="476" y1="288" x2="486" y2="288"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 4; stroke: #000000" x1="476" y1="312" x2="486" y2="312"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 4; stroke: #000000" x1="484" y1="288" x2="494" y2="274"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 4; stroke: #000000" x1="484" y1="312" x2="496" y2="330"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 4; stroke: #000000" x1="404" y1="300" x2="424" y2="300"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 4; stroke: #000000" x1="414" y1="288" x2="424" y2="288"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 4; stroke: #000000" x1="414" y1="312" x2="424" y2="312"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 4; stroke: #000000" x1="406" y1="330" x2="416" y2="312"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 4; stroke: #000000" x1="406" y1="276" x2="416" y2="288"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 4; stroke: #000000" x1="440" y1="250" x2="440" y2="260"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 4; stroke: #000000" x1="460" y1="250" x2="460" y2="260"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 4; stroke: #000000" x1="460" y1="252" x2="475" y2="243"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 4; stroke: #000000" x1="425" y1="243" x2="440" y2="252"/>
+  <g>
+    <polygon style="fill: #bfbfbf" points="440,260 460,260 464,272 436,272 "/>
+    <polygon style="fill: none; fill-opacity:0; stroke-width: 4; stroke: #000000" points="440,260 460,260 464,272 436,272 "/>
+  </g>
+  <g>
+    <polygon style="fill: #add8e6" points="432,272 468,272 476,280 476,320 468,336 432,336 424,320 424,280 "/>
+    <polygon style="fill: none; fill-opacity:0; stroke-width: 4; stroke: #000000" points="432,272 468,272 476,280 476,320 468,336 432,336 424,320 424,280 "/>
+  </g>
+  <line style="fill: none; fill-opacity:0; stroke-width: 4; stroke: #000000" x1="450" y1="272" x2="450" y2="336"/>
+</svg>

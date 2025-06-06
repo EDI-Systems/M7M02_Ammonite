@@ -51,21 +51,20 @@ public:
     class wxButton* Move_Up;
     class wxButton* Move_Down;
 
-    std::string Location;
-
-    /* void */ Vector_Panel(class wxWindow*parent, const std::string& Location);
+    /* void */ Vector_Panel(class wxWindow* Parent);
     /* void */ ~Vector_Panel(void);
 
-    ret_t Check(void);
+    ret_t Row_Add(void);
 
     void Load(const std::vector<std::unique_ptr<class Vector>>& Vector);
+    ret_t Check(void);
     void Save(std::vector<std::unique_ptr<class Vector>>& Vector);
+
     void On_Add(class wxCommandEvent& Event);
     void On_Remove(class wxCommandEvent& Event);
     void On_Move_Up(class wxCommandEvent& Event);
     void On_Move_Down(class wxCommandEvent& Event);
     void On_Grid(class wxGridRangeSelectEvent& Event);
-    void Add_Func(void);
 };
 /*****************************************************************************/
 /* __VECTOR_PANEL_CLASS__ */

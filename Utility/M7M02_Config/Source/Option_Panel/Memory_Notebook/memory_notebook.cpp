@@ -21,6 +21,7 @@ Description : Memory notebook implementation.
 
 #define __HDR_DEF__
 #include "Option_Panel/Memory_Notebook/memory_notebook.hpp"
+#include "Option_Panel/Memory_Panel/memory_panel.hpp"
 #undef __HDR_DEF__
 
 #define __HDR_CLASS__
@@ -30,7 +31,7 @@ Description : Memory notebook implementation.
 #include "Option_Panel/Memory_Panel/memory_panel.hpp"
 #include "Option_Panel/Memory_Notebook/memory_notebook.hpp"
 #include "Option_Panel/Memory_Notebook/Extmem_Panel/extmem_panel.hpp"
-#include "Option_Panel/Memory_Notebook/Chip_Memory_Panel/chip_memory_panel.hpp"
+#include "Option_Panel/Memory_Notebook/Ocmem_Panel/ocmem_panel.hpp"
 #undef __HDR_CLASS__
 /* End Include ***************************************************************/
 namespace RVM_CFG
@@ -47,13 +48,15 @@ wxNotebook(Parent,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxNB_TOP)
 {
     try
     {
-        this->Extmem_Panel=new class Extmem_Panel(this);
-        this->Shmem_Panel=new class Memory_Panel(this,"Memory Config - Shared memory",BLANK_NAME_FORBID);
-        this->Chip_Memory_Panel=new class Chip_Memory_Panel(this);
+        this->SetBackgroundColour(Parent->GetBackgroundColour());
 
-        this->AddPage(this->Extmem_Panel,_("Extra Memory"));
+        this->Extmem_Panel=new class Extmem_Panel(this);
+        this->Shmem_Panel=new class Memory_Panel(this,MEM_PANEL_SHARED);
+        this->Ocmem_Panel=new class Ocmem_Panel(this);
+
         this->AddPage(this->Shmem_Panel,_("Shared Memory"));
-        this->AddPage(this->Chip_Memory_Panel,_("Chip Memory"));
+        this->AddPage(this->Extmem_Panel,_("External Memory"));
+        this->AddPage(this->Ocmem_Panel,_("On-chip Memory"));
 
         this->Bind(wxEVT_NOTEBOOK_PAGE_CHANGING, &Memory_Notebook::On_Config, this);
     }
@@ -84,7 +87,7 @@ Return      : None.
 ******************************************************************************/
 void Memory_Notebook::Load(void)
 {
-    this->Chip_Memory_Panel->Load(Main::Chip_Info->Memory);
+    this->Ocmem_Panel->Load(Main::Chip_Info->Memory);
     this->Extmem_Panel->Load(Main::Proj_Info->Extmem);
     this->Shmem_Panel->Load(Main::Proj_Info->Shmem);
 }
@@ -133,8 +136,8 @@ ret_t Memory_Notebook::Check(ptr_t Page)
     /* What page is active? Check that page */
     switch(Page)
     {
-        case 0:return this->Extmem_Panel->Check();
-        case 1:return this->Shmem_Panel->Check();
+        case 0:return this->Shmem_Panel->Check();
+        case 1:return this->Extmem_Panel->Check();
         case 2:return 0;
         default:ASSERT(0,"No such page in this dialog.");
     }

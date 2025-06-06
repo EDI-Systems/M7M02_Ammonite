@@ -13,9 +13,10 @@ Description : Project information implementation.
 
 #include "wx/wx.h"
 #include "wx/xml/xml.h"
+#include "wx/sstream.h"
 #include "wx/filename.h"
 
-#include <set>
+#include "set"
 #include "map"
 #include "string"
 #include "memory"
@@ -56,7 +57,6 @@ Return      : None.
     this->Debug_Log_Enable=0;
     this->Pgtbl_Raw_Enable=0;
     this->Workspace_Overwrite=0;
-
 }
 /* End Function:Proj_Info::Proj_Info *****************************************/
 
@@ -72,40 +72,21 @@ Return      : None.
 }
 /* End Function:Proj_Info::~Proj_Info ****************************************/
 
-/* Function:Proj_Info::Create *************************************************
+/* Function:Proj_Info::Default_Load *******************************************
 Description : Load the default project, and save to file. This needs to assume
               a chip name, the kernel source folder, and the monitor folder.
               The default project will have no processes, and the kernel data
               segments will be place just behind the memory trunk.
 Input       : const std::string& Path - The path to the file.
-              const std::string& Chip_Class - The class name of the chip.
-              const std::string& Chip_Name - The exact name of the chip.
+              const class Plat_Info* Plat_Info - The platform information.
+              const class Chip_Info* Chip_Info - The chip information.
+              const std::string& Chipname - The exact name of the chip.
 Output      : None.
-Return      : ret_t - Whether the load is successful.
+Return      : ret_t - Always successful.
 ******************************************************************************/
-ret_t Proj_Info::Create(const std::string& Path,
-                        const std::string& Chip_Class, const std::string& Chip_Name)
-{
-
-    return 0;
-}
-/* End Function:Proj_Info::Create ********************************************/
-
-/* Function:Proj_Info::Create *************************************************
-Description : Load the default project, and save to file. This needs to assume
-              a chip name, the kernel source folder, and the monitor folder.
-              The default project will have no processes, and the kernel data
-              segments will be place just behind the memory trunk.
-Input       : const std::string& Path - The path to the file.
-              const std::string& Plat_Name - The name of the platform.
-              const std::string& Chip_Class - The class name of the chip.
-              const std::string& Chip_Name - The exact name of the chip.
-Output      : None.
-Return      : ret_t - Whether the load is successful.
-******************************************************************************/
-ret_t Proj_Info::Create(const std::string& Path,
-                        const class Plat_Info* Plat_Info, const class Chip_Info* Chip_Info,
-                        const std::string& Plat_Name, const std::string& Chip_Class, const std::string& Chip_Name)
+ret_t Proj_Info::Default_Load(const std::string& Path,
+                              const class Plat_Info* Plat_Info,
+                              const class Chip_Info* Chip_Info,const std::string& Chipname)
 {
     class wxFileName Temp;
     std::string Name;
@@ -144,7 +125,7 @@ ret_t Proj_Info::Create(const std::string& Path,
     this->Workspace_Overwrite=OPTION_NO;
 
     /* Chip information */
-    this->Chip=std::make_unique<class Chip>(Plat_Info, Chip_Info,Plat_Name,Chip_Class,Chip_Name);
+    this->Chip=std::make_unique<class Chip>(Plat_Info, Chip_Info, Chipname);
 
     /* The RME kernel information */
     this->Kernel=std::make_unique<class Kernel>(Plat_Info, Chip_Info);
@@ -152,17 +133,20 @@ ret_t Proj_Info::Create(const std::string& Path,
     /* The RME kernel information */
     this->Monitor=std::make_unique<class Monitor>(Plat_Info, Chip_Info);
 
+    /* Project cache - empty because it has never been saved */
+    this->Cache=std::make_unique<class wxStringOutputStream>();
+
     return 0;
 }
-/* End Function:Proj_Info::Create ********************************************/
+/* End Function:Proj_Info::Default_Load **************************************/
 
-/* Function:Proj_Info::Load ***************************************************
+/* Function:Proj_Info::Existing_Load ******************************************
 Description : Load an existing project.
 Input       : const std::string& Path - The path.
 Output      : None.
-Return      : ret_t - Whether the load is successful.
+Return      : ret_t - If successful, 0; else -1.
 ******************************************************************************/
-ret_t Proj_Info::Load(const std::string& Path)
+ret_t Proj_Info::Existing_Load(const std::string& Path)
 {
     class wxFileName Temp;
     std::string Name;
@@ -186,7 +170,7 @@ ret_t Proj_Info::Load(const std::string& Path)
     /* See if it does exist */
     if(wxIsReadable(this->Path)==false)
     {
-        wxLogDebug("The project probably does not exist. Consider permission or memory failure.");
+        wxLogDebug("The project does not exist. Consider permission or memory failure.");
         return -1;
     }
 
@@ -238,39 +222,45 @@ ret_t Proj_Info::Load(const std::string& Path)
         /* Monitor information */
         this->Monitor=std::make_unique<class Monitor>(Main::Simple_Load(Project,"Monitor"));
 
-        /* Native information */
+        /* Native process */
         Trunk_Load<class Native>(Main::Simple_Load(Project,"Native"),"N",this->Native);
 
-        /* VM information */
+        /* Virtual machine */
         Trunk_Load<class Virtual>(Main::Simple_Load(Project,"Virtual"),"V",this->Virtual);
 
         /* Record names of native process and virtual machine */
-        for(std::unique_ptr<class Native>&It : this->Native)
+        for(std::unique_ptr<class Native>&It:this->Native)
             this->Native_Map.insert(std::make_pair(It->Name,It.get()));
 
-        for(std::unique_ptr<class Virtual>&It : this->Virtual)
+        for(std::unique_ptr<class Virtual>&It:this->Virtual)
             this->Virtual_Map.insert(std::make_pair(It->Name,It.get()));
+
+        /* Project cache - must use a new document derived from the save because wxXML
+         * will use self-closing tags by default, interfering with closing checks. */
+        Document=std::make_unique<class wxXmlDocument>();
+        this->Cache=std::make_unique<class wxStringOutputStream>();
+
+        this->Doc_Save(Document);
+        Document->Save(*(this->Cache));
     }
-    catch(const std::exception& Expect)
+    catch(const std::exception& Exc)
     {
-        Main::Msgbox_Show(RVM_CFG_App::Main, MSGBOX_WARN,
-                          _("Project information load"),
-                          _(std::string(Expect.what())+" The file is corrupted, and some features may not work properly."));
+        wxLogDebug(Exc.what());
+        return -1;
     }
 
     return 0;
 }
-/* End Function:Proj_Info::Load **********************************************/
+/* End Function:Proj_Info::Existing_Load *************************************/
 
-/* Function:Proj_Info::Save ***************************************************
-Description : Save the project to disk.
-Input       : None.
+/* Function:Proj_Info::Doc_Save ***********************************************
+Description : Save the project to XML document.
+Input       : std::unique_ptr<class wxXmlDocument>& Document - The XML document.
 Output      : None.
-Return      : ret_t - Whether the save is successful.
+Return      : None.
 ******************************************************************************/
-ret_t Proj_Info::Save(void)
+void Proj_Info::Doc_Save(std::unique_ptr<class wxXmlDocument>& Document)
 {
-    std::unique_ptr<class wxXmlDocument> Document;
     class wxXmlNode* Project;
 
     /* Main project file structure */
@@ -299,18 +289,69 @@ ret_t Proj_Info::Save(void)
     this->Kernel->Save(Main::Simple_Save(Project,"Kernel"));
     /* Monitor */
     this->Monitor->Save(Main::Simple_Save(Project,"Monitor"));
-    /* Native information */
+    /* Native process */
     Trunk_Save<class Native>(Main::Simple_Save(Project,"Native"),"N",this->Native);
-    /* VM information */
+    /* Virtual machine */
     Trunk_Save<class Virtual>(Main::Simple_Save(Project,"Virtual"),"V",this->Virtual);
 
-    /* Write to disk */
-    Document=std::make_unique<class wxXmlDocument>();
+    /* Attach root node to document */
     Document->SetRoot(Project);
-    if(Document->Save(this->Path)==false)
+}
+/* End Function:Proj_Info::Doc_Save ******************************************/
+
+/* Function:Proj_Info::Change_Detect ******************************************
+Description : See if the project info has changed since the last save. We'd just
+              drop everything to XML and see if that changes, because attaching
+              hooks too all widgets are just too tedious.
+Input       : None.
+Output      : None.
+Return      : ret_t - If saved, 0; else -1.
+******************************************************************************/
+ret_t Proj_Info::Change_Detect(void)
+{
+    std::unique_ptr<class wxXmlDocument> Document;
+    std::unique_ptr<class wxStringOutputStream> Stream;
+
+    Document=std::make_unique<class wxXmlDocument>();
+    Stream=std::make_unique<class wxStringOutputStream>();
+
+    this->Doc_Save(Document);
+    Document->Save(*Stream);
+
+    /* See if there are any changes - cannot use raw compare on references */
+    if(Stream->GetString().Cmp(this->Cache->GetString())!=0)
+    {
+        wxLogDebug("Proj_Info::Change_Detect - changes detected");
         return -1;
+    }
+    else
+        wxLogDebug("Proj_Info::Change_Detect - no change detected");
 
     return 0;
+}
+/* End Function:Proj_Info::Change_Detect *************************************/
+
+/* Function:Proj_Info::Save ***************************************************
+Description : Save the project to disk.
+Input       : std::unique_ptr<class wxXmlDocument>& Document - The XML document.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Proj_Info::Save(void)
+{
+    std::unique_ptr<class wxXmlDocument> Document;
+    std::unique_ptr<class wxStringOutputStream> Stream;
+
+    Document=std::make_unique<class wxXmlDocument>();
+    Stream=std::make_unique<class wxStringOutputStream>();
+
+    /* Save to disk */
+    this->Doc_Save(Document);
+    Document->Save(this->Path);
+
+    /* And update cache as well */
+    Document->Save(*Stream);
+    this->Cache=std::move(Stream);
 }
 /* End Function:Proj_Info::Save **********************************************/
 
@@ -353,194 +394,13 @@ std::string Proj_Info::Rel_Conv(const std::string& Relpath,ptr_t Type)
 }
 /* End Function:Proj_Info::Rel_Conv ******************************************/
 
-/* Function:Proj_Info::Native_Remove ******************************************
-Description : Remove the native process.
-Input       : const std::string& Name - The Name of native process which should
-              be removed.
+/* Function:Proj_Info::Proc_Name_Dup_Check ************************************
+Description : Check for possible duplicate process names.
+Input       : const std::string& Name - The name to check.
 Output      : None.
-Return      : ret_t - Return 1, if native process was removed successfully.
+Return      : ret_t - If successful, 0; else -1.
 ******************************************************************************/
-ret_t Proj_Info::Native_Remove(const std::string& Name)
-{
-    std::map<std::string,class Native*>::iterator Map_Target;
-    std::vector<std::unique_ptr<class Native>>::iterator Vec_Target;
-
-    wxLogDebug("Proj_Info::Native_Remove");
-
-    if(this->Native_Map.find(Name)==this->Native_Map.end())
-        return 0;
-
-    Map_Target=this->Native_Map.find(Name);
-    if(Map_Target!=this->Native_Map.end())
-        this->Native_Map.erase(Map_Target);
-    for(Vec_Target=this->Native.begin();Vec_Target!=this->Native.end();++Vec_Target)
-    {
-        if(Vec_Target->get()->Name==Name)
-        {
-            this->Native.erase(Vec_Target);
-            break;
-        }
-    }
-    return 1;
-}
-/* End Function:Proj_Info::~Proj_Info ****************************************/
-
-/* Function:Proj_Info::Virtual_Remove *****************************************
-Description : Remove the virtual machine.
-Input       : const std::string& Name - The Name of vitual machine which should
-              be removed.
-Output      : None.
-Return      : ret_t - Return 1, if virtual machine was removed successfully.
-******************************************************************************/
-ret_t Proj_Info::Virtual_Remove(const std::string& Name)
-{
-    std::map<std::string,class Virtual*>::iterator Map_Target;
-    std::vector<std::unique_ptr<class Virtual>>::iterator Vec_Target;
-
-    wxLogDebug("Proj_Info::Virtual_Remove");
-
-
-    if(this->Virtual_Map.find(Name)==this->Virtual_Map.end())
-        return 0;
-
-    Map_Target=this->Virtual_Map.find(Name);
-    if(Map_Target!=this->Virtual_Map.end())
-        this->Virtual_Map.erase(Map_Target);
-    for (Vec_Target=this->Virtual.begin();Vec_Target!=this->Virtual.end();++Vec_Target)
-    {
-        if(Vec_Target->get()->Name==Name)
-        {
-            this->Virtual.erase(Vec_Target);
-            break;
-        }
-    }
-    return 1;
-}
-/* End Function:Proj_Info::Virtual_Remove *************************************/
-
-/* Function:Proj_Info::Native_Rename *******************************************
-Description : Rename the native process at the information level, the Native and
-              Native_Map in Proj_Info will be modify.
-Input       : const std::string& Original - The original name of native process.
-              const std::string& Current - The current name of native process.
-Output      : None.
-Return      : ret_t - Return 1, if the native process is renamed successfully.
-*******************************************************************************/
-ret_t Proj_Info::Native_Rename(const std::string& Original,const std::string& Current)
-{
-    std::string Current_Upper;
-    class wxString Project_Output_Path;
-    std::map<std::string,class Native*>::iterator Map_Iter;
-
-    /* Used to check for repeated names */
-    Current_Upper=Current;
-    std::transform(Current_Upper.begin(),Current_Upper.end(),Current_Upper.begin(),::toupper);
-
-    if(Original==Current)
-        return 1;
-    if(this->Native_Map.find(Original)==this->Native_Map.end())
-        return 0;
-    for(std::unique_ptr<class Native>&It : this->Native)
-        if(It->Name_Upper==Current_Upper)
-            return 0;
-    for(std::unique_ptr<class Virtual>&It : this->Virtual)
-        if(It->Name_Upper==Current_Upper)
-            return 0;
-
-    /* Delete the original information */
-    Map_Iter=this->Native_Map.find(Original);
-    this->Native_Map.erase(Map_Iter);
-    for(std::unique_ptr<class Native>&It : this->Native)
-    {
-        if(It->Name==Original)
-        {
-            wxLogDebug("Proj_Info::Native_Rename: %s -> %s",Original,Current);
-
-            It->Name=Current;
-            It->Name_Upper=Current_Upper;
-
-            this->Native_Map.insert(std::make_pair(Current,It.get()));
-
-            /* Update the path of project output if it meets the format requirements */
-            Project_Output_Path=It->Project_Output;
-            if(Project_Output_Path.starts_with("./"+Original))
-            {
-                Project_Output_Path.Replace(Original,Current);
-                It->Project_Output=Project_Output_Path;
-            }
-            return 1;
-        }
-    }
-    return 0;
-}
-/* End Function:Proj_Info::Native_Rename *****************************************/
-
-/* Function:Proj_Info::Virtual_Rename *********************************************
-Description : Rename the virtual machine at the information level, the Virtual and
-              Virtual_Map in Proj_Info will be modify.
-Input       : const std::string& Original - The original name of virtual machine.
-              const std::string& Current - The current name of virtual machine.
-Output      : None.
-Return      : ret_t - Return 1, if the virtual machine is renamed successfully.
-**********************************************************************************/
-ret_t Proj_Info::Virtual_Rename(const std::string& Original,const std::string& Current)
-{
-    std::string Current_Upper;
-    class wxString Project_Output_Path;
-    std::map<std::string,class Virtual*>::iterator Map_Iter;
-
-    /* Used to check for repeated names */
-    Current_Upper=Current;
-    std::transform(Current_Upper.begin(),Current_Upper.end(),Current_Upper.begin(),::toupper);
-
-    if(Original==Current)
-        return 1;
-    if(this->Virtual_Map.find(Original)==this->Virtual_Map.end())
-        return 0;
-    for(std::unique_ptr<class Native>&It : this->Native)
-        if(It->Name_Upper==Current_Upper)
-            return 0;
-    for(std::unique_ptr<class Virtual>&It : this->Virtual)
-        if(It->Name_Upper==Current_Upper)
-            return 0;
-
-    /* Delete the original information */
-    Map_Iter=this->Virtual_Map.find(Original);
-    this->Virtual_Map.erase(Map_Iter);
-
-    for(std::unique_ptr<class Virtual>&It : Main::Proj_Info->Virtual)
-    {
-        if(It->Name==Original)
-        {
-            wxLogDebug("Proj_Info::Virtual_Rename: %s -> %s",Original,Current);
-
-            It->Name=Current;
-            It->Name_Upper=Current_Upper;
-
-            this->Virtual_Map.insert(std::make_pair(Current,It.get()));
-
-            /* Update the path of project output if it meets the format requirements */
-            Project_Output_Path=It->Project_Output;
-            if(Project_Output_Path.starts_with("./"+Original))
-            {
-                Project_Output_Path.Replace(Original,Current);
-                It->Project_Output=Project_Output_Path;
-            }
-            return 1;
-        }
-    }
-
-    return 0;
-}
-/* End Function:Proj_Info::Virtual_Rename ************************************/
-
-/* Function:Proj_Info::Native_Add *********************************************
-Description : Add a new native process.
-Input       : const std::string& Name - The name of the new native process.
-Output      : None.
-Return      : ret_t - Return 1, if the native process is added successfully.
-******************************************************************************/
-ret_t Proj_Info::Native_Add(const std::string& Name)
+ret_t Proj_Info::Proc_Name_Dup_Check(const std::string& Name)
 {
     std::string Name_Upper;
 
@@ -549,49 +409,320 @@ ret_t Proj_Info::Native_Add(const std::string& Name)
     std::transform(Name_Upper.begin(),Name_Upper.end(),Name_Upper.begin(),::toupper);
 
     /* The name cannot be repetitive */
-    for(std::unique_ptr<class Native>&It : this->Native)
+    for(std::unique_ptr<class Native>&It:this->Native)
+    {
         if(It->Name_Upper==Name_Upper)
-            return 0;
-    for(std::unique_ptr<class Virtual>&It : this->Virtual)
+            return -1;
+    }
+    for(std::unique_ptr<class Virtual>&It:this->Virtual)
+    {
         if(It->Name_Upper==Name_Upper)
-            return 0;
+            return -1;
+    }
 
-    /* Name is valid*/
+    return 0;
+}
+/* End Function:Proj_Info::Proc_Name_Dup_Check *******************************/
+
+/* Function:Proj_Info::Native_Add *********************************************
+Description : Add a new native process.
+Input       : const std::string& Name - The name of the new native process.
+Output      : None.
+Return      : ret_t - If successful, 0; else -1.
+******************************************************************************/
+ret_t Proj_Info::Native_Add(const std::string& Name)
+{
+    wxLogDebug("Proj_Info::Native_Add");
+
+    /* Check name duplication */
+    if(this->Proc_Name_Dup_Check(Name)!=0)
+        return -1;
+
     this->Native.push_back(std::make_unique<class Native>(Name));
     this->Native_Map.insert(std::make_pair(Name,this->Native.back().get()));
-    return 1;
+
+    return 0;
 }
 /* End Function:Proj_Info::Native_Add ****************************************/
+
+/* Function:Proj_Info::Native_Remove ******************************************
+Description : Remove the native process.
+Input       : const std::string& Name - The name of the native process to remove.
+Output      : None.
+Return      : ret_t - If successful, 0; else -1.
+******************************************************************************/
+ret_t Proj_Info::Native_Remove(const std::string& Name)
+{
+    std::vector<std::unique_ptr<class Native>>::iterator Iter;
+
+    wxLogDebug("Proj_Info::Native_Remove");
+
+    if(this->Native_Map.find(Name)==this->Native_Map.end())
+        return -1;
+
+    this->Native_Map.erase(Name);
+    for(Iter=this->Native.begin();Iter!=this->Native.end();Iter++)
+    {
+        if((*Iter)->Name==Name)
+        {
+            this->Native.erase(Iter);
+            break;
+        }
+    }
+
+    return 0;
+}
+/* End Function:Proj_Info::Native_Remove *************************************/
+
+/* Function:Proj_Info::Native_Move ********************************************
+Description : Move the native process after another.
+Input       : const std::string& Name - The name of the native process to move.
+              const std::string& After - The name that it should follow.
+Output      : None.
+Return      : ret_t - If successful, 0; else -1.
+******************************************************************************/
+ret_t Proj_Info::Native_Move(const std::string& Name, const std::string& After)
+{
+    std::unique_ptr<class Native> Native;
+    std::vector<std::unique_ptr<class Native>>::iterator Iter;
+
+    wxLogDebug("Proj_Info::Native_Move");
+
+    if((this->Native_Map.find(Name)==this->Native_Map.end())||
+       (this->Native_Map.find(After)==this->Native_Map.end()))
+        return -1;
+
+    /* Get this native process */
+    for(Iter=this->Native.begin();Iter!=this->Native.end();Iter++)
+    {
+        if((*Iter)->Name==Name)
+        {
+            Native=std::move(*Iter);
+            this->Native.erase(Iter);
+            break;
+        }
+    }
+
+    /* And insert it after the designated node */
+    for(Iter=this->Native.begin();Iter!=this->Native.end();Iter++)
+    {
+        if((*Iter)->Name==After)
+        {
+            this->Native.insert(Iter+1,std::move(Native));
+            break;
+        }
+    }
+
+    return 0;
+}
+/* End Function:Proj_Info::Native_Move ***************************************/
+
+/* Function:Proj_Info::Native_Rename ******************************************
+Description : Rename the native process at the information level, the Native and
+              Native_Map in Proj_Info will be modify.
+Input       : const std::string& Original - The original name of native process.
+              const std::string& Current - The current name of native process.
+Output      : None.
+Return      : ret_t - If successful, 0; else -1.
+******************************************************************************/
+ret_t Proj_Info::Native_Rename(const std::string& Original,const std::string& Current)
+{
+    class wxString Project_Output;
+
+    /* The name did not change */
+    if(Original==Current)
+        return 0;
+
+    /* Not found in the database */
+    if(this->Native_Map.find(Original)==this->Native_Map.end())
+        return -1;
+
+    /* Check name duplication */
+    if(this->Proc_Name_Dup_Check(Current)!=0)
+        return -1;
+
+    /* Delete the original information */
+    this->Native_Map.erase(Original);
+    for(std::unique_ptr<class Native>& Nat:this->Native)
+    {
+        if(Nat->Name==Original)
+        {
+            wxLogDebug("Proj_Info::Native_Rename: %s -> %s",Original,Current);
+
+            Nat->Name=Current;
+            Nat->Name_Upper=Nat->Name;
+            std::transform(Nat->Name_Upper.begin(),
+                           Nat->Name_Upper.end(),
+                           Nat->Name_Upper.begin(),::toupper);
+
+            this->Native_Map.insert(std::make_pair(Current,Nat.get()));
+
+            /* Update the path of project output if it meets the format requirements */
+            Project_Output=Nat->Project_Output;
+            if(Project_Output.starts_with("./"+Original))
+            {
+                Project_Output.Replace(Original,Current);
+                Nat->Project_Output=Project_Output;
+            }
+
+            return 0;
+        }
+    }
+
+    return -1;
+}
+/* End Function:Proj_Info::Native_Rename *************************************/
 
 /* Function:Proj_Info::Virtual_Add ********************************************
 Description : Add a new virtual machine.
 Input       : const std::string& Name - The name of the new virtual machine.
 Output      : None.
-Return      : ret_t - Return 1, if the virtual machine is added successfully.
+Return      : ret_t - If successful, 0; else -1.
 ******************************************************************************/
 ret_t Proj_Info::Virtual_Add(const std::string& Name)
 {
-    std::string Name_Upper;
+    wxLogDebug("Proj_Info::Virtual_Add");
 
-    /* Ask for a name */
-    Name_Upper=Name;
-    std::transform(Name_Upper.begin(),Name_Upper.end(),Name_Upper.begin(),::toupper);
+    /* Check name duplication */
+    if(this->Proc_Name_Dup_Check(Name)!=0)
+        return -1;
 
-    /* The name cannot be repetitive */
-    for(std::unique_ptr<class Native>&It : this->Native)
-        if(It->Name_Upper==Name_Upper)
-            return 0;
-    for(std::unique_ptr<class Virtual>&It : this->Virtual)
-        if(It->Name_Upper==Name_Upper)
-            return 0;
-
-    /* Name is valid */
     this->Virtual.push_back(std::make_unique<class Virtual>(Name));
     this->Virtual_Map.insert(std::make_pair(Name,this->Virtual.back().get()));
-    return 1;
+
+    return 0;
 }
 /* End Function:Proj_Info::Virtual_Add ***************************************/
 
+/* Function:Proj_Info::Virtual_Remove *****************************************
+Description : Remove the virtual machine.
+Input       : const std::string& Name - The Name of vitual machine which should
+                                        be removed.
+Output      : None.
+Return      : ret_t - If successful, 0; else -1.
+******************************************************************************/
+ret_t Proj_Info::Virtual_Remove(const std::string& Name)
+{
+    std::vector<std::unique_ptr<class Virtual>>::iterator Iter;
+
+    wxLogDebug("Proj_Info::Virtual_Remove");
+
+    if(this->Virtual_Map.find(Name)==this->Virtual_Map.end())
+        return -1;
+
+    this->Virtual_Map.erase(Name);
+    for(Iter=this->Virtual.begin();Iter!=this->Virtual.end();Iter++)
+    {
+        if((*Iter)->Name==Name)
+        {
+            this->Virtual.erase(Iter);
+            break;
+        }
+    }
+
+    return 0;
+}
+/* End Function:Proj_Info::Virtual_Remove ************************************/
+
+/* Function:Proj_Info::Virtual_Move *******************************************
+Description : Move the virtual machine after another.
+Input       : const std::string& Name - The name of virtual machine which should
+                                        be moved.
+              const std::string& After - The name that it should follow.
+Output      : None.
+Return      : ret_t - If successful, 0; else -1.
+******************************************************************************/
+ret_t Proj_Info::Virtual_Move(const std::string& Name, const std::string& After)
+{
+    std::unique_ptr<class Virtual> Virtual;
+    std::vector<std::unique_ptr<class Virtual>>::iterator Iter;
+
+    wxLogDebug("Proj_Info::Virtual_Move");
+
+    if((this->Virtual_Map.find(Name)==this->Virtual_Map.end())||
+       (this->Virtual_Map.find(After)==this->Virtual_Map.end()))
+        return -1;
+
+    /* Get this native process */
+    for(Iter=this->Virtual.begin();Iter!=this->Virtual.end();Iter++)
+    {
+        if((*Iter)->Name==Name)
+        {
+            Virtual=std::move(*Iter);
+            this->Virtual.erase(Iter);
+            break;
+        }
+    }
+
+    /* And insert it after the designated node */
+    for(Iter=this->Virtual.begin();Iter!=this->Virtual.end();Iter++)
+    {
+        if((*Iter)->Name==After)
+        {
+            this->Virtual.insert(Iter+1,std::move(Virtual));
+            break;
+        }
+    }
+
+    return 0;
+}
+/* End Function:Proj_Info::Virtual_Move **************************************/
+
+/* Function:Proj_Info::Virtual_Rename *****************************************
+Description : Rename the virtual machine at the information level, the Virtual and
+              Virtual_Map in Proj_Info will be modify.
+Input       : const std::string& Original - The original name of virtual machine.
+              const std::string& Current - The current name of virtual machine.
+Output      : None.
+Return      : ret_t - If successful, 0; else -1.
+******************************************************************************/
+ret_t Proj_Info::Virtual_Rename(const std::string& Original,const std::string& Current)
+{
+    class wxString Project_Output;
+
+    /* Name did not change */
+    if(Original==Current)
+        return 0;
+
+    /* Not found in the database */
+    if(this->Virtual_Map.find(Original)==this->Virtual_Map.end())
+        return -1;
+
+    /* Check name duplication */
+    if(this->Proc_Name_Dup_Check(Current)!=0)
+        return -1;
+
+    /* Delete the original information */
+    this->Virtual_Map.erase(Original);
+    for(std::unique_ptr<class Virtual>& Virt:Main::Proj_Info->Virtual)
+    {
+        if(Virt->Name==Original)
+        {
+            wxLogDebug("Proj_Info::Virtual_Rename: %s -> %s",Original,Current);
+
+            Virt->Name=Current;
+            Virt->Name_Upper=Virt->Name;
+            std::transform(Virt->Name_Upper.begin(),
+                           Virt->Name_Upper.end(),
+                           Virt->Name_Upper.begin(),::toupper);
+
+            this->Virtual_Map.insert(std::make_pair(Current,Virt.get()));
+
+            /* Update the path of project output if it meets the format requirements */
+            Project_Output=Virt->Project_Output;
+            if(Project_Output.starts_with("./"+Original))
+            {
+                Project_Output.Replace(Original,Current);
+                Virt->Project_Output=Project_Output;
+            }
+
+            return 0;
+        }
+    }
+
+    return -1;
+}
+/* End Function:Proj_Info::Virtual_Rename ************************************/
 }
 /* End Of File ***************************************************************/
 

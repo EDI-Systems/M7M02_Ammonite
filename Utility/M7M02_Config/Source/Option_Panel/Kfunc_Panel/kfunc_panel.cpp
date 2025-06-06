@@ -36,12 +36,11 @@ namespace RVM_CFG
 /* Function:Kfunc_Panel::Kfunc_Panel ******************************************
 Description : Constructor for Kfunc panel.
 Input       : class wxWindow* Parent - The parent window.
-              const std::string& _Loction - The location where the error occurred.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Kfunc_Panel::Kfunc_Panel(class wxWindow* Parent,const std::string& _Location):
-wxPanel(Parent,wxID_ANY),Location(_Location)
+/* void */ Kfunc_Panel::Kfunc_Panel(class wxWindow* Parent):
+wxPanel(Parent,wxID_ANY)
 {
     try
     {
@@ -77,12 +76,12 @@ wxPanel(Parent,wxID_ANY),Location(_Location)
         this->Grid->CreateGrid(0,4,wxGrid::wxGridSelectRows);
         this->Grid->HideRowLabels();
         this->Grid->SetColLabelSize(I2P(32));
-        this->Grid->SetColLabelValue(0,_(""));
+        this->Grid->SetColLabelValue(0,"#");
         this->Grid->SetColLabelValue(1,_("Name"));
         this->Grid->SetColLabelValue(2,_("Begin"));
         this->Grid->SetColLabelValue(3,_("End"));
         this->Grid->SetColSize(0,I2P(30));
-        this->Grid->SetColSize(1,I2P(255));
+        this->Grid->SetColSize(1,I2P(250));
         this->Grid->SetColSize(2,I2P(255));
         this->Grid->SetColSize(3,I2P(255));
         this->Grid->DisableDragRowSize();
@@ -117,59 +116,25 @@ Return      : None.
 }
 /* End Function:Kfunc_Panel::Kfunc_Panel *************************************/
 
-/* Function:Kfunc_Panel::Check ************************************************
-Description : Check whether the current panel contains any errors.
+/* Function:Kfunc_Panel::Row_Add **********************************************
+Description : Add a new line to this panel, setting the controls of the grids.
+              The values still needs to be filled in later.
 Input       : None.
 Output      : None.
-Return      : ret_t - if 0, no error exists; else -1.
+Return      : ret_t - The position the row is at.
 ******************************************************************************/
-ret_t Kfunc_Panel::Check()
+ret_t Kfunc_Panel::Row_Add(void)
 {
-    cnt_t Row;
-    ptr_t End_Val;
-    ptr_t Begin_Val;
-    std::string End;
-    std::string Begin;
+    ret_t Row;
 
-    if(Main::Row_Name_Check(this->Grid,this->Location,BLANK_NAME_FORBID,1)!=0)
-        return -1;
+    wxLogDebug("Kfunc_Panel::Row_Add");
 
-    for(Row=0;Row<(cnt_t)this->Grid->GetNumberRows();Row++)
-    {
-        /* Begin */
-        Begin=this->Grid->GetCellValue(Row,2);
-        if(Main::Num_GEZ_Hex_Check(Begin)!=0)
-        {
-            Main::Msgbox_Show(this,MSGBOX_ERROR,
-                              _(this->Location),
-                              _("Begin a valid hexadecimal nonnegative integer, row "+std::to_string(Row+1)));
-            return -1;
-        }
+    Row=Main::Row_Add(this->Grid);
+    this->Grid->SetReadOnly(Row, 0, true);
 
-        /* End */
-        End=this->Grid->GetCellValue(Row,3);
-        if(Main::Num_GEZ_Hex_Check(End)!=0)
-        {
-            Main::Msgbox_Show(this,MSGBOX_ERROR,
-                              _(this->Location),
-                              _("End a valid hexadecimal nonnegative integer, row "+std::to_string(Row+1)));
-            return -1;
-        }
-
-        /* 'End' must greater than 'Begin' */
-        Begin_Val=std::stoll(Begin,0,0);
-        End_Val=std::stoll(End,0,0);
-        if(Begin_Val>End_Val)
-        {
-            Main::Msgbox_Show(this,MSGBOX_ERROR,
-                              _(this->Location),
-                              _("'End' must be greater than or equal to 'Begin', row "+std::to_string(Row+1)));
-            return -1;
-        }
-    }
-    return 0;
+    return Row;
 }
-/* End Function:Kfunc_Panel::Check *******************************************/
+/* End Function:Kfunc_Panel::Row_Add *****************************************/
 
 /* Function:Kfunc_Panel::Load *************************************************
 Description : Load information from Proj_Info into the this panel.
@@ -185,28 +150,72 @@ void Kfunc_Panel::Load(const std::vector<std::unique_ptr<class Kfunc>>&Kfunc)
 
     wxLogDebug("Kfunc_Panel::Load %d",Kfunc.size());
 
-    /* Clear the grid */
-    Main::Gird_Clear_Content(this->Grid);
+    /* Clean up the grid */
+    if(this->Grid->GetNumberRows()!=0)
+        this->Grid->DeleteRows(0,this->Grid->GetNumberRows());
 
     /* Fill in the grid*/
     for(Row=0;Row<(cnt_t)Kfunc.size();Row++)
     {
-        this->Add_Func();
+        this->Row_Add();
 
         /* Name */
         this->Grid->SetCellValue(Row, 1, Kfunc[Row].get()->Name);
-
         /* Begin */
         std::sprintf(Buf, "0x%llX", Kfunc[Row].get()->Begin);
         this->Grid->SetCellValue(Row, 2, Buf);
-
         /* End */
         std::sprintf(Buf, "0x%llX", Kfunc[Row].get()->End);
         this->Grid->SetCellValue(Row, 3, Buf);
     }
+
     Main::Row_Reorder(this->Grid);
 }
 /* End Function:Kfunc_Panel::Load ********************************************/
+
+/* Function:Kfunc_Panel::Check ************************************************
+Description : Check whether the current panel contains any errors.
+Input       : None.
+Output      : None.
+Return      : ret_t - if 0, no error exists; else -1.
+******************************************************************************/
+ret_t Kfunc_Panel::Check(void)
+{
+    cnt_t Row;
+    ptr_t End_Val;
+    ptr_t Begin_Val;
+    std::string End;
+    std::string Begin;
+
+    if(Main::Name_Check(this->Grid,1,this->Location,BLANK_FORBID)!=0)
+        return -1;
+
+    for(Row=0;Row<(cnt_t)this->Grid->GetNumberRows();Row++)
+    {
+        /* Begin */
+        Begin=this->Grid->GetCellValue(Row,2);
+        if(Main::Hex_Check(this,Begin,_("Kernel Function"),_("Begin value")+_(" at row ")+std::to_string(Row+1))!=0)
+            return -1;
+
+        /* End */
+        End=this->Grid->GetCellValue(Row,3);
+        if(Main::Hex_Check(this,End,_("Kernel Function"),_("End value")+_(" at row ")+std::to_string(Row+1))!=0)
+            return -1;
+
+        /* 'End' must greater than 'Begin' */
+        Begin_Val=std::stoll(Begin,0,0);
+        End_Val=std::stoll(End,0,0);
+        if(Begin_Val>End_Val)
+        {
+            Main::Msgbox_Show(this,MSGBOX_ERROR,
+                              _("Kernel Function"),
+                              _("End value must be greater than or equal to begin value at row ")+std::to_string(Row+1));
+            return -1;
+        }
+    }
+    return 0;
+}
+/* End Function:Kfunc_Panel::Check *******************************************/
 
 /* Function:Kfunc_Panel::Save *************************************************
 Description : Save information to Proj_Info.
@@ -228,17 +237,15 @@ void Kfunc_Panel::Save(std::vector<std::unique_ptr<class Kfunc>>&Kfunc)
     {
         /* Name */
         Name=this->Grid->GetCellValue(Row,1).ToStdString();
-
         /* Begin */
-        Begin=std::stoull(this->Grid->GetCellValue(Row,2).ToStdString(),0,0);
-
+        Begin=std::stoull(std::string(this->Grid->GetCellValue(Row,2)),0,0);
         /* End */
-        End=std::stoull(this->Grid->GetCellValue(Row,3).ToStdString(),0,0);
+        End=std::stoull(std::string(this->Grid->GetCellValue(Row,3)),0,0);
 
         Kfunc.push_back(std::make_unique<class Kfunc>(Name,Begin,End));
     }
-    wxLogDebug("Memory_Panel::Save: %d block",this->Grid->GetNumberRows());
 
+    wxLogDebug("Memory_Panel::Save: %d block",this->Grid->GetNumberRows());
 }
 /* End Function:Kfunc_Panel::Save ********************************************/
 
@@ -250,7 +257,16 @@ Return      : None.
 ******************************************************************************/
 void Kfunc_Panel::On_Add(class wxCommandEvent& Event)
 {
-    this->Add_Func();
+    ret_t Row;
+
+    wxLogDebug("Kfunc_Panel::On_Add");
+
+    Row=this->Row_Add();
+
+    /* Default values */
+    this->Grid->SetCellValue(Row, 2, "0x0000");
+    this->Grid->SetCellValue(Row, 3, "0xFFFF");
+
     Main::Row_Reorder(this->Grid);
 }
 /* End Function:Kfunc_Panel::On_Add ******************************************/
@@ -263,7 +279,7 @@ Return      : None.
 ******************************************************************************/
 void Kfunc_Panel::On_Remove(class wxCommandEvent& Event)
 {
-    //wxLogDebug("Kfunc_Panel::On_Remove");
+    wxLogDebug("Kfunc_Panel::On_Remove");
     Main::Row_Remove(this->Grid);
     Main::Row_Reorder(this->Grid);
 }
@@ -277,7 +293,8 @@ Return      : None.
 ******************************************************************************/
 void Kfunc_Panel::On_Move_Up(class wxCommandEvent& Event)
 {
-    //wxLogDebug("Kfunc_Panel::On_Move_Up");
+    wxLogDebug("Kfunc_Panel::On_Move_Up");
+
     Main::Row_Move_Up(this->Grid);
     Main::Row_Reorder(this->Grid);
 }
@@ -291,7 +308,8 @@ Return      : None.
 ******************************************************************************/
 void Kfunc_Panel::On_Move_Down(class wxCommandEvent& Event)
 {
-    //wxLogDebug("Kfunc_Panel::On_Move_Down");
+    wxLogDebug("Kfunc_Panel::On_Move_Down");
+
     Main::Row_Move_Down(this->Grid);
     Main::Row_Reorder(this->Grid);
 }
@@ -305,9 +323,9 @@ Return      : None.
 ******************************************************************************/
 void Kfunc_Panel::On_Grid(class wxGridRangeSelectEvent& Event)
 {
-    //wxLogDebug("Kfunc_Panel::On_Grid");
+    wxLogDebug("Kfunc_Panel::On_Grid");
+
     Main::Row_Pick(this->Grid);
-    Main::Row_Reorder(this->Grid);
 }
 /* End Function:Kfunc_Panel::On_Grid *****************************************/
 
@@ -323,7 +341,7 @@ void Kfunc_Panel::On_Change(class wxGridEvent& Event)
     ret_t Col;
     class wxString Num;
 
-    //wxLogDebug("Extmem_Panel::On_Change");
+    wxLogDebug("Extmem_Panel::On_Change");
 
     Row=Event.GetRow();
     Col=Event.GetCol();
@@ -346,30 +364,6 @@ void Kfunc_Panel::On_Change(class wxGridEvent& Event)
     Event.Skip();
 }
 /* End Function:Kfunc_Panel::On_Change ***************************************/
-
-/* Function:Kfunc_Panel::Add_Func *********************************************
-Description : Add a new row to the grid and set the cells to appropriate
-              controls.
-Input       : None.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Kfunc_Panel::Add_Func()
-{
-    ret_t Row;
-
-    //wxLogDebug("Kfunc_Panel::On_Add");
-
-    Row=Main::Row_Add(this->Grid);
-
-    /* Default value */
-    this->Grid->SetReadOnly(Row, 0, true);
-    this->Grid->SetCellBackgroundColour(Row,0,*wxLIGHT_GREY);
-
-    this->Grid->SetCellValue(Row, 2, "0xFFFF");
-    this->Grid->SetCellValue(Row, 3, "0xFFFF");
-}
-/* End Function:Kfunc_Panel::Add_Func ******************************************/
 }
 /* End Of File ***************************************************************/
 

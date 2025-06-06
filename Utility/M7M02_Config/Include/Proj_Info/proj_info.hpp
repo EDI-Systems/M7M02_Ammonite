@@ -48,6 +48,9 @@ public:
     std::string Fullpath;
     std::string Fulldir;
 
+    /* Cache of the existing project's XML, for comparison */
+    std::unique_ptr<class wxStringOutputStream> Cache;
+
     /* The name of the project */
     std::string Name;
     /* The project version */
@@ -60,15 +63,13 @@ public:
     ptr_t Pgtbl_Raw_Enable;
     /* Workspace build system */
     std::string Buildsystem;
-    /* Workspace output folder & overwrite */
-    /* Workspace_Output is not in current version */
-    /* std::string Workspace_Output; */
+    /* Workspace overwrite - output folder is always the project folder */
     ptr_t Workspace_Overwrite;
 
     /* Chip information */
     std::unique_ptr<class Chip> Chip;
 
-    /* Externally mounted memory (EMIF) declarations */
+    /* External memory declarations */
     std::vector<std::unique_ptr<class Mem_Info>> Extmem;
 
     /* Shared memory declarations */
@@ -94,28 +95,32 @@ public:
     /* void */ Proj_Info(void);
     /* void */ ~Proj_Info(void);
 
-    /* Load up the project file */
-    ret_t Create(const std::string& Path,
-                 const std::string& Chip_Class, const std::string& Chip_Name);
-    /* Change, begin */
-    ret_t Create(const std::string& Path,
-                 const Plat_Info* Plat_Info, const Chip_Info* Chip_Info,
-                 const std::string& Plat_Name, const std::string& Chip_Class, const std::string& Chip_Name);
-    /* Change, end */
-    ret_t Load(const std::string& Path);
+    /* Load defaults */
+    ret_t Default_Load(const std::string& Path,
+                       const Plat_Info* Plat_Info,
+                       const Chip_Info* Chip_Info, const std::string& Chipname);
+    /* Load existing project */
+    ret_t Existing_Load(const std::string& Path);
 
     /* Save the project file */
-    ret_t Save(void);
+    void Doc_Save(std::unique_ptr<class wxXmlDocument>& Document);
+    ret_t Change_Detect(void);
+    void Save(void);
 
     /* Path conversion */
     std::string Rel_Conv(const std::string& Relpath,ptr_t Type);
 
-    ret_t Native_Remove(const std::string& Name);
-    ret_t Virtual_Remove(const std::string& Name);
-    ret_t Native_Rename(const std::string& Original,const std::string& Current);
-    ret_t Virtual_Rename(const std::string& Original,const std::string& Current);
+    ret_t Proc_Name_Dup_Check(const std::string& Name);
+
     ret_t Native_Add(const std::string& Name);
+    ret_t Native_Remove(const std::string& Name);
+    ret_t Native_Move(const std::string& Name, const std::string& After);
+    ret_t Native_Rename(const std::string& Original,const std::string& Current);
+
     ret_t Virtual_Add(const std::string& Name);
+    ret_t Virtual_Remove(const std::string& Name);
+    ret_t Virtual_Move(const std::string& Name, const std::string& After);
+    ret_t Virtual_Rename(const std::string& Original,const std::string& Current);
 };
 /*****************************************************************************/
 /* __PROJ_INFO_CLASS__ */

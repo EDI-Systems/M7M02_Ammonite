@@ -22,6 +22,7 @@ Description : Memory panel implementation.
 #include "memory"
 
 #define __HDR_DEF__
+#include "Mem_Info/mem_info.hpp"
 #include "Option_Panel/Memory_Panel/memory_panel.hpp"
 #undef __HDR_DEF__
 
@@ -36,31 +37,17 @@ namespace RVM_CFG
 /* Function:Memory_Panel::Memory_Panel ****************************************
 Description : Constructor for memory information.
 Input       : class wxWindow* Parent - The parent window.
-              const ptr_t& _Name_Check - Whether to allow the name to be empty,
-              this type can be set to BLANK_NAME_PERMIT or BLANK_NAME_FORBID.
-              const std::string& _Loction - The location where the error occurred.
+              ptr_t Mode - The mode, shared or private.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-/* void */ Memory_Panel::Memory_Panel(class wxWindow* Parent, const std::string& _Location, const ptr_t& _Name_Check):
-wxPanel(Parent,wxID_ANY),Name_Check(_Name_Check),Location(_Location)
+/* void */ Memory_Panel::Memory_Panel(class wxWindow* Parent, ptr_t Mode):
+wxPanel(Parent,wxID_ANY)
 {
     try
     {
-        this->Type_Option.Add("Code");
-        this->Type_Option.Add("Data");
-        this->Type_Option.Add("Device");
-
-        this->Base_Option.Add("Auto");
-
-        this->Align_Option.Add("Auto");
-        this->Align_Option.Add("16");
-        this->Align_Option.Add("17");
-        this->Align_Option.Add("18");
-        this->Align_Option.Add("19");
-        this->Align_Option.Add("20");
-
         this->SetBackgroundColour(Parent->GetBackgroundColour());
+        this->Mode=Mode;
 
         this->Border_Sizer=new class wxBoxSizer(wxVERTICAL);
         this->Main_Sizer=new class wxBoxSizer(wxVERTICAL);
@@ -93,11 +80,12 @@ wxPanel(Parent,wxID_ANY),Name_Check(_Name_Check),Location(_Location)
         this->Grid->HideRowLabels();
         this->Grid->SetColLabelSize(I2P(32));
 
-        this->Grid->SetColLabelValue(0,_(""));
-        if(this->Name_Check==BLANK_NAME_FORBID)
-            this->Grid->SetColLabelValue(1,_("Name"));
+        this->Grid->SetColLabelValue(0,"#");
+        /* Name is optional if we're declaring private memory */
+        if(this->Mode==MEM_PANEL_PRIVATE)
+            this->Grid->SetColLabelValue(1,_("Optional Name"));
         else
-            this->Grid->SetColLabelValue(1,_("Name(optional)"));
+            this->Grid->SetColLabelValue(1,_("Name"));
         this->Grid->SetColLabelValue(2,_("Type"));
         this->Grid->SetColLabelValue(3,_("Base"));
         this->Grid->SetColLabelValue(4,_("Size"));
@@ -109,11 +97,11 @@ wxPanel(Parent,wxID_ANY),Name_Check(_Name_Check),Location(_Location)
         this->Grid->SetColLabelValue(10,_("C"));
         this->Grid->SetColLabelValue(11,_("S"));
         this->Grid->SetColSize(0,I2P(30));
-        this->Grid->SetColSize(1,I2P(100));
+        this->Grid->SetColSize(1,I2P(160));
         this->Grid->SetColSize(2,I2P(120));
         this->Grid->SetColSize(3,I2P(120));
-        this->Grid->SetColSize(4,I2P(150));
-        this->Grid->SetColSize(5,I2P(150));
+        this->Grid->SetColSize(4,I2P(120));
+        this->Grid->SetColSize(5,I2P(120));
         this->Grid->SetColSize(6,I2P(20));
         this->Grid->SetColSize(7,I2P(20));
         this->Grid->SetColSize(8,I2P(20));
@@ -152,68 +140,74 @@ Return      : None.
 }
 /* End Function:Memory_Panel::Memory_Panel ***********************************/
 
-/* Function:Memory_Panel::Check ***********************************************
-Description : Check whether the current panel contains any errors.
+/* Function:Memory_Panel::Row_Add *********************************************
+Description : Add a new line to this panel, setting the controls of the grids.
+              The values still needs to be filled in later.
 Input       : None.
 Output      : None.
-Return      : ret_t - if 0, no error exists; else -1.
+Return      : ret_t - The position the row is at.
 ******************************************************************************/
-ret_t Memory_Panel::Check(void)
+ret_t Memory_Panel::Row_Add(void)
 {
-    cnt_t Row;
-    class wxString Base;
-    class wxString Size;
-    class wxString Attr;
-    class wxString Align;
+    ret_t Row;
+    cnt_t Cnt;
+    class wxArrayString Type;
+    class wxArrayString Base;
+    class wxArrayString Align;
 
-    /* The name must be a legal C identifier and cannot be repeated */
-    if(Main::Row_Name_Check(this->Grid,this->Location,this->Name_Check,1)!=0)
-        return -1;
+    wxLogDebug("Memory_Panel::On_Add");
 
+    Row=Main::Row_Add(this->Grid);
 
-    for(Row=0;Row<(cnt_t)this->Grid->GetNumberRows();Row++)
+    this->Grid->SetReadOnly(Row, 0, true);
+
+    /* Type include "Code", "Data" and "Device" */
+    Type.Add(_("Code"));
+    Type.Add(_("Data"));
+    Type.Add(_("Device"));
+    this->Grid->SetCellEditor(Row,2,new class wxGridCellChoiceEditor(Type));
+
+    /* Base can be a number or "Auto" */
+    Base.Add(_("Auto"));
+    this->Grid->SetCellEditor(Row,3,new class wxGridCellChoiceEditor(Base,true));
+
+    /* Alignment could be any number > 8 that is a power of two up to 1MB at the moment */
+    Align.Add("Auto");
+    Align.Add("8 (256B)");
+    Align.Add("9 (512B)");
+    Align.Add("10 (1KiB)");
+    Align.Add("11 (2KiB)");
+    Align.Add("12 (4KiB)");
+    Align.Add("13 (8KiB)");
+    Align.Add("14 (16KiB)");
+    Align.Add("15 (32KiB)");
+    Align.Add("16 (64KiB)");
+    Align.Add("17 (128KiB)");
+    Align.Add("18 (256KiB)");
+    Align.Add("19 (512KiB)");
+    Align.Add("20 (1MiB)");
+    Align.Add("21 (2MiB)");
+    Align.Add("22 (4MiB)");
+    Align.Add("23 (8MiB)");
+    Align.Add("24 (16MiB)");
+    Align.Add("25 (32MiB)");
+    Align.Add("26 (64MiB)");
+    Align.Add("27 (128MiB)");
+    Align.Add("28 (256MiB)");
+    Align.Add("29 (512MiB)");
+    Align.Add("30 (1GiB)");
+    this->Grid->SetCellEditor(Row,5,new class wxGridCellChoiceEditor(Align,true));
+
+    /* Attributes */
+    for(Cnt=6;Cnt<12;Cnt++)
     {
-        /* Base */
-        Base=this->Grid->GetCellValue(Row,3);
-        if(Base!="Auto"&&Main::Num_GEZ_Hex_Check(Base.ToStdString())!=0)
-        {
-            Main::Msgbox_Show(this,MSGBOX_ERROR,
-                              _(this->Location),
-                              _("Base must be 'Auto' or a valid hexadecimal nonnegative integer"));
-            return -1;
-        }
-
-        /* Size */
-        Size=this->Grid->GetCellValue(Row,4);
-        if(Main::Num_GEZ_Hex_Check(Size.ToStdString())!=0)
-        {
-            Main::Msgbox_Show(this, MSGBOX_ERROR,
-                              _(this->Location),
-                              _("Size is not a valid hexadecimal nonnegative integer"));
-            return -1;
-        }
-
-        /* Align */
-        Align=this->Grid->GetCellValue(Row,5);
-        if(Align!="Auto"&&Main::Num_GZ_Check(Align.ToStdString())!=0)
-        {
-            Main::Msgbox_Show(this,MSGBOX_ERROR,
-                              _(this->Location),
-                              _("Align must be 'Auto' or a valid decimal positive integer"));
-            return -1;
-        }
-        /* Align must be set to 'Auto' when the segment base address is fixed */
-        if(Align!="Auto"&&Base!="Auto")
-        {
-            Main::Msgbox_Show(this,MSGBOX_ERROR,
-                              _(this->Location),
-                              _("Align must be set to 'Auto' when the base address is fixed"));
-            return -1;
-        }
+        this->Grid->SetCellEditor(Row,Cnt,new wxGridCellBoolEditor());
+        this->Grid->SetCellRenderer(Row, Cnt, new wxGridCellBoolRenderer());
     }
-    return 0;
+
+    return Row;
 }
-/* End Function:Memory_Panel::Check ******************************************/
+/* End Function:Memory_Panel::Row_Add ****************************************/
 
 /* Function:Memory_Panel::Load ************************************************
 Description : Load information from Proj_Info into the this panel.
@@ -225,59 +219,138 @@ Return      : None.
 void Memory_Panel::Load(const std::vector<std::unique_ptr<class Mem_Info>>&Memory)
 {
     cnt_t Row;
-    cnt_t AttrCnt;
     char Buf[32];
 
     wxLogDebug("Memory_Panel::Load %d",Memory.size());
 
-    /* Clear the grid */
-    Main::Gird_Clear_Content(this->Grid);
+    /* Clean up the grid */
+    if(this->Grid->GetNumberRows()!=0)
+        this->Grid->DeleteRows(0,this->Grid->GetNumberRows());
 
     /* Fill in the grid*/
     for(Row=0;Row<(cnt_t)Memory.size();Row++)
     {
-        //Row=Main::Row_Add(this->Grid);
-        this->Add_Func();
+        this->Row_Add();
 
         /* Name */
         this->Grid->SetCellValue(Row, 1, Memory[Row]->Name);
 
         /* Type */
-        this->Grid->SetCellValue(Row, 2, this->Type_Option[Memory[Row]->Type]);
+        Main::Mem_Type_Set(Memory[Row]->Type,this->Grid,Row,2);
 
         /* Base */
         if(Memory[Row].get()->Base==MEM_AUTO)
-            this->Grid->SetCellValue(Row, 3, "Auto");
+            this->Grid->SetCellValue(Row, 3, _("Auto"));
         else
         {
-            std::sprintf(Buf, "0x%llX", Memory[Row]->Base);
+            sprintf(Buf, "0x%llX", Memory[Row]->Base);
             this->Grid->SetCellValue(Row, 3, Buf);
         }
 
         /* Size */
-        std::sprintf(Buf, "0x%llX", Memory[Row]->Size);
+        sprintf(Buf, "0x%llX", Memory[Row]->Size);
         this->Grid->SetCellValue(Row, 4, Buf);
 
         /* Align */
-        if(Memory[Row].get()->Align==MEM_AUTO)
+        if(Memory[Row]->Align==MEM_AUTO)
             this->Grid->SetCellValue(Row, 5, "Auto");
+        /* Original alignment less than 256 bytes, always align to 256 bytes */
+        else if(Memory[Row]->Align<=8)
+            this->Grid->SetCellValue(Row, 5, "8 (256B)");
+        /* Original alignment more than 1M bytes, always align to 256M bytes */
+        else if(Memory[Row]->Align>=30)
+            this->Grid->SetCellValue(Row, 5, "30 (1GiB)");
         else
         {
-            std::sprintf(Buf, "%lld", Memory[Row]->Align);
-            this->Grid->SetCellValue(Row, 5, Buf);
+            switch(Memory[Row]->Align)
+            {
+                case 9:this->Grid->SetCellValue(Row, 5, "9 (512B)");break;
+                case 10:this->Grid->SetCellValue(Row, 5, "10 (1KiB)");break;
+                case 11:this->Grid->SetCellValue(Row, 5, "11 (2KiB)");break;
+                case 12:this->Grid->SetCellValue(Row, 5, "12 (4KiB)");break;
+                case 13:this->Grid->SetCellValue(Row, 5, "13 (8KiB)");break;
+                case 14:this->Grid->SetCellValue(Row, 5, "14 (16KiB)");break;
+                case 15:this->Grid->SetCellValue(Row, 5, "15 (32KiB)");break;
+                case 16:this->Grid->SetCellValue(Row, 5, "16 (64KiB)");break;
+                case 17:this->Grid->SetCellValue(Row, 5, "17 (128KiB)");break;
+                case 18:this->Grid->SetCellValue(Row, 5, "18 (256KiB)");break;
+                case 19:this->Grid->SetCellValue(Row, 5, "19 (512KiB)");break;
+                case 20:this->Grid->SetCellValue(Row, 5, "20 (1MiB)");break;
+                case 21:this->Grid->SetCellValue(Row, 5, "21 (2MiB)");break;
+                case 22:this->Grid->SetCellValue(Row, 5, "22 (4MiB)");break;
+                case 23:this->Grid->SetCellValue(Row, 5, "23 (8MiB)");break;
+                case 24:this->Grid->SetCellValue(Row, 5, "24 (16MiB)");break;
+                case 25:this->Grid->SetCellValue(Row, 5, "25 (32MiB)");break;
+                case 26:this->Grid->SetCellValue(Row, 5, "26 (64MiB)");break;
+                case 27:this->Grid->SetCellValue(Row, 5, "27 (128MiB)");break;
+                case 28:this->Grid->SetCellValue(Row, 5, "28 (256MiB)");break;
+                case 29:this->Grid->SetCellValue(Row, 5, "29 (512MiB)");break;
+                default:ASSERT(0,"Impossible memory block alignment.");
+            }
         }
+
         /* Attribute */
-        for(AttrCnt=0;AttrCnt<6;++AttrCnt)
-        {
-            if((Memory[Row].get()->Attr>>(AttrCnt))&1)
-                this->Grid->SetCellValue(Row,6+AttrCnt,"1");
-            else
-                this->Grid->SetCellValue(Row,6+AttrCnt,wxEmptyString);
-        }
+        Main::Mem_Attr_Set(Memory[Row]->Attr,this->Grid,Row,6);
     }
+
     Main::Row_Reorder(this->Grid);
 }
 /* End Function:Memory_Panel::Load *******************************************/
+
+/* Function:Memory_Panel::Check ***********************************************
+Description : Check whether the current panel contains any errors.
+Input       : None.
+Output      : None.
+Return      : ret_t - if 0, no error exists; else -1.
+******************************************************************************/
+ret_t Memory_Panel::Check(void)
+{
+    cnt_t Row;
+    class wxString Base;
+    class wxString Align;
+    class wxString Caption;
+
+    if(this->Mode==MEM_PANEL_PRIVATE)
+    {
+        Caption=_("Private Memory");
+        if(Main::Name_Check(this->Grid,1,Caption,BLANK_FORBID)!=0)
+            return -1;
+    }
+    else
+    {
+        Caption=_("Shared Memory");
+        if(Main::Name_Check(this->Grid,1,Caption,BLANK_ALLOW)!=0)
+            return -1;
+    }
+
+    /* Check names for duplication first */
+    for(Row=0;Row<(cnt_t)this->Grid->GetNumberRows();Row++)
+    {
+        /* Base */
+        Base=this->Grid->GetCellValue(Row,3);
+        if((Base!=_("Auto"))&&
+           (Main::Hex_Check(this,Base,Caption,_("Base")+_(" at row ")+std::to_string(Row+1))!=0))
+            return -1;
+
+        /* Size */
+        if(Main::Hex_Pos_Check(this,this->Grid->GetCellValue(Row,4),
+                               Caption,_("Size")+_(" at row ")+std::to_string(Row+1))!=0)
+            return -1;
+
+        /* Align must be set to 'Auto' when the segment base address is fixed */
+        Align=this->Grid->GetCellValue(Row,5);
+        if((Align!=_("Auto"))&&(Base!=_("Auto")))
+        {
+            Main::Msgbox_Show(this,MSGBOX_ERROR,
+                              Caption,
+                              _("Align")+_(" at row ")+std::to_string(Row+1)+_(" must be 'Auto' when the base address is fixed."));
+            return -1;
+        }
+    }
+
+    return 0;
+}
+/* End Function:Memory_Panel::Check ******************************************/
 
 /* Function:Memory_Panel::Save ************************************************
 Description : Save information to Proj_Info.
@@ -296,7 +369,6 @@ void Memory_Panel::Save(std::vector<std::unique_ptr<class Mem_Info>>&Memory)
     ptr_t Attr;
     std::string Name;
 
-
     wxLogDebug("Memory_Panel::Save");
 
     Memory.clear();
@@ -304,17 +376,10 @@ void Memory_Panel::Save(std::vector<std::unique_ptr<class Mem_Info>>&Memory)
     for(Row=0;Row<(cnt_t)this->Grid->GetNumberRows();Row++)
     {
         /* Name */
-        Name=this->Grid->GetCellValue(Row,1).ToStdString();
+        Name=this->Grid->GetCellValue(Row,1);
 
         /* Type */
-        if(this->Grid->GetCellValue(Row,2)=="Code")
-            Type=MEM_CODE;
-        else if(this->Grid->GetCellValue(Row,2)=="Data")
-            Type=MEM_DATA;
-        else if(this->Grid->GetCellValue(Row,2)=="Device")
-            Type=MEM_DEVICE;
-        else
-            throw std::runtime_error("Memory Type is malformed.");
+        Type=Main::Mem_Type_Get(this->Grid,Row,2);
 
         /* Base */
         if(this->Grid->GetCellValue(Row,3)=="Auto")
@@ -325,27 +390,16 @@ void Memory_Panel::Save(std::vector<std::unique_ptr<class Mem_Info>>&Memory)
         /* Size */
         Size=std::stoull(this->Grid->GetCellValue(Row,4).ToStdString(),0,0);
 
-
         /* Align */
         if(this->Grid->GetCellValue(Row,5)=="Auto")
             Align=MEM_AUTO;
+        /* There's a space between the number and the parenthesis so substr(0,2) is okay */
         else
-            Align=std::stoull(this->Grid->GetCellValue(Row,5).ToStdString(),0,0);
+            Align=std::stoull(std::string(this->Grid->GetCellValue(Row,5)).substr(0,2),0,0);
 
-        /* Attribute */
-        Attr=0;
-        if(this->Grid->GetCellValue(Row,6)=="1")
-            Attr|=MEM_READ;;
-        if(this->Grid->GetCellValue(Row,7)=="1")
-            Attr|=MEM_WRITE;
-        if(this->Grid->GetCellValue(Row,8)=="1")
-            Attr|=MEM_EXECUTE;
-        if(this->Grid->GetCellValue(Row,9)=="1")
-            Attr|=MEM_BUFFER;
-        if(this->Grid->GetCellValue(Row,10)=="1")
-            Attr|=MEM_CACHE;
-        if(this->Grid->GetCellValue(Row,11)=="1")
-            Attr|=MEM_STATIC;
+        /* Attributes */
+        Attr=Main::Mem_Attr_Get(this->Grid,Row,6);
+
         Memory.push_back(std::make_unique<class Mem_Info>(Name,Base,Size,Type,Attr,Align));
     }
     wxLogDebug("Memory_Panel::Save: %d block",this->Grid->GetNumberRows());
@@ -361,7 +415,17 @@ Return      : None.
 ******************************************************************************/
 void Memory_Panel::On_Add(class wxCommandEvent& Event)
 {
-    this->Add_Func();
+    ret_t Row;
+
+    Row=this->Row_Add();
+
+    /* Default value */
+    Main::Mem_Type_Set(MEM_DATA,this->Grid,Row,2);
+    this->Grid->SetCellValue(Row, 3, _("Auto"));
+    this->Grid->SetCellValue(Row, 4, "0x1000");
+    this->Grid->SetCellValue(Row, 5, _("Auto"));
+    Main::Mem_Attr_Set(MEM_READ|MEM_WRITE|MEM_CACHE|MEM_BUFFER|MEM_STATIC,this->Grid,Row,6);
+
     Main::Row_Reorder(this->Grid);
 }
 /* End Function:Memory_Panel::On_Add ****************************************/
@@ -375,6 +439,7 @@ Return      : None.
 void Memory_Panel::On_Remove(class wxCommandEvent& Event)
 {
     wxLogDebug("Memory_Panel::On_Remove");
+
     Main::Row_Remove(this->Grid);
     Main::Row_Reorder(this->Grid);
 }
@@ -389,6 +454,7 @@ Return      : None.
 void Memory_Panel::On_Move_Up(class wxCommandEvent& Event)
 {
     wxLogDebug("Memory_Panel::On_Move_Up");
+
     Main::Row_Move_Up(this->Grid);
     Main::Row_Reorder(this->Grid);
 }
@@ -403,6 +469,7 @@ Return      : None.
 void Memory_Panel::On_Move_Down(class wxCommandEvent& Event)
 {
     wxLogDebug("Memory_Panel::On_Move_Down");
+
     Main::Row_Move_Down(this->Grid);
     Main::Row_Reorder(this->Grid);
 }
@@ -417,7 +484,7 @@ Return      : None.
 void Memory_Panel::On_Grid(class wxGridRangeSelectEvent& Event)
 {
     wxLogDebug("Memory_Panel::On_Grid");
-    Main::Row_Pick(this->Grid);
+
     Main::Row_Pick(this->Grid);
 }
 /* End Function:Memory_Panel::On_Grid ****************************************/
@@ -432,121 +499,95 @@ void Memory_Panel::On_Change(class wxGridEvent& Event)
 {
     ret_t Row;
     ret_t Col;
-    std::string Type;
-    class wxString Num;
+    std::string Temp;
+    ptr_t Align;
 
     wxLogDebug("Extmem_Panel::On_Change");
 
     Row=Event.GetRow();
     Col=Event.GetCol();
 
-    switch (Col)
+    switch(Col)
     {
+        /* If type ever changes, default attributes to that type */
         case 2:
         {
-            Type=this->Grid->GetCellValue(Row,Col);
-            if(Type=="Code")
-            {
-                this->Grid->SetCellValue(Row,3,"1");
-                this->Grid->SetCellValue(Row,4,"");
-                this->Grid->SetCellValue(Row,5,"1");
-                this->Grid->SetCellValue(Row,6,"1");
-                this->Grid->SetCellValue(Row,7,"1");
-                this->Grid->SetCellValue(Row,8,"1");
-            }
-            else if(Type=="Data")
-            {
-                this->Grid->SetCellValue(Row,3,"1");
-                this->Grid->SetCellValue(Row,4,"1");
-                this->Grid->SetCellValue(Row,5,"");
-                this->Grid->SetCellValue(Row,6,"1");
-                this->Grid->SetCellValue(Row,7,"1");
-                this->Grid->SetCellValue(Row,8,"1");
-            }
-            else if(Type=="Device")
-            {
-                this->Grid->SetCellValue(Row,3,"1");
-                this->Grid->SetCellValue(Row,4,"1");
-                this->Grid->SetCellValue(Row,5,"");
-                this->Grid->SetCellValue(Row,6,"");
-                this->Grid->SetCellValue(Row,7,"");
-                this->Grid->SetCellValue(Row,8,"1");
-            }
+            Temp=this->Grid->GetCellValue(Row,2);
+            if(Temp==_("Code"))
+                Main::Mem_Attr_Set(MEM_READ|MEM_EXECUTE|MEM_CACHE|MEM_BUFFER|MEM_STATIC,this->Grid,Row,2);
+            else if(Temp=="Data")
+                Main::Mem_Attr_Set(MEM_READ|MEM_WRITE|MEM_CACHE|MEM_BUFFER|MEM_STATIC,this->Grid,Row,2);
+            else if(Temp=="Device")
+                Main::Mem_Attr_Set(MEM_READ|MEM_WRITE|MEM_STATIC,this->Grid,Row,2);
+
             break;
         }
+        /* Base address - if not auto, we need to make sure it is hex */
         case 3:
         {
-            Num=this->Grid->GetCellValue(Row,Col).Upper();
-            if(Num=="AUTO")
-                break;
+            Temp=this->Grid->GetCellValue(Row,3);
+            if(Temp!="Auto")
+                this->Grid->SetCellValue(Row,3,Main::Num2Hex(Temp));
 
-            if (Num.starts_with("0X"))
-                Num[1]='x';
-            else
-                Num="0x"+Num;
-            this->Grid->SetCellValue(Row,Col,Num);
             break;
         }
+        /* Size */
         case 4:
         {
-            Num=this->Grid->GetCellValue(Row,Col).Upper();
-            if (Num.starts_with("0X"))
-                Num[1]='x';
-            else
-                Num="0x"+Num;
-            this->Grid->SetCellValue(Row,Col,Num);
+            this->Grid->SetCellValue(Row,4,Main::Num2Hex(std::string(this->Grid->GetCellValue(Row,4))));
             break;
         }
+        /* Align - need to fix it if it is out of bound, if yes, fix accordingly */
+        case 5:
+        {
+            Temp=this->Grid->GetCellValue(Row,5);
+            if(Temp!="Auto")
+            {
+                Align=std::stoull(Main::Num2Dec(std::string(Temp.substr(0,2))));
+                if(Align==0)
+                    this->Grid->SetCellValue(Row,5,"Auto");
+                else if(Align<=8)
+                    this->Grid->SetCellValue(Row,5,"8 (256B)");
+                else if(Align>=30)
+                    this->Grid->SetCellValue(Row,5,"30 (1GiB)");
+                else
+                {
+                    switch(Align)
+                    {
+                        case 9:this->Grid->SetCellValue(Row, 5, "9 (512B)");break;
+                        case 10:this->Grid->SetCellValue(Row, 5, "10 (1KiB)");break;
+                        case 11:this->Grid->SetCellValue(Row, 5, "11 (2KiB)");break;
+                        case 12:this->Grid->SetCellValue(Row, 5, "12 (4KiB)");break;
+                        case 13:this->Grid->SetCellValue(Row, 5, "13 (8KiB)");break;
+                        case 14:this->Grid->SetCellValue(Row, 5, "14 (16KiB)");break;
+                        case 15:this->Grid->SetCellValue(Row, 5, "15 (32KiB)");break;
+                        case 16:this->Grid->SetCellValue(Row, 5, "16 (64KiB)");break;
+                        case 17:this->Grid->SetCellValue(Row, 5, "17 (128KiB)");break;
+                        case 18:this->Grid->SetCellValue(Row, 5, "18 (256KiB)");break;
+                        case 19:this->Grid->SetCellValue(Row, 5, "19 (512KiB)");break;
+                        case 20:this->Grid->SetCellValue(Row, 5, "20 (1MiB)");break;
+                        case 21:this->Grid->SetCellValue(Row, 5, "21 (2MiB)");break;
+                        case 22:this->Grid->SetCellValue(Row, 5, "22 (4MiB)");break;
+                        case 23:this->Grid->SetCellValue(Row, 5, "23 (8MiB)");break;
+                        case 24:this->Grid->SetCellValue(Row, 5, "24 (16MiB)");break;
+                        case 25:this->Grid->SetCellValue(Row, 5, "25 (32MiB)");break;
+                        case 26:this->Grid->SetCellValue(Row, 5, "26 (64MiB)");break;
+                        case 27:this->Grid->SetCellValue(Row, 5, "27 (128MiB)");break;
+                        case 28:this->Grid->SetCellValue(Row, 5, "28 (256MiB)");break;
+                        case 29:this->Grid->SetCellValue(Row, 5, "29 (512MiB)");break;
+                        default:ASSERT(0,"Impossible memory block alignment.");
+                    }
+                }
+            }
+            break;
+        }
+
         default:break;
     }
+
     Event.Skip();
 }
 /* End Memory_Panel::On_Change ***********************************************/
-
-/* Function:Memory_Panel::Add_Func ********************************************
-Description : Add a new row to the grid and set the cells to appropriate
-              controls.
-Input       : None.
-Output      : None.
-Return      : None.
-******************************************************************************/
-void Memory_Panel::Add_Func()
-{
-    ret_t Row;
-    cnt_t Cnt;
-
-    wxLogDebug("Memory_Panel::On_Add");
-
-    Row=Main::Row_Add(this->Grid);
-
-    /* Type include "Code", "Data" and "Device" */
-    this->Grid->SetCellEditor(Row,2,new class wxGridCellChoiceEditor(this->Type_Option));
-    this->Grid->SetCellEditor(Row,3,new class wxGridCellChoiceEditor(this->Base_Option,true));
-    this->Grid->SetCellEditor(Row,5,new class wxGridCellChoiceEditor(this->Align_Option,true));
-
-    /* Attribution */
-    for(Cnt=6;Cnt<12;Cnt++)
-    {
-        this->Grid->SetCellEditor(Row,Cnt,new wxGridCellBoolEditor());
-        this->Grid->SetCellRenderer(Row, Cnt, new wxGridCellBoolRenderer());
-    }
-
-    /* Default value */
-    this->Grid->SetReadOnly(Row, 0, true);
-    this->Grid->SetCellBackgroundColour(Row, 0, *wxLIGHT_GREY);
-
-    this->Grid->SetCellValue(Row, 2, this->Type_Option[0]);
-    this->Grid->SetCellValue(Row, 3, "Auto");
-    this->Grid->SetCellValue(Row, 4, "0xFFFF");
-    this->Grid->SetCellValue(Row, 5, "Auto");
-    this->Grid->SetCellValue(Row,6,"1");
-    this->Grid->SetCellValue(Row,7,"");
-    this->Grid->SetCellValue(Row,8,"1");
-    this->Grid->SetCellValue(Row,9,"1");
-    this->Grid->SetCellValue(Row,10,"1");
-    this->Grid->SetCellValue(Row,11,"1");
-}
-/* End Function:Memory_Panel::Add_Func ****************************************/
 }
 /* End Of File ***************************************************************/
 

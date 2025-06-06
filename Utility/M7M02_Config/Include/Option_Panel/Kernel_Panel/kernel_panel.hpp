@@ -42,15 +42,15 @@ class Kernel_Panel:public wxPanel
 public:
     class wxBoxSizer* Main_Sizer;
 
-    class wxStaticBoxSizer* Sizer1;
-    class wxStaticBoxSizer* Sizer2;
-    class wxStaticBoxSizer* Sizer3;
-    class wxStaticBoxSizer* Sizer4;
+    class wxStaticBoxSizer* Basic_Sizer;
+    class wxStaticBoxSizer* KOM_Sizer;
+    class wxStaticBoxSizer* Build_Sizer;
+    class wxStaticBoxSizer* Output_Sizer;
 
-    /* Group 1 */
-    class wxBoxSizer* Sizer1_1;
-    class wxBoxSizer* Sizer1_2;
-    class wxBoxSizer* Sizer1_3;
+    /* Basic options */
+    class wxBoxSizer* Basic_Line1_Sizer;
+    class wxBoxSizer* Basic_Line2_Sizer;
+    class wxBoxSizer* Basic_Line3_Sizer;
 
     class wxBoxSizer* Code_Base_Sizer;
     class wxStaticText* Code_Base_Label;
@@ -77,8 +77,8 @@ public:
     class wxStaticText* Kern_Prio_Label;
     class wxChoice* Kern_Prio;
 
-    /* Group 2 */
-    class wxBoxSizer* Sizer2_1;
+    /* KOM options */
+    class wxBoxSizer* KOM_Line1_Sizer;
 
     class wxBoxSizer* Kom_Order_Sizer;
     class wxStaticText* Kom_Order_Label;
@@ -88,9 +88,9 @@ public:
     class wxStaticText* Extra_Kom_Label;
     class wxTextCtrl* Extra_Kom;
 
-    /* Group 3 */
-    class wxBoxSizer* Sizer3_1;
-    class wxBoxSizer* Sizer3_2;
+    /* Buildsystem options */
+    class wxBoxSizer* Build_Line1_Sizer;
+    class wxBoxSizer* Build_Line2_Sizer;
 
     class wxBoxSizer* Toolchain_Sizer;
     class wxStaticText* Toolchain_Label;
@@ -140,16 +140,19 @@ public:
     class wxTextCtrl* Handler_Source_Output;
     class wxCheckBox* Handler_Source_Overwrite;
 
-    /* void */ Kernel_Panel(class wxWindow*parent);
+    /* void */ Kernel_Panel(class wxWindow* Parent);
     /* void */ ~Kernel_Panel(void);
 
     void Load(void);
-    void Save(void);
     ret_t Check(void);
-    void Compatible_Set(void);
+    void Save(void);
+
+    void Toolchain_Set(void);
+    void Buildsystem_Set(const class wxString& Toolchain);
     void Kernel_Prio_Set(void);
-    void On_Trans_Hex(class wxFocusEvent& Event);
-    void On_Toolchain_Change(class wxCommandEvent& Event);
+
+    void On_Text_Hex(class wxFocusEvent& Event);
+    void On_Toolchain(class wxCommandEvent& Event);
 };
 /*****************************************************************************/
 /* __KERNEL_PANEL_CLASS__ */

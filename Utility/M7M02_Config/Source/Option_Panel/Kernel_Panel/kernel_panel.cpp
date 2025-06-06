@@ -48,107 +48,118 @@ wxPanel(Parent,wxID_ANY)
 {
     try
     {
-         this->Main_Sizer=new class wxBoxSizer(wxVERTICAL);
+        this->SetBackgroundColour(Parent->GetBackgroundColour());
 
-        /* Group 1 */
-        this->Sizer1=new class wxStaticBoxSizer(wxVERTICAL,this,_("Size1"));
-        this->Sizer1_1=new class wxBoxSizer(wxHORIZONTAL);
-        this->Sizer1_2=new class wxBoxSizer(wxHORIZONTAL);
-        this->Sizer1_3=new class wxBoxSizer(wxHORIZONTAL);
+        this->Main_Sizer=new class wxBoxSizer(wxVERTICAL);
+
+        /* Basic options */
+        this->Basic_Sizer=new class wxStaticBoxSizer(wxVERTICAL,this,_("Basic Options"));
+        this->Basic_Line1_Sizer=new class wxBoxSizer(wxHORIZONTAL);
+        this->Basic_Line2_Sizer=new class wxBoxSizer(wxHORIZONTAL);
+        this->Basic_Line3_Sizer=new class wxBoxSizer(wxHORIZONTAL);
 
         this->Code_Base_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Code_Base_Label=new class wxStaticText(this,wxID_ANY,_("Code Base"));
         this->Code_Base=new class wxTextCtrl(this,wxID_ANY);
+        this->Code_Base->Bind(wxEVT_KILL_FOCUS, &Kernel_Panel::On_Text_Hex, this);
         this->Code_Base_Sizer->Add(this->Code_Base_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Code_Base_Sizer->Add(this->Code_Base,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Code_Base_Sizer->Add(this->Code_Base,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Code_Size_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Code_Size_Label=new class wxStaticText(this,wxID_ANY,_("Code Size"));
         this->Code_Size=new class wxTextCtrl(this,wxID_ANY);
+        this->Code_Size->Bind(wxEVT_KILL_FOCUS, &Kernel_Panel::On_Text_Hex, this);
         this->Code_Size_Sizer->Add(this->Code_Size_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Code_Size_Sizer->Add(this->Code_Size,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Code_Size_Sizer->Add(this->Code_Size,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Data_Base_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Data_Base_Label=new class wxStaticText(this,wxID_ANY,_("Data Base"));
         this->Data_Base=new class wxTextCtrl(this,wxID_ANY);
+        this->Data_Base->Bind(wxEVT_KILL_FOCUS, &Kernel_Panel::On_Text_Hex, this);
         this->Data_Base_Sizer->Add(this->Data_Base_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Data_Base_Sizer->Add(this->Data_Base,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Data_Base_Sizer->Add(this->Data_Base,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Data_Size_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Data_Size_Label=new class wxStaticText(this,wxID_ANY,_("Data Size"));
         this->Data_Size=new class wxTextCtrl(this,wxID_ANY);
+        this->Data_Size->Bind(wxEVT_KILL_FOCUS, &Kernel_Panel::On_Text_Hex, this);
         this->Data_Size_Sizer->Add(this->Data_Size_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Data_Size_Sizer->Add(this->Data_Size,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Data_Size_Sizer->Add(this->Data_Size,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Kern_Prio_Sizer=new class wxBoxSizer(wxHORIZONTAL);
-        this->Kern_Prio_Label=new class wxStaticText(this,wxID_ANY,_("Kernel Priority"));
+        this->Kern_Prio_Label=new class wxStaticText(this,wxID_ANY,_("Kernel Priority Number"));
         this->Kern_Prio=new class wxChoice(this,wxID_ANY);
         this->Kern_Prio_Sizer->Add(this->Kern_Prio_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Kern_Prio_Sizer->Add(this->Kern_Prio,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Kern_Prio_Sizer->Add(this->Kern_Prio,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Stack_Size_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Stack_Size_Label=new class wxStaticText(this,wxID_ANY,_("Stack Size"));
         this->Stack_Size=new class wxTextCtrl(this,wxID_ANY);
+        this->Stack_Size->Bind(wxEVT_KILL_FOCUS, &Kernel_Panel::On_Text_Hex, this);
         this->Stack_Size_Sizer->Add(this->Stack_Size_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Stack_Size_Sizer->Add(this->Stack_Size,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Stack_Size_Sizer->Add(this->Stack_Size,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
-        this->Sizer1_1->Add(this->Code_Base_Sizer,6,wxEXPAND);
-        this->Sizer1_1->AddStretchSpacer(1);
-        this->Sizer1_1->Add(this->Code_Size_Sizer,6,wxEXPAND);
-        this->Sizer1_2->Add(this->Data_Base_Sizer,6,wxEXPAND);
-        this->Sizer1_2->AddStretchSpacer(1);
-        this->Sizer1_2->Add(this->Data_Size_Sizer,6,wxEXPAND);
-        this->Sizer1_3->Add(this->Kern_Prio_Sizer,6,wxEXPAND);
-        this->Sizer1_3->AddStretchSpacer(1);
-        this->Sizer1_3->Add(this->Stack_Size_Sizer,6,wxEXPAND);
-        this->Sizer1->Add(this->Sizer1_1,0,wxEXPAND);
-        this->Sizer1->Add(this->Sizer1_2,0,wxEXPAND);
-        this->Sizer1->Add(this->Sizer1_3,0,wxEXPAND);
+        this->Basic_Line1_Sizer->Add(this->Code_Base_Sizer,6,wxEXPAND);
+        this->Basic_Line1_Sizer->AddStretchSpacer(1);
+        this->Basic_Line1_Sizer->Add(this->Code_Size_Sizer,6,wxEXPAND);
 
-        /* Group 2 */
-        this->Sizer2=new class wxStaticBoxSizer(wxVERTICAL,this,_("Size2"));
-        this->Sizer2_1=new class wxBoxSizer(wxHORIZONTAL);
+        this->Basic_Line2_Sizer->Add(this->Data_Base_Sizer,6,wxEXPAND);
+        this->Basic_Line2_Sizer->AddStretchSpacer(1);
+        this->Basic_Line2_Sizer->Add(this->Data_Size_Sizer,6,wxEXPAND);
+
+        this->Basic_Line3_Sizer->Add(this->Kern_Prio_Sizer,6,wxEXPAND);
+        this->Basic_Line3_Sizer->AddStretchSpacer(1);
+        this->Basic_Line3_Sizer->Add(this->Stack_Size_Sizer,6,wxEXPAND);
+
+        this->Basic_Sizer->Add(this->Basic_Line1_Sizer,0,wxEXPAND);
+        this->Basic_Sizer->Add(this->Basic_Line2_Sizer,0,wxEXPAND);
+        this->Basic_Sizer->Add(this->Basic_Line3_Sizer,0,wxEXPAND);
+
+        /* Kernel memory options */
+        this->KOM_Sizer=new class wxStaticBoxSizer(wxVERTICAL,this,_("Kernel Memory Options"));
+        this->KOM_Line1_Sizer=new class wxBoxSizer(wxHORIZONTAL);
 
         this->Kom_Order_Sizer=new class wxBoxSizer(wxHORIZONTAL);
-        this->Kom_Order_Label=new class wxStaticText(this,wxID_ANY,_("KOM Order"));
+        this->Kom_Order_Label=new class wxStaticText(this,wxID_ANY,_("Allocation Granularity"));
         this->Kom_Order=new class wxChoice(this,wxID_ANY);
         /* This option is a power of 2 */
-        this->Kom_Order->Append("3");
-        this->Kom_Order->Append("4");
-        this->Kom_Order->Append("5");
+        this->Kom_Order->Append("3 (8B)");
+        this->Kom_Order->Append("4 (16B)");
+        this->Kom_Order->Append("5 (32B)");
+        this->Kom_Order->Append("6 (64B)");
         this->Kom_Order->SetSelection(0);
         this->Kom_Order_Sizer->Add(this->Kom_Order_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Kom_Order_Sizer->Add(this->Kom_Order,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Kom_Order_Sizer->Add(this->Kom_Order,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Extra_Kom_Sizer=new class wxBoxSizer(wxHORIZONTAL);
-        this->Extra_Kom_Label=new class wxStaticText(this,wxID_ANY,_("Extra KOM"));
+        this->Extra_Kom_Label=new class wxStaticText(this,wxID_ANY,_("Extra Amount"));
         this->Extra_Kom=new class wxTextCtrl(this,wxID_ANY);
+        this->Extra_Kom->Bind(wxEVT_KILL_FOCUS, &Kernel_Panel::On_Text_Hex, this);
         this->Extra_Kom_Sizer->Add(this->Extra_Kom_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Extra_Kom_Sizer->Add(this->Extra_Kom,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Extra_Kom_Sizer->Add(this->Extra_Kom,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
-        this->Sizer2_1->Add(this->Kom_Order_Sizer,6,wxEXPAND);
-        this->Sizer2_1->AddStretchSpacer(1);
-        this->Sizer2_1->Add(this->Extra_Kom_Sizer,6,wxEXPAND);
-        this->Sizer2->Add(this->Sizer2_1,0,wxEXPAND);
+        this->KOM_Line1_Sizer->Add(this->Kom_Order_Sizer,6,wxEXPAND);
+        this->KOM_Line1_Sizer->AddStretchSpacer(1);
+        this->KOM_Line1_Sizer->Add(this->Extra_Kom_Sizer,6,wxEXPAND);
+        this->KOM_Sizer->Add(this->KOM_Line1_Sizer,0,wxEXPAND);
 
-        /* Group 3 */
-        this->Sizer3=new class wxStaticBoxSizer(wxVERTICAL,this,_("Size3"));
-        this->Sizer3_1=new class wxBoxSizer(wxHORIZONTAL);
-        this->Sizer3_2=new class wxBoxSizer(wxHORIZONTAL);
+        /* Buildsystem options */
+        this->Build_Sizer=new class wxStaticBoxSizer(wxVERTICAL,this,_("Buildsystem Options"));
+        this->Build_Line1_Sizer=new class wxBoxSizer(wxHORIZONTAL);
+        this->Build_Line2_Sizer=new class wxBoxSizer(wxHORIZONTAL);
 
         this->Toolchain_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Toolchain_Label=new class wxStaticText(this,wxID_ANY,_("Toolchain"));
         this->Toolchain=new class wxChoice(this,wxID_ANY);
+        this->Bind(wxEVT_CHOICE, &Kernel_Panel::On_Toolchain, this, this->Toolchain->GetId());
         this->Toolchain_Sizer->Add(this->Toolchain_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Toolchain_Sizer->Add(this->Toolchain,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Toolchain->Bind(wxEVT_CHOICE, &Kernel_Panel::On_Toolchain_Change, this, this->Toolchain->GetId());
+        this->Toolchain_Sizer->Add(this->Toolchain,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Buildsystem_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Buildsystem_Label=new class wxStaticText(this,wxID_ANY,_("Buildsystem"));
         this->Buildsystem=new class wxChoice(this,wxID_ANY);
         this->Buildsystem_Sizer->Add(this->Buildsystem_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Buildsystem_Sizer->Add(this->Buildsystem,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        //this->Buildsystem->Bind(wxEVT_CHOICE, &Kernel_Panel::On_Buildsystem_Change, this, this->Buildsystem->GetId());
+        this->Buildsystem_Sizer->Add(this->Buildsystem,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Optimization_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Optimization_Label=new class wxStaticText(this,wxID_ANY,_("Optimization"));
@@ -161,25 +172,27 @@ wxPanel(Parent,wxID_ANY)
         this->Optimization->Append("-Os");
         this->Optimization->SetSelection(0);
         this->Optimization_Sizer->Add(this->Optimization_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Optimization_Sizer->Add(this->Optimization,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Optimization_Sizer->Add(this->Optimization,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
         this->Full_Image_Sizer=new class wxBoxSizer(wxHORIZONTAL);
-        this->Full_Image_Label=new class wxStaticText(this,wxID_ANY,_("Full Image"));
+        this->Full_Image_Label=new class wxStaticText(this,wxID_ANY,_("Generate Full Image"));
         this->Full_Image=new class wxCheckBox(this,wxID_ANY,wxEmptyString);
         this->Full_Image_Sizer->Add(this->Full_Image_Label,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Full_Image_Sizer->Add(this->Full_Image,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Full_Image_Sizer->Add(this->Full_Image,1,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
-        this->Sizer3_1->Add(this->Toolchain_Sizer,6,wxEXPAND);
-        this->Sizer3_1->AddStretchSpacer(1);
-        this->Sizer3_1->Add(this->Buildsystem_Sizer,6,wxEXPAND);
-        this->Sizer3_2->Add(this->Optimization_Sizer,6,wxEXPAND);
-        this->Sizer3_2->AddStretchSpacer(1);
-        this->Sizer3_2->Add(this->Full_Image_Sizer,6,wxEXPAND);
-        this->Sizer3->Add(this->Sizer3_1,0,wxEXPAND);
-        this->Sizer3->Add(this->Sizer3_2,0,wxEXPAND);
+        this->Build_Line1_Sizer->Add(this->Toolchain_Sizer,6,wxEXPAND);
+        this->Build_Line1_Sizer->AddStretchSpacer(1);
+        this->Build_Line1_Sizer->Add(this->Buildsystem_Sizer,6,wxEXPAND);
 
-        /* Group 4 */
-        this->Sizer4=new class wxStaticBoxSizer(wxVERTICAL,this,_("Size4"));
+        this->Build_Line2_Sizer->Add(this->Optimization_Sizer,6,wxEXPAND);
+        this->Build_Line2_Sizer->AddStretchSpacer(1);
+        this->Build_Line2_Sizer->Add(this->Full_Image_Sizer,6,wxEXPAND);
+
+        this->Build_Sizer->Add(this->Build_Line1_Sizer,0,wxEXPAND);
+        this->Build_Sizer->Add(this->Build_Line2_Sizer,0,wxEXPAND);
+
+        /* Output options */
+        this->Output_Sizer=new class wxStaticBoxSizer(wxVERTICAL,this,_("Output Options"));
 
         this->Project_Output_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Project_Output_Label=new class wxStaticText(this,wxID_ANY,_("Project Output"));
@@ -233,28 +246,21 @@ wxPanel(Parent,wxID_ANY)
         this->Handler_Source_Sizer->Add(this->Handler_Source_Output,16,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
         this->Handler_Source_Sizer->Add(this->Handler_Source_Overwrite,3,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
 
-        this->Sizer4->Add(this->Project_Output_Sizer,0,wxEXPAND);
-        this->Sizer4->Add(this->Linker_Output_Sizer,0,wxEXPAND);
-        this->Sizer4->Add(this->Config_Header_Output_Sizer,0,wxEXPAND);
-        this->Sizer4->Add(this->Boot_Header_Output_Sizer,0,wxEXPAND);
-        this->Sizer4->Add(this->Boot_Source_Output_Sizer,0,wxEXPAND);
-        this->Sizer4->Add(this->Hook_Source_Sizer,0,wxEXPAND);
-        this->Sizer4->Add(this->Handler_Source_Sizer,0,wxEXPAND);
+        this->Output_Sizer->Add(this->Project_Output_Sizer,0,wxEXPAND);
+        this->Output_Sizer->Add(this->Linker_Output_Sizer,0,wxEXPAND);
+        this->Output_Sizer->Add(this->Config_Header_Output_Sizer,0,wxEXPAND);
+        this->Output_Sizer->Add(this->Boot_Header_Output_Sizer,0,wxEXPAND);
+        this->Output_Sizer->Add(this->Boot_Source_Output_Sizer,0,wxEXPAND);
+        this->Output_Sizer->Add(this->Hook_Source_Sizer,0,wxEXPAND);
+        this->Output_Sizer->Add(this->Handler_Source_Sizer,0,wxEXPAND);
 
-        this->Main_Sizer->Add(this->Sizer1,0,wxEXPAND|wxALL,I2P(5));
-        this->Main_Sizer->Add(this->Sizer2,0,wxEXPAND|wxALL,I2P(5));
-        this->Main_Sizer->Add(this->Sizer3,0,wxEXPAND|wxALL,I2P(5));
-        this->Main_Sizer->Add(this->Sizer4,0,wxEXPAND|wxALL,I2P(5));
+        this->Main_Sizer->Add(this->Basic_Sizer,0,wxEXPAND|wxALL,I2P(5));
+        this->Main_Sizer->Add(this->KOM_Sizer,0,wxEXPAND|wxALL,I2P(5));
+        this->Main_Sizer->Add(this->Build_Sizer,0,wxEXPAND|wxALL,I2P(5));
+        this->Main_Sizer->Add(this->Output_Sizer,0,wxEXPAND|wxALL,I2P(5));
 
         this->SetSizer(this->Main_Sizer);
         this->Layout();
-
-        this->Code_Base->Bind(wxEVT_KILL_FOCUS, &Kernel_Panel::On_Trans_Hex, this);
-        this->Code_Size->Bind(wxEVT_KILL_FOCUS, &Kernel_Panel::On_Trans_Hex, this);
-        this->Data_Base->Bind(wxEVT_KILL_FOCUS, &Kernel_Panel::On_Trans_Hex, this);
-        this->Data_Size->Bind(wxEVT_KILL_FOCUS, &Kernel_Panel::On_Trans_Hex, this);
-        this->Stack_Size->Bind(wxEVT_KILL_FOCUS, &Kernel_Panel::On_Trans_Hex, this);
-        this->Extra_Kom->Bind(wxEVT_KILL_FOCUS, &Kernel_Panel::On_Trans_Hex, this);
     }
     catch(std::exception& Exc)
     {
@@ -271,7 +277,14 @@ Return      : None.
 ******************************************************************************/
 /* void */ Kernel_Panel::~Kernel_Panel(void)
 {
-
+    this->Unbind(wxEVT_CHOICE, &Kernel_Panel::On_Toolchain, this, this->Toolchain->GetId());
+    /* Have to bind to the text itself because we are processing window events on it directly */
+    this->Code_Base->Unbind(wxEVT_KILL_FOCUS, &Kernel_Panel::On_Text_Hex, this);
+    this->Code_Size->Unbind(wxEVT_KILL_FOCUS, &Kernel_Panel::On_Text_Hex, this);
+    this->Data_Base->Unbind(wxEVT_KILL_FOCUS, &Kernel_Panel::On_Text_Hex, this);
+    this->Data_Size->Unbind(wxEVT_KILL_FOCUS, &Kernel_Panel::On_Text_Hex, this);
+    this->Stack_Size->Unbind(wxEVT_KILL_FOCUS, &Kernel_Panel::On_Text_Hex, this);
+    this->Extra_Kom->Unbind(wxEVT_KILL_FOCUS, &Kernel_Panel::On_Text_Hex, this);
 }
 /* End Function:Kernel_Panel::~Kernel_Panel **********************************/
 
@@ -285,6 +298,7 @@ void Kernel_Panel::Load(void)
 {
     char Buf[32];
 
+    /* Basic options */
     std::sprintf(Buf, "0x%llX", Main::Proj_Info->Kernel->Code_Base);
     this->Code_Base->SetValue(Buf);
     std::sprintf(Buf, "0x%llX", Main::Proj_Info->Kernel->Code_Size);
@@ -295,14 +309,18 @@ void Kernel_Panel::Load(void)
     this->Data_Size->SetValue(Buf);
     std::sprintf(Buf, "0x%llX", Main::Proj_Info->Kernel->Stack_Size);
     this->Stack_Size->SetValue(Buf);
-    std::sprintf(Buf, "0x%llX", Main::Proj_Info->Kernel->Extra_Kom);
-    this->Extra_Kom->SetValue(Buf);
-    std::sprintf(Buf, "%lld", Main::Proj_Info->Kernel->Kom_Order);
-    this->Kom_Order->SetStringSelection(Buf);
     std::sprintf(Buf, "%lld", Main::Proj_Info->Kernel->Kern_Prio);
     this->Kern_Prio->SetStringSelection(Buf);
-    this->Buildsystem->SetStringSelection(Main::Proj_Info->Kernel->Buildsystem);
+
+    /* Kernel memory options */
+    std::sprintf(Buf, "%lld", Main::Proj_Info->Kernel->Kom_Order);
+    this->Kom_Order->SetStringSelection(Buf);
+    std::sprintf(Buf, "0x%llX", Main::Proj_Info->Kernel->Extra_Kom);
+    this->Extra_Kom->SetValue(Buf);
+
     this->Toolchain->SetStringSelection(Main::Proj_Info->Kernel->Toolchain);
+    this->Buildsystem_Set(this->Toolchain->GetStringSelection());
+    this->Buildsystem->SetStringSelection(Main::Proj_Info->Kernel->Buildsystem);
     this->Optimization->SetSelection(Main::Proj_Info->Kernel->Optimization);
     this->Full_Image->SetValue(Main::Proj_Info->Kernel->Full_Image);
 
@@ -319,6 +337,95 @@ void Kernel_Panel::Load(void)
 }
 /* End Function:Kernel_Panel::Load *******************************************/
 
+/* Function:Kernel_Panel::Check ***********************************************
+Description : Check whether the kernel panel contains any errors..
+Input       : None.
+Output      : None.
+Return      : ret_t - if 0, no error exists; else -1.
+******************************************************************************/
+ret_t Kernel_Panel::Check(void)
+{
+    /* Code base & size */
+    if(Main::Hex_Check(this,this->Code_Base->GetValue(),_("Kernel Config"),_("Code base"))!=0)
+        return -1;
+    if(Main::Hex_Pos_Check(this,this->Code_Base->GetValue(),_("Kernel Config"),_("Code size"))!=0)
+        return -1;
+
+    /* Data base & size */
+    if(Main::Hex_Check(this,this->Data_Base->GetValue(),_("Kernel Config"),_("Data base"))!=0)
+        return -1;
+    if(Main::Hex_Pos_Check(this,this->Data_Size->GetValue(),_("Kernel Config"),_("Data size"))!=0)
+        return -1;
+
+    /* Stack size */
+    if(Main::Hex_Pos_Check(this,this->Stack_Size->GetValue(),_("Kernel Config"),_("Stack size"))!=0)
+        return -1;
+
+    /* Extra kernel memory */
+    if(Main::Hex_Check(this,this->Extra_Kom->GetValue(),_("Kernel Config"),"Extra amount")!=0)
+        return -1;
+
+    /* Output check */
+    if(this->Project_Output->GetValue()=="")
+    {
+        Main::Msgbox_Show(this,MSGBOX_ERROR,
+                          _("Kernel Config"),
+                          "\""+_("Project output folder")+"\""+_(" is unspecified."));
+        return -1;
+    }
+
+    if(this->Linker_Output->GetValue()=="")
+    {
+        Main::Msgbox_Show(this,MSGBOX_ERROR,
+                          _("Kernel Config"),
+                          "\""+_("Linker script output folder")+"\""+_(" is unspecified."));
+        return -1;
+    }
+
+    if(this->Config_Header_Output->GetValue()=="")
+    {
+        Main::Msgbox_Show(this,MSGBOX_ERROR,
+                          _("Kernel Config"),
+                          "\""+_("Config header output folder")+"\""+_(" is unspecified."));
+        return -1;
+    }
+
+    if(this->Boot_Header_Output->GetValue()=="")
+    {
+        Main::Msgbox_Show(this,MSGBOX_ERROR,
+                          _("Kernel Config"),
+                          "\""+_("Boot header output folder")+"\""+_(" is unspecified."));
+        return -1;
+    }
+
+    if(this->Boot_Source_Output->GetValue()=="")
+    {
+        Main::Msgbox_Show(this,MSGBOX_ERROR,
+                          _("Kernel Config"),
+                          "\""+_("Boot source output folder")+"\""+_(" is unspecified."));
+        return -1;
+    }
+
+    if(this->Hook_Source_Output->GetValue()=="")
+    {
+        Main::Msgbox_Show(this,MSGBOX_ERROR,
+                          _("Kernel Config"),
+                          "\""+_("Hook source output folder")+"\""+_(" is unspecified."));
+        return -1;
+    }
+
+    if(this->Handler_Source_Output->GetValue()=="")
+    {
+        Main::Msgbox_Show(this,MSGBOX_ERROR,
+                          _("Kernel Config"),
+                          "\""+_("Vector handler source output folder")+"\""+_(" is unspecified."));
+        return -1;
+    }
+
+    return 0;
+}
+/* End Function:Kernel_Panel::Check ******************************************/
+
 /* Function:Kernel_Panel::Save ************************************************
 Description : Save information to project information.
 Input       : None.
@@ -327,14 +434,23 @@ Return      : None.
 ******************************************************************************/
 void Kernel_Panel::Save(void)
 {
-    Main::Proj_Info->Kernel->Code_Base=std::stoull(this->Code_Base->GetValue().ToStdString(),0,0);
-    Main::Proj_Info->Kernel->Code_Size=std::stoull(this->Code_Size->GetValue().ToStdString(),0,0);
-    Main::Proj_Info->Kernel->Data_Base=std::stoull(this->Data_Base->GetValue().ToStdString(),0,0);
-    Main::Proj_Info->Kernel->Data_Size=std::stoull(this->Data_Size->GetValue().ToStdString(),0,0);
-    Main::Proj_Info->Kernel->Stack_Size=std::stoull(this->Stack_Size->GetValue().ToStdString(),0,0);
-    Main::Proj_Info->Kernel->Extra_Kom=std::stoull(this->Extra_Kom->GetValue().ToStdString(),0,0);
-    Main::Proj_Info->Kernel->Kom_Order=std::stoull(this->Kom_Order->GetStringSelection().ToStdString(),0,0);
-    Main::Proj_Info->Kernel->Kern_Prio=std::stoull(this->Kern_Prio->GetStringSelection().ToStdString(),0,0);
+    Main::Proj_Info->Kernel->Code_Base=std::stoull(std::string(this->Code_Base->GetValue()),0,0);
+    Main::Proj_Info->Kernel->Code_Size=std::stoull(std::string(this->Code_Size->GetValue()),0,0);
+    Main::Proj_Info->Kernel->Data_Base=std::stoull(std::string(this->Data_Base->GetValue()),0,0);
+    Main::Proj_Info->Kernel->Data_Size=std::stoull(std::string(this->Data_Size->GetValue()),0,0);
+    Main::Proj_Info->Kernel->Stack_Size=std::stoull(std::string(this->Stack_Size->GetValue()),0,0);
+    Main::Proj_Info->Kernel->Kern_Prio=std::stoull(std::string(this->Kern_Prio->GetStringSelection()),0,0);
+
+    switch(this->Kom_Order->GetSelection())
+    {
+        case 0:Main::Proj_Info->Kernel->Kom_Order=3;break;
+        case 1:Main::Proj_Info->Kernel->Kom_Order=4;break;
+        case 2:Main::Proj_Info->Kernel->Kom_Order=5;break;
+        case 3:Main::Proj_Info->Kernel->Kom_Order=6;break;
+        default:ASSERT(0,"Kernel memory granularity order is impossible.");
+    }
+    Main::Proj_Info->Kernel->Extra_Kom=std::stoull(std::string(this->Extra_Kom->GetValue()),0,0);
+
     Main::Proj_Info->Kernel->Buildsystem=this->Buildsystem->GetStringSelection();
     Main::Proj_Info->Kernel->Toolchain=this->Toolchain->GetStringSelection();
     Main::Proj_Info->Kernel->Optimization=this->Optimization->GetSelection();
@@ -353,168 +469,41 @@ void Kernel_Panel::Save(void)
 }
 /* End Function:Kernel_Panel::Save *******************************************/
 
-/* Function:Kernel_Panel::Check ***********************************************
-Description : Check whether the kernel panel contains any errors..
-Input       : None.
-Output      : None.
-Return      : ret_t - if 0, no error exists; else -1.
-******************************************************************************/
-ret_t Kernel_Panel::Check(void)
-{
-    std::string Comp_Sug;
-    std::string Toolchain;
-    std::string Buildsystem;
-    class wxArrayString Comp_Buildsystem;
-
-    if(Main::Num_GEZ_Hex_Check(this->Code_Base->GetValue().ToStdString())!=0)
-    {
-        Main::Msgbox_Show(this, MSGBOX_ERROR,
-                          _("Kernel Config"),
-                          _("Code base is not a valid hexadecimal nonnegative integer"));
-        return -1;
-    }
-    if(Main::Num_GEZ_Hex_Check(this->Code_Size->GetValue().ToStdString())!=0)
-    {
-        Main::Msgbox_Show(this, MSGBOX_ERROR,
-                          _("Kernel Config"),
-                          _("Code size is not a valid hexadecimal nonnegative integer"));
-        return -1;
-    }
-    if(Main::Num_GEZ_Hex_Check(this->Data_Base->GetValue().ToStdString())!=0)
-    {
-        Main::Msgbox_Show(this, MSGBOX_ERROR,
-                          _("Kernel Config"),
-                          _("Data base is not a valid hexadecimal nonnegative integer"));
-        return -1;
-    }
-    if(Main::Num_GEZ_Hex_Check(this->Data_Size->GetValue().ToStdString())!=0)
-    {
-        Main::Msgbox_Show(this, MSGBOX_ERROR,
-                          _("Kernel Config"),
-                          _("Data size is not a valid hexadecimal nonnegative integer"));
-        return -1;
-    }
-    if(Main::Num_GEZ_Hex_Check(this->Stack_Size->GetValue().ToStdString())!=0)
-    {
-        Main::Msgbox_Show(this, MSGBOX_ERROR,
-                          _("Kernel Config"),
-                          _("Stack size is not a valid hexadecimal nonnegative integer"));
-        return -1;
-    }
-    if(Main::Num_GEZ_Hex_Check(this->Extra_Kom->GetValue().ToStdString())!=0)
-    {
-        Main::Msgbox_Show(this, MSGBOX_ERROR,
-                          _("Kernel Config"),
-                          _("Extra KOM is not a valid hexadecimal nonnegative integer"));
-        return -1;
-    }
-    if(Main::Num_GEZ_Check(this->Kom_Order->GetStringSelection().ToStdString())!=0)
-    {
-        Main::Msgbox_Show(this, MSGBOX_ERROR,
-                          _("Kernel Config"),
-                          _("KOM order is not a valid decimal nonnegative integer"));
-        return -1;
-    }
-    if(Main::Num_GEZ_Check(this->Kern_Prio->GetStringSelection().ToStdString())!=0)
-    {
-        Main::Msgbox_Show(this, MSGBOX_ERROR,
-                          _("Kernel Config"),
-                          _("Kernel priority is not a valid decimal nonnegative integer"));
-        return -1;
-    }
-
-    /* Output check */
-    if(this->Project_Output->GetValue()=="")
-    {
-        Main::Msgbox_Show(this,MSGBOX_ERROR,
-                          _("Kernel Config"),
-                          _("The project output folder is unspecified."));
-        return -1;
-    }
-    if(this->Linker_Output->GetValue()=="")
-    {
-        Main::Msgbox_Show(this,MSGBOX_ERROR,
-                          _("Kernel Config"),
-                          _("The linker output folder is unspecified."));
-        return -1;
-    }
-    if(this->Config_Header_Output->GetValue()=="")
-    {
-        Main::Msgbox_Show(this,MSGBOX_ERROR,
-                          _("Kernel Config"),
-                          _("The config header output folder is unspecified."));
-        return -1;
-    }
-    if(this->Boot_Header_Output->GetValue()=="")
-    {
-        Main::Msgbox_Show(this,MSGBOX_ERROR,
-                          _("Kernel Config"),
-                          _("The boot header output folder is unspecified."));
-        return -1;
-    }
-    if(this->Boot_Source_Output->GetValue()=="")
-    {
-        Main::Msgbox_Show(this,MSGBOX_ERROR,
-                          _("Kernel Config"),
-                          _("The boot source output folder is unspecified."));
-        return -1;
-    }
-    if(this->Hook_Source_Output->GetValue()=="")
-    {
-        Main::Msgbox_Show(this,MSGBOX_ERROR,
-                          _("Kernel Config"),
-                          _("The hook source output folder is unspecified."));
-        return -1;
-    }
-    if(this->Handler_Source_Output->GetValue()=="")
-    {
-        Main::Msgbox_Show(this,MSGBOX_ERROR,
-                          _("Kernel Config"),
-                          _("The handler source output folder is unspecified."));
-        return -1;
-    }
-
-    /*  Compatible */
-    Buildsystem=this->Buildsystem->GetStringSelection();
-    Toolchain=this->Toolchain->GetStringSelection();
-    if(Main::Comp_Check(Buildsystem,Toolchain,"Native")!=0)
-    {
-        for(const std::unique_ptr<class Compatible>&Comp : Main::Plat_Info->Compatible)
-        {
-            if(Toolchain==Comp->Toolchain&&Comp_Buildsystem.Index(Comp->Buildsystem)==wxNOT_FOUND)
-            {
-                Comp_Buildsystem.push_back(Comp->Buildsystem);
-                Comp_Sug=Comp_Sug+Comp->Toolchain+", "+Comp->Buildsystem+"\n";
-            }
-        }
-        Main::Msgbox_Show(this, MSGBOX_ERROR,
-                          _("Kernel Config"),
-                          _("Compatibility error, you may try:\n"+Comp_Sug));
-        return -1;
-    }
-    return 0;
-}
-/* End Function:Kernel_Panel::Check ******************************************/
-
-/* Function:Kernel_Panel::Compatible_Set **************************************
-Description : Set build system and tool chain.
+/* Function:Kernel_Panel::Toolchain_Set ***************************************
+Description : Set the collection of possible tool chains.
 Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Kernel_Panel::Compatible_Set()
+void Kernel_Panel::Toolchain_Set(void)
 {
-    this->Toolchain->Clear();
-    this->Buildsystem->Clear();
-    for(std::unique_ptr<class Compatible>& Comp : Main::Plat_Info->Compatible)
-    {
-        if(this->Toolchain->FindString(Comp->Toolchain)==wxNOT_FOUND)
-            this->Toolchain->Append(Comp->Toolchain);
-        if(this->Buildsystem->FindString(Comp->Buildsystem)==wxNOT_FOUND)
-            this->Buildsystem->Append(Comp->Buildsystem);
-    }
+    std::vector<std::string> Tool_Avail;
+
+    wxLogDebug("Kernel_Panel::Toolchain_Set");
+
+    /* Ask for possible toolchains */
+    Main::Plat_Info->Toolchain_Native(Tool_Avail);
+    Main::Choice_Refill(this->Toolchain,Tool_Avail);
 }
-/* End Function:Kernel_Panel::Compatible_Set *********************************/
+/* End Function:Kernel_Panel::Toolchain_Set **********************************/
+
+/* Function:Kernel_Panel::Buildsystem_Set *************************************
+Description : Set build system given the toolchain choice.
+Input       : const class wxString& Toolchain - The chosen toolchain.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Kernel_Panel::Buildsystem_Set(const class wxString& Toolchain)
+{
+    std::vector<std::string> Build_Avail;
+
+    wxLogDebug("Kernel_Panel::Buildsystem_Set");
+
+    /* Ask for possible toolchains */
+    Main::Plat_Info->Buildsystem_Native(std::string(Toolchain),Build_Avail);
+    Main::Choice_Refill(this->Buildsystem,Build_Avail);
+}
+/* End Function:Kernel_Panel::Buildsystem_Set ********************************/
 
 /* Function:Kernel_Panel::Kernel_Prio_Set *************************************
 Description : Set kernel priority according to word length.
@@ -522,69 +511,58 @@ Input       : None.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Kernel_Panel::Kernel_Prio_Set()
+void Kernel_Panel::Kernel_Prio_Set(void)
 {
-    cnt_t Cnt;
-    ptr_t Word_Length;
-
-    Word_Length=Main::Plat_Info->Wordlength;
+    cnt_t Count;
 
     this->Kern_Prio->Clear();
-    for(Cnt=1;Cnt<=4;++Cnt)
-        this->Kern_Prio->Append(std::to_string(Word_Length*Cnt));
 
+    /* We allow priorities from 1-4 wordlength within the GUI */
+    for(Count=1;Count<=4;Count++)
+        this->Kern_Prio->Append(std::to_string(Main::Plat_Info->Wordlength*Count));
+
+    this->Kern_Prio->SetSelection(0);
 }
 /* End Function:Kernel_Panel::Kernel_Prio_Set ********************************/
 
-/* Function:Kernel_Panel::On_Trans_Hex ****************************************
-Description : Convert the content of the control to upper case letters and add
-              the '0x'  as prefix.
+/* Function:Kernel_Panel::On_Text_Hex *****************************************
+Description : wxEVT_KILL_FOCUS handler for all text input boxes that should
+              normally contain a hex integer.
 Input       : class wxFocusEvent& Event - The event.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Kernel_Panel::On_Trans_Hex(class wxFocusEvent& Event)
+void Kernel_Panel::On_Text_Hex(class wxFocusEvent& Event)
 {
-    class wxString Value;
-    class wxTextCtrl* Temp;
+    class wxTextCtrl* Text;
 
-    Temp=dynamic_cast<wxTextCtrl*>(Event.GetEventObject());
-    if (Temp)
-    {
-        Value=Temp->GetValue();
-        Value=Value.Upper();
-        if (Value.starts_with("0X"))
-            Value[1]='x';
-        else
-            Value="0x"+Value;
-        Temp->SetValue(Value);
-    }
+    Text=dynamic_cast<class wxTextCtrl*>(Event.GetEventObject());
+    if(Text!=nullptr)
+        Text->SetValue(Main::Num2Hex(std::string(Text->GetValue())));
+
     Event.Skip();
 }
-/* End Function:Kernel_Panel::On_Trans_Hex ***********************************/
+/* End Function:Kernel_Panel::On_Text_Hex ************************************/
 
-/* Function:Kernel_Panel::On_Toolchain_Change *********************************
-Description : Configure a compatible build system based on the tool chain settings.
-Input       : class wxFocusEvent& Event - The event.
+/* Function:Kernel_Panel::On_Toolchain ****************************************
+Description : wxEVT_CHOICE handler for 'Toolchain'.
+Input       : class wxCommandEvent& Event - The event.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-void Kernel_Panel::On_Toolchain_Change(class wxCommandEvent& Event)
+void Kernel_Panel::On_Toolchain(class wxCommandEvent& Event)
 {
-    std::string Toolchain;
+    class wxString Toolchain;
+    class wxString Buildsystem;
 
     Toolchain=this->Toolchain->GetStringSelection();
+    Buildsystem=this->Buildsystem->GetStringSelection();
 
-    this->Buildsystem->Clear();
-    for(std::unique_ptr<class Compatible>& Comp : Main::Plat_Info->Compatible)
-        if(Toolchain==Comp->Toolchain&&this->Buildsystem->FindString(Comp->Buildsystem)==wxNOT_FOUND)
-            this->Buildsystem->Append(Comp->Buildsystem);
-    /* Default selection */
-    if(this->Buildsystem->GetCount()>0)
-        this->Buildsystem->SetSelection(0);
+    /* Recreate options if the current one is invalid */
+    if(Main::Plat_Info->Compat_Check(std::string(Toolchain), std::string(Buildsystem))!=0)
+        this->Buildsystem_Set(Toolchain);
 }
-/* End Function:Kernel_Panel::On_Toolchain_Change ****************************/
-
+/* End Function:Kernel_Panel::On_Toolchain ***********************************/
 }
 /* End Of File ***************************************************************/
 
