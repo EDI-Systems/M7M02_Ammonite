@@ -73,7 +73,8 @@ Return      : None.
     this->Class=Chip_Info->Name;
     /* Name */
     this->Name=Chipname;
-    /* There is no coprocessor when we initially create this */
+    /* Coprocessor */
+    this->Coprocessor.push_back("None");
     /* Config */
     for(const std::unique_ptr<class Conf_Info>&Conf:Plat_Info->Config)
         this->Config.insert(std::make_pair(Conf->Name,Conf->Default));

@@ -54,14 +54,12 @@ Output      : None.
 Return      : None.
 ******************************************************************************/
 /* void */ Target_Dialog::Target_Dialog(class wxWindow* Parent):
-wxDialog(Parent,wxID_ANY,_("Target Selection"),wxDefaultPosition,I2P(wxSize(350,190)))
+wxDialog(Parent,wxID_ANY,_("Target Selection"),wxDefaultPosition,I2P(wxSize(350,210)))
 {
     this->Center();
 
     try
     {
-        this->SetMinSize(I2P(wxSize(512,600)));
-
         this->Main_Sizer=new class wxBoxSizer(wxVERTICAL);
         this->Target_Sizer=new class wxStaticBoxSizer(wxVERTICAL,this,_("Target Selection"));
 
@@ -89,9 +87,9 @@ wxDialog(Parent,wxID_ANY,_("Target Selection"),wxDefaultPosition,I2P(wxSize(350,
         this->Target_Sizer->Add(this->Chipname_Sizer,0,wxEXPAND);
 
         this->Button_Sizer=new class wxBoxSizer(wxHORIZONTAL);
-        this->Confirm=new class wxButton(this,wxID_ANY,_("Confirm"));
+        this->Confirm=new class wxButton(this,wxID_OK,_("Confirm"));
         this->Bind(wxEVT_BUTTON,&Target_Dialog::On_Confirm,this,this->Confirm->GetId());
-        this->Cancel=new class wxButton(this,wxID_ANY,_("Cancel"));
+        this->Cancel=new class wxButton(this,wxID_CANCEL,_("Cancel"));
         this->Bind(wxEVT_BUTTON,&Target_Dialog::On_Cancel,this,this->Cancel->GetId());
         this->Button_Sizer->AddStretchSpacer(1);
         this->Button_Sizer->Add(this->Confirm,0,wxALL,I2P(5));
@@ -134,7 +132,9 @@ Return      : None.
 ******************************************************************************/
 void Target_Dialog::On_Close(class wxCloseEvent& Event)
 {
-    this->Hide();
+    wxLogDebug("Target_Dialog::On_Close");
+
+    this->EndModal(wxID_CANCEL);
 }
 /* End Function:Target_Dialog::On_Close **************************************/
 
@@ -158,7 +158,7 @@ void Target_Dialog::On_Confirm(class wxCommandEvent& Event)
         return;
     }
 
-    this->Hide();
+    this->EndModal(wxID_OK);
 }
 /* End Function:Target_Dialog::On_Confirm ************************************/
 
@@ -172,7 +172,7 @@ void Target_Dialog::On_Cancel(class wxCommandEvent& Event)
 {
     wxLogDebug("Target_Dialog::On_Cancel");
 
-    this->Hide();
+    this->EndModal(wxID_CANCEL);
 }
 /* End Function:Target_Dialog::On_Cancel *************************************/
 

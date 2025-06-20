@@ -176,6 +176,7 @@ public:
 
     static void Idtfr_Check(const std::string& Idtfr, const std::string& Name,
                             const std::string& Errno0, const std::string& Errno1);
+
     static std::string Path_Absolute(ptr_t Type, const std::string& Root, const std::string& Path);
     static std::string Path_Relative(ptr_t Type, const std::string& Root, const std::string& Path);
     static std::string File_Dir(const std::string& Path);

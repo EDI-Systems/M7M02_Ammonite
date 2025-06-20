@@ -1674,6 +1674,10 @@ void Main::Kernel_Gen(void)
 {
     try
     {
+        /* Generate workspace folder if it does not exist already */
+        Main::Info("Creating directory for workspace.");
+        std::filesystem::create_directories(Main::Workspace_Output);
+
         /* Generate kernel folders, if they do not exist already */
         Main::Info("Creating kernel directories.");
         std::filesystem::create_directories(this->Proj->Kernel->Project_Output);
@@ -2801,9 +2805,6 @@ int main(int argc, char* argv[])
 /* Phase 4: Produce output ***************************************************/
         if(Main::Dryrun==0)
         {
-            /* Generate workspace folder if it does not exist already */
-            Main::Info("Creating directory for workspace.");
-            std::filesystem::create_directories(Main::Workspace_Output);
             /* Generate the underlying project files as needed */
             Main->Kernel_Gen();
             Main->Monitor_Gen();

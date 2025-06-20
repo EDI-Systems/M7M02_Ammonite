@@ -145,9 +145,9 @@ wxDialog(Parent,wxID_ANY,_("Settings"),wxDefaultPosition,I2P(wxSize(640,510)))
         this->Guest_Script_Sizer->Add(this->MPY_Sizer,0,wxEXPAND);
 
         this->Button_Sizer=new class wxBoxSizer(wxHORIZONTAL);
-        this->Confirm=new class wxButton(this,wxID_ANY,_("Confirm"));
+        this->Confirm=new class wxButton(this,wxID_OK,_("Confirm"));
         this->Bind(wxEVT_BUTTON,&Setting_Dialog::On_Confirm,this,this->Confirm->GetId());
-        this->Cancel=new class wxButton(this,wxID_ANY,_("Cancel"));
+        this->Cancel=new class wxButton(this,wxID_CANCEL,_("Cancel"));
         this->Bind(wxEVT_BUTTON,&Setting_Dialog::On_Cancel,this,this->Cancel->GetId());
         this->Restore=new class wxButton(this,wxID_ANY,_("Restore"));
         this->Bind(wxEVT_BUTTON,&Setting_Dialog::On_Restore,this,this->Restore->GetId());
@@ -412,7 +412,9 @@ Return      : None.
 ******************************************************************************/
 void Setting_Dialog::On_Close(class wxCloseEvent& Event)
 {
-    this->Hide();
+    wxLogDebug("Setting_Dialog::On_Close");
+
+    this->EndModal(wxID_CANCEL);
 }
 /* End Function:Setting_Dialog::On_Close *************************************/
 
@@ -428,7 +430,8 @@ void Setting_Dialog::On_Confirm(class wxCommandEvent& Event)
 
     this->Save();
     this->File_Save();
-    this->Hide();
+
+    this->EndModal(wxID_OK);
 }
 /* End Function:Setting_Dialog::On_Confirm ***********************************/
 
@@ -440,7 +443,9 @@ Return      : None.
 ******************************************************************************/
 void Setting_Dialog::On_Cancel(class wxCommandEvent& Event)
 {
-    this->Hide();
+    wxLogDebug("Setting_Dialog::On_Cancel");
+
+    this->EndModal(wxID_CANCEL);
 }
 /* End Function:Setting_Dialog::On_Cancel ************************************/
 
@@ -452,6 +457,8 @@ Return      : None.
 ******************************************************************************/
 void Setting_Dialog::On_Restore(class wxCommandEvent& Event)
 {
+    wxLogDebug("Setting_Dialog::On_Restore");
+
     this->Load();
 }
 /* End Function:Setting_Dialog::On_Restore ***********************************/
@@ -464,6 +471,8 @@ Return      : None.
 ******************************************************************************/
 void Setting_Dialog::On_Default(class wxCommandEvent& Event)
 {
+    wxLogDebug("Setting_Dialog::On_Default");
+
     this->RME_Picker->SetPath("./../../../M7M01_Eukaron/");
     this->RVM_Picker->SetPath("./../../../M7M02_Ammonite/");
     this->RMP_Picker->SetPath("./../../../M5P01_Prokaron/");

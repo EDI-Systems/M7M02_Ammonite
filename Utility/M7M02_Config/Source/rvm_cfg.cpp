@@ -2023,13 +2023,17 @@ ret_t Main::Proj_Close(void)
 
     /* Save the current panel to data structure first */
     if(Main::Option_Panel->Current_Save()!=0)
-        return -1;
+    {
+        if(Main::Msgbox_Show(Main::Option_Panel,MSGBOX_ASK,_("Close Project"),
+                             _("The project has pending errors. Close anyway?"))!=wxID_OK)
+            return -1;
+    }
 
     /* See if the project is saved */
     if(Main::Proj_Info->Change_Detect()!=0)
     {
         if(Main::Msgbox_Show(Main::Option_Panel,MSGBOX_ASK,_("Close Project"),
-                             _("The project haven't been saved. Close anyway?"))!=wxID_OK)
+                             _("The project hasn't been saved. Close anyway?"))!=wxID_OK)
             return -1;
     }
 
@@ -2245,20 +2249,26 @@ void Main::Generate_Begin(ptr_t Generate)
     for(class wxString& Temp:Error)
         Reply.push_back(std::string(Temp));
 
-    /* See if this was terminated because of error */
+    /* See if this was terminated because of error - we don't support Chinese paths by default */
     if(Generate!=0)
     {
         if(Retval==0)
             Command=_("Generation successful.");
         else
-            Command=_("There were errors in the generation.");
+        {
+            Command=_("There were errors in the generation.\n");
+            Command+=_("If no exact reasons were reported, it could be that the paths contain non-ASCII characters.");
+        }
     }
     else
     {
         if(Retval==0)
             Command=_("Validation successful.");
         else
-            Command=_("There were errors in the validation.");
+        {
+            Command=_("There were errors in the validation.\n");
+            Command+=_("If no exact reasons were reported, it could be that the paths contain non-ASCII characters.");
+        }
     }
 
     /* Pop-up report.txt if it exists and we specified opening */

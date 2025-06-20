@@ -263,7 +263,7 @@ void Config_Popup::On_New_Item(class wxCommandEvent& Event)
                 else
                     break;
 
-                if(this->Native_Add(Name)==0)
+                if(this->Virtual_Add(Name)==0)
                     break;
 
                 Main::Msgbox_Show(RVM_CFG_App::Main,MSGBOX_ERROR, _("New Item"),

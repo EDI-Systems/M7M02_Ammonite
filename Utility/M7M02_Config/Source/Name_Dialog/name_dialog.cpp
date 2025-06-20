@@ -39,7 +39,7 @@ Output      : None.
 Return      : None.
 ******************************************************************************/
 /* void */ Name_Dialog::Name_Dialog(class wxWindow* Parent):
-wxDialog(Parent,wxID_ANY,_("Rename"),wxDefaultPosition,I2P(wxSize(350,120)))
+wxDialog(Parent,wxID_ANY,_("Process Name"),wxDefaultPosition,I2P(wxSize(350,120)))
 {
     this->Center();
 
@@ -56,13 +56,13 @@ wxDialog(Parent,wxID_ANY,_("Rename"),wxDefaultPosition,I2P(wxSize(350,120)))
         this->Name_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Button_Sizer=new class wxBoxSizer(wxHORIZONTAL);
 
-        this->Name_Label=new wxStaticText(this,wxID_ANY,_("New Name:"));
+        this->Name_Label=new wxStaticText(this,wxID_ANY,_("Name"));
         this->Name=new wxTextCtrl(this,wxID_ANY);
         this->Name_Sizer->Add(Name_Label,0,wxEXPAND|wxALL,I2P(5));
         this->Name_Sizer->Add(Name,1,wxEXPAND|wxALL,I2P(5));
 
-        this->Confirm=new class wxButton(this,wxID_ANY,_("Confirm"));
-        this->Cancel=new class wxButton(this,wxID_ANY,_("Cancel"));
+        this->Confirm=new class wxButton(this,wxID_OK,_("Confirm"));
+        this->Cancel=new class wxButton(this,wxID_CANCEL,_("Cancel"));
         this->Bind(wxEVT_BUTTON,&Name_Dialog::On_Confirm,this,this->Confirm->GetId());
         this->Bind(wxEVT_BUTTON,&Name_Dialog::On_Cancel,this,this->Cancel->GetId());
         this->Button_Sizer->AddStretchSpacer(1);
@@ -104,8 +104,9 @@ Return      : None.
 ********************************************************************************/
 void Name_Dialog::On_Close(class wxCloseEvent& Event)
 {
+    wxLogDebug("Name_Dialog::On_Close");
+
     this->EndModal(wxID_CANCEL);
-    this->Hide();
 }
 /* End Function:Name_Dialog::On_Close ******************************************/
 
@@ -117,6 +118,8 @@ Return      : None.
 ********************************************************************************/
 void Name_Dialog::On_Confirm(class wxCommandEvent& Event)
 {
+    wxLogDebug("Name_Dialog::On_Confirm");
+
     if(Main::Idtfr_Check(this->Name->GetValue().Upper().ToStdString()))
     {
         Main::Msgbox_Show(this,MSGBOX_ERROR,
@@ -124,8 +127,8 @@ void Name_Dialog::On_Confirm(class wxCommandEvent& Event)
                           _("It is not a valid C identifier"));
         return;
     }
+
     this->EndModal(wxID_OK);
-    this->Hide();
 }
 /* End Function:Name_Dialog::On_Confirm ****************************************/
 
@@ -137,8 +140,9 @@ Return      : None.
 ********************************************************************************/
 void Name_Dialog::On_Cancel(class wxCommandEvent& Event)
 {
+    wxLogDebug("Name_Dialog::On_Cancel");
+
     this->EndModal(wxID_CANCEL);
-    this->Hide();
 }
 /* End Function:Name_Dialog::On_Cancel *****************************************/
 
