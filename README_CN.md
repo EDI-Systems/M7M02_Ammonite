@@ -1,5 +1,5 @@
 ﻿<h1 align="center">
-	<img width="300" src="/Document/Public/Demo/logo.png" alt="logo">
+	<img width="300" src="/Document/Demo/logo.png" alt="logo">
 </h1>
 
 # Unity Platform (RVM)
