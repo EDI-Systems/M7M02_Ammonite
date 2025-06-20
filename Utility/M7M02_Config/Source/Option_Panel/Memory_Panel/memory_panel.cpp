@@ -332,6 +332,14 @@ ret_t Memory_Panel::Check(void)
            (Main::Hex_Check(this,Base,Caption,_("Base")+_(" at row ")+std::to_string(Row+1))!=0))
             return -1;
 
+        if((Base==_("Auto"))&&(Main::Mem_Type_Get(this->Grid,Row,2)==MEM_DEVICE))
+        {
+            Main::Msgbox_Show(this,MSGBOX_ERROR,
+                              Caption,
+                              _("Device memory")+_(" at row ")+std::to_string(Row+1)+_(" must have a fixed base address and cannot be 'Auto'."));
+            return -1;
+        }
+
         /* Size */
         if(Main::Hex_Pos_Check(this,this->Grid->GetCellValue(Row,4),
                                Caption,_("Size")+_(" at row ")+std::to_string(Row+1))!=0)

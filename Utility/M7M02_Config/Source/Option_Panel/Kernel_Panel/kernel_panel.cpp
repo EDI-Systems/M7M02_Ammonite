@@ -348,7 +348,7 @@ ret_t Kernel_Panel::Check(void)
     /* Code base & size */
     if(Main::Hex_Check(this,this->Code_Base->GetValue(),_("Kernel Config"),_("Code base"))!=0)
         return -1;
-    if(Main::Hex_Pos_Check(this,this->Code_Base->GetValue(),_("Kernel Config"),_("Code size"))!=0)
+    if(Main::Hex_Pos_Check(this,this->Code_Size->GetValue(),_("Kernel Config"),_("Code size"))!=0)
         return -1;
 
     /* Data base & size */

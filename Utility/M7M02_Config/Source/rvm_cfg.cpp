@@ -1695,7 +1695,7 @@ ret_t Main::Hex_Pos_Check(class wxWindow* Parent, const class wxString& Num,
 
 /* Function:Main::File_Validate ***********************************************
 Description : See if the filename or path is valid. The filename must be all lower
-              case letters plus the 0-9 and _.
+              case letters plus the 0-9, - and _.
 Input       : const std::string& File - The name or path to validate.
 Output      : None.
 Return      : ret_t - If 0, valid; else invalid.
@@ -1717,9 +1717,9 @@ ret_t Main::File_Validate(const std::string& Filename)
         return -1;
 
     /* Name and suffix cannot include anything suspicious */
-    if(Name.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyz_")!=Name.npos)
+    if(Name.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyz_-")!=Name.npos)
         return -1;
-    if(Ext.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyz_")!=Ext.npos)
+    if(Ext.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyz_-")!=Ext.npos)
         return -1;
 
     /* May not begin with a number */
