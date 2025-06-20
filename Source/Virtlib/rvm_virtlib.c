@@ -28,7 +28,9 @@ Description : Paravirtualization library implementation.
 /* End Include ***************************************************************/
 
 /* Function:RVM_Prc_Evt_Snd ***************************************************
-Description : Send to an event source from a process.
+Description : Send to an event source from a process. This is only available in
+              native processes and not available in virtual machines; for the
+              latter, please use RVM_Hyp_Evt_Snd instead.
 Input       : rvm_ptr_t Evt_Num - The number to send to.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
@@ -66,12 +68,16 @@ void RVM_Virt_Init(void)
 Description : Initialize an interrupt handler.
 Input       : rvm_ptr_t Vct_Num - The vector number to register for.
               void (*Vct)(void) - The actual vector handler, should take no
-                                  arguments and return nothing.
+                                  arguments and return nothing. If NULL is 
+                                  supplied, we're deregistering this slot.
+              rvm_ptr_t Vct_Attr - Interrupt attributes, can be either
+                                   RVM_VCT_MASKABLE or RVM_VCT_TRANSPARENT.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 rvm_ret_t RVM_Virt_Vct_Reg(rvm_ptr_t Vct_Num,
-                           void (*Vct)(void))
+                           void (*Vct)(void),
+                           rvm_ptr_t Vct_Attr)
 {
     if(Vct_Num>=RVM_VIRT_VCT_NUM)
     {
@@ -85,24 +91,43 @@ rvm_ret_t RVM_Virt_Vct_Reg(rvm_ptr_t Vct_Num,
         /* No operation required */
     }
     
+    /* Avoid race condition when setting parameters */
+    RVM_Handler.Vct[Vct_Num]=RVM_NULL;
+    RVM_Handler.Vct_Attr[Vct_Num]=Vct_Attr;
     RVM_Handler.Vct[Vct_Num]=Vct;
+    
     return 0;
 }
 /* End Function:RVM_Virt_Vct_Reg *********************************************/
 
 /* Function:RVM_Virt_Vct_Trig *************************************************
-Description : Trigger a certain designated virtual vector with the VM.
+Description : Trigger a certain designated virtual vector from within the VM.
+              Can be used as a software interrupt handler.
 Input       : rvm_ptr_t Vct_Num - The vector number to trigger.
 Output      : None.
 Return      : rvm_ret_t - If successful, 0; or an error code.
 ******************************************************************************/
 rvm_ret_t RVM_Virt_Vct_Trig(rvm_ptr_t Vct_Num)
 {
+    /* See if the vector index is overrange */
     if(Vct_Num>=RVM_VIRT_VCT_NUM)
     {
         RVM_COV_MARKER();
         
         return RVM_ERR_RANGE;
+    }
+    else
+    {
+        RVM_COV_MARKER();
+        /* No operation required */
+    }
+    
+    /* Can't send to a vector that is not assigned */
+    if(RVM_Handler.Vct[Vct_Num]==RVM_NULL)
+    {
+        RVM_COV_MARKER();
+        
+        return RVM_ERR_NULL;
     }
     else
     {
@@ -118,17 +143,44 @@ rvm_ret_t RVM_Virt_Vct_Trig(rvm_ptr_t Vct_Num)
     {
         RVM_COV_MARKER();
         
-        if(RVM_Int_Mask==0U)
-        {
-            RVM_COV_MARKER();
-            
-            RVM_ASSERT(RVM_Sig_Snd(RVM_SIG_VCT,1U)==0);
-        }
-        else
+        /* If interrupt is altogether disabled, don't send at all */
+        if(RVM_Int_Disable!=0U)
         {
             RVM_COV_MARKER();
             
             RVM_Vct_Pend=1U;
+        }
+        /* If interrupt is not disabled, but is masked, see if the target
+         * is transparent; if it is, we send, if it is not, we still pend */
+        else
+        {
+            RVM_COV_MARKER();
+            
+            if(RVM_Int_Mask!=0U)
+            {
+                RVM_COV_MARKER();
+                
+                /* Maskable, don't send */
+                if(RVM_Handler.Vct_Attr[Vct_Num]==RVM_VCT_MASKABLE)
+                {
+                    RVM_COV_MARKER();
+                    
+                    RVM_Vct_Pend=1U;
+                }
+                /* Transparent, send regardless */
+                else
+                {
+                    RVM_COV_MARKER();
+                    
+                    RVM_ASSERT(RVM_Sig_Snd(RVM_SIG_VCT,1U)==0);
+                }
+            }
+            else
+            {
+                RVM_COV_MARKER();
+                
+                RVM_ASSERT(RVM_Sig_Snd(RVM_SIG_VCT,1U)==0);
+            }
         }
     }
     else
@@ -216,7 +268,7 @@ void RVM_Virt_Yield(void)
     /* Set the context switch flag */
     RVM_VCTF->Ctx=1U;
     
-    /* Trigger if the interrupt is not masked and we are not in interrupt */
+    /* Trigger if the interrupt is enabled, not masked and we are not in interrupt */
     if(RVM_STATE->Vct_Act==0U)
     {
         RVM_COV_MARKER();
@@ -354,8 +406,10 @@ void RVM_Hyp_Int_Ena(void)
     /* Trigger interrupt processing if there are pending ones. No race
      * conditions are possible between this and the RVM_Int_Unmask's
      * equivalent portion because one of them must be able to enter the
-     * sending branch, thus no interrupts will be erronously delayed. */
-    if((RVM_Int_Mask==0U)&&(RVM_Vct_Pend!=0U))
+     * sending branch, thus no interrupts will be erronously delayed. 
+     * Also note that here we don't check the mask because what were pended
+     * could include transparent interrupts, which the mask cannot stop. */
+    if(RVM_Vct_Pend!=0U)
     {
         RVM_COV_MARKER();
         
@@ -372,6 +426,17 @@ void RVM_Hyp_Int_Ena(void)
 /* Function:RVM_Hyp_Int_Dis ***************************************************
 Description : Disable interrupts. This must be successful so it does not have
               a return value.
+              A note on the RVM_Int_Disable in addition to the RVM_Int_Mask:
+              If this is just a wrapper around the hypercall, then this alone
+              just stops the interrupt injection, but does not stop the Vct
+              thread from running software interrupts triggered within the VM
+              (like context switch interrupts from RVM_Virt_Yield or regular
+              ones from RVM_Virt_Vct_Trig). Thus, when interrupts are disabled,
+              we need a variable to tell Vct to pend further interrupts should
+              it receive any. RVM_Int_Mask can't be reused for this purpose,
+              otherwise RVM_Hyp_Int_Dis will be able to unmask interrupts, which
+              is not in accordance with the behavior of real microcontrollers,
+              and we need an independent variable to remember this.
 Input       : None.
 Output      : None.
 Return      : None.
@@ -505,6 +570,9 @@ Description : Get the interrupt number to handle. After returning the vector,
               because the interrupt vector is called after the interrupt flag
               is reset; were there any incoming interrupts while the interrupt
               is being processed, the flag will become set again.
+              This function automatically filters out the interrupts that are
+              maskable when the mask is set, and will set the pending flag
+              accordingly.
 Input       : None.
 Output      : None.
 Return      : rvm_ret_t - If there is interrupt pending, the number; else -1.
@@ -516,19 +584,6 @@ rvm_ret_t RVM_Vct_Get(void)
     rvm_ptr_t Byte_Cnt;
     rvm_ptr_t Word;
     rvm_u8_t* Flag;
-    
-    /* See if interrupt enabled */
-    if(RVM_Int_Mask!=0U)
-    {
-        RVM_COV_MARKER();
-        
-        return -1;
-    }
-    else
-    {
-        RVM_COV_MARKER();
-        /* No operation required */
-    }
     
     /* See which word is ready, and pick it - must be word aligned */
     for(Word_Cnt=0U;Word_Cnt<RVM_VCTF_WORD_SIZE;Word_Cnt++)
@@ -550,9 +605,24 @@ rvm_ret_t RVM_Vct_Get(void)
                     RVM_COV_MARKER();
                     
                     Pos=(Word_Cnt<<3)+Byte_Cnt;
-                    /* Clear flag then return byte position */
-                    ((volatile rvm_u8_t*)RVM_VCTF->Vct)[Pos]=0U;
-                    return (rvm_ret_t)Pos;
+                    
+                    /* If interrupt is not masked, just return whatever we found, and if
+                     * it is masked, we return only when the interrupt is transparent */
+                    if((RVM_Int_Mask==0)||
+                       ((RVM_Int_Mask!=0)&&(RVM_Handler.Vct_Attr[Pos]!=RVM_VCT_MASKABLE)))
+                    {
+                        RVM_COV_MARKER();
+                        
+                        /* Clear flag then return byte position */
+                        ((volatile rvm_u8_t*)RVM_VCTF->Vct)[Pos]=0U;
+                        return (rvm_ret_t)Pos;
+                    }
+                    /* If we don't send, just say that there is still a pending one */
+                    else
+                    {
+                        RVM_COV_MARKER();
+                        RVM_Vct_Pend=1U;
+                    }
                 }
                 else
                 {
@@ -561,8 +631,8 @@ rvm_ret_t RVM_Vct_Get(void)
                 }
             }
             
-            /* There must be a non-zero byte or we have an error */
-            RVM_ASSERT(0);
+            /* There must be a non-zero byte; at this point it must be pended */
+            RVM_ASSERT(RVM_Vct_Pend!=0U);
         }
         else
         {
@@ -591,8 +661,8 @@ void RVM_Vct_Loop(void)
         /* Block on the receive endpoint */
         RVM_ASSERT(RVM_Sig_Rcv(RVM_SIG_VCT,RVM_RCV_BM)>=0);
         
-        /* Try to get interrupts if interrupt enabled and we didn't mask it */
-        if((RVM_Int_Disable==0U)&&(RVM_Int_Mask==0U))
+        /* Try to get interrupts if interrupt enabled */
+        if(RVM_Int_Disable==0U)
         {
             RVM_COV_MARKER();
             
@@ -603,7 +673,8 @@ void RVM_Vct_Loop(void)
             /* Look for interrupts to handle from the first vector number */
             Vct_Num=RVM_Vct_Get();
             
-            /* Handle the vectors here - all vectors tail-chained */
+            /* Handle the vectors here - all vectors tail-chained, but lower number
+             * ones will have higher priority due to scanning sequence of interrupts */
             while(Vct_Num>=0)
             {
                 if(RVM_Handler.Vct[Vct_Num]!=RVM_NULL)
@@ -621,50 +692,71 @@ void RVM_Vct_Loop(void)
                 Vct_Num=RVM_Vct_Get();
             }
             
-            /* Handle timer interrupts if needed */
-            if(RVM_VCTF->Tim!=0U)
+            if(RVM_Int_Mask==0U)
+            {
+                /* Handle timer interrupts if needed */
+                if(RVM_VCTF->Tim!=0U)
+                {
+                    RVM_COV_MARKER();
+                    
+                    RVM_VCTF->Tim=0U;
+                    if(RVM_Handler.Tim!=RVM_NULL)
+                    {
+                        RVM_COV_MARKER();
+                        
+                        RVM_Handler.Tim();
+                    }
+                    else
+                    {
+                        RVM_COV_MARKER();
+                        /* No operation required */
+                    }
+                }
+                else
+                {
+                    RVM_COV_MARKER();
+                    /* No operation required */
+                }
+
+                /* Handle the context switch vector if needed */
+                if(RVM_VCTF->Ctx!=0U)
+                {
+                    RVM_VCTF->Ctx=0U;
+                    if(RVM_Handler.Ctx!=RVM_NULL)
+                    {
+                        RVM_COV_MARKER();
+                        
+                        RVM_Handler.Ctx();
+                    }
+                    else
+                    {
+                        RVM_COV_MARKER();
+                        /* No operation required */
+                    }
+                }
+                else
+                {
+                    RVM_COV_MARKER();
+                    /* No operation required */
+                }
+            }
+            else
             {
                 RVM_COV_MARKER();
                 
-                RVM_VCTF->Tim=0U;
-                if(RVM_Handler.Tim!=RVM_NULL)
+                /* We will not respond to timer interrupts and context switch interrupts
+                 * if our interrupt is masked, and when they are triggered, pend them */
+                if((RVM_VCTF->Tim!=0U)||(RVM_VCTF->Ctx!=0U))
                 {
                     RVM_COV_MARKER();
                     
-                    RVM_Handler.Tim();
+                    RVM_Vct_Pend=1U;
                 }
                 else
                 {
                     RVM_COV_MARKER();
                     /* No operation required */
                 }
-            }
-            else
-            {
-                RVM_COV_MARKER();
-                /* No operation required */
-            }
-
-            /* Handle the context switch vector if needed */
-            if(RVM_VCTF->Ctx!=0U)
-            {
-                RVM_VCTF->Ctx=0U;
-                if(RVM_Handler.Ctx!=RVM_NULL)
-                {
-                    RVM_COV_MARKER();
-                    
-                    RVM_Handler.Ctx();
-                }
-                else
-                {
-                    RVM_COV_MARKER();
-                    /* No operation required */
-                }
-            }
-            else
-            {
-                RVM_COV_MARKER();
-                /* No operation required */
             }
             
             /* Deactivate once we finish */
@@ -674,7 +766,7 @@ void RVM_Vct_Loop(void)
         {
             RVM_COV_MARKER();
             
-            /* Vector pending, will try to process when we can later */
+            /* Interrupt disabled altogether, will try to process later */
             RVM_Vct_Pend=1U;
         }
     }

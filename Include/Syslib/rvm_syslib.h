@@ -820,18 +820,20 @@ while(0)
 /* Error code */
 /* The state is wrong */
 #define RVM_ERR_STATE                               (-1)
+/* The object is NULL */
+#define RVM_ERR_NULL                                (-2)
 /* The number is overrange */
-#define RVM_ERR_RANGE                               (-2)
+#define RVM_ERR_RANGE                               (-3)
 /* The error is address related */
-#define RVM_ERR_ADDR                                (-3)
+#define RVM_ERR_ADDR                                (-4)
 /* The error is physical vector related */
-#define RVM_ERR_PHYS                                (-4)
+#define RVM_ERR_PHYS                                (-5)
 /* The error is virtual vector related */
-#define RVM_ERR_VIRT                                (-5)
+#define RVM_ERR_VIRT                                (-6)
 /* The error is event related */
-#define RVM_ERR_EVT                                 (-6)
+#define RVM_ERR_EVT                                 (-7)
 /* The error is mapping block related */
-#define RVM_ERR_MAP                                 (-7)
+#define RVM_ERR_MAP                                 (-8)
 /* End Hypervisor Macro ******************************************************/
 /*****************************************************************************/
 /* __RVM_SYSLIB_DEF__ */

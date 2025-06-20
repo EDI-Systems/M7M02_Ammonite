@@ -28,6 +28,10 @@ Description : Paravirtualization library header.
 #define RVM_SIG_HYP                                 (0U)
 /* Vector signal endpoint */
 #define RVM_SIG_VCT                                 (1U)
+
+/* Interrupt vector attributes */
+#define RVM_VCT_MASKABLE                            (0U)
+#define RVM_VCT_TRANSPARENT                         (1U)
 #endif
 /*****************************************************************************/
 /* __RVM_VIRTLIB_DEF__ */
@@ -53,6 +57,7 @@ struct RVM_Handler_Struct
     void (*Tim)(void);
     void (*Ctx)(void);
     void (*Vct[RVM_VIRT_VCT_NUM])(void);
+    rvm_u8_t Vct_Attr[RVM_VIRT_VCT_NUM];
 };
 #endif
 /*****************************************************************************/
@@ -118,7 +123,8 @@ __RVM_EXTERN__ rvm_ret_t RVM_Prc_Evt_Snd(rvm_ptr_t Evt_Num);
 #else
 /* Virtual machine library call */
 __RVM_EXTERN__ rvm_ret_t RVM_Virt_Vct_Reg(rvm_ptr_t Vct_Num,
-                                          void (*Vct)(void));
+                                          void (*Vct)(void),
+                                          rvm_ptr_t Vct_Attr);
 __RVM_EXTERN__ rvm_ret_t RVM_Virt_Vct_Trig(rvm_ptr_t Vct_Num);
 __RVM_EXTERN__ void RVM_Virt_Tim_Reg(void (*Tim)(void));
 __RVM_EXTERN__ void RVM_Virt_Ctx_Reg(void (*Ctx)(void));

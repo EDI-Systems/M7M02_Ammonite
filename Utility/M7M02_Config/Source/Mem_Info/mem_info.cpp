@@ -66,7 +66,7 @@ Return      : None.
     std::string Align;
     std::string Message;
 
-    /* Name - not necessarily exist */
+    /* Name - not necessarily exist, or might be empty */
     try
     {
         this->Name=Main::Text_Load(Node,"Name");
@@ -168,7 +168,7 @@ void Mem_Info::Save(class wxXmlNode* Parent)
 {
     std::string Attr;
 
-    /* Name */
+    /* Name - don't even generate the entry if it is empty */
     if(this->Name!="")
         Main::Text_Save(Parent,"Name",this->Name);
 
