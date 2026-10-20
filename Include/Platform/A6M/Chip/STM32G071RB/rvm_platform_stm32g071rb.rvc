@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<Chip>
+    <Name>STM32G071RB</Name>
+    <Version>1.0</Version>
+    <Platform>A6M</Platform>
+    <Compatible>STM32G071RBT6,STM32G071RBT7,STM32G071RBI3,STM32G071RBT3</Compatible>
+    <Vendor>STMicroelectronics</Vendor>
+    <Vector>31</Vector>
+    <Region>8</Region>
+    <Iregion>0</Iregion>
+    <Dregion>0</Dregion>
+    <Coprocessor>None</Coprocessor>
+    <Attribute>
+        <CPU>CM0P</CPU>
+        <Endian>Little</Endian>
+    </Attribute>
+    <Memory>
+        <M0>
+            <Base>0x08000000</Base>
+            <Size>0x00020000</Size>
+            <Type>Code</Type>
+            <Attribute>RXBCS</Attribute>
+        </M0>
+        <M1>
+            <Base>0x20000000</Base>
+            <Size>0x00009000</Size>
+            <Type>Data</Type>
+            <Attribute>RWXBCS</Attribute>
+        </M1>
+        <M2>
+            <Base>0x40000000</Base>
+            <Size>0x20000000</Size>
+            <Type>Device</Type>
+            <Attribute>RWS</Attribute>
+        </M2>
+        <M3>
+            <Base>0xE0000000</Base>
+            <Size>0x20000000</Size>
+            <Type>Device</Type>
+            <Attribute>RWS</Attribute>
+        </M3>
+    </Memory>
+    <Config>
+    </Config>
+</Chip>

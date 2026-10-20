@@ -6,10 +6,11 @@
     <Coprocessor>RVF,RVD</Coprocessor>
     <Buildsystem>Makefile</Buildsystem>
     <Toolchain>GCC</Toolchain>
-    <Guest>RMP</Guest>
+    <Guest>RMP,FRT</Guest>
     <Compatible>
         <C0>Makefile,GCC,Native</C0>
         <C1>Makefile,GCC,RMP</C1>
+        <C2>Makefile,GCC,FRT</C2>
     </Compatible>
     <Config>
         <C0>

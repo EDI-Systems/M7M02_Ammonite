@@ -1415,10 +1415,14 @@ Return      : None.
 ******************************************************************************/
 void Main::Choice_Refill(class wxChoice* Choice, const std::vector<std::string>& Avail)
 {
-    /* Refill the buildsystem option */
+    /* Refill the choice control, skipping duplicated options - different guests
+     * may share the same toolchain/buildsystem combination */
     Choice->Clear();
     for(const std::string& Option:Avail)
-        Choice->Append(Option);
+    {
+        if(Choice->FindString(Option)==wxNOT_FOUND)
+            Choice->Append(Option);
+    }
     Choice->SetSelection(0);
 }
 /* End Function:Main::Choice_Refill ******************************************/
@@ -1508,7 +1512,7 @@ void Main::Coprocessor_Save(std::vector<std::string>& Cop_List,
 Description : Prettyform any integer format to a decimal integer.
 Input       : const std::string& Num - The number that needs check.
 Output      : None.
-Return      : std::string - The pretty formatted number returned¡£
+Return      : std::string - The pretty formatted number returnedï¿½ï¿½
 ******************************************************************************/
 std::string Main::Num2Dec(const std::string& Num)
 {

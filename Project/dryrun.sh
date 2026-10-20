@@ -19,7 +19,7 @@ RVGEN="../Utility/M7M02_Final/rvgen.exe"
 KERNEL="../../M7M01_Eukaron/"
 MONITOR="../"
 RMP="../../M5P01_Prokaron/"
-FRT="../../M0A00_Library/"
+FRT="../../FreeRTOS_V900/"
 
 # Process project paths
 PROJFULL=$(basename $1)

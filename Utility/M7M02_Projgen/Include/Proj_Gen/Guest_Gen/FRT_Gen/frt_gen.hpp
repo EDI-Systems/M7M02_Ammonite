@@ -1,0 +1,48 @@
+/******************************************************************************
+Filename    : frt_gen.hpp
+Author      : pry, ChatGLM
+Date        : 18/10/2026
+Licence     : LGPL v3+; see COPYING for details.
+Description : The header of the FreeRTOS guest OS generator.
+******************************************************************************/
+
+/* Define ********************************************************************/
+namespace RVM_GEN
+{
+#ifdef __HDR_DEF__
+#ifndef __FRT_GEN_DEF__
+#define __FRT_GEN_DEF__
+/*****************************************************************************/
+
+/*****************************************************************************/
+/* __FRT_GEN_DEF__ */
+#endif
+/* __HDR_DEF__ */
+#endif
+/* End Define ****************************************************************/
+
+/* Classes *******************************************************************/
+#ifdef __HDR_CLASS__
+#ifndef __FRT_GEN_CLASS__
+#define __FRT_GEN_CLASS__
+/*****************************************************************************/
+/* FreeRTOS-specific information */
+class FRT_Gen:public Guest_Gen
+{
+public:
+    /* void */ FRT_Gen(class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip);
+
+    virtual void Process_Virt_Hdr(class Virtual* Virt) final override;
+    virtual void Process_Virt_Src(class Virtual* Virt, class Tool_Gen* Tool) final override;
+};
+/*****************************************************************************/
+/* __FRT_GEN_CLASS__ */
+#endif
+/* __HDR_CLASS__ */
+#endif
+}
+/* End Classes ***************************************************************/
+
+/* End Of File ***************************************************************/
+
+/* Copyright (C) Evo-Devo Instrum. All rights reserved ***********************/

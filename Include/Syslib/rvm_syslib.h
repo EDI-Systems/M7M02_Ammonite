@@ -110,13 +110,8 @@ while(0)
 /* Monitor */
 #define RVM_REBOOT_OP()                             RVM_Kfn_Act(RVM_BOOT_INIT_KFN,RVM_KFN_SYS_REBOOT,0U,0U,0U)
 #else
-#if(RVM_VIRT_LIB_ENABLE==0U)
-/* Native process */
+/* Native process or virtual machine */
 #define RVM_REBOOT_OP()                             ((void(*)(void))RVM_NULL)()
-#else
-/* Virtual machine */
-#define RVM_REBOOT_OP()                             RVM_Hyp_Reboot()
-#endif
 #endif
 
 /* Assert macro */

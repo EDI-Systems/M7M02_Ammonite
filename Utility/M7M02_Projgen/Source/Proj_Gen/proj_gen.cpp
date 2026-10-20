@@ -1,6 +1,6 @@
 /******************************************************************************
 Filename    : gen_tool.cpp
-Author      : pry
+Author      : pry, ChatGLM
 Date        : 16/07/2019
 Licence     : LGPL v3+; see COPYING for details.
 Description : The memory block class. This contains the memory block information.
@@ -75,6 +75,7 @@ extern "C"
 
 #include "Proj_Gen/Guest_Gen/guest_gen.hpp"
 #include "Proj_Gen/Guest_Gen/RMP_Gen/rmp_gen.hpp"
+#include "Proj_Gen/Guest_Gen/FRT_Gen/frt_gen.hpp"
 #undef __HDR_CLASS__
 /* End Include ***************************************************************/
 namespace RVM_GEN
@@ -188,12 +189,18 @@ void  Proj_Gen::Guest_Load(const std::string& Name)
         if(this->Guest_Map.find(Name)!=this->Guest_Map.end())
             return;
 
+        /* Check guest OS root path, it must be filled in to load the corresponding tool */
         if(Name=="RMP")
         {
-            /* Check guest OS root path, it must be filled in to load the corresponding tool */
             if(Main::Guest_RMP_Root=="")
                 Main::Error("XXXXX: Guest path for '"+Name+"' is missing.");
             Guest=std::make_unique<class RMP_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
+        }
+        else if(Name=="FRT")
+        {
+            if(Main::Guest_FRT_Root=="")
+                Main::Error("XXXXX: Guest path for '"+Name+"' is missing.");
+            Guest=std::make_unique<class FRT_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
         }
         else
             Main::Error("XXXXX: Guest generator for '"+Name+"' is not found.");
@@ -1206,7 +1213,7 @@ void Proj_Gen::Kernel_Hook_Src(void)
 
 /* Function:Proj_Gen::Kernel_Handler_Src **************************************
 Description : Create the handler source file for kernel. Each handler gets allocated
-              a single source file in rme_handler_xxx.c¡£
+              a single source file in rme_handler_xxx.c
 Input       : None.
 Output      : None.
 Return      : None.

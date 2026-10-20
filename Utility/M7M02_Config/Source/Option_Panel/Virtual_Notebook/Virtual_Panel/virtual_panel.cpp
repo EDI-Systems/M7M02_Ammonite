@@ -663,7 +663,12 @@ void Virtual_Panel::On_Toolchain(class wxCommandEvent& Event)
                                      std::string(Guest))!=0)
     {
         this->Buildsystem_Set(Toolchain);
-        this->Guest_Set(Toolchain,this->Buildsystem->GetStringSelection());
+
+        /* Toolchain changed - if the current guest is not compatible, change it */
+        if(Main::Plat_Info->Compat_Check(std::string(Toolchain),
+                                         std::string(Buildsystem),
+                                         std::string(Guest))!=0)
+            this->Guest_Set(Toolchain,this->Buildsystem->GetStringSelection());
     }
 }
 /* End Function:Virtual_Panel::On_Toolchain **********************************/

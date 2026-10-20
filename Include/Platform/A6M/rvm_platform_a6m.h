@@ -293,17 +293,20 @@ struct RVM_A6M_Stack
     rvm_ptr_t XPSR;
 };
 
+/* Note that the RMP push sequence is very different from RME/RVM */
 struct RVM_Reg_Struct
 {
     rvm_ptr_t SP;
-    rvm_ptr_t R4;
-    rvm_ptr_t R5;
-    rvm_ptr_t R6;
-    rvm_ptr_t R7;
+    /* First group pushed to stack */
     rvm_ptr_t R8;
     rvm_ptr_t R9;
     rvm_ptr_t R10;
     rvm_ptr_t R11;
+    /* Second group pushed to stack */
+    rvm_ptr_t R4;
+    rvm_ptr_t R5;
+    rvm_ptr_t R6;
+    rvm_ptr_t R7;
     rvm_ptr_t LR;
 };
 
