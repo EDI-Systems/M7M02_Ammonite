@@ -13,6 +13,39 @@
     source that drives the interrupt tests.  The RVM project generator
     selects it through the generated "frt_test.h" header.
 
+    Benchmark archive (STM32F429ZIT6 @ 180MHz, VOS scale 1, ICI/IT-aware
+    fast yield enabled, w/FPU context):
+
+    GNU Arm 13.2.1 -O3
+        ___   __  ___ ___
+       / _ \ /  |/  // _ \       FreeRTOS V9.0.0 on RVM
+      / , _// /|_/ // ___/       Standard benchmark test
+     /_/|_|/_/  /_//_/
+    ====================================================
+    Test (number in CPU cycles)        : AVG / MAX / MIN
+    Yield                              :  352 / 2324 /  352
+    Notification                       :  648 / 2676 /  616
+    Semaphore                          :  801 / 2884 /  800
+    Message queue                      :  909 / 2968 /  908
+    Memory allocation/free pair        :  640 /  903 /  631
+    ISR Notification                   : 1548 / 3448 / 1548
+    ISR Semaphore                      : 1610 / 3504 / 1608
+    ISR Message queue                  : 1775 / 3728 / 1772
+    ISR RVM activation relay           : 2778 / 2780 / 2704
+
+    ARMCLANG 6.23 -O3
+    ====================================================
+    Test (number in CPU cycles)        : AVG / MAX / MIN
+    Yield                              :  300 / 2208 /  300
+    Notification                       :  552 / 2524 /  552
+    Semaphore                          :  700 / 2704 /  700
+    Message queue                      :  780 / 2756 /  780
+    Memory allocation/free pair        :  453 /  715 /  450
+    ISR Notification                   : 1386 / 3236 / 1340
+    ISR Semaphore                      : 1416 / 1416 / 1416
+    ISR Message queue                  : 1551 / 3452 / 1548
+    ISR RVM activation relay           : 2594 / 4356 / 2424
+
     Setting up a project that uses this testbench:
       1. Add the benchmark source file to the project.
       2. Grant the virtual machine access to the peripheral registers:

@@ -62,16 +62,24 @@ Monitor → Proc1 → Proc2 → Virt1 → Kernel。每工程 `cd <X>/Project && 
 Kernel 的平坦 bin 需手动 `fromelf --bincombined --output kernel_keil.bin Object\Kernel.axf`
 （**必须 --bincombined**，普通 --bin 多区段输出 1 字节废文件；输出文件名被句柄锁死时换名输出）。
 
-### 2.4 烧录（OpenOCD，模板见 Project\flash_h743.tcl / flash_f429.tcl）
+### 2.4 烧录（OpenOCD，模板在 Project\Script\——该目录被 .gitignore 的 Project/*/ 规则忽略，专放生成的脚本）
 
 tcl 要点：`set CPUTAPID 0`（跳过 idcode 校验）→ `source target/<chip>.cfg` → init → reset halt →
 flash write_image erase <kernel.bin> 0x08000000 → verify_image → reset run → shutdown。
 F429 的 stm32f4x 驱动在新硅片上还会报 device id=0，flash 前加 `reset_config srst_only srst_nogate connect_assert_srst` 兜底（H743 同款可用）。
 
-### 2.5 串口捕获（模板 Project\capture_f429.ps1）
+### 2.5 串口捕获（模板 Project\Script\capture.ps1，-Port 参数选 COM 口，默认 COM14=H743 板）
 
 用 **Start-Process 分离进程**跑捕获脚本（能在工具 30s 超时下存活），先开端口再烧录，事后读文件。
 波特率从内核平台头的 BRR 反推：H743 BRR=0x364@APB1 100MHz ≈115200；F429 BRR=0x187@45MHz ≈115200。
+
+### 2.6 会话收尾三清（必做）
+
+1. **删工作区**：生成的 `GCCMF-*` / `RVMDK-*` 全部删除（可随时由 rvp+benchmark.sh 复生）
+2. **收生成物**：烧录/复位/捕获脚本与原始日志一律收进 `Project\Script\`（已被 .gitignore 的
+   `Project/*/` 覆盖）；可再生的 log.txt/report.txt 直接删
+3. **结果入档**：benchmark 数据写进 `frt_test_*_rvm.h` 头文件档案块（正式档案），AGENTS.md 只引用
+验收线：**Project 根只允许 *.rvp 与仓库自带 sh；`git status --porcelain -- Project/` 必须为空。**
 ---
 
 ## 3. 排障方法论（按威力排序）
@@ -273,28 +281,30 @@ CR3=0x2、CSR1=0xE000、D3CR=0xE000（Scale1+RDY 双绿）——**SCALE1 正确�
 2. "这颗 die 调压器只支持 Scale2/写入 D3CR 会毒化系统"——错。缺 ConfigSupply 时一切
    VOS 写入都会死等；配好供电源后 Scale1 一次到位。
 
-**遗留已破案（同日终局）**：panic 真凶是笔者调 VOS 时把 M7M01 模板头手工拷进工作区，抹掉了生成器注入的 17 个布局常量（KOM 基址等）——见坑库 4.4 血泪头条。删工作区重新生成后，官方 VOS 序列 + 正确布局合体，Scale1 下九项 benchmark 全过（Yield 1082，日志 h743_gcc_scale1_final.txt）。rev.Y 样片的调试口怪象（IDCODE 读数、DTCM 调试口 64KB 界）仍为真，但仅影响调试通道，不影响系统运行。
+**遗留已破案（同日终局）**：panic 真凶是笔者调 VOS 时把 M7M01 模板头手工拷进工作区，抹掉了生成器注入的 17 个布局常量（KOM 基址等）——见坑库 4.4 血泪头条。删工作区重新生成后，官方 VOS 序列 + 正确布局合体，Scale1 下九项 benchmark 全过（Yield 1082——注：该轮 Cache 未开，终版数据见 §7.1）。rev.Y 样片的调试口怪象（IDCODE 读数、DTCM 调试口 64KB 界）仍为真，但仅影响调试通道，不影响系统运行。
 ## 7. 成果基线（截至本文更新）
 
-### 7.1 H743ZI 真机（COM14@115200，VOS Scale1 官方序列，AXI 布局）
+### 7.1 H743ZI 真机（COM14@115200，VOS Scale1 官方序列，AXI 布局，L1 Cache 开启）
 
-GCC 日志 `Project\h743_gcc_scale1_final.txt`：
-
-```
-Yield 1082/6720/1068   Notification 2182   Semaphore 2551   Queue 2847
-MemPair 1829   ISR-Noti 4832   ISR-Sem 4980   ISR-Queue 5471   ISR-RVM relay 8182
-```
-
-Keil 日志 `Project\h743_keil_final.txt`（armclang 略优）：
+GCC 日志 `Project\Script\h743_cache_gcc.txt`：
 
 ```
-Yield 995/1128/984   Notification 1973   Semaphore 2413   Queue 2647
-MemPair 1414   ISR-Noti 3992   ISR-Sem 4196   ISR-Queue 4659   ISR-RVM relay 7441
+Yield 228   Notification 434   Semaphore 530   Queue 604
+MemPair 338   ISR-Noti 1167   ISR-Sem 1045   ISR-Queue 1217   ISR-RVM relay 2031
 ```
 
-双工具链均：0 错 0 警构建、烧录校验通过、hypervisor 全启动、九项 benchmark 全过、
-vPortYield_Err 纵深断言零触发、FPU(FPV5_DP) 满负荷稳定。历史日志（Scale3 偶然轮）：
-h743_gcc_final.txt。原生 RMP 基线对照见 rvm_test_stm32h743zi.h 头注（Yield self 285）。
+Keil 日志 `Project\Script\h743_cache_keil.txt`（双链几乎打平）：
+
+```
+Yield 250   Notification 428   Semaphore 527   Queue 604
+MemPair 307   ISR-Noti 955   ISR-Sem 981   ISR-Queue 1113   ISR-RVM relay 1851
+```
+
+**Cache 前后对比（Yield）**：关 Cache 时 GCC 1082/Keil 995 → 开 Cache 后 228/250（4~5 倍）——
+H743 无 Cache 跑 Flash 每取指都吃 AXI 等待，教训：M7 性能数据必须开 L1 Cache 才有意义。
+vPortYield_Err 纵深断言零触发；FPU(FPV5_DP) 满负荷稳定。Cache 关闭轮（1082/995）与
+更早轮的原始日志已随整理删除——**正式数据一律以 frt_test_*_rvm.h 头文件档案块为准**。
+原生 RMP 基线对照见 rvm_test_stm32h743zi.h 头注（Yield self 285，同为开 Cache 条件）。
 
 ### 7.2 构建态
 
@@ -311,14 +321,14 @@ h743_gcc_final.txt。原生 RMP 基线对照见 rvm_test_stm32h743zi.h 头注（
 
 ### 7.4 F429ZI 真机（2026-10-21 当日收官，双链全过）
 
-GCC 日志 `Project\f429_gcc_final.txt`：
+GCC 数据（原始日志已删，正式档案见 frt_test_stm32f429zi_rvm.h 头文件）：
 
 ```
 Yield 352   Notification 648   Semaphore 801   Queue 909
 MemPair 640   ISR-Noti 1548   ISR-Sem 1610   ISR-Queue 1775   ISR-RVM relay 2778
 ```
 
-Keil 日志 `Project\f429_keil_final.txt`（armclang 优）：
+Keil 数据（原始日志已删，正式档案见同头文件）：
 
 ```
 Yield 300   Notification 552   Semaphore 700   Queue 780
@@ -328,7 +338,7 @@ MemPair 453   ISR-Noti 1386   ISR-Sem 1416   ISR-Queue 1551   ISR-RVM relay 2594
 对照原生 RMP 基线（rvm_test_stm32f429zi.h 头注 GCC Yield self=336 / ARMCC 332）：
 FreeRTOS 版 Yield 352(GCC)/300(Keil)，差值即 peek+脏检查+FreeRTOS 调度开销，量级吻合 ✓。
 F429 一次点火成功——未遇到 H743 的任何坑（F4 电源序列本来就正确）。
-烧录模板：flash_f429.tcl(GCC) / flash_f429_keil.tcl(Keil)，均含 CPUTAPID 0 +
+烧录模板：Project\Script\flash_f429.tcl(GCC) / flash_f429_keil.tcl(Keil)（换板需按 §2.4 重建），均含 CPUTAPID 0 +
 connect_assert_srst；F429 调试要点：DBGMCU_IDCODE@0xE0042000 读 DEV_ID=0x419 确认身份。
 
 ---
@@ -341,3 +351,6 @@ connect_assert_srst；F429 调试要点：DBGMCU_IDCODE@0xE0042000 读 DEV_ID=0x
 4. “数据全垃圾”先查 RAM 黑洞再查逻辑；“卡住”用断点裁决别猜。
 5. 单命令 30s 红线；跨超时用分离进程；ST-Link 被锁先杀 openocd。
 6. GCC/Keil 四文件哈希必须一致；port 改完跑 update.sh。
+7. **会话收尾三清**：生成的工作区（GCCMF-*/RVMDK-*）全删、生成的脚本与日志
+   一律收进 Project\Script\（git 已忽略）、测试结果写进 frt_test_*_rvm.h 档案块——
+   Project 根只允许留 rvp 与仓库自带的 sh，git status 必须干净。

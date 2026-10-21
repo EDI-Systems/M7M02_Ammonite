@@ -97,6 +97,20 @@ This software is an official work of EDI, and thus belongs to the **public domai
 - **[RVM/Duktape](https://github.com/EDI-Systems/duktape)**, a port of the emerging [JavaScript](https://github.com/svaarala/duktape) language to RVM.
 - **[RVM/Essentials](https://github.com/EDI-Systems/M5P1_MuProkaron)**, a port of [lwip](https://savannah.nongnu.org/projects/lwip/), [fatfs](http://elm-chan.org/fsw/ff/00index_e.html) and [emWin](https://www.segger.com/products/user-interface/emwin/) to RVM, all packed in one [RMP](https://github.com/EDI-Systems/M5P1_MuProkaron) virtual machine. Be sure to obtain license to use these softwares.
 
+### Installing a guest operating system support library
+&ensp;&ensp;&ensp;&ensp;RMP is the native system of this platform and is already integrated with the VMM. **All the other guest operating systems are delivered as drop-in support libraries**: the complete, unmodified source tree of the OS, plus the RVM port layer under `portable/{GCC,Keil}/{A6M_RVM,A7M_RVM,RV32P_RVM}` and the benchmark testbench under `test`.
+
+&ensp;&ensp;&ensp;&ensp;Installation cannot be simpler - **overwrite-copy the OS code into the guest library root, and it is ready to use**. The guest root is by default a folder of the same name sitting next to this repository, exactly where the generator's `-frt` path in `Project/generate.sh` points to. No patches, no extra configuration: once the files are there, every project with `<Guest_Type>FRT</Guest_Type>` (or any ready-made `*-frt.rvp`) will pick the guest up and build it.
+
+```
+<your-workspace>/
+├── M7M02_Ammonite/         <- this repository (VMM + project generator)
+├── M5P01_Prokaron/         <- RMP (native guest, -rmp)
+└── FreeRTOS_V900/          <- FreeRTOS guest root (-frt): copy the OS code here
+```
+
+&ensp;&ensp;&ensp;&ensp;A release mirror of the currently supported guests is kept under the `Guest/` folder of this repository; run `Guest/update.sh` to refresh it after modifying a port. The same drop-in rule applies to all the other guests listed above (RT-Thread, uC/OS-III, ...).
+
 ## List of hyper calls
 
 |Hypercall        |Number|Description                                                       |
@@ -120,23 +134,25 @@ This software is an official work of EDI, and thus belongs to the **public domai
 |Machine      |Toolchain     |RTOS      |Flash|SRAM|Yield|Mail |Sem  |Mail/I|Sem/I|Mem  |
 |:-----------:|:------------:|:--------:|:---:|:--:|:---:|:---:|:---:|:----:|:---:|:---:|
 |Cortex-M4    |Keil uVision 5|RMP       |     |    |     |     |     |      |     |     |
-|Cortex-M4    |Keil uVision 5|FreeRTOS  |     |    |     |     |     |      |     |     |
+|Cortex-M4    |Keil uVision 5|FreeRTOS  |14.61|41.57|300  |780  |700  |1551  |1416 |453  |
+|Cortex-M4    |GNU Arm GCC   |FreeRTOS  |15.36|40.57|352  |909  |801  |1775  |1610 |640  |
 |Cortex-M4    |Keil uVision 5|uCOSIII   |     |    |     |     |     |      |     |     |
 |Cortex-M4    |Keil uVision 5|RT-Thread |     |    |     |     |     |      |     |     |
 |Cortex-M7    |Keil uVision 5|RMP       |2.09 |2.29|1068 |1179 |1221 |1402  |1444 |176  |
-|Cortex-M7    |Keil uVision 5|FreeRTOS  |     |    |     |     |     |      |     |     |
+|Cortex-M7    |Keil uVision 5|FreeRTOS  |14.95|41.57|250  |604  |527  |1113  |981  |307  |
+|Cortex-M7    |GNU Arm GCC   |FreeRTOS  |15.19|40.57|228  |604  |530  |1217  |1045 |338  |
 |Cortex-M7    |Keil uVision 5|uCOSIII   |     |    |     |     |     |      |     |     |
 |Cortex-M7    |Keil uVision 5|RT-Thread |     |    |     |     |     |      |     |     |
 |Cortex-R4    |TI CCS7       |RMP       |     |    |     |     |     |      |     |     |
 |Cortex-R5    |TI CCS7       |RMP       |     |    |     |     |     |      |     |     |
 |MIPS M14k    |XC32-GCC      |RMP       |     |    |     |     |     |      |     |     |
-  
+
 *Cortex-R4 and Cortex-R5 are listed here as single-core architectures because their main selling point is CPU redundancy, thus from the viewpoint of the programmer they behave as if they have only one core. Dual-core mode of these two processors are not supported.  
 
 &ensp;&ensp;&ensp;&ensp;**Flash and SRAM consumption is calculated in kB, while the other figures are calculated in CPU clock cycles. All values listed here are typical (useful system) values, not minimum values, because minimum values on system size seldom make any real sense. HAL library are also included in the size numbers.**
 
-- Cortex-M4 is evaluated with STM32F405RGT6.
-- Cortex-M7 is evaluated with STM32F767IGT6.
+- Cortex-M4 is evaluated with STM32F405RGT6; the FreeRTOS figures are measured on STM32F429ZIT6 @ 180MHz.
+- Cortex-M7 is evaluated with STM32F767IGT6; the FreeRTOS figures are measured on STM32H743ZIT6 @ 400MHz.
 - Cortex-R4 is evaluated with TMS570LS0432.
 - Cortex-R5 is evaluated with TMS570LC4357.
 - MIPS M14k is evaluated with PIC32MZEFM100.

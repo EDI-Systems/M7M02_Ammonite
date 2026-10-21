@@ -13,6 +13,42 @@
     source that drives the interrupt tests.  The RVM project generator
     selects it through the generated "frt_test.h" header.
 
+    Benchmark archive (STM32H743ZIT6 rev.Y @ 400MHz, VOS scale 1, ICI/IT-aware
+    fast yield enabled, w/FPU context, L1 caches enabled):
+
+    GNU Arm 13.2.1 -O3
+        ___   __  ___ ___
+       / _ \ /  |/  // _ \       FreeRTOS V9.0.0 on RVM
+      / , _// /|_/ // ___/       Standard benchmark test
+     /_/|_|/_/  /_//_/
+    ====================================================
+    Test (number in CPU cycles)        : AVG / MAX / MIN
+    Yield                              :  228 / 1700 /  228
+    Notification                       :  434 /  540 /  428
+    Semaphore                          :  530 / 1988 /  528
+    Message queue                      :  604 / 2020 /  588
+    Memory allocation/free pair        :  338 /  616 /  329
+    ISR Notification                   : 1167 / 1440 / 1072
+    ISR Semaphore                      : 1045 / 1176 / 1000
+    ISR Message queue                  : 1217 / 1324 / 1148
+    ISR RVM activation relay           : 2031 / 3892 / 1904
+
+    ARMCLANG 6.23 -O3
+    ====================================================
+    Test (number in CPU cycles)        : AVG / MAX / MIN
+    Yield                              :  250 /  276 /  228
+    Notification                       :  428 / 1884 /  424
+    Semaphore                          :  527 / 2040 /  524
+    Message queue                      :  604 / 1992 /  592
+    Memory allocation/free pair        :  307 /  555 /  297
+    ISR Notification                   :  955 / 1356 /  904
+    ISR Semaphore                      :  981 / 1124 /  924
+    ISR Message queue                  : 1113 / 2592 / 1048
+    ISR RVM activation relay           : 1851 / 3436 / 1812
+
+    Historical note: an earlier bring-up round ran with the kernel L1 caches
+    disabled (Yield 1082/995); those figures are superseded by the ones above.
+
     Setting up a project that uses this testbench:
       1. Add the benchmark source file to the project.
       2. Grant the virtual machine access to the peripheral registers:

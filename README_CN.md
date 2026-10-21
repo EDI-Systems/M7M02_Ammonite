@@ -83,6 +83,20 @@ Click **[HERE](README.md)** for English version.
 - **[RVM/Duktape](https://github.com/EDI-Systems/duktape)**，新出现的[JavaScript](https://github.com/svaarala/duktape)在RVM上的一个移植。
 - **[RVM/Essentials](https://github.com/EDI-Systems/M5P1_MuProkaron)**，一个包含了[lwip](https://savannah.nongnu.org/projects/lwip/)、[fatfs](http://elm-chan.org/fsw/ff/00index_e.html)和[emWin](https://www.segger.com/products/user-interface/emwin/)的[RMP](https://github.com/EDI-Systems/M5P1_MuProkaron)的RVM移植。要在产品中使用该系统，你应当持有相应的商业许可。
 
+### 安装客户机操作系统支持库
+&emsp;&emsp;RMP是本平台的原生系统，已经随虚拟机监视器一起集成。**其他所有客户机操作系统均以“即拷即用”支持库的形式发布**：完整的、未经修改的操作系统源码树，外加位于`portable/{GCC,Keil}/{A6M_RVM,A7M_RVM,RV32P_RVM}`的RVM移植层，以及位于`test`的性能测试台。
+
+&emsp;&emsp;安装方式再简单不过——**把对应操作系统的代码直接覆盖拷贝到该客户机根目录，即可使用**。该根目录默认是与本仓库同级放置的同名文件夹，也就是`Project/generate.sh`中生成器`-frt`参数所指向的位置。无需打补丁、无需额外配置：文件拷贝到位后，所有`<Guest_Type>FRT</Guest_Type>`的工程（或任一现成的`*-frt.rvp`）即可直接识别并编译该客户机。
+
+```
+<你的工作区>/
+├── M7M02_Ammonite/         ← 本仓库（虚拟机监视器 + 工程生成器）
+├── M5P01_Prokaron/         ← RMP（原生客户机，-rmp）
+└── FreeRTOS_V900/          ← FreeRTOS客户机根目录（-frt）：把操作系统代码拷贝到这里
+```
+
+&emsp;&emsp;本仓库的`Guest/`目录维护着当前所支持客户机的发布镜像，修改移植后运行`Guest/update.sh`即可刷新。其他客户机（RT-Thread、uC/OS-III等）同样遵循这一即拷即用规则。
+
 ## 超级调用列表
 |超级调用           |调用号|功能描述                                                            |
 |:---------------:|:----:|:----------------------------------------------------------------:|
@@ -105,11 +119,13 @@ Click **[HERE](README.md)** for English version.
 |架构          |工具链         |实时系统   |Flash|SRAM|Yield|Mail |Sem  |Mail/I|Sem/I|Mem  |
 |:-----------:|:------------:|:--------:|:---:|:--:|:---:|:---:|:---:|:----:|:---:|:---:|
 |Cortex-M4    |Keil uVision 5|RMP       |     |    |     |     |     |      |     |     |
-|Cortex-M4    |Keil uVision 5|FreeRTOS  |     |    |     |     |     |      |     |     |
+|Cortex-M4    |Keil uVision 5|FreeRTOS  |14.61|41.57|300  |780  |700  |1551  |1416 |453  |
+|Cortex-M4    |GNU Arm GCC   |FreeRTOS  |15.36|40.57|352  |909  |801  |1775  |1610 |640  |
 |Cortex-M4    |Keil uVision 5|uCOSIII   |     |    |     |     |     |      |     |     |
 |Cortex-M4    |Keil uVision 5|RT-Thread |     |    |     |     |     |      |     |     |
 |Cortex-M7    |Keil uVision 5|RMP       |2.09 |2.29|1068 |1179 |1221 |1402  |1444 |176  |
-|Cortex-M7    |Keil uVision 5|FreeRTOS  |     |    |     |     |     |      |     |     |
+|Cortex-M7    |Keil uVision 5|FreeRTOS  |14.95|41.57|250  |604  |527  |1113  |981  |307  |
+|Cortex-M7    |GNU Arm GCC   |FreeRTOS  |15.19|40.57|228  |604  |530  |1217  |1045 |338  |
 |Cortex-M7    |Keil uVision 5|uCOSIII   |     |    |     |     |     |      |     |     |
 |Cortex-M7    |Keil uVision 5|RT-Thread |     |    |     |     |     |      |     |     |
 |Cortex-R4    |TI CCS7       |RMP       |     |    |     |     |     |      |     |     |
@@ -120,8 +136,8 @@ Click **[HERE](README.md)** for English version.
 
 &emsp;&emsp;**Flash和SRAM消耗以kB计，其他数据以CPU指令周期计。这里列出的所有值都是典型（有意义的系统配置）值而非绝对意义上的最小值，因为纯技术层面的最小配置在实际工程中很少是真正有用的。HAL库所造成的额外存储器消耗也被计算在内。**
 
-- Cortex-M4平台使用STM32F405RGT6进行评估。
-- Cortex-M7平台使用STM32F767IGT6进行评估。
+- Cortex-M4平台使用STM32F405RGT6进行评估；FreeRTOS的数据在STM32F429ZIT6（180MHz）上测得。
+- Cortex-M7平台使用STM32F767IGT6进行评估；FreeRTOS的数据在STM32H743ZIT6（400MHz）上测得。
 - Cortex-R4平台使用TMS570LS0432进行评估。
 - Cortex-R5平台使用TMS570LC4357进行评估。
 - MIPS M14k平台使用PIC32MZ2048EFM100进行评估。
