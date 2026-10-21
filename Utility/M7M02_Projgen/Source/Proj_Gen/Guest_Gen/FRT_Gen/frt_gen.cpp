@@ -158,11 +158,17 @@ void FRT_Gen::Process_Virt_Src(class Virtual* Virt, class Tool_Gen* Tool)
 
     /* Add all sources that this depend on - the port, the kernel and the heap.
      * The 'timers.c' is needed by ports with timers enabled; for all other
-     * ports it is compiled empty due to its own internal guards. */
+     * ports it is compiled empty due to its own internal guards.  The ARMv7-M
+     * port compiles 'tasksrvm.c' instead of 'tasks.c': that file includes the
+     * unmodified kernel source and appends the scheduler lookahead that the
+     * fast yield path needs - see its own header comment. */
     Virt->Virtual_Library.push_back(Port_Dir+"port.c");
-    if(this->Plat->Name=="RV32P")
+    if((this->Plat->Name=="RV32P")||(this->Plat->Name=="A6M")||(this->Plat->Name=="A7M"))
         Virt->Virtual_Library.push_back(Port_Dir+"portasm.s");
-    Virt->Virtual_Library.push_back(Main::Guest_FRT_Root+"tasks.c");
+    if(this->Plat->Name=="A7M")
+        Virt->Virtual_Library.push_back(Port_Dir+"tasksrvm.c");
+    else
+        Virt->Virtual_Library.push_back(Main::Guest_FRT_Root+"tasks.c");
     Virt->Virtual_Library.push_back(Main::Guest_FRT_Root+"list.c");
     Virt->Virtual_Library.push_back(Main::Guest_FRT_Root+"queue.c");
     Virt->Virtual_Library.push_back(Main::Guest_FRT_Root+"timers.c");
