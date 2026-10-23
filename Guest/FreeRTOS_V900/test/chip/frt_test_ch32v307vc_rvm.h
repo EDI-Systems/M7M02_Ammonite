@@ -54,6 +54,9 @@ be measured as well. */
 #undef RVM_TEST_VIRTUAL_INC
 
 /*-----------------------------------------------------------*/
+/* The size of the stack allocated to each benchmark task, measured in
+words rather than bytes. */
+#define benchTASK_STACK_SIZE                    ( ( uint16_t ) 256 )
 
 /* The benchmark is timed with TIM1, which counts up at the CPU clock
 frequency. */
@@ -63,16 +66,16 @@ frequency. */
 the very interrupt that is being relayed to us - the difference between
 this and the counter value at our own handler entry is the RVM activation
 relay latency. */
-#define benchGET_KERNEL_TIMESTAMP()               ( START )
+#define benchGET_KERNEL_TIMESTAMP()              ( START )
 /* The size of the pool that the memory test carves into blocks, expressed
 in 32 bit words. */
-#define benchMEM_POOL_SIZE                        ( 4096U )
+#define benchMEM_POOL_SIZE                       ( 4096U )
 
 /* The maximum count of the counting semaphore, and the length and the
 item size of the queue, that are used by the benchmark. */
-#define benchMAX_SEMAPHORE_COUNT                ( 32U )
+#define benchMAX_SEMAPHORE_COUNT                 ( 32U )
 #define benchQUEUE_LENGTH                        ( 32U )
-#define benchQUEUE_ITEM_SIZE                    ( sizeof( uint32_t ) )
+#define benchQUEUE_ITEM_SIZE                     ( sizeof( uint32_t ) )
 
 /*-----------------------------------------------------------*/
 
@@ -80,23 +83,23 @@ item size of the queue, that are used by the benchmark. */
 any vendor library.  The register names follow the WCH reference manual. */
 #define TIM1_BASE                                ( 0x40012c00UL )
 #define TIM4_BASE                                ( 0x40000800UL )
-#define RCC_BASE                                ( 0x40021000UL )
+#define RCC_BASE                                 ( 0x40021000UL )
 
 #define RCC_APB2PCENR                            ( * ( ( volatile uint32_t * ) ( RCC_BASE + 0x18UL ) ) )
-#define RCC_APB2PCENR_TIM1EN                    ( 1UL << 11UL )
+#define RCC_APB2PCENR_TIM1EN                     ( 1UL << 11UL )
 
 #define RCC_APB1PCENR                            ( * ( ( volatile uint32_t * ) ( RCC_BASE + 0x1cUL ) ) )
-#define RCC_APB1PCENR_TIM4EN                    ( 1UL << 2UL )
+#define RCC_APB1PCENR_TIM4EN                     ( 1UL << 2UL )
 
-#define TIM1_CTLR1                                ( * ( ( volatile uint16_t * ) ( TIM1_BASE + 0x00UL ) ) )
-#define TIM1_SMCFGR                                ( * ( ( volatile uint16_t * ) ( TIM1_BASE + 0x08UL ) ) )
-#define TIM1_CNT                                ( * ( ( volatile uint16_t * ) ( TIM1_BASE + 0x24UL ) ) )
+#define TIM1_CTLR1                               ( * ( ( volatile uint16_t * ) ( TIM1_BASE + 0x00UL ) ) )
+#define TIM1_SMCFGR                              ( * ( ( volatile uint16_t * ) ( TIM1_BASE + 0x08UL ) ) )
+#define TIM1_CNT                                 ( * ( ( volatile uint16_t * ) ( TIM1_BASE + 0x24UL ) ) )
 
-#define TIM4_CTLR1                                ( * ( ( volatile uint16_t * ) ( TIM4_BASE + 0x00UL ) ) )
-#define TIM4_DMAINTENR                            ( * ( ( volatile uint16_t * ) ( TIM4_BASE + 0x0cUL ) ) )
-#define TIM4_INTFR                                ( * ( ( volatile uint16_t * ) ( TIM4_BASE + 0x10UL ) ) )
-#define TIM4_PSC                                ( * ( ( volatile uint16_t * ) ( TIM4_BASE + 0x28UL ) ) )
-#define TIM4_ATRLR                                ( * ( ( volatile uint16_t * ) ( TIM4_BASE + 0x2cUL ) ) )
+#define TIM4_CTLR1                               ( * ( ( volatile uint16_t * ) ( TIM4_BASE + 0x00UL ) ) )
+#define TIM4_DMAINTENR                           ( * ( ( volatile uint16_t * ) ( TIM4_BASE + 0x0cUL ) ) )
+#define TIM4_INTFR                               ( * ( ( volatile uint16_t * ) ( TIM4_BASE + 0x10UL ) ) )
+#define TIM4_PSC                                 ( * ( ( volatile uint16_t * ) ( TIM4_BASE + 0x28UL ) ) )
+#define TIM4_ATRLR                               ( * ( ( volatile uint16_t * ) ( TIM4_BASE + 0x2cUL ) ) )
 
 #define TIM_CTLR1_CEN                            ( 1UL << 0UL )
 #define TIM_CTLR1_DIR                            ( 1UL << 4UL )

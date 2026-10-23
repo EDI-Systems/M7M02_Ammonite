@@ -35,10 +35,6 @@ maximum and minimum results are calculated. */
 reports that are printed once the benchmark itself has finished. */
 #define benchOVERFLOW_REPORT_INTERVAL            ( ( uint32_t ) 10000U )
 
-/* The size of the stack allocated to each benchmark task, measured in
-words rather than bytes. */
-#define benchTASK_STACK_SIZE                    ( ( uint16_t ) 128 )
-
 /* Define benchFLOAT_CONTEXT to also exercise the floating point context of
 the processor while the benchmark is running. */
 /* #define benchFLOAT_CONTEXT */

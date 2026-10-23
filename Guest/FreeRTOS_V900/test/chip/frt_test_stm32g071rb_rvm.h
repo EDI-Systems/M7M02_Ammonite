@@ -13,6 +13,22 @@
     source that drives the interrupt tests.  The RVM project generator
     selects it through the generated "frt_test.h" header.
 
+    Benchmark archive (STM32G071RBT6 @ 64MHz, ICI/IT-aware fast yield
+    enabled, no coprocessor):
+
+    ICCARM 9.40 -Oh
+    ====================================================
+    Test (number in CPU cycles)        : AVG / MAX / MIN
+    Yield                              : 408 / 2839 / 407
+    Notification                       : 832 / 3192 / 829
+    Semaphore                          : 973 / 3401 / 970
+    Message queue                      : 1127 / 5299 / 1122
+    Memory allocation/free pair        : 852 / 1157 / 845
+    ISR Notification                   : 1826 / 4243 / 1818
+    ISR Semaphore                      : 1845 / 6149 / 1837
+    ISR Message queue                  : 2057 / 2732 / 2056
+    ISR RVM activation relay           : 3358 / 5780 / 3110
+
     Setting up a project that uses this testbench:
       1. Add the benchmark source file to the project.
       2. Grant the virtual machine access to the peripheral registers:
@@ -62,6 +78,9 @@
 #undef RVM_TEST_VIRTUAL_INC
 
 /*-----------------------------------------------------------*/
+/* The size of the stack allocated to each benchmark task, measured in
+words rather than bytes. */
+#define benchTASK_STACK_SIZE                    ( ( uint16_t ) 128 )
 
 /* The benchmark is timed with TIM2, which counts up at the CPU clock
  * frequency and is only 16 bits wide on this chip. */

@@ -133,16 +133,24 @@ This software is an official work of EDI, and thus belongs to the **public domai
 
 |Machine      |Toolchain     |RTOS      |Flash|SRAM|Yield|Mail |Sem  |Mail/I|Sem/I|Mem  |
 |:-----------:|:------------:|:--------:|:---:|:--:|:---:|:---:|:---:|:----:|:---:|:---:|
+|Cortex-M0+   |Keil uVision 5|RMP       |     |    |     |     |     |      |     |     |
+|Cortex-M0+   |IAR EWARM     |FreeRTOS  |     |    |408  |1127 |973  |2057  |1845 |852  |
+|Cortex-M0+   |GNU Arm GCC   |uCOSIII   |15.39|7.10|806  |1025 |1136 |2080  |2064 |277  |
 |Cortex-M4    |Keil uVision 5|RMP       |     |    |     |     |     |      |     |     |
 |Cortex-M4    |Keil uVision 5|FreeRTOS  |14.61|41.57|300  |780  |700  |1551  |1416 |453  |
 |Cortex-M4    |GNU Arm GCC   |FreeRTOS  |15.36|40.57|352  |909  |801  |1775  |1610 |640  |
-|Cortex-M4    |Keil uVision 5|uCOSIII   |     |    |     |     |     |      |     |     |
+|Cortex-M4    |IAR EWARM     |FreeRTOS  |     |    |308  |869  |720  |1831  |1648 |491  |
+|Cortex-M4    |GNU Arm GCC   |uCOSIII   |14.68|8.10|536  |816  |809  |1796  |1783 |244  |
 |Cortex-M4    |Keil uVision 5|RT-Thread |     |    |     |     |     |      |     |     |
 |Cortex-M7    |Keil uVision 5|RMP       |2.09 |2.29|1068 |1179 |1221 |1402  |1444 |176  |
 |Cortex-M7    |Keil uVision 5|FreeRTOS  |14.95|41.57|250  |604  |527  |1113  |981  |307  |
 |Cortex-M7    |GNU Arm GCC   |FreeRTOS  |15.19|40.57|228  |604  |530  |1217  |1045 |338  |
+|Cortex-M7    |IAR EWARM     |FreeRTOS  |     |    |220  |635  |533  |1230  |1103 |283  |
+|Cortex-M7    |GNU Arm GCC   |uCOSIII   |14.69|8.10|366  |529  |545  |1191  |1223 |163  |
 |Cortex-M7    |Keil uVision 5|uCOSIII   |     |    |     |     |     |      |     |     |
 |Cortex-M7    |Keil uVision 5|RT-Thread |     |    |     |     |     |      |     |     |
+|RISC-V RV32  |GNU RISC-V GCC|FreeRTOS  |17.47|24.76|313  |655  |560  |1940  |1808 |388  |
+|RISC-V RV32  |GNU RISC-V GCC|uCOSIII   |17.58|8.10|455  |602  |589  |2074  |2069 |195  |
 |Cortex-R4    |TI CCS7       |RMP       |     |    |     |     |     |      |     |     |
 |Cortex-R5    |TI CCS7       |RMP       |     |    |     |     |     |      |     |     |
 |MIPS M14k    |XC32-GCC      |RMP       |     |    |     |     |     |      |     |     |
@@ -151,8 +159,11 @@ This software is an official work of EDI, and thus belongs to the **public domai
 
 &ensp;&ensp;&ensp;&ensp;**Flash and SRAM consumption is calculated in kB, while the other figures are calculated in CPU clock cycles. All values listed here are typical (useful system) values, not minimum values, because minimum values on system size seldom make any real sense. HAL library are also included in the size numbers.**
 
+- Cortex-M0+ is evaluated with STM32G071RBT6 (the FreeRTOS figures are IAR EWARM measurements; the uCOSIII figures are GCC measurements).
 - Cortex-M4 is evaluated with STM32F405RGT6; the FreeRTOS figures are measured on STM32F429ZIT6 @ 180MHz.
-- Cortex-M7 is evaluated with STM32F767IGT6; the FreeRTOS figures are measured on STM32H743ZIT6 @ 400MHz.
+- Cortex-M7 is evaluated with STM32F767IGT6; the FreeRTOS figures are measured on STM32H743ZIT6 @ 400MHz (the uCOSIII figures are GCC measurements on the same chip).
+- RISC-V RV32 is evaluated with CH32V307 @ 144MHz (both the FreeRTOS and the uCOSIII figures are GCC measurements).
+- All FreeRTOS and uCOSIII figures are measured with the same benchmark suite as RVM guests: GCC at -O3, IAR at -Oh. Flash/SRAM are guest image footprints (code+data / data+bss); all other figures are CPU clock cycles.
 - Cortex-R4 is evaluated with TMS570LS0432.
 - Cortex-R5 is evaluated with TMS570LC4357.
 - MIPS M14k is evaluated with PIC32MZEFM100.

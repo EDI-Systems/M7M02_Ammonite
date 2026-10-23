@@ -17,17 +17,13 @@
     fast yield enabled, w/FPU context, L1 caches enabled):
 
     GNU Arm 13.2.1 -O3
-        ___   __  ___ ___
-       / _ \ /  |/  // _ \       FreeRTOS V9.0.0 on RVM
-      / , _// /|_/ // ___/       Standard benchmark test
-     /_/|_|/_/  /_//_/
     ====================================================
     Test (number in CPU cycles)        : AVG / MAX / MIN
-    Yield                              :  228 / 1700 /  228
-    Notification                       :  434 /  540 /  428
-    Semaphore                          :  530 / 1988 /  528
-    Message queue                      :  604 / 2020 /  588
-    Memory allocation/free pair        :  338 /  616 /  329
+    Yield                              : 228 / 1700 /  228
+    Notification                       : 434 /  540 /  428
+    Semaphore                          : 530 / 1988 /  528
+    Message queue                      : 604 / 2020 /  588
+    Memory allocation/free pair        : 338 /  616 /  329
     ISR Notification                   : 1167 / 1440 / 1072
     ISR Semaphore                      : 1045 / 1176 / 1000
     ISR Message queue                  : 1217 / 1324 / 1148
@@ -36,15 +32,28 @@
     ARMCLANG 6.23 -O3
     ====================================================
     Test (number in CPU cycles)        : AVG / MAX / MIN
-    Yield                              :  250 /  276 /  228
-    Notification                       :  428 / 1884 /  424
-    Semaphore                          :  527 / 2040 /  524
-    Message queue                      :  604 / 1992 /  592
-    Memory allocation/free pair        :  307 /  555 /  297
-    ISR Notification                   :  955 / 1356 /  904
-    ISR Semaphore                      :  981 / 1124 /  924
+    Yield                              : 250 /  276 /  228
+    Notification                       : 428 / 1884 /  424
+    Semaphore                          : 527 / 2040 /  524
+    Message queue                      : 604 / 1992 /  592
+    Memory allocation/free pair        : 307 /  555 /  297
+    ISR Notification                   : 955 / 1356 /  904
+    ISR Semaphore                      : 981 / 1124 /  924
     ISR Message queue                  : 1113 / 2592 / 1048
     ISR RVM activation relay           : 1851 / 3436 / 1812
+
+    ICCARM 9.40 -Oh
+    ====================================================
+    Test (number in CPU cycles)        : AVG / MAX / MIN
+    Yield                              : 220 / 300 / 220
+    Notification                       : 456 / 1992 / 420
+    Semaphore                          : 533 / 2076 / 532
+    Message queue                      : 635 / 716 / 632
+    Memory allocation/free pair        : 283 / 510 / 272
+    ISR Notification                   : 1112 / 3912 / 1056
+    ISR Semaphore                      : 1103 / 1160 / 1064
+    ISR Message queue                  : 1230 / 1280 / 1196
+    ISR RVM activation relay           : 2136 / 3580 / 2056
 
     Historical note: an earlier bring-up round ran with the kernel L1 caches
     disabled (Yield 1082/995); those figures are superseded by the ones above.
@@ -90,6 +99,9 @@ be measured as well. */
 #undef RVM_TEST_VIRTUAL_INC
 
 /*-----------------------------------------------------------*/
+/* The size of the stack allocated to each benchmark task, measured in
+words rather than bytes. */
+#define benchTASK_STACK_SIZE                    ( ( uint16_t ) 256 )
 
 /* The benchmark is timed with TIM2, which counts up at half the CPU clock
 frequency, so the counter value is scaled back up to CPU cycles. */
@@ -99,16 +111,16 @@ frequency, so the counter value is scaled back up to CPU cycles. */
 the very interrupt that is being relayed to us - the difference between
 this and the counter value at our own handler entry is the RVM activation
 relay latency. */
-#define benchGET_KERNEL_TIMESTAMP()               ( START )
+#define benchGET_KERNEL_TIMESTAMP()              ( START )
 /* The size of the pool that the memory test carves into blocks, expressed
 in 32 bit words. */
-#define benchMEM_POOL_SIZE                        ( 8192U )
+#define benchMEM_POOL_SIZE                       ( 8192U )
 
 /* The maximum count of the counting semaphore, and the length and the
 item size of the queue, that are used by the benchmark. */
-#define benchMAX_SEMAPHORE_COUNT                ( 32U )
+#define benchMAX_SEMAPHORE_COUNT                 ( 32U )
 #define benchQUEUE_LENGTH                        ( 32U )
-#define benchQUEUE_ITEM_SIZE                    ( sizeof( uint32_t ) )
+#define benchQUEUE_ITEM_SIZE                     ( sizeof( uint32_t ) )
 
 /*-----------------------------------------------------------*/
 
@@ -116,27 +128,27 @@ item size of the queue, that are used by the benchmark. */
 any vendor library. */
 #define TIM2_BASE                                ( 0x40000000UL )
 #define TIM4_BASE                                ( 0x40000800UL )
-#define RCC_BASE                                ( 0x58024400UL )
+#define RCC_BASE                                 ( 0x58024400UL )
 
-#define RCC_APB1ENR                                ( * ( ( volatile uint32_t * ) ( RCC_BASE + 0xE8UL ) ) )
-#define RCC_APB1ENR_TIM2EN                        ( 1UL << 0UL )
-#define RCC_APB1ENR_TIM4EN                        ( 1UL << 2UL )
+#define RCC_APB1ENR                              ( * ( ( volatile uint32_t * ) ( RCC_BASE + 0xE8UL ) ) )
+#define RCC_APB1ENR_TIM2EN                       ( 1UL << 0UL )
+#define RCC_APB1ENR_TIM4EN                       ( 1UL << 2UL )
 
-#define TIM2_CR1                                ( * ( ( volatile uint32_t * ) ( TIM2_BASE + 0x00UL ) ) )
-#define TIM2_PSC                                ( * ( ( volatile uint32_t * ) ( TIM2_BASE + 0x28UL ) ) )
-#define TIM2_ARR                                ( * ( ( volatile uint32_t * ) ( TIM2_BASE + 0x2cUL ) ) )
-#define TIM2_CNT                                ( * ( ( volatile uint32_t * ) ( TIM2_BASE + 0x24UL ) ) )
+#define TIM2_CR1                                 ( * ( ( volatile uint32_t * ) ( TIM2_BASE + 0x00UL ) ) )
+#define TIM2_PSC                                 ( * ( ( volatile uint32_t * ) ( TIM2_BASE + 0x28UL ) ) )
+#define TIM2_ARR                                 ( * ( ( volatile uint32_t * ) ( TIM2_BASE + 0x2cUL ) ) )
+#define TIM2_CNT                                 ( * ( ( volatile uint32_t * ) ( TIM2_BASE + 0x24UL ) ) )
 
-#define TIM4_CR1                                ( * ( ( volatile uint32_t * ) ( TIM4_BASE + 0x00UL ) ) )
+#define TIM4_CR1                                 ( * ( ( volatile uint32_t * ) ( TIM4_BASE + 0x00UL ) ) )
 #define TIM4_DIER                                ( * ( ( volatile uint32_t * ) ( TIM4_BASE + 0x0cUL ) ) )
-#define TIM4_SR                                    ( * ( ( volatile uint32_t * ) ( TIM4_BASE + 0x10UL ) ) )
-#define TIM4_PSC                                ( * ( ( volatile uint32_t * ) ( TIM4_BASE + 0x28UL ) ) )
-#define TIM4_ARR                                ( * ( ( volatile uint32_t * ) ( TIM4_BASE + 0x2cUL ) ) )
+#define TIM4_SR                                  ( * ( ( volatile uint32_t * ) ( TIM4_BASE + 0x10UL ) ) )
+#define TIM4_PSC                                 ( * ( ( volatile uint32_t * ) ( TIM4_BASE + 0x28UL ) ) )
+#define TIM4_ARR                                 ( * ( ( volatile uint32_t * ) ( TIM4_BASE + 0x2cUL ) ) )
 
-#define TIM_CR1_CEN                                ( 1UL << 0UL )
-#define TIM_CR1_DIR                                ( 1UL << 4UL )
-#define TIM_SR_UIF                                ( 1UL << 0UL )
-#define TIM_DIER_UIE                            ( 1UL << 0UL )
+#define TIM_CR1_CEN                              ( 1UL << 0UL )
+#define TIM_CR1_DIR                              ( 1UL << 4UL )
+#define TIM_SR_UIF                               ( 1UL << 0UL )
+#define TIM_DIER_UIE                             ( 1UL << 0UL )
 
 
 /*-----------------------------------------------------------*/

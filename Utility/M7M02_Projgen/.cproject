@@ -33,7 +33,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc}/../../M5P02_Amoeba/Middleware/XML&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Include}&quot;"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.other.other.1024503797" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" useByScannerDiscovery="false" value="-c -fmessage-length=0 -c -Wundef -Wno-ctor-dtor-privacy -fno-strict-aliasing -static -static-libgcc -static-libstdc++ -ffunction-sections -fdata-sections" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.1024503797" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" useByScannerDiscovery="false" value="-c -fmessage-length=0 -c -Wundef -Wno-ctor-dtor-privacy -fno-strict-aliasing -static -static-libgcc -static-libstdc++ -ffunction-sections -fdata-sections --param=max-vartrack-size=600000000" valueType="string"/>
 								<option id="gnu.cpp.compiler.option.dialect.std.1844348802" name="Language standard" superClass="gnu.cpp.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.cpp.compiler.dialect.c++17" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.dialect.flags.1159596588" name="Other dialect flags" superClass="gnu.cpp.compiler.option.dialect.flags" useByScannerDiscovery="true" value="-finput-charset=GBK" valueType="string"/>
 								<option id="gnu.cpp.compiler.option.optimization.flags.1491926257" name="Other optimization flags" superClass="gnu.cpp.compiler.option.optimization.flags" useByScannerDiscovery="false" value="-march=i686 -msse2 -mtune=generic -mfpmath=sse" valueType="string"/>

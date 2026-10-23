@@ -1,12 +1,12 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+﻿<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <Platform>
     <Name>A6M</Name>
     <Version>1.0</Version>
     <Wordlength>32</Wordlength>
     <Coprocessor>None</Coprocessor>
-    <Buildsystem>Keil,Makefile</Buildsystem>
-    <Toolchain>ARMCC,GCC</Toolchain>
-    <Guest>RMP,FRT</Guest>
+    <Buildsystem>Keil,Makefile,IAREW</Buildsystem>
+    <Toolchain>ARMCC,GCC,ICCARM</Toolchain>
+    <Guest>RMP,FRT,UO3</Guest>
     <Compatible>
         <C0>Keil,ARMCC,Native</C0>
         <C1>Keil,ARMCC,RMP</C1>
@@ -14,6 +14,12 @@
         <C3>Makefile,GCC,RMP</C3>
         <C4>Keil,ARMCC,FRT</C4>
         <C5>Makefile,GCC,FRT</C5>
+        <C6>IAREW,ICCARM,Native</C6>
+        <C7>IAREW,ICCARM,RMP</C7>
+        <C8>IAREW,ICCARM,FRT</C8>
+        <C9>Makefile,GCC,UO3</C9>
+        <C10>Keil,ARMCC,UO3</C10>
+        <C11>IAREW,ICCARM,UO3</C11>
     </Compatible>
     <Config>
         <C0>

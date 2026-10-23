@@ -77,10 +77,64 @@ Guest_Gen("FRT", Proj, Plat, Chip)
     }
     catch(std::exception& Exc)
     {
-        Main::Error(std::string("FRT generator:\n")+Exc.what());
+        Main::Error(std::string("FreeRTOS generator:\n")+Exc.what());
     }
 }
 /* End Function:FRT_Gen::FRT_Gen *********************************************/
+
+/* Function:FRT_Gen::Plat_Get *************************************************
+Description : Map the platform name onto the port directory prefix that follows
+               the official FreeRTOS port naming: the ARM ports carry an "ARM_"
+               prefix, the RISC-V port carries the "RISC-V_" family prefix.
+Input       : None.
+Output      : None.
+Return      : std::string - The platform part of the port directory name.
+******************************************************************************/
+std::string FRT_Gen::Plat_Get(void)
+{
+    if(this->Plat->Name=="A6M")
+        return "ARM_A6M";
+    else if(this->Plat->Name=="A7M")
+        return "ARM_A7M";
+    else if(this->Plat->Name=="RV32P")
+        return "RISC-V_RV32P";
+
+    Main::Error("FreeRTOS generator:\nNo RVM port available for platform '"+this->Plat->Name+"'.");
+    return "";
+}
+/* End Function:FRT_Gen::Plat_Get *******************************************/
+
+/* Function:FRT_Gen::Toolchain_Get *******************************************
+Description : Map the toolchain name onto the official FreeRTOS port directory
+               name (RVDS = armcc/armclang, IAR = ICCARM, GCC = everything
+               else).
+Input       : class Virtual* Virt - The process to generate for.
+Output      : None.
+Return      : std::string - The toolchain directory name.
+******************************************************************************/
+std::string FRT_Gen::Toolchain_Get(class Virtual* Virt)
+{
+    if(Virt->Toolchain=="ARMCC")
+        return "RVDS";
+    else if(Virt->Toolchain=="ICCARM")
+        return "IAR";
+
+    return "GCC";
+}
+/* End Function:FRT_Gen::Toolchain_Get **************************************/
+
+/* Function:FRT_Gen::Port_Dir_Get ********************************************
+Description : Map the toolchain and the platform onto the port directory of
+               the FreeRTOS tree.
+Input       : class Virtual* Virt - The process to generate for.
+Output      : None.
+Return      : std::string - The port directory.
+******************************************************************************/
+std::string FRT_Gen::Port_Dir_Get(class Virtual* Virt)
+{
+    return Main::Guest_FRT_Root+"portable/"+this->Toolchain_Get(Virt)+"/"+this->Plat_Get()+"_RVM/";
+}
+/* End Function:FRT_Gen::Port_Dir_Get ***************************************/
 
 /* Function:FRT_Gen::Process_Virt_Hdr *****************************************
 Description : Create the configuration headers for VMs.
@@ -93,18 +147,14 @@ void FRT_Gen::Process_Virt_Hdr(class Virtual* Virt)
     std::string Port_Dir;
     std::unique_ptr<std::vector<std::string>> List;
 
-    /* Map the toolchain name to the port directory name - the ARMCC ports are
-     * named after Keil, and all open toolchains share the GCC directory. */
-    if(Virt->Toolchain=="ARMCC")
-        Port_Dir=Main::Guest_FRT_Root+"portable/Keil/"+this->Plat->Name_Upper+"_RVM/";
-    else
-        Port_Dir=Main::Guest_FRT_Root+"portable/GCC/"+this->Plat->Name_Upper+"_RVM/";
+    /* Map the toolchain and the platform onto the port directory. */
+    Port_Dir=Port_Dir_Get(Virt);
 
     /* See if the FreeRTOS root folder and the port folder are actually there */
     if(std::filesystem::exists(Main::Guest_FRT_Root+"tasks.c")==false)
-        Main::Error("FRT generator:\nThe FreeRTOS root folder '"+Main::Guest_FRT_Root+"' does not contain 'tasks.c'.");
+        Main::Error("FreeRTOS generator:\nThe FreeRTOS root folder '"+Main::Guest_FRT_Root+"' does not contain 'tasks.c'.");
     if(std::filesystem::exists(Port_Dir+"port.c")==false)
-        Main::Error("FRT generator:\nThe RVM port folder '"+Port_Dir+"' does not contain 'port.c'.");
+        Main::Error("FreeRTOS generator:\nThe RVM port folder '"+Port_Dir+"' does not contain 'port.c'.");
 
     /* Add the FreeRTOS kernel headers and the port headers into the VM */
     Virt->Virtual_Include.push_back(Main::Guest_FRT_Root+"include/");
@@ -149,12 +199,8 @@ void FRT_Gen::Process_Virt_Src(class Virtual* Virt, class Tool_Gen* Tool)
 {
     std::string Port_Dir;
 
-    /* Map the toolchain name to the port directory name - the ARMCC ports are
-     * named after Keil, and all open toolchains share the GCC directory. */
-    if(Virt->Toolchain=="ARMCC")
-        Port_Dir=Main::Guest_FRT_Root+"portable/Keil/"+this->Plat->Name_Upper+"_RVM/";
-    else
-        Port_Dir=Main::Guest_FRT_Root+"portable/GCC/"+this->Plat->Name_Upper+"_RVM/";
+    /* Map the toolchain and the platform onto the port directory. */
+    Port_Dir=Port_Dir_Get(Virt);
 
     /* Add all sources that this depend on - the port, the kernel and the heap.
      * The 'timers.c' is needed by ports with timers enabled; for all other

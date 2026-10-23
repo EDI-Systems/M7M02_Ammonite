@@ -64,6 +64,21 @@ Vector                             : 311 / 520 / 296
 Signal (intra)                     : 432 / 652 / 412
 Signal (inter)                     : 485 / 512 / 480
 Yield (inter, one-way)             : 423 / 660 / 400
+
+ICCARM 9.40 -Oh (SysTick turned on, w/FPU context)
+    ___   __  ___ ___
+   / _ \ /  |/  // _ \       Simple real-time kernel
+  / , _// /|_/ // ___/       Standard benchmark test
+ /_/|_|/_/  /_//_/
+===================================================
+Test (number in CPU cycles)        : AVG / MAX / MIN
+Yield (self, one-way)              : 324 / 372 / 324
+Signal (self)                      : 557 / 752 / 524
+Invocation (round-trip)            : 656 / 916 / 656
+Vector                             : 404 / 584 / 396
+Signal (intra)                     : 556 / 740 / 544
+Signal (inter)                     : 657 / 832 / 628
+Yield (inter, one-way)             : 603 / 808 / 556
 ******************************************************************************/
 
 /* Kernel Vector Handler *****************************************************/

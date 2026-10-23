@@ -68,14 +68,17 @@ extern "C"
 #include "Proj_Gen/Build_Gen/build_gen.hpp"
 #include "Proj_Gen/Build_Gen/Keil_Gen/keil_gen.hpp"
 #include "Proj_Gen/Build_Gen/Makefile_Gen/makefile_gen.hpp"
+#include "Proj_Gen/Build_Gen/IAREW_Gen/iarew_gen.hpp"
 
 #include "Proj_Gen/Tool_Gen/tool_gen.hpp"
 #include "Proj_Gen/Tool_Gen/ARMCC_Gen/armcc_gen.hpp"
 #include "Proj_Gen/Tool_Gen/GCC_Gen/gcc_gen.hpp"
+#include "Proj_Gen/Tool_Gen/ICCARM_Gen/iccarm_gen.hpp"
 
 #include "Proj_Gen/Guest_Gen/guest_gen.hpp"
 #include "Proj_Gen/Guest_Gen/RMP_Gen/rmp_gen.hpp"
 #include "Proj_Gen/Guest_Gen/FRT_Gen/frt_gen.hpp"
+#include "Proj_Gen/Guest_Gen/UO3_Gen/uo3_gen.hpp"
 #undef __HDR_CLASS__
 /* End Include ***************************************************************/
 namespace RVM_GEN
@@ -129,6 +132,8 @@ void  Proj_Gen::Build_Load(const std::string& Name)
             Build=std::make_unique<class Keil_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
         else if(Name=="Makefile")
             Build=std::make_unique<class Makefile_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
+        else if(Name=="IAREW")
+            Build=std::make_unique<class IAREW_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
         else
             Main::Error("XXXXX: Buildsystem generator for '"+Name+"' is not found.");
 
@@ -161,6 +166,8 @@ void Proj_Gen::Tool_Load(const std::string& Name)
             Tool=std::make_unique<class ARMCC_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
         else if(Name=="GCC")
             Tool=std::make_unique<class GCC_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
+        else if(Name=="ICCARM")
+            Tool=std::make_unique<class ICCARM_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
         else
             Main::Error("XXXXX: Toolchain generator for '"+Name+"' is not found.");
 
@@ -201,6 +208,12 @@ void  Proj_Gen::Guest_Load(const std::string& Name)
             if(Main::Guest_FRT_Root=="")
                 Main::Error("XXXXX: Guest path for '"+Name+"' is missing.");
             Guest=std::make_unique<class FRT_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
+        }
+        else if(Name=="UO3")
+        {
+            if(Main::Guest_UO3_Root=="")
+                Main::Error("XXXXX: Guest path for '"+Name+"' is missing.");
+            Guest=std::make_unique<class UO3_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
         }
         else
             Main::Error("XXXXX: Guest generator for '"+Name+"' is not found.");
@@ -548,7 +561,7 @@ void Proj_Gen::Path_Conv(const std::string& Root, std::vector<std::string>& List
     std::sort(List.begin(),List.end(),
               [](const std::string& Left, const std::string& Right)->bool
               {
-                  return Left>Right;
+                  return Left<Right;
               });
 }
 /* End Function:Proj_Gen::Path_Conv ******************************************/
@@ -746,9 +759,12 @@ void Proj_Gen::Kernel_Conf_Hdr(void)
     /* The virtual memory base/size for the kernel objects */
     Proj_Gen::Macro_Hex(List, "RME_KOM_VA_BASE", Kernel->Kom_Base, MACRO_REPLACE);
     Proj_Gen::Macro_Hex(List, "RME_KOM_VA_SIZE", Kernel->Kom_Size, MACRO_REPLACE);
-    /* The virtual memory base/size for the virtual machines - always full memory range, just in case */
-    Proj_Gen::Macro_Hex(List, "RME_HYP_VA_BASE", 0x00000000ULL, MACRO_REPLACE);
-    Proj_Gen::Macro_Hex(List, "RME_HYP_VA_SIZE", 0xFFFFFFFFULL, MACRO_REPLACE);
+    /* The virtual memory base/size for the virtual machines - always (mostly) full memory range */
+    Proj_Gen::Macro_Hex(List, "RME_HYP_VA_BASE", 0x00000010ULL, MACRO_REPLACE);
+    if(this->Plat->Plat->Wordlength==32)
+        Proj_Gen::Macro_Hex(List, "RME_HYP_VA_SIZE", 0xFFFFFFE0ULL, MACRO_REPLACE);
+    else
+        Proj_Gen::Macro_Hex(List, "RME_HYP_VA_SIZE", 0xFFFFFFFFFFFFFFE0ULL, MACRO_REPLACE);
     /* Kernel stack base/size */
     Proj_Gen::Macro_Hex(List, "RME_KSTK_VA_BASE", Kernel->Stack_Base, MACRO_REPLACE);
     Proj_Gen::Macro_Hex(List, "RME_KSTK_VA_SIZE", Kernel->Stack_Size, MACRO_REPLACE);
