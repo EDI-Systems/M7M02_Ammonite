@@ -18,6 +18,8 @@
         <C7>IAREW,ICCARM,RMP</C7>
         <C8>IAREW,ICCARM,FRT</C8>
         <C9>Makefile,GCC,UO3</C9>
+        <C10>Keil,ARMCC,UO3</C10>
+        <C11>IAREW,ICCARM,UO3</C11>
     </Compatible>
     <Config>
         <C0>

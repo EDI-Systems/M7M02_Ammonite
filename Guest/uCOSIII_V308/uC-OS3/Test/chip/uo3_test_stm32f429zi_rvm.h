@@ -50,18 +50,53 @@
 * ISR Semaphore                      : 1783 / 5572 / 1780
 * ISR Message queue                  : 1796 / 1796 / 1796
 * ISR RVM activation relay           : 2777 / 4592 / 2372
-*
-*                Historical notes: (a) the very first archive was stale FreeRTOS firmware
-*                output - the capture script pointed at a nonexistent kernel.bin, so the flash
-*                silently failed; the scripts now assert the guest banner.  (b) The first
-*                genuine measurement timed the guest with TIM1 while the kernel latches its
-*                relay timestamp from TIM2 - two phase-unrelated counters - so the relay
-*                statistic came out as a bogus constant offset (62818/64595/62755, a tight
-*                band that is the fingerprint of same-rate/different-phase clocks).  Timing
-*                both sides from the same TIM2 brings the relay to 2777, right at the family
-*                band; the other rows moved 3-5% because the 32-bit read-and-shift is a
-*                little costlier than the 16-bit read.
-*
+ *
+ * GNU Arm 13.2.1 -O3 (2026-10 retest, after the OSCtxSw preempt window fix)
+ * uC/OS-III V3.08 on RVM - Standard benchmark test
+ * ====================================================
+ * Test (number in CPU cycles)        : AVG / MAX / MIN
+ * Yield                              : 544 / 2580 / 544
+ * Notification                       : 801 / 2864 / 800
+ * Semaphore                          : 909 / 2968 / 900
+ * Message queue                      : 905 / 2916 / 904
+ * Memory allocation/free pair        : 244 / 504 / 244
+ * ISR Notification                   : 1756 / 1776 / 1756
+ * ISR Semaphore                      : 1795 / 3784 / 1792
+ * ISR Message queue                  : 1792 / 1792 / 1792
+ * ISR RVM activation relay           : 2774 / 2776 / 2700
+ *
+ * ARMCLANG 6.23 -O3 (2026-10, first board run - the fastest yield of the
+ * three compilers; the ARM/ port ALIGN_PUSH polarity is compiler-native
+ * correct, unlike the first IAR one - see the ICCARM note below)
+ * uC/OS-III V3.08 on RVM - Standard benchmark test
+ * ====================================================
+ * Test (number in CPU cycles)        : AVG / MAX / MIN
+ * Yield                              : 481 / 2444 / 480
+ * Notification                       : 677 / 2720 / 676
+ * Semaphore                          : 718 / 2732 / 712
+ * Message queue                      : 744 / 2840 / 736
+ * Memory allocation/free pair        : 216 / 472 / 216
+ * ISR Notification                   : 1564 / 1564 / 1564
+ * ISR Semaphore                      : 1606 / 3520 / 1604
+ * ISR Message queue                  : 1620 / 1620 / 1620
+ * ISR RVM activation relay           : 2603 / 2604 / 2552
+ *
+ * ICCARM 9.40 -Oh (2026-10, first board run - after the OS_CPU_ALIGN_PUSH
+ * polarity fix: the macro inherited the A6M "three words pushed above"
+ * BEQ assumption while the A7M entry pushes two words, flipping the
+ * alignment decision and corrupting every fast-path frame by one word)
+ * uC/OS-III V3.08 on RVM - Standard benchmark test
+ * ====================================================
+ * Test (number in CPU cycles)        : AVG / MAX / MIN
+ * Yield                              : 584 / 2812 / 584
+ * Notification                       : 792 / 3156 / 792
+ * Semaphore                          : 812 / 3192 / 812
+ * Message queue                      : 849 / 3240 / 848
+ * Memory allocation/free pair        : 221 / 510 / 221
+ * ISR Notification                   : 1868 / 2688 / 1868
+ * ISR Semaphore                      : 1888 / 5288 / 1884
+ * ISR Message queue                  : 1900 / 1900 / 1900
+ * ISR RVM activation relay           : 3141 / 4164 / 2724
 *
 *            (3) Setting up a project that uses this testbench:
 * 1. Add the benchmark source file to the project.

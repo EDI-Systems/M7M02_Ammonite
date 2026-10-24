@@ -1,8 +1,8 @@
-﻿<h1 align="center">
+<h1 align="center">
 	<img width="300" src="/Document/Demo/logo.png" alt="logo">
 </h1>
 
-# RVM Microcontroller Hypervisor
+# Unity Platform (RVM)
 <div align="center">
 
 [![Github release](https://img.shields.io/github/release/EDI-Systems/M7M02_Ammonite.svg)](https://github.com/EDI-Systems/M7M02_Ammonite/releases/latest)
@@ -54,8 +54,6 @@ This software is an official work of EDI, and thus belongs to the **public domai
 ### Security
 &ensp;&ensp;&ensp;&ensp;Traditional RTOSes generally does not consider information security as their design goal. They fail to meet security goals for future IoT systems. As stated in the reliability section, hackers can hack into the system and sabotage any part if they want to; usually a buffer overflow attack is sufficient. This is not the worst yet. The following situations can be much worse than a simple sabotage:
 
-- For IoT blockchain applications such as [IOTA](https://iota.org/), the attacker can read passwords, hack into bank accounts, and steal all the money. 
-
 - For smart home applications, the hackers can infiltrate cameras and appliance controls and start a real-world Truman Show. (This is possibly the source of some interesting racy video snippets that are currently circulating the internet.)
 
 - For smart cars, the hackers can force the driver to drive as if you are in a Formula 1 race. This has happened on Tesla model 3 not long ago.
@@ -83,33 +81,7 @@ This software is an official work of EDI, and thus belongs to the **public domai
 &ensp;&ensp;&ensp;&ensp;In terms of I/O response time, the Cortex-M3 is sufficient; we choose to use Cortex-M4 in these applications for **enhanced computing capability, not response time**. If your application does need a very low response time, you can write **RME native applications, which have similar response time when compared to FreeRTOS**. If you are using something faster than Cortex-M4 (e.g. Cortex-M7, TMS320C66X), you can ignore the overhead issue.
 
 ### How much do I need to change my existing code to port it to the VMM?
-&ensp;&ensp;&ensp;&ensp;Very little; please read the manual for details. Actually many software packets are already available on the platform, so there's no need to port by yourself. For a comprehensive list of them, read the section below.
-
-## Available system components
-&ensp;&ensp;&ensp;&ensp;All the systems that have been virtualized on RVM is shown below. If a github link is provided, the component is available for now. New ports are being added at a constant rate.  
-- **[RVM/Lib](https://github.com/EDI-Systems/M7M2_MuAmmonite)**, the microcontroller-oriented user-level library for RME.
-- **[RVM/RMP](https://github.com/EDI-Systems/M5P1_MuProkaron)**, a port of the simplistic RMP on RVM, with all functionalities retained.
-- **[RVM/FreeRTOS](https://github.com/EDI-Systems/FreeRTOS)**, a port of the widely-used [FreeRTOS](https://www.freertos.org/) to RVM.
-- **[RVM/RT-Thread](https://github.com/EDI-Systems/rt-thread)**, a port of the promising [RT-Thread](https://www.rt-thread.org/) to RVM, with all frameworks retained.
-- **[RVM/uCOSIII](https://github.com/EDI-Systems/uCOSIII)**, a port of the famous [uC/OS III](https://www.micrium.com/) to RVM. You should have a commercial license to use this port.
-- **[RVM/MicroPython](https://github.com/EDI-Systems/micropython)**, a port of the popular [MicroPython](https://micropython.org/) to RVM.
-- **[RVM/Lua](https://github.com/EDI-Systems/lua)**, a port of the easy-to-use [Lua](https://www.lua.org/) language to RVM.
-- **[RVM/Duktape](https://github.com/EDI-Systems/duktape)**, a port of the emerging [JavaScript](https://github.com/svaarala/duktape) language to RVM.
-- **[RVM/Essentials](https://github.com/EDI-Systems/M5P1_MuProkaron)**, a port of [lwip](https://savannah.nongnu.org/projects/lwip/), [fatfs](http://elm-chan.org/fsw/ff/00index_e.html) and [emWin](https://www.segger.com/products/user-interface/emwin/) to RVM, all packed in one [RMP](https://github.com/EDI-Systems/M5P1_MuProkaron) virtual machine. Be sure to obtain license to use these softwares.
-
-### Installing a guest operating system support library
-&ensp;&ensp;&ensp;&ensp;RMP is the native system of this platform and is already integrated with the VMM. **All the other guest operating systems are delivered as drop-in support libraries**: the complete, unmodified source tree of the OS, plus the RVM port layer under `portable/{GCC,Keil}/{A6M_RVM,A7M_RVM,RV32P_RVM}` and the benchmark testbench under `test`.
-
-&ensp;&ensp;&ensp;&ensp;Installation cannot be simpler - **overwrite-copy the OS code into the guest library root, and it is ready to use**. The guest root is by default a folder of the same name sitting next to this repository, exactly where the generator's `-frt` path in `Project/generate.sh` points to. No patches, no extra configuration: once the files are there, every project with `<Guest_Type>FRT</Guest_Type>` (or any ready-made `*-frt.rvp`) will pick the guest up and build it.
-
-```
-<your-workspace>/
-├── M7M02_Ammonite/         <- this repository (VMM + project generator)
-├── M5P01_Prokaron/         <- RMP (native guest, -rmp)
-└── FreeRTOS_V900/          <- FreeRTOS guest root (-frt): copy the OS code here
-```
-
-&ensp;&ensp;&ensp;&ensp;A release mirror of the currently supported guests is kept under the `Guest/` folder of this repository; run `Guest/update.sh` to refresh it after modifying a port. The same drop-in rule applies to all the other guests listed above (RT-Thread, uC/OS-III, ...).
+&ensp;&ensp;&ensp;&ensp;Very little; please read the manual for details. Actually many software packets are already available on the platform, so there's no need to port by yourself.
 
 ## List of hyper calls
 
@@ -128,67 +100,79 @@ This software is an official work of EDI, and thus belongs to the **public domai
 |RVM_HYP_TIMPROG  |10    |Reprogram virtual machine timer interrupt interval                |
 |RVM_HYP_PRINT    |11    |Print to console                                                  |
 
-### Typical performance figures for all supported architectures
-**Single-core microcontrollers**
+### Commemorative ports
+
+|Machine      |Toolchain     |RTOS      |Flash|SRAM|Yield|Mail |Sem  |Mail/I|Sem/I|Mem  |
+|:-----------:|:------------:|:--------:|:---:|:--:|:---:|:---:|:---:|:----:|:---:|:---:|
+|Cortex-M4    |GCC           |DjyOS     |     |    |     |     |     |      |     |     |
+|...          |...           |Litex     |     |    |     |     |     |      |     |     |
+|...          |...           |Contiki   |     |    |     |     |     |      |     |     |
+
+
+
+### Practical ports
 
 |Machine      |Toolchain     |RTOS      |Flash|SRAM|Yield|Mail |Sem  |Mail/I|Sem/I|Mem  |
 |:-----------:|:------------:|:--------:|:---:|:--:|:---:|:---:|:---:|:----:|:---:|:---:|
 |Cortex-M0+   |Keil uVision 5|RMP       |     |    |     |     |     |      |     |     |
-|Cortex-M0+   |IAR EWARM     |FreeRTOS  |     |    |408  |1127 |973  |2057  |1845 |852  |
-|Cortex-M0+   |GNU Arm GCC   |uCOSIII   |15.39|7.10|806  |1025 |1136 |2080  |2064 |277  |
+|...          |...           |FreeRTOS  |     |    |     |     |     |      |     |     |
+|...          |...           |uCOSIII   |     |    |     |     |     |      |     |     |
+|...          |...           |RT-Thread |     |    |     |     |     |      |     |     |
+|...          |IAR EWARM     |RMP       |     |    |     |     |     |      |     |     | 
+|...          |...           |FreeRTOS  |     |    |408  |1127 |973  |2057  |1845 |852  |
+|...          |...           |uCOSIII   |     |    |     |     |     |      |     |     |
+|...          |...           |RT-Thread |     |    |     |     |     |      |     |     |
+|...          |GCC           |RMP       |     |    |     |     |     |      |     |     | 
+|...          |...           |FreeRTOS  |     |    |     |     |     |      |     |     |
+|...          |...           |uCOSIII   |15.39|7.10|806  |1025 |1136 |2080  |2064 |277  |
+|...          |...           |RT-Thread |     |    |     |     |     |      |     |     |
 |Cortex-M4    |Keil uVision 5|RMP       |     |    |     |     |     |      |     |     |
-|Cortex-M4    |Keil uVision 5|FreeRTOS  |14.61|41.57|300  |780  |700  |1551  |1416 |453  |
-|Cortex-M4    |GNU Arm GCC   |FreeRTOS  |15.36|40.57|352  |909  |801  |1775  |1610 |640  |
-|Cortex-M4    |IAR EWARM     |FreeRTOS  |     |    |308  |869  |720  |1831  |1648 |491  |
-|Cortex-M4    |GNU Arm GCC   |uCOSIII   |14.68|8.10|536  |816  |809  |1796  |1783 |244  |
-|Cortex-M4    |Keil uVision 5|RT-Thread |     |    |     |     |     |      |     |     |
+|...          |...           |FreeRTOS  |14.61|41.57|300  |780  |700  |1551  |1416 |453  |
+|...          |...           |uCOSIII   |15.55|9.10|481  |744  |718  |1620  |1606 |216  |
+|...          |...           |RT-Thread |     |    |     |     |     |      |     |     |
+|...          |IAR EWARM     |RMP       |     |    |     |     |     |      |     |     | 
+|...          |...           |FreeRTOS  |     |    |316  |977  |808  |1844  |1668 |549  |
+|...          |...           |uCOSIII   |11.67|8.09|584  |849  |812  |1900  |1888 |221  |
+|...          |...           |RT-Thread |     |    |     |     |     |      |     |     |
+|...          |GCC           |RMP       |24.21|    |416  |708  |552  |1454  |1360 |382  | 
+|...          |...           |FreeRTOS  |15.46|40.57|372  |980  |882  |1788  |1611 |724  |
+|...          |...           |uCOSIII   |14.73|8.09|544  |905  |909  |1792  |1795 |244  |
+|...          |...           |RT-Thread |     |    |     |     |     |      |     |     |
 |Cortex-M7    |Keil uVision 5|RMP       |2.09 |2.29|1068 |1179 |1221 |1402  |1444 |176  |
-|Cortex-M7    |Keil uVision 5|FreeRTOS  |14.95|41.57|250  |604  |527  |1113  |981  |307  |
-|Cortex-M7    |GNU Arm GCC   |FreeRTOS  |15.19|40.57|228  |604  |530  |1217  |1045 |338  |
-|Cortex-M7    |IAR EWARM     |FreeRTOS  |     |    |220  |635  |533  |1230  |1103 |283  |
-|Cortex-M7    |GNU Arm GCC   |uCOSIII   |14.69|8.10|366  |529  |545  |1191  |1223 |163  |
-|Cortex-M7    |Keil uVision 5|uCOSIII   |     |    |     |     |     |      |     |     |
-|Cortex-M7    |Keil uVision 5|RT-Thread |     |    |     |     |     |      |     |     |
-|RISC-V RV32  |GNU RISC-V GCC|FreeRTOS  |17.47|24.76|313  |655  |560  |1940  |1808 |388  |
-|RISC-V RV32  |GNU RISC-V GCC|uCOSIII   |17.58|8.10|455  |602  |589  |2074  |2069 |195  |
-|Cortex-R4    |TI CCS7       |RMP       |     |    |     |     |     |      |     |     |
-|Cortex-R5    |TI CCS7       |RMP       |     |    |     |     |     |      |     |     |
-|MIPS M14k    |XC32-GCC      |RMP       |     |    |     |     |     |      |     |     |
+|...          |...           |FreeRTOS  |14.95|41.57|250  |604  |527  |1113  |981  |307  |
+|...          |...           |uCOSIII   |     |    |     |     |     |      |     |     |
+|...          |...           |RT-Thread |     |    |     |     |     |      |     |     |
+|...          |IAR EWARM     |RMP       |     |    |     |     |     |      |     |     | 
+|...          |...           |FreeRTOS  |     |    |220  |635  |533  |1230  |1103 |283  |
+|...          |...           |uCOSIII   |     |    |     |     |     |      |     |     |
+|...          |...           |RT-Thread |     |    |     |     |     |      |     |     |
+|...          |GCC           |RMP       |     |    |     |     |     |      |     |     | 
+|...          |...           |FreeRTOS  |15.19|40.57|228  |604  |530  |1217  |1045 |338  |
+|...          |...           |uCOSIII   |14.69|8.10|366  |529  |545  |1191  |1223 |163  |
+|...          |...           |RT-Thread |     |    |     |     |     |      |     |     |
+|RV32IMAC     |GCC           |RMP       |     |    |     |     |     |      |     |     | 
+|...          |...           |FreeRTOS  |17.47|24.76|313  |655  |560  |1940  |1808 |388  |
+|...          |...           |uCOSIII   |17.58|8.10|455  |602  |589  |2074  |2069 |195  |
+|...          |...           |RT-Thread |     |    |     |     |     |      |     |     |
 
-*Cortex-R4 and Cortex-R5 are listed here as single-core architectures because their main selling point is CPU redundancy, thus from the viewpoint of the programmer they behave as if they have only one core. Dual-core mode of these two processors are not supported.  
-
-&ensp;&ensp;&ensp;&ensp;**Flash and SRAM consumption is calculated in kB, while the other figures are calculated in CPU clock cycles. All values listed here are typical (useful system) values, not minimum values, because minimum values on system size seldom make any real sense. HAL library are also included in the size numbers.**
+&ensp;&ensp;&ensp;&ensp;**Flash and SRAM consumption is calculated in kB, while the other figures are calculated in CPU clock cycles. All values listed here are typical (useful system) values, not minimum values, because minimum values on system size seldom make any real sense. HAL library consumption is also included in the size numbers.**
 
 - Cortex-M0+ is evaluated with STM32G071RBT6 (the FreeRTOS figures are IAR EWARM measurements; the uCOSIII figures are GCC measurements).
-- Cortex-M4 is evaluated with STM32F405RGT6; the FreeRTOS figures are measured on STM32F429ZIT6 @ 180MHz.
-- Cortex-M7 is evaluated with STM32F767IGT6; the FreeRTOS figures are measured on STM32H743ZIT6 @ 400MHz (the uCOSIII figures are GCC measurements on the same chip).
-- RISC-V RV32 is evaluated with CH32V307 @ 144MHz (both the FreeRTOS and the uCOSIII figures are GCC measurements).
+- Cortex-M4 is evaluated with STM32F429ZIT6.
+- Cortex-M7 is evaluated with STM32H743ZIT6 (the FreeRTOS figures cover the Keil/IAR/GCC toolchains; the uCOSIII figures are GCC measurements).
+- RV32IMAC is evaluated with CH32V307 (both the FreeRTOS and the uCOSIII figures are GCC measurements).
 - All FreeRTOS and uCOSIII figures are measured with the same benchmark suite as RVM guests: GCC at -O3, IAR at -Oh. Flash/SRAM are guest image footprints (code+data / data+bss); all other figures are CPU clock cycles.
-- Cortex-R4 is evaluated with TMS570LS0432.
-- Cortex-R5 is evaluated with TMS570LC4357.
-- MIPS M14k is evaluated with PIC32MZEFM100.
+  Flash/SRAM为客机镜像占用（代码+数据/数据+bss），其余数值以CPU周期计。
 
-**Multi-core microcontrollers**
 
-|Machine      |Toolchain     |RTOS      |Flash|SRAM|Yield|Mail |Sem  |Mail/I|Sem/I|Mem  |
-|:-----------:|:------------:|:--------:|:---:|:--:|:---:|:---:|:---:|:----:|:---:|:---:|
-|Cortex-R7    |TBD           |RMP       |     |    |     |     |     |      |     |     |
-|Cortex-R8    |TBD           |RMP       |     |    |     |     |     |      |     |     |
-|TMS320C66X   |TI CCS7       |RMP       |     |    |     |     |     |      |     |     |
+&ensp;&ensp;&ensp;&ensp;In the 2 tables above, all compiler options are the highest optimization (usually -O3) and optimized for time.
+- Yield    : The time to yield between different threads.
+- Mail     : The mailbox communication time between two threads.
+- Sem      : The semaphore communication time between two threads.
+- Mail/I   : The time to send to a mailbox from interrupt.
+- Sem/I    : The time to post to a semaphore from interrupt.
+- Mem      : The time to do an operation on memory, e.g. allocation/free.
 
-&ensp;&ensp;&ensp;&ensp;**Flash and SRAM consumption is calculated in kB, while the other figures are calculated in CPU clock cycles. HAL library are also included in the size numbers. The absolute minimum value for MPU-based microprocessor-profile RME is about 64k ROM/32k RAM.**
-
-- Cortex-R7 is evaluated with TBD.
-- Cortex-R8 is evaluated with TBD.
-- TMS320C66X is evaluated with TMS320C6678.
-
-&ensp;&ensp;&ensp;&ensp;In the 2 tables above, all compiler options are the highest optimization (usually -O3) and optimized for time. 
-- Yield    : The time to yield between different threads.  
-- Mail     : The mailbox communication time between two threads.  
-- Sem      : The semaphore communication time between two threads.  
-- Mail/I   : The time to send to a mailbox from interrupt.  
-- Sem/I    : The time to post to a semaphore from interrupt.  
-- Mem      : The time to do an operation on memory, e.g. allocation/free. 
 
 ## Getting Started
 
@@ -217,6 +201,8 @@ This software is an official work of EDI, and thus belongs to the **public domai
 
 ### Deployment
 &ensp;&ensp;&ensp;&ensp;When deploying this into a production system, it is recommended that you read the manual in the **_Documents_** folder carefully to configure all options correctly. It is not recommended to configure the kernel yourself, anyway; it included too many details. Please use the default configuration file as much as possible. Also, read the user guide for the specific platform you are using.
+
+&ensp;&ensp;&ensp;&ensp;If you are deploying an RTOS (FreeRTOS, uC/OS-III or RMP) as a guest, see [Guest/GUEST.md](Guest/GUEST.md) for how to install the paravirtualized guest ports, and for each port's contract, implementation strategy and the subtle deviations between the two.
 
 ## Built With
 

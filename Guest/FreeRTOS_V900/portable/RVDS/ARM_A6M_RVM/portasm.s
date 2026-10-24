@@ -31,7 +31,7 @@
 ; */
 ;
 ;/*
-; * vPortYield yields the CPU from one task to another without a trap
+; * vPortYield_Asm yields the CPU from one task to another without a trap
 ; * through the hypervisor: the scheduler runs directly on the task stack.
 ; * The routine masquerades the current context as if it were stacked by
 ; * an exception entry, so the very same frame can also be recovered by
@@ -64,7 +64,7 @@
     IMPORT              RVM_Virt_Int_Mask
     IMPORT              RVM_Virt_Int_Unmask
 
-    EXPORT              vPortYield
+    EXPORT              vPortYield_Asm
 
     THUMB
     REQUIRE8
@@ -157,7 +157,7 @@
 ; */
     AREA                VPORTYIELD,CODE,READONLY,ALIGN=3
 
-vPortYield PROC
+vPortYield_Asm PROC
     PUSH                {R0}                ;Protect R0, XPSR and R1
     MRS                 R0,XPSR
     PUSH                {R0}

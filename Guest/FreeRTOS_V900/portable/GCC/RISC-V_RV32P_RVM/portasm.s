@@ -31,15 +31,15 @@
     .extern        RVM_Hyp_Int_Ena        /* Enable the VM interrupts. */
 
 /* Entry points implemented in this file.  The yield routines come in the
- * three coprocessor flavours that portYIELD() selects from in portmacro.h
- * when configUSE_RVM_OPTIMISED_YIELD is enabled: no coprocessor,
- * single-precision FPU (RV32F) and double-precision FPU (RV32D).  When
- * that setting is disabled the yields go through the RVM hypercall
- * instead and these routines are not referenced at all. */
+ * three coprocessor flavours that the C wrapper vPortYield() in port.c
+ * selects from when configUSE_RVM_OPTIMISED_YIELD is enabled: no
+ * coprocessor, single-precision FPU (RV32F) and double-precision FPU
+ * (RV32D).  When that setting is disabled the yields go through the RVM
+ * hypercall instead and these routines are not referenced at all. */
     .global        xPortStartFirstTask
-    .global        vPortYield
-    .global        vPortYieldRVF
-    .global        vPortYieldRVD
+    .global        vPortYield_Asm
+    .global        vPortYieldRVF_Asm
+    .global        vPortYieldRVD_Asm
 
 /*-----------------------------------------------------------*/
 
@@ -215,7 +215,7 @@
     .section    .text.vPortYield
     .align        3
 
-vPortYield:
+vPortYield_Asm:
     portSAVE_CONTEXT vPortYield_Exit
     li    a0, 0x0088        /* mstatus for no FPU, back to U-mode. */
     portSWITCH_CONTEXT        /* Do the context switch. */
@@ -226,7 +226,7 @@ vPortYield_Exit:
 /*-----------------------------------------------------------*/
 
 /*
- * Same as vPortYield, but for targets with a single-precision FPU: all
+ * Same as vPortYield_Asm, but for targets with a single-precision FPU: all
  * 32 FPU registers and FCSR are always pushed below the integer frame -
  * the FS state cannot be probed from user mode, so the yield cannot
  * know whether the task dirtied them - and the frame is marked FS
@@ -238,7 +238,7 @@ vPortYield_Exit:
     .section    .text.vPortYieldRVF
     .align        3
 
-vPortYieldRVF:
+vPortYieldRVF_Asm:
     portSAVE_CONTEXT vPortYieldRVF_Exit
     addi    sp, sp, -33*4        /* The FPU context, always saved. */
     .hword        0x25F3        /* frcsr a1 */
@@ -325,7 +325,7 @@ vPortYieldRVF_Exit:
 /*-----------------------------------------------------------*/
 
 /*
- * Same as vPortYieldRVF, but for targets with a double-precision FPU:
+ * Same as vPortYieldRVF_Asm, but for targets with a double-precision FPU:
  * the 32 FPU registers occupy two words each, so the FPU part of the
  * frame is 65 words wide.  The FPU instructions are emitted as raw
  * halfword pairs for the same compatibility reasons.
@@ -333,7 +333,7 @@ vPortYieldRVF_Exit:
     .section    .text.vPortYieldRVD
     .align        3
 
-vPortYieldRVD:
+vPortYieldRVD_Asm:
     portSAVE_CONTEXT vPortYieldRVD_Exit
     addi    sp, sp, -65*4        /* The FPU context, always saved. */
     .hword        0x25F3        /* frcsr a1 */

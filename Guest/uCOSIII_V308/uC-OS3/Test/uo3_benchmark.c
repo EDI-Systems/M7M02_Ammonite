@@ -885,6 +885,8 @@ void Bench_TestIntHandler(void)
 static CPU_INT32U cnt = 0u;
 OS_ERR  os_err;
 
+    OSIntEnter();
+
     /* Measure the RVM activation relay latency while the first test phase
      * is running.  The chip specific test header provides the timestamp
      * that the kernel latched when it took this very interrupt. */
@@ -914,30 +916,26 @@ OS_ERR  os_err;
     {
         cnt++;
         CntStart = BENCH_TIME_GET();
-        OSIntEnter();
         OSTaskSemPost(&Task2TCB, OS_OPT_POST_NO_SCHED, &os_err);
-        OSIntExit();
     }
     else if (cnt < (BENCH_TEST_ROUNDS * 2u))
     {
         cnt++;
         CntStart = BENCH_TIME_GET();
-        OSIntEnter();
         OSSemPost(&TestSem, OS_OPT_POST_NO_SCHED, &os_err);
-        OSIntExit();
     }
     else if (cnt < (BENCH_TEST_ROUNDS * 3u))
     {
         cnt++;
         CntStart = BENCH_TIME_GET();
-        OSIntEnter();
         OSQPost(&TestQ, (void *)&MsgValue, sizeof(MsgValue), OS_OPT_POST_FIFO | OS_OPT_POST_NO_SCHED, &os_err);
-        OSIntExit();
     }
     else
     {
         Bench_TestIntDisable();
     }
+    
+    OSIntExit();
 }
 
 /*

@@ -155,10 +155,28 @@ void FRT_Gen::Process_Virt_Hdr(class Virtual* Virt)
         Main::Error("FreeRTOS generator:\nThe FreeRTOS root folder '"+Main::Guest_FRT_Root+"' does not contain 'tasks.c'.");
     if(std::filesystem::exists(Port_Dir+"port.c")==false)
         Main::Error("FreeRTOS generator:\nThe RVM port folder '"+Port_Dir+"' does not contain 'port.c'.");
+    if(std::filesystem::exists(Port_Dir+"Template/FreeRTOSConfig.h")==false)
+        Main::Error("FreeRTOS generator:\nThe RVM port folder '"+Port_Dir+"' does not contain 'Template/FreeRTOSConfig.h'.");
 
     /* Add the FreeRTOS kernel headers and the port headers into the VM */
     Virt->Virtual_Include.push_back(Main::Guest_FRT_Root+"include/");
     Virt->Virtual_Include.push_back(Port_Dir);
+
+    /* Copy the FreeRTOS configuration file from the port template folder into the VM.
+     * The configuration belongs to each individual project - the user is free to edit
+     * the generated copy - so an existing copy is never replaced unless regeneration
+     * is forced.  The template folder itself is never added into the include paths. */
+    if((std::filesystem::exists(Virt->Virtual_Header_Output+"FreeRTOSConfig.h")==false)||
+       (Virt->Virtual_Header_Overwrite!=0))
+    {
+        Main::Info("> Generating 'FreeRTOSConfig.h'.");
+        /* This may pop up: gcc bug - ignoring copy_options, will fix in the future */
+        std::filesystem::copy(Port_Dir+"Template/FreeRTOSConfig.h",
+                              Virt->Virtual_Header_Output+"FreeRTOSConfig.h",
+                              std::filesystem::copy_options::overwrite_existing);
+    }
+    else
+        Main::Info("> File 'FreeRTOSConfig.h' exists, skipping generation.");
 
     /* If we're running benchmark, need to generate the test header as well */
     if(Main::Benchmark!=0)
@@ -173,13 +191,6 @@ void FRT_Gen::Process_Virt_Hdr(class Virtual* Virt)
         List->push_back("/* Include *******************************************************************/");
         List->push_back(std::string("#include \"chip/frt_test_")+this->Chip->Name_Lower+"_rvm.h\"");
         List->push_back("/* End Include ***************************************************************/");
-        List->push_back("");
-        List->push_back("/* Define ********************************************************************/");
-        List->push_back("/* The benchmark print macros - the FreeRTOS kernel itself has no printing");
-        List->push_back(" * facility, so we map them onto the RVM debug printing functions. */");
-        List->push_back("#define benchPRINT_STRING(pcString)            RVM_DBG_S(pcString)");
-        List->push_back("#define benchPRINT_NUMBER(ulNumber)            RVM_DBG_I(ulNumber)");
-        List->push_back("/* End Define ****************************************************************/");
         List->push_back("");
         Proj_Gen::Src_Foot(List);
 
@@ -205,14 +216,14 @@ void FRT_Gen::Process_Virt_Src(class Virtual* Virt, class Tool_Gen* Tool)
     /* Add all sources that this depend on - the port, the kernel and the heap.
      * The 'timers.c' is needed by ports with timers enabled; for all other
      * ports it is compiled empty due to its own internal guards.  The ARMv7-M
-     * port compiles 'tasksrvm.c' instead of 'tasks.c': that file includes the
+     * port compiles 'tasks_rvm.c' instead of 'tasks.c': that file includes the
      * unmodified kernel source and appends the scheduler lookahead that the
      * fast yield path needs - see its own header comment. */
     Virt->Virtual_Library.push_back(Port_Dir+"port.c");
     if((this->Plat->Name=="RV32P")||(this->Plat->Name=="A6M")||(this->Plat->Name=="A7M"))
         Virt->Virtual_Library.push_back(Port_Dir+"portasm.s");
     if(this->Plat->Name=="A7M")
-        Virt->Virtual_Library.push_back(Port_Dir+"tasksrvm.c");
+        Virt->Virtual_Library.push_back(Port_Dir+"tasks_rvm.c");
     else
         Virt->Virtual_Library.push_back(Main::Guest_FRT_Root+"tasks.c");
     Virt->Virtual_Library.push_back(Main::Guest_FRT_Root+"list.c");

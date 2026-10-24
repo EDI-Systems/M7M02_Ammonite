@@ -109,46 +109,18 @@ not need to be guarded with a critical section. */
 
 
 /* Scheduler utilities. */
-#if( configUSE_RVM_OPTIMISED_YIELD != 0 )
-    /* The fast-path assembly routines - see portasm.s. */
-    #if( configUSE_PORT_RVD != 0 )
-        extern void vPortYieldRVD( void );
-        #define portYIELD() \
-        do \
-        { \
-            vPortYieldRVD(); \
-            __asm__ __volatile__("fence iorw,iorw":::"memory"); \
-        } \
-        while(0)
-    #elif( configUSE_PORT_RVF != 0 )
-        extern void vPortYieldRVF( void );
-        #define portYIELD() \
-        do \
-        { \
-            vPortYieldRVF(); \
-            __asm__ __volatile__("fence iorw,iorw":::"memory"); \
-        } \
-        while(0)
-    #else
-        extern void vPortYield( void );
-        #define portYIELD() \
-        do \
-        { \
-            vPortYield(); \
-            __asm__ __volatile__("fence iorw,iorw":::"memory"); \
-        } \
-        while(0)
-    #endif
-#else
-    /* Yield through the hypervisor - simpler, but traps on every switch. */
-    #define portYIELD() \
-    do \
-    { \
-        RVM_Virt_Yield(); \
-        __asm__ __volatile__("fence iorw,iorw":::"memory"); \
-    } \
-    while(0)
-#endif
+/* The C-level yield in port.c: defers the switch to the critical section
+ * exit when called under a raised nesting count, and selects the fast
+ * assembly path (RVD/RVF/plain) or the hypervisor yield per
+ * configUSE_RVM_OPTIMISED_YIELD by itself. */
+extern void vPortYield( void );
+#define portYIELD() \
+do \
+{ \
+    vPortYield(); \
+    __asm__ __volatile__("fence iorw,iorw":::"memory"); \
+} \
+while(0)
 
 #define portEND_SWITCHING_ISR( xSwitchRequired ) do { if( xSwitchRequired ) RVM_Virt_Yield(); } while( 0 )
 #define portYIELD_FROM_ISR( x )                 portEND_SWITCHING_ISR( x )

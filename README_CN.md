@@ -1,4 +1,4 @@
-﻿<h1 align="center">
+<h1 align="center">
 	<img width="300" src="/Document/Demo/logo.png" alt="logo">
 </h1>
 
@@ -40,8 +40,6 @@ Click **[HERE](README.md)** for English version.
 ### 安全性
 &emsp;&emsp;传统的RTOS通常不把信息安全作为它们的一个设计目标。这样一来，它们根本无法满足未来的IoT系统对信息安全的需求。正如上节所讲，黑客可以黑进系统并且破坏系统的任意功能；通常而言，缓冲区溢出攻击就足够了。但这还不是最坏的状况。以下所列的情况比简单的破坏要糟糕多了：
 
-- 对于以[IOTA](https://iota.org/)为代表的物联网[区块链](https://en.wikipedia.org/wiki/Blockchain)应用，攻击者能够读取的密码并黑进账户，然后划走所有的钱。
-
 - 对于智能家居应用，黑客可以黑进摄像头和家用电器，然后把生活变成现实版真人秀。（这也是网上超多有趣的小视频的来源。）
 
 - 对于智能汽车，黑客可以强迫司机像一级方程式赛车手那样开车。这在Tesla model 3上刚发生过。
@@ -68,36 +66,7 @@ Click **[HERE](README.md)** for English version.
 &emsp;&emsp;在I/O响应时间方面，Cortex-M3已经足够优秀了。我们选择使用Cortex-M4是为了 **增强的计算性能，不是为了响应时间** 。如果你的应用程序的确需要低的响应时间，你可以编写 **RME的原生应用，它们的响应时间和FreeRTOS差不多** 。如果你使用比Cortex-M4快的处理器（比如Cortex-M7和TMS320C66X），那么你完全可以忽略额外开销的问题。
 
 ### 为了移植到虚拟机监视器，我要修改多少代码？
-&emsp;&emsp;非常少。请参阅手册以获取细节。实际上很多软件包在本平台上已经可用了，你不需要自己移植。详细的清单见下节。
-
-## 可用的系统组件
-
-&emsp;&emsp;所有的现有系统组件列于下表。如果提供了github链接，那么该组件现在就是可用的。新的组件现在还在被持续添加。  
-- **[RVM/Lib](https://github.com/EDI-Systems/M7M2_MuAmmonite)**，一份RME的微控制器用户态库。
-- **[RVM/RMP](https://github.com/EDI-Systems/M5P1_MuProkaron)**，RMP在RME上的一个全功能移植。
-- **[RVM/FreeRTOS](https://github.com/EDI-Systems/FreeRTOS)**，广为应用的[FreeRTOS](https://www.freertos.org/)在RVM上的一个全功能移植。
-- **[RVM/RT-Thread](https://github.com/EDI-Systems/rt-thread)**，颇有前景的[RT-Thread](https://www.rt-thread.org/)在RVM上的一个全功能移植，包括其所有框架。
-- **[RVM/uCOSIII](https://github.com/EDI-Systems/uCOSIII)**，著名的[uC/OS III](https://www.micrium.com/)在RVM上的一个移植。如果要在产品中使用该系统，你应当持有该系统的商业许可。
-- **[RVM/MicroPython](https://github.com/EDI-Systems/micropython)**，广为应用的[MicroPython](https://micropython.org/)在RVM上的一个移植。
-- **[RVM/Lua](https://github.com/EDI-Systems/lua)**，广为应用的[Lua](https://www.lua.org/)在RVM上的一个移植。
-- **[RVM/Duktape](https://github.com/EDI-Systems/duktape)**，新出现的[JavaScript](https://github.com/svaarala/duktape)在RVM上的一个移植。
-- **[RVM/Essentials](https://github.com/EDI-Systems/M5P1_MuProkaron)**，一个包含了[lwip](https://savannah.nongnu.org/projects/lwip/)、[fatfs](http://elm-chan.org/fsw/ff/00index_e.html)和[emWin](https://www.segger.com/products/user-interface/emwin/)的[RMP](https://github.com/EDI-Systems/M5P1_MuProkaron)的RVM移植。要在产品中使用该系统，你应当持有相应的商业许可。
-
-### 安装客户机操作系统支持库
-&emsp;&emsp;RMP是本平台的原生系统，已经随虚拟机监视器一起集成。**其他所有客户机操作系统均以“即拷即用”支持库的形式发布**：完整的、未经修改的操作系统源码树，外加位于`portable/{GCC,Keil}/{A6M_RVM,A7M_RVM,RV32P_RVM}`的RVM移植层，以及位于`test`的性能测试台。
-
-&emsp;&emsp;安装方式再简单不过——**把对应操作系统的代码直接覆盖拷贝到该客户机根目录，即可使用**。该根目录默认是与本仓库同级放置的同名文件夹，也就是`Project/generate.sh`中生成器`-frt`参数所指向的位置。无需打补丁、无需额外配置：文件拷贝到位后，所有`<Guest_Type>FRT</Guest_Type>`的工程（或任一现成的`*-frt.rvp`）即可直接识别并编译该客户机。上面是针对FreeRTOS；其它受支持的操作系统也是一样。
-
-```
-<你的工作区>/
-├── M7M01_Eukaron/          ← RME（微内核）
-├── M7M02_Ammonite/         ← 本仓库（虚拟机监视器 + 工程生成器）
-├── M5P01_Prokaron/         ← RMP（原生客户机，-rmp）
-├── FreeRTOS_V900/          ← FreeRTOS客户机根目录（-frt）：把操作系统代码拷贝到这里
-└── uCOSIII_V308/           ← FreeRTOS客户机根目录（-uo3）：把操作系统代码拷贝到这里
-```
-
-&emsp;&emsp;本仓库的`Guest/`目录维护着当前所支持客户机的发布镜像，修改移植后运行`Guest/update.sh`即可刷新。其他客户机（RT-Thread、uC/OS-III等）同样遵循这一即拷即用规则。
+&emsp;&emsp;非常少。请参阅手册以获取细节。实际上很多软件包在本平台上已经可用了，你不需要自己移植。
 
 ## 超级调用列表
 |超级调用           |调用号|功能描述                                                            |
@@ -143,15 +112,15 @@ Click **[HERE](README.md)** for English version.
 |...          |...           |RT-Thread |     |    |     |     |     |      |     |     |
 |Cortex-M4    |Keil uVision 5|RMP       |     |    |     |     |     |      |     |     |
 |...          |...           |FreeRTOS  |14.61|41.57|300  |780  |700  |1551  |1416 |453  |
-|...          |...           |uCOSIII   |     |    |     |     |     |      |     |     |
+|...          |...           |uCOSIII   |15.55|9.10|481  |744  |718  |1620  |1606 |216  |
 |...          |...           |RT-Thread |     |    |     |     |     |      |     |     |
 |...          |IAR EWARM     |RMP       |     |    |     |     |     |      |     |     | 
-|...          |...           |FreeRTOS  |     |    |308  |869  |720  |1831  |1648 |491  |
-|...          |...           |uCOSIII   |     |    |     |     |     |      |     |     |
+|...          |...           |FreeRTOS  |     |    |316  |977  |808  |1844  |1668 |549  |
+|...          |...           |uCOSIII   |11.67|8.09|584  |849  |812  |1900  |1888 |221  |
 |...          |...           |RT-Thread |     |    |     |     |     |      |     |     |
-|...          |GCC           |RMP       |     |    |     |     |     |      |     |     | 
-|...          |...           |FreeRTOS  |15.36|40.57|352  |909  |801  |1775  |1610 |640  |
-|...          |...           |uCOSIII   |14.68|8.10|536  |816  |809  |1796  |1783 |244  |
+|...          |GCC           |RMP       |24.21|    |416  |708  |552  |1454  |1360 |382  |
+|...          |...           |FreeRTOS  |15.46|40.57|372  |980  |882  |1788  |1611 |724  |
+|...          |...           |uCOSIII   |14.73|8.09|544  |905  |909  |1792  |1795 |244  |
 |...          |...           |RT-Thread |     |    |     |     |     |      |     |     |
 |Cortex-M7    |Keil uVision 5|RMP       |2.09 |2.29|1068 |1179 |1221 |1402  |1444 |176  |
 |...          |...           |FreeRTOS  |14.95|41.57|250  |604  |527  |1113  |981  |307  |
@@ -214,6 +183,8 @@ Click **[HERE](README.md)** for English version.
 
 ### 生产部署
 &emsp;&emsp;当部署本系统到生产环境时，请仔细阅读本系统自带的手册，以确保各项配置正确。本系统的手册可以在 **_Documents_** 文件夹下找到。不推荐由用户自己配置内核；它包含太多的细节。请尽量使用提供好的默认配置文件。此外，一定要阅读对应架构的用户手册。
+
+&emsp;&emsp;若要以客机方式部署 RTOS（FreeRTOS、uC/OS-III 或 RMP），请参阅 [Guest/GUEST_CN.md](Guest/GUEST_CN.md)，其中说明了半虚拟化客机端口的安装方法，以及各端口的契约、移植策略与两者之间的微妙出入。
 
 ## 支持的工具链
 

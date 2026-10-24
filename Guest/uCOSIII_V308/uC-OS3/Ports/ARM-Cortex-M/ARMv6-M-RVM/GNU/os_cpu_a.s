@@ -262,7 +262,7 @@ OSStartHighRdy:
 @
 @           5) OS_TASK_SW() is called inside a scheduler critical section; the masking here is
 @              idempotent and the unmasking happens after the new task frame has been loaded,
-@              so the mask nesting carried by CPU_SR in cpu_rvm.c remains consistent across
+@              so the mask snapshot carried by CPU_SR in cpu_rvm.c remains consistent across
 @              the switch.
 @********************************************************************************************************
 

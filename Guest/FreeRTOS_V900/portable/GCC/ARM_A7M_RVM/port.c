@@ -44,7 +44,9 @@
 #endif
 
 /* FPU registers */
+#if( RVM_COP_NUM != 0U )
 #define FRT_FPU                                 ((volatile struct RVM_A7M_Cop_Struct*)(RVM_REG->Cop))
+#endif
 
 /* Constants required to set up the initial stack. */
 #define portINITIAL_XPSR                        (0x01000000)
@@ -71,6 +73,11 @@ debugger. */
 /* Each task maintains its own interrupt status in the critical nesting
 variable. */
 static UBaseType_t uxCriticalNesting = 0xaaaaaaaa;
+
+/* Set when portYIELD() is called while the critical nesting count is raised;
+ * vPortExitCritical() runs the deferred switch when the count hits zero -
+ * the software equivalent of the official ports' pending PendSV. */
+static BaseType_t xPortYieldPend = pdFALSE;
 
 /*
  * The RVM virtual interrupts cannot be masked through the Cortex-M4
@@ -302,6 +309,14 @@ void vPortExitCritical( void )
     uxCriticalNesting--;
     if( uxCriticalNesting == 0 )
     {
+        /* A yield pended from inside the critical section runs here, while
+         * the interrupts are still masked - every exit path of vPortYield()
+         * unmasks them itself (same order as RMP_Sched_Unlock). */
+        if( xPortYieldPend != pdFALSE )
+        {
+            xPortYieldPend = pdFALSE;
+            vPortYield();
+        }
         portENABLE_INTERRUPTS();
     }
 }
@@ -317,6 +332,7 @@ void xPortPendSVHandler(void)
     /* LDR      R3,pxCurrentTCB
      * LDR      R2,[R3] */
     
+#if( RVM_COP_NUM != 0U )
     /* TST      LR,#0x10
      * IT       EQ
      * VSTMDBEQ R0!,{S16-S31} */
@@ -339,6 +355,7 @@ void xPortPendSVHandler(void)
         *(--SP)=FRT_FPU->S17;
         *(--SP)=FRT_FPU->S16;
     }
+#endif /* RVM_COP_NUM */
     
     /* STMDB    R0!,{R4-R11,LR} */
     *(--SP)=RVM_REG->Reg.LR;
@@ -385,6 +402,7 @@ void xPortPendSVHandler(void)
     RVM_REG->Reg.R11=*(SP++);
     RVM_REG->Reg.LR=*(SP++);
     
+#if( RVM_COP_NUM != 0U )
     /* TST      LR,#0x10
      * IT       EQ
      * VLDMIAEQ R0!,{S16-S31} */
@@ -407,6 +425,7 @@ void xPortPendSVHandler(void)
         FRT_FPU->S30=*(SP++);
         FRT_FPU->S31=*(SP++);
     }
+#endif /* RVM_COP_NUM */
     
     /* MSR      PSP,R0 */
     RVM_REG->Reg.SP=(uint32_t)SP;
@@ -484,6 +503,7 @@ extern void vPortYield_Swt( void );
 /*
  * Check whether the frame saved on the given TCB carries ICI/IT state.
  */
+#if( configUSE_RVM_OPTIMISED_YIELD != 0 )
 static BaseType_t xPortFrameDirty( void * pvNextTCB )
 {
 const uint32_t * pulTopOfStack;
@@ -499,6 +519,7 @@ const uint32_t * pulTopOfStack;
 
     return ( ( pulTopOfStack[ portOFFSET_TO_XPSR_BASIC ] & portXPSR_ICI_IT_MASK ) != 0UL ) ? pdTRUE : pdFALSE;
 }
+#endif /* configUSE_RVM_OPTIMISED_YIELD */
 /*-----------------------------------------------------------*/
 
 /*
@@ -519,8 +540,23 @@ const uint32_t * pulTopOfStack;
  */
 void vPortYield( void )
 {
+#if( configUSE_RVM_OPTIMISED_YIELD != 0 )
 void * pvNextTCB;
+#endif
 
+    /* The official ARMv7-M ports pend the PendSV and only switch once the
+     * critical section exits - the kernel does call portYIELD() from inside
+     * one (ulTaskNotifyTake et al).  RVM_Virt_Int_Unmask() is a flat flag,
+     * so yielding under a raised nesting count would open the interrupts in
+     * the middle of the caller's critical section; pend instead, and let
+     * vPortExitCritical() run the switch when the count hits zero. */
+    if( uxCriticalNesting != 0U )
+    {
+        xPortYieldPend = pdTRUE;
+        return;
+    }
+
+#if( configUSE_RVM_OPTIMISED_YIELD != 0 )
     RVM_Virt_Int_Mask();
     pvNextTCB = ( void * ) xTaskPeekNextToRun();
 
@@ -533,14 +569,20 @@ void * pvNextTCB;
         }
         else
         {
-            RVM_Virt_Int_Unmask();
+            /* Pend the switch under mask; the unmask arms it at its
+             * hypercall boundary - no unmasked window in between. */
             RVM_Virt_Yield();
+            RVM_Virt_Int_Unmask();
         }
     }
     else
     {
         RVM_Virt_Int_Unmask();
     }
+#else
+    /* Yield through the hypervisor - simpler, but traps on every switch. */
+    RVM_Virt_Yield();
+#endif
 }
 /*-----------------------------------------------------------*/
 

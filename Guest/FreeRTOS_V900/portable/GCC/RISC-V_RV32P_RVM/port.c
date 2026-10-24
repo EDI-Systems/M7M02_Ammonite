@@ -87,6 +87,11 @@ interrupt stack after the scheduler has started. */
 #endif
 
 static UBaseType_t uxCriticalNesting = 0xaaaaaaaa;
+
+/* Set when portYIELD() is called while the critical nesting count is raised;
+ * vPortExitCritical() runs the deferred switch when the count hits zero -
+ * the software equivalent of a pending software-interrupt yield. */
+static BaseType_t xPortYieldPend = pdFALSE;
 /*
  * Setup the timer to generate the tick interrupts.  The implementation in this
  * file is weak to allow application writers to change the timer used to
@@ -772,8 +777,57 @@ void vPortExitCritical( void )
 
     if( uxCriticalNesting == 0 )
     {
+        /* A yield pended from inside the critical section runs here, while
+         * the interrupts are still masked - every exit path of vPortYield()
+         * unmasks them itself (same order as RMP_Sched_Unlock). */
+        if( xPortYieldPend != pdFALSE )
+        {
+            xPortYieldPend = pdFALSE;
+            vPortYield();
+        }
         portENABLE_INTERRUPTS();
     }
+}
+/*-----------------------------------------------------------*/
+#if( configUSE_RVM_OPTIMISED_YIELD != 0 )
+    /* The fast-path assembly routines - see portasm.s. */
+    #if( configUSE_PORT_RVD != 0 )
+        extern void vPortYieldRVD_Asm( void );
+    #elif( configUSE_PORT_RVF != 0 )
+        extern void vPortYieldRVF_Asm( void );
+    #else
+        extern void vPortYield_Asm( void );
+    #endif
+#endif
+
+/*
+ * The yield entry point selected by portYIELD().  The official RISC-V
+ * ports switch inside the ECALL trap, whose saved mstatus travels with each
+ * task; under RVM the mask flag is a global, so yielding under a raised
+ * nesting count would open the interrupts in the middle of the caller's
+ * critical section - pend instead, and let vPortExitCritical() run the
+ * switch when the count hits zero.
+ */
+void vPortYield( void )
+{
+    if( uxCriticalNesting != 0U )
+    {
+        xPortYieldPend = pdTRUE;
+        return;
+    }
+
+#if( configUSE_RVM_OPTIMISED_YIELD != 0 )
+    #if( configUSE_PORT_RVD != 0 )
+        vPortYieldRVD_Asm();
+    #elif( configUSE_PORT_RVF != 0 )
+        vPortYieldRVF_Asm();
+    #else
+        vPortYield_Asm();
+    #endif
+#else
+    /* Yield through the hypervisor - simpler, but traps on every switch. */
+    RVM_Virt_Yield();
+#endif
 }
 /*-----------------------------------------------------------*/
 portUBASE_TYPE xPortSetInterruptMask(void)

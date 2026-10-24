@@ -175,6 +175,14 @@ void UO3_Gen::Process_Virt_Hdr(class Virtual* Virt)
         Main::Error("uC/OS-III generator:\nThe RVM port folder '"+Port_Dir.first+"' does not contain 'os_cpu.h'.");
     if(std::filesystem::exists(Port_Dir.first+"os_cpu_a.s")==false)
         Main::Error("uC/OS-III generator:\nThe RVM port folder '"+Port_Dir.first+"' does not contain 'os_cpu_a.s'.");
+    if(std::filesystem::exists(Port_Dir.first+"../Template/os_cfg.h")==false)
+        Main::Error("uC/OS-III generator:\nThe RVM port folder '"+Port_Dir.first+"' does not contain '../Template/os_cfg.h'.");
+    if(std::filesystem::exists(Port_Dir.first+"../Template/os_cfg_app.h")==false)
+        Main::Error("uC/OS-III generator:\nThe RVM port folder '"+Port_Dir.first+"' does not contain '../Template/os_cfg_app.h'.");
+    if(std::filesystem::exists(Port_Dir.second+"Template/cpu_cfg.h")==false)
+        Main::Error("uC/OS-III generator:\nThe RVM CPU folder '"+Port_Dir.second+"' does not contain 'Template/cpu_cfg.h'.");
+    if(std::filesystem::exists(Port_Dir.second+"Template/lib_cfg.h")==false)
+        Main::Error("uC/OS-III generator:\nThe RVM CPU folder '"+Port_Dir.second+"' does not contain 'Template/lib_cfg.h'.");
 
     /* Add the kernel headers, the port headers, the port configuration and
      * the uC/LIB headers into the VM.  The RVM CPU layer is self-sufficient. */
@@ -184,6 +192,35 @@ void UO3_Gen::Process_Virt_Hdr(class Virtual* Virt)
     Virt->Virtual_Include.push_back(Main::Guest_UO3_Root+"uC-LIB/");
     Virt->Virtual_Include.push_back(Port_Dir.second);
     Virt->Virtual_Include.push_back(Port_Dir.second+this->Toolchain_Get(Virt)+"/");
+
+    /* Copy the configuration files from the port template folders into the VM.
+     * The configurations belong to each individual project - the user is free
+     * to edit the generated copies - so an existing copy is never replaced
+     * unless regeneration is forced.  The template folders themselves are
+     * never added into the include paths.  The OS-side templates sit on the
+     * architecture layer (shared by all compiler sublayers), the CPU-side
+     * templates sit in the CPU port root. */
+    const std::pair<std::string,std::string> Cfg_List[]=
+    {
+        std::make_pair(Port_Dir.first+"../Template/", "os_cfg.h"),
+        std::make_pair(Port_Dir.first+"../Template/", "os_cfg_app.h"),
+        std::make_pair(Port_Dir.second+"Template/", "cpu_cfg.h"),
+        std::make_pair(Port_Dir.second+"Template/", "lib_cfg.h")
+    };
+    for(const std::pair<std::string,std::string>& Cfg:Cfg_List)
+    {
+        if((std::filesystem::exists(Virt->Virtual_Header_Output+Cfg.second)==false)||
+           (Virt->Virtual_Header_Overwrite!=0))
+        {
+            Main::Info(std::string("> Generating '")+Cfg.second+"'.");
+            /* This may pop up: gcc bug - ignoring copy_options, will fix in the future */
+            std::filesystem::copy(Cfg.first+Cfg.second,
+                                  Virt->Virtual_Header_Output+Cfg.second,
+                                  std::filesystem::copy_options::overwrite_existing);
+        }
+        else
+            Main::Info(std::string("> File '")+Cfg.second+"' exists, skipping generation.");
+    }
 
     /* If we're running benchmark, need to generate the test header as well */
     if(Main::Benchmark!=0)

@@ -30,11 +30,11 @@
 ; * portmacro.h when configUSE_RVM_OPTIMISED_YIELD is enabled.  When that
 ; * setting is disabled the yields go through the RVM hypercall instead
 ; * and this routine is not referenced at all. */
-    PUBLIC              vPortYield
+    PUBLIC              vPortYield_Asm
 
 ;/*-----------------------------------------------------------*/
 ;/*
-; * vPortYield yields the CPU from one task to another without a trap
+; * vPortYield_Asm yields the CPU from one task to another without a trap
 ; * through the hypervisor: the scheduler runs directly on the task stack.
 ; * The routine masquerades the current context as if it were stacked by
 ; * an exception entry, so the very same frame can also be recovered by
@@ -148,7 +148,7 @@ portEXC_POP     MACRO   SZ
 ; * The fast-path yield entry point - see the header comment above.
 ; */
 
-vPortYield
+vPortYield_Asm
     PUSH                {R0}                ;Protect R0, XPSR and R1
     MRS                 R0,XPSR
     PUSH                {R0}

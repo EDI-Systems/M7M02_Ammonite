@@ -24,12 +24,6 @@
 *********************************************************************************************************
 */
 
-/*
-*********************************************************************************************************
-* Note(s)  : (1) This file is derived from the official ARMv7-M os_cpu_c.c: the kernel hooks are carried over unchanged, the initial stack carries the five RVM hypercall parameter words below the register block, and the SysTick functions are replaced by the RVM tick and context handlers.  The task level context switches go through the assembly fast path in os_cpu_a.s, the interrupt driven ones through the RVM virtual yield hypercall.
-*********************************************************************************************************
-*/
-
 #define   OS_CPU_GLOBALS
 
 #ifdef VSC_INCLUDE_SOURCE_FILE_NAMES
@@ -47,9 +41,11 @@ const  CPU_CHAR  *os_cpu_c__c = "$Id: $";
 #include  "rvm.h"
 
 
+#if (RVM_COP_NUM != 0u)
 /* The coprocessor register set of the hypervisor - the S16-S31 half of the */
 /* FPv4-SP coprocessor, reachable through the RVM_REG walking pointer.        */
 #define  OS_CPU_FPU   ((volatile struct RVM_A7M_Cop_Struct *)(RVM_REG->Cop))
+#endif
 
 #ifdef __cplusplus
 extern  "C" {
@@ -516,10 +512,20 @@ static  CPU_BOOLEAN  OS_CPU_Frame_Dirty (OS_TCB  *p_tcb)
 
 void  OSCtxSw (void)
 {
-    if (OS_CPU_Frame_Dirty(OSTCBHighRdyPtr) == DEF_TRUE) {       /* Dirty ICI/IT - the slow path, whose   */
-        RVM_Virt_Yield();                                       /* real exception return restores it.     */
+    RVM_Virt_Int_Mask();                                          /* Close the preempt window:   */
+                                                                   /* OSSched selects HighRdy and  */
+                                                                   /* OSCtxSw_Swt() masks by itself */
+                                                                   /* only later - an interrupt in */
+                                                                   /* between would let the slow   */
+                                                                   /* path rewrite the scheduler   */
+                                                                   /* state behind our back.       */
+    if (OS_CPU_Frame_Dirty(OSTCBHighRdyPtr) == DEF_TRUE) {        /* Dirty ICI/IT - the slow path, whose   */
+        RVM_Virt_Yield();                                          /* real exception return restores it.    */
+        RVM_Virt_Int_Unmask();                                     /* Pend under mask; the unmask below     */
+                                                                    /* arms the switch at its hypercall      */
+                                                                    /* boundary - no unmasked window.        */
     } else {
-        OSCtxSw_Swt();                                          /* Clean - switch on the task stacks.     */
+        OSCtxSw_Swt();                                            /* Clean - switch on the task stacks.     */
     }
 }
 
@@ -590,6 +596,7 @@ void  OS_Ctx_Handler (void)
                                                                 /* Save the current context onto its task stack. */
     p_sp = (CPU_STK *)RVM_REG->Reg.SP;
 
+#if (RVM_COP_NUM != 0u)
     if ((RVM_REG->Reg.LR & 0x10u) == 0u) {                      /* Extended frame - stack the S16-S31 half    */
         *(--p_sp) = (CPU_STK)OS_CPU_FPU->S31;                   /* of the coprocessor below the hardware       */
         *(--p_sp) = (CPU_STK)OS_CPU_FPU->S30;                   /* frame, like the lazy stacking does.         */
@@ -608,6 +615,7 @@ void  OS_Ctx_Handler (void)
         *(--p_sp) = (CPU_STK)OS_CPU_FPU->S17;
         *(--p_sp) = (CPU_STK)OS_CPU_FPU->S16;
     }
+#endif
 
     *(--p_sp) = (CPU_STK)RVM_REG->Reg.LR;                       /* The saved EXC_RETURN.                       */
     *(--p_sp) = (CPU_STK)RVM_REG->Reg.R11;
@@ -650,6 +658,7 @@ void  OS_Ctx_Handler (void)
     RVM_REG->Reg.R11 = *(p_sp++);
     RVM_REG->Reg.LR  = *(p_sp++);
 
+#if (RVM_COP_NUM != 0u)
     if ((RVM_REG->Reg.LR & 0x10u) == 0u) {                      /* Extended frame - recover the S16-S31 half   */
         OS_CPU_FPU->S16 = *(p_sp++);                            /* of the coprocessor.                         */
         OS_CPU_FPU->S17 = *(p_sp++);
@@ -668,6 +677,7 @@ void  OS_Ctx_Handler (void)
         OS_CPU_FPU->S30 = *(p_sp++);
         OS_CPU_FPU->S31 = *(p_sp++);
     }
+#endif
 
     RVM_REG->Reg.SP  = (rvm_ptr_t)p_sp;                         /* Return to the new task.                     */
 }

@@ -54,6 +54,13 @@ be measured as well. */
 #undef RVM_TEST_VIRTUAL_INC
 
 /*-----------------------------------------------------------*/
+
+/* The benchmark print macros - the FreeRTOS kernel itself has no printing
+facility, so the results are printed through the RVM debug printing
+functions. */
+#define benchPRINT_STRING( pcString )            RVM_DBG_S( pcString )
+#define benchPRINT_NUMBER( ulNumber )            RVM_DBG_I( ulNumber )
+
 /* The size of the stack allocated to each benchmark task, measured in
 words rather than bytes. */
 #define benchTASK_STACK_SIZE                    ( ( uint16_t ) 256 )

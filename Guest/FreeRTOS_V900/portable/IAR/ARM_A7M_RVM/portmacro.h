@@ -67,16 +67,12 @@ typedef uint32_t                                TickType_t;
 #define portBYTE_ALIGNMENT                      8
 
 /* Scheduler utilities. */
-#if( configUSE_RVM_OPTIMISED_YIELD != 0 )
-    /* The fast-path yield in port.c - peeks the scheduler's next choice,
-     * then either switches on the task stack or falls back to the
-     * hypervisor yield for ICI/IT-dirty targets. */
-    extern void vPortYield( void );
-    #define portYIELD()                         vPortYield()
-#else
-    /* Yield through the hypervisor - simpler, but traps on every switch. */
-    #define portYIELD()                         RVM_Virt_Yield()
-#endif
+/* The C-level yield in port.c: defers the switch to the critical section
+ * exit when called under a raised nesting count, and selects the fast
+ * task-stack switch, the hypervisor yield for ICI/IT-dirty targets, or the
+ * pure hypervisor yield when configUSE_RVM_OPTIMISED_YIELD is zero. */
+extern void vPortYield( void );
+#define portYIELD()                             vPortYield()
 #define portEND_SWITCHING_ISR(xSwitchRequired) \
 do \
 { \

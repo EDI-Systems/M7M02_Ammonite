@@ -45,6 +45,11 @@ debugger. */
 variable. */
 static UBaseType_t uxCriticalNesting = 0xaaaaaaaa;
 
+/* Set when portYIELD() is called while the critical nesting count is raised;
+ * vPortExitCritical() runs the deferred switch when the count hits zero -
+ * the software equivalent of the official ports' pending PendSV. */
+static BaseType_t xPortYieldPend = pdFALSE;
+
 /*
  * Returns the interrupt mask state before the call - the RVM virtual
  * interrupts cannot be masked from the A6M BASEPRI, so this is a stub
@@ -235,8 +240,48 @@ void vPortExitCritical( void )
     uxCriticalNesting--;
     if( uxCriticalNesting == 0 )
     {
+        /* A yield pended from inside the critical section runs here, while
+         * the interrupts are still masked - every exit path of vPortYield()
+         * unmasks them itself (same order as RMP_Sched_Unlock). */
+        if( xPortYieldPend != pdFALSE )
+        {
+            xPortYieldPend = pdFALSE;
+            vPortYield();
+        }
         portENABLE_INTERRUPTS();
     }
+}
+
+/*-----------------------------------------------------------*/
+
+#if( configUSE_RVM_OPTIMISED_YIELD != 0 )
+    /* The fast-path assembly routine - see portasm.s. */
+    extern void vPortYield_Asm( void );
+#endif
+
+/*
+ * The yield entry point selected by portYIELD().  The official ARMv6-M
+ * ports pend the PendSV and only switch once the critical section exits -
+ * the kernel does call portYIELD() from inside one (ulTaskNotifyTake et al).
+ * RVM_Virt_Int_Unmask() is a flat flag, so yielding under a raised nesting
+ * count would open the interrupts in the middle of the caller's critical
+ * section; pend instead, and let vPortExitCritical() run the switch when
+ * the count hits zero.
+ */
+void vPortYield( void )
+{
+    if( uxCriticalNesting != 0U )
+    {
+        xPortYieldPend = pdTRUE;
+        return;
+    }
+
+#if( configUSE_RVM_OPTIMISED_YIELD != 0 )
+    vPortYield_Asm();
+#else
+    /* Yield through the hypervisor - simpler, but traps on every switch. */
+    RVM_Virt_Yield();
+#endif
 }
 /*-----------------------------------------------------------*/
 

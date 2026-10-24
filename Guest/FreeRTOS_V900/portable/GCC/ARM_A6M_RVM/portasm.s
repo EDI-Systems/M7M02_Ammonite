@@ -27,16 +27,16 @@
     .extern         RVM_Virt_Int_Mask      /* Mask the RVM virtual interrupts. */
     .extern         RVM_Virt_Int_Unmask    /* Unmask the RVM virtual interrupts. */
 
-/* Entry point implemented in this file, selected by portYIELD() from
- * portmacro.h when configUSE_RVM_OPTIMISED_YIELD is enabled.  When that
- * setting is disabled the yields go through the RVM hypercall instead
- * and this routine is not referenced at all. */
-    .global         vPortYield
+/* Entry point implemented in this file, selected by the C wrapper
+ * vPortYield() in port.c when configUSE_RVM_OPTIMISED_YIELD is enabled.
+ * When that setting is disabled the yields go through the RVM hypercall
+ * instead and this routine is not referenced at all. */
+    .global         vPortYield_Asm
 
 /*-----------------------------------------------------------*/
 
 /*
- * vPortYield yields the CPU from one task to another without a trap
+ * vPortYield_Asm yields the CPU from one task to another without a trap
  * through the hypervisor: the scheduler runs directly on the task stack.
  * The routine masquerades the current context as if it were stacked by
  * an exception entry, so the very same frame can also be recovered by
@@ -149,7 +149,7 @@
     .align          3
     .thumb_func
 
-vPortYield:
+vPortYield_Asm:
     push    {r0}                /* Protect R0, XPSR and R1. */
     mrs     r0, xpsr
     push    {r0}

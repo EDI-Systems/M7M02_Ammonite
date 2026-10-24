@@ -31,10 +31,12 @@
 *                (cpu_a.S): under RVM the guest cannot disable interrupts through CPSID/PRIMASK,
 *                that would only mask the physical interrupts of the core, not the virtual
 *                interrupts that the hypervisor delivers to this virtual machine.  All masking
-*                therefore goes through the RVM virtual interrupt mask functions instead.  The
-*                masking is nestable: the nesting depth is carried in the CPU_SR value that
-*                CPU_SR_Save() returns, so the critical sections of the kernel remain balanced
-*                even when a task switch happens while the mask is held.  The "wait for
+*                therefore goes through the RVM virtual interrupt mask functions instead, with
+ *                the very same semantics as the official port: CPU_SR_Save() snapshots the
+ *                mask flag (RVM_Int_Mask is exported by the virtlib header) and
+ *                CPU_SR_Restore() writes it back unconditionally - nested sections are
+ *                balanced by the snapshot, not by a counter - while CPU_IntDis()/
+ *                CPU_IntEn() are the unconditioned pair, exactly like CPSID/CPSIE.  The "wait for
 *                interrupt" functions become stubs, because a guest WFI would halt the whole core
 *                and starve every other process in the system.
 *********************************************************************************************************
@@ -51,9 +53,6 @@
 *********************************************************************************************************
 */
 
-static  CPU_SR  CPU_SR_Nesting  = 0u;                /* The current virtual interrupt mask nesting depth. */
-
-
 /*
 *********************************************************************************************************
 *                                           DISABLE INTERRUPTS
@@ -64,10 +63,7 @@ static  CPU_SR  CPU_SR_Nesting  = 0u;                /* The current virtual inte
 
 void  CPU_IntDis (void)
 {
-    if (CPU_SR_Nesting == 0u) {
-        RVM_Virt_Int_Mask();
-    }
-    CPU_SR_Nesting++;
+    RVM_Virt_Int_Mask();
 }
 
 
@@ -81,12 +77,7 @@ void  CPU_IntDis (void)
 
 void  CPU_IntEn (void)
 {
-    if (CPU_SR_Nesting > 0u) {
-        CPU_SR_Nesting--;
-        if (CPU_SR_Nesting == 0u) {
-            RVM_Virt_Int_Unmask();
-        }
-    }
+    RVM_Virt_Int_Unmask();
 }
 
 
@@ -94,9 +85,8 @@ void  CPU_IntEn (void)
 *********************************************************************************************************
 *                                       SAVE CPU STATUS WORD & DISABLE INTERRUPTS
 *
-* Description : Save the current mask nesting depth and disable the virtual
-*               interrupts.  The depth is returned so that CPU_SR_Restore()
-*               can unwind the exact number of nested critical sections.
+* Description : Snapshot the current mask flag and disable the virtual
+ *               interrupts, like the official MRS+CPSID pair.
 *********************************************************************************************************
 */
 
@@ -105,10 +95,10 @@ CPU_SR  CPU_SR_Save (void)
     CPU_SR  cpu_sr;
 
 
-    if (CPU_SR_Nesting == 0u) {
+    cpu_sr = (CPU_SR)RVM_Int_Mask;                      /* The flag seen on entry, not the new one. */
+    if (cpu_sr == 0u) {
         RVM_Virt_Int_Mask();
     }
-    cpu_sr         = CPU_SR_Nesting++;                   /* Return the depth seen on entry, not the new one. */
 
     return (cpu_sr);
 }
@@ -118,17 +108,20 @@ CPU_SR  CPU_SR_Save (void)
 *********************************************************************************************************
 *                                      RESTORE CPU STATUS WORD & ENABLE INTERRUPTS
 *
-* Description : Restore the mask nesting depth that CPU_SR_Save() captured
-*               and unmask the virtual interrupts once the outermost critical
-*               section has been left.
+* Description : Write the snapshot that CPU_SR_Save() captured back, like the
+*               official MSR: writing back "unmasked" must take the full unmask
+ *               path, or pending virtual interrupts would starve on a bare
+ *               flag write.
 *********************************************************************************************************
 */
 
 void  CPU_SR_Restore (CPU_SR  cpu_sr)
 {
-    CPU_SR_Nesting = cpu_sr;
-    if (CPU_SR_Nesting == 0u) {
+    if (cpu_sr == 0u) {
         RVM_Virt_Int_Unmask();
+    }
+    else {
+        RVM_Virt_Int_Mask();
     }
 }
 

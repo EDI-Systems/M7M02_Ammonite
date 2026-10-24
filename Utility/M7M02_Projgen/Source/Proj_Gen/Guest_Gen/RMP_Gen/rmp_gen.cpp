@@ -127,22 +127,19 @@ void RMP_Gen::Process_Virt_Hdr(class Virtual* Virt)
 
     /* Copy the actual configuration file to the folder - if this ever existed, do not replace */
     Filename=std::string("rmp_platform_"+this->Chip->Name_Lower+"_rvm.h");
-    if(std::filesystem::exists(Virt->Virtual_Header_Output+Filename)==true)
+    if((std::filesystem::exists(Virt->Virtual_Header_Output+Filename)==false)||
+       (Virt->Virtual_Header_Overwrite!=0))
     {
-        /* See if we'll use forced regenerate */
-        if(Virt->Virtual_Header_Overwrite==0)
-        {
-            Main::Info(std::string("> File '")+Filename+"' exists, skipping generation.");
-            return;
-        }
+        Main::Info(std::string("> Generating '")+Filename+"'.");
+        /* This may pop up: gcc bug - ignoring copy_options, will fix in the future */
+        std::filesystem::copy(Main::Guest_RMP_Root+"Include/Platform/"+this->Plat->Name_Upper+"_RVM/"+
+                              "rmp_platform_"+this->Plat->Name_Lower+"_chip_rvm.h",
+                              Virt->Virtual_Header_Output+Filename,
+                              std::filesystem::copy_options::overwrite_existing);
     }
+    else
+        Main::Info(std::string("> File '")+Filename+"' exists, skipping generation.");
 
-    Main::Info(std::string("> Generating '")+Filename+"'.");
-    /* This may pop up: gcc bug - ignoring copy_options, will fix in the future */
-    std::filesystem::copy(Main::Guest_RMP_Root+"Include/Platform/"+this->Plat->Name_Upper+"_RVM/"+
-                          "rmp_platform_"+this->Plat->Name_Lower+"_chip_rvm.h",
-                          Virt->Virtual_Header_Output+Filename,
-                          std::filesystem::copy_options::overwrite_existing);
 
     /* If we're running benchmark, need to generate the test header as well */
     if(Main::Benchmark!=0)

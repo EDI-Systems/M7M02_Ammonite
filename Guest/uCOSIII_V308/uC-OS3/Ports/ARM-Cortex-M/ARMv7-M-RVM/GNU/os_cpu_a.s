@@ -260,7 +260,7 @@ OSStartHighRdy:
 @
 @           4) The masking around the TCB exchange is idempotent, and the
 @              unmasking happens after the new task frame has been loaded, so
-@              the mask nesting carried by CPU_SR in cpu_rvm.c remains
+@              the mask snapshot carried by CPU_SR in cpu_rvm.c remains
 @              consistent across the switch.
 @********************************************************************************************************
 
