@@ -40,7 +40,7 @@
     <Kernel>
         <Code_Base>0x08000000</Code_Base>
         <Code_Size>0x20000</Code_Size>
-        <Data_Base>0x24000000</Data_Base>
+        <Data_Base>0x20000000</Data_Base>
         <Data_Size>0x10000</Data_Size>
         <Stack_Size>0x1000</Stack_Size>
         <Extra_Kom>0x0</Extra_Kom>
@@ -111,7 +111,7 @@
                 <M1>
                     <Name>Data1</Name>
                     <Base>Auto</Base>
-                    <Size>0x14000</Size>
+                    <Size>0x10000</Size>
                     <Align>16</Align>
                     <Type>Data</Type>
                     <Attribute>RWXBCS</Attribute>
@@ -215,7 +215,7 @@
                 <M1>
                     <Name>Data1</Name>
                     <Base>Auto</Base>
-                    <Size>0x14000</Size>
+                    <Size>0x10000</Size>
                     <Align>16</Align>
                     <Type>Data</Type>
                     <Attribute>RWXBCS</Attribute>

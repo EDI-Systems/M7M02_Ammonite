@@ -289,8 +289,8 @@
             <Name>Virt1</Name>
             <Extra_Captbl>0</Extra_Captbl>
             <Coprocessor>None</Coprocessor>
-            <Vector_Stack_Size>0x200</Vector_Stack_Size>
-            <User_Stack_Size>0x200</User_Stack_Size>
+            <Vector_Stack_Size>0x400</Vector_Stack_Size>
+            <User_Stack_Size>0x400</User_Stack_Size>
             <Priority>5</Priority>
             <Timeslice>10</Timeslice>
             <Period>100</Period>
@@ -299,7 +299,7 @@
             <Guest_Type>RMP</Guest_Type>
             <Buildsystem>Keil</Buildsystem>
             <Toolchain>ARMCC</Toolchain>
-            <Optimization>Os</Optimization>
+            <Optimization>O3</Optimization>
             <Project_Output>./Virt1/Project/</Project_Output>
             <Project_Overwrite>No</Project_Overwrite>
             <Linker_Output>./</Linker_Output>
@@ -321,7 +321,7 @@
                 <M1>
                     <Name>Data1</Name>
                     <Base>Auto</Base>
-                    <Size>0x1000</Size>
+                    <Size>0x3000</Size>
                     <Align>12</Align>
                     <Type>Data</Type>
                     <Attribute>RWXBCS</Attribute>

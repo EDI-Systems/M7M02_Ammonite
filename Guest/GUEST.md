@@ -9,7 +9,7 @@ Currently distributed:
 | Guest | Versions | Architectures | Toolchains |
 |---|---|---|---|
 | FreeRTOS | V9.0.0 | ARMv6-M, ARMv7-M, RV32P | GCC, RVDS (ARMCC), IAR |
-| uC/OS-III | V3.08 (+ uC/CPU V1.32) | ARMv6-M, ARMv7-M, RV32 | GCC, ARM, IAR |
+| uC/OS-III | uC/OS-3 V3.08.02 + uC/CPU V1.32.01 + uC/LIB V1.39.01 | ARMv6-M, ARMv7-M, RV32 | GCC, ARM, IAR |
 
 RMP is **not** distributed here: RMP carries its RVM platform layers natively
 (`Source/Platform/*_RVM/` in the RMP tree) and needs no guest-side packaging.
@@ -52,10 +52,13 @@ The library mirrors the relative layout of the target trees and contains
 a plain overlay is safe: it cannot overwrite any of your official files,
 and every port lands in its intended place.
 
-- Copy `FreeRTOS_V900/` over the root of your official FreeRTOS V9.0.0 tree
-  (merge directories).
-- Copy `uCOSIII_V308/` over the root of your official uC/OS-III V3.08
-  distribution, which contains both uC/OS-3 and uC/CPU (merge directories).
+- Copy `FreeRTOS_V900/` over the root of your official FreeRTOS **V9.0.0**
+  tree (merge directories).
+- Copy `uCOSIII_V308/` over the root of your official Micrium uC/OS-III
+  distribution — the three-component set **uC/OS-3 V3.08.02 + uC/CPU
+  V1.32.01 + uC/LIB V1.39.01** (merge directories; the overlay only adds
+  port files to uC/OS-3 and uC/CPU — uC/LIB is a build dependency and is
+  shipped unchanged, we distribute nothing for it).
 
 After the overlay, the RVM port directories sit beside the official ones,
 exactly like additional official ports:
@@ -257,8 +260,8 @@ than documentation.
 ## 4. Known limitations
 
 - The dirty-frame slow path (targets whose saved EPSR carries ICI/IT
-  continuation state) is nearly dead code under typical workloads; its
-  preemption-window soundness is argued, not exercised by the benchmarks.
+  continuation state) is nearly dead code under typical workloads;
+  however, it does have an impact on worst-case execution time.
 - Transparent vectors bypass the mask by design; no port in this library
   uses them, and their interaction with kernel critical sections is
   untested.

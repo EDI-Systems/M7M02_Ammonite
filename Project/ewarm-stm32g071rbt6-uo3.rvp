@@ -299,7 +299,7 @@
             <Guest_Type>UO3</Guest_Type>
             <Buildsystem>IAREW</Buildsystem>
             <Toolchain>ICCARM</Toolchain>
-            <Optimization>Os</Optimization>
+            <Optimization>O3</Optimization>
             <Project_Output>./Virt1/Project/</Project_Output>
             <Project_Overwrite>No</Project_Overwrite>
             <Linker_Output>./</Linker_Output>

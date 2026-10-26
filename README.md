@@ -114,55 +114,54 @@ This software is an official work of EDI, and thus belongs to the **public domai
 
 |Machine      |Toolchain     |RTOS      |Flash|SRAM|Yield|Mail |Sem  |Mail/I|Sem/I|Mem  |
 |:-----------:|:------------:|:--------:|:---:|:--:|:---:|:---:|:---:|:----:|:---:|:---:|
-|Cortex-M0+   |Keil uVision 5|RMP       |     |    |     |     |     |      |     |     |
-|...          |...           |FreeRTOS  |     |    |     |     |     |      |     |     |
-|...          |...           |uCOSIII   |     |    |     |     |     |      |     |     |
-|...          |...           |RT-Thread |     |    |     |     |     |      |     |     |
-|...          |IAR EWARM     |RMP       |     |    |     |     |     |      |     |     | 
-|...          |...           |FreeRTOS  |     |    |408  |1127 |973  |2057  |1845 |852  |
-|...          |...           |uCOSIII   |     |    |     |     |     |      |     |     |
-|...          |...           |RT-Thread |     |    |     |     |     |      |     |     |
-|...          |GCC           |RMP       |     |    |     |     |     |      |     |     | 
-|...          |...           |FreeRTOS  |     |    |     |     |     |      |     |     |
-|...          |...           |uCOSIII   |15.39|7.10|806  |1025 |1136 |2080  |2064 |277  |
-|...          |...           |RT-Thread |     |    |     |     |     |      |     |     |
-|Cortex-M4    |Keil uVision 5|RMP       |     |    |     |     |     |      |     |     |
-|...          |...           |FreeRTOS  |14.61|41.57|300  |780  |700  |1551  |1416 |453  |
-|...          |...           |uCOSIII   |15.55|9.10|481  |744  |718  |1620  |1606 |216  |
-|...          |...           |RT-Thread |     |    |     |     |     |      |     |     |
-|...          |IAR EWARM     |RMP       |     |    |     |     |     |      |     |     | 
-|...          |...           |FreeRTOS  |     |    |316  |977  |808  |1844  |1668 |549  |
-|...          |...           |uCOSIII   |11.67|8.09|584  |849  |812  |1900  |1888 |221  |
-|...          |...           |RT-Thread |     |    |     |     |     |      |     |     |
-|...          |GCC           |RMP       |24.21|    |416  |708  |552  |1454  |1360 |382  | 
-|...          |...           |FreeRTOS  |15.46|40.57|372  |980  |882  |1788  |1611 |724  |
-|...          |...           |uCOSIII   |14.73|8.09|544  |905  |909  |1792  |1795 |244  |
-|...          |...           |RT-Thread |     |    |     |     |     |      |     |     |
-|Cortex-M7    |Keil uVision 5|RMP       |2.09 |2.29|1068 |1179 |1221 |1402  |1444 |176  |
-|...          |...           |FreeRTOS  |14.95|41.57|250  |604  |527  |1113  |981  |307  |
-|...          |...           |uCOSIII   |     |    |     |     |     |      |     |     |
-|...          |...           |RT-Thread |     |    |     |     |     |      |     |     |
-|...          |IAR EWARM     |RMP       |     |    |     |     |     |      |     |     | 
-|...          |...           |FreeRTOS  |     |    |220  |635  |533  |1230  |1103 |283  |
-|...          |...           |uCOSIII   |     |    |     |     |     |      |     |     |
-|...          |...           |RT-Thread |     |    |     |     |     |      |     |     |
-|...          |GCC           |RMP       |     |    |     |     |     |      |     |     | 
-|...          |...           |FreeRTOS  |15.19|40.57|228  |604  |530  |1217  |1045 |338  |
-|...          |...           |uCOSIII   |14.69|8.10|366  |529  |545  |1191  |1223 |163  |
-|...          |...           |RT-Thread |     |    |     |     |     |      |     |     |
-|RV32IMAC     |GCC           |RMP       |     |    |     |     |     |      |     |     | 
-|...          |...           |FreeRTOS  |17.47|24.76|313  |655  |560  |1940  |1808 |388  |
-|...          |...           |uCOSIII   |17.58|8.10|455  |602  |589  |2074  |2069 |195  |
-|...          |...           |RT-Thread |     |    |     |     |     |      |     |     |
+|  Cortex-M0+|Keil uVision 5|       RMP|16.71|3.88|  465|  783|  681|  1677| 1572|  N/A|
+|         ...|          ...|  FreeRTOS|12.74|9.57|  433|  949| 1023|  1789| 1808|  843|
+|         ...|          ...|   uCOSIII|13.63|8.09|  863| 1117| 1143|  2125| 2156|  363|
+|         ...|          ...| RT-Thread|     |    |     |     |     |      |     |     |
+|         ...|    IAR EWARM|       RMP|12.38|3.88|  511|  876|  770|  1764| 1642|  N/A|
+|         ...|          ...|  FreeRTOS|11.29|9.57|  432|  944| 1078|  1804| 1859|  944|
+|         ...|          ...|   uCOSIII|11.89|8.08|  892| 1154| 1187|  2161| 2189|  360|
+|         ...|          ...| RT-Thread|     |    |     |     |     |      |     |     |
+|         ...|          GCC|       RMP|22.72|2.88|  507|  883|  773|  1746| 1680|  N/A|
+|         ...|          ...|  FreeRTOS|15.38|8.57|  455|  986| 1108|  1859| 1926| 1012|
+|         ...|          ...|   uCOSIII|15.38|7.09|  871| 1144| 1185|  2188| 2246|  396|
+|         ...|          ...| RT-Thread|     |    |     |     |     |      |     |     |
+|   Cortex-M4|Keil uVision 5|       RMP|22.72|37.06|  336|  519|  452|  1278| 1176|  391|
+|         ...|          ...|  FreeRTOS|14.73|41.57|  308|  612|  776|  1394| 1428|  527|
+|         ...|          ...|   uCOSIII|15.50|9.09|  504|  691|  713|  1570| 1588|  196|
+|         ...|          ...| RT-Thread|     |    |     |     |     |      |     |     |
+|         ...|    IAR EWARM|       RMP|14.29|36.07|  376|  602|  551|  1512| 1438|  403|
+|         ...|          ...|  FreeRTOS|11.48|40.57|  316|  648|  833|  1592| 1667|  549|
+|         ...|          ...|   uCOSIII|11.65|8.08|  601|  809|  829|  1852| 1868|  207|
+|         ...|          ...| RT-Thread|     |    |     |     |     |      |     |     |
+|         ...|          GCC|       RMP|24.20|36.07|  416|  709|  552|  1434| 1344|  382|
+|         ...|          ...|  FreeRTOS|15.44|40.57|  372|  726|  882|  1544| 1611|  724|
+|         ...|          ...|   uCOSIII|14.67|8.09|  580|  812|  849|  1759| 1820|  227|
+|         ...|          ...| RT-Thread|     |    |     |     |     |      |     |     |
+|   Cortex-M7|Keil uVision 5|       RMP|22.73|37.06|  244|  384|  370|   920|  811|  284|
+|         ...|          ...|  FreeRTOS|15.06|41.57|  229|  494|  595|   954|  987|  347|
+|         ...|          ...|   uCOSIII|15.75|9.09|  410|  590|  594|  1227| 1252|  141|
+|         ...|          ...| RT-Thread|     |    |     |     |     |      |     |     |
+|         ...|    IAR EWARM|       RMP|14.37|36.07|  272|  459|  412|  1030|  985|  284|
+|         ...|          ...|  FreeRTOS|11.50|40.57|  220|  526|  609|  1122| 1109|  363|
+|         ...|          ...|   uCOSIII|11.70|8.08|  411|  592|  620|  1282| 1313|  151|
+|         ...|          ...| RT-Thread|     |    |     |     |     |      |     |     |
+|         ...|          GCC|       RMP|24.29|36.07|  248|  476|  414|   886|  939|  283|
+|         ...|          ...|  FreeRTOS|15.29|40.57|  225|  511|  596|  1020| 1036|  354|
+|         ...|          ...|   uCOSIII|14.66|8.09|  404|  561|  578|  1216| 1291|  150|
+|         ...|          ...| RT-Thread|     |    |     |     |     |      |     |     |
+|      RISC-V|          GCC|       RMP|29.61|25.29|  322|  499|  437|  1719| 1652|  360|
+|         ...|          ...|  FreeRTOS|17.55|24.77|  319|  580|  630|  1778| 1827|  440|
+|         ...|          ...|   uCOSIII|16.72|8.09|  478|  606|  611|  2050| 2079|  182|
+|         ...|          ...| RT-Thread|     |    |     |     |     |      |     |     |
 
-&ensp;&ensp;&ensp;&ensp;**Flash and SRAM consumption is calculated in kB, while the other figures are calculated in CPU clock cycles. All values listed here are typical (useful system) values, not minimum values, because minimum values on system size seldom make any real sense. HAL library consumption is also included in the size numbers.**
+&ensp;&ensp;&ensp;&ensp;**Flash and SRAM consumption is calculated in kB, while the other figures are calculated in CPU clock cycles. All values listed here are typical values that exercises the full system benchmark, not minimum values, because minimum values on system size seldom make any real sense.**
 
-- Cortex-M0+ is evaluated with STM32G071RBT6 (the FreeRTOS figures are IAR EWARM measurements; the uCOSIII figures are GCC measurements).
+- Cortex-M0+ is evaluated with STM32G071RBT6.
 - Cortex-M4 is evaluated with STM32F429ZIT6.
-- Cortex-M7 is evaluated with STM32H743ZIT6 (the FreeRTOS figures cover the Keil/IAR/GCC toolchains; the uCOSIII figures are GCC measurements).
-- RV32IMAC is evaluated with CH32V307 (both the FreeRTOS and the uCOSIII figures are GCC measurements).
-- All FreeRTOS and uCOSIII figures are measured with the same benchmark suite as RVM guests: GCC at -O3, IAR at -Oh. Flash/SRAM are guest image footprints (code+data / data+bss); all other figures are CPU clock cycles.
-  Flash/SRAM为客机镜像占用（代码+数据/数据+bss），其余数值以CPU周期计。
+- Cortex-M7 is evaluated with STM32H743ZIT6.
+- RV32IMAC is evaluated with CH32V307VCT6.
+- All figures are measured with the same benchmark suite as RVM guests, on real hardware, across all listed toolchain/RTOS combinations: GCC at -O3, IAR/Keil at their highest optimization. Flash/SRAM are guest image footprints (code+data / data+bss); all other figures are CPU clock cycles.
 
 
 &ensp;&ensp;&ensp;&ensp;In the 2 tables above, all compiler options are the highest optimization (usually -O3) and optimized for time.

@@ -8,5 +8,4 @@ fi
 
 # Dangerous operation: removing every subfolder - including symbolic links!
 rm -rf ./*-*/
-rm -f ./log.txt
-rm -f ./report.txt
+rm -f ./*.log

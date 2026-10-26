@@ -315,6 +315,9 @@ OSStartHighRdy:
 #                is resumed.
 #********************************************************************************************************
 
+.section    .text.osctxsw
+.align      3
+
 OSCtxSw:
     OS_CPU_SAVE_CONTEXT OSCtxSw_Exit
     li    a0, RISCV_MSTATUS_UMODE                                # mstatus for no FPU, back to U-mode.
@@ -332,6 +335,9 @@ OSCtxSw_Exit:                                                   # Exit location.
 #                be probed from user mode, so the yield cannot know whether the task dirtied
 #                its floating point state.
 #********************************************************************************************************
+
+.section    .text.osctxswrvf
+.align      3
 
 OSCtxSwRVF:
     OS_CPU_SAVE_CONTEXT OSCtxSwRVF_Exit
@@ -422,6 +428,9 @@ OSCtxSwRVF_Exit:                                                # Exit location.
 # Note(s) : 1) Same as OSCtxSwRVF, but for targets with a double-precision FPU: the 32 FPU registers
 #                occupy two words each, so the FPU part of the frame is 65 words wide.
 #********************************************************************************************************
+
+.section    .text.osctxswrvd
+.align      3
 
 OSCtxSwRVD:
     OS_CPU_SAVE_CONTEXT OSCtxSwRVD_Exit

@@ -5,16 +5,16 @@
     <Assert_Enable>Yes</Assert_Enable>
     <Debug_Log_Enable>Yes</Debug_Log_Enable>
     <Pgtbl_Raw_Enable>No</Pgtbl_Raw_Enable>
-    <Buildsystem>Keil</Buildsystem>
+    <Buildsystem>Makefile</Buildsystem>
     <Workspace_Overwrite>No</Workspace_Overwrite>
     <Chip>
         <Platform>A7M</Platform>
-        <Class>STM32F405RG</Class>
-        <Name>STM32F405RGT6</Name>
-        <Coprocessor>FPV4_SP</Coprocessor>
+        <Class>STM32H743ZI</Class>
+        <Name>STM32H743ZIT6</Name>
+        <Coprocessor>FPV4_SP,FPV5_SP,FPV5_DP</Coprocessor>
         <Config>
             <NVIC_Grouping>P2S6</NVIC_Grouping>
-            <Systick_Value>1680000</Systick_Value>
+            <Systick_Value>4000000</Systick_Value>
         </Config>
     </Chip>
     <Extmem>
@@ -39,15 +39,15 @@
     </Shmem>
     <Kernel>
         <Code_Base>0x08000000</Code_Base>
-        <Code_Size>0x10000</Code_Size>
-        <Data_Base>0x10000000</Data_Base>
-        <Data_Size>0x3000</Data_Size>
-        <Stack_Size>0x800</Stack_Size>
+        <Code_Size>0x20000</Code_Size>
+        <Data_Base>0x20000000</Data_Base>
+        <Data_Size>0x10000</Data_Size>
+        <Stack_Size>0x1000</Stack_Size>
         <Extra_Kom>0x0</Extra_Kom>
         <Kom_Order>4</Kom_Order>
         <Kern_Prio>32</Kern_Prio>
-        <Buildsystem>Keil</Buildsystem>
-        <Toolchain>ARMCC</Toolchain>
+        <Buildsystem>Makefile</Buildsystem>
+        <Toolchain>GCC</Toolchain>
         <Optimization>O3</Optimization>
         <Full_Image>Yes</Full_Image>
         <Project_Output>./Kernel/Project/</Project_Output>
@@ -63,7 +63,7 @@
     </Kernel>
     <Monitor>
         <Code_Size>0x10000</Code_Size>
-        <Data_Size>0x4000</Data_Size>
+        <Data_Size>0x10000</Data_Size>
         <Init_Stack_Size>0x200</Init_Stack_Size>
         <Sftd_Stack_Size>0x800</Sftd_Stack_Size>
         <Vmmd_Stack_Size>0x800</Vmmd_Stack_Size>
@@ -72,8 +72,8 @@
         <Virt_Prio>32</Virt_Prio>
         <Virt_Event>32</Virt_Event>
         <Virt_Map>32</Virt_Map>
-        <Buildsystem>Keil</Buildsystem>
-        <Toolchain>ARMCC</Toolchain>
+        <Buildsystem>Makefile</Buildsystem>
+        <Toolchain>GCC</Toolchain>
         <Optimization>O3</Optimization>
         <Project_Output>./Monitor/Project/</Project_Output>
         <Project_Overwrite>No</Project_Overwrite>
@@ -88,9 +88,9 @@
         <N0>
             <Name>Proc1</Name>
             <Extra_Captbl>0</Extra_Captbl>
-            <Coprocessor>FPV4_SP</Coprocessor>
-            <Buildsystem>Keil</Buildsystem>
-            <Toolchain>ARMCC</Toolchain>
+            <Coprocessor>FPV5_DP</Coprocessor>
+            <Buildsystem>Makefile</Buildsystem>
+            <Toolchain>GCC</Toolchain>
             <Optimization>O3</Optimization>
             <Project_Output>./Proc1/Project/</Project_Output>
             <Project_Overwrite>No</Project_Overwrite>
@@ -103,16 +103,16 @@
                 <M0>
                     <Name>Code1</Name>
                     <Base>Auto</Base>
-                    <Size>0x8000</Size>
-                    <Align>15</Align>
+                    <Size>0x10000</Size>
+                    <Align>16</Align>
                     <Type>Code</Type>
                     <Attribute>RXBCS</Attribute>
                 </M0>
                 <M1>
                     <Name>Data1</Name>
                     <Base>Auto</Base>
-                    <Size>0x8000</Size>
-                    <Align>15</Align>
+                    <Size>0x10000</Size>
+                    <Align>16</Align>
                     <Type>Data</Type>
                     <Attribute>RWXBCS</Attribute>
                 </M1>
@@ -192,9 +192,9 @@
         <N1>
             <Name>Proc2</Name>
             <Extra_Captbl>0</Extra_Captbl>
-            <Coprocessor>FPV4_SP</Coprocessor>
-            <Buildsystem>Keil</Buildsystem>
-            <Toolchain>ARMCC</Toolchain>
+            <Coprocessor>FPV5_DP</Coprocessor>
+            <Buildsystem>Makefile</Buildsystem>
+            <Toolchain>GCC</Toolchain>
             <Optimization>O3</Optimization>
             <Project_Output>./Proc2/Project/</Project_Output>
             <Project_Overwrite>No</Project_Overwrite>
@@ -207,16 +207,16 @@
                 <M0>
                     <Name>Code1</Name>
                     <Base>Auto</Base>
-                    <Size>0x8000</Size>
-                    <Align>15</Align>
+                    <Size>0x10000</Size>
+                    <Align>16</Align>
                     <Type>Code</Type>
                     <Attribute>RXBCS</Attribute>
                 </M0>
                 <M1>
                     <Name>Data1</Name>
                     <Base>Auto</Base>
-                    <Size>0x4000</Size>
-                    <Align>Auto</Align>
+                    <Size>0x10000</Size>
+                    <Align>16</Align>
                     <Type>Data</Type>
                     <Attribute>RWXBCS</Attribute>
                 </M1>
@@ -289,7 +289,7 @@
         <V0>
             <Name>Virt1</Name>
             <Extra_Captbl>0</Extra_Captbl>
-            <Coprocessor>FPV4_SP</Coprocessor>
+            <Coprocessor>FPV5_DP</Coprocessor>
             <Vector_Stack_Size>0x400</Vector_Stack_Size>
             <User_Stack_Size>0x400</User_Stack_Size>
             <Priority>5</Priority>
@@ -297,9 +297,9 @@
             <Period>100</Period>
             <Watchdog>0</Watchdog>
             <Vector_Num>4</Vector_Num>
-            <Guest_Type>RMP</Guest_Type>
-            <Buildsystem>Keil</Buildsystem>
-            <Toolchain>ARMCC</Toolchain>
+            <Guest_Type>FRT</Guest_Type>
+            <Buildsystem>Makefile</Buildsystem>
+            <Toolchain>GCC</Toolchain>
             <Optimization>O3</Optimization>
             <Project_Output>./Virt1/Project/</Project_Output>
             <Project_Overwrite>No</Project_Overwrite>
@@ -322,7 +322,7 @@
                 <M1>
                     <Name>Data1</Name>
                     <Base>Auto</Base>
-                    <Size>0x10000</Size>
+                    <Size>0x14000</Size>
                     <Align>16</Align>
                     <Type>Data</Type>
                     <Attribute>RWXBCS</Attribute>

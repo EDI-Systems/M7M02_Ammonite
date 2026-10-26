@@ -567,6 +567,16 @@ G071/F429/H743 三板全部真机闭环（RVM 层数据归档 rvm_test_stm32*.h 
   pend-then-arm（先 Yield 后 Unmask），asm 直切才用出口 Unmask；"先 Unmask 再 Yield"是
   把切换当函数调用的语义错觉，必留裸窗**。
 
+- **【记录】G071 补测轮（2026-10）**：FRT/UO3/RMP 三客机 GCC 全绿 0 fault（Yield 455/871/516）
+  ——补上 FRT-A6M deferred-yield 与 UO3-A6M CPU_SR 直译两笔"只编译未板测"欠账；顺带发现并
+  修复 `gccmf-stm32g071rbt6-rmp.rvp` **文件二进制损坏**（Proc1 段起全为垃圾，'Size is missing'
+  报错的真相）——从 rvmdk 版转换重建。教训：**rvp 是从未跑过的资产=未验证资产，首次使用前
+  先验完整性（可解析/无 NUL 字节）**。README 双语 M0+ GCC 三行已按新值入档。
+- **【记录】G071 A6M IAR/Keil 补测轮（2026-10）**：UO3 IAR（Yield 888）/UO3 Keil（915）/
+  FRT IAR（437）/FRT Keil（418）四轮板测全绿 0 fault——A6M 的 IAR/Keil 端口（deferred-yield
+  +CPU_SR 直译后）首次真机实证，FRT-A6M-Keil 更是修复后**首次编译**即过（此前从未编过）。
+  A6M 三编译器×三客机板测矩阵自此闭合（GCC 455/871/516 + IAR 437/888 + Keil 418/915）。
+
 - **【判例】CPU_SR 计数制→官方直译快照制（2026-10 语义对齐案）**：RVM 版 cpu_rvm.c 原用自建
   `CPU_SR_Nesting` 深度计数（0 才真解蔽）；官方 uC/CPU（cpu_a.s L63-108）**无计数**——
   `CPU_SR_Save=MRS+CPSID`（快照+关）、`CPU_SR_Restore=MSR`（无条件写回），嵌套平衡由

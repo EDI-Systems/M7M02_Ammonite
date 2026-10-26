@@ -9,12 +9,12 @@
     <Workspace_Overwrite>No</Workspace_Overwrite>
     <Chip>
         <Platform>A7M</Platform>
-        <Class>STM32F767IG</Class>
-        <Name>STM32F767IGT6</Name>
-        <Coprocessor>None</Coprocessor>
+        <Class>STM32H743ZI</Class>
+        <Name>STM32H743ZIT6</Name>
+        <Coprocessor>FPV4_SP,FPV5_SP,FPV5_DP</Coprocessor>
         <Config>
             <NVIC_Grouping>P2S6</NVIC_Grouping>
-            <Systick_Value>2160000</Systick_Value>
+            <Systick_Value>4000000</Systick_Value>
         </Config>
     </Chip>
     <Extmem>
@@ -88,7 +88,7 @@
         <N0>
             <Name>Proc1</Name>
             <Extra_Captbl>0</Extra_Captbl>
-            <Coprocessor>None</Coprocessor>
+            <Coprocessor>FPV5_DP</Coprocessor>
             <Buildsystem>Keil</Buildsystem>
             <Toolchain>ARMCC</Toolchain>
             <Optimization>O3</Optimization>
@@ -192,7 +192,7 @@
         <N1>
             <Name>Proc2</Name>
             <Extra_Captbl>0</Extra_Captbl>
-            <Coprocessor>None</Coprocessor>
+            <Coprocessor>FPV5_DP</Coprocessor>
             <Buildsystem>Keil</Buildsystem>
             <Toolchain>ARMCC</Toolchain>
             <Optimization>O3</Optimization>
@@ -289,7 +289,7 @@
         <V0>
             <Name>Virt1</Name>
             <Extra_Captbl>0</Extra_Captbl>
-            <Coprocessor>None</Coprocessor>
+            <Coprocessor>FPV5_DP</Coprocessor>
             <Vector_Stack_Size>0x400</Vector_Stack_Size>
             <User_Stack_Size>0x400</User_Stack_Size>
             <Priority>5</Priority>
@@ -297,7 +297,7 @@
             <Period>100</Period>
             <Watchdog>0</Watchdog>
             <Vector_Num>4</Vector_Num>
-            <Guest_Type>RMP</Guest_Type>
+            <Guest_Type>UO3</Guest_Type>
             <Buildsystem>Keil</Buildsystem>
             <Toolchain>ARMCC</Toolchain>
             <Optimization>O3</Optimization>
@@ -322,7 +322,7 @@
                 <M1>
                     <Name>Data1</Name>
                     <Base>Auto</Base>
-                    <Size>0x10000</Size>
+                    <Size>0x14000</Size>
                     <Align>16</Align>
                     <Type>Data</Type>
                     <Attribute>RWXBCS</Attribute>
