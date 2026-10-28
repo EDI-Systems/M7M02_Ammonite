@@ -79,6 +79,7 @@ extern "C"
 #include "Proj_Gen/Guest_Gen/RMP_Gen/rmp_gen.hpp"
 #include "Proj_Gen/Guest_Gen/FRT_Gen/frt_gen.hpp"
 #include "Proj_Gen/Guest_Gen/UO3_Gen/uo3_gen.hpp"
+#include "Proj_Gen/Guest_Gen/RTT_Gen/rtt_gen.hpp"
 #undef __HDR_CLASS__
 /* End Include ***************************************************************/
 namespace RVM_GEN
@@ -214,6 +215,12 @@ void  Proj_Gen::Guest_Load(const std::string& Name)
             if(Main::Guest_UO3_Root=="")
                 Main::Error("XXXXX: Guest path for '"+Name+"' is missing.");
             Guest=std::make_unique<class UO3_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
+        }
+        else if(Name=="RTT")
+        {
+            if(Main::Guest_RTT_Root=="")
+                Main::Error("XXXXX: Guest path for '"+Name+"' is missing.");
+            Guest=std::make_unique<class RTT_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
         }
         else
             Main::Error("XXXXX: Guest generator for '"+Name+"' is not found.");

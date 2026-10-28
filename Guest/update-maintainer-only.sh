@@ -22,6 +22,12 @@ GUESTS+="uCOSIII_V308/uC-OS3/Ports/RISC-V/RV32-RVM "
 GUESTS+="uCOSIII_V308/uC-CPU/RISC-V-RVM "
 GUESTS+="uCOSIII_V308/uC-OS3/Test "
 
+# RT-Thread V4.1.1
+GUESTS+="RTThread_V411/libcpu/arm/armv6m_rvm "
+GUESTS+="RTThread_V411/libcpu/arm/armv7m_rvm "
+GUESTS+="RTThread_V411/libcpu/risc-v/rv32p_rvm "
+GUESTS+="RTThread_V411/test "
+
 rm -rf ./*/
 
 for GUEST in $GUESTS; do

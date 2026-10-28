@@ -2111,14 +2111,6 @@ Return      : None.
                 Main::Guest_FRT_Root=Main::Path_Absolute(PATH_DIR, "", argv[Count+1]);
                 Count+=2;
             }
-            /* Input RT-Thread root folder */
-            if(strcmp(argv[Count],"-rtt")==0)
-            {
-                if(Main::Guest_RTT_Root!="")
-                    Main::Error("XXXXX: More than one directory specified for the same guest.");
-                Main::Guest_RTT_Root=Main::Path_Absolute(PATH_DIR, "", argv[Count+1]);
-                Count+=2;
-            }
             /* Input uC/OS II root folder */
             if(strcmp(argv[Count],"-uo2")==0)
             {
@@ -2143,6 +2135,14 @@ Return      : None.
                 Main::Guest_MPY_Root=Main::Path_Absolute(PATH_DIR, "", argv[Count+1]);
                 Count+=2;
             }
+            /* Input RT-Thread root folder */
+            if(strcmp(argv[Count],"-rtt")==0)
+            {
+                if(Main::Guest_RTT_Root!="")
+                    Main::Error("XXXXX: More than one directory specified for the same guest.");
+                Main::Guest_RTT_Root=Main::Path_Absolute(PATH_DIR, "", argv[Count+1]);
+                Count+=2;
+            }
             /* Output workspace root folder */
             if(strcmp(argv[Count],"-w")==0)
             {
@@ -2152,7 +2152,7 @@ Return      : None.
                 Count+=2;
             }
             /* Verbose mode */
-            else if(strcmp(argv[Count],"-r")==0)
+            if(strcmp(argv[Count],"-r")==0)
             {
                 if(Main::Report_Output!="")
                     Main::Error("XXXXX: More than one report file specified.");
@@ -2160,21 +2160,21 @@ Return      : None.
                 Count+=2;
             }
             /* Verbose mode */
-            else if(strcmp(argv[Count],"-v")==0)
+            if(strcmp(argv[Count],"-v")==0)
             {
                 Main::Verbose=1;
                 Main::Info("Verbose output mode enabled.");
                 Count+=1;
             }
             /* Dryrun mode */
-            else if(strcmp(argv[Count],"-d")==0)
+            if(strcmp(argv[Count],"-d")==0)
             {
                 Main::Dryrun=1;
                 Main::Info("Dry running mode enabled.");
                 Count+=1;
             }
             /* Benchmark mode */
-            else if(strcmp(argv[Count],"-b")==0)
+            if(strcmp(argv[Count],"-b")==0)
             {
                 Main::Benchmark=1;
                 Main::Info("Generating benchmark project - only works with default rvp.");

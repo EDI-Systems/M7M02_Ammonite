@@ -6,7 +6,7 @@
     <Coprocessor>FPV4_SP,FPV5_SP,FPV5_DP</Coprocessor>
     <Buildsystem>Keil,Makefile,IAREW</Buildsystem>
     <Toolchain>ARMCC,GCC,ICCARM</Toolchain>
-    <Guest>RMP,FRT,UO3</Guest>
+    <Guest>RMP,FRT,UO3,RTT</Guest>
     <Compatible>
         <C0>Keil,ARMCC,Native</C0>
         <C1>Keil,ARMCC,RMP</C1>
@@ -20,6 +20,9 @@
         <C9>Makefile,GCC,UO3</C9>
         <C10>Keil,ARMCC,UO3</C10>
         <C11>IAREW,ICCARM,UO3</C11>
+        <C12>Makefile,GCC,RTT</C12>
+        <C13>Keil,ARMCC,RTT</C13>
+        <C14>IAREW,ICCARM,RTT</C14>
     </Compatible>
     <Config>
         <C0>

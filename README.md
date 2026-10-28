@@ -87,24 +87,26 @@ This software is an official work of EDI, and thus belongs to the **public domai
 
 |Hypercall        |Number|Description                                                       |
 |:---------------:|:----:|:----------------------------------------------------------------:|
-|RVM_HYP_ENAINT   |0     |Enable virtual machine interrupts                                 |
-|RVM_HYP_DISINT   |1     |Disable virtual machine interrupts                                |
-|RVM_HYP_REGINT   |2     |Register a virtual machine interrupt                              |
-|RVM_HYP_DELINT   |3     |Delete a virtual machine interrupt                                |
-|RVM_HYP_REGEVT   |4     |Register a virtual machine event                                  |
-|RVM_HYP_DELEVT   |5     |Delete a virtual machine event                                    |
-|RVM_HYP_WAITEVT  |6     |Wait for an interrupt or event to come                            |
-|RVM_HYP_SENDEVT  |7     |Send an event to a virtual machine                                |
-|RVM_HYP_QUERYEVT |8     |Search for an event                                               |
-|RVM_HYP_QUERYVM  |9     |Search for a virtual machine                                      |
-|RVM_HYP_TIMPROG  |10    |Reprogram virtual machine timer interrupt interval                |
-|RVM_HYP_PRINT    |11    |Print to console                                                  |
+|RVM_HYP_SPURIOUS |0     |Spurious hypercall, ignored (timer interrupt arrived before the request)|
+|RVM_HYP_PUTCHAR  |1     |Print one character to the console                                |
+|RVM_HYP_REBOOT   |2     |Reboot the current virtual machine                                |
+|RVM_HYP_INT_ENA  |3     |Enable virtual machine interrupts                                 |
+|RVM_HYP_INT_DIS  |4     |Disable virtual machine interrupts                                |
+|RVM_HYP_VCT_PHYS |5     |Map a virtual vector of the virtual machine to a physical vector  |
+|RVM_HYP_VCT_EVT  |6     |Map a virtual vector of the virtual machine to an event channel   |
+|RVM_HYP_VCT_DEL  |7     |Delete a virtual vector mapping                                   |
+|RVM_HYP_VCT_LCK  |8     |Lockdown the virtual vector mappings of the virtual machine       |
+|RVM_HYP_VCT_WAIT |9     |Sleep the virtual machine until a vector comes in                 |
+|RVM_HYP_EVT_ADD  |10    |Add the send capability of an event source to the virtual machine |
+|RVM_HYP_EVT_DEL  |11    |Delete the send capability of an event source from the virtual machine|
+|RVM_HYP_EVT_SND  |12    |Send an event to an event channel                                 |
+|RVM_HYP_WDG_CLR  |13    |Start and feed the watchdog                                       |
 
 ### Commemorative ports
 
 |Machine      |Toolchain     |RTOS      |Flash|SRAM|Yield|Mail |Sem  |Mail/I|Sem/I|Mem  |
 |:-----------:|:------------:|:--------:|:---:|:--:|:---:|:---:|:---:|:----:|:---:|:---:|
-|Cortex-M4    |GCC           |DjyOS     |     |    |     |     |     |      |     |     |
+|Cortex-M7    |GCC           |DjyOS     |     |    |     |     |     |      |     |     |
 |...          |...           |Litex     |     |    |     |     |     |      |     |     |
 |...          |...           |Contiki   |     |    |     |     |     |      |     |     |
 
@@ -117,43 +119,43 @@ This software is an official work of EDI, and thus belongs to the **public domai
 |  Cortex-M0+|Keil uVision 5|       RMP|16.71|3.88|  465|  783|  681|  1677| 1572|  N/A|
 |         ...|          ...|  FreeRTOS|12.74|9.57|  433|  949| 1023|  1789| 1808|  843|
 |         ...|          ...|   uCOSIII|13.63|8.09|  863| 1117| 1143|  2125| 2156|  363|
-|         ...|          ...| RT-Thread|     |    |     |     |     |      |     |     |
+|         ...|          ...| RT-Thread|18.69|8.27|  950| 1581| 1317|  2760| 2464|13221|
 |         ...|    IAR EWARM|       RMP|12.38|3.88|  511|  876|  770|  1764| 1642|  N/A|
 |         ...|          ...|  FreeRTOS|11.29|9.57|  432|  944| 1078|  1804| 1859|  944|
 |         ...|          ...|   uCOSIII|11.89|8.08|  892| 1154| 1187|  2161| 2189|  360|
-|         ...|          ...| RT-Thread|     |    |     |     |     |      |     |     |
+|         ...|          ...| RT-Thread|13.15|8.26| 1031| 1680| 1415|  2859| 2589|13861|
 |         ...|          GCC|       RMP|22.72|2.88|  507|  883|  773|  1746| 1680|  N/A|
 |         ...|          ...|  FreeRTOS|15.38|8.57|  455|  986| 1108|  1859| 1926| 1012|
 |         ...|          ...|   uCOSIII|15.38|7.09|  871| 1144| 1185|  2188| 2246|  396|
-|         ...|          ...| RT-Thread|     |    |     |     |     |      |     |     |
+|         ...|          ...| RT-Thread|18.57|7.27| 1080| 1755| 1450|  3042| 2694|14899|
 |   Cortex-M4|Keil uVision 5|       RMP|22.72|37.06|  336|  519|  452|  1278| 1176|  391|
 |         ...|          ...|  FreeRTOS|14.73|41.57|  308|  612|  776|  1394| 1428|  527|
 |         ...|          ...|   uCOSIII|15.50|9.09|  504|  691|  713|  1570| 1588|  196|
-|         ...|          ...| RT-Thread|     |    |     |     |     |      |     |     |
+|         ...|          ...| RT-Thread|20.34|8.27|  532| 1036|  824|  1948| 1743| 7307|
 |         ...|    IAR EWARM|       RMP|14.29|36.07|  376|  602|  551|  1512| 1438|  403|
 |         ...|          ...|  FreeRTOS|11.48|40.57|  316|  648|  833|  1592| 1667|  549|
 |         ...|          ...|   uCOSIII|11.65|8.08|  601|  809|  829|  1852| 1868|  207|
-|         ...|          ...| RT-Thread|     |    |     |     |     |      |     |     |
+|         ...|          ...| RT-Thread|13.78|7.26|  612| 1053|  852|  2231| 2020| 7646|
 |         ...|          GCC|       RMP|24.20|36.07|  416|  709|  552|  1434| 1344|  382|
 |         ...|          ...|  FreeRTOS|15.44|40.57|  372|  726|  882|  1544| 1611|  724|
 |         ...|          ...|   uCOSIII|14.67|8.09|  580|  812|  849|  1759| 1820|  227|
-|         ...|          ...| RT-Thread|     |    |     |     |     |      |     |     |
+|         ...|          ...| RT-Thread|17.63|7.27|  648| 1173|  893|  2236| 1975| 7764|
 |   Cortex-M7|Keil uVision 5|       RMP|22.73|37.06|  244|  384|  370|   920|  811|  284|
 |         ...|          ...|  FreeRTOS|15.06|41.57|  229|  494|  595|   954|  987|  347|
 |         ...|          ...|   uCOSIII|15.75|9.09|  410|  590|  594|  1227| 1252|  141|
-|         ...|          ...| RT-Thread|     |    |     |     |     |      |     |     |
+|         ...|          ...| RT-Thread|20.52|8.28|  457|  798|  651|  1537| 1391| 5197|
 |         ...|    IAR EWARM|       RMP|14.37|36.07|  272|  459|  412|  1030|  985|  284|
 |         ...|          ...|  FreeRTOS|11.50|40.57|  220|  526|  609|  1122| 1109|  363|
 |         ...|          ...|   uCOSIII|11.70|8.08|  411|  592|  620|  1282| 1313|  151|
-|         ...|          ...| RT-Thread|     |    |     |     |     |      |     |     |
+|         ...|          ...| RT-Thread|13.85|7.26|  424|  829|  675|  1585| 1441| 5710|
 |         ...|          GCC|       RMP|24.29|36.07|  248|  476|  414|   886|  939|  283|
 |         ...|          ...|  FreeRTOS|15.29|40.57|  225|  511|  596|  1020| 1036|  354|
 |         ...|          ...|   uCOSIII|14.66|8.09|  404|  561|  578|  1216| 1291|  150|
-|         ...|          ...| RT-Thread|     |    |     |     |     |      |     |     |
+|         ...|          ...| RT-Thread|17.75|7.27|  465|  819|  674|  1570| 1435| 6402|
 |      RISC-V|          GCC|       RMP|29.61|25.29|  322|  499|  437|  1719| 1652|  360|
 |         ...|          ...|  FreeRTOS|17.55|24.77|  319|  580|  630|  1778| 1827|  440|
 |         ...|          ...|   uCOSIII|16.72|8.09|  478|  606|  611|  2050| 2079|  182|
-|         ...|          ...| RT-Thread|     |    |     |     |     |      |     |     |
+|         ...|          ...| RT-Thread|19.45|9.77|  533|  846|  701|  2429| 2280| 6003|
 
 &ensp;&ensp;&ensp;&ensp;**Flash and SRAM consumption is calculated in kB, while the other figures are calculated in CPU clock cycles. All values listed here are typical values that exercises the full system benchmark, not minimum values, because minimum values on system size seldom make any real sense.**
 

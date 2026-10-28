@@ -1,9 +1,11 @@
 # RVM 客机移植工程手册（坑库与方法论）
 
 > 覆盖：FRT(GCC/Keil/IAR)×(G071/F429/H743/V307)、RMP IAR 链、
-> uC/OS-III 移植（A6M/RV32P/A7M 三端口已全部真机 9/9 定档）。
-> 面向贡献者：开工先读 §1、§2；排障查 §3、§4；改 A7M port 前必读 §5.1；uC/OS 移植要点在 §8；
-> 跨 OS 移植理论（契约/范式/RVM 中断模型/准则）在 §10。
+> uC/OS-III 移植（A6M/RV32P/A7M 三端口真机定档）、RT-Thread V4.1.1 移植
+>（A6M/RV32P/A7M 四板真机 9/9 定档，快路径启用）。
+> 面向贡献者：开工先读 §1、§2；排障查 §3、§4；改 A7M port 前必读 §5.1；
+> uC/OS 移植要点在 §8；RT-Thread 移植要点在 §9；一句话军规 §10；
+> 跨 OS 移植理论（契约/范式/RVM 中断模型/准则）在 §11；历史判例速查 §12。
 
 ---
 
@@ -13,15 +15,16 @@
 
 | 仓库 | 角色 | 关键事实 |
 |---|---|---|
-| `../FreeRTOS_V900`（本仓库的姊妹仓） | FreeRTOS 官方完整树 + RVM 移植层 | **内核文件永不改**（tasks.c/list.c/queue.c/timers.c/include）；改动只落 portable/*_RVM/ 与 test/ |
+| `../FreeRTOS_V900`（姊妹仓） | FreeRTOS 官方完整树 + RVM 移植层 | **内核文件永不改**（tasks.c/list.c/queue.c/timers.c/include）；改动只落 portable/*_RVM/ 与 test/ |
 | `../uCOSIII_V308`（姊妹仓） | uC/OS-III 客机包（三仓嵌套） | uC-OS3 V3.08.02 + uC-CPU + uC-LIB，全部官方 Apache-2.0 零修改；我们的件在 *-RVM 目录 |
+| `../RTThread_V411`（姊妹仓） | RT-Thread V4.1.1 官方树 + RVM 移植层 | 官方源零逻辑修改（仅 kservice.c 版本打印的字符串参数，见 §9.4）；我们的件在 libcpu/*_rvm/ 与 test/ |
 | `../M7M01_Eukaron`（姊妹仓） | RME 微内核（RVM 内核底座） | 平台头 `Include\Platform\{A6M,A7M}\Chip\<CHIP>\rme_platform_*.h`——**只是模板**（见坑 4.3 头条） |
-| `../M5P01_Prokaron`（姊妹仓） | RMP RTOS + RMP-on-RVM 移植 | A7M_RVM fast yield 参考实现；IAR 版 A7M 汇编金矿（裸机工程=FPU 配置实证值出处） |
+| `../M5P01_Prokaron`（姊妹仓） | RMP RTOS + RMP-on-RVM 移植 | A7M_RVM fast yield 参考实现；IAR 版 A7M 汇编金矿；**RTT armv7m 端口宏的修正蓝本**（rmp_platform_a7m_rvm_gcc.s） |
 | 本仓库（M7M02_Ammonite） | RVM hypervisor + 生成器 + 工作区 | 生成与构建主战场，见下 |
 
 ### 1.2 M7M02_Ammonite 内部
 
-- `Project\*.rvp`：工程描述 XML（`gccmf-*`=GCC/Makefile，`rvmdk-*`=Keil，`ewarm-*`=IAR；`-frt`/`-uo3` 后缀=客机类型；`-nofpu`=无协处理器）
+- `Project\*.rvp`：工程描述 XML（`gccmf-*`=GCC/Makefile，`rvmdk-*`=Keil，`ewarm-*`=IAR；`-frt`/`-uo3`/`-rtt` 后缀=客机类型；`-nofpu`=无协处理器）
 - `Project\<TOOLCHAIN>-<CHIP>-<GUEST>\`：生成的工作区（Kernel/Monitor/Proc1/Proc2/Virt1 五子工程）
 - `Project\benchmark.sh <rvp>`：生成（带 `-b` 基准模式，挂 test 头/源）——**客机链必用**，否则 Virt1 编不过；`generate.sh` 出静默版
 - `Utility\M7M02_Final\rvgen.exe`：生成器；源在 `Utility\M7M02_Projgen\Source\`，改后 g++ @resp.txt 重建（§6.1）
@@ -32,10 +35,11 @@
 
 | 工具 | 版本 | 备注 |
 |---|---|---|
-| arm-none-eabi-gcc | 13.2.1 | GNU Arm 工具链 |
+| arm-none-eabi-gcc | 13.2.1 | GNU Arm 工具链（`C:\Toolchain\arm-none-eabi-mingw64`） |
 | make | MinGW 版 | Windows 下驱动生成的 Makefile |
 | armclang / UV4 | ARMCLANG 6.23 | UV4.exe -b 命令行构建 |
 | ICCARM | 9.40 | iarbuild/ielftool/ielfdumparm/iasmarm 全家 |
+| riscv-none-elf-gcc | 12.2.0 (xPack) | `C:\MounRiver\MounRiver_Studio\toolchain\RISC-V Embedded GCC12\bin` |
 | MinGW g++ | 12.2 | 重建 rvgen 用 |
 | OpenOCD（WCH fork） | 0.11.0 | 坑多见 4.6；STM32 烧录主用 STM32CubeProgrammer CLI |
 | 调试串口 | 板载调试器 VCP | 115200-8N1；COM 口号随系统枚举变化（发现方法见 4.2），勿写死 |
@@ -52,20 +56,25 @@ uCOSIII_V308\
 ├── uC-OS3\Ports\ARM-Cortex-M\{ARMv6-M-RVM, ARMv7-M-RVM}\ 与 Ports\RISC-V\RV32-RVM\
 │   -RVM 内：os_cpu_c.c（架构层）+ 编译器子层 GNU|GCC\{os_cpu.h, os_cpu_a.s}
 │   + 架构层 Template\{os_cfg.h, os_cfg_app.h}
-│   （cfg=架构级模板一份，编译器无关；生成器拷入工作区 Include，同 FRT Config 定式）
 ├── uC-CPU\ARM-Cortex-M\{ARMv6-M-RVM, ARMv7-M-RVM}\{cpu_rvm.c} + Template\{cpu_cfg.h, lib_cfg.h}
-│   + 编译器子层 GNU|ARM|IAR\cpu.h（A7M 另有 GNU\cpu_a.s=CLZ/RBIT 加速，生成器存在即编译；
-│    RISC-V 特例：官方 uC-CPU/RISC-V 下无架构细分层，RVM 变体扁平挂根 RISC-V-RVM）
+│   + 编译器子层 GNU|ARM|IAR\cpu.h（A7M 另有 GNU\cpu_a.s=CLZ/RBIT 加速，存在即编译）
 ├── uC-LIB\（官方头走 include path，.c 不编译）
 └── uC-OS3\Test\{uo3_benchmark.c, uo3_main.c, chip\uo3_test_{stm32g071rb,stm32f429zi,stm32h743zi,ch32v307vc}_rvm.h}
+
+RTThread_V411\
+├── libcpu\arm\{armv6m_rvm, armv7m_rvm}\ 与 libcpu\risc-v\rv32p_rvm\
+│   各含 {context_gcc.s, cpuport.c, Template\rtconfig.h}（armv7m 为 F429/H743 共用）
+└── test\{rtt_board.c, rtt_benchmark.c, rtt_main.c, rtt_layout_knob.h,
+         chip\rtt_test_{stm32g071rb,ch32v307vc,stm32f429zi,stm32h743zi}_rvm.h}
 ```
 
-端口内容五件套（FRT）：FreeRTOSConfig.h / portmacro.h / port.c / portasm.s（/ tasks_rvm.c 仅 A7M）。
+FRT 端口五件套：FreeRTOSConfig.h / portmacro.h / port.c / portasm.s（/ tasks_rvm.c 仅 A7M）。
 **FreeRTOSConfig.h 在各端口目录的 `Template\` 子目录**（模板源，按架构三组各一份、组内跨编译器同哈希）；
 生成器把它**拷贝进工作区** `<WS>/<Proc>/Include/FreeRTOSConfig.h`——Config 是用户工程资产，每工程
 独立可改，重生成不覆盖已存在副本（rvp `Virtual_Header_Overwrite=Yes` 才强制刷新）；**Template 目录
-绝不进工程 include path**（rmp_gen conf 头同款拷贝定式）。
+绝不进工程 include path**（rmp_gen conf 头、RTT rtconfig.h 同款拷贝定式）。
 IAR 与 GCC/Keil(RVDS) 的 C 件差异仅三处：portNOP→`__asm("nop")`、`__VFP_FP__` 守卫扩 `__ARMVFP__`、GCC 字面量池内联 asm→`LDR R3,=pxCurrentTCB`（IAR 内联汇编直接支持 =label）。
+RTT 端口三件套：context_gcc.s（快路径 swt + interrupt 锁存版 + switch_to）/ cpuport.c（stack_init + PendSV_Handler + 快照式 disable/enable + ICI/IT 脏帧过滤）/ Template\rtconfig.h。协议与判例见 §9。
 
 ---
 
@@ -80,12 +89,13 @@ bash benchmark.sh gccmf-stm32h743zit6-frt.rvp   # 20-28s/链
 
 - 改 rvp 或生成器后**必须删工作区再生成**（Project_Overwrite=No，旧 .ewp/.icf/Makefile 不刷新——白编两轮的教训）。
 - 30s 命令上限内恰好一趟；**detached 并发多链会被拖超时**，逐链前台 + `timeout 28` 兜底。
-- 生成日志确认 Virt1 源路径含 `portasm.s`（RV32P/A6M/A7M）、A7M 另有 `tasks_rvm.c`。
+- 生成日志确认 Virt1 源路径含 `portasm.s`（RV32P/A6M/A7M）、A7M 另有 `tasks_rvm.c`；RTT 链含 `context_gcc.s`。
 
 ### 2.2 GCC 构建（顺序固定：镜像先、Kernel 后）
 
 Monitor → Proc1 → Proc2 → Virt1 → Kernel（Kernel 链接各子工程 `*_image.c`）。
 **makefile 不是默认名**：裸 `make -C 目录` 必报 No targets；名字=子工程输出名：`kernel`/`monitor`/`prc_proc1`/`prc_proc2`/`prc_virt1`（如 `make -C Kernel/Project -f kernel -j8`）。被超时杀掉的 make 直接重跑（对象缓存续编）。
+**rebuild 脚本必须全五链 clean**（Kernel 的 image .o 规则在 Monitor/Proc 目录，只 clean Virt1+Kernel 会断链）。
 
 ### 2.3 Keil 构建
 
@@ -101,14 +111,16 @@ Kernel 平坦 bin 手动 `fromelf --bincombined --output kernel_keil.bin Object\
 ### 2.5 烧录
 
 STM32 主用：`STM32_Programmer_CLI -c port=SWD -w Kernel.bin 0x08000000 -v -rst`。
+**多板环境 CubeProg 必须带 `sn=`**（否则连到枚举顺序第一块板；SN 用 `vcp_pair.ps1` 或既有脚本查）。
 **Kernel.bin 偏移=flash 地址−0x08000000**（单平坦镜像内嵌全系统，别用子工程基址算）。
 flash 读回：`-c port=SWD -r <addr> <size> <out>`，**输出必须 .bin 后缀**（.txt 报 Wrong file path）。
-OpenOCD 备用（模板 Project\Script\）：tcl 要点 `set CPUTAPID 0`（新硅片 idcode 拒识，放 source target cfg **之前**）→ init → reset halt → flash write_image erase → verify → reset run；F429 新硅片 flash 前加 `reset_config srst_only srst_nogate connect_assert_srst`（H743 同款可用）。CH32V307 继承坑：多区段 hex 烧录会损坏，一律烧平坦 kernel.bin。
+OpenOCD 备用（模板 Project\Script\）：tcl 要点 `set CPUTAPID 0`（新硅片 idcode 拒识，放 source target cfg **之前**）→ init → reset halt → flash write_image erase → verify → reset run；F429 新硅片 flash 前加 `reset_config srst_only srst_nogate connect_assert_srst`（H743 同款可用）。CH32V307 继承坑：多区段 hex 烧录会损坏，一律烧平坦 kernel.bin；OpenOCD 烧 H743 需 connect assert srst 或先手动开 DBGMCU（0x5C001004），否则 "Cannot identify STM32H7xx"。
 
 ### 2.6 串口捕获与判读
 
-Start-Process 分离跑捕获脚本（30s 超时下存活），先开端口再烧录，事后读文件。波特率从内核平台头 BRR 反推。
+Start-Process/后台任务分离跑捕获脚本（窗口期内存活），**先开端口再烧录/复位**（DiscardInBuffer 别用——flash→capture 手动间隔会吃掉主段打印），事后读文件。波特率从内核平台头 BRR 反推。
 **基准完成判据（铁律）**：①中断相关条目全部打印齐（FRT 链：ISR-Noti/ISR-Sem/ISR-Queue/ISR-RVM relay 四行）——按硬件中断节拍慢出是**正常现象**（G071@TIM3 5kHz 需 90s+；H743 类高速芯片几乎紧随主体）；②终局标志=开始打印 `10000 overflows`。未齐前禁止结束捕获/判读/当挂死处理。反过来只见到 overflow 刷屏=旧固件空转输出，别急着怀疑新链——重烧+确认看到**自家横幅**为止。
+捕获脚本本身有 ~20-40% 竞态失手率（COM 打开时机）——判"捕获失败"重试，别判"板崩"。
 
 ### 2.7 会话收尾三清（必做）
 
@@ -116,17 +128,21 @@ Start-Process 分离跑捕获脚本（30s 超时下存活），先开端口再�
 2. **收生成物**：烧录/捕获脚本与原始日志收进 `Project\Script\`（git 已忽略）；可再生的 log.txt/report.txt 删
 3. **结果入档**：benchmark 数据写进 `*_test_*_rvm.h` 头文件档案块（正式档案），AGENTS.md 只留索引
 验收线：Project 根只允许 *.rvp 与仓库自带 sh；`git status --porcelain -- Project/` 必须空。
+被句柄锁住的目录用 `cmd /c del /f /q /s` 强删（PowerShell Remove-Item 会弹"朗读提示不可用"失败）。
 
 ---
 
 ## 3. 排障方法论（按威力排序）
 
 1. **断点裁决法**（启动类死机）：反汇编/nm 拿候选等待环与里程碑地址（VOS/HSE/PLL/Boot），各下硬件断点，resume 数秒后读 PC——命中即进度。注意 do-while 首过也碰断点，**命中≠卡死**；判卡死用"resume+sleep+halt 后读 PC"。
-2. **写黑洞测试**（数据全垃圾类）：可疑地址写魔数读回，读不回/挂死=无 RAM。H743 DTCM 标称 128KB 实测 64KB 即此法钉死。"字段全 0/全垃圾"先查 RAM 黑洞再查逻辑。
-3. **Fault 现场活捉**：内核善后会清 PSP/CFSR——在 `UsageFault_Handler`/`_RME_Thd_Fatal` 入口下断点（第一次 fault），读 PSP 帧 8 字，PC/XPSR 即真相（PC=0/XPSR=0→INVSTATE，配 CFSR 互证）。
-4. **面包屑取证法**（IAR 链验证两轮）：`__RME_A7M_Exc_Handler` 入口塞临时打印块——Reg->LR/SP/R4-R11 + IPSR + HFSR/CFSR/MMFAR/BFAR + 栈帧 [SP+24]=PC/[SP+28]=XPSR + MSP 后 24~30 词转储（找活值=案发函数指纹、找深层返回地址）。**UNALIGNED 类故障：HW 帧 LR 槽=BL 返回点、PC 槽=真故障指令**。CFSR 按内核自己的头解码（别按网上直觉猜位号）。取证完清零残留。
-5. **物证原则**："烧的是什么/编的是什么"用 flash 指令字比对 objdump；make 依赖**不含外部系统头**，改平台头后 `rm -rf Object` 强制全编再反汇编确认常量变了。
-6. **防超时三原则**：单命令<30s（构建拆单工程）；跨超时存活的用 Start-Process 分离写文件；被杀的 openocd **会锁 ST-Link**（下次报 read version failed）→ 先 `Stop-Process -Name openocd -Force`。
+2. **写黑洞测试**（数据全垃圾类）：可疑地址写魔数读回，读不回/挂死=无 RAM。**硬件结论必须双仪器交叉验证**（CubeProg 与 OpenOCD 冲突时优先 ST 官方工具——H743"DTCM 黑洞"即 WCH fork 仪器假象被误诊，§12 判例 8）。
+3. **Fault 现场活捉**：内核善后会清 PSP/CFSR——在 `UsageFault_Handler`/`_RME_Thd_Fatal` 入口下断点（第一次 fault），读 PSP 帧 8 字，PC/XPSR 即真相（PC=0/XPSR=0→INVSTATE，配 CFSR 互证）。Sftd 转储（串口白送）含 Vct/Usr 两组寄存器+栈帧前几字——A6M 上唯一现场；**判读要点：任何 UsageFault 的 LR 槽都自动是 EXC_RETURN（handler 入口压栈），无信息量；有信息量的是帧内 Stack-PC/Stack-XPSR/Stack-LR**。Sftd 的 SP 值+链接脚本落区对照是栈溢出排障零成本第一步——但先算对栈方向（满递减，栈顶=高地址；㉗ 曾把"距底剩 1768B"算成"剩 24B 要溢出"）。
+4. **面包屑取证法**：可疑函数入口塞临时打印/计数——**注意取证代码本身改变布局与时序（"治好"效应），结论必须用无扰动手段复核**。UNALIGNED 类故障：HW 帧 LR 槽=BL 返回点、PC 槽=真故障指令。CFSR 按内核自己的头解码（别按网上直觉猜位号）。取证完清零残留。
+5. **物证原则**："烧的是什么/编的是什么"用 flash 指令字比对 objdump；make 依赖**不含外部系统头**，改平台头后 `rm -rf Object` 强制全编再反汇编确认常量变了。**msys make 增量编译时间戳竞态**：改端口文件后 make 可能不重编（实验数据被污染）——改后必 clean 全编。**"偶发"故障先核对 bin 来源与源码状态**（旧脏 bin vs 新 bin 的行为差极易误诊为布局/概率问题；同尺寸 bin ≠ 同布局）。
+6. **防超时三原则**：单命令<30s（构建拆单工程）；跨超时存活的用分离进程写文件；被杀的 openocd **会锁 ST-Link**（下次报 read version failed）→ 先 `Stop-Process -Name openocd -Force`；反复 CubeProg 连接可把 ST-Link USB 挂死（DEV_USB_COMM_ERR）→ 物理重插。
+7. **栈深刷漆法**：paint cfg（halt+mww 填魔数）→ 跑基准 → check cfg（mrw 扫非 marker 边界）——VM 的 Vct/USR 栈实测深度一测便知（RME 内核不刷线程栈、Vct 区不在内核 bss 搬运范围，marker 复位后保留）。
+8. **对账计数器法**（数据消失类）：给生产者/消费者/计数器各挂无声计数对账，差额直接指向丢失路径（RTT 邮件"消失"案即 Queue 19993 vs 发送 20000 定案）；探针只读不打印=零扰动。
+9. **GDB 静态变量取证**：探针增删会使 .bss 符号跨构建漂移——**每次重编后必须重跑 nm 取当前地址**；DWARF `ptype /o` 实测结构体布局（勿背）。
 
 ---
 
@@ -153,6 +169,12 @@ Start-Process 分离跑捕获脚本（30s 超时下存活），先开端口再�
 - **run_commands JSON 吃一层反斜杠**：含 `\\` 的 Replace 用 `[char]92` 拼 needle；大文件内容一律走 editor 工具不走 PS。
 - **批量文本替换两坑**：①删除规则必须白名单式列名或 `^#define` 行首锚——前缀式（如 `^#define CPU_INT_`）会撞车误杀 CPU_INT_DIS/EN 宏（链接期 undefined reference 才暴露）；裸匹配宏名会误伤调用处（把调用行改成 define）。②双引号串里反引号转义 `` `$1 `` 会把字面 `` ` `` 写进产物（stray '`' 编译错）。
 - **COM 口发现**：`Get-CimInstance Win32_PnPEntity | ? Name -match 'COM\d'`（随插拔变，勿写死）。
+- **Compare-Object 不带位置信息**——"哪一行变了"必须用带行号的逐行比对。
+- **PowerShell 类型化数组参数（`[string[]]$x`）触发转换复制**，函数内改动不影响外部——参数不标类型即传引用。
+- **正则中标识符的 `+`（如 M0+）是量词**——标识符进正则一律转义或 `Regex::Escape`。
+- **PowerShell 5.1 读无 BOM 的 .ps1 按 ANSI**——脚本内中文常量乱码、中文锚点匹配静默失败；含中文的脚本必须存带 BOM 或用 `[char]` 码点构造。
+- **输出通道偶发"剪切板污染"（乱码混入命令/输出）**——重要结论须用脚本文件方式复核，不信任单次内联输出。
+- **grep 引号转义会被 shell 静默吞掉**（曾致 `__TIME__` 漏检、stderr 有 `command not found` 却没看见）——管道里 grep 无输出时查 stderr。
 
 ### 4.3 生成器/构建类
 
@@ -161,6 +183,7 @@ Start-Process 分离跑捕获脚本（30s 超时下存活），先开端口再�
 - **Kernel 链接依赖各 VM 的 `*_image.c`**：报 `No rule to make target 'virt1_image.o'` 即构建顺序错了。
 - **生成器源里列了不存在的 .c** → make `No rule to make target`（实证：V3.08 无 os_int.c，OSIntEnter/Exit 在 os_core.c）。
 - V3.08 uCOS API 签名（与老版本假设不同）：OSTaskCreate **13 参**（多 q_size/time_quanta/p_ext）、OSSchedRoundRobinCfg(en,quanta,&err) **en 在前**、OSSemCreate 4 参无 max、RoundRobinYield 带 &err。
+- **断线旋钮识别**：改了某宏重编 bin 尺寸纹丝不动=该宏可能根本不进镜像（如 BENCH_TASK_STK_SIZE 是 rt_thread_create 的运行期参数→堆分配，不进 bin；RT_THREAD_IDLE_STACK_SIZE 在 rtconfig 里是断线旋钮、idle.c 只认 IDLE_THREAD_STACK_SIZE）——扫描前先确认旋钮真的连着（bin 尺寸随值变化）。
 
 ### 4.4 iasmarm 汇编类（与 armasm/GAS 差异速查，全是实证）
 
@@ -203,18 +226,21 @@ Start-Process 分离跑捕获脚本（30s 超时下存活），先开端口再�
 ### 4.6 OpenOCD (MounRiver fork) 类
 
 - 回显裁剪（reg/mdw/poll/mww 无回显）→ `mem2array a 32 <addr> 1; echo "$a(0)"`；对某些地址（0x5C001004）失败中断脚本 → `catch {...}` 包裹。
-- 新硅片 idcode 拒识（F429 报 expected 0x2BA01477 实测 0x6BA02477）→ `set CPUTAPID 0` 在 source target cfg 之前。
+- 新硅片 idcode 拒识（F429 报 expected 0x2BA01477 实测 0x6BA02477；H743 DPID 0x6BA02477）→ `set CPUTAPID 0` 在 source target cfg 之前。
 - 运行态设 flash 断点必败（无报错直接死）→ 先 reset halt/halt。
-- gdb 连接（3333 起 server）实测协商异常连不通，弃用。
+- gdb 连接（3333 起 server）在 ARM 板实测协商异常连不通，弃用；RV32P（V307）GDB 可用（openocd 3333 + riscv-none-elf-gdb + kernel.elf 符号）。
+- H743 特有：flash 编程 probe 报 "Cannot identify STM32H7xx"=DBGMCU 时钟未开——需 connect assert srst 或先 mdw 开 DBGMCU_CR（0x5C001004）；**DWT 值匹配 watchpoint 不支持**（resource not available）；FPB flash 断点 resume 后可不命中。
+- **CubeProg `-coreReg` 会把核按在复位向量**（PC 恒 __RME_Entry 首指令）——不能采样运行态 PC；RAM 读（-r32）安全。
+- 命令行传带空格参数给 OpenOCD 会被拆分——复杂命令一律走 cfg 文件；路径必须 `C:/` 风格（不识别 msys `/c/`）。
 
 ### 4.7 硬件与芯片头类
 
 **H743 档案（NUCLEO-H743ZI，rev.Y）**：
 - **VOS 复盘（定稿）**：正确编码 D3CR VOS[15:14]=11:Scale1(0xC000)，复位值 0x6000=Scale3。原宏 0xC000 从头到尾是对的。**真 bug=缺供电配置**：官方顺序=ConfigSupply(写 CR3：清 SCUEN/BYPASS 置 LDOEN，等 CSR1.ACTVOSRDY)→VOS 配置→等 VOSRDY；缺第一步则 VOSRDY 永不置位启动死等。已修 M7M01 头。教训：**拿不准 ST 外设用法先抄 M5P01 同芯片工程+M0A00_Library 的 Cube HAL——同板跑通的代码是唯一真理**；凭记忆不查库连错两轮。
-- **DTCM 实测 64KB**（标称 128KB）：0x20010000+ 写黑洞。全链内存迁 AXI 0x24000000（Kernel Data_Base；SFTD/VMMD 栈留 0x20000000 低 64KB）。
+- DTCM 128KB 完整可用（曾误诊"高 64KB 写黑洞"——OpenOCD WCH fork 仪器假象，CubeProg 实测推翻；防御性布局保留无害）。教训：写黑洞类硬件结论必须双仪器交叉验证。
 - HSE=8MHz 来自 ST-Link MCO（HSEBYP 直注）；400MHz=8/4*400/2，APB1/APB2=100MHz，APB1 timer=200MHz（测试头 TIM2_CNT<<1 基于此）。
 - rev.Y 调试口怪象：DPID 0x6BA02477；DBGMCU IDCODE 经 WCH fork 读出 0x70003F（非标准，未解，仅影响调试通道）。
-- **M7 性能数据必须开 L1 Cache 才有意义**（关 Cache Yield 1082/995 → 开 228/250，4~5 倍——无 Cache 跑 Flash 每取指吃 AXI 等待）。
+- **M7 性能数据必须开 L1 Cache 才有意义**（关 Cache Yield 1082/995 → 开 228/250，4~5 倍——无 Cache 跑 Flash 每取指吃 AXI 等待）。cache 开关在 `rme_platform_stm32h743zi.h` 的 `__RME_A7M_Cache_Init()`（改它=内核平台头改动→删工作区重新生成）。
 
 **芯片头寄存器坑（FLASH ACR 三坑 + 读回断言）**：
 - **语句宏当值用=Pa078 病根**：`ACR=LATENCY(2U)|PRFTEN` 而 LATENCY(X) 是赋值语句宏 → 展开成双重赋值 UB。修法：语句宏只当语句调用，禁止套进表达式。
@@ -266,7 +292,7 @@ return (TaskHandle_t)(pxNextItem->pvOwner);
 | portasm.s | iasmarm 宏形态直译：`名 MACRO 参数…ENDM`、裸参数引用、IF/ENDIF 条件展开、DCI→DC16、二操作数→三操作数、`LDR =代码标号`后跟 BIC/ANDS 剥位、参数名大写独名 |
 | tasks_rvm.c | 原样拷 |
 
-### 5.3 端口格式规范（清扫定稿，三 OS 端口家族统一标准）
+### 5.3 端口格式规范（清扫定稿；辖 FRT/UO3 家族，RMP 沿用 M5P01 官方风格；**RTT 家族自 2026-10-28 起改随 RT-Thread 官方 libcpu 风格，见 §9.5 同尘定则**）
 
 - 缩进 4sp；操作数列 col 25；注释列 col 45（0-based 44，**勿写成 53**）；宏定义行=宏名补齐 16 列+`MACRO`+3sp→参数列 col 25；iasmarm 的 MACRO 名保持标号列 col 1（语法要求）。
 - 宏参数**全大写**按 GCC 家族语义命名（LABEL/SZ/XPSR/EXC_RETURN），禁寄存器名。
@@ -286,10 +312,10 @@ port.c/portmacro.h/FreeRTOSConfig.h/tasks_rvm.c 跨目录**必须哈希一致**�
 - 响应文件法：`g++ @resp.txt`（Release\resp.txt；~50 cpp + 预编译 xml.o；C++17/-O2/-static/-s）。**响应文件内路径必须正斜杠**（反斜杠被 GCC 当转义吃掉）；xml.c 是 C 不能混编 C++（用预编译 xml.o）。编译 ~60s 超 30s 红线 → Start-Process 分离跑，完成后校验 build_err.txt。
 - **时间戳假新鲜**：旧 rvgen_new.exe 未删时 Test-Path 即真会换装陈货——换装前比对 exe 与 build_err 的 LastWriteTime。
 - **resp.txt 输出名是 rvgen_new.exe**：重建完成后须手动复制部署到 Release\rvgen.exe 与 Utility\M7M02_Final\rvgen.exe 两处（benchmark.sh 用后者）。
-- 产物部署两处：Release\rvgen.exe + Utility\M7M02_Final\rvgen.exe（benchmark.sh 用后者）。
 - **客机生成器三件套 helper 家规**（FRT/UO3 同构）：`Plat_Get()`（平台→端口目录名）、`Toolchain_Get(Virt)`（工具链→目录名）、`Port_Dir_Get(Virt)`（合成端口路径）；hpp 声明+cpp 定义+完整函数注释块；Process_Virt_Hdr/Src 里调用之，不写裸三分支。
   - FRT 映射：A6M→ARM_A6M、A7M→ARM_A7M、RV32P→RISC-V_RV32P；ARMCC→RVDS、ICCARM→IAR、其余→GCC。
   - UO3 映射：A6M→ARMv6-M、A7M→ARMv7-M；ARMCC→ARM、ICCARM→IAR、其余→GNU（Micrium 命名）。
+  - RTT 映射：A6M→armv6m、A7M→armv7m、RV32P→rv32p（libcpu 子目录名）；生成器架构通用，RTT_Gen 挂 -rtt 树。
 - 平台兼容表：rvp 的 Guest 组合要在 `Include\Platform\<ARCH>\rvm_platform_*.rva` 的 `<Guest>` 与 `<Compatible>`（C 行=Buildsystem,Toolchain,Guest 三元组）里开；漏开报 "Combination 'X/Y/Z' is not found in compatible list"。
 - 命名约定：Buildsystem=IAREW / 工程前缀=EWARM / Toolchain=ICCARM / 汇编后缀 _iccarm.s。
 
@@ -297,7 +323,14 @@ port.c/portmacro.h/FreeRTOSConfig.h/tasks_rvm.c 跨目录**必须哈希一致**�
 
 - 定位=全部客机"我方增量件"的镜像暂存区；官方件永不入镜。update.sh：`rm -rf ./*/` 后逐条 `cp -r`（幂等）。
 - 条目规则：尾随空格分词、无尾斜杠、大小写逐字；按客机分段、段内变体成对、测试收尾；粒度随客机原生分类；循环带 `[ -d ] || skip` 守卫（可提前挂未来条目当 intent 文档）。
-- 当前清单：FRT 8 条（portable/{GCC,RVDS,IAR}/ARM_*_RVM×2 + RISC-V_RV32P_RVM + test）+ UO3 7 条。
+- 当前清单：FRT 8 条 + UO3 7 条 + RTT 6 条（libcpu 三端口 + test 树）。
+
+### 6.3 rvp 体系不变量与基础设施
+
+- **37 工程单一差异语法（终态不变量，全库字符级审计 0 违规）**：同芯片 rvp 两两差异仅三类——Guest_Type(1 行)/Coprocessor×4(NOFPU)/Buildsystem+Toolchain×11(跨链)；其余 350+ 行逐字符相同（含内存布局/优化级/缩进）。同芯片各链 RTOS 变体共用相同 Data 满配与内存布局（历史"方言"已收敛）。G071 的 hypervisor 侧 Optimization=Os 为 RMP/FRT/UO3 三链与 RTT（GCC，rvp 自 FRT 克隆承袭）共有的芯片级选择。
+- **rvp 是从未跑过的资产=未验证资产，首次使用前先验完整性**（可解析/无 NUL 字节；曾发现 gccmf-g071-rmp 在 git 库中是损坏 blob——`git ls-files --eol` 出现 `i/-text` 的文本文件即坏 blob 信号）。
+- **autobuild 检测定制正则（大小写不敏感）**：gcc `error:|fatal error|*** Error N`；IAR `Error[Pe..]`+非零 summary；Keil `error:`+`[1-9]+ Error(`；生成检测含 `^Error:` 变体。失败打印前 5 条错误原文；warning 全链计数报告（msys 无 bc，用 awk 求和）暂不判 FAIL。
+- **autobench 探板**：`vcp_pair.ps1` 枚举 STLINK sn+COM 对，CubeProg 逐个 -c 查 Device ID 匹配芯片——多板环境自动寻址（勿写死 SN/COM）。
 
 ---
 
@@ -308,37 +341,42 @@ port.c/portmacro.h/FreeRTOSConfig.h/tasks_rvm.c 跨目录**必须哈希一致**�
 | 芯片 | GCC | Keil | IAR | 正式档案 |
 |---|---|---|---|---|
 | G071 (A6M) | ✅ 真机 | ✅ 真机 | ✅ 真机（Yield 408） | frt_test_stm32g071rb_rvm.h（GNU/ARMCLANG/ICCARM 三块） |
-| F429 (A7M) | ✅ 真机（Yield 352） | ✅ 真机（300） | ✅ 真机（308） | frt_test_stm32f429zi_rvm.h（三块） |
+| F429 (A7M) | ✅ 真机（Yield 352→372 deferred 修复后） | ✅ 真机（300） | ✅ 真机（308→316） | frt_test_stm32f429zi_rvm.h（三块） |
 | H743 (A7M) | ✅ 真机（Yield 228） | ✅ 真机（250） | ✅ 真机（220，三编译者最优） | frt_test_stm32h743zi_rvm.h（三块+历史注） |
 | V307 (RV32P) | ✅ 真机（基线） | N/A | N/A | frt_test_ch32v307vc_rvm.h |
 
 - 全矩阵编译回归：10/10 可测组合五工程全绿（V307×Keil/IAR 结构性 N/A——新树无 RV32P 的 RVDS/IAR 端口）。
-- **UO3 P0+P1 真机闭环**：GCC/G071 快路径 9/9 全过、0 error（**Yield 810**；慢路径 2840 留历史注），
-  档案 uo3_test_stm32g071rb_rvm.h；调试全史与根因（CPU_SR_Save 语义反转、ISR 缺 OSIntEnter/Exit 协议）见 §9 军规 13 与 §8。
 
 ### 7.2 UO3（uC/OS-III-on-RVM）链状态
 
 | 芯片 | GCC | Keil | IAR | 正式档案 |
 |---|---|---|---|---|
-| G071 (A6M) | ✅ 真机（**快路径 Yield 806**，同尘化定档） | ✅ 编译全绿（P2 完成：ARM/ 四件套，armasm；A1581W 唯一警告无害） | ✅ 编译全绿（P3 完成：IAR/ 四件套，iasmarm；EWARM 5 工程 0 err 0 warn，OSStartHighRdy/OSCtxSw 入 map） | uo3_test_stm32g071rb_rvm.h（GNU 块+两段历史注） |
-| V307 (RV32P) | ✅ 真机（**9/9 全绿，Yield 455** 对 FRT 同板 313；栈溢出根因见 §8.1） | N/A | N/A | uo3_test_ch32v307vc_rvm.h（GNU 块 Note(2)） |
-| F429 (A7M) | ✅ 真机（**9/9 全绿**；定档 536/Relay 2777，2026-10 竞态修复后复测 **544**；两案已破：烧录路径错→横幅断言、Relay 跨钟相位偏移→客机计时器换回内核同款 TIM2） | ✅ 真机（**9/9 全绿，Yield 481=三编译器最优**；2026-10 首板测，ARM/ 端口原生正确零改动） | ✅ 真机（**9/9 全绿，Yield 584**；2026-10 首板测——先修 OS_CPU_ALIGN_PUSH 极性 bug 后通，见 §8.4） | uo3_test_stm32f429zi_rvm.h（GNU 块 Note(2)） |
-| H743 (A7M) | ✅ 真机（**9/9 全绿，Yield 366**（硬 CLZ 版）；A7M 端口与 F429 共享零改动） | ✅ 编译同享（ARM/ 端口与 F429 同套零改动） | 端口同享（IAR/ 与 F429 同套零改动；ewarm rvp 按需克隆） | uo3_test_stm32h743zi_rvm.h（GNU 块 Note(2)） |
+| G071 (A6M) | ✅ 真机（快路径 Yield 806） | ✅ 真机（915） | ✅ 真机（888） | uo3_test_stm32g071rb_rvm.h |
+| V307 (RV32P) | ✅ 真机（9/9 全绿，Yield 455） | N/A | N/A | uo3_test_ch32v307vc_rvm.h（GNU 块 Note(2)） |
+| F429 (A7M) | ✅ 真机（9/9，Yield 544） | ✅ 真机（9/9，Yield 481） | ✅ 真机（9/9，Yield 584→601） | uo3_test_stm32f429zi_rvm.h |
+| H743 (A7M) | ✅ 真机（9/9，Yield 366 硬 CLZ 版） | ✅ 编译同享 | 端口同享（ewarm rvp 按需克隆） | uo3_test_stm32h743zi_rvm.h |
 
-- P0+P1（已闭环）：同优先级 RR 编排；OSCtxSw=asm 任务栈直接换帧（FRT portasm 骨架，
-  **已全文重排为 uC/OS-III 官方 asm 风格**：104 列星线框/大写助记符/注释列 64/OS_CPU_ 前缀宏），
-  OSIntCtxSw=慢路径超调用；RVM 7/7 + UO3 9/9 + 溢出标记全过。
-- 定档演进：慢路径 2840 → 快路径 810 → 同尘化+CPU 类型 806（Mem 428→277、MsgQ 1157→1025，
-  uint32_t→CPU_INT32U 影响 GCC 代码生成）。ISR relay 三轮恒 3340±。
-- **同尘化彻底完成**：端口层（os_cpu_a.s 官方 asm 风格/cpu.h 补齐（cfg 已 Template 化=架构级模板→工作区拷贝，编译器子层只剩 os_cpu.h/os_cpu_a.s））
-  + benchmark 层（BENCH_* 宏/Bench_* 函数/驼峰 static/小写局部/官方空格与函数头框注释）全部对齐
-  uC/OS-III 官方规范；重命名后成绩逐项不变。
+- P0+P1（已闭环）：同优先级 RR 编排；OSCtxSw=asm 任务栈直接换帧（官方 asm 风格），OSIntCtxSw=慢路径超调用；定档演进：慢路径 2840 → 快路径 806（同尘化后）。
+- **同尘化彻底完成**：端口层+benchmark 层全部对齐 uC/OS-III 官方规范；重命名后成绩逐项不变。
 
 ### 7.3 RMP-on-RVM IAR 链
 
-G071/F429/H743 三板全部真机闭环（RVM 层数据归档 rvm_test_stm32*.h 各 ICCARM 块）。G071 真机 Kernel.bin 102876B；H743 342476B / F429 230968B（IAR RMP 链）。
+G071/F429/H743 三板全部真机闭环（rvm_test_stm32*.h 各 ICCARM 块）。G071 真机 Kernel.bin 102876B；H743 342476B / F429 230968B。
 
-### 7.4 数据判读参考量级
+### 7.4 RTT（RT-Thread-on-RVM）链状态
+
+| 芯片 | GCC | Keil | IAR | 正式档案 |
+|---|---|---|---|---|
+| G071 (A6M) | ✅ 真机 9/9（Yield 1073） | ✅ 真机 9/9（**940**，三编译器最优） | ✅ 真机 9/9（1035） | rtt_test_stm32g071rb_rvm.h（三编译器块） |
+| V307 (RV32P) | ✅ 真机 9/9（Yield 533；RV32 无 ICI/IT 全快路径零竞态） | N/A | N/A | rtt_test_ch32v307vc_rvm.h |
+| F429 (A7M) | ✅ 真机 9/9（**648**=全慢 2546 的 3.9×） | ✅ 真机 9/9（532） | ✅ 真机 9/9（612） | rtt_test_stm32f429zi_rvm.h（三编译器块） |
+| H743 (A7M) | ✅ 真机 9/9（**快路径 Yield 495**） | ✅ 真机 9/9（449） | ✅ 真机 9/9（**424**，三编译器最优） | rtt_test_stm32h743zi_rvm.h（三编译器块） |
+
+- **三编译器矩阵（2026-10-28 当日收官）**：armv6m/armv7m 各三份 context 汇编（gcc/iar/rvds 小写命名，rtt_gen 按 Toolchain_Get 自动映射 ARMCC→rvds、ICCARM→iar），指令流审计零语义差异（见 §9.5）。
+- VSS 实况：H743-rtt=0x800、F429-rtt=0x1000、G071-rtt=0x800（㉙ 回退后 H743 未再改 0x1000，当日快路径全绿实证 0x800 足够——Vct 实测深度 280B）。
+- VCT 栈深实测参考：M0+=68B、M7=280B（刷漆法）——各 RTOS tick 链深浅不同，新 RTOS 移植必须实测。
+
+### 7.5 数据判读参考量级
 
 - ICCARM(-Oh) 通常介于 ARMCLANG -O3 与 GNU -O3 之间（三板 FRT 一致）。
 - M7 板（H743）必须开 L1 Cache 的数据才有效（4~5 倍差）。
@@ -346,264 +384,131 @@ G071/F429/H743 三板全部真机闭环（RVM 层数据归档 rvm_test_stm32*.h 
 
 ---
 
-## 8. uCOS-III on RVM 移植要点
+## 8. uC/OS-III on RVM 移植要点
 
 - **客机包**：`uCOSIII_V308` 三仓嵌套（uC-OS3 V3.08.02 + uC-CPU + uC-LIB），官方 Apache-2.0 零修改。
 - **依赖闭合**：lib 头用官方（include path 指 uC-LIB 根，.c 不编译——函数引用全在 NAME_EN=0 死代码）；cpu_cfg.h 注意：TS_TMR_SIZE 必须 `CPU_WORD_SIZE_32`（非 32u）、**不可定义 LEAD/TRAIL_ZEROS_ASM_PRESENT**（#ifndef 语义，定义了就把 C 版 CLZ 裁掉链接缺符号）、TS_TMR_EN/PERF_MON_EN/INT_DIS_MEAS_EN 别定义（cpu_core.h 自带默认会重定义警告）。
-- **CPU 侧替代**（cpu_rvm.c 六函数）：IntDis/En/SR_Save/Restore→RVM 掩蔽（嵌套深度放 CPU_SR 值）；
-  **SR_Save 必须返回进入前的旧深度**（写成 `++Nesting` 返回新值会让 Restore 永远回不到 0，
-  Mask 卡死 1，Vct 信号永不发出，tick/ctx 全灭——板上表现为"yield 返回 NONE 却切不动"+0 tick）；
-  WaitForInt/Except→空存根（客机 WFI 停核饿死全家）。
-- **OS 侧**（os_cpu_c.c=官方全文+手术）：九 Hook 保留；StkInit 尾加 5 超调用参数字（帧 22 字与 FRT 同构）；
-  OSInitHook 的 ExceptStkBase 行摘除（客机无 MSP）；OSStartHighRdy 必须设 **OSRunning=1**（官方 asm 有，
-  重写易漏——漏了 OSTaskChangePrio(NULL) 报 OS_NOT_RUNNING）；首任务入口跳转
-  `pop{r4}(返回地址,弃) pop{r0}(入口) mov lr,r0`。
-- **ISR 协议**：Vct 线程上跑的 ISR 必须 `OSIntEnter()→post(NO_SCHED)→OSIntExit()`——Exit 里才更新
-  OSTCBHighRdyPtr 并触发 OSIntCtxSw；裸 post+RVM_Virt_Yield（FRT 模式）会让 Vct_Loop 尾部的
-  OS_Ctx_Handler 拿旧 HighRdy 切错对象（"Interrupt reentered." 刷屏）。
-- **Yield 编排**：uCOS RR yield 不变式 cur==就绪链 head；benchmark 两任务同优先级创建
-  （T2 先建=head、领先 yield），勿用 OSTaskChangePrio 破坏链序（插尾）。V3.08 OSSched 在临界区内调
-  OS_TASK_SW——Yield 落 pend 分支、由临界区退出的 Unmask 补发信号，属正常路径。
-- **双路径切换（P1 定稿）**：OSCtxSw=GNU/os_cpu_a.s 的 asm 快路径（FRT vPortYield 骨架：伪造异常帧
-  +R4-R11+超调用参数 5 字=22 字，任务栈上直接换帧零陷入；vTaskSwitchContext 块换成 uCOS bookkeeping
-  ——OSSched 已选好 HighRdy，asm 只做 hook/OSPrioCur/OSTCBCurPtr/TCB 偏移 0 直写 StkPtr）；
-  OSIntCtxSw=慢路径（ISR 上下文 Vct_Act=1 时 Yield 只设标志，Vct_Loop 尾部真切）。**帧 22 字三处一致**
-  （StkInit/OS_Ctx_Handler/os_cpu_a.s）——快路径切走的帧可被 tick 慢路径恢复，反之亦然；
-  XPSR bit9=0x200 是对齐 PAD 私有标记，EXC_POP 恢复时必须清除。
+- **CPU 侧替代**（cpu_rvm.c 六函数）：IntDis/En/SR_Save/Restore→RVM 掩蔽（官方直译快照制——`Save=(CPU_SR)RVM_Int_Mask 快照`+条件 Mask / `Restore=条件 Unmask(全路径)/Mask`；**Restore(sr==0) 必须走完整 Unmask 路径**（含 pending 投递检查），裸写标志会让 pending 虚拟中断饿死——这是唯一不能逐字直译 CSR 的点）；WaitForInt/Except→空存根（客机 WFI 停核饿死全家）。
+- **OS 侧**（os_cpu_c.c=官方全文+手术）：九 Hook 保留；StkInit 尾加 5 超调用参数字（帧 22 字与 FRT 同构）；OSInitHook 的 ExceptStkBase 行摘除（客机无 MSP）；OSStartHighRdy 必须设 **OSRunning=1**（官方 asm 有，重写易漏——漏了 OSTaskChangePrio(NULL) 报 OS_NOT_RUNNING）；首任务入口跳转 `pop{r4}(返回地址,弃) pop{r0}(入口) mov lr,r0`。
+- **ISR 协议**：Vct 线程上跑的 ISR 必须 `OSIntEnter()→post(NO_SCHED)→OSIntExit()`——Exit 里才更新 OSTCBHighRdyPtr 并触发 OSIntCtxSw；裸 post+RVM_Virt_Yield（FRT 模式）会让 Vct_Loop 尾部的 OS_Ctx_Handler 拿旧 HighRdy 切错对象（"Interrupt reentered." 刷屏）。
+- **Yield 编排**：uCOS RR yield 不变式 cur==就绪链 head；benchmark 两任务同优先级创建（T2 先建=head、领先 yield），勿用 OSTaskChangePrio 破坏链序（插尾）。V3.08 OSSched 在临界区内调 OS_TASK_SW——Yield 落 pend 分支、由临界区退出的 Unmask 补发信号，属正常路径。
+- **双路径切换（P1 定稿）**：OSCtxSw=GNU/os_cpu_a.s 的 asm 快路径（伪造异常帧+R4-R11+超调用参数 5 字=22 字，任务栈上直接换帧零陷入；vTaskSwitchContext 块换成 uCOS bookkeeping——OSSched 已选好 HighRdy，asm 只做 hook/OSPrioCur/OSTCBCurPtr/TCB 偏移 0 直写 StkPtr）；OSIntCtxSw=慢路径（ISR 上下文 Vct_Act=1 时 Yield 只设标志，Vct_Loop 尾部真切）。**帧 22 字三处一致**（StkInit/OS_Ctx_Handler/os_cpu_a.s）——快路径切走的帧可被 tick 慢路径恢复，反之亦然；XPSR bit9=0x200 是对齐 PAD 私有标记，EXC_POP 恢复时必须清除。
 - **bsp_os_dt.c 弃用**（动态 tick BSP 模板）：RVM 下 tickless 禁死，tick 走 RVM_Virt_Tim_Reg。
-- **同尘规范（UO3 包内所有自有件，长期有效）**：文件头=官方三框（产品框[uC/OS-III 或 uC/CPU+版权+NOT part
-  声明]+文件框[File/Version/For]+Note(s) 框）；asm=104 列星线框/大写助记符/注释列 64/OS_CPU_ 前缀宏/
-  官方 Note(s) 编号体；类型=官方 cpu.h 的 C 原生 typedef（**禁引 stdint.h**）；benchmark 命名=BENCH_*
-  全大写宏 / Bench_* 驼峰函数 / 静态全局驼峰（Task1TCB 式）/ 局部小写下划线（cnt 式）/ 指针参数 p_ 前缀 /
-  `for (`、`0u` 后缀小写、`(cast)值` 紧贴。**同尘以本树官方发行版现状为唯一基准**——V3.08 已无
-  $PAGE/form feed，勿凭旧版记忆带入；官方文件自带的列混排（os_cfg.h 的 51/52、os_cfg_app.h 的
-  58/59）原样保留不动，自有文件宏值列单列统一（chip header 51 / benchmark 53 / cpu_cfg.h 53+注释列 66）；
-  os_cfg.h / os_cfg_app.h / lib_cfg.h 三件保留官方模板头。
-- **SCS 瘦身（cpu.h 与源清单）**：cpu.h 删尽系统控制空间内容（SYSTICK/NVIC/SCB/CPUID/MPU 寄存器宏、
-  中断源号、寄存器位/掩码段、MB/RMB/WMB、CPU_IntSrc*/CPU_BitBand/CPU_RevBits 原型）；官方 cpu_c.c
-  **整体退出编译**（全是 guest 无权执行的特权死代码）。CLZ/CTZ 全家在 cpu_core.c（查表 C 版）照常可用
-  ——Cortex-M0/M0+ 指令集无 CLZ/RBIT，官方 v6-M 端口同样无汇编 CLZ，C 查表即官方同款正解；汇编加速
-  （CLZ 指令版 cpu_a.s + cpu_cfg.h 开 CPU_CFG_LEAD_ZEROS_ASM_PRESENT）是 **v7-M 模式**，A7M 端口时提供。
-- **测试选择头职责（FRT/UO3 通用定式）**：frt_test.h/uo3_test.h（生成器产物）=纯选择头，只 include chip header；
-  benchPRINT_*/BENCH_PRINT_* 等实体宏一律放 chip header（FRT 已从生成器迁出对齐 UO3——生成器只做选择，
-  哪怕宏要每头写一遍）。
-  实体宏一律放 chip header。
-- **布局判据**：端口目录跟客机自家惯例（FRT 用 portable/、UO3 用原生 Ports 树）；-RVM 后缀挂被变体化的官方节点上；兄弟同类（架构旁站架构）拒绝混层。
-- **生成器**：Guest_Type=UO3（上游预留 -uo3）；A6M rva Compatible 已开三元组；RV32P 同开（C3 行）。
+- **同尘规范（UO3 包内所有自有件，长期有效）**：文件头=官方三框；asm=104 列星线框/大写助记符/注释列 64/OS_CPU_ 前缀宏/官方 Note(s) 编号体；类型=官方 cpu.h 的 C 原生 typedef（**禁引 stdint.h**）；benchmark 命名=BENCH_* 全大写宏 / Bench_* 驼峰函数 / 静态全局驼峰 / 局部小写下划线 / 指针参数 p_ 前缀 / `for (`、`0u` 后缀小写、`(cast)值` 紧贴。**同尘以本树官方发行版现状为唯一基准**；官方文件自带的列混排原样保留不动，自有文件宏值列单列统一；os_cfg.h / os_cfg_app.h / lib_cfg.h 三件保留官方模板头。
+- **SCS 瘦身（cpu.h 与源清单）**：cpu.h 删尽系统控制空间内容；官方 cpu_c.c **整体退出编译**。CLZ/CTZ 全家在 cpu_core.c（查表 C 版）照常可用——Cortex-M0/M0+ 无 CLZ/RBIT，C 查表即官方同款正解；汇编加速（CLZ 指令版 cpu_a.s + cpu_cfg.h 开 CPU_CFG_LEAD_ZEROS_ASM_PRESENT）是 **v7-M 模式**，A7M 端口时提供。
+- **测试选择头职责（FRT/UO3/RTT 通用定式）**：frt_test.h/uo3_test.h/rtt_test.h（生成器产物）=纯选择头，只 include chip header；benchPRINT_*/BENCH_PRINT_* 等实体宏一律放 chip header。
+- **布局判据**：端口目录跟客机自家惯例（FRT 用 portable/、UO3 用原生 Ports 树、RTT 用 libcpu 树）；-RVM 后缀挂被变体化的官方节点上；兄弟同类拒绝混层。
+- **生成器**：Guest_Type=UO3（上游预留 -uo3）；rva Compatible 开三元组。
 
 ### 8.1 RV32P 移植要点（V307 一轮实战沉淀）
-- **目录布局**：OS 侧 `Ports/RISC-V/RV32-RVM/GCC/`（RISC-V 官方编译器名=GCC 非 GNU）+架构层 os_cpu_c.c；
-  CPU 侧**扁平特例** `uC-CPU/RISC-V-RVM/`+`GCC/cpu.h`（官方 RISC-V 下无架构细分层）。
-- **帧布局（RV32）**：params5+mstatus（FS 位标记惰性 FPU 帧：RVF 33 字/RVD 65 字）+31 整数字
-  （pc@0,x1@1,x3..x31；x2 sp 由帧隐含、x4 tp 承载恢复地址——mepc 用户态不可达，恢复用 jalr x0,tp）。
-- **快路径三入口**：OSCtxSw/OSCtxSwRVF/OSCtxSwRVD（os_cpu.h 按 RVM_RV32P_COP_RVD/RVF 三选一）——
-  FPU 指令 **.hword 手编码**（fsd/fld/fsw/flw 各 32 对表在 os_cpu_a.s，**逐字抄 FRT portasm.s 勿自算**）；
-  SWITCH 的 bookkeeping（OSTaskSwHook+prio/tcb 三步）**直接在任务栈上跑**（G071 正统——浅调用且
-  全局变量同用户 gp；FRT/RMP 的切内核栈+gp（__RVM_Stack/__RVM_Global）留给深调度器，uC/OS 不需要）。
-- **任务栈预算（V307 三轮破案的根因）**：RV32 切换帧=37 整数字+快路径 FPU 瞬态 33 字=280B
-  （A6M 仅 88B）→基准任务栈 **256 字起步**（128 字会溢出踩 .bss：就绪链/信号量表/RVM_Int_Mask
-  全毁——症状为计数器乱码+ISR 链 reenter 刷屏，极易误判为切换逻辑 bug）。
-  **BENCH_TASK_STK_SIZE 已下放芯片头 per-port**（G071=128/V307=256）——benchmark.c 无兜底，
-  缺失即 `#error`（uC/OS 官方 os.h 风格）——新端口头文件必给此宏，按帧深×2.5 以上估。
-- **调度时序正统（uC/OS 特有）**：HighRdy 的选择在 switch **外部**由 OSSched/OSIntExit 完成，
-  Ctx handler 只消费不重算——勿仿 FRT/RMP 把调度塞进 handler（二者调度器在 handler 内跑是
-  其架构使然，对 uC/OS 是画蛇添足且引入竞态）。
-- **GDB 静态变量取证**：探针增删会使 .bss 符号跨构建漂移——**每次重编后必须重跑 nm 取当前地址**，
-  否则读到的是别的变量（"垃圾值"假象）；无声计数器（handler++ 只读不打印）是零扰动判决利器。
-
+- **目录布局**：OS 侧 `Ports/RISC-V/RV32-RVM/GCC/`（RISC-V 官方编译器名=GCC 非 GNU）+架构层 os_cpu_c.c；CPU 侧**扁平特例** `uC-CPU/RISC-V-RVM/`+`GCC/cpu.h`（官方 RISC-V 下无架构细分层）。
+- **帧布局（RV32）**：params5+mstatus（FS 位标记惰性 FPU 帧：RVF 33 字/RVD 65 字）+31 整数字（pc@0,x1@1,x3..x31；x2 sp 由帧隐含、x4 tp 承载恢复地址——mepc 用户态不可达，恢复用 jalr x0,tp）。
+- **快路径三入口**：OSCtxSw/OSCtxSwRVF/OSCtxSwRVD（os_cpu.h 按 RVM_RV32P_COP_RVD/RVF 三选一）——FPU 指令 **.hword 手编码**（fsd/fld/fsw/flw 各 32 对表在 os_cpu_a.s，**逐字抄 FRT portasm.s 勿自算**）；SWITCH 的 bookkeeping **直接在任务栈上跑**（浅调用且全局变量同用户 gp；切内核栈+gp 留给深调度器，uC/OS 不需要）。
+- **任务栈预算（V307 三轮破案的根因）**：RV32 切换帧=37 整数字+快路径 FPU 瞬态 33 字=280B（A6M 仅 88B）→基准任务栈 **256 字起步**（128 字会溢出踩 .bss：就绪链/信号量表/RVM_Int_Mask 全毁——症状为计数器乱码+ISR 链 reenter 刷屏，极易误判为切换逻辑 bug）。**BENCH_TASK_STK_SIZE 已下放芯片头 per-port**（G071=128/V307=256）——benchmark.c 无兜底，缺失即 `#error`——新端口头文件必给此宏，按帧深×2.5 以上估。
+- **调度时序正统（uC/OS 特有）**：HighRdy 的选择在 switch **外部**由 OSSched/OSIntExit 完成，Ctx handler 只消费不重算——勿仿 FRT/RMP 把调度塞进 handler。
+- **GDB 静态变量取证**：探针增删会使 .bss 符号跨构建漂移——每次重编后必须重跑 nm 取当前地址；无声计数器是零扰动判决利器。
 
 ### 8.2 A7M 移植要点（F429 一轮全绿沉淀）
-- **目录/生成器**：OS 侧 `Ports/ARM-Cortex-M/ARMv7-M-RVM/{os_cpu_c.c,GNU/*}`+CPU 侧
-  `uC-CPU/ARM-Cortex-M/ARMv7-M-RVM/`；A7M 平台 rva 需加 `<Guest>UO3</Guest>`+`<C9>Makefile,GCC,UO3</C9>`
-  （两处都要）；芯片头名用 rvp 的 **Class 名**（stm32f429zi 非 stm32f429zit6）。
-- **快路径=伪装异常帧（FRT A7M portasm 机制）**：入口 PUSH R0/XPSR→CONTROL.FPCA 分基本/扩展帧
-  →EXC_PUSH 造帧（PC=退出标号，XPSR bit9 标 pad）→vstmia s0-s15+fpscr+vpush s16-s31（.short 机器码
-  逐字抄 FRT）→params5+R4-R11+LR 入栈→Mask→存 SP→**trio**→载 SP→Unmask→解栈（原地变换：
-  LR 先出、XPSR 经 msr XPSR_NZCVQ、PC 最后弹）。**A7M 可直接 PUSH {R4-R11,LR}**（A6M 需经 R0-R3 中转）。
-- **ICI/IT 脏帧过滤（A6M 没有的 A7M 特有）**：EPSR ICI/IT 位只有真异常返回能恢复；OSCtxSw 用 C 包装
-  先查目标帧（LR_EXC@13 位4 定扩展，XPSR 基本@21/扩展@37——**pad 永在帧顶，偏移两态固定**），
-  脏→RVM_Virt_Yield 慢路径，净→asm 快路径；EXC_POP 内再设防御陷阱 OSCtxSw_Err。
-- **调度正统（与 RV32 轮同结论）**：V3.08 源码实证 OSSched 只算 HighRdy 就调 OS_TASK_SW——
-  **trio（OSTaskSwHook/OSPrioCur/OSTCBCurPtr）是端口 switch 的职责**（官方 PendSV 同款）；
-  uC/OS 天然免 Peek（FRT 的 xTaskPeekNextToRun 是其调度器即提交所致）。
-- **A7M 用汇编 CLZ（指令集事实，与 A6M/RV32 相异）**：ARMv7-M 有 CLZ/RBIT（A6M Thumb-1 无、
-  RISC-V base 无）——官方 A7M cpu_a.s 提供 CPU_CntLeadZeros/CntTrailZeros/RevBits 并在 cpu.h 定义
-  CPU_CFG_{LEAD,TRAIL}_ZEROS_ASM_PRESENT（定义在 cpu.h 不在 cpu_cfg.h）。RVM 版：cpu_rvm.c 内联
-  汇编同语义（objdump 实证 clz r0,r0; bx lr 与官方逐指令一致），cpu_core.c 的 C 查表版被宏裁掉
-  （#ifndef 守卫）。H743 实测 ISR 路径提速 4-5%（OSIntExit 每次扫 prio 表）。A6M/RV32 保持 C 版。
-- **快路径开关 OS_CFG_RVM_FAST_YIELD_EN（照抄 FRT configUSE_RVM_OPTIMISED_YIELD 三层模式）**：
-  ①os_cfg.h（端口编译器目录）定义选项（0u/1u 风格随本文件，默认 1u=开）+官方段落横幅注释；
-  ②os_cpu.h `#if` 切换 OS_TASK_SW——开=快路径入口（A7M=OSCtxSw 包装/A6M=asm OSCtxSw/RV32=三选一），
-  关=`RVM_Virt_Yield()`（"simpler, but traps on every switch"）；缺定义 `#error`（快败）；
-  ③A7M os_cpu_c.c 的 C 件（偏移+Frame_Dirty+OSCtxSw）包 `#if`，但 **OSCtxSw_Err 留在 `#if` 外**——
-  asm 无条件汇编恸引它，包进去关态即链接缺符号（实测验证）。H743 双态实测：开=Yield 372，
-  关=**1526（4.1×）**，ISR 四项双态不变（ISR 路径恒走 OSIntCtxSw，天然自证开关语义）。三口
-  （A6M/A7M/RV32）编译全绿。
-- **CPU 层 asm=存在即编译（分层铁律）**：CLZ/RBIT/REV 等 CPU 抽象加速属于 **uC/CPU 层
-  的 cpu_a.s**（`<arch>-RVM/<编译器>/cpu_a.s`，官方指令逐字），不进端口也不内联进 cpu_rvm.c——
-  cpu_rvm.c 只留六个掩蔽函数。uo3_gen：端口 os_cpu_a.s **必需**（硬检查+无条件编译，上下文切换
-  是端口本分）；CPU 层 cpu_a.s `exists()` 才编译——A6M/RV32 无此文件自动跳过走 C 查表（恰为其
-  官方同款行为）。H743 全链+板上 9/9 实证。
-- **生成器 Path_Conv 降序排序 bug（本轮修复）**：注释写"small to large"代码却是 `Left>Right`（手误翻转），
-  使官方 `ARMv7-M/GNU` 排在 `ARMv7-M-RVM/GNU` 前→官方 cpu.h 抢先→CPU_CFG_KA_IPL_BOUNDARY 未定义。
-  V307 幸免是因其官方 CPU 推送路径是拼错的 ARM 路径（不存在）。已改回 `Left<Right`（与注释一致），
-  全链目录互不相交的 FRT/RMP/native 不受影响。
-- **官方 CPU 编译器目录彻底退出 include 路径（设计定则）**：uo3_gen.cpp 不再推送官方
-  `uC-CPU/ARM-Cortex-M/<arch>/<编译器>/` 目录——RVM CPU 层（RVM 架构层+编译器层 cpu.h/cpu_rvm.c）
-  **自我完备**，缺 cpu.h 就该响亮地编不过，而不是静默解析到官方头埋雷（官方 cpu.h 的 BASEPRI 方案
-  与 RVM 配置根本不兼容，兜底只会产生更晚爆的错）。F429/G071 双平台无官方目录全链 0 err 实证；
-  与 FRT 生成器的单端口目录模型对齐。
-- **CLZ**：RISC-V base 不保证 clz（Zbb 非强制）→ C 查表（cpu_core.c）即正解，与官方 RISC-V 端口一致。
-- **烧录（WCH-LinkE+SDI）**：`adapter driver wlinke`+`sdi newtap`+`target create .. wch_riscv -chain-position`+
-  `flash bank .. wch_riscv 0x0 ..`（**flash 驱动=wch_riscv**）；板级 wch-riscv.cfg 是 JTAG 版不可用；
-  GDB 可用（openocd 3333+kernel.elf 符号）。**命令行传带空格参数给 OpenOCD 会被拆分——
-  复杂命令一律走 cfg 文件**。
-- **FPU 联动模型（rvp→端口全链；本轮补齐 UO3/FRT 的 A7M C 层段守卫）**：生成器注入两级宏——
-  芯片级 `RVM_COP_NUM`（rvm_platform_<chip>.h/rvm_platform_a7m_conf.h，proj_gen L1555）+ 进程级
-  `RVM_COP_NUM`/`RVM_<PLAT>_COP_<NAME>`（prc_<proc>.h L69+，proj_gen L2797-2801；F429 Virt1=
-  RVM_COP_NUM(1U)+RVM_A7M_COP_FPV4_SP(1U)）。消费分三型：①**RV32P=编译期三选一**（UO3
-  os_cpu.h `OS_TASK_SW()`/FRT `configUSE_PORT_RVF/RVD`→OSCtxSw(RVF/RVD) 三入口+FRT 的
-  RVF/RVD×RVM_COP_NUM==0 交叉 #error）——RISC-V 无硬件压栈，FPU 帧全靠软件，必须硬联动
-  （两家本就完备）；②**A7M C 层=段守卫**（`#if(RVM_COP_NUM!=0U)` 包 FRT_FPU/OS_CPU_FPU 宏定义
-  +S16-S31 存取两段；RMP rmp_platform_a7m_rvm.c L164/L236 样板；UO3 os_cpu_c.c 与 FRT
-  port.c×{GCC,RVDS,IAR} 本轮照补——之前裸奔，RVM_COP_NUM=0 的进程会撞未定义
-  RVM_A7M_Cop_Struct 报错不指向根因）；③**A7M asm=恒编+运行时自适应**（push 侧 CONTROL.FPCA/
-  pop 侧 LR.EXTENDED 分支，VFP 六对恒在链——RMP/FRT/UO3 三家一致，勿加编译期裁剪，帧布局
-  与扩展帧强耦合）。验证铁证：改后 F429 IAR 全链重建 Virt1.bin=11933B **逐字节等价**（VFP 六
-  偏移 10248-10454+CPU 符号 0x80229dd/29e3/29ed 全重合）；GCC objdump OS_Ctx_Handler 十六对
-  ldr[R2,#0x80-0xBC]/str[R3,#-4..-64]（cop 块 S16-S31→任务栈）完整在链。
+- **目录/生成器**：OS 侧 `Ports/ARM-Cortex-M/ARMv7-M-RVM/{os_cpu_c.c,GNU/*}`+CPU 侧 `uC-CPU/ARM-Cortex-M/ARMv7-M-RVM/`；A7M 平台 rva 需加 `<Guest>UO3</Guest>`+`<C9>Makefile,GCC,UO3</C9>`（两处都要）；芯片头名用 rvp 的 **Class 名**（stm32f429zi 非 stm32f429zit6）。
+- **快路径=伪装异常帧（FRT A7M portasm 机制）**：入口 PUSH R0/XPSR→CONTROL.FPCA 分基本/扩展帧→EXC_PUSH 造帧（PC=退出标号，XPSR bit9 标 pad）→vstmia s0-s15+fpscr+vpush s16-s31（.short 机器码逐字抄 FRT）→params5+R4-R11+LR 入栈→Mask→存 SP→**trio**→载 SP→Unmask→解栈（原地变换：LR 先出、XPSR 经 msr XPSR_NZCVQ、PC 最后弹）。**A7M 可直接 PUSH {R4-R11,LR}**（A6M 需经 R0-R3 中转）。
+- **ICI/IT 脏帧过滤（A6M 没有的 A7M 特有）**：EPSR ICI/IT 位只有真异常返回能恢复；OSCtxSw 用 C 包装先查目标帧（LR_EXC@13 位4 定扩展，XPSR 基本@21/扩展@37——**pad 永在帧顶，偏移两态固定**），脏→RVM_Virt_Yield 慢路径，净→asm 快路径；EXC_POP 内再设防御陷阱 OSCtxSw_Err。
+- **调度正统（与 RV32 轮同结论）**：V3.08 源码实证 OSSched 只算 HighRdy 就调 OS_TASK_SW——**trio（OSTaskSwHook/OSPrioCur/OSTCBCurPtr）是端口 switch 的职责**（官方 PendSV 同款）；uC/OS 天然免 Peek。
+- **A7M 用汇编 CLZ（指令集事实）**：ARMv7-M 有 CLZ/RBIT——官方 A7M cpu_a.s 提供 CPU_CntLeadZeros/CntTrailZeros/RevBits 并在 cpu.h 定义 CPU_CFG_{LEAD,TRAIL}_ZEROS_ASM_PRESENT（定义在 cpu.h 不在 cpu_cfg.h）。RVM 版：cpu_rvm.c 内联汇编同语义，cpu_core.c 的 C 查表版被宏裁掉。H743 实测 ISR 路径提速 4-5%。A6M/RV32 保持 C 版（RISC-V base 不保证 clz，Zbb 非强制）。
+- **快路径开关 OS_CFG_RVM_FAST_YIELD_EN（照抄 FRT configUSE_RVM_OPTIMISED_YIELD 三层模式）**：①os_cfg.h 定义选项（默认 1u=开）；②os_cpu.h `#if` 切换 OS_TASK_SW——开=快路径入口，关=`RVM_Virt_Yield()`；缺定义 `#error`（快败）；③A7M os_cpu_c.c 的 C 件包 `#if`，但 **OSCtxSw_Err 留在 `#if` 外**——asm 无条件汇编恸引它，包进去关态即链接缺符号。H743 双态实测：开=Yield 372，关=1526（4.1×）。
+- **CPU 层 asm=存在即编译（分层铁律）**：CLZ/RBIT/REV 属于 **uC/CPU 层的 cpu_a.s**，不进端口也不内联进 cpu_rvm.c；uo3_gen：端口 os_cpu_a.s **必需**（硬检查+无条件编译）；CPU 层 cpu_a.s `exists()` 才编译——A6M/RV32 无此文件自动跳过走 C 查表。
+- **生成器 Path_Conv 排序**：目录推送按"短路径优先"（Left<Right），官方目录与 -RVM 目录互不相交时不受影响。
+- **官方 CPU 编译器目录彻底退出 include 路径（设计定则）**：RVM CPU 层**自我完备**，缺 cpu.h 就该响亮地编不过，而不是静默解析到官方头埋雷（官方 cpu.h 的 BASEPRI 方案与 RVM 配置根本不兼容）。
+- **烧录（WCH-LinkE+SDI）**：`adapter driver wlinke`+`sdi newtap`+`target create .. wch_riscv -chain-position`+`flash bank .. wch_riscv 0x0`（**flash 驱动=wch_riscv**）；板级 wch-riscv.cfg 是 JTAG 版不可用。
+
 ### 8.3 Keil/armasm 端口要点（G071/F429 P2 一轮全绿沉淀）
-- **编译器子层=官方 Micrium 名 `ARM/`**（与官方 ARMv6-M/ARM、ARMv7-M/ARM 并排；生成器
-  Toolchain_Get：ARMCC→ARM 天生支持）。头件/cfg 从 GNU/ 拷贝+Toolchain 行改 ARM C Compiler；
-  os_cpu_c.c/cpu_rvm.c 架构层共享零改动。rvp 命名 rvmdk-*-uo3.rvp（FRT 版克隆改 Guest_Type）。
-- **armasm 译文规则（照 FRT RVDS 家族约定）**：`;` 注释；IMPORT/EXPORT；`MACRO`/`宏名 $参数`/
-  `MEND`；$LABEL 跳转；PROC/ENDP；AREA …,CODE,READONLY,ALIGN=2；THUMB/REQUIRE8/PRESERVE8；
-  两操作数 `AND R1,#imm`/`ORR R2,#imm`；`MSR XPSR,R0`；条件宏 `IF 表达式 … ENDIF`；
-  **VFP 用 DCI 半字对逐字保真**（0xECA0/0x0A10=VSTMIA 等六对，勿写成助记符——FRT RVDS 同款）；
-  LTORG 收尾。A6M 与 A7M 的宏体差异：A6M 用 LDR Rx,=imm+TST Rx,Ry（无立即数 TST）、
-  EXC_PUSH 无 IF（$SZ-7 恒减），A7M 用 TST Rx,#imm、EXC_PUSH/POP 带 `IF (($SZ-8)!=0)` 条件。
-- **唯一警告 A1581W**（Added 2 bytes of padding）=字面量池对齐填充，无害，勿修。
-- **Keil 构建链**：UV4.exe -b <uvprojx> -j0 -o build.log；**rc=1 只是有警告**（0 Error 即过）；
-  rc=0 无警告。链序同 IAR：子镜像先、Kernel 最后。bincopy 走 postbuild 自动链。
-- **RV32P×Keil 结构性 N/A**（同 FRT 矩阵）：rva Buildsystem 仅 Makefile、keil_gen 硬编码
-  pCCUsed=ARMCC+uAC6=1——MDK-RISCV（GCC 内嵌）属生成器级新功能，无 FRT 先例。
+- **编译器子层=官方 Micrium 名 `ARM/`**；头件/cfg 从 GNU/ 拷贝+Toolchain 行改 ARM C Compiler；rvp 命名 rvmdk-*-uo3.rvp。
+- **armasm 译文规则**：`;` 注释；IMPORT/EXPORT；`MACRO`/`宏名 $参数`/`MEND`；$LABEL 跳转；PROC/ENDP；AREA …,CODE,READONLY,ALIGN=2；THUMB/REQUIRE8/PRESERVE8；两操作数→armasm 允许（与 iasmarm 不同）；`MSR XPSR,R0`；条件宏 `IF … ENDIF`；**VFP 用 DCI 半字对逐字保真**；LTORG 收尾。A6M 与 A7M 的宏体差异：A6M 用 LDR Rx,=imm+TST Rx,Ry（无立即数 TST）、EXC_PUSH 无 IF；A7M 用 TST Rx,#imm、EXC_PUSH/POP 带 `IF (($SZ-8)!=0)` 条件。
+- **唯一警告 A1581W**（字面量池对齐填充）无害勿修。
+- **Keil 构建链**：UV4.exe -b -j0 -o build.log；**rc=1 只是有警告**（0 Error 即过）；链序同 IAR。
+- **RV32P×Keil 结构性 N/A**：keil_gen 硬编码 pCCUsed=ARMCC+uAC6=1——MDK-RISCV 属生成器级新功能。
 
 ### 8.4 IAR/iasmarm 端口要点（G071/F429 P3 一轮全绿沉淀）
-- **编译器子层=官方 Micrium 名 `IAR/`**（与官方 ARMv6-M/IAR、ARMv7-M/IAR 并排；生成器
-  Toolchain_Get：ICCARM→IAR 天生支持）。头件/cfg 从 GNU/ 拷贝+两处改：Toolchain 行→
-  IAR Assembler；`OS_TASK_SW_SYNC()` 内联 asm→`__asm volatile ("isb")`（ICCARM 无
-  GNU 扩展约束语法）。rvp 命名 ewarm-*-uo3.rvp（FRT 版克隆改 Guest_Type）。
-- **iasmarm 译文规则（§4.4 全集 + 本轮 UO3 增量）**：`SECTION .name:CODE:NOROOT(2)`；
-  EXTERN/PUBLIC；**`宏名 MACRO 参数…ENDM` 同行式**（无 MEND）；裸参数引用（无 $ 前缀）；
-  无 PROC/ENDP（标签裸行）；**A7M EXC_PUSH 用 `MOV LR,#EXC_RETURN` 立即数**（iasmarm
-  可编码 MVN 形态，armasm 版须 LDR=中转的步骤可省）+三操作数 `AND/OR R0,Rx,#imm`；
-  `IF 表达式/ENDIF` 条件展开照用；**VFP 用 `DC16 0xECA0,0x0A10` 对**（=armasm DCI 的
-  iasmarm 对应物）；LTORG+END 收尾。A6M 保持 APSR_nzcvq 版 MSR（iasmarm 不认 XPSR 于
-  A6M 语境？——照 FRT IAR A6M 原文），A7M 用 `MSR XPSR,R0`。
-- **PUBLIC 名必与标签一致（Error[67] 教训）**：从 A6M 版改造 A7M 时 PUBLIC 仍写 OSCtxSw
-  而标签已改 OSCtxSw_Swt → `Error[67]: Public 'OSCtxSw' did not appear in label field`。
-  克隆改造后必查 PUBLIC/EXTERN 名单与实际标签一一对应。
-- **IAR 构建链**：`iarbuild.exe <ewp> -build Debug`；rc=0 过（有警告也 0，与 UV4 语义不同）；
-  "Total number of errors: 0" 为准。5 工程链序子镜像先、Kernel 最后。宿客镜像=**Virt1.bin**
-  （uo3_benchmark/os_*/rvm_virtlib 全在其中；Kernel 工程是宿主侧不含 UO3 符号——找符号认 Virt1）。
-- **机码取证定位法**：Virt1.bin 基址 0x8020000，map 符号地址含 **Thumb 位（奇数）**——
-  bin 内按 偶偏移=符号-1 搜半字模式（CLZ=`80 F0 B0 FA`、RBIT=`90 FA A0 F0`、VFP 六对
-  LE 半字对）；F429 实证：0x29DC 处 FAB0/F080+4770、VFP 对 @10248-10454 段连片。
-- **H743/V307**：H743 IAR/ 与 F429 同套零改动（ewarm rvp 按需克隆）；RV32P×IAR 与 ×Keil
-  同理结构性 N/A（生成器仅 Makefile/GCC 路径）。
-- **【判例】OSCtxSw C 包装无入口掩蔽=共享竞态（2026-10 F429 双案之一，GCC/IAR 同中招）**：
-  OSSched 选定 HighRdy 到 OSCtxSw_Swt asm 内部 Mask 生效之间有几十条指令的**无掩蔽窗口**——
-  TIM4 中断恰在此打断→慢路径改写调度状态→被中断的快路径用错乱状态完成切换→INVSTATE
-  （Sftd 恢复→benchmark 重启循环；历史 GCC 轮 75% 挂率靠 Sftd 重试侥幸过，IAR 0/141 全灭）。
-  症状指纹：fault 帧 XPSR 带 PAD 标记 0x200+T 位丢失、PC=RAM 脏值。修法=FRT vPortYield 定式：
-  **OSCtxSw 入口先 RVM_Virt_Int_Mask()**（慢路径 Unmask 再 Yield，快路径交 asm 完成切换）。
-  修复后 GCC 0 fault 一轮直通（Yield 536→544，+8=Mask 开销）。
-- **【判例】OS_CPU_ALIGN_PUSH 极性抄错=帧整体错位一字（2026-10 IAR 特有案）**：A6M 入口压
-  **3 字**（R0+XPSR+R1——R1 作无立即数 TST 的掩码），宏极性 **BEQ**（EQ=原不对齐→跳
-  Unaligned）；A7M 入口只压 **2 字**（有 CONTROL.FPCA 判断不需 R1），极性应 **BNE**。IAR A7M
-  版从 A6M 抄宏没翻极性——对齐判定全反→EXC_PUSH 8+1/8 走错→**帧系统性错位一字**→恢复
-  PC=帧外脏值→INVSTATE 100% 必挂（慢路径不走此宏故能过——二分定位的关键刀）。GCC/ARM 版
-  本来就对。军规：**汇编宏的跳转极性注释（"N words pushed above"）是可执行规格——改入口
-  压栈数必同步翻极性；跨架构抄宏必核入口序**。后续复查：RMP 两架构（A6M=BEQ+借R1+3字 /
-  A7M=BNE+立即数+2字，三编译器各自一致）与 **FRT 六端口全部正确**——UO3 IAR 是唯一抄错
-  参考对象（A6M iccarm）的孤例；已顺带把 UO3 IAR 的 `LDR R1,=7;TST R0,R1` 对齐为 RMP/FRT
-  同款立即数 `TST R0,#7`（板测 0 fault，Yield 584→580=省一条 LDR）。
-
-- **【判例】FRT 全端口 vPortYield 缺 deferred-yield=临界区内切换击穿（2026-10 架构级案）**：
-  FreeRTOS 官方契约允许**临界区内 yield**（tasks.c L4212 注释原文 "some will yield immediately,
-  others wait until the critical section exits"）；官方 CM 端口=pend PendSV 天然延迟（BASEPRI 放
-  开瞬间才切），官方 RISC-V=ECALL 立即切但 **mstatus.MIE 随任务保存**故无害。FRT RVM 全端口
-  （A6M×3/A7M×3/RV32P）是立即切换型且 `RVM_Virt_Int_Mask/Unmask` 是**平铺 0/1 全局标志**
-  （rvm_virtlib.c L231/L243 直写）——内核 `ulTaskNotifyTake`/`xTaskNotifyWait`/`vTaskResume`
-  真的在临界区内调 portYIELD：慢路径 Unmask 在临界区中途开中断（UO3 共享竞态同款窗口），
-  快路径切换后新任务上下文 Unmask+继承旧任务的全局 uxCriticalNesting=计数跨任务错乱。
-  板测长期全绿只因竞态概率窗口窄（没炸≠正确）。**修复=软件 pend**：vPortYield 入口
-  `if(uxCriticalNesting!=0){xPortYieldPend=pdTRUE;return;}`，vPortExitCritical 归零时**先补
-  切后 Unmask**（`vPortYield(); portENABLE_INTERRUPTS();`——顺序同 RMP_Sched_Unlock
-  L779→L798，先切后开；反序会形成 Unmask→re-Mask 抖动窗，Unmask 触发的投递信号先于切换
-  发出）。六 ARM 端口统一形态：portmacro.h 四分支收敛为单一 C 层 `vPortYield()`（内部分
-  configUSE_RVM_OPTIMISED_YIELD/RVD/RVF），asm 入口改名 `vPortYield_Asm` 族；RV32P 同构
-  修复（三入口 RVD/RVF/plain）。验证：F429 板 IAR+GCC 双固件 0 fault 12 项全过
-  （Yield 308→316 / 352→372，延迟切换的真实代价）；G071 板不在手，IAR+GCC 双链编译 0 错
-  （符号链验证）。军规：**虚拟化下客机的"中断开关"是全局标志不随任务走——任何立即切换型
-  portYIELD 都必须自配软件 pend；切/开顺序必须"先切后开"**。后续补验：RV32P 端全链编译
-  0 错（V307，kernel.bin 67580B）——vPortYield C 包装四分支与 vPortYieldRVF_Asm 等符号链
-  实证通过；V307 板不在手待板测（gcc_v307_frt_capture.ps1+flash_v307_frt.cmd 现成）。
-  同时补建了缺失的 gccmf-ch32v307vct6-frt.rvp（复制 rmp 版改 Guest_Type=FRT，与 UO3 版
-  同法——V307 三客机 rvp 面从此齐全：rmp/rmp-nofpu/frt/uo3）。
-
-- **【判例】慢路径 Unmask→Yield 调序=Yield 掩蔽语义误读（2026-10 pend-then-arm 案）**：三家
-  慢路径（UO3 OSCtxSw/FRT vPortYield×3/RMP _RMP_A7M_RVM_Yield）原序 `Unmask; Yield;`——把
-  Yield 当普通函数按直觉排（先收拾中断再发起切换）。**实证 `RVM_Virt_Yield` 在 mask=1 时是
-  no-op pend**（virtlib L266-294：只置 VCTF->Ctx+Vct_Pend，不发信号不切换；切换端点在
-  Vct_Loop L722 执行侧再受 mask gate）——正确用法是**先 pend 再用 Unmask 激活**
-  （`Yield; Unmask;`：全程掩蔽，Unmask 超调用边界一次性完成激活+切换+新任务开态起步，
-  无开态裸窗；旧序在 Unmask→Yield 间有裸窗，靠 HighRdy 自愈兜底）。三家正统结构早已各自
-  示范此序（UO3 内核 D;Y;E 的 E=arm 点/FRT 官方 PendSV 与 xPortYieldPend/RMP Unlock L779→L798）
-  ——慢路径分支是同模板复制带入的未对齐项。修复=5 文件各一行调序（仅 A7M 有慢路径——
-  A6M 无 IT 块、RV32 无 ICI/IT 概念）。验证：F429 五轮板测全绿零回归（FRT GCC 372/FRT IAR
-  316/UO3 GCC 580/UO3 IAR 601/RMP Keil 与调序前持平——慢路径触发率≈0，回归证明无破坏）。
-  军规：**`RVM_Virt_Yield` 是"掩蔽下可安全调用的 pend 型请求"——凡超调用切换，一律
-  pend-then-arm（先 Yield 后 Unmask），asm 直切才用出口 Unmask；"先 Unmask 再 Yield"是
-  把切换当函数调用的语义错觉，必留裸窗**。
-
-- **【记录】G071 补测轮（2026-10）**：FRT/UO3/RMP 三客机 GCC 全绿 0 fault（Yield 455/871/516）
-  ——补上 FRT-A6M deferred-yield 与 UO3-A6M CPU_SR 直译两笔"只编译未板测"欠账；顺带发现并
-  修复 `gccmf-stm32g071rbt6-rmp.rvp` **文件二进制损坏**（Proc1 段起全为垃圾，'Size is missing'
-  报错的真相）——从 rvmdk 版转换重建。教训：**rvp 是从未跑过的资产=未验证资产，首次使用前
-  先验完整性（可解析/无 NUL 字节）**。README 双语 M0+ GCC 三行已按新值入档。
-- **【记录】G071 A6M IAR/Keil 补测轮（2026-10）**：UO3 IAR（Yield 888）/UO3 Keil（915）/
-  FRT IAR（437）/FRT Keil（418）四轮板测全绿 0 fault——A6M 的 IAR/Keil 端口（deferred-yield
-  +CPU_SR 直译后）首次真机实证，FRT-A6M-Keil 更是修复后**首次编译**即过（此前从未编过）。
-  A6M 三编译器×三客机板测矩阵自此闭合（GCC 455/871/516 + IAR 437/888 + Keil 418/915）。
-
-- **【判例】CPU_SR 计数制→官方直译快照制（2026-10 语义对齐案）**：RVM 版 cpu_rvm.c 原用自建
-  `CPU_SR_Nesting` 深度计数（0 才真解蔽）；官方 uC/CPU（cpu_a.s L63-108）**无计数**——
-  `CPU_SR_Save=MRS+CPSID`（快照+关）、`CPU_SR_Restore=MSR`（无条件写回），嵌套平衡由
-  "写回进入时状态"天然保证；`CPU_IntDis/En` 就是无条件 CPSID/CPSIE 对（官方本就不嵌套安全，
-  靠内核契约兜底）。直译可行的前提：主库把 `RVM_Int_Mask/Disable/Vct_Pend` 从 header-static
-  改为 **extern 导出**（rvm_virtlib.h public 区——static 时每 TU 副本，客机读到的与
-  rvm_virtlib.o 的真值不同步，这是设计移植时最容易踩的陷阱）。**Restore(sr==0) 必须走完整
-  Unmask 路径**（含 pending 投递检查），裸写标志会让 pending 虚拟中断饿死——这是唯一不能
-  逐字直译 CSR 的点。三份 cpu_rvm.c（A6M/A7M/RV32P）统一改为
-  `Save=(CPU_SR)RVM_Int_Mask 快照`+条件 Mask / `Restore=条件 Unmask(全路径)/Mask`；
-  六份 os_cpu_a.s 注释同步 nesting→snapshot。验证：F429 双编译器 0 fault，GCC Yield 580
-  与改造前持平（零回归）；RV32P 侧全链编译 0 错（RV asm 的 call Mask/Unmask 与 ARM 同为
-  平铺调用，分层模式一致），V307 板不在手待板测——顺带补建了缺失的
-  gccmf-ch32v307vct6-uo3.rvp（复制 rmp 版改 Guest_Type，flash_v307_uo3.cmd 原本就指向
-  该工程名）。军规：**移植层 API 语义必须优先对齐原版（快照/写回），自创计数制
-  属防御性超集，仅当原版语义不可直译时才保留并在头注释说明差异点**。
-
+- **编译器子层=官方 Micrium 名 `IAR/`**；头件/cfg 从 GNU/ 拷贝+两处改：Toolchain 行→IAR Assembler；`OS_TASK_SW_SYNC()` 内联 asm→`__asm volatile ("isb")`。rvp 命名 ewarm-*-uo3.rvp。
+- **iasmarm 译文规则（§4.4 全集）**：`SECTION .name:CODE:NOROOT(2)`；EXTERN/PUBLIC；**`宏名 MACRO 参数…ENDM` 同行式**（无 MEND）；裸参数引用；无 PROC/ENDP；**A7M EXC_PUSH 用 `MOV LR,#EXC_RETURN` 立即数**+三操作数 AND/OR；`IF/ENDIF` 照用；**VFP 用 `DC16` 对**；LTORG+END 收尾。A6M 保持 APSR_nzcvq 版 MSR，A7M 用 `MSR XPSR,R0`。
+- **PUBLIC 名必与标签一致（Error[67] 教训）**：克隆改造后必查 PUBLIC/EXTERN 名单与实际标签一一对应。
+- **IAR 构建链**：`iarbuild.exe <ewp> -build Debug`；rc=0 过（有警告也 0，与 UV4 语义不同）；"Total number of errors: 0" 为准。宿客镜像=**Virt1.bin**（UO3 符号全在其中，Kernel 工程是宿主侧不含）。
+- **机码取证定位法**：Virt1.bin 基址 0x8020000（按芯片 rvp Data_Base），map 符号地址含 **Thumb 位（奇数）**——bin 内按 偶偏移=符号-1 搜半字模式（CLZ=`80 F0 B0 FA`、RBIT=`90 FA A0 F0`、VFP 六对 LE 半字对）。
+- **H743/V307**：H743 IAR/ 与 F429 同套零改动；RV32P×IAR 结构性 N/A。
+- **【判例】OSCtxSw C 包装无入口掩蔽=共享竞态**：OSSched 选定 HighRdy 到 OSCtxSw_Swt asm 内部 Mask 生效之间有几十条指令的**无掩蔽窗口**——TIM4 中断恰在此打断→慢路径改写调度状态→被中断的快路径用错乱状态完成切换→INVSTATE。修法=**OSCtxSw 入口先 RVM_Virt_Int_Mask()**。
+- **【判例】OS_CPU_ALIGN_PUSH 极性抄错=帧整体错位一字（IAR 特有案）**：A6M 入口压 **3 字**（R0+XPSR+R1——R1 作无立即数 TST 的掩码），宏极性 **BEQ**；A7M 入口只压 **2 字**（有 CONTROL.FPCA 判断不需 R1），极性应 **BNE**。IAR A7M 版从 A6M 抄宏没翻极性——帧系统性错位一字→INVSTATE 100% 必挂。军规：**汇编宏的跳转极性注释（"N words pushed above"）是可执行规格——改入口压栈数必同步翻极性；跨架构抄宏必核入口序**。
+- **【判例】FRT 全端口 vPortYield 缺 deferred-yield=临界区内切换击穿**：FreeRTOS 官方契约允许临界区内 yield；FRT RVM 全端口是立即切换型且虚拟掩蔽是平铺全局标志——修复=软件 pend：vPortYield 入口 `if(uxCriticalNesting!=0){xPortYieldPend=pdTRUE;return;}`，vPortExitCritical 归零时**先切后开**。六 ARM 端口收敛为单一 C 层 vPortYield；RV32P 同构。军规：**虚拟化下客机的"中断开关"是全局标志不随任务走——任何立即切换型 portYIELD 都必须自配软件 pend；切/开顺序必须"先切后开"**。
+- **【判例】慢路径 Unmask→Yield 调序=Yield 掩蔽语义误读**：`RVM_Virt_Yield` 在 mask=1 时是 no-op pend（只置 VCTF->Ctx+Vct_Pend）——正确用法是**先 pend 再用 Unmask 激活**（`Yield; Unmask;`：全程掩蔽，Unmask 边界一次性完成激活+切换）。军规：**凡超调用切换，一律 pend-then-arm（先 Yield 后 Unmask），asm 直切才用出口 Unmask**。
+- **【判例】CPU_SR 计数制→官方直译快照制**：官方 uC/CPU 无计数——`CPU_SR_Save=MRS+CPSID`（快照+关）、`CPU_SR_Restore=MSR`（无条件写回）。直译可行的前提：把 `RVM_Int_Mask/Disable/Vct_Pend` 从 header-static 改为 **extern 导出**（static 时每 TU 副本，客机读到的与 rvm_virtlib.o 的真值不同步）。军规：**移植层 API 语义必须优先对齐原版（快照/写回），自创计数制属防御性超集，仅当原版语义不可直译时才保留并在头注释说明差异点**。
 
 ---
 
-## 9. 一句话军规
+## 9. RT-Thread V4.1.1 on RVM 移植要点（四板定档沉淀）
 
-1. 内核文件（tasks.c / uC-OS3 Source/os_*.c）永不改——要内核内部状态就 include 它（tasks_rvm.c 模式）。
+### 9.1 端口最终形态（三端口：armv6m / armv7m / rv32p）
+
+- **协议（A7M 全景，A6M/RV32 同构减 FPU/ICI）**：
+  - 调度级 `rt_hw_context_switch`（C）：锁存 from/to 全局 → ICI/IT 脏帧过滤（LR_EXC@13 位4 选 XPSR@21/37）→ 净帧走 asm 快路径 `rt_hw_context_switch_swt`，脏帧走慢路径（flag=1 + `RVM_Virt_Yield()` + `RVM_Virt_Int_Unmask()`，pend-then-arm）。
+  - ISR 级 `rt_hw_context_switch_interrupt`（asm，跑在 Vct 线程）：flag 已置则只更新 to（_reswitch），否则置 flag+锁存 from/to；然后 `PUSH {LR}; BL RVM_Virt_Yield; POP {PC}` 返回。**绝不 fall-through 进快路径**（㉕ 判例：会把 Vct 上下文写进被打断线程的 TCB 槽）。
+  - `PendSV_Handler`（C，Vct_Loop 尾部消费）：**双守卫** flag==0 跳过 + from==0 跳保存；保存=RVM_REG→from 线程栈（S16-S31 按 LR.4、EXC_RETURN、R4-R11、params5 共 22 字）；恢复=to 线程帧→RVM_REG，`Reg.SP` 指向硬件帧。
+  - `rt_hw_context_switch_to`（asm，一次性）：**入参 STR 进 rt_interrupt_to_thread**（⑰ 判例：漏掉=空读 Sftd 无限恢复循环）+ from=0 + flag=1 + `RVM_Hyp_Int_Ena` + 手工弹初始帧 `BX LR` 进首线程。
+  - `rt_hw_interrupt_disable/enable`=RVM 掩蔽快照制（同 UO3 cpu_rvm.c 定式）；`rt_hw_interrupt_check`=`(RVM_STATE->Vct_Act != 0)`（IPSR 在客机恒 0 失真）。
+- **asm 快路径宏必须与入口序匹配（㉜ 终局判例，与 8.4 极性案同族）**：A7M 入口压 **2 字**（R0+XPSR）→ ALIGN 极性 **BNE**、EXC_PUSH 的 R0 重载在 `[SP,#4]`、XPSR 重载在 `[SP,#4*(SZ-2)]`、净压=净弹=`SZ-2` 字。**勿从 armv6m 版抄宏**（其入口 3 字、BEQ、`[SP,#8]` 深度、sz-3 压栈——三处全不通用）；修正蓝本=RMP `rmp_platform_a7m_rvm_gcc.s` 或 UO3 A7M GNU `os_cpu_a.s`。错抄的实际危害：伪装帧 R0 槽=陈旧字、**XPSR 槽=被打断线程的 R0 值|0x01000000**——帧生而为脏，"filter 漏脏帧"是误诊。
+- **帧 22 字三处一致**（stack_init / PendSV / context_gcc.s）；FPU 全走惰性（Virt1 实测零浮点指令时全基本帧）。
+- **RTT 特有语义**：`rt_current_thread` 在 rt_schedule 内**预更新为 to**（scheduler.c L466）；同优先级**插链头 LIFO**（最后就绪者先跑——benchmark 两任务创建顺序决定领跑者）；调度器在 `rtthread_startup()` 内已启动——main 里创建多任务必须包 `rt_enter_critical()/exit_critical()`。
+- **switch_to 的 flag 终值已统一为 0（2026-10-28 终审发现并当日修复）**：ARM 两端口原置 flag=1 是官方模板残留——我们的 switch_to 自己 BX 进首线程、不 pend PendSV，flag=1+from=0 成悬挂锁存；若首个 tick 恰落在"首线程开跑→首次线程级切换"的微秒窗口，ISR 版走 _reswitch 只更新 to、PendSV 因 from==0 跳保存→首线程被抢占现场丢失→下次恢复从入口静默重启。三端口现统一置 0（RV32P 原生即 0）——首个中断驱动切换正确锁存 from=首线程。H743 三轮板测全绿（Yield 495）；G071 编译验证过、板测待板。顺带确认：快路径恢复中途被 Vct 抢占时"半恢复现场存进目的地线程自己的槽"之所以正确，正是依赖 rt_current_thread 预更新（from 锁存=rt_current_thread=to）——A6M asm L248-251 注释明示，三端口同构成立。
+
+### 9.2 v4.1.1 配置与 API 坑（G071 一轮实战全部板上实证）
+
+1. 分配器宏=**RT_USING_SMALL_MEM_AS_HEAP + RT_USING_SMALL_MEM 双定义**（只定义老宏→malloc 落空分支恒 NULL→startup fault 死循环）。
+2. IPC 宏开关（RT_USING_SEMAPHORE/MAILBOX/MESSAGEQUEUE）必须显式开。
+3. 类型名 v4.1.1=rt_mailbox_t/rt_mq_t（非老版 rt_mb_t）；API 名 rt_interrupt_leave（非 exit）。
+4. **RT_USING_CONSOLE 必须开**——未定义时 rt_kprintf 编译成空 inline，调用与字符串全被优化删除，端口错误陷阱打印静默失声。
+5. main 栈 512 不足（rt_kprintf/vsnprintf 链溢出）→1024；idle 栈 256→512，且 **idle.c 只认 IDLE_THREAD_STACK_SIZE**（rtconfig 的 RT_THREAD_IDLE_STACK_SIZE 是断线旋钮，模板双定义备注）。
+6. benchmark ISR 相入段**必须静默**（putchar 超调用 ≈87µs/字符@115200，24 字符≈11 个 200µs tick——入口打印=邮箱池满 EFULL 丢信+逐 tick 打印=自持活锁，㉒/⑱ 判例）。
+
+### 9.3 布局与构建工具
+
+- **rtt_layout_knob.h**：`RTT_LAYOUT_KNOB` 字符串长度=链接期确定性平移量（rtt_board.c 开机打印 `LK:...|` 标识当前布局）——__TIME__ 骰子根除后的可控布局扫描旋钮。注意它在链接序末段（rtt_board），只平移尾部；要平移全量需在 rtt_benchmark.c（首 TU）定义同名串。
+- **__TIME__ 骰子**：`__DATE__/__TIME__` 进字符串池（SHF_MERGE 跨 TU 合并），make -j8 下各 TU 编译秒是否跨秒决定 ±12B 布局掷骰。定值化程序见 §12 判例 15。**当前状态：骰子处于还原态**（2026-10-28 狩猎需要；下次密闭构建前重定值）。
+- 既有脚本（Project\Script\）：cap_h743.ps1（参数化捕获，COM14 硬编码注意改）、flashh743.ps1（CubeProg+SN）、runstats.sh（复位多轮统计）、sweep_lk.sh / dice_hunt.sh（布局扫描/掷骰狩猎）。
+
+### 9.4 未结项
+
+- **README RT-Thread 行已填**（2026-10-28 深夜）：双语 Practical ports 表十行（M0+/M4/M7×三链+RV×GCC）全部填入——基准值取官方风格重排后终板数据；Flash/SRAM 按既定口径**重建十链 Virt1 提取**（Flash=客机镜像尺寸、SRAM：GCC=data+bss / IAR=map readwrite / Keil=RW+ZI）。注意 RTT 的 Mail 列=benchmark 的 Notification 项（同原语 rt_mb，仅打印标签改名）。
+- ㉑ 全 Deferred 实验版（rt_hw_context_switch≡interrupt 全走 PendSV）startup 帧错位一字——独立未解项，非现行配置，仅存档。
+- __TIME__ 还原态（见 9.3）。
+
+### 9.6 F429"VCP 楔死"终局破案：CubeProg 停核粘滞（2026-10-28 深夜，本轮最大工具链坑）
+
+- **真相**：F429 的 STLink VCP **从未坏过**——所有"静默"都是**固件从未启动**。CubeProg 的 `-halt`/`--coreReg`/某些复位路径会在这块板上把核留在停核/复位态且**之后 CubeProg 的 `-rst`（软件复位）不能解锁**；唯一可靠解锁=**OpenOCD `reset run`**（srst 硬件复位，cfg 见 f429_rel.tcl：CPUTAPID 0+srst_only srst_nogate connect_assert_srst）。解锁后固件完整启动，COM11 持续输出（9602B/100s 完整两轮基准），三链 9/9 全绿收官：GCC 648 / IAR 612 / Keil 532（vs 全慢 2546=3.9~4.8×）。
+- **误诊链复盘（三层连环假象，全部入坑库）**：①"VCP 楔死"——错，VCP 好的，固件没跑自然无输出；重插两次当然无效。②"固件在跑实证"——错，**CCM 的"初始化数据"是上午成功运行的残留**（CCM 只掉电清零、系统复位不清）；同理 ⑪-era 的"-coreReg 恒指复位向量"记录实为同一现象。③"COM 映射洗牌"——半错，重插确会重枚举，但 G071 周期输出混入复位测试造成假阳性（读文字内容才鉴明）。
+- **判别法（判"固件没跑"的金标准）**：不停核读 **RCC CR**——HSI-only（0x00006383）+PLLCFGR=复位值=时钟初始化从未执行=固件没跑（RME 内核第一件事就是配 HSE/PLL）；读 console UART CR1=0 同证。**读寄存器采真 PC 只信 OpenOCD**（halt→reg pc→resume）；CubeProg 的 --coreReg 读数被自身的复位-停核行为污染，不可作为运行态证据。CCM/SRAM 数据**不能**证明"在跑"（残留）。
+- **烧录工作法（F429 专属）**：读者先挂 COM11 → CubeProg `-w ... -v`（不带 -rst，带了也白带）→ OpenOCD `reset run`（f429_rel.tcl 一行流）→ 捕获判定。此流程三链实证稳定。
+
+### 9.7 V307 复验与 COM 映射判例（2026-10-28 晚）
+
+- **V307 重样式复验**：官方风格重排（仅头注释+模板 wizard 注解，指令流零变更）后全链重建（kernel.bin 148884B）+ OpenOCD/WCH-Link 烧录 + COM6 捕获——**9/9 零 fault，Yield 533/567/533 与档案逐字一致**。RTT 四板×三编译器可达矩阵至此全部官方风格统一。
+- **【判例】重插/枚举洗牌后 COM↔板卡映射不可信**：F429 重插后 vcp_pair 报告的 SN→COM 映射与实际不符（空捕获≠VCP 死）。判别法=**持端口开+逐板硬复位+读内容**（banner/横幅文字鉴归属），勿信静态枚举；周期性输出（G071 的 RMP 多 VM 基准+overflow 标记）会造成"复位了别的板也有字节"的假阳性，必须读文字内容鉴别。
+
+### 9.5 三编译器端口要点与判例（2026-10-28 armv6m/armv7m IAR+Keil 移植轮沉淀）
+
+- **文件命名与生成器**：端口目录平铺 `context_{gcc,iar,rvds}.s`（小写！），rtt_gen 的 Toolchain_Get 自动映射（ARMCC→rvds、ICCARM→iar、其余→gcc）+存在性硬检查——零生成器改动即支持三链。rvp：ewarm/rvmdk-*-rtt.rvp 从同芯片 FRT 版克隆，仅改 Guest_Type+Vector_Stack_Size 两行。
+- **【同尘定则（2026-10-28 二轮，用户裁定）】RTT 端口文件正文一律随 RT-Thread 官方 libcpu 风格**：小写寄存器+大写助记符、操作数列 ~col 13、函数前 `;/*` 小原型块（弃 UO3 式星线框）、IAR 用 EXPORT+`SECTION .text:CODE(2)`、armasm 用 `AREA |.text|`+`标签 PROC` 同行+尾部 `ALIGN 4`/`END`、文件头补官方 Change Logs 表+`@addtogroup`、rtconfig 模板用官方 `// <o>`/`// <c1>` wizard 注解。**两项豁免（刻意保留）**：①版权头保持 Evo-Devo + "NOT part of RT-Thread" Unlicense 声明不改；②文件名小写 .s 不改（Windows 大小写碰撞判例）。§5.3 房规自本轮起仅辖 FRT/UO3 家族，RTT 家族以 RTT 官方风格为准。
+- **重排方法论（零语义变更的证明）**：重写前后各汇编一次，iasmarm `-l` 清单 / `fromelf --text -c` / objdump 三方指令流做序列对齐 diff——六份文件全部逐指令零差异（219/170/207/171/230/183 条）。**该方法当场抓到一个真 bug**：重写时手滑把 A6M EXC_PUSH 的 `LDR r1,=0xFFFFFFFE; ANDS r0,r1` 写成 `AND r0,r0,#0xFFFFFFFE` 立即数——**Thumb-1 无此指令**（iasmarm 静默产出 M0+ 非法编码），指令流 diff 的 delete 块直接暴露。军规：格式重排必须配指令流等价性复验，"汇编器没报错"不是免检理由。
+- **【判例】官方大写 .S 遗留拷贝=Windows 大小写碰撞陷阱**：armv6m_rvm 目录里残留官方 cortex-m0 端口拷贝 `context_iar.S`/`context_rvds.S`（建目录时拷入）——Windows 文件系统大小写不敏感，我们的小写 context_iar.s 会撞上它，生成器存在性检查误命中，**构建会静默编入官方 PendSV 端口**。军规：在同一目录引入仅大小写不同的文件名前先清查遗留；官方原件仍在 libcpu/arm/cortex-m0/ 未动。
+- **【判例】rtdef.h 的 va_list 三分支**：无 RT_USING_LIBC 时仅 `__GNUC__` 分支有 `__builtin_va_list` 回退；**armclang 定义 __ARMCC_VERSION 抢先走 ARM Compiler 分支**（即使它也定义 __GNUC__），ICCARM/armcc 全都需要 RT_USING_LIBC 拉 <stdarg.h>。修法=模板 rtconfig.h 条件定义 `#if !defined(__GNUC__) || defined(__ARMCC_VERSION)`（纯 GCC 零扰动；rtdef.h 是该宏在内核源里的唯一消费者，无行为副作用）。
+- **iasmarm/armasm 译文新坑**：①armasm 宏原型行**不能顶格**（顶格=标号字段，报 A1203E"Illegal label parameter start"）——与 iasmarm 的"MACRO 名保持标号列 col 1"**恰好相反**；②iasmarm 需显式 EXTERN 全部引用符号（GAS 未声明符号自动外部化，含 err 陷阱函数易漏）。
+- **板测基础设施**：cap_board.ps1（COM 参数化）/board_cycle.sh（rvp→生成→五链→烧录→捕获→判定一键）；STLink VCP 楔死（可开无数据，软/硬复位与波特率重配均无效）判别法=读 CCM/.data 初始化态证明固件在跑，**唯一解=物理重插 USB**（本轮 F429 中招）。
+
+---
+
+## 10. 一句话军规
+
+1. 内核文件（tasks.c / uC-OS3 Source/os_*.c / RTT src/*.c）永不改——要内核内部状态就 include 它（tasks_rvm.c 模式）。
 2. 大文件 here-string 整写；写完校验行数与首尾；汇编逐函数核对。
-3. 改了源头平台头≠进了工作区；改了 .c≠make 会重编——物证（反汇编/flash 指令字）说话。
-4. "数据全垃圾"先查 RAM 黑洞再查逻辑；"卡住"用断点裁决别猜；fault 用现场活捉/面包屑取证。
-5. 单命令 30s 红线；跨超时用分离进程；ST-Link 被锁先杀 openocd。
+3. 改了源头平台头≠进了工作区；改了 .c≠make 会重编——物证（反汇编/flash 指令字）说话；改端口文件后必 clean 全编。
+4. "数据全垃圾"先查 RAM 黑洞再查逻辑（结论须双仪器交叉验证）；"卡住"用断点裁决别猜；fault 用现场活捉/面包屑取证（取证本身扰动布局，结论需无扰动复核）。
+5. 单命令 30s 红线；跨超时用分离进程；ST-Link 被锁先杀 openocd；CubeProg 多板必带 sn=。
 6. GCC≡Keil(RVDS) 的 C 件哈希必须一致；port 改完跑 update.sh。
 7. **会话收尾三清**：删工作区、生成物收进 Project\Script\、结果写进 *_test_*_rvm.h 档案块；git status 干净。
 8. iasmarm 的 `LDR Rx,=代码标号` 自动 +1 Thumb 位——只准用于跳转目标；数据指针必须 BIC #1。
@@ -611,115 +516,129 @@ G071/F429/H743 三板全部真机闭环（RVM 层数据归档 rvm_test_stm32*.h 
 10. benchmark 未见到 overflow 刷屏就没跑完；只见到 overflow 刷屏=旧固件，先找自家横幅。
 11. 拿不准 ST 外设用法，先抄 M5P01 同芯片工程+M0A00 Cube HAL——同板跑通的代码是唯一真理。
 12. Pa078/Pa079（X=X= 双赋值）是本仓库高发笔误，一律源头修。
-13. 自造 SR_Save/Restore 型掩蔽层时，**Save 必须返回进入前的旧状态**（`old = cnt++`，不是 `cnt++`）——
-    返回新值会让配对的 Restore 永远回不到零 → 虚拟中断永久屏蔽 → tick/ctx 全灭、调度器死寂
-    （症状：RVM 层黑匣子计数全 0、一切 yield 走 pend 无人处理）。FreeRTOS 的对称计数法与
-    uC/OS 官方 PRIMASK 直读法均无此坑，自造实现最易踩。
-14. **"关中断"假设的安全性 = 映射触碰的域**：CPSID/BASEPRI 是物理域操作，对 RVM 虚拟投递
-    零作用；三层 gate 只认 `RVM_Int_Mask`（virtlib L159 发送侧/L611 取出侧/L695+L743 执行侧，
-    搁置不丢失、Unmask 补投）。Bug1 病理=域混淆（映射落在物理域→三层 gate 全灭），非语义错误
-    ——验证过映射（→RVM_Virt_Int_Mask）后，"关中断就是关中断"是最安全的假设之一。
-15. **RVM 中断安全模型**：mask=0 时 Vct 线程（prio 3）在**每条指令边界**可抢占 Usr（prio 2）
-    ——客机 ISR=抢占式线程，不是"超调用边界投递"；被抢占上下文经 RVM_REG（VM 级寄存器块）
-    由 Ctx 处理器转存任务栈（帧三生产者之一）。mask=1 时 MASKABLE 投递被三层 gate 挡在门外
-    ——不是"推迟执行"而是"根本不执行"；透明向量（NMI 类）按设计穿透。
-16. **"被 gate 保护"≠"没被触发"**：低概率路径（ICI/IT 脏帧慢路径/透明向量/嵌套临界区）必须
-    单独做窗口推演——板测覆盖率对它们≈0（慢路径 Unmask→Yield 窗口三 OS 皆有且均近乎死代码，
-    纸面自愈：FRT 切换内重选最强 > RMP ctx 内 Run_High ≈ UO3 HighRdy 自愈性质——UO3 的自愈
-    依赖"所有切回路径重选 HighRdy"（OSSched L450/OSIntExit L342 已验），内核升级需复验）。
+13. 自造 SR_Save/Restore 型掩蔽层时，**Save 必须返回进入前的旧状态**——返回新值会让配对的 Restore 永远回不到零 → 虚拟中断永久屏蔽 → tick/ctx 全灭。
+14. **"关中断"假设的安全性 = 映射触碰的域**：CPSID/BASEPRI 是物理域操作，对 RVM 虚拟投递零作用；三层 gate 只认 `RVM_Int_Mask`。
+15. **RVM 中断安全模型**：mask=0 时 Vct 线程（prio 3）在每条指令边界可抢占 Usr（prio 2）——客机 ISR=抢占式线程；mask=1 时 MASKABLE 投递被三层 gate 挡在门外（搁置不丢失、Unmask 补投）；透明向量按设计穿透。
+16. **"被 gate 保护"≠"没被触发"**：低概率路径必须单独做窗口推演——板测覆盖率对它们≈0。
+17. **跨架构/跨编译器抄汇编宏，必逐字核入口序/跳转极性/重载偏移/压弹对称**——宏注释里的 "N words pushed above" 是可执行规格（UO3 IAR 极性案 + RTT armv7m 错抄案两度验证；正确蓝本=RMP/UO3 的 A7M 版）。
+18. **移植层数据消失类 bug 先挂无声计数器对账**（生产者/消费者/计数器）；**往高频 ISR 相加任何打印前先算打印耗时 vs 中断周期**。
+19. **硬件结论双仪器交叉验证**；旧档案可被新证据推翻，存疑档案应标注验证方法与仪器。
+20. **"偶发/布局敏感"故障先核对 bin 来源与源码状态**——旧脏 bin vs 新 bin 的行为差、同尺寸不同布局的 bin，都极易把已修复的 bug 误诊成玄学。
 
+---
 
-## 10. RTOS 移植契约理论（三 OS 74 端口普查 + 三轮 bug 修复沉淀）
+## 11. RTOS 移植契约理论（四 OS 88 端口普查 + 多轮 bug 修复沉淀）
 
 > 本章是跨 OS 的理论总纲：剥离平台后的 OS 本体契约、切换原子性范式、RVM 中断安全模型、
-> 三 OS on RVM 的同构模板与移植准则。行号均为实证可回查。
+> 四 OS on RVM 的同构模板与移植准则。行号均为实证可回查。
 
-### 10.1 三 OS 本体契约（内核源码固有属性，与平台无关）
+### 11.1 四 OS 本体契约（内核源码固有属性，与平台无关）
 
-| 本体属性 | FreeRTOS V9 | uC/OS-III V3.08 | RMP |
-|---|---|---|---|
-| 切换请求的合法状态 | **任意**（含临界区嵌套内，tasks.c L4212 官方注释自白） | **仅开中断态**（Pend API 一律 L467 EXIT→L469 OSSched） | 仅锁外（锁内只 Pend） |
-| 数据操作与切换耦合 | 耦合（临界区内 yield：L4199→L4216/L1730） | 解耦（先退再请） | 解耦（锁内 Pend、Unlock 归零统一切） |
-| 调度决策位置 | 切换内（vTaskSwitchContext） | **切换外**（OSSched 先选，OSCtxSw 纯执行——官方仅 pend） | 切换内（_RMP_Run_High L830） |
-| 切换请求点 | 分散（7+ 处任务级+ISR 级） | **封闭**（任务级唯一 OSSched L482；中断级唯一 OSIntExit，自重选 L342-344） | 统一（一个宏+一个标志） |
-| 锁与中断 | 解耦（SuspendAll 不掩中断） | 耦合（SchedLock 在临界区内计数） | **合一**（Lock=掩蔽+计数，L752-756） |
-| deferred 责任 | **推给端口** | 内核结构消灭 | 内核内建（Pend 二态 L1769-1781） |
-| 端口所需中断原语 | 两对（无条件+计数临界区） | 两对（无条件+快照 save/restore） | **一对**（掩蔽） |
+| 本体属性 | FreeRTOS V9 | uC/OS-III V3.08 | RMP | RT-Thread V4.1.1 |
+|---|---|---|---|---|
+| 切换请求的合法状态 | **任意**（含临界区嵌套内，tasks.c L4212 官方注释自白） | **仅开中断态**（Pend API 一律 L467 EXIT→L469 OSSched） | 仅锁外（锁内只 Pend） | **任意**（rt_schedule 在中断掩蔽临界区内直调 rt_hw_context_switch；sched_lock_nest>0 时内核侧抑制切换不发起） |
+| 数据操作与切换耦合 | 耦合（临界区内 yield：L4199→L4216/L1730） | 解耦（先退再请） | 解耦（锁内 Pend、Unlock 归零统一切） | 耦合（选择+预更新 current+调用端口同在一临界区，scheduler.c L466 附近） |
+| 调度决策位置 | 切换内（vTaskSwitchContext） | **切换外**（OSSched 先选，OSCtxSw 纯执行——官方仅 pend） | 切换内（_RMP_Run_High L830） | **切换外**（rt_schedule 先选 from/to 传参给端口；且 **rt_current_thread 预更新为 to** 后才调端口——四 OS 唯一） |
+| 切换请求点 | 分散（7+ 处任务级+ISR 级） | **封闭**（任务级唯一 OSSched L482；中断级唯一 OSIntExit，自重选 L342-344） | 统一（一个宏+一个标志） | **封闭**（任务级/中断级都只在 rt_schedule 一处，函数内按中断嵌套分流到 rt_hw_context_switch / _interrupt） |
+| 锁与中断 | 解耦（SuspendAll 不掩中断） | 耦合（SchedLock 在临界区内计数） | **合一**（Lock=掩蔽+计数，L752-756） | **合一**（rt_enter_critical=中断掩蔽+sched_lock_nest 计数；锁内抑制调度） |
+| deferred 责任 | **推给端口** | 内核结构消灭 | 内核内建（Pend 二态 L1769-1781） | **推给端口**（官方端口全靠 PendSV/软中断的硬件性延迟；内核不做端口协作式 pend） |
+| 端口所需中断原语 | 两对（无条件+计数临界区） | 两对（无条件+快照 save/restore） | **一对**（掩蔽） | **一对**（disable/enable 快照式） |
+| 官方端口形态（§11.6 普查） | ~12% 直切 | ~54% 直切 | ~85% 直切 | **0% 直切（14/14 全 pend 型）** |
 
 身份一句话：FRT *"我可能在任何时候请你切，请务必万能"*；UO3 *"我只在干净状态、选好下一任后
-才叫你——你只管换别动脑"*；RMP *"锁就是我的全部——给我一个掩蔽原语和一处让出点"*。
-**核心问题：谁为"切换请求的时机安全性"负责——FRT 答端口、UO3 答内核结构、RMP 答内核机制；
-RVM 适配成本 21:1:0 正是这一回答方式的度量。**
+才叫你——你只管换别动脑"*；RMP *"锁就是我的全部——给我一个掩蔽原语和一处让出点"*；
+RTT *"我在临界区里选好下一任、名字也改好，然后叫你——你怎么切我不管，官方端口靠 PendSV
+等到开中断才真切"*。
+**核心问题：谁为"切换请求的时机安全性"负责——FRT 答端口、UO3 答内核结构、RMP 答内核机制、
+RTT 答端口但给了闭式请求点+锁存协议当拐杖；RVM 适配成本 21 : 1 : 0 : 4 正是这一回答方式的度量**
+（RTT 居中：决策在外免 peek、请求点封闭好锁存，但临界区内直调仍要端口自配 pend——四板的
+RTT 端口=锁存+flag+PendSV 双守卫+脏帧过滤，恰好是 UO3 执行机构+FRT 延迟策略的杂交体）。
 
-### 10.2 切换原子性三范式（直切端口如何补偿无硬件原子性）
+### 11.2 切换原子性三范式（直切端口如何补偿无硬件原子性）
 
 | 范式 | 机制 | 实证 |
 |---|---|---|
-| ① **帧存中断状态** | I 位物理住在状态寄存器（CPSR/SREG/IE/SR），压栈即存、硬件 POP 即还 | UO3：MicroBlaze("ALWAYS IE=0" L297)/AVR(PUSH_SREG)/Cortex-R(MRS CPSR)；FRT：MSP430(push r2+注释"伪装 ISR 帧")/MicroBlaze("each task maintains its own interrupt status") |
-| ② **临界区包裹调用** | 调用者显式 ENTER_CRITICAL 包住 yield | FRT MicroBlaze port.c L277（官方注释："assure not interrupted by tick ISR"） |
-| ③ **全局真值收敛** | 掩蔽是软件全局标志帧存不了→切换全程掩蔽+出口归零+恢复点控制流闭环（回到 EN 配对处幂等收敛） | RMP 全系直切 asm、UO3-RVM、FRT-RVM——RVM 家族全体 |
+| ① **帧存中断状态** | I 位物理住在状态寄存器，压栈即存、硬件 POP 即还 | UO3：MicroBlaze/AVR/Cortex-R；FRT：MSP430/MicroBlaze |
+| ② **临界区包裹调用** | 调用者显式 ENTER_CRITICAL 包住 yield | FRT MicroBlaze port.c L277 |
+| ③ **全局真值收敛** | 掩蔽是软件全局标志→切换全程掩蔽+出口归零+恢复点控制流闭环 | RMP 全系直切 asm、UO3-RVM、FRT-RVM、RTT-RVM——RVM 家族全体 |
 
 **规律：中断状态的载体决定范式**——CPU 状态字→①；调用链可控→②；内存标志（虚拟化）→③。
-RVM 直切端口被迫全落③：帧存不了全局标志，恢复一致性由"每个被切走任务的恢复路径必经
-一次无条件 EN"这一控制流性质承担（控制流即状态机）。
+RVM 直切端口被迫全落③：恢复一致性由"每个被切走任务的恢复路径必经一次无条件 EN"承担。
 
-### 10.3 RVM 掩蔽三层 gate 与中断安全模型
+### 11.3 RVM 掩蔽三层 gate 与中断安全模型
 
-- **三层 gate**（全部只认 `RVM_Int_Mask`，对物理 CPSID/BASEPRI 无感）：
-  发送侧（Vct_Trig L159-176：mask=1 时 MASKABLE 向量只置标志不发信号）/
-  取出侧（Vct_Get L611-612：mask=1 时跳过 MASKABLE 向量）/
-  执行侧（Vct_Loop L695+L743-754：mask=1 时 tick/ctx 搁置并置 Vct_Pend）。
-  标志**搁置不丢失**，Unmask（L246）补投；透明向量（NMI 类）穿透=设计特性。
-- **抢占方向**：Vct prio 3 > Usr prio 2（rvm_monitor.h L28-29；RME 调度 MSB=高，_RME_Run_High
-  L4478 高位扫描）——mask=0 的**每条指令边界**都是 ISR 插入点；物理转发（_RVM_Virt_Vct_Snd
-  L1277）无条件发信号，gate 靠取出侧挡。
-- **帧模型**：被抢占上下文存于 RVM_REG（VM 级寄存器块），Ctx 处理器转存任务栈——
-  与快路径伪装帧、StkInit 初始帧构成**三生产者互换**。
+- **三层 gate**（全部只认 `RVM_Int_Mask`，对物理 CPSID/BASEPRI 无感）：发送侧（Vct_Trig：mask=1 只置标志）/取出侧（Vct_Get：mask=1 跳过 MASKABLE）/执行侧（Vct_Loop：mask=1 时 tick/ctx 搁置并置 Vct_Pend）。标志**搁置不丢失**，Unmask 补投；透明向量穿透=设计特性。
+- **抢占方向**：Vct prio 3 > Usr prio 2——mask=0 的每条指令边界都是 ISR 插入点。
+- **帧模型**：被抢占上下文存于 RVM_REG（VM 级寄存器块），Ctx 处理器转存任务栈——与快路径伪装帧、StkInit 初始帧构成**三生产者互换**。内核侧所有线程切换发生在一次 SVC 内，`POP {R4-R11,PC}` 弹出目标线程保存的 EXC_RETURN 完成真实异常返回；`RME_A7M_EXC_RET_FIX` 强制 Thread/PSP 位但**保留 bit4 帧类型**（无错配）。
+- Virt1 类纯整数客机**零浮点指令**→全基本帧→FPU/惰性压栈路径整体死代码（FPCCR 全库未配置——记录在案的潜在隐患，浮点客机启用时需评审 LSPEN/ASPEN 语义）。
 
-### 10.4 三 OS on RVM 契约重审结论（同构模板）
+### 11.4 四 OS on RVM 契约重审结论（同构模板）
 
-三家的 RVM yield 收敛到**同一模板**（RMP 为原作，UO3/FRT 为同模板移植）：
+四家的 RVM yield 收敛到**同一模板**（RMP 为原作，UO3/FRT/RTT 为同模板移植）：
 ```
 入口 Mask → peek/直取（帧脏过滤）→
-   快路径：asm 直切（全程掩蔽 · 切换内重选或纯执行 · 出口 Unmask）
-   慢路径：Unmask → Virt_Yield（超调用 · ctx 端点切换处理器重选/自愈）
+   快路径：asm 直切（全程掩蔽 · 出口 Unmask）
+   慢路径：Yield(pend) → Unmask(arm)（超调用 · ctx 端点切换处理器重选/自愈）
    无切换：Unmask
 ```
-- 差异仅在 peek 角色（UO3 无——调度在外；FRT/RMP 有——优化预判）与慢路径自愈依据。
-- **慢路径 Unmask→Yield 窗口**是帧脏过滤架构的固有代价（ICI/IT 必须真异常返回→必须超调用
-  →必须先 Unmask 否则新任务开局带掩蔽），三 OS 皆有、均近乎死代码路径、纸面自愈成立。
-- RMP 的 "masked externally"（asm L258 注释）真身=C 层 `_RMP_A7M_RVM_Yield` L307 入口 Mask
-  ——RMP 也是入口自足式，非纯信任式。
-- UO3 慢路径自愈=HighRdy 自愈性质：切回挂起任务的所有路径都会重选 HighRdy
-  （OSSched L450/OSIntExit L342）→补 Yield 切到自己=no-op。
+- 差异仅在 peek 角色（UO3/RTT 无——调度在外，切换请求自带 from/to；FRT/RMP 有——优化预判）
+  与慢路径自愈依据（FRT 切换内重选最强 > RMP ctx 内 Run_High ≈ UO3/RTT HighRdy/预更新自愈——
+  RTT 的自愈依赖"切回路径必经 rt_schedule 重选+官方 LIFO 链序"，内核升级需复验）。
+- 慢路径窗口是帧脏过滤架构的固有代价（ICI/IT 必须真异常返回→必须超调用→必须先 pend 后 arm），
+  四家皆有、均近乎死代码路径、纸面自愈成立。
 
-### 10.5 移植五准则（最安全假设清单）
+### 11.5 移植五准则（最安全假设清单）
 
 1. **内核当不可信调用者**：切换入口自足（入口掩蔽/软件 pend），除非逐行验证过内核契约
-   （FRT 21 文件返工 vs UO3 1 处 Mask 的根源）。
-2. **域验证先于语义假设**："关中断"假设的安全性=映射触碰的域（见军规 14；Bug1=域混淆）。
-3. **参考代码默认全错**：跨架构/编译器抄码逐字核上下文（入口序/跳转极性/符号链接/调用约定
-   ——"N words pushed" 是可执行规格；Bug2=极性反）。
+   （FRT 21 文件返工 vs UO3 1 处 Mask 的根源；RTT 折中：闭式请求点+锁存协议让入口自足
+   收敛为端口三件套，但 fall-through/残留块判例证明"结构对了还要逐指令对"）。
+2. **域验证先于语义假设**："关中断"假设的安全性=映射触碰的域。
+3. **参考代码默认全错**：跨架构/编译器抄码逐字核上下文（入口序/跳转极性/符号链接/调用约定——"N words pushed" 是可执行规格）。
 4. **载体变化驱动范式切换**：状态字在 CPU→范式①；在内存→范式③（照抄裸机直切=竞态）。
-5. **证明优于测试**：竞态正确性要控制流级证明（收敛闭环），板测只证伪——"没炸≠正确"
-   （FRT 修复前长期全绿/Bug1 时代 GCC 75% 侥幸）。
+5. **证明优于测试**：竞态正确性要控制流级证明（收敛闭环），板测只证伪——"没炸≠正确"。
 
-### 10.6 端口形态普查（74 端口实证）
+### 11.6 端口形态普查（四 OS 88 端口实证）
 
 | 系统 | trap/pend 型 | 直切型 | 直切占比 |
 |---|---|---|---|
-| FreeRTOS（34） | ~28（CM 系 pend PendSV、A 系 SWI、PPC SC、RL78 BRK、TriCore syscall、ColdFire 软中断标志…） | 4（ATMega323 naked 直切/MSP430F449 压 SR+DINT/MicroBlaze 临界区包裹/IA32 call 直切） | ~12% |
-| uC/OS-III（26） | 10（ARMv7-M PendSV/RISC-V MSIP/MIPS syscall/78K0R break/C28x TRAP#16/Blackfin raise/ColdFire TRAP/HCS12 swi/PPC405 sc） | 14（MicroBlaze/PowerPC/AVR/Cortex-R/MSP430X/NiosII/ARC/ARM Generic/ARMv7-A/AVR32/EnSilica/PIC24/POSIX/Win32） | ~54% |
+| FreeRTOS（34） | ~28（CM 系 pend PendSV、A 系 SWI、PPC SC、RL78 BRK、TriCore syscall…） | 4（ATMega323 naked/MSP430F449 压 SR/MicroBlaze 临界区包裹/IA32 call） | ~12% |
+| uC/OS-III（26） | 10（ARMv7-M PendSV/RISC-V MSIP/MIPS syscall/C28x TRAP#16/PPC405 sc…） | 14（MicroBlaze/PowerPC/AVR/Cortex-R/MSP430X/NiosII/ARC/PIC24/POSIX/Win32…） | ~54% |
 | RMP（13 平台） | CM 系（A7M 写 PendSV 即返，L146-152） | 11（AVR/MSP430/RL78/C28X/DSPIC/M6502/MP32P/UNSP/X86L/RV32P/LINT 桩） | ~85% |
+| RT-Thread V4.1.1（14） | **14**（CM×6 PendSV、RV×4 软中断 msip、arm926/armv6 SWI、cortex-a/cortex-r4 SVC/TRAP） | **0** | **0%** |
 
 **三定律**：①形态由硬件能力定（有 PendSV→pend；有 trap 指令→trap；都没有→直切）；
 ②直切补偿由载体定（状态字→帧存；软件标志→全局收敛）；③直切比例由契约宽窄定
-（FRT 宽契约 12% 直切且每个自带补偿 ←→ UO3 窄契约 54% 一行注释即够 ←→ RMP 85% 原生③范式）。
+（FRT 宽契约 12% 直切且每个自带补偿 ←→ UO3 窄契约 54% 一行注释即够 ←→ RMP 85% 原生③范式
+←→ RTT 宽契约+闭式请求点 **0% 直切**——官方全部押注中断式延迟，deferred 责任整体交给硬件；
+我们的 RTT-RVM 直切端口因此是全家族唯一偏离官方形态的选择，ICI/IT 脏帧过滤是它的必要代价）。
 
-### 10.7 几种情况：
-1. 内核保证Yield时候中断一定关闭，而且允许port进行实质性Yield（不一定推迟到开中断时Yield）；如果决定进行实质性Yield，Yield完毕后必须还原Yield前中断状态：对于此种系统（uC/OS III）的RVM策略可以是：快路径在Yield调用点进行，而且原则上需要保存和恢复各个任务在切换点的中断状态（实际读过源码后可以确认，不需要还原状态，只要开中断即可，因为内核总是会在Yield之后立刻开中断的，而开中断是幂等的：对应代码为Disable；Yield；Enable）。对快路径要求最宽松，但心智负担最大。
-2. 内核不对Yield做任何中断状态保证，也不关心port进行是否是（或者要求关中断时不能是但开中断时可以是也可以不是）实质性Yield（立即或者推迟到开中断都可以）。对于此种系统（FreeRTOS）的RVM策略可以是：快路径推迟到开中断时进行Yield，而且起手需要关中断，因为你不知道调用你时候中断关了没有关，心智负担中等。
-3. 内核在关中断状态的Yield用Pend标志代替，待到中断使能时检查该标志并决定是否Yield，内核已经帮port推迟了所有Yield。对于此种系统（RMP）的RVM策略可以是：快路径直接进行Yield，而且起手原则上需要关中断（有一个专门的Yield调用会在开中断时调用Yield），心智负担最小。
+### 11.7 几种情况：
+1. 内核保证 Yield 时候中断一定关闭，而且允许 port 进行实质性 Yield；Yield 完毕后必须还原 Yield 前中断状态：对此系统（uC/OS III）的 RVM 策略可以是：快路径在 Yield 调用点进行，原则上需要保存和恢复各任务在切换点的中断状态（实际读过源码可确认不需还原，开中断即可，因为内核总在 Yield 后立刻开中断且开中断幂等：Disable; Yield; Enable）。对快路径要求最宽松，心智负担最大。
+2. 内核对 Yield 不做任何中断状态保证，也不关心 port 是否实质性 Yield。对此系统（FreeRTOS）的 RVM 策略可以是：快路径推迟到开中断时进行，而且起手需关中断（不知调用时中断关没关），心智负担中等。
+3. 内核在关中断状态的 Yield 用 Pend 标志代替，待中断使能时检查该标志并决定是否 Yield——内核已帮 port 推迟了所有 Yield。对此系统（RMP）的 RVM 策略可以是：快路径直接进行 Yield，起手原则上需关中断，心智负担最小。
+4. 内核在临界区内（关中断）完成选择并**预更新 current**，随即直接调用 port；内核不推迟也不管 port 是否实质性 Yield，官方端口一律 pend（PendSV/软中断），切换实际发生在开中断瞬间。对此系统（RT-Thread）的 RVM 策略可以是：快路径起手关中断立即切（调度已在外完成、from/to 传参，天然免 peek），慢路径 pend-then-arm；锁存 from/to+flag 协议加 PendSV 双守卫用来消化"锁存跨推迟窗过期"（官方 PendSV 尾链即时分发的假设在 RVM 延迟分发下不成立），心智负担中等——与 FreeRTOS 同档，但闭式请求点（唯一 rt_schedule）使入口自足收敛为端口三件套。
 
-我们的移植策略：不管他是什么要求，一律到开中断时进行Yield，而且总是起手关中断。
+我们的移植策略：不管他是什么要求，一律到开中断时进行 Yield，而且总是起手关中断。
 
+---
+
+## 12. 历史判例总索引（一案一行，根因+教训；详情见对应章节）
+
+| # | 系统/板 | 现象 | 根因 | 教训落点 |
+|---|---|---|---|---|
+| 1 | UO3 G071 | tick/ctx 全灭，黑匣子计数全 0 | CPU_SR_Save 返回新值非旧值→Restore 回不到 0 | §10 军规 13 |
+| 2 | UO3 IAR A7M | INVSTATE 100% 必挂 | OS_CPU_ALIGN_PUSH 极性从 A6M 抄来没翻（3字/BEQ vs 2字/BNE） | §8.4；军规 17 |
+| 3 | UO3 全 | 语义对齐 | CPU_SR 计数制→官方快照制直译（virtlib 函数须 extern 导出） | §8 CPU 侧 |
+| 4 | UO3 F429 GCC/IAR | 75% 概率 INVSTATE | OSCtxSw C 包装无入口掩蔽，共享竞态窗口 | §8.4 |
+| 5 | FRT 全端口 | 临界区内 yield 击穿 | 缺 deferred-yield 软件 pend | §8.4；军规 15 前身 |
+| 6 | UO3/FRT/RMP 三家慢路径 | 慢路径裸窗 | Unmask→Yield 调序（应 pend-then-arm）；RTT 端口晚出，生而 pend-then-arm | §8.4；§11.4 |
+| 7 | RMP V307 | FPU 帧 Instruction access fault | 未定义宏在 #if 静默求值为 0，同固件两种帧格式 | §12 注：任何引用 hypervisor 配置宏做编译期分支的文件必须自拉定义链或 #error；-Wundef 可现形 |
+| 8 | H743 | "DTCM 高 64KB 写黑洞" | WCH fork OpenOCD 仪器假象（CubeProg 实测推翻） | §4.7；军规 19 |
+| 9 | RTT G071 | Sftd 无限恢复循环 PC=context_gcc.s | rt_hw_context_switch_to 丢入参 STR | §9.1 |
+| 10 | RTT G071 | ISR 相刷屏/饿死 | 逐 tick 诊断打印=自持活锁（putchar 超调用 87µs/字符） | §9.2-6；军规 18 |
+| 11 | RTT G071 | 邮件 9993/10000 "停滞" | 入段打印吃掉 11 tick+池满 EFULL 丢 7 封（测试自伤非端口 bug） | §9.2-6；军规 18 |
+| 12 | RTT A7M | 概率 fault+确定性自陷 | interrupt 版 fall-through 滑进快路径（Vct 上下文写入 Usr TCB） | §9.1 |
+| 13 | RTT V307 | store access fault @swt | SAVE 宏内 call 破坏 a0——SWITCH 段必须从全局重载槽指针（UO3 `lw a0,OSTCBCurPtr` 的深意） | §9.1 |
+| 14 | RTT H743 | "向量栈溢出"诊断 | SP 方向算反（满递减栈顶=高地址）；实际 Vct 深仅 280B | §3-3 |
+| 15 | 全仓 | 同源重建 bin 抖动 ±12B | `__DATE__/__TIME__` 进 SHF_MERGE 字符串池跨秒合并骰子；定值化（kservice.c/rvm_syslib.h/rme_kernel.h 三处，程序见 git 历史或 §9.3） | §9.3；军规 20 |
+| 16 | RTT H743/F429 | INVPC 崩环+快路径自陷+"布局敏感"玄学 | **armv7m 宏是 armv6m 错抄**（极性反/R0-XPSR 重载深度错/压弹不对称差一字）；脏 bin 时代错宏经 fall-through/残留块仍在执行，清理后从未复现 | §9.1；军规 17/20 |
