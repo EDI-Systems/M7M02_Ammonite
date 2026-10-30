@@ -28,16 +28,31 @@ GUESTS+="RTThread_V411/libcpu/arm/armv7m_rvm "
 GUESTS+="RTThread_V411/libcpu/risc-v/rv32p_rvm "
 GUESTS+="RTThread_V411/test "
 
+# DjyOS V1.1.0
+# The port layer lives under the arch tree; the benchmark files sit in the
+# distribution's own test/ directory, so they are mirrored one by one (a
+# whole-directory entry would drag the author's example tests along).
+GUESTS+="DjyOS_V110/bsp/arch/arm/cortex-m/armv7e-m_rvm "
+GUESTS+="DjyOS_V110/test/djy_board.c "
+GUESTS+="DjyOS_V110/test/djy_benchmark.c "
+GUESTS+="DjyOS_V110/test/djy_main.c "
+GUESTS+="DjyOS_V110/test/chip/djy_test_stm32h743zi_rvm.h "
+
 rm -rf ./*/
 
 for GUEST in $GUESTS; do
-    if [ ! -d "${SRC_PREFIX}${GUEST}" ]; then
+    SRC="${SRC_PREFIX}${GUEST}"
+    if [ -d "$SRC" ]; then
+        echo "==> $GUEST"
+        mkdir -p "${DST_PREFIX}${GUEST}"
+        cp -r "${SRC}/"* "${DST_PREFIX}${GUEST}/"
+    elif [ -f "$SRC" ]; then
+        echo "==> $GUEST"
+        mkdir -p "$(dirname "${DST_PREFIX}${GUEST}")"
+        cp "${SRC}" "${DST_PREFIX}${GUEST}"
+    else
         echo "--> skip (not yet present): $GUEST"
-        continue
     fi
-    echo "==> $GUEST"
-    mkdir -p "${DST_PREFIX}${GUEST}"
-    cp -r "${SRC_PREFIX}${GUEST}/"* "${DST_PREFIX}${GUEST}/"
 done
 
 echo "done"

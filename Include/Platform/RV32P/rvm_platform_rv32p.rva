@@ -8,11 +8,11 @@
     <Toolchain>GCC</Toolchain>
     <Guest>RMP,FRT,UO3,RTT</Guest>
     <Compatible>
-        <C0>Makefile,GCC,Native</C0>
-        <C1>Makefile,GCC,RMP</C1>
-        <C2>Makefile,GCC,FRT</C2>
-        <C3>Makefile,GCC,UO3</C3>
-        <C4>Makefile,GCC,RTT</C4>
+        <C0>Makefile,GCC,FRT</C0>
+        <C1>Makefile,GCC,Native</C1>
+        <C2>Makefile,GCC,RMP</C2>
+        <C3>Makefile,GCC,RTT</C3>
+        <C4>Makefile,GCC,UO3</C4>
     </Compatible>
     <Config>
         <C0>

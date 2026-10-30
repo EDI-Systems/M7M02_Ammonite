@@ -91,7 +91,7 @@ Click **[HERE](README.md)** for English version.
 
 |架构          |工具链         |系统      |Flash|SRAM|Yield|Mail |Sem  |Mail/I|Sem/I|Mem  |
 |:-----------:|:------------:|:--------:|:---:|:--:|:---:|:---:|:---:|:----:|:---:|:---:|
-|Cortex-M7    |GCC           |DjyOS     |     |    |     |     |     |      |     |     |
+|Cortex-M7    |GCC           |DjyOS     |27.49|63.38| 1017| 1488|  892|  1873| 1220|  288|
 |...          |...           |Litex     |     |    |     |     |     |      |     |     |
 |...          |...           |Contiki   |     |    |     |     |     |      |     |     |
 

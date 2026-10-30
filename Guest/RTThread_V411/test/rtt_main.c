@@ -46,6 +46,22 @@ static void App_Thread(void *p_arg)
 }
 
 /*
+ * IDLE HOOK
+ *
+ * The RVM user manual requires the guest's idle thread to park in the
+ * hypervisor while there is nothing to run, so that the core is not spun
+ * away.  RVM_Hyp_Vct_Wait() blocks the user thread until the next virtual
+ * interrupt is delivered and resumes it right here; it is transparent to
+ * the kernel and does not suspend the thread in the RT-Thread sense.
+ */
+#ifdef RT_USING_IDLE_HOOK
+static void App_IdleHook(void)
+{
+    RVM_Hyp_Vct_Wait();
+}
+#endif
+
+/*
  * MAIN
  *
  * Boot the kernel on the first entry; run the application setup on the
@@ -60,6 +76,11 @@ int main(void)
      * rtthread_startup() has switched to it. */
     if (rt_thread_self() == RT_NULL)
     {
+        /* The idle policy belongs to the application: register the hook
+         * before the kernel starts, the first entry never returns. */
+#ifdef RT_USING_IDLE_HOOK
+        rt_thread_idle_sethook(App_IdleHook);
+#endif
         rtthread_startup();             /* never returns */
     }
 

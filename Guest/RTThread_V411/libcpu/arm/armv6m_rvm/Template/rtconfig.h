@@ -64,6 +64,12 @@
 #define RT_USING_MESSAGEQUEUE
 // </c>
 
+// <c1>Using the idle hook - the application registers the hypervisor
+//  <i>parking hook, so the idle thread must be able to carry hooks
+#define RT_USING_HOOK
+#define RT_USING_IDLE_HOOK
+// </c>
+
 // <o>the heap size of the RVM guest<128-8192>
 //  <i>Default: 6144 - the board initialization carves the allocations from it
 #define RT_HEAP_SIZE                   6144

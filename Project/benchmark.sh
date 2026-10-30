@@ -20,6 +20,7 @@ RMP="../../M5P01_Prokaron/"
 FRT="../../FreeRTOS_V900/"
 UO3="../../uCOSIII_V308/"
 RTT="../../RTThread_V411/"
+DJY=../../DjyOS_V110/
 
 # Process project paths
 PROJFULL=$(basename $1)
@@ -28,7 +29,7 @@ PROJUPPER=$(echo $PROJNAME | tr '[:lower:]' '[:upper:]')
 WORKSPACE=./$PROJUPPER/
 
 # Do the project generation
-COMMAND="$RVGEN -p $1 -k $KERNEL -m $MONITOR -rmp $RMP -frt $FRT -uo3 $UO3 -rtt $RTT -w $WORKSPACE -r report.log -v -b"
+COMMAND="$RVGEN -p $1 -k $KERNEL -m $MONITOR -rmp $RMP -frt $FRT -uo3 $UO3 -rtt $RTT -djy $DJY -w $WORKSPACE -r report.log -v -b"
 echo $COMMAND
 $COMMAND > ./output.log
 

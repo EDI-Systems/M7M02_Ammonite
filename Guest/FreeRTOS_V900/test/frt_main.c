@@ -23,6 +23,22 @@
 /*-----------------------------------------------------------*/
 
 /*
+ * The idle hook of the virtual machine.  The RVM user manual requires the
+ * guest's idle thread to park in the hypervisor while there is nothing to
+ * run, so that the core is not spun away.  RVM_Hyp_Vct_Wait() blocks the
+ * user thread until the next virtual interrupt is delivered and resumes it
+ * right here; it is transparent to the kernel and does not block in the
+ * FreeRTOS sense.  The hook is enabled by configUSE_IDLE_HOOK.
+ */
+#if ( configUSE_IDLE_HOOK == 1 )
+void vApplicationIdleHook( void )
+{
+    RVM_Hyp_Vct_Wait();
+}
+#endif
+/*-----------------------------------------------------------*/
+
+/*
  * The first user task of the virtual machine.  Replace the body of this
  * function with your own application code.
  */

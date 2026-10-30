@@ -47,6 +47,11 @@
 #define RT_USING_MAILBOX
 #define RT_USING_MESSAGEQUEUE
 
+/* The idle hook - the application registers the hypervisor parking hook,
+ * so the idle thread must be able to carry hooks */
+#define RT_USING_HOOK
+#define RT_USING_IDLE_HOOK
+
 /* The heap that the board initialization carves the allocations from */
 #define RT_HEAP_SIZE                   8192
 

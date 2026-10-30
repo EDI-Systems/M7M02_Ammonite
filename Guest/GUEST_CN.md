@@ -9,16 +9,18 @@
 |---|---|---|---|
 | FreeRTOS | V9.0.0 | ARMv6-M、ARMv7-M、RV32P | GCC、RVDS (ARMCC)、IAR |
 | uC/OS-III | uC/OS-3 V3.08.02 + uC/CPU V1.32.01 + uC/LIB V1.39.01 | ARMv6-M、ARMv7-M、RV32 | GCC、ARM、IAR |
+| RT-Thread | V4.1.1 | ARMv6-M、ARMv7-M、RV32P | GCC、RVDS (ARMCC)、IAR（RV32P 仅 GCC） |
+| DjyOS | V1.1.0 | ARMv7-M | GCC（纪念性移植，单组合：H743） |
 
 **RMP 不在本库分发**：RMP 原生自带 RVM 平台层（RMP 源码树的
 `Source/Platform/*_RVM/`），无需客机侧打包。
 
-本目录内容是由 `update.sh` 生成的**镜像**；请勿直接在此编辑——请修改
-源码树后在本目录重新执行 `./update.sh`。
+本目录内容是由 `update-maintainer-only.sh` 生成的**镜像**；请勿直接在此编辑——请修改
+源码树后在本目录重新执行 `./update-maintainer-only.sh`。
 
 ### 本库周边的仓库布局
 
-本库是一个五仓库体系的组成部分。工程生成器（`rvgen`）按相对路径定位
+本库是一个七仓库体系的组成部分。工程生成器（`rvgen`）按相对路径定位
 各仓库，请将它们并排放在同一根目录下：
 
 ```
@@ -28,16 +30,19 @@
 │  │                   （rvm.h、Virtlib/、Syslib/、Platform/）
 │  ├─ Source/          Monitor、虚拟化库、平台驱动
 │  ├─ Project/         工程生成器（rvgen）、benchmark.sh、.rvp 工程文件
-│  ├─ Guest/           本库（镜像，由 update.sh 刷新）
+│  ├─ Guest/           本库（镜像，由 update-maintainer-only.sh 刷新）
 │  └─ Utility/         生成器源码与主机工具
 ├─ M7M01_Eukaron/      RME 微内核——RVM 所构建于其上的能力内核
 ├─ M5P01_Prokaron/     RMP RTOS——自带 RVM 平台层（无需客机端口）
 ├─ FreeRTOS_V900/      FreeRTOS 源码树——移植层源文件在此，Guest 是其镜像
-└─ uCOSIII_V308/       uC/OS-III 源码树（uC-OS3 + uC-CPU + uC-LIB）——同上
+├─ uCOSIII_V308/       uC/OS-III 源码树（uC-OS3 + uC-CPU + uC-LIB）——同上
+├─ RTThread_V411/      RT-Thread V4.1.1 源码树——端口在 libcpu/*_rvm，测试在 test/
+└─ DjyOS_V110/         DjyOS V1.1.0 源码树——端口在 bsp/arch/arm/cortex-m/armv7e-m_rvm，
+                       基准在 test/
 ```
 
-按下一节的方法把本库覆盖到你的官方 FreeRTOS / uC-OS-III 源码树之后，
-那些源码树就顶替了上表布局中 `FreeRTOS_V900/` 与 `uCOSIII_V308/` 的位置。
+按下一节的方法把本库覆盖到你的官方 FreeRTOS / uC/OS-III / RT-Thread /
+DjyOS 源码树之后，那些源码树就顶替了上表布局中 `*_Vxxx/` 的位置。
 
 ---
 
@@ -53,6 +58,11 @@
   ——三组件组合 **uC/OS-3 V3.08.02 + uC/CPU V1.32.01 + uC/LIB V1.39.01**
   （目录合并；覆盖只向 uC/OS-3 与 uC/CPU 增加端口文件——uC/LIB 仅为构建
   依赖、保持原样，本库不为它分发任何文件）。
+- 把 `RTThread_V411/` 整体覆盖到你的官方 RT-Thread **V4.1.1** 源码树根目录
+  （目录合并；覆盖新增三个 `libcpu/*_rvm` 端口目录与 `test/` 下的基准树）。
+- 把 `DjyOS_V110/` 整体覆盖到 DjyOS **V1.1.0** 发行包根目录（目录合并；
+  覆盖新增 `bsp/arch/arm/cortex-m/armv7e-m_rvm/` 与 `test/` 下四个基准
+  文件）。这是纪念性移植，只有单一组合：Cortex-M7 + GCC + H743 板。
 
 覆盖后的目录结构（RVM 端口目录与官方端口目录并排，就像额外的官方端口）：
 
@@ -85,6 +95,22 @@ uCOSIII-V3.08/                        <- 你的官方发行包根
    │  ├─ ARMv6-M-RVM/                           <- 覆盖新增
    │  └─ ARMv7-M-RVM/                           <- 覆盖新增
    └─ RISC-V-RVM/                               <- 覆盖新增
+
+RT-Thread-V4.1.1/                     <- 你的官方源码树根
+├─ libcpu/
+│  ├─ arm/
+│  │  ├─ cortex-m0/  cortex-m3/  ...           <- 官方，原样不动
+│  │  ├─ armv6m_rvm/                            <- 覆盖新增
+│  │  └─ armv7m_rvm/                            <- 覆盖新增
+│  └─ risc-v/
+│     └─ rv32p_rvm/                             <- 覆盖新增
+└─ test/                                       <- 合并
+
+DjyOS-V1.1.0/                         <- 你的官方发行包根
+├─ bsp/arch/arm/cortex-m/
+│  ├─ armv7e-m/                                <- 官方，原样不动
+│  └─ armv7e-m_rvm/                            <- 覆盖新增
+└─ test/                                       <- 合并（仅四个基准文件）
 ```
 
 ### 1.1 配置宏
@@ -102,14 +128,26 @@ uC/OS-III（写在端口的 `os_cfg.h`，各编译器目录各一份）：
 |---|---|
 | `OS_CFG_RVM_FAST_YIELD_EN` | 1=任务栈快路径切换；0=纯超调用让出 |
 
+RT-Thread 与 DjyOS 没有切换策略开关（策略固定：干净帧走快路径、脏帧走
+延迟路径；DjyOS 的事件完成转身一律不延迟）。它们各有一条构建级要求：
+
+| 客机 | 要求 |
+|---|---|
+| RT-Thread | 定义 `RT_USING_LIBC`（内核 `va_list` 的回退分支只在"定义 `__GNUC__` 且未定义 `__ARMCC_VERSION`"时存在；ARM Compiler 与 IAR 必须走 libc 头） |
+| DjyOS | 客机必须以 `-mfloat-abi=soft` 编译（端口只构建整数帧；浮点 ABI 会被 `cpus.s` 的 `#error` 直接挡下） |
+
 
 ### 1.2 工程生成
 
-两个客机都由 RVM 工程生成器驱动（RVM `Project/` 目录下的 `rvgen`，
+所有客机都由 RVM 工程生成器驱动（RVM `Project/` 目录下的 `rvgen`，
 经 `benchmark.sh` 调用）。`.rvp` 工程文件选择芯片、平台与客机类型
-（`<Guest_Type>FRT|UO3|RMP</Guest_Type>`）；生成器把端口文件拷入工作区，
-并产出构建系统（Makefile / IAR / RVDS），include 顺序已排好。手工建工
-程可行，但不在此文档范围内。
+（`<Guest_Type>FRT|UO3|RMP|RTT|DJY</Guest_Type>`）；生成器把端口文件拷入
+工作区，并产出构建系统（Makefile / IAR / RVDS），include 顺序已排好。
+手工建工程可行，但不在此文档范围内。
+
+`generate.sh` 走同一个生成器但**不带** benchmark 选项：客机由
+`<guest>_main.c` 里的普通应用启动，该文件被生成器复制成工作区的
+`main.c`（含 §2.8 的空闲停车 hook）。两个脚本必须给同一组源码根。
 
 
 ---
@@ -122,17 +160,17 @@ uC/OS-III（写在端口的 `os_cfg.h`，各编译器目录各一份）：
 
 ### 2.1 内核侧契约（内核固有属性，与平台无关）
 
-| | FreeRTOS | uC/OS-III | RMP |
-|---|---|---|---|
-| Yield 请求的状态 | **任意**——内核会在嵌套临界区内发起 yield，`tasks.c` 注释明文承认合法 | **恒为掩蔽态**——`OSSched()` 用自己平坦的一层临界区包住"选择+请求"（`Disable; Yield; Enable`） | 已归一——锁态请求转为 Pend 标志，由内核在解锁点补发 |
-| 对切换时机的要求 | 无（立即或推迟都正确，内核注释自白） | 无（`Enable` 幂等，其前其后切换皆安全） | 该问题到不了端口（内核已把一切推迟掉） |
-| 要求端口提供的中断原语 | 无条件开关对 + 嵌套计数临界区对 | 无条件开关对 + 快照 save/restore 对 | 单一掩蔽原语 |
-| 端口义务 | 让 yield 在**任何状态**下都安全 | 切换完成时新任务以**开中断态**起步 | 只处理一种请求形态：开态立即切换 |
+| | FreeRTOS | uC/OS-III | RMP | RT-Thread | DjyOS |
+|---|---|---|---|---|---|
+| Yield 请求的状态 | **任意**——内核会在嵌套临界区内发起 yield，`tasks.c` 注释明文承认合法 | **恒为掩蔽态**——`OSSched()` 用自己平坦的一层临界区包住"选择+请求"（`Disable; Yield; Enable`） | 已归一——锁态请求转为 Pend 标志，由内核在解锁点补发 | **任意**——`rt_schedule()` 在持调度锁、中断已掩蔽的临界区内被调用 | **恒为掩蔽态**——选择与切换都在内核的异步信号掩蔽内完成 |
+| 对切换时机的要求 | 无（立即或推迟都正确，内核注释自白） | 无（`Enable` 幂等，其前其后切换皆安全） | 该问题到不了端口（内核已把一切推迟掉） | 内核侧无要求；但官方端口一律推迟到 PendSV | 切换必须在**解掩蔽之前**完成（脏帧例外：它需要一次真异常返回） |
+| 要求端口提供的中断原语 | 无条件开关对 + 嵌套计数临界区对 | 无条件开关对 + 快照 save/restore 对 | 单一掩蔽原语 | 单一快照式 disable/enable 对 | 单一 mask/unmask 对（快照语义） |
+| 端口义务 | 让 yield 在**任何状态**下都安全 | 切换完成时新任务以**开中断态**起步 | 只处理一种请求形态：开态立即切换 | 消费内核已选好的 from/to（`rt_current_thread` 已预更新），并保证后续请求不会撕裂帧 | 搬运事件周转帧，且永不推迟"不返回的转身" |
 
 ### 2.2 共同的 RVM 切换模板
 
-三个 RVM 端口收敛到同一骨架（RMP 是原作，FreeRTOS 与 uC/OS-III 端口是
-它的移植）：
+所有 RVM 端口收敛到同一骨架（RMP 是原作，FreeRTOS、uC/OS-III、RT-Thread
+与 DjyOS 端口都是它的移植）：
 
 ```
 入口：RVM_Virt_Int_Mask()                    -- 无条件、总是先关
@@ -202,6 +240,54 @@ uC/OS-III（写在端口的 `os_cfg.h`，各编译器目录各一份）：
 **出入与为何无碍**：asm 信任"外部掩蔽"——形式上同 MicroBlaze 式契约，
 但掩蔽不是靠注释约束调用者，而是由**同一个 C 函数的入口**提供——双层
 结构把契约从文档编译进了代码。
+
+### 2.6 RT-Thread：契约、策略与微妙出入
+
+**契约**：`rt_schedule()` 在持调度锁、中断已掩蔽的临界区内选出下一线程，
+**先把 `rt_current_thread` 预更新**，再调端口。切换请求点封闭（任务级
+一个函数、中断级一个函数）。
+
+**策略**：锁存 from/to 与请求旗标；干净帧在任务栈上直切，脏 ICI/IT 帧
+（以及中断级请求）交给上下文切换处理器在超调用边界消费锁存。处理器
+保留官方 PendSV 的两道守卫（flag==0 直接返回、from==0 跳过保存）——正是
+它们让"请求过期后的残留锁存"不会补做一次陈旧切换。
+
+**出入与为何无碍**：官方端口一律推迟到 PendSV；我们对干净帧立即切换。
+无碍原因：入口先掩蔽、造的帧是真异常帧，而所有把半切换上下文切回的
+路径都会经 `rt_schedule` 重新选择——补做的请求退化为 no-op。
+`rt_current_thread` 的预更新则是"快路径恢复途中被抢占"仍然安全的原因：
+投递锁存到的 from 槽，正是那个上下文只恢复了一半的线程自己的槽。
+
+### 2.7 DjyOS：契约、策略与微妙出入
+
+**契约**：DjyOS 调度的是**事件**，线程（`ThreadVm`）只是可复用的容器。
+所有切换都发生在内核异步信号掩蔽抬起时，且下一事件的选出就在切换内部
+（`__DJY_Schedule` 里调 `__DJY_SelectEventToRun`）——端口不需要窥探。
+
+**策略**：一条 RVM 用户线程承载全部 DjyOS 线程，所以端口把当前上下文
+伪装成线程栈上的 22 字异常帧来切换：5 个超调用参数、R4-R11、保存的
+EXC_RETURN、8 字基本硬件帧。脏帧（EPSR ICI/IT）走延迟路径，交给内核
+自己的异常返回来恢复手工弹栈恢复不了的状态。事件完成用**转身**（不保存
+已耗尽上下文、直接切入下一个）；转身永不延迟。
+
+**出入与为何无碍**：帧里的 PC 存奇数 Thumb 位，因为这帧也会被内核的
+异常返回消费；客机按软浮点编译，因为端口只构建整数帧。
+
+
+### 2.8 空闲停车（所有客机）
+
+RVM 用户手册 §4.4.3 要求客机的空闲线程反复调用 `RVM_Hyp_Vct_Wait()`
+（超调用 9）：把用户线程挂起、从运行队列摘除，直到下一个虚拟中断送达——
+这是空闲客机不把核心空转掉的前提。该调用是**透明挂起**：恢复点就在调用处，
+不改任何内核状态，也不在内核意义上阻塞。
+
+hook 本体放在**应用**里（生成器复制成工作区 `main.c` 的那个文件），不在
+端口：各家用自己的官方机制——FreeRTOS 的 `vApplicationIdleHook`
+（`configUSE_IDLE_HOOK 1`）、uC/OS-III 的 `OS_AppIdleTaskHookPtr`、
+RT-Thread 的 `rt_thread_idle_sethook`（`RT_USING_HOOK`/`RT_USING_IDLE_HOOK`）、
+DjyOS 的 `djy_set_idle_hook()`（由 `CleanWakeupEvent` 在虚拟掩码开的位置
+回调）。benchmark 工程故意让 hook 空转（FreeRTOS 因配置共用必须定义一个空
+实现），使 idle 永不进入测量路径。
 
 
 ---

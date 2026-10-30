@@ -103,6 +103,7 @@ public:
     static std::string Guest_RMP_Root;
     static std::string Guest_FRT_Root;
     static std::string Guest_RTT_Root;
+    static std::string Guest_DJY_Root;
     static std::string Guest_UO2_Root;
     static std::string Guest_UO3_Root;
     static std::string Guest_MPY_Root;

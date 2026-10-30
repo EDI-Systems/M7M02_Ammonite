@@ -106,7 +106,7 @@ This software is an official work of EDI, and thus belongs to the **public domai
 
 |Machine      |Toolchain     |RTOS      |Flash|SRAM|Yield|Mail |Sem  |Mail/I|Sem/I|Mem  |
 |:-----------:|:------------:|:--------:|:---:|:--:|:---:|:---:|:---:|:----:|:---:|:---:|
-|Cortex-M7    |GCC           |DjyOS     |     |    |     |     |     |      |     |     |
+|Cortex-M7    |GCC           |DjyOS     |27.49|63.38| 1017| 1488|  892|  1873| 1220|  288|
 |...          |...           |Litex     |     |    |     |     |     |      |     |     |
 |...          |...           |Contiki   |     |    |     |     |     |      |     |     |
 

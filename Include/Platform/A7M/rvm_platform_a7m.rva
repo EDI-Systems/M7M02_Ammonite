@@ -6,23 +6,24 @@
     <Coprocessor>FPV4_SP,FPV5_SP,FPV5_DP</Coprocessor>
     <Buildsystem>Keil,Makefile,IAREW</Buildsystem>
     <Toolchain>ARMCC,GCC,ICCARM</Toolchain>
-    <Guest>RMP,FRT,UO3,RTT</Guest>
+    <Guest>RMP,FRT,UO3,RTT,DJY</Guest>
     <Compatible>
-        <C0>Keil,ARMCC,Native</C0>
-        <C1>Keil,ARMCC,RMP</C1>
-        <C2>Makefile,GCC,Native</C2>
-        <C3>Makefile,GCC,RMP</C3>
-        <C4>Keil,ARMCC,FRT</C4>
-        <C5>Makefile,GCC,FRT</C5>
-        <C6>IAREW,ICCARM,Native</C6>
-        <C7>IAREW,ICCARM,RMP</C7>
-        <C8>IAREW,ICCARM,FRT</C8>
-        <C9>Makefile,GCC,UO3</C9>
-        <C10>Keil,ARMCC,UO3</C10>
-        <C11>IAREW,ICCARM,UO3</C11>
-        <C12>Makefile,GCC,RTT</C12>
-        <C13>Keil,ARMCC,RTT</C13>
-        <C14>IAREW,ICCARM,RTT</C14>
+        <C0>IAREW,ICCARM,FRT</C0>
+        <C1>IAREW,ICCARM,Native</C1>
+        <C2>IAREW,ICCARM,RMP</C2>
+        <C3>IAREW,ICCARM,RTT</C3>
+        <C4>IAREW,ICCARM,UO3</C4>
+        <C5>Keil,ARMCC,FRT</C5>
+        <C6>Keil,ARMCC,Native</C6>
+        <C7>Keil,ARMCC,RMP</C7>
+        <C8>Keil,ARMCC,RTT</C8>
+        <C9>Keil,ARMCC,UO3</C9>
+        <C10>Makefile,GCC,DJY</C10>
+        <C11>Makefile,GCC,FRT</C11>
+        <C12>Makefile,GCC,Native</C12>
+        <C13>Makefile,GCC,RMP</C13>
+        <C14>Makefile,GCC,RTT</C14>
+        <C15>Makefile,GCC,UO3</C15>
     </Compatible>
     <Config>
         <C0>

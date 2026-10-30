@@ -127,6 +127,7 @@ std::string Main::Monitor_Root;
 std::string Main::Guest_RMP_Root;
 std::string Main::Guest_FRT_Root;
 std::string Main::Guest_RTT_Root;
+std::string Main::Guest_DJY_Root;
 std::string Main::Guest_UO2_Root;
 std::string Main::Guest_UO3_Root;
 std::string Main::Guest_MPY_Root;
@@ -2080,7 +2081,7 @@ Return      : None.
                 Count+=2;
             }
             /* Input kernel root folder */
-            if(strcmp(argv[Count],"-k")==0)
+            else if(strcmp(argv[Count],"-k")==0)
             {
                 if(Main::Kernel_Root!="")
                     Main::Error("XXXXX: More than one kernel directory specified.");
@@ -2088,7 +2089,7 @@ Return      : None.
                 Count+=2;
             }
             /* Input monitor root folder */
-            if(strcmp(argv[Count],"-m")==0)
+            else if(strcmp(argv[Count],"-m")==0)
             {
                 if(Main::Monitor_Root!="")
                     Main::Error("XXXXX: More than one monitor directory specified.");
@@ -2096,7 +2097,7 @@ Return      : None.
                 Count+=2;
             }
             /* Input RMP root folder */
-            if(strcmp(argv[Count],"-rmp")==0)
+            else if(strcmp(argv[Count],"-rmp")==0)
             {
                 if(Main::Guest_RMP_Root!="")
                     Main::Error("XXXXX: More than one directory specified for the same guest.");
@@ -2104,7 +2105,7 @@ Return      : None.
                 Count+=2;
             }
             /* Input FreeRTOS root folder */
-            if(strcmp(argv[Count],"-frt")==0)
+            else if(strcmp(argv[Count],"-frt")==0)
             {
                 if(Main::Guest_FRT_Root!="")
                     Main::Error("XXXXX: More than one directory specified for the same guest.");
@@ -2112,7 +2113,7 @@ Return      : None.
                 Count+=2;
             }
             /* Input uC/OS II root folder */
-            if(strcmp(argv[Count],"-uo2")==0)
+            else if(strcmp(argv[Count],"-uo2")==0)
             {
                 if(Main::Guest_UO2_Root!="")
                     Main::Error("XXXXX: More than one directory specified for the same guest.");
@@ -2120,7 +2121,7 @@ Return      : None.
                 Count+=2;
             }
             /* Input uC/OS III root folder */
-            if(strcmp(argv[Count],"-uo3")==0)
+            else if(strcmp(argv[Count],"-uo3")==0)
             {
                 if(Main::Guest_UO3_Root!="")
                     Main::Error("XXXXX: More than one directory specified for the same guest.");
@@ -2128,7 +2129,7 @@ Return      : None.
                 Count+=2;
             }
             /* Input Micropython root folder */
-            if(strcmp(argv[Count],"-mpy")==0)
+            else if(strcmp(argv[Count],"-mpy")==0)
             {
                 if(Main::Guest_MPY_Root!="")
                     Main::Error("XXXXX: More than one directory specified for the same guest.");
@@ -2136,15 +2137,23 @@ Return      : None.
                 Count+=2;
             }
             /* Input RT-Thread root folder */
-            if(strcmp(argv[Count],"-rtt")==0)
+            else if(strcmp(argv[Count],"-rtt")==0)
             {
                 if(Main::Guest_RTT_Root!="")
                     Main::Error("XXXXX: More than one directory specified for the same guest.");
                 Main::Guest_RTT_Root=Main::Path_Absolute(PATH_DIR, "", argv[Count+1]);
                 Count+=2;
             }
+            /* Input DjyOS root folder */
+            else if(strcmp(argv[Count],"-djy")==0)
+            {
+                if(Main::Guest_DJY_Root!="")
+                    Main::Error("XXXXX: More than one directory specified for the same guest.");
+                Main::Guest_DJY_Root=Main::Path_Absolute(PATH_DIR, "", argv[Count+1]);
+                Count+=2;
+            }
             /* Output workspace root folder */
-            if(strcmp(argv[Count],"-w")==0)
+            else if(strcmp(argv[Count],"-w")==0)
             {
                 if(Main::Workspace_Output!="")
                     Main::Error("XXXXX: More than one workspace directory specified.");
@@ -2152,7 +2161,7 @@ Return      : None.
                 Count+=2;
             }
             /* Verbose mode */
-            if(strcmp(argv[Count],"-r")==0)
+            else if(strcmp(argv[Count],"-r")==0)
             {
                 if(Main::Report_Output!="")
                     Main::Error("XXXXX: More than one report file specified.");
@@ -2160,24 +2169,24 @@ Return      : None.
                 Count+=2;
             }
             /* Verbose mode */
-            if(strcmp(argv[Count],"-v")==0)
+            else if(strcmp(argv[Count],"-v")==0)
             {
                 Main::Verbose=1;
                 Main::Info("Verbose output mode enabled.");
                 Count+=1;
             }
             /* Dryrun mode */
-            if(strcmp(argv[Count],"-d")==0)
+            else if(strcmp(argv[Count],"-d")==0)
             {
                 Main::Dryrun=1;
                 Main::Info("Dry running mode enabled.");
                 Count+=1;
             }
             /* Benchmark mode */
-            if(strcmp(argv[Count],"-b")==0)
+            else if(strcmp(argv[Count],"-b")==0)
             {
                 Main::Benchmark=1;
-                Main::Info("Generating benchmark project - only works with default rvp.");
+                Main::Info("Generating benchmark project - only works with default rvp files.");
                 Count+=1;
             }
             else

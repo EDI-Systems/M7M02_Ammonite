@@ -756,6 +756,21 @@ uint32_t ulValueToSend = 1U;
 }
 /*-----------------------------------------------------------*/
 
+/*
+ * FreeRTOSConfig.h enables the idle hook, so every application must define
+ * it.  The benchmark keeps the processor busy on purpose: parking the idle
+ * task in the hypervisor would add the scheduler wake-up latency of the
+ * virtual timer to the runs that follow an idle period, so the hook is
+ * deliberately empty here.  The plain application in frt_main.c does the
+ * parking instead.
+ */
+#if ( configUSE_IDLE_HOOK == 1 )
+void vApplicationIdleHook( void )
+{
+}
+#endif
+/*-----------------------------------------------------------*/
+
 int main( void )
 {
     /* Set up the counter that is used to time the tests. */

@@ -69,6 +69,28 @@ static  void  AppTask (void *p_arg)
 
 /*
 *********************************************************************************************************
+*                                               IDLE HOOK
+*
+* Description: Called by OSIdleTaskHook() from the idle task.  The RVM user manual requires the guest's
+*              idle thread to park in the hypervisor so that the core is not spun away while there is
+*              nothing to run.  RVM_Hyp_Vct_Wait() blocks the user thread until the next virtual
+*              interrupt is delivered and resumes it right here; it is transparent to the kernel and
+*              never blocks in the uC/OS-III sense.
+*
+* Arguments  : none.
+*
+* Returns    : none.
+*********************************************************************************************************
+*/
+
+static  void  AppIdleHook (void)
+{
+    RVM_Hyp_Vct_Wait();
+}
+
+
+/*
+*********************************************************************************************************
 *                                                   MAIN
 *
 * Description: Boot the kernel and start a single application task.
@@ -85,6 +107,12 @@ int  main (void)
 
 
     OSInit(&os_err);
+
+#if (OS_CFG_APP_HOOKS_EN > 0u)
+    /* The idle policy belongs to the application: the port only forwards
+     * OSIdleTaskHook() to this pointer. */
+    OS_AppIdleTaskHookPtr = AppIdleHook;
+#endif
 
     OSTaskCreate(&AppTaskTCB, "App", AppTask, (void *)0u, 5u,
                  &AppTaskStk[0], 12u, 128u,
