@@ -1,9 +1,9 @@
 # RVM 客机移植工程手册（坑库与方法论）
 
 > **覆盖**：FreeRTOS V9 / uC-OS-III V3.08 / RT-Thread V4.1.1 的 A6M·RV32P·A7M 三架构 × GCC·Keil·IAR 链；
-> RMP-on-RVM（IAR 三链）；**DjyOS V1.1.0 纪念性移植（M7 + GCC 单组合，11/11 真机定档）**。
+> RMP-on-RVM（IAR 三链）；DjyOS V1.1.0 / KLite V5.2.1 纪念性移植（M7 + GCC 单组合，真机定档）。
 > 面向贡献者：开工读 §1~§3；排障查 §4、§5；改端口前必读 §6（契约理论）与对应客机章；
-> 动手前扫一眼 §13 军规；复盘查 §14 判例索引。
+> 动手前扫一眼 §14 军规；复盘查 §15 判例索引。
 > **正式数据一律以各客机 `test/**/chip/*_test_*_rvm.h` 档案块为准**——本文件只留索引、判例与方法论。
 
 ---
@@ -14,12 +14,12 @@
 
 | 你要做什么 | 路线 |
 |---|---|
-| 第一次接手本仓 | §2 拓扑 → §3 工作流 → §13 军规；先跑通一条链再动手 |
-| 排一个具体故障 | §4 排障方法论（按威力排序）→ §5 坑库 → §14 判例索引 |
-| 改 / 新增客机端口 | §6 移植契约理论 → 对应客机章（§7~§10）→ §6.5 移植五准则 |
+| 第一次接手本仓 | §2 拓扑 → §3 工作流 → §14 军规；先跑通一条链再动手 |
+| 排一个具体故障 | §4 排障方法论（按威力排序）→ §5 坑库 → §15 判例索引 |
+| 改 / 新增客机端口 | §6 移植契约理论 → 对应客机章（§7~§11）→ §6.5 移植五准则 |
 | 改 A7M 快路径 | §7.1 fast yield（含 ICI/IT 脏帧过滤的三层架构） |
-| 加一个新 RTOS | §6 契约理论 + §7.1 模板 + §11 生成器（rvp / rva / Guest_Type） |
-| 只关心成绩 | §12 成果基线（数值在 test 头档案块里） |
+| 加一个新 RTOS | §6 契约理论 + §7.1 模板 + §12 生成器（rvp / rva / Guest_Type） |
+| 只关心成绩 | §13 成果基线（数值在 test 头档案块里） |
 
 ### 1.2 章节地图
 
@@ -30,15 +30,16 @@
 | §3 | 标准工作流：生成 / 构建 / 烧录 / 捕获 / 收尾 | 每次改代码 |
 | §4 | 排障方法论（断点裁决 / 写黑洞 / 现场活捉 / 对账计数 …） | 一出故障 |
 | §5 | 坑库（文件编辑 / PowerShell / 生成器 / iasmarm / IAR / OpenOCD / 硬件） | 一出故障 |
-| §6 | RTOS 移植契约理论（四 OS 契约 / 原子性范式 / RVM 中断模型 / 五准则） | 设计端口 |
+| §6 | RTOS 移植契约理论（五 OS 契约 / 原子性范式 / RVM 中断模型 / 五准则 / 空闲停车） | 设计端口 |
 | §7 | FreeRTOS 端口设计决策（A7M fast yield、IAR 改编、格式规范、双工具链） | 改 FRT |
 | §8 | uC/OS-III 移植要点（RV32P / A7M / Keil / IAR 四轮沉淀） | 改 UO3 |
 | §9 | RT-Thread 移植要点（三端口 / 配置坑 / 三编译器 / 四板判例） | 改 RTT |
 | §10 | DjyOS 纪念性移植（事件驱动内核压进 RVM 两线程模型） | 改 DJY |
-| §11 | 生成器知识（rvgen 重建、Guest 镜像规范、rvp 不变量） | 改生成器 / rvp |
-| §12 | 成果基线索引（各客机链状态 + 数据判读量级） | 查进度 |
-| §13 | 一句话军规（事故浓缩，收工自检） | 收工 |
-| §14 | 历史判例总索引（一案一行） | 复盘 |
+| §11 | KLite 纪念性移植（天生纯延迟内核的 RMP 式快路径） | 改 KLT |
+| §12 | 生成器知识（rvgen 重建、Guest 镜像规范、rvp 不变量） | 改生成器 / rvp |
+| §13 | 成果基线索引（各客机链状态 + 数据判读量级） | 查进度 |
+| §14 | 一句话军规（事故浓缩，收工自检） | 收工 |
+| §15 | 历史判例总索引（一案一行） | 复盘 |
 
 ### 1.3 维护约定
 
@@ -116,6 +117,11 @@ DjyOS_V110\
 │   + template\（配置层：project_config、4 个 component_config_*、board-config）
 └── test\{djy_benchmark.c, djy_board.c（仅 benchmark：TIM2 计数器/TIM4 中断源 + benchmark 引导）,
          djy_main.c（普通 main）, chip\djy_test_stm32h743zi_rvm.h（仅 benchmark）}
+
+KLite_V521\
+├── sources\cpu\armv7-m_rvm\{cpu.c（临界区/peek/swt 分派/ctx handler/停车机制）,
+│   cpu_asm_gcc.s（快路径 masquerade，蓝本 RMP _RMP_A7M_RVM_Yield_Swt）}
+└── test\{klite_benchmark.c, klite_main.c, chip\klite_test_stm32h743zi_rvm.h}
 ```
 
 FRT 端口五件套：FreeRTOSConfig.h / portmacro.h / port.c / portasm.s（/ tasks_rvm.c 仅 A7M）。
@@ -125,6 +131,7 @@ FRT 端口五件套：FreeRTOSConfig.h / portmacro.h / port.c / portasm.s（/ ta
 绝不进工程 include path**（rmp_gen conf 头、RTT rtconfig.h 同款拷贝定式）。
 IAR 与 GCC/Keil(RVDS) 的 C 件差异仅三处：portNOP→`__asm("nop")`、`__VFP_FP__` 守卫扩 `__ARMVFP__`、GCC 字面量池内联 asm→`LDR R3,=pxCurrentTCB`（IAR 内联汇编直接支持 =label）。
 RTT 端口三件套：context_gcc.s（快路径 swt + interrupt 锁存版 + switch_to）/ cpuport.c（stack_init + PendSV_Handler + 快照式 disable/enable + ICI/IT 脏帧过滤）/ Template\rtconfig.h。协议与判例见 §9。
+KLT 端口两件套：cpu.c（RMP 式快路径分派 + ctx handler + 停车机制）/ cpu_asm_gcc.s（masquerade 快路径 + 首切分支）。协议与判例见 §11。
 
 ---
 
@@ -188,7 +195,7 @@ Start-Process/后台任务分离跑捕获脚本（窗口期内存活），**先�
 ## 4. 排障方法论（按威力排序）
 
 1. **断点裁决法**（启动类死机）：反汇编/nm 拿候选等待环与里程碑地址（VOS/HSE/PLL/Boot），各下硬件断点，resume 数秒后读 PC——命中即进度。注意 do-while 首过也碰断点，**命中≠卡死**；判卡死用"resume+sleep+halt 后读 PC"。
-2. **写黑洞测试**（数据全垃圾类）：可疑地址写魔数读回，读不回/挂死=无 RAM。**硬件结论必须双仪器交叉验证**（CubeProg 与 OpenOCD 冲突时优先 ST 官方工具——H743"DTCM 黑洞"即 WCH fork 仪器假象被误诊，§14 判例 8）。
+2. **写黑洞测试**（数据全垃圾类）：可疑地址写魔数读回，读不回/挂死=无 RAM。**硬件结论必须双仪器交叉验证**（CubeProg 与 OpenOCD 冲突时优先 ST 官方工具——H743"DTCM 黑洞"即 WCH fork 仪器假象被误诊，§15 判例 8）。
 3. **Fault 现场活捉**：内核善后会清 PSP/CFSR——在 `UsageFault_Handler`/`_RME_Thd_Fatal` 入口下断点（第一次 fault），读 PSP 帧 8 字，PC/XPSR 即真相（PC=0/XPSR=0→INVSTATE，配 CFSR 互证）。Sftd 转储（串口白送）含 Vct/Usr 两组寄存器+栈帧前几字——A6M 上唯一现场；**判读要点：任何 UsageFault 的 LR 槽都自动是 EXC_RETURN（handler 入口压栈），无信息量；有信息量的是帧内 Stack-PC/Stack-XPSR/Stack-LR**。Sftd 的 SP 值+链接脚本落区对照是栈溢出排障零成本第一步——但先算对栈方向（满递减，栈顶=高地址；㉗ 曾把"距底剩 1768B"算成"剩 24B 要溢出"）。
 4. **面包屑取证法**：可疑函数入口塞临时打印/计数——**注意取证代码本身改变布局与时序（"治好"效应），结论必须用无扰动手段复核**。UNALIGNED 类故障：HW 帧 LR 槽=BL 返回点、PC 槽=真故障指令。CFSR 按内核自己的头解码（别按网上直觉猜位号）。取证完清零残留。
 5. **物证原则**："烧的是什么/编的是什么"用 flash 指令字比对 objdump；make 依赖**不含外部系统头**，改平台头后 `rm -rf Object` 强制全编再反汇编确认常量变了。**msys make 增量编译时间戳竞态**：改端口文件后 make 可能不重编（实验数据被污染）——改后必 clean 全编。**"偶发"故障先核对 bin 来源与源码状态**（旧脏 bin vs 新 bin 的行为差极易误诊为布局/概率问题；同尺寸 bin ≠ 同布局）。
@@ -304,7 +311,7 @@ Start-Process/后台任务分离跑捕获脚本（窗口期内存活），**先�
 
 ---
 
-## 6. RTOS 移植契约理论（四 OS 88 端口普查 + 多轮 bug 修复沉淀）
+## 6. RTOS 移植契约理论（五 OS 89 端口普查 + 多轮 bug 修复沉淀）
 
 > 本章是跨 OS 的理论总纲：剥离平台后的 OS 本体契约、切换原子性范式、RVM 中断安全模型、
 > 四 OS on RVM 的同构模板与移植准则。行号均为实证可回查。
@@ -554,7 +561,7 @@ port.c/portmacro.h/FreeRTOSConfig.h/tasks_rvm.c 跨目录**必须哈希一致**�
 ### 9.3 布局与构建工具
 
 - **rtt_layout_knob.h**：`RTT_LAYOUT_KNOB` 字符串长度=链接期确定性平移量（rtt_board.c 开机打印 `LK:...|` 标识当前布局）——__TIME__ 骰子根除后的可控布局扫描旋钮。注意它在链接序末段（rtt_board），只平移尾部；要平移全量需在 rtt_benchmark.c（首 TU）定义同名串。
-- **__TIME__ 骰子**：`__DATE__/__TIME__` 进字符串池（SHF_MERGE 跨 TU 合并），make -j8 下各 TU 编译秒是否跨秒决定 ±12B 布局掷骰。定值化程序见 §14 判例 15。**当前状态：骰子处于还原态**（2026-10-28 狩猎需要；下次密闭构建前重定值）。
+- **__TIME__ 骰子**：`__DATE__/__TIME__` 进字符串池（SHF_MERGE 跨 TU 合并），make -j8 下各 TU 编译秒是否跨秒决定 ±12B 布局掷骰。定值化程序见 §15 判例 15。**当前状态：骰子处于还原态**（2026-10-28 狩猎需要；下次密闭构建前重定值）。
 - 既有脚本（Project\Script\）：cap_h743.ps1（参数化捕获，COM14 硬编码注意改）、flashh743.ps1（CubeProg+SN）、runstats.sh（复位多轮统计）、sweep_lk.sh / dice_hunt.sh（布局扫描/掷骰狩猎）。
 
 ### 9.4 未结项
@@ -597,7 +604,7 @@ port.c/portmacro.h/FreeRTOSConfig.h/tasks_rvm.c 跨目录**必须哈希一致**�
 
 - DjyOS 的调度单位是**事件**，线程（`ThreadVm`）只是事件的容器；RVM 每个 VM 只有 Usr/Vct 两条真实线程。
   端口用**伪装异常帧**在单一 Usr 线程上换 DjyOS 线程，帧 22 字 = 5 超调用参数 + R4-R11 八个寄存器 + EXC_RETURN + 8 字硬件帧。
-  **帧 PC 必须存奇数**（Thumb 位）——该帧也会被内核的真实异常返回恢复，偶数 PC 直接 INVPC（判例 §14-19）。
+  **帧 PC 必须存奇数**（Thumb 位）——该帧也会被内核的真实异常返回恢复，偶数 PC 直接 INVPC（判例 §15-19）。
 - `cpus.s` 六原语：`__asm_reset_thread`（池化线程重建，`stack_top-88`）、`__asm_turnto_context`（不保存、直接切入）、
   `__asm_switch_context`（阻塞切换，快路径伪装帧）、`__asm_switch_context_int`（中断级：只锁存 + `RVM_Virt_Yield`）、
   `__asm_reset_switch`（CN_KEEP 复位旧线程再切）、`__asm_start_thread`（首切）。
@@ -613,7 +620,7 @@ port.c/portmacro.h/FreeRTOSConfig.h/tasks_rvm.c 跨目录**必须哈希一致**�
 - 中断原语映射：`Int_LowAtomStart/End` = `RVM_Int_Mask` 快照制（快照值放 R4 过超调用，放 R0 会被返回值毁）；
   `Int_HalfEnableAsynSignal` 只动内核计数，不碰 RVM 掩蔽。
 
-### 10.2 启动契约：StartOs 之前禁止 pop 出可运行事件（判例 §14-17）
+### 10.2 启动契约：StartOs 之前禁止 pop 出可运行事件（判例 §15-17）
 
 - `DJY_EventPop` 末尾的 `Int_RestoreAsynSignal()` 会**立刻调度**（`ready != running` 即切）。若在 `djy_main`
   （启动容器，**不是线程**）里 pop 出事件，切换的 from 却是 `g_ptEventRunning`（此时 = idle 服务事件）
@@ -625,7 +632,7 @@ port.c/portmacro.h/FreeRTOSConfig.h/tasks_rvm.c 跨目录**必须哈希一致**�
   不落则计 `djy_foreign_saves`、打印一次 `[FSAVE from= to= sp= lr= num=]`、并**拒绝把外来帧记名**——
   否则只会很久以后在一个无关操作上炸。
 
-### 10.3 静态堆只有 LIFO 回收（判例 §14-18）
+### 10.3 静态堆只有 LIFO 回收（判例 §15-18）
 
 - `__Heap_StaticFreeHeap` 只在被释放块恰为 `Cession->last`（最后一次分配）时回退 bump 指针；否则只摘链表节点、
   **空间永久丢失**（`heap_bottom` 只增不减）。
@@ -694,7 +701,7 @@ port.c/portmacro.h/FreeRTOSConfig.h/tasks_rvm.c 跨目录**必须哈希一致**�
 - **`#include_next` 被自己的副本兜住的陷阱**（DjyOS 章踩过）：`include/time.h` 里 `#include_next <time.h>` 原本并**不会**落到 newlib——旧的复制机制让 `-I../Include/` 里存在同名副本，include_next 找到它、又因 include 卫哨已被定义而整份跳过，等价于"newlib 的 time.h 从未被包含"。一旦取消复制，include_next 真正落到 newlib，newlib 声明的 `localtime_r(..., struct tm*)` 与内核 `time.c` 用扩展 `tm_djy` 写的同名定义立刻冲突。修法：`time.h` 明确不链 newlib（客机的 time.h 只有 DjyOS 这一份），time_t/timeval 由 `<sys/time.h>` 链里的 `sys/types.h` 提供。军规：**影子头里用 include_next 之前，先想清楚"它到底会落到谁头上"，以及副本消失后行为是否变化**。
 - **注释批量重排的教训**（DjyOS 章踩过）：用脚本把块注释改成 `@` 风格时，凡"首行 `/*` 后带正文、末行 `*/` 前带正文"的块会被整行替换掉——文字静默丢失而 `.text` 依旧全等。所以"只动注释"的证明不够，**还必须抽查每块注释的首行与末行**（或先 dump 一遍块边界再改）；发现丢失按原文补回。
 - **命名**：端口自有符号一律 `djy_`/`Djy_` 前缀（`djy_from_vm`、`Djy_Ctx_Handler`、`djy_attach_phys`…），与内核自有的 `DJY_*`/`Djy*` API、`Int_*`/`__Int_*` 模块符号区分开——这是有意的偏离：端口加进内核命名空间时必须一眼看出归属。
-- **改 .c 不等于重编**、**改平台头不等于进工作区**——见 §13 军规 3。
+- **改 .c 不等于重编**、**改平台头不等于进工作区**——见 §14 军规 3。
 
 ### 10.9 空闲超级调用的调用点（掩码约束，2026-10-29）
 
@@ -705,9 +712,39 @@ port.c/portmacro.h/FreeRTOSConfig.h/tasks_rvm.c 跨目录**必须哈希一致**�
 
 ---
 
-## 11. 生成器知识
+## 11. KLite V5.2.1 on RVM 纪念性移植（M7 + GCC 单组合，9+1 真机）
 
-### 11.1 重建流程与坑
+### 11.1 移植形态：天生纯延迟内核的 RMP 式快路径
+
+- 树 `C:\Code_Library\KLite_V521`（kernel.c 自报 5.2.1，作者 master 快照；MIT）。内核 `sources/kernel/*.c` 平台无关、无配置头；端口在 `sources/cpu/armv7-m_rvm/`（随 KLite 以核心命名目录）：`cpu.c` + `cpu_asm_gcc.s` 两件。
+- **契约**：7 个 `cpu_*` 函数 + 调度全局 `sched_tcb_now/next`（internal.h:67-68 extern，官方汇编按名引用）+ `stack` 为 tcb 首字段（官方 asm `STR SP,[R1]` 的事实契约）。端口 include 面与官方 cpu.c 相同：仅 `kernel.h`+`rvm.h`，不 include internal.h。
+- **切换架构（RMP 形态，用户裁定）**：`cpu_contex_switch` 只置 `m_switch_pend`（vct 上下文补 `RVM_Virt_Yield()`=RMP_YIELD_ISR 臂）；最外层 `cpu_leave_critical`（计数 1→0）经 `klt_yield` 消费：Vct_Act→仅解掩码 / 自切→消费旗标 / 脏帧→`RVM_Virt_Yield+Unmask` 布防慢路径 / 干净→汇编快路径 `cpu_contex_swt`。快路径蓝本=RMP `_RMP_A7M_RVM_Yield_Swt`（宏逐条对照），换成 KLite 的两个全局 + from==NULL 首切分支；锚点=KLite 官方 ARM9 端口在 leave_critical 发 SWI 的同一哲学。
+- **冻结点不变式**：所有上下文冻结都在嵌套计数==0（快路径冻在 klt_yield 尾、慢路径冻在 Unmask 边界或 mask==0 指令边界）→ void/void 全局计数天然自洽，无需每线程携带（不能像 RTT 在临界区中部快切的原因）。
+
+### 11.2 脏帧 peek 与帧布局
+
+- **垫字规约（本移植锁定）**：对齐垫字在 XPSR **之上**（帧顶），XPSR 恒在自保存 SP 数起的字 21——异常**返回**语义决定（R0 恒在 [SP]、xPSR 在 [SP+28]、bit9 只让最终 SP 多消费 4 字节），FRT portasm.s 实现同证。peek=单常量 `klt_frame_dirty()`：`*(u32**)sched_tcb_next` 偏移 0 盲解引用（FRT `xPortFrameDirty` 式）+ `sp[21]&0x0600FC00`。
+- 三生产者帧互换：`cpu_contex_init` / 快路径保存 / `klt_ctx_handler` 共用同一组端口本地偏移常量；EXC_POP 内联脏检查 → `klt_yield_err` 陷阱兜底。
+
+### 11.3 判例（两处真根因，均已板上实证）
+
+- **判例 A（启动崩溃 Addr 0x8 循环）**：`kernel_start()` 之前调了带锁/带调度的内核 API——`queue_create→mpool_create→mutex_lock` 无争用分支执行 `mutex->owner=sched_tcb_now; owner->prio`，而 `sched_tcb_now` 是 NULL（首切前）。修法：对象创建搬进引导线程（官方例程模式），内核零修改。**军规：KLite 加锁/调度类内核调用必须在线程上下文（`thread_create` 是唯一安全的前置 API）。**
+- **判例 B（ISR 相全静默）**：`klt_yield` 起手就清 `m_switch_pend`——在 vct 路径上把旗标吃掉，`Vct_Loop` 尾的 `klt_ctx_handler` 一查旗标没了直接返回，**切换永远不发生**：ISR 端 30000 个中断自跑自灭（Vct[2]=NULL、物理 NVIC 关、TIM4 SR 残留全是这个状态的指纹），接收线程一路沉睡。修法：只有自切与快路径消费旗标；vct/脏帧分支必须把旗标留给 ctx handler。
+- 取证手法备忘：TIM4/外设状态跨 VM 重启与软复位**残留**（判例 A 里 TIM4"已配置"是早前 RTT 运行的残影）；BSS 全 0 分不清"成功返回 0"与"没跑到"，插桩要打印、不能只存返回码。
+
+### 11.4 空闲停车与 benchmark
+
+- 停车：`klt_set_idle_hook(→RVM_Hyp_Vct_Wait)` 由 `cpu_sys_sleep()` 在 Unmask/hook/Mask 包裹中回调（该函数运行在内核临界区内 mask=1，不开掩码停车会睡死）；benchmark 不注册=忙等。普通 main 注册，随四客机约定（策略在 main）。
+- 9+1 项（RTT/FRT 同构）：Yield=`thread_yield` 乒乓 / Notification=`event`(auto_reset) / Semaphore=`sema` / MsgQ=opt `queue`(4B) / Memory=`heap_alloc/free`×8 随机序 + ISR Noti/Sem/MsgQ（相状态机）+ relay（TIM4+共享页）。阻塞等待用 `0xFFFFFFFF`（KLite 超时 0=非阻塞）。
+- 基线（H743/GCC -O3，AVG/MAX/MIN，两次复位逐位相同；镜像 11.65kB Flash/20.27kB SRAM 含 20kB 堆）：Yield 291/1496/284、Notification 428/1612/424、Semaphore 379/448/356、MsgQ 1402/2768/1392、Memory 2751/4100/2748、ISR Noti 1059/1256/980、ISR Sem 996/2156/928、ISR MsgQ 1964/2032/1888、ISR relay 1883/2180/1740。正式档案=芯片头档案块。
+- 内核零修改：sources/kernel|opt 对 klite-master.zip 逐字节 diff 为零（无 DJY 式豁免）。
+- **FPU/no-FPU 双配置已验**（同板，两侧 9+1 全出数、零故障零重入）：`Coprocessor=FPV5_DP`（rvp 芯片行+Virt1 段两处，内核 `RME_COP_NUM=1`、客机 makefile 加 `-mfpu=fpv5-d16`、ABI 仍软浮点）时 Yield 288、ISR Noti/Sem/MsgQ 1102/1072/2024、relay 1885——差价集中在 vct 线程项（内核每线程切换多一次 Cop 交换），线程级快路径不受影响。`#if defined(__ARM_FP) #error` 守卫已实测：软浮点编译过、硬浮点 ABI 直接 #error。复现法=§10.7 DJY 同款（临时 rvp、独立工作区、验完删）。
+
+---
+
+## 12. 生成器知识
+
+### 12.1 重建流程与坑
 
 - 响应文件法：`g++ @resp.txt`（Release\resp.txt；~50 cpp + 预编译 xml.o；C++17/-O2/-static/-s）。**响应文件内路径必须正斜杠**（反斜杠被 GCC 当转义吃掉）；xml.c 是 C 不能混编 C++（用预编译 xml.o）。编译 ~60s 超 30s 红线 → Start-Process 分离跑，完成后校验 build_err.txt。
 - **时间戳假新鲜**：旧 rvgen_new.exe 未删时 Test-Path 即真会换装陈货——换装前比对 exe 与 build_err 的 LastWriteTime。
@@ -721,15 +758,15 @@ port.c/portmacro.h/FreeRTOSConfig.h/tasks_rvm.c 跨目录**必须哈希一致**�
 - 平台兼容表：rvp 的 Guest 组合要在 `Include\Platform\<ARCH>\rvm_platform_*.rva` 的 `<Guest>` 与 `<Compatible>`（C 行=Buildsystem,Toolchain,Guest 三元组）里开；漏开报 "Combination 'X/Y/Z' is not found in compatible list"。
 - 命名约定：Buildsystem=IAREW / 工程前缀=EWARM / Toolchain=ICCARM / 汇编后缀 _iccarm.s。
 
-### 11.2 Guest/ 镜像规范 v1.0
+### 12.2 Guest/ 镜像规范 v1.0
 
 - 定位=全部客机"我方增量件"的镜像暂存区；官方件永不入镜。update.sh：`rm -rf ./*/` 后逐条 `cp -r`（幂等）。
 - 条目规则：尾随空格分词、无尾斜杠、大小写逐字；按客机分段、段内变体成对、测试收尾；粒度随客机原生分类；循环对目录用 `[ -d ]`、对单文件用 `[ -f ]`（DjyOS 的 benchmark 文件寄生在发行版自己的 `test/` 里，整目录镜像会把作者的示例测试一起卷进来，只能逐文件列），两者都不命中才 skip（可提前挂未来条目当 intent 文档）。
 - 当前清单：FRT 8 条 + UO3 7 条 + RTT 6 条（libcpu 三端口 + test 树）+ DjyOS 5 条（`bsp/arch/arm/cortex-m/armv7e-m_rvm` 端口目录 + 3 个 test 源文件 + 1 个 chip 测试头）。
 
-### 11.3 rvp 体系不变量与基础设施
+### 12.3 rvp 体系不变量与基础设施
 
-- **rva 的 `<Compatible>` 一律按三元组 `(Buildsystem,Toolchain,Guest)` 字典序排列，索引 `C0..Cn` 连续**（生成器只做集合成员检查，顺序无语义；平台头 `<Coprocessor>` 的顺序同理只影响 `COP_NUM` 与按名 0/1 宏，不要为了"好看"去重排它——保持与既有生成物一致）。当前三份：A6M 15 条、A7M 16 条（多 DJY）、RV32P 5 条。
+- **rva 的 `<Compatible>` 一律按三元组 `(Buildsystem,Toolchain,Guest)` 字典序排列，索引 `C0..Cn` 连续**（生成器只做集合成员检查，顺序无语义；平台头 `<Coprocessor>` 的顺序同理只影响 `COP_NUM` 与按名 0/1 宏，不要为了"好看"去重排它——保持与既有生成物一致）。当前三份：A6M 15 条、A7M 17 条（多 DJY）、RV32P 5 条。
 - **37 工程单一差异语法（终态不变量，全库字符级审计 0 违规）**：同芯片 rvp 两两差异仅三类——Guest_Type(1 行)/Coprocessor×4(NOFPU)/Buildsystem+Toolchain×11(跨链)；其余 350+ 行逐字符相同（含内存布局/优化级/缩进）。同芯片各链 RTOS 变体共用相同 Data 满配与内存布局（历史"方言"已收敛）。G071 的 hypervisor 侧 Optimization=Os 为 RMP/FRT/UO3 三链与 RTT（GCC，rvp 自 FRT 克隆承袭）共有的芯片级选择。
 - **rvp 是从未跑过的资产=未验证资产，首次使用前先验完整性**（可解析/无 NUL 字节；曾发现 gccmf-g071-rmp 在 git 库中是损坏 blob——`git ls-files --eol` 出现 `i/-text` 的文本文件即坏 blob 信号）。
 - **autobuild 检测定制正则（大小写不敏感）**：gcc `error:|fatal error|*** Error N`；IAR `Error[Pe..]`+非零 summary；Keil `error:`+`[1-9]+ Error(`；生成检测含 `^Error:` 变体。失败打印前 5 条错误原文；warning 全链计数报告（msys 无 bc，用 awk 求和）暂不判 FAIL。
@@ -737,9 +774,9 @@ port.c/portmacro.h/FreeRTOSConfig.h/tasks_rvm.c 跨目录**必须哈希一致**�
 
 ---
 
-## 12. 成果基线索引（正式数据一律以 test 头文件档案块为准）
+## 13. 成果基线索引（正式数据一律以 test 头文件档案块为准）
 
-### 12.1 FRT（FreeRTOS-on-RVM）链状态
+### 13.1 FRT（FreeRTOS-on-RVM）链状态
 
 | 芯片 | GCC | Keil | IAR | 正式档案 |
 |---|---|---|---|---|
@@ -750,7 +787,7 @@ port.c/portmacro.h/FreeRTOSConfig.h/tasks_rvm.c 跨目录**必须哈希一致**�
 
 - 全矩阵编译回归：10/10 可测组合五工程全绿（V307×Keil/IAR 结构性 N/A——新树无 RV32P 的 RVDS/IAR 端口）。
 
-### 12.2 UO3（uC/OS-III-on-RVM）链状态
+### 13.2 UO3（uC/OS-III-on-RVM）链状态
 
 | 芯片 | GCC | Keil | IAR | 正式档案 |
 |---|---|---|---|---|
@@ -762,11 +799,11 @@ port.c/portmacro.h/FreeRTOSConfig.h/tasks_rvm.c 跨目录**必须哈希一致**�
 - P0+P1（已闭环）：同优先级 RR 编排；OSCtxSw=asm 任务栈直接换帧（官方 asm 风格），OSIntCtxSw=慢路径超调用；定档演进：慢路径 2840 → 快路径 806（同尘化后）。
 - **同尘化彻底完成**：端口层+benchmark 层全部对齐 uC/OS-III 官方规范；重命名后成绩逐项不变。
 
-### 12.3 RMP-on-RVM IAR 链
+### 13.3 RMP-on-RVM IAR 链
 
 G071/F429/H743 三板全部真机闭环（rvm_test_stm32*.h 各 ICCARM 块）。G071 真机 Kernel.bin 102876B；H743 342476B / F429 230968B。
 
-### 12.4 RTT（RT-Thread-on-RVM）链状态
+### 13.4 RTT（RT-Thread-on-RVM）链状态
 
 | 芯片 | GCC | Keil | IAR | 正式档案 |
 |---|---|---|---|---|
@@ -779,7 +816,7 @@ G071/F429/H743 三板全部真机闭环（rvm_test_stm32*.h 各 ICCARM 块）。
 - VSS 实况：H743-rtt=0x800、F429-rtt=0x1000、G071-rtt=0x800（㉙ 回退后 H743 未再改 0x1000，当日快路径全绿实证 0x800 足够——Vct 实测深度 280B）。
 - VCT 栈深实测参考：M0+=68B、M7=280B（刷漆法）——各 RTOS tick 链深浅不同，新 RTOS 移植必须实测。
 
-### 12.5 DJY（DjyOS-on-RVM）纪念性移植链
+### 13.5 DJY（DjyOS-on-RVM）纪念性移植链
 
 | 芯片 | GCC | Keil | IAR | 正式档案 |
 |---|---|---|---|---|
@@ -788,9 +825,17 @@ G071/F429/H743 三板全部真机闭环（rvm_test_stm32*.h 各 ICCARM 块）。
 - 组合唯一：**M7 + GCC + `-djy`**（纪念性移植，作者唯一工具链是 GCC，四板中仅 H743 有 DjyOS 官方板级包）。
 - 11 项 = Yield / Notification / Activation / Semaphore / MsgQ / Memory + ISR Notification / Activation / Semaphore / Message queue / RVM relay。
 - 判绿哨兵：`defers=0 padded=0 badframes=0 foreign=0` + `Benchmark complete`（细节与基线数字见 §10）。
+
+### 13.6 KLT（KLite-on-RVM）纪念性移植链
+
+| 芯片 | GCC | Keil | IAR | 正式档案 |
+|---|---|---|---|---|
+| H743 (A7M) | ✅ 真机 9+1（Yield 291，两次复位逐位相同） | N/A（单组合） | N/A（单组合） | klite_test_stm32h743zi_rvm.h |
+
+- 组合唯一：**M7 + GCC + `-klt`**；判绿=9 项+relay 全出数、无 fault、无 reenter；细节与判例见 §11。
 - README 纪念性移植行已填：27.54 kB Flash / 63.38 kB SRAM（客机镜像含 32KB 静态堆与 2KB/事件类型栈）。
 
-### 12.6 数据判读参考量级
+### 13.7 数据判读参考量级
 
 - ICCARM(-Oh) 通常介于 ARMCLANG -O3 与 GNU -O3 之间（三板 FRT 一致）。
 - M7 板（H743）必须开 L1 Cache 的数据才有效（4~5 倍差）。
@@ -798,7 +843,7 @@ G071/F429/H743 三板全部真机闭环（rvm_test_stm32*.h 各 ICCARM 块）。
 
 ---
 
-## 13. 一句话军规
+## 14. 一句话军规
 
 1. 内核文件（tasks.c / uC-OS3 Source/os_*.c / RTT src/*.c）永不改——要内核内部状态就 include 它（tasks_rvm.c 模式）。
 2. 大文件 here-string 整写；写完校验行数与首尾；汇编逐函数核对。
@@ -828,17 +873,17 @@ G071/F429/H743 三板全部真机闭环（rvm_test_stm32*.h 各 ICCARM 块）。
 
 ---
 
-## 14. 历史判例总索引（一案一行，根因+教训；详情见对应章节）
+## 15. 历史判例总索引（一案一行，根因+教训；详情见对应章节）
 
 | # | 系统/板 | 现象 | 根因 | 教训落点 |
 |---|---|---|---|---|
-| 1 | UO3 G071 | tick/ctx 全灭，黑匣子计数全 0 | CPU_SR_Save 返回新值非旧值→Restore 回不到 0 | §13 军规 13 |
+| 1 | UO3 G071 | tick/ctx 全灭，黑匣子计数全 0 | CPU_SR_Save 返回新值非旧值→Restore 回不到 0 | §14 军规 13 |
 | 2 | UO3 IAR A7M | INVSTATE 100% 必挂 | OS_CPU_ALIGN_PUSH 极性从 A6M 抄来没翻（3字/BEQ vs 2字/BNE） | §8.4；军规 17 |
 | 3 | UO3 全 | 语义对齐 | CPU_SR 计数制→官方快照制直译（virtlib 函数须 extern 导出） | §8 CPU 侧 |
 | 4 | UO3 F429 GCC/IAR | 75% 概率 INVSTATE | OSCtxSw C 包装无入口掩蔽，共享竞态窗口 | §8.4 |
 | 5 | FRT 全端口 | 临界区内 yield 击穿 | 缺 deferred-yield 软件 pend | §8.4；军规 15 前身 |
 | 6 | UO3/FRT/RMP 三家慢路径 | 慢路径裸窗 | Unmask→Yield 调序（应 pend-then-arm）；RTT 端口晚出，生而 pend-then-arm | §8.4；§6.4 |
-| 7 | RMP V307 | FPU 帧 Instruction access fault | 未定义宏在 #if 静默求值为 0，同固件两种帧格式 | §14 注：任何引用 hypervisor 配置宏做编译期分支的文件必须自拉定义链或 #error；-Wundef 可现形 |
+| 7 | RMP V307 | FPU 帧 Instruction access fault | 未定义宏在 #if 静默求值为 0，同固件两种帧格式 | §15 注：任何引用 hypervisor 配置宏做编译期分支的文件必须自拉定义链或 #error；-Wundef 可现形 |
 | 8 | H743 | "DTCM 高 64KB 写黑洞" | WCH fork OpenOCD 仪器假象（CubeProg 实测推翻） | §5.7；军规 19 |
 | 9 | RTT G071 | Sftd 无限恢复循环 PC=context_gcc.s | rt_hw_context_switch_to 丢入参 STR | §9.1 |
 | 10 | RTT G071 | ISR 相刷屏/饿死 | 逐 tick 诊断打印=自持活锁（putchar 超调用 87µs/字符） | §9.2-6；军规 18 |

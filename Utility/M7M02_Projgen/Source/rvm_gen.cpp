@@ -128,6 +128,7 @@ std::string Main::Guest_RMP_Root;
 std::string Main::Guest_FRT_Root;
 std::string Main::Guest_RTT_Root;
 std::string Main::Guest_DJY_Root;
+std::string Main::Guest_KLT_Root;
 std::string Main::Guest_UO2_Root;
 std::string Main::Guest_UO3_Root;
 std::string Main::Guest_MPY_Root;
@@ -2152,6 +2153,14 @@ Return      : None.
                 Main::Guest_DJY_Root=Main::Path_Absolute(PATH_DIR, "", argv[Count+1]);
                 Count+=2;
             }
+            /* Input KLite root folder */
+            else if(strcmp(argv[Count],"-klt")==0)
+            {
+                if(Main::Guest_KLT_Root!="")
+                    Main::Error("XXXXX: More than one directory specified for the same guest.");
+                Main::Guest_KLT_Root=Main::Path_Absolute(PATH_DIR, "", argv[Count+1]);
+                Count+=2;
+            }
             /* Output workspace root folder */
             else if(strcmp(argv[Count],"-w")==0)
             {
@@ -2227,6 +2236,8 @@ Return      : None.
                                 "       -rmp: RMP root folder; needed when RMP is the guest.\n"
                                 "       -frt: FreeRTOS root folder; needed when FreeRTOS is the guest.\n"
                                 "       -rtt: RT-Thread root folder; needed when RT-Thread is the guest.\n"
+                                "       -djy: DjyOS root folder; needed when DjyOS is the guest.\n"
+                                "       -klt: KLite root folder; needed when KLite is the guest.\n"
                                 "       -uo2: uC/OS II root folder; needed when uC/OS II is the guest.\n"
                                 "       -uo3: uC/OS III root folder; needed when uC/OS III is the guest.\n"
                                 "       -w: Workspace output folder.\n"

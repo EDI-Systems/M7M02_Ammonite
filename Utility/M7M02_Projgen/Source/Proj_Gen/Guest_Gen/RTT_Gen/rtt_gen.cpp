@@ -4,7 +4,7 @@ Author      : pry, Cline
 Date        : 26/10/2026
 Licence     : LGPL v3+; see COPYING for details.
 Description : The RT-Thread guest OS generator.
-/******************************************************************************/
+*******************************************************************************/
 
 /* Include *******************************************************************/
 extern "C"
@@ -69,7 +69,7 @@ Input       : class Proj_Info* Proj - The project information.
                class Chip_Info* Chip - The chip information.
 Output      : None.
 Return      : None.
-/******************************************************************************/
+******************************************************************************/
 /* void */ RTT_Gen::RTT_Gen(class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip):
 Guest_Gen("RTT", Proj, Plat, Chip)
 {
@@ -90,7 +90,7 @@ Description : Map the platform name onto the RT-Thread libcpu architecture
 Input       : None.
 Output      : None.
 Return      : std::string - The architecture directory name.
-/******************************************************************************/
+******************************************************************************/
 std::string RTT_Gen::Plat_Get(void)
 {
     if(this->Plat->Name=="A6M")
@@ -103,7 +103,7 @@ std::string RTT_Gen::Plat_Get(void)
     Main::Error("RT-Thread generator:\nNo RVM port available for platform '"+this->Plat->Name+"'.");
     return "";
 }
-/* End Function:RTT_Gen::Plat_Get *************************************/
+/* End Function:RTT_Gen::Plat_Get ********************************************/
 
 /* Function:RTT_Gen::Toolchain_Get ********************************************
 Description : Map the toolchain name onto the RT-Thread compiler file suffix
@@ -112,7 +112,7 @@ Description : Map the toolchain name onto the RT-Thread compiler file suffix
 Input       : class Virtual* Virt - The process to generate for.
 Output      : None.
 Return      : std::string - The compiler file suffix.
-/******************************************************************************/
+******************************************************************************/
 std::string RTT_Gen::Toolchain_Get(class Virtual* Virt)
 {
     if(Virt->Toolchain=="ARMCC")
@@ -122,7 +122,7 @@ std::string RTT_Gen::Toolchain_Get(class Virtual* Virt)
 
     return "gcc";
 }
-/* End Function:RTT_Gen::Toolchain_Get *******************************/
+/* End Function:RTT_Gen::Toolchain_Get ***************************************/
 
 /* Function:RTT_Gen::Port_Dir_Get *********************************************
 Description : Map the toolchain and the platform onto the port directory of
@@ -133,7 +133,7 @@ Description : Map the toolchain and the platform onto the port directory of
 Input       : class Virtual* Virt - The process to generate for.
 Output      : None.
 Return      : std::string - The port directory.
-/******************************************************************************/
+*******************************************************************************/
 std::string RTT_Gen::Port_Dir_Get(class Virtual* Virt)
 {
     (void)Virt;
@@ -143,14 +143,14 @@ std::string RTT_Gen::Port_Dir_Get(class Virtual* Virt)
 
     return Main::Guest_RTT_Root+"libcpu/arm/"+this->Plat_Get()+"_rvm/";
 }
-/* End Function:RTT_Gen::Port_Dir_Get *******************************/
+/* End Function:RTT_Gen::Port_Dir_Get ****************************************/
 
 /* Function:RTT_Gen::Process_Virt_Hdr *****************************************
 Description : Create the configuration headers for VMs.
 Input       : class Virtual* Virt - The process to generate for.
 Output      : None.
 Return      : None.
-/******************************************************************************/
+******************************************************************************/
 void RTT_Gen::Process_Virt_Hdr(class Virtual* Virt)
 {
     std::string Port_Dir;
@@ -221,7 +221,7 @@ Input       : class Virtual* Virt - The process to generate for.
                class Tool_Gen* Tool - The toolchain to use.
 Output      : None.
 Return      : None.
-/******************************************************************************/
+******************************************************************************/
 void RTT_Gen::Process_Virt_Src(class Virtual* Virt, class Tool_Gen* Tool)
 {
     std::string Port_Dir;

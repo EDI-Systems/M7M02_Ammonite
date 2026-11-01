@@ -20,7 +20,7 @@
 
 ### 本库周边的仓库布局
 
-本库是一个七仓库体系的组成部分。工程生成器（`rvgen`）按相对路径定位
+本库是一个八仓库体系的组成部分。工程生成器（`rvgen`）按相对路径定位
 各仓库，请将它们并排放在同一根目录下：
 
 ```
@@ -37,12 +37,14 @@
 ├─ FreeRTOS_V900/      FreeRTOS 源码树——移植层源文件在此，Guest 是其镜像
 ├─ uCOSIII_V308/       uC/OS-III 源码树（uC-OS3 + uC-CPU + uC-LIB）——同上
 ├─ RTThread_V411/      RT-Thread V4.1.1 源码树——端口在 libcpu/*_rvm，测试在 test/
-└─ DjyOS_V110/         DjyOS V1.1.0 源码树——端口在 bsp/arch/arm/cortex-m/armv7e-m_rvm，
+├─ DjyOS_V110/         DjyOS V1.1.0 源码树——端口在 bsp/arch/arm/cortex-m/armv7e-m_rvm，
+│                      基准在 test/
+└─ KLite_V521/         KLite V5.2.1 源码树——端口在 sources/cpu/armv7-m_rvm，
                        基准在 test/
 ```
 
 按下一节的方法把本库覆盖到你的官方 FreeRTOS / uC/OS-III / RT-Thread /
-DjyOS 源码树之后，那些源码树就顶替了上表布局中 `*_Vxxx/` 的位置。
+DjyOS / KLite 源码树之后，那些源码树就顶替了上表布局中 `*_Vxxx/` 的位置。
 
 ---
 
@@ -63,6 +65,10 @@ DjyOS 源码树之后，那些源码树就顶替了上表布局中 `*_Vxxx/` 的
 - 把 `DjyOS_V110/` 整体覆盖到 DjyOS **V1.1.0** 发行包根目录（目录合并；
   覆盖新增 `bsp/arch/arm/cortex-m/armv7e-m_rvm/` 与 `test/` 下四个基准
   文件）。这是纪念性移植，只有单一组合：Cortex-M7 + GCC + H743 板。
+- 把 `KLite_V521/` 覆盖到你的 KLite **V5.2.1** 源码树根目录（合并目录；
+  覆盖添加 `sources/cpu/armv7-m_rvm/` 与 `test/` 下的基准文件）。同为
+  纪念性移植，单组合 Cortex-M7 + GCC + H743 板——给工程生成器传
+  `-klt` 旗标即可使用。
 
 覆盖后的目录结构（RVM 端口目录与官方端口目录并排，就像额外的官方端口）：
 
@@ -274,7 +280,31 @@ EXC_RETURN、8 字基本硬件帧。脏帧（EPSR ICI/IT）走延迟路径，交
 异常返回消费；客机按软浮点编译，因为端口只构建整数帧。
 
 
-### 2.8 空闲停车（所有客机）
+### 2.8 KLite：契约、策略与微妙出入
+
+**契约**：KLite 天生纯延迟——内核在临界区内调 `cpu_contex_switch()`，
+官方 M 系列端口在那里只 pend 一个 PendSV，真正的切换发生在外层
+`cpu_leave_critical()` 重开中断时。void/void 递归临界区 API 由端口
+内部的嵌套计数承载，且调度器在调端口**之前**就把目标预选进了
+`sched_tcb_next` 全局。
+
+**策略**：RMP 形态——`cpu_contex_switch()` 只置端口旗标（在向量线程上
+再补一个 `RVM_Virt_Yield()`，即 RMP_YIELD_ISR 臂）；最外层
+`cpu_leave_critical()` 经 yield 分派器消费：自切吃掉旗标、脏帧布防
+慢路径、干净帧走 `cpu_asm_gcc.s` 的伪装快路径（RMP 金标准换上 KLite
+的两个调度全局，含弃启动栈的首切分支）。所有上下文冻结点都落在
+嵌套计数==0——这正是共享 void/void 计数无需每线程状态而保持自洽的
+原因。
+
+**出入与为何无碍**：内核只通过官方端口契约使用——`kernel.h`、两个
+调度全局、`stack` 为 `struct tcb` 首字段（官方 PendSV 自己依赖的
+偏移 0 盲解引用）；脏帧 peek 经同一契约读目标保存的 XPSR，不 include
+也不修改任何内核内部。KLite 的加锁/调度类内核调用（一个
+`queue_create` 就要拿互斥）要求 `sched_tcb_now` 非 NULL，所以基准与
+普通应用都**在线程里**创建内核对象、绝不在 `kernel_start()` 之前——
+与官方例程的用法完全一致。
+
+### 2.9 空闲停车（所有客机）
 
 RVM 用户手册 §4.4.3 要求客机的空闲线程反复调用 `RVM_Hyp_Vct_Wait()`
 （超调用 9）：把用户线程挂起、从运行队列摘除，直到下一个虚拟中断送达——
@@ -285,6 +315,7 @@ hook 本体放在**应用**里（生成器复制成工作区 `main.c` 的那个�
 端口：各家用自己的官方机制——FreeRTOS 的 `vApplicationIdleHook`
 （`configUSE_IDLE_HOOK 1`）、uC/OS-III 的 `OS_AppIdleTaskHookPtr`、
 RT-Thread 的 `rt_thread_idle_sethook`（`RT_USING_HOOK`/`RT_USING_IDLE_HOOK`）、
+KLite 的 `klt_set_idle_hook()`（由 `cpu_sys_sleep()` 在掩码包裹中回调，内核调它时掩码是合上的）；
 DjyOS 的 `djy_set_idle_hook()`（由 `CleanWakeupEvent` 在虚拟掩码开的位置
 回调）。benchmark 工程故意让 hook 空转（FreeRTOS 因配置共用必须定义一个空
 实现），使 idle 永不进入测量路径。

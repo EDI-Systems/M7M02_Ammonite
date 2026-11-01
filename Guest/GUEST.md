@@ -22,7 +22,7 @@ directory.
 
 ### The repositories around this library
 
-This library is one piece of a seven-repository system. The project generator
+This library is one piece of an eight-repository system. The project generator
 (`rvgen`) locates them by relative path, so keep them as siblings under one
 root:
 
@@ -40,13 +40,15 @@ root:
 ├─ FreeRTOS_V900/      the FreeRTOS tree — the port sources live here; Guest mirrors them
 ├─ uCOSIII_V308/       the uC/OS-III tree (uC-OS3 + uC-CPU + uC-LIB) — same
 ├─ RTThread_V411/      the RT-Thread V4.1.1 tree — ports in libcpu/*_rvm, tests in test/
-└─ DjyOS_V110/         the DjyOS V1.1.0 tree — port in bsp/arch/arm/cortex-m/armv7e-m_rvm,
+├─ DjyOS_V110/         the DjyOS V1.1.0 tree — port in bsp/arch/arm/cortex-m/armv7e-m_rvm,
+│                      benchmark in test/
+└─ KLite_V521/         the KLite V5.2.1 tree — port in sources/cpu/armv7-m_rvm,
                        benchmark in test/
 ```
 
 When you overlay this library onto your official FreeRTOS / uC/OS-III /
-RT-Thread / DjyOS trees (next section), those trees take the place of the
-`*_Vxxx/` entries in the layout above.
+RT-Thread / DjyOS / KLite trees (next section), those trees take the place
+of the `*_Vxxx/` entries in the layout above.
 
 ---
 
@@ -72,6 +74,11 @@ and every port lands in its intended place.
   `bsp/arch/arm/cortex-m/armv7e-m_rvm/` and four benchmark files under
   `test/`). This is a commemorative port with a single combination:
   Cortex-M7 + GCC + the H743 board.
+- Copy `KLite_V521/` over the root of your KLite **V5.2.1** tree (merge
+  directories; the overlay adds `sources/cpu/armv7-m_rvm/` and the
+  benchmark tree under `test/`). This is also a commemorative port with
+  the same single combination: Cortex-M7 + GCC + the H743 board — pass
+  the `-klt` flag to the project generator to use it.
 
 After the overlay, the RVM port directories sit beside the official ones,
 exactly like additional official ports:
@@ -322,7 +329,38 @@ the guest is compiled soft-float, because the port builds integer-only
 frames.
 
 
-### 2.8 Idle parking (every guest)
+### 2.8 KLite: contract, strategy, and the subtle deviations
+
+**Contract.** KLite is always-deferred: the kernel calls
+`cpu_contex_switch()` inside a critical section, and the official M-profile
+ports only pend a PendSV there - the switch happens when the outermost
+`cpu_leave_critical()` re-enables interrupts. The recursive void/void
+critical section API is carried by a port-internal nesting counter, and the
+scheduler pre-picks the target into the `sched_tcb_next` global before the
+port is called.
+
+**Strategy.** The RMP shape: `cpu_contex_switch()` only sets a port pend
+flag (plus one `RVM_Virt_Yield()` when already on the vector thread, the
+RMP_YIELD_ISR arm), and the outermost `cpu_leave_critical()` consumes it
+through a yield dispatcher - self-switch consumes the flag, a dirty target
+frame pends the slow path, a clean one takes the masquerade fast path in
+`cpu_asm_gcc.s` (the RMP gold standard translated to KLite's two
+scheduler globals, with a first-switch branch that abandons the startup
+stack). Every context freeze lands at a nesting of zero, which is what
+keeps the shared void/void counter consistent without per-thread state.
+
+**Deviations and why they are sound:** the kernel is used strictly through
+its official port contract - `kernel.h`, the two scheduler globals, and the
+fact that `stack` is the first member of `struct tcb` (the blind
+offset-0 dereference the official PendSV itself relies on); the dirty-frame
+peek reads the target's saved XPSR through that same contract, so no kernel
+internals are ever included or modified. KLite kernel calls that lock or
+schedule (a `queue_create` alone takes a mutex) require a non-NULL
+`sched_tcb_now`, so the benchmark and the plain application create their
+kernel objects from a thread, never before `kernel_start()` - exactly the
+official examples' pattern.
+
+### 2.9 Idle parking (every guest)
 
 The RVM user manual (§4.4.3) requires a guest's idle thread to call
 `RVM_Hyp_Vct_Wait()` (hypercall 9) repeatedly: it suspends the user thread
@@ -336,6 +374,8 @@ copies into the workspace as `main.c`. Each guest uses its own official
 mechanism — `vApplicationIdleHook` (`configUSE_IDLE_HOOK 1`) for FreeRTOS,
 `OS_AppIdleTaskHookPtr` for uC/OS-III, `rt_thread_idle_sethook`
 (`RT_USING_HOOK`/`RT_USING_IDLE_HOOK`) for RT-Thread, and
+`klt_set_idle_hook()` for KLite, whose `cpu_sys_sleep()` runs it inside a
+mask bracket (the kernel calls it with the mask held); and
 `djy_set_idle_hook()` for DjyOS, whose `CleanWakeupEvent` invokes it with the
 virtual interrupt mask open. Benchmark builds deliberately keep the hook
 inert (FreeRTOS defines an empty one because the config is shared) so idle

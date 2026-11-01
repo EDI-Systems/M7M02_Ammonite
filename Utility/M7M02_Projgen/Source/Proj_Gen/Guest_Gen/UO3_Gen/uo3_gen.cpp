@@ -58,8 +58,6 @@ extern "C"
 #include "Proj_Gen/Guest_Gen/UO3_Gen/uo3_gen.hpp"
 #undef __HDR_CLASS__
 /* End Include ***************************************************************/
-
-/* Define ********************************************************************/
 namespace RVM_GEN
 {
 /* Function:UO3_Gen::UO3_Gen **************************************************

@@ -1,10 +1,10 @@
 /*****************************************************************************
-Filename    : DJY_Gen.cpp
+Filename    : djy_gen.cpp
 Author      : pry, Cline
 Date        : 28/10/2026
 Licence     : LGPL v3+; see COPYING for details.
 Description : The DjyOS guest OS generator.
-/******************************************************************************/
+******************************************************************************/
 
 /* Include *******************************************************************/
 extern "C"
@@ -51,17 +51,16 @@ extern "C"
 #include "Mem_Info/mem_info.hpp"
 #include "Vect_Info/vect_info.hpp"
 #include "Conf_Info/conf_info.hpp"
+
 #include "Proj_Gen/proj_gen.hpp"
-#include "Proj_Gen/Build_Gen/build_gen.hpp"
 #include "Proj_Gen/Tool_Gen/tool_gen.hpp"
 #include "Proj_Gen/Guest_Gen/guest_gen.hpp"
 #include "Proj_Gen/Guest_Gen/DJY_Gen/djy_gen.hpp"
 #undef __HDR_CLASS__
-
+/* End Include ***************************************************************/
 namespace RVM_GEN
 {
-
-/* Function:DJY_Gen::DJY_Gen ***************************************************
+/* Function:DJY_Gen::DJY_Gen **************************************************
 Description : Constructor function.
 Input       : class Proj_Info* Proj - The project information.
                class Plat_Info* Plat - The platform information.
@@ -69,14 +68,21 @@ Input       : class Proj_Info* Proj - The project information.
 Output      : None.
 Return      : None.
 ******************************************************************************/
-DJY_Gen::DJY_Gen(class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip) :
-           Guest_Gen("DJY",Proj,Plat,Chip)
+/* void */ DJY_Gen::DJY_Gen(class Proj_Info* Proj, class Plat_Info* Plat, class Chip_Info* Chip):
+Guest_Gen("DJY", Proj, Plat, Chip)
 {
+    try
+    {
 
+    }
+    catch(std::exception& Exc)
+    {
+        Main::Error(std::string("DJY generator:\n")+Exc.what());
+    }
 }
 /* End Function:DJY_Gen::DJY_Gen *********************************************/
 
-/* Function:DJY_Gen::Plat_Get **************************************************
+/* Function:DJY_Gen::Plat_Get *************************************************
 Description : Map the platform name onto the DjyOS bsp architecture directory
               name.  The port layer is architecture level and integer-only,
               so the v7 and v7e levels are deliberately not distinguished -
@@ -99,7 +105,7 @@ std::string DJY_Gen::Plat_Get(void)
 }
 /* End Function:DJY_Gen::Plat_Get ********************************************/
 
-/* Function:DJY_Gen::Toolchain_Get *********************************************
+/* Function:DJY_Gen::Toolchain_Get ********************************************
 Description : Map the toolchain name onto the DjyOS compiler file suffix
               (gcc = GNU as, iar = iasmarm, rvds = armasm - the official
               bsp naming adapted to our lowercase port file convention).
@@ -118,7 +124,7 @@ std::string DJY_Gen::Toolchain_Get(class Virtual* Virt)
 }
 /* End Function:DJY_Gen::Toolchain_Get ***************************************/
 
-/* Function:DJY_Gen::Port_Dir_Get **********************************************
+/* Function:DJY_Gen::Port_Dir_Get *********************************************
 Description : Map the toolchain and the platform onto the port directory of
               the DjyOS tree.  The port directories sit next to the official
               bsp architecture directories, as the RVM variant of the very
@@ -135,7 +141,7 @@ std::string DJY_Gen::Port_Dir_Get(class Virtual* Virt)
 }
 /* End Function:DJY_Gen::Port_Dir_Get ****************************************/
 
-/* Function:DJY_Gen::Process_Virt_Hdr ******************************************
+/* Function:DJY_Gen::Process_Virt_Hdr *****************************************
 Description : Create the configuration headers for VMs.
 Input       : class Virtual* Virt - The process to generate for.
 Output      : None.
@@ -209,7 +215,7 @@ void DJY_Gen::Process_Virt_Hdr(class Virtual* Virt)
 }
 /* End Function:DJY_Gen::Process_Virt_Hdr ************************************/
 
-/* Function:DJY_Gen::Process_Virt_Src ******************************************
+/* Function:DJY_Gen::Process_Virt_Src *****************************************
 Description : Create the configuration source for VMs.
 Input       : class Virtual* Virt - The process to generate for.
                class Tool_Gen* Tool - The toolchain to use.

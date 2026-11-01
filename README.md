@@ -104,13 +104,10 @@ This software is an official work of EDI, and thus belongs to the **public domai
 
 ### Commemorative ports
 
-|Machine      |Toolchain     |RTOS      |Flash|SRAM|Yield|Mail |Sem  |Mail/I|Sem/I|Mem  |
-|:-----------:|:------------:|:--------:|:---:|:--:|:---:|:---:|:---:|:----:|:---:|:---:|
-|Cortex-M7    |GCC           |DjyOS     |27.49|63.38| 1017| 1488|  892|  1873| 1220|  288|
-|...          |...           |Litex     |     |    |     |     |     |      |     |     |
-|...          |...           |Contiki   |     |    |     |     |     |      |     |     |
-
-
+|Machine      |Toolchain     |RTOS                                   |Flash|SRAM|Yield|Mail |Sem  |Mail/I|Sem/I|Mem  |
+|:-----------:|:------------:|:-------------------------------------:|:---:|:--:|:---:|:---:|:---:|:----:|:---:|:---:|
+|Cortex-M7    |GCC           |[DjyOS](Guest/DjyOS_V110/DJYOS.md)     |27.49|63.38| 1017| 1488|  892|  1873| 1220|  288|
+|Cortex-M7    |GCC           |[KLite](Guest/KLite_V521/KLITE.md)     |11.65|20.27|  291| 1402|  379|  1964|  996| 2751|
 
 ### Practical ports
 

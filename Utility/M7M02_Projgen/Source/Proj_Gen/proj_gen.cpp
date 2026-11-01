@@ -81,6 +81,7 @@ extern "C"
 #include "Proj_Gen/Guest_Gen/UO3_Gen/uo3_gen.hpp"
 #include "Proj_Gen/Guest_Gen/RTT_Gen/rtt_gen.hpp"
 #include "Proj_Gen/Guest_Gen/DJY_Gen/djy_gen.hpp"
+#include "Proj_Gen/Guest_Gen/KLT_Gen/KLT_Gen.hpp"
 #undef __HDR_CLASS__
 /* End Include ***************************************************************/
 namespace RVM_GEN
@@ -228,6 +229,12 @@ void  Proj_Gen::Guest_Load(const std::string& Name)
             if(Main::Guest_DJY_Root=="")
                 Main::Error("XXXXX: Guest path for '"+Name+"' is missing.");
             Guest=std::make_unique<class DJY_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
+        }
+        else if(Name=="KLT")
+        {
+            if(Main::Guest_KLT_Root=="")
+                Main::Error("XXXXX: Guest path for '"+Name+"' is missing.");
+            Guest=std::make_unique<class KLT_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
         }
         else
             Main::Error("XXXXX: Guest generator for '"+Name+"' is not found.");

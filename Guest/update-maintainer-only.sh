@@ -38,6 +38,10 @@ GUESTS+="DjyOS_V110/test/djy_benchmark.c "
 GUESTS+="DjyOS_V110/test/djy_main.c "
 GUESTS+="DjyOS_V110/test/chip/djy_test_stm32h743zi_rvm.h "
 
+# KLite V5.2.1
+GUESTS+="KLite_V521/sources/cpu/armv7-m_rvm "
+GUESTS+="KLite_V521/test "
+
 rm -rf ./*/
 
 for GUEST in $GUESTS; do
