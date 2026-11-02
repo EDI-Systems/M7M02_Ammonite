@@ -22,6 +22,7 @@ UO3="../../uCOSIII_V308/"
 RTT="../../RTThread_V411/"
 DJY="../../DjyOS_V110/"
 KLT="../../KLite_V521/"
+UO2="../../uCOSII_V293/"
 
 # Process project paths
 PROJFULL=$(basename $1)
@@ -30,7 +31,7 @@ PROJUPPER=$(echo $PROJNAME | tr '[:lower:]' '[:upper:]')
 WORKSPACE=./$PROJUPPER/
 
 # Do the project generation
-COMMAND="$RVGEN -p $1 -k $KERNEL -m $MONITOR -rmp $RMP -frt $FRT -uo3 $UO3 -rtt $RTT -djy $DJY -klt $KLT -w $WORKSPACE -r report.log -v"
+COMMAND="$RVGEN -p $1 -k $KERNEL -m $MONITOR -rmp $RMP -frt $FRT -uo3 $UO3 -rtt $RTT -djy $DJY -klt $KLT -uo2 $UO2 -w $WORKSPACE -r report.log -v"
 echo $COMMAND
 $COMMAND > ./output.log
 

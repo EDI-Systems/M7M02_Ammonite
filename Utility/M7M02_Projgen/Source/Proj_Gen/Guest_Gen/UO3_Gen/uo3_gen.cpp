@@ -1,6 +1,6 @@
 /****************************************************************************** 
-Filename    : UO3_Gen.cpp
-Author      : pry, Cline
+Filename    : uo3_gen.cpp
+Author      : pry, ds41f
 Date        : 22/10/2026
 Licence     : LGPL v3+; see COPYING for details.
 Description : The uC/OS-III guest OS generator.

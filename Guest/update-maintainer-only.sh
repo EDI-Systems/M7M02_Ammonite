@@ -42,6 +42,13 @@ GUESTS+="DjyOS_V110/test/chip/djy_test_stm32h743zi_rvm.h "
 GUESTS+="KLite_V521/sources/cpu/armv7-m_rvm "
 GUESTS+="KLite_V521/test "
 
+# uC/OS-II V2.93
+# The ports follow the official Ports/ tree layout; the test directory is ours.
+GUESTS+="uCOSII_V293/Ports/ARM-Cortex-M/ARMv6-M-RVM "
+GUESTS+="uCOSII_V293/Ports/ARM-Cortex-M/ARMv7-M-RVM "
+GUESTS+="uCOSII_V293/Ports/RISC-V/RV32-RVM "
+GUESTS+="uCOSII_V293/Test "
+
 rm -rf ./*/
 
 for GUEST in $GUESTS; do

@@ -1,6 +1,6 @@
 /***************************************************************************** 
-Filename    : RTT_Gen.hpp
-Author      : pry, Cline
+Filename    : rtt_gen.hpp
+Author      : pry, ds41f
 Date        : 26/10/2026
 Licence     : LGPL v3+; see COPYING for details.
 Description : The header of the RT-Thread guest OS generator.

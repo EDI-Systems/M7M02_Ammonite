@@ -6,13 +6,14 @@
     <Coprocessor>RVF,RVD</Coprocessor>
     <Buildsystem>Makefile</Buildsystem>
     <Toolchain>GCC</Toolchain>
-    <Guest>RMP,FRT,UO3,RTT</Guest>
+    <Guest>RMP,FRT,UO3,RTT,UO2</Guest>
     <Compatible>
         <C0>Makefile,GCC,FRT</C0>
         <C1>Makefile,GCC,Native</C1>
         <C2>Makefile,GCC,RMP</C2>
         <C3>Makefile,GCC,RTT</C3>
-        <C4>Makefile,GCC,UO3</C4>
+        <C4>Makefile,GCC,UO2</C4>
+        <C5>Makefile,GCC,UO3</C5>
     </Compatible>
     <Config>
         <C0>

@@ -1,6 +1,6 @@
 /*****************************************************************************
 Filename    : djy_gen.cpp
-Author      : pry, Cline
+Author      : pry, ds41f
 Date        : 28/10/2026
 Licence     : LGPL v3+; see COPYING for details.
 Description : The DjyOS guest OS generator.

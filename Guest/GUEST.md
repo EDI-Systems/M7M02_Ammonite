@@ -360,7 +360,31 @@ schedule (a `queue_create` alone takes a mutex) require a non-NULL
 kernel objects from a thread, never before `kernel_start()` - exactly the
 official examples' pattern.
 
-### 2.9 Idle parking (every guest)
+### 2.9 uC/OS-II: contract, strategy, and the subtle deviations
+
+**Contract.** uC/OS-II V2.93 is self-contained (no uC-CPU, no uC-LIB) and
+always-deferred: the kernel calls `OSCtxSw()` through `OS_TASK_SW()` inside a
+scheduler critical section, and the official M-profile ports pend a PendSV
+there. One task per priority (no round-robin); the scheduler pre-picks into
+`OSTCBHighRdy` before the port runs.
+
+**Strategy.** The uC/OS-III shape, translated: `OS_CPU_SR_Save/Restore` are
+C functions in the port mapping onto the RVM virtual interrupt mask snapshot;
+`OSCtxSw()` is a C filter that routes clean ICI/IT frames onto the assembly
+fast path in `os_cpu_a.s` and dirty ones onto `RVM_Virt_Yield()`;
+`OSIntCtxSw()` is the yield hypercall; `OS_Ctx_Handler()` and
+`OS_Tick_Handler()` are registered through `RVM_Virt_Ctx_Reg()` and
+`RVM_Virt_Tim_Reg()`.
+
+**Deviations and why they are sound:** the kernel is used strictly through
+its official port contract - the two scheduler globals, the `OSTCBStkPtr`
+first field, and the hook set; no kernel internals are included or modified.
+The benchmark does not measure yield (one task per priority makes it
+meaningless); the README's yield column is left empty. Kernel objects must be
+created from a task context (a `OSMemCreate` alone touches the TCB), so the
+benchmark and plain application boot from an init task.
+
+### 2.10 Idle parking (every guest)
 
 The RVM user manual (§4.4.3) requires a guest's idle thread to call
 `RVM_Hyp_Vct_Wait()` (hypercall 9) repeatedly: it suspends the user thread

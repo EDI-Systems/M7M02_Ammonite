@@ -1,6 +1,6 @@
 /*****************************************************************************
 Filename    : klt_gen.cpp
-Author      : pry, Cline
+Author      : pry, ds41f
 Date        : 31/10/2026
 Licence     : LGPL v3+; see COPYING for details.
 Description : The source of the KLite guest OS generator.

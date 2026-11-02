@@ -304,7 +304,26 @@ EXC_RETURN、8 字基本硬件帧。脏帧（EPSR ICI/IT）走延迟路径，交
 普通应用都**在线程里**创建内核对象、绝不在 `kernel_start()` 之前——
 与官方例程的用法完全一致。
 
-### 2.9 空闲停车（所有客机）
+### 2.9 uC/OS-II：契约、策略与微妙出入
+
+**契约**：uC/OS-II V2.93 自含（不依赖 uC-CPU / uC-LIB），天生纯延迟——
+内核在调度临界区内经 `OS_TASK_SW()` 调 `OSCtxSw()`，官方 M 系列端口在那里
+pend 一个 PendSV。每优先级一任务（无轮转）；调度器在调端口**之前**就把目标
+预选进了 `OSTCBHighRdy` 全局。
+
+**策略**：uC/OS-III 形态的直接翻译——`OS_CPU_SR_Save/Restore` 是端口内的
+C 函数，映射到 RVM 虚拟中断掩码快照；`OSCtxSw()` 是 C 过滤器，净 ICI/IT 帧
+走 `os_cpu_a.s` 的汇编快路径，脏帧走 `RVM_Virt_Yield()`；`OSIntCtxSw()` 即
+yield 超调用；`OS_Ctx_Handler()` 和 `OS_Tick_Handler()` 经
+`RVM_Virt_Ctx_Reg()` / `RVM_Virt_Tim_Reg()` 注册。
+
+**出入与为何无碍**：内核只通过官方端口契约使用——两个调度全局、
+`OSTCBStkPtr` 首字段、hook 集；不 include 也不修改任何内核内部。基准不测
+yield（每优先级一任务使其无意义）；README 的 yield 列留空。内核对象必须在
+任务上下文创建（一个 `OSMemCreate` 就要碰 TCB），基准与普通应用都从 init
+任务启动。
+
+### 2.10 空闲停车（所有客机）
 
 RVM 用户手册 §4.4.3 要求客机的空闲线程反复调用 `RVM_Hyp_Vct_Wait()`
 （超调用 9）：把用户线程挂起、从运行队列摘除，直到下一个虚拟中断送达——

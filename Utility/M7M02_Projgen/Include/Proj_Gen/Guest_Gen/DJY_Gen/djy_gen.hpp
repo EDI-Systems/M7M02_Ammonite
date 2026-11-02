@@ -1,6 +1,6 @@
 /*****************************************************************************
 Filename    : djy_gen.hpp
-Author      : pry, Cline
+Author      : pry, ds41f
 Date        : 28/10/2026
 Licence     : LGPL v3+; see COPYING for details.
 Description : The header of the DjyOS guest OS generator.

@@ -127,11 +127,10 @@ std::string Main::Monitor_Root;
 std::string Main::Guest_RMP_Root;
 std::string Main::Guest_FRT_Root;
 std::string Main::Guest_RTT_Root;
-std::string Main::Guest_DJY_Root;
-std::string Main::Guest_KLT_Root;
 std::string Main::Guest_UO2_Root;
 std::string Main::Guest_UO3_Root;
-std::string Main::Guest_MPY_Root;
+std::string Main::Guest_DJY_Root;
+std::string Main::Guest_KLT_Root;
 std::string Main::Workspace_Output;
 std::string Main::Report_Output;
 ptr_t Main::Verbose=0;
@@ -2127,14 +2126,6 @@ Return      : None.
                 if(Main::Guest_UO3_Root!="")
                     Main::Error("XXXXX: More than one directory specified for the same guest.");
                 Main::Guest_UO3_Root=Main::Path_Absolute(PATH_DIR, "", argv[Count+1]);
-                Count+=2;
-            }
-            /* Input Micropython root folder */
-            else if(strcmp(argv[Count],"-mpy")==0)
-            {
-                if(Main::Guest_MPY_Root!="")
-                    Main::Error("XXXXX: More than one directory specified for the same guest.");
-                Main::Guest_MPY_Root=Main::Path_Absolute(PATH_DIR, "", argv[Count+1]);
                 Count+=2;
             }
             /* Input RT-Thread root folder */
