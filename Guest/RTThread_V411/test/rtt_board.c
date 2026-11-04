@@ -16,7 +16,6 @@
 
 #include <rtthread.h>
 #include "rvm.h"
-#include "rtt_layout_knob.h"
 
 /*-----------------------------------------------------------*/
 
@@ -59,9 +58,6 @@ void SysTick_Handler(void)
  */
 void rt_hw_board_init(void)
 {
-    /* Layout knob echo - see the chip header; the string length is the knob. */
-    rt_kprintf("LK:%s|\n", RTT_LAYOUT_KNOB);
-
     /* Hook the tick handler up to the hypervisor's virtual timer channel,
      * and the context switch handler up to the hypervisor's context switch
      * channel - the RVM equivalent of the SysTick and PendSV vectors of
