@@ -76,7 +76,6 @@ void __DjyInitTick(void)
  * unregistered (op == NULL), all its call sites are silent no-ops.
  */
 static volatile u32 djy_boot_done;
-static volatile u32 djy_tick_count;
 
 /* The kernel tick - the RVM virtual timer channel, the same source the
  * proven RMP, FreeRTOS and RT-Thread guests use on this hypervisor.
@@ -87,11 +86,6 @@ void djy_tim_handler(void)
 {
     if(djy_boot_done == 0U)
         return;             /* boot phase: the kernel is not ready */
-    if(djy_tick_count == 0U)
-        djy_dbg_puts("[tk1]");
-    djy_tick_count++;
-    if(djy_tick_count == 100U)
-        djy_dbg_puts("[tk100]");
     DJY_ScheduleIsr(1U);
 }
 
@@ -138,20 +132,14 @@ void djy_port_boot(void)
     djy_dbg_puts("\r\nDjyOS V1.1.0 on RVM - starting boot sequence.\r\n");
 
     Heap_StaticModuleInit();
-    djy_dbg_puts("[1]");
     __DjyInitTick();
-    djy_dbg_puts("[2]");
     __DJY_InitSys();
-    djy_dbg_puts("[3]");
     __InitMB();
-    djy_dbg_puts("[4]");
     __InitLock();
-    djy_dbg_puts("[5]");
     OBJ_ModuleInit();
     Handle_ModuleInit();
     Lock_CreateObject();
     Mb_CreateObject();
-    djy_dbg_puts("[6]");
     __CppRuntime();
     Board_Init();
     Sys_ModuleInit();

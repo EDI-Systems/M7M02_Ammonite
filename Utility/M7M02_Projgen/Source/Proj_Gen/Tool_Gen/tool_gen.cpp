@@ -3,7 +3,7 @@ Filename    : tool_gen.cpp
 Author      : pry
 Date        : 12/07/2019
 Licence     : LGPL v3+; see COPYING for details.
-Description : Generic toolchain generator port.
+Description : The toolchain generator main class.
 ******************************************************************************/
 
 /* Include *******************************************************************/

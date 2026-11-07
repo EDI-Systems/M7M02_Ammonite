@@ -1,9 +1,9 @@
 /******************************************************************************
-Filename    : gen_tool.cpp
+Filename    : proj_gen.cpp
 Author      : pry, ChatGLM
 Date        : 16/07/2019
 Licence     : LGPL v3+; see COPYING for details.
-Description : The memory block class. This contains the memory block information.
+Description : The project generator main class.
 ******************************************************************************/
 
 /* Include *******************************************************************/
@@ -83,6 +83,7 @@ extern "C"
 #include "Proj_Gen/Guest_Gen/DJY_Gen/djy_gen.hpp"
 #include "Proj_Gen/Guest_Gen/KLT_Gen/KLT_Gen.hpp"
 #include "Proj_Gen/Guest_Gen/UO2_Gen/uo2_gen.hpp"
+#include "Proj_Gen/Guest_Gen/RTE_Gen/rte_gen.hpp"
 #undef __HDR_CLASS__
 /* End Include ***************************************************************/
 namespace RVM_GEN
@@ -242,6 +243,12 @@ void  Proj_Gen::Guest_Load(const std::string& Name)
             if(Main::Guest_UO2_Root=="")
                 Main::Error("XXXXX: Guest path for '"+Name+"' is missing.");
             Guest=std::make_unique<class UO2_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
+        }
+        else if(Name=="RTE")
+        {
+            if(Main::Guest_RTE_Root=="")
+                Main::Error("XXXXX: Guest path for '"+Name+"' is missing.");
+            Guest=std::make_unique<class RTE_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
         }
         else
             Main::Error("XXXXX: Guest generator for '"+Name+"' is not found.");
@@ -3257,9 +3264,17 @@ void Proj_Gen::Process_Linker(class Process* Prc)
 
     List=std::make_unique<std::vector<std::string>>();
     Tool=this->Tool_Map[Prc->Toolchain];
+    Prc->Linker_Filename=std::string("prc_")+Prc->Name_Lower+"_"+this->Plat->Chip->Name_Lower+Tool->Suffix(TOOL_LINKER);
+
+    if((Prc->Type==PROCESS_VIRTUAL) &&
+       (static_cast<class Virtual*>(Prc)->Guest_Type=="RTE"))
+    {
+        std::filesystem::remove(Prc->Linker_Output+Prc->Linker_Filename);
+        Main::Info("> RTE: using the BSP linkcmds, skipping linker script generation.");
+        return;
+    }
 
     Main::Info("> Generating linker script.");
-    Prc->Linker_Filename=std::string("prc_")+Prc->Name_Lower+"_"+this->Plat->Chip->Name_Lower+Tool->Suffix(TOOL_LINKER);
     Tool->Process_Linker(List, Prc);
     Proj_Gen::Line_Write(List, Prc->Linker_Output+Prc->Linker_Filename);
 }

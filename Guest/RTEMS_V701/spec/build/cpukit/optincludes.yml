@@ -1,0 +1,14 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+actions:
+- set-value: cpukit/include cpukit/score/cpu/${ARCH}/v7m_rvm/include cpukit/score/cpu/${ARCH}/include contrib/cpukit/fastlz/ contrib/cpukit/utf8proc/ contrib/cpukit/uuid/ contrib/cpukit/zlib/ contrib/cpukit/xz-embedded/userspace/
+- substitute: null
+- env-assign: null
+build-type: option
+copyrights:
+- Copyright (C) 2020 embedded brains GmbH & Co. KG
+default: []
+description: ''
+enabled-by: true
+links: []
+name: ARCH_INCLUDES
+type: build

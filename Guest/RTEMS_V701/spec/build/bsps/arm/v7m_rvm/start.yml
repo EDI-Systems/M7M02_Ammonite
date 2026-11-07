@@ -1,0 +1,14 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+asflags: []
+build-type: start-file
+copyrights:
+- Copyright (C) 2026 Evo-Devo Instrum.
+cppflags: []
+enabled-by: true
+includes: []
+install-path: ${BSP_LIBDIR}
+links: []
+source:
+- bsps/arm/v7m_rvm/start/rvm_start.S
+target: start.o
+type: build

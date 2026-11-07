@@ -1,0 +1,17 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+actions:
+- get-integer: null
+- env-assign: null
+build-type: option
+copyrights:
+- Copyright (C) 2026 Evo-Devo Instrum.
+default:
+- enabled-by: true
+  value: 0x40000
+description: |
+  Size of the RTE guest code region, including the 0x20 byte RVM descriptor.
+enabled-by: true
+format: '{:#010x}'
+links: []
+name: RVM_CODE_SIZE
+type: build

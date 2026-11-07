@@ -1,0 +1,25 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+build-type: group
+cflags: []
+copyrights:
+- Copyright (C) 2026 Evo-Devo Instrum.
+cppflags: []
+cxxflags: []
+enabled-by: bsps/arm/v7m_rvm
+includes:
+- ${RVM_ROOT}/Include
+- ${BSP_INCLUDES}
+install: []
+ldflags: []
+links:
+- role: build-dependency
+  uid: rte_hello
+- role: build-dependency
+  uid: rte_tick
+- role: build-dependency
+  uid: rte_two_task_fpu
+- role: build-dependency
+  uid: rte_benchmark
+type: build
+use-after: []
+use-before: []

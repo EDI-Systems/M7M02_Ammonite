@@ -1,0 +1,19 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+build-type: test-program
+cflags: []
+copyrights:
+- Copyright (C) 2026 Evo-Devo Instrum.
+cppflags: []
+cxxflags: []
+enabled-by: true
+features: c cprogram
+includes: []
+ldflags: []
+links: []
+source:
+- testsuites/samples/rte_hello/init.c
+stlib: []
+target: testsuites/samples/rte_hello.exe
+type: build
+use-after: []
+use-before: []

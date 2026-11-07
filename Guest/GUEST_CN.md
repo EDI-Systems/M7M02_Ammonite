@@ -11,6 +11,35 @@
 | uC/OS-III | uC/OS-3 V3.08.02 + uC/CPU V1.32.01 + uC/LIB V1.39.01 | ARMv6-M、ARMv7-M、RV32 | GCC、ARM、IAR |
 | RT-Thread | V4.1.1 | ARMv6-M、ARMv7-M、RV32P | GCC、RVDS (ARMCC)、IAR（RV32P 仅 GCC） |
 | DjyOS | V1.1.0 | ARMv7-M | GCC（纪念性移植，单组合：H743） |
+| KLite | V5.2.1 | ARMv7-M | GCC（纪念性移植，单组合：H743） |
+| uC/OS-II | V2.93 | ARMv6-M、ARMv7-M、RV32 | GCC、ARM、IAR（RV32 仅 GCC） |
+| RTEMS（RTE） | 7.0-rc1 | ARMv7-M（H743/F429） | GCC |
+
+RTE 以 `RTEMS_V701` 的 BSP/spec/样例子集分发。构建期生成的 staging 文件
+（`prc_virt1.c`/`_desc.c`、`rte_prc.h`、`rte_config.h`、`app/`）由 RTE_Gen
+和 `rte_copy.sh` 产生，不在镜像中。RTE BSP 通过 `RVM_ROOT` 引用 M7M02 的
+RVM `Include/` 与 `Source/`；所有 RVM 头（包括生成的平台适配头）都由
+`rte_copy.sh` 暂存，BSP 源码树不保留任何 RVM 实现。RTE 默认使用任务栈上的
+直接上下文切换快路径；生成的 `rte_config.ini` 里的 `RTE_FAST_PATH` 设为
+`False` 时，所有切换都走 RVM 向量线程，且汇编快路径例程不会编入镜像。
+已验证 Cortex-M7/STM32H743 与 Cortex-M4F/STM32F429（板卡为 NUCLEO-F439ZI，
+同 0x419 平台）两种芯片；CPU/FPU 选项由 `RTE_CPU_FLAGS` 按 `.rvp` 的
+coprocessor 自动选择。RTEMS 构建使用 BSP 的 `-O2` 优化选项；性能档案放在
+`testsuites/samples/rte_benchmark/chip/rte_test_<chip>.h`。
+
+安装方式是整文件覆盖：
+
+1. 准备一份完整的官方 RTEMS 7.0-rc1 树。
+2. 把本 `RTEMS_V701/` 树覆盖上去，同名文件选择覆盖。
+
+RVM CPU port 是新目录 `cpukit/score/cpu/arm/v7m_rvm/`，加上 `cpuarm_rvm`
+spec 和 `cpuarm`/`librtemscpu`/`optincludes` 的选择改动；共享的
+`cpukit/score/cpu/arm` 源码未修改。新 port 共 8 个 `cpukit` 文件：7 个
+`v7m_*_rvm` 源文件和 `include/rtems/score/cpu.h` overlay。其余 `cpukit`、
+RTEMS 其他目录和 BSP 公共代码都来自官方树。**不要把原版 cpukit 拷进这个
+增量树，也不要把它当独立 RTEMS 树使用**：它是覆盖包，不是完整树。如果
+要另建构建目录，先把完整官方 RTEMS 树复制过去，再覆盖本 `RTEMS_V701/`。
+版权头保留，不需要 patch 工具。
 
 **RMP 不在本库分发**：RMP 原生自带 RVM 平台层（RMP 源码树的
 `Source/Platform/*_RVM/`），无需客机侧打包。
@@ -20,7 +49,7 @@
 
 ### 本库周边的仓库布局
 
-本库是一个八仓库体系的组成部分。工程生成器（`rvgen`）按相对路径定位
+本库是一个十仓库体系的组成部分。工程生成器（`rvgen`）按相对路径定位
 各仓库，请将它们并排放在同一根目录下：
 
 ```
@@ -39,20 +68,25 @@
 ├─ RTThread_V411/      RT-Thread V4.1.1 源码树——端口在 libcpu/*_rvm，测试在 test/
 ├─ DjyOS_V110/         DjyOS V1.1.0 源码树——端口在 bsp/arch/arm/cortex-m/armv7e-m_rvm，
 │                      基准在 test/
-└─ KLite_V521/         KLite V5.2.1 源码树——端口在 sources/cpu/armv7-m_rvm，
-                       基准在 test/
+├─ KLite_V521/         KLite V5.2.1 源码树——端口在 sources/cpu/armv7-m_rvm，
+│                      基准在 test/
+├─ uCOSII_V293/        uC/OS-II V2.93 源码树——端口在 Ports/*-RVM，基准在 Test/
+└─ RTEMS_V701/         RTEMS 7.0-rc1 源码树——RTE BSP/spec/样例子集覆盖包，
+                       不是完整 RTEMS 树
 ```
 
 按下一节的方法把本库覆盖到你的官方 FreeRTOS / uC/OS-III / RT-Thread /
-DjyOS / KLite 源码树之后，那些源码树就顶替了上表布局中 `*_Vxxx/` 的位置。
+DjyOS / KLite / uC/OS-II / RTEMS 源码树之后，那些源码树就顶替了上表布局中
+`*_Vxxx/` 的位置。
 
 ---
 
 ## 1. 安装
 
-本库的目录结构就是目标源码树相对布局的镜像，且**只包含我方新增文件**——
-官方内核文件一律不在镜像内，因此直接覆盖是安全的：既不会动你的任何官方
-文件，每个端口也自然落到正确位置。
+本库的目录结构就是目标源码树相对布局的镜像，且
+**只包含我方新增或修改的文件**——官方内核文件一律不在镜像内，因此安装
+不会删除你的文件；唯一会覆盖的官方文件是 RTE 的 `spec/build` 选择文件与
+顶层 `wscript`，每个端口也都自然落到正确位置。
 
 - 把 `FreeRTOS_V900/` 整体覆盖到你的官方 FreeRTOS **V9.0.0** 源码树根目录
   （目录合并）。
@@ -69,6 +103,12 @@ DjyOS / KLite 源码树之后，那些源码树就顶替了上表布局中 `*_Vx
   覆盖添加 `sources/cpu/armv7-m_rvm/` 与 `test/` 下的基准文件）。同为
   纪念性移植，单组合 Cortex-M7 + GCC + H743 板——给工程生成器传
   `-klt` 旗标即可使用。
+- 把 `uCOSII_V293/` 覆盖到你的官方 Micrium uC/OS-II **V2.93** 源码树根目录
+  （合并目录；覆盖添加 ARMv6-M、ARMv7-M、RV32 的 `*-RVM` 端口与 `Test/`
+  基准树）。
+- RTEMS：先准备一份完整的官方 RTEMS **7.0-rc1** 树，再把 `RTEMS_V701/`
+  覆盖上去，同名文件选择覆盖。本目录是覆盖包，不是独立 RTEMS 树；不要把
+  原版 `cpukit` 拷进本目录。生成工程时传 `-rte`。
 
 覆盖后的目录结构（RVM 端口目录与官方端口目录并排，就像额外的官方端口）：
 
@@ -117,6 +157,19 @@ DjyOS-V1.1.0/                         <- 你的官方发行包根
 │  ├─ armv7e-m/                                <- 官方，原样不动
 │  └─ armv7e-m_rvm/                            <- 覆盖新增
 └─ test/                                       <- 合并（仅四个基准文件）
+
+uC/OS-II-V2.93/                       <- 你的官方发行包根
+├─ Ports/
+│  ├─ ARM-Cortex-M/ARMv6-M-RVM/  ARMv7-M-RVM/  <- 覆盖新增
+│  └─ RISC-V/RV32-RVM/                         <- 覆盖新增
+└─ Test/                                       <- 合并基准树
+
+RTEMS-7.0-rc1/                        <- 先准备完整官方 RTEMS 树
+├─ bsps/arm/v7m_rvm/                           <- RTE BSP，覆盖新增
+├─ cpukit/score/cpu/arm/v7m_rvm/               <- 新 CPU port，覆盖新增
+├─ spec/build/bsps/arm/v7m_rvm/                <- BSP/spec 选项，覆盖新增
+├─ spec/build/cpukit/cpuarm_rvm.yml            <- 新 CPU port spec，覆盖新增
+└─ testsuites/samples/rte_*/                   <- RTE 样例/基准，覆盖新增
 ```
 
 ### 1.1 配置宏
@@ -142,18 +195,26 @@ RT-Thread 与 DjyOS 没有切换策略开关（策略固定：干净帧走快路
 | RT-Thread | 定义 `RT_USING_LIBC`（内核 `va_list` 的回退分支只在"定义 `__GNUC__` 且未定义 `__ARMCC_VERSION`"时存在；ARM Compiler 与 IAR 必须走 libc 头） |
 | DjyOS | 客机必须以 `-mfloat-abi=soft` 编译（端口只构建整数帧；浮点 ABI 会被 `cpus.s` 的 `#error` 直接挡下） |
 
+RTEMS/RTE（写在生成的 `rte_config.ini`）：
+
+| 宏 | 含义 | 备注 |
+|---|---|---|
+| `RTE_FAST_PATH` | 1=干净任务帧在任务栈上直接切换；0=所有切换都走 RVM 向量线程 | 设 `False` 时汇编快路径例程也不会编入镜像 |
+| `RTE_CPU_FLAGS` | 所选 Cortex-M 变体的 `-mcpu/-mfpu` | `RTE_Gen` 按 `.rvp` coprocessor 自动选择：FPV4_SP→M4F，FPV5_SP/FPV5_DP→M7 |
 
 ### 1.2 工程生成
 
 所有客机都由 RVM 工程生成器驱动（RVM `Project/` 目录下的 `rvgen`，
 经 `benchmark.sh` 调用）。`.rvp` 工程文件选择芯片、平台与客机类型
-（`<Guest_Type>FRT|UO3|RMP|RTT|DJY</Guest_Type>`）；生成器把端口文件拷入
-工作区，并产出构建系统（Makefile / IAR / RVDS），include 顺序已排好。
-手工建工程可行，但不在此文档范围内。
+（`<Guest_Type>FRT|UO3|RMP|RTT|DJY|KLT|UO2|RTE</Guest_Type>`）；生成器把
+端口文件拷入工作区，并产出构建系统（Makefile / IAR / RVDS），include
+顺序已排好。手工建工程可行，但不在此文档范围内。RTE 在构建侧是例外：
+它的 Virt makefile 先跑 `rte_copy.sh`，再驱动 RTEMS waf，而不是直接编译
+一份复制过来的端口树。
 
 `generate.sh` 走同一个生成器但**不带** benchmark 选项：客机由
 `<guest>_main.c` 里的普通应用启动，该文件被生成器复制成工作区的
-`main.c`（含 §2.8 的空闲停车 hook）。两个脚本必须给同一组源码根。
+`main.c`（含 §2.10 的空闲停车 hook）。两个脚本必须给同一组源码根。
 
 
 ---
@@ -336,9 +397,38 @@ hook 本体放在**应用**里（生成器复制成工作区 `main.c` 的那个�
 RT-Thread 的 `rt_thread_idle_sethook`（`RT_USING_HOOK`/`RT_USING_IDLE_HOOK`）、
 KLite 的 `klt_set_idle_hook()`（由 `cpu_sys_sleep()` 在掩码包裹中回调，内核调它时掩码是合上的）；
 DjyOS 的 `djy_set_idle_hook()`（由 `CleanWakeupEvent` 在虚拟掩码开的位置
-回调）。benchmark 工程故意让 hook 空转（FreeRTOS 因配置共用必须定义一个空
-实现），使 idle 永不进入测量路径。
+回调）。RTEMS 在应用里提供空闲任务体（`CONFIGURE_IDLE_TASK_BODY`），RTE
+benchmark 的空闲任务体调用 `RVM_Hyp_Vct_Wait()`。benchmark 工程故意让
+hook 空转（FreeRTOS 因配置共用必须定义一个空实现），使 idle 永不进入测量
+路径。
 
+
+### 2.11 RTEMS（RTE）：契约、策略与微妙出入
+
+**契约。** RTEMS 以非特权 RVM 用户线程运行，不能编程 NVIC、SCB、VTOR、
+SysTick，也不能进入 PendSV。中断驱动的调度在 RVM 向量线程上跑派发器，
+而任务级上下文切换发生在用户线程。因此端口只能二选一：干净帧在任务栈上
+直接切换，或者把脏帧/ISR 捕获帧交给 RVM ctx handler。
+
+**策略。** 任务帧采用与其他 A7M 端口相同的伪装异常帧：5 个超调用参数字、
+R4-R11 加保存的 `EXC_RETURN`、扩展帧的 S16-S31，以及硬件帧
+R0-R3/R12/LR/PC/xPSR 与其上的 S0-S15/FPSCR。基本帧 22 字，硬浮点扩展帧
+56 字。干净的任务间切换走 `v7m_context_switch_rvm.S` 的快路径；脏帧、
+ISR 捕获帧或任何校验失败的帧保存 `rte_pending_heir` 并调用
+`RVM_Virt_Yield()`，由 Vct ctx handler 把 heir 装入 `RVM_REG`。
+`register_lr` 是帧种类标记（1=派发/初始帧，0=ISR 捕获帧）。
+`_CPU_Initialize()` 刻意为空：公共 ARM 实现会通过 NVIC 写 SVC/PendSV 优先级，
+客机不能这么做。ISR enter/leave 更新 per-CPU 嵌套计数，并在向量线程上派发；
+物理切换仍延迟到 ctx handler。
+
+**出入与为何无碍**：快路径只在当前 XPSR 无 EPSR ICI/IT、heir 帧可执行且
+干净、没有 pending heir 时绕过 monitor；脏帧一律走真实异常返回。
+初始帧/派发帧按构造是干净的。扩展帧用 `RTE_EXC_POP` 的原地变换恢复，
+包括 XPSR bit9 对齐 pad；把 basic 当 extended（或反过来）会恢复错误的
+PC/SP。`RTE_FAST_PATH=0` 时 C 分支和汇编快例程都编译掉，全 Vct 构建里
+不存在快路径压栈。`RTE_CPU_FLAGS` 按 `.rvp` coprocessor 选择
+Cortex-M4F/FPv4-SP 或 Cortex-M7/FPv5；RTEMS 构建使用 BSP 的 `-O2` 选项。
+RTE 构建以 C 应用/基准为主；`librtemscxx` 可构建，但没有 C++ 客机测试。
 
 ---
 
@@ -363,4 +453,8 @@ DjyOS 的 `djy_set_idle_hook()`（由 `CleanWakeupEvent` 在虚拟掩码开的�
   码；然而，这些慢路径对最坏执行时间确有影响。
 - 透明向量按设计绕过掩蔽；本库没有端口使用它们，它们与内核临界区的
   交互未测试。
+- RTE 以 C 客机（C 应用与 C benchmark）验证；`librtemscxx` 可以构建，
+  但没有实际运行 C++ RTE 应用。
+- RTE 的 ISR relay 在任务恢复后采样，其他客机在 ISR 入口采样；relay 数字
+  不能直接横比。
 

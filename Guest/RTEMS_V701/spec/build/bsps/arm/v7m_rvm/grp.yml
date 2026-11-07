@@ -1,0 +1,63 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+build-type: group
+cflags: []
+copyrights:
+- Copyright (C) 2026 Evo-Devo Instrum.
+cppflags: []
+cxxflags: []
+enabled-by: true
+includes: []
+install: []
+ldflags: []
+links:
+- role: build-dependency
+  uid: ../grp
+- role: build-dependency
+  uid: opt_rte_fast_path
+- role: build-dependency
+  uid: abi
+- role: build-dependency
+  uid: opt_rte_cpu_flags
+- role: build-dependency
+  uid: opt_code_base
+- role: build-dependency
+  uid: opt_code_size
+- role: build-dependency
+  uid: opt_data_base
+- role: build-dependency
+  uid: opt_data_size
+- role: build-dependency
+  uid: opt_user_stack_top
+- role: build-dependency
+  uid: opt_vct_num
+- role: build-dependency
+  uid: opt_rte_app
+- role: build-dependency
+  uid: opt_rte_app_enable
+- role: build-dependency
+  uid: opt_rte_app_sources
+- role: build-dependency
+  uid: opt_rte_benchmark
+- role: build-dependency
+  uid: opt_rvm_root
+- role: build-dependency
+  uid: opt_rvm
+- role: build-dependency
+  uid: start
+- role: build-dependency
+  uid: obj
+- role: build-dependency
+  uid: linkcmds
+- role: build-dependency
+  uid: linkcmds_rvm
+- role: build-dependency
+  uid: ../../obj
+- role: build-dependency
+  uid: ../../objmem
+- role: build-dependency
+  uid: ../../opto2
+- role: build-dependency
+  uid: ../../bspopts
+type: build
+use-after: []
+use-before: []

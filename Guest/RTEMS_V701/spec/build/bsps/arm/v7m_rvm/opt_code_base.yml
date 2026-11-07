@@ -1,0 +1,17 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+actions:
+- get-integer: null
+- env-assign: null
+build-type: option
+copyrights:
+- Copyright (C) 2026 Evo-Devo Instrum.
+default:
+- enabled-by: true
+  value: 0x08050000
+description: |
+  Base address of the RTE guest code region (the RVM descriptor is placed here).
+enabled-by: true
+format: '{:#010x}'
+links: []
+name: RVM_CODE_BASE
+type: build

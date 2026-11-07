@@ -480,12 +480,9 @@ static struct djy_stat djy_isr_sem_stat;
 static struct djy_stat djy_isr_mq_stat;
 static struct djy_stat djy_isr_relay_stat;
 static volatile u32 djy_isr_done;
-static volatile u32 djy_isr_target;
 static volatile u32 djy_isr_phase;
 static volatile u32 djy_isr_sequence_active;
 static volatile u32 djy_isr_kicked;
-static volatile u32 djy_worker_runs;
-static volatile u32 djy_pop_ok;
 
 /* The interrupt-driven items need their own event types: the thread
  * level tests above already own the plain scripts on their types, and
@@ -499,7 +496,6 @@ static volatile u32 djy_isr_busy;
 static ptu32_t djy_isr_notify_script(void)
 {
     u32 t1 = BENCH_TIM_READ();
-    djy_worker_runs++;
     djy_isr_busy = 0U;      /* the dispatch finished - the ISR may pop again */
     if(djy_isr_round >= BENCH_DISCARD_ROUNDS)
         djy_stat_record(&djy_isr_notify_stat, t1 - djy_isr_stamp);
@@ -509,7 +505,6 @@ static ptu32_t djy_isr_notify_script(void)
 static ptu32_t djy_isr_activate_script(void)
 {
     u32 t1 = BENCH_TIM_READ();
-    djy_worker_runs++;
     djy_isr_busy = 0U;
     if(djy_isr_round >= BENCH_DISCARD_ROUNDS)
         djy_stat_record(&djy_isr_activate_stat, t1 - djy_isr_stamp);
@@ -709,72 +704,6 @@ static void djy_bench_isr_sequence(void)
     djy_dbg_puts("\r\nThe interrupt-driven sequence is complete.\r\n");
 }
 
-static void djy_bench_isr_run(u32 mode, u32 rounds, struct djy_stat *s,
-                              const char *name, void (*kick)(void))
-{
-    djy_dbg_puts("\r\n");
-    djy_dbg_puts(name);
-    djy_dbg_puts(" test.\r\n");
-
-    djy_isr_done = 0U;
-    djy_stat_reset(s);
-    /* Arm the counters before the interrupt source is allowed to act:
-     * once the mode is set the source starts popping events, and the
-     * first worker may complete before the driver even blocks. */
-    djy_isr_round = 0U;
-    djy_isr_target = rounds + BENCH_DISCARD_ROUNDS;
-    djy_worker_runs = 0U;
-    djy_isr_busy = 0U;
-    djy_pop_ok = 0U;
-    {
-        extern volatile u32 djy_ctx_dbg[4];
-        djy_ctx_dbg[0] = 0U;
-    }
-    djy_isr_mode = mode;
-
-    if(kick != NULL)
-        kick();              /* start the worker event before counting */
-
-    Lock_SempPend(djy_isr_gate, CN_TIMEOUT_FOREVER);
-
-    djy_dbg_puts(" [w=");
-    djy_dbg_putu32(djy_worker_runs);
-    djy_dbg_puts(" p=");
-    djy_dbg_putu32(djy_pop_ok);
-    djy_dbg_puts(" r=");
-    djy_dbg_putu32(djy_isr_round);
-    djy_dbg_puts(" t=");
-    djy_dbg_putu32(djy_isr_target);
-    {
-        extern volatile u32 djy_ctx_runs;
-        extern volatile u32 djy_sci_calls;
-        extern volatile u32 djy_ctx_dbg[4];
-        extern volatile u32 djy_switch_flag;
-        djy_dbg_puts(" c=");
-        djy_dbg_putu32(djy_ctx_runs);
-        djy_dbg_puts(" s=");
-        djy_dbg_putu32(djy_sci_calls);
-        djy_dbg_puts(" m=");
-        djy_dbg_putu32(RVM_Int_Mask);
-        djy_dbg_puts(" f=");
-        djy_dbg_putu32(djy_switch_flag);
-        djy_dbg_puts(" vm=");
-        djy_dbg_putu32(djy_ctx_dbg[0]);
-        djy_dbg_puts(" sp=");
-        djy_dbg_putu32(djy_ctx_dbg[1]);
-        djy_dbg_puts(" pc=");
-        djy_dbg_putu32(djy_ctx_dbg[2]);
-        djy_dbg_puts(" xs=");
-        djy_dbg_putu32(djy_ctx_dbg[3]);
-        djy_ctx_runs = 0U;
-    }
-    djy_dbg_puts("]");
-
-    djy_isr_mode = 0U;
-    djy_isr_done = 1U;
-    djy_stat_report(name, s);
-}
-
 /* The semaphore-park wake trick: post once after done so the parked
  * scripts fall into their final pend. */
 static void djy_bench_isr_park_release(void)
@@ -847,45 +776,6 @@ static ptu32_t djy_driver_script(void)
 
     djy_bench_isr_park_release();
 
-    {
-        extern volatile u32 djy_defer_hits;
-        extern volatile u32 djy_unalign_hits;
-        extern volatile u32 djy_bad_frames;
-        extern volatile u32 djy_foreign_saves;
-        djy_dbg_puts("\r\n[slowpath defers=");
-        djy_dbg_putu32(djy_defer_hits);
-        djy_dbg_puts(" padded=");
-        djy_dbg_putu32(djy_unalign_hits);
-        djy_dbg_puts(" badframes=");
-        djy_dbg_putu32(djy_bad_frames);
-        djy_dbg_puts(" foreign=");
-        djy_dbg_putu32(djy_foreign_saves);
-        {
-            extern volatile u32 djy_bad_dbg[4];
-            djy_dbg_puts(" bad[to=");
-            djy_dbg_putu32(djy_bad_dbg[0]);
-            djy_dbg_puts(" from=");
-            djy_dbg_putu32(djy_bad_dbg[1]);
-            djy_dbg_puts(" pc=");
-            djy_dbg_putu32(djy_bad_dbg[2]);
-            djy_dbg_puts(" xs=");
-            djy_dbg_putu32(djy_bad_dbg[3]);
-            djy_dbg_puts("]");
-            {
-                extern volatile u32 djy_bad_dbg2[4];
-                djy_dbg_puts(" trace[lr=");
-                djy_dbg_putu32(djy_bad_dbg2[0]);
-                djy_dbg_puts(" vm=");
-                djy_dbg_putu32(djy_bad_dbg2[1]);
-                djy_dbg_puts(" run=");
-                djy_dbg_putu32(djy_bad_dbg2[2]);
-                djy_dbg_puts(" rdy=");
-                djy_dbg_putu32(djy_bad_dbg2[3]);
-                djy_dbg_puts("]");
-            }
-        }
-        djy_dbg_puts("]\r\n");
-    }
     djy_dbg_puts("\r\nBenchmark complete.\r\n");
     return 0U;
 }

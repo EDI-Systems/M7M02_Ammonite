@@ -1,0 +1,18 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+actions:
+- get-integer: null
+- env-assign: null
+build-type: option
+copyrights:
+- Copyright (C) 2026 Evo-Devo Instrum.
+default:
+- enabled-by: true
+  value: 0x2400F000
+description: |
+  Top of the RVM-provided user thread stack.  __RVM_Stack is set to this value
+  for compatibility with the RVM platform assembly.
+enabled-by: true
+format: '{:#010x}'
+links: []
+name: RVM_USER_STACK_TOP
+type: build

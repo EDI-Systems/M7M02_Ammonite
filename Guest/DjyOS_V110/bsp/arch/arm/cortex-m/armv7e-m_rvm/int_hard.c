@@ -212,32 +212,6 @@ void __Int_EngineAsynSignal(ufast_t ufl_line)
 //thread through the kernel's real exception return, which is also the
 //only way to restore EPSR ICI/IT state; that is exactly why the dirty
 //filter in cpus.s routes here.
-/* Diagnostic counters: how many deferred switches were requested from
- * interrupt level, and how many the handler actually performed. */
-volatile u32 djy_ctx_runs = 0;
-volatile u32 djy_sci_calls = 0;
-volatile u32 djy_bad_frames = 0;
-volatile u32 djy_defer_hits = 0;
-volatile u32 djy_unalign_hits = 0;
-volatile u32 djy_turnto_lr = 0;
-volatile u32 djy_turnto_vm = 0;
-volatile u32 djy_bad_dbg2[4] = {0U, 0U, 0U, 0U};
-volatile u32 djy_bad_dbg[4] = {0U, 0U, 0U, 0U};
-/* Saves whose suspended context did not live on the charged thread's own
- * stack: the invariant every switch relies on (the from-thread owns the
- * interrupted context) was violated.  Recorded, never expected. */
-volatile u32 djy_foreign_saves = 0;
-volatile u32 djy_foreign_dbg[4] = {0U, 0U, 0U, 0U};
-/* First-switch forensics: {to_vm, to->stack, frame PC, frame XPSR}. */
-volatile u32 djy_ctx_dbg[4] = {0U, 0U, 0U, 0U};
-
-void djy_ctx_probe(void);
-void djy_ctx_probe(void)
-{
-    djy_dbg_puts("[CTX-PROBE]");
-    while(1);
-}
-
 void Djy_Ctx_Handler(void)
 {
     u32 *sp;
@@ -268,70 +242,8 @@ void Djy_Ctx_Handler(void)
         if((pc < 0x08050000U) || (pc >= 0x08060000U) ||
            ((xs & 0x01000000U) == 0U) || ((xs & 0x00000200U) != 0U))
         {
-            djy_bad_frames++;
-            {
-                extern struct EventECB *g_ptEventRunning;
-                extern struct EventECB *g_ptEventReady;
-                if(djy_bad_dbg2[0] == 0U)
-                {
-                    djy_bad_dbg2[0] = djy_turnto_lr;
-                    djy_bad_dbg2[1] = djy_turnto_vm;
-                    djy_bad_dbg2[2] = (u32)g_ptEventRunning;
-                    djy_bad_dbg2[3] = (u32)g_ptEventReady;
-                }
-            }
-            if(djy_bad_dbg[0] == 0U)
-            {
-                djy_bad_dbg[0] = (u32)to;
-                djy_bad_dbg[1] = (u32)from;
-                djy_bad_dbg[2] = pc;
-                djy_bad_dbg[3] = xs;
-            }
-            {
-                extern void djy_dbg_putu32(u32 v);
-                extern struct EventECB *g_ptEventRunning;
-                djy_dbg_puts(" [BADFRAME ev=");
-                djy_dbg_putu32(g_ptEventRunning->event_id);
-                djy_dbg_puts(" et=");
-                djy_dbg_putu32(g_ptEventRunning->evtt_id);
-                djy_dbg_puts(" from=");
-                djy_dbg_putu32((u32)from);
-                djy_dbg_puts(" to=");
-                djy_dbg_putu32((u32)to);
-                djy_dbg_puts(" pc=");
-                djy_dbg_putu32(pc);
-                djy_dbg_puts(" st=");
-                djy_dbg_putu32((u32)to->stack);
-                djy_dbg_puts(" top=");
-                djy_dbg_putu32((u32)to->stack_top);
-                djy_dbg_puts(" ss=");
-                djy_dbg_putu32(to->stack_size);
-                djy_dbg_puts(" w[st,top,used,next]=");
-                djy_dbg_putu32((u32)to->stack);
-                djy_dbg_putu32((u32)to->stack_top);
-                djy_dbg_putu32((u32)to->stack_used);
-                djy_dbg_putu32((u32)to->next);
-                djy_dbg_puts(" wf=");
-                {
-                    extern struct ThreadVm *g_ptWaitFreeVm;
-                    djy_dbg_putu32((u32)g_ptWaitFreeVm);
-                }
-                djy_dbg_puts(" rvmSP=");
-                djy_dbg_putu32((u32)RVM_REG->Reg.SP);
-                djy_dbg_puts("] ");
-            }
             return;
         }
-    }
-    djy_ctx_runs++;
-
-    if(djy_ctx_dbg[0] == 0U)
-    {
-        u32 *f = (u32 *)to->stack;
-        djy_ctx_dbg[1] = (u32)to->stack;
-        djy_ctx_dbg[2] = f[20];     /* the resume PC */
-        djy_ctx_dbg[3] = f[14];     /* R0 - the event routine */
-        djy_ctx_dbg[0] = (u32)to;
     }
 
     if(from != NULL)
@@ -355,26 +267,6 @@ void Djy_Ctx_Handler(void)
                 (spv <= (u32)to->stack_top);
         if((in_from == 0U) && (in_to == 0U))
         {
-            djy_foreign_saves++;
-            if(djy_foreign_dbg[0] == 0U)
-            {
-                extern void djy_dbg_putu32(u32 v);
-                djy_foreign_dbg[0] = (u32)from;
-                djy_foreign_dbg[1] = (u32)to;
-                djy_foreign_dbg[2] = spv;
-                djy_foreign_dbg[3] = (u32)RVM_REG->Reg.LR;
-                djy_dbg_puts(" [FSAVE from=");
-                djy_dbg_putu32((u32)from);
-                djy_dbg_puts(" to=");
-                djy_dbg_putu32((u32)to);
-                djy_dbg_puts(" sp=");
-                djy_dbg_putu32(spv);
-                djy_dbg_puts(" lr=");
-                djy_dbg_putu32((u32)RVM_REG->Reg.LR);
-                djy_dbg_puts(" num=");
-                djy_dbg_putu32((u32)RVM_STATE->Usr.Number);
-                djy_dbg_puts("] ");
-            }
             from = NULL;            /* never charge it to a thread */
         }
     }
@@ -501,13 +393,18 @@ static void (* const djy_vct_tab[8])(void) =
 static u32 djy_vct_armed = 0U;
 
 /*
- * Re-arm the hypervisor handler table.  The vector thread's entry calls
- * RVM_Virt_Init() on its very first run - which the hypervisor triggers
- * with the first interrupt, and that can land AFTER the board has
- * already registered everything - and the init wipes the whole table
- * (Tim, Ctx and every vector).  The idle event calls this again through
- * CleanWakeupEvent, and the benchmark calls it before enabling its
- * interrupt source, so the registrations survive that late wipe.
+ * Re-arm the hypervisor handler table.  RVM_Virt_Init() runs in the vector
+ * thread, which has a higher priority than the user thread, so it completes
+ * before this process's main and wipes the table (Tim, Ctx and every vector).
+ * The board registers its handlers from the user thread after that point
+ * (Board_Init -> djy_arm_handlers), so the registrations are installed after
+ * the wipe and remain in effect.
+ *
+ * This function is therefore only idempotent insurance for VM restarts: the
+ * idle event calls it again through CleanWakeupEvent, and the benchmark calls
+ * it before enabling its interrupt source.  It deliberately leaves the
+ * interrupt enable and the virtual mask alone - those belong to the kernel's
+ * critical section bookkeeping.
  */
 void djy_port_arm(void)
 {

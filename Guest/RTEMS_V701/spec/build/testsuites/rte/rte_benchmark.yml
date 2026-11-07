@@ -1,0 +1,23 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+build-type: test-program
+cflags: []
+copyrights:
+- Copyright (C) 2026 Evo-Devo Instrum.
+cppflags: []
+cxxflags: []
+enabled-by: RTE_APP_ENABLE
+features: c cprogram
+includes:
+- ${RVM_ROOT}/Include
+- bsps/arm/v7m_rvm/include
+- bsps/arm/v7m_rvm/app
+- testsuites/samples
+ldflags: []
+links: []
+source:
+- ${RTE_APP_SOURCES}
+stlib: []
+target: testsuites/samples/${RTE_APP}.exe
+type: build
+use-after: []
+use-before: []

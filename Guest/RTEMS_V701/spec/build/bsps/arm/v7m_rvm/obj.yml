@@ -1,0 +1,42 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+build-type: objects
+cflags:
+- -Wno-error=pointer-compare
+- -Wno-error=unused-parameter
+copyrights:
+- Copyright (C) 2026 Evo-Devo Instrum.
+cppflags: []
+cxxflags: []
+enabled-by: true
+includes:
+- ${RVM_ROOT}/Include
+- bsps/arm/v7m_rvm/include
+install:
+- destination: ${BSP_INCLUDEDIR}
+  source:
+  - bsps/arm/v7m_rvm/include/bsp.h
+  - bsps/arm/v7m_rvm/include/rte_prc.h
+  - bsps/arm/v7m_rvm/include/rte_config.h
+  - bsps/arm/v7m_rvm/include/rte_rvm_context.h
+- destination: ${BSP_INCLUDEDIR}/bsp
+  source:
+  - bsps/arm/v7m_rvm/include/bsp/irq.h
+- destination: ${BSP_INCLUDEDIR}
+  source:
+  - bsps/arm/v7m_rvm/include/tm27.h
+links: []
+source:
+- bsps/arm/v7m_rvm/clock/clock_rvm.c
+- bsps/arm/v7m_rvm/console/console_rvm.c
+- ${RVM_ROOT}/Source/Platform/A7M/rvm_platform_a7m.c
+- bsps/arm/v7m_rvm/start/rvm_platform_a7m_gcc.S
+- ${RVM_ROOT}/Source/Syslib/rvm_syslib.c
+- ${RVM_ROOT}/Source/Virtlib/rvm_virtlib.c
+- bsps/arm/v7m_rvm/start/bspstart.c
+- bsps/arm/v7m_rvm/start/rte_entry.c
+- bsps/arm/v7m_rvm/start/rte_entry_desc.c
+- bsps/arm/v7m_rvm/start/rvm_entry.c
+- bsps/arm/v7m_rvm/start/rvm_reset.c
+- bsps/shared/start/sbrk.c
+- bsps/shared/start/stackalloc.c
+type: build

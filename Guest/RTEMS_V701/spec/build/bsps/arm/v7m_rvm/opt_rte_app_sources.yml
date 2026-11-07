@@ -1,0 +1,18 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+actions:
+- get-string: null
+- split: null
+- env-assign: null
+build-type: option
+copyrights:
+- Copyright (C) 2026 Evo-Devo Instrum.
+default:
+- enabled-by: true
+  value: ''
+description: |
+  Space-separated RTE application source list.  RTE_Gen fills it with either
+  the benchmark init.c or the staged per-VM app files.
+enabled-by: true
+links: []
+name: RTE_APP_SOURCES
+type: build

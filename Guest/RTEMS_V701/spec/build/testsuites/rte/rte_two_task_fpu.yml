@@ -1,0 +1,21 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+build-type: test-program
+cflags: []
+copyrights:
+- Copyright (C) 2026 Evo-Devo Instrum.
+cppflags: []
+cxxflags: []
+enabled-by: true
+features: c cprogram
+includes:
+- bsps/arm/v7m_rvm/rvm/include
+- bsps/arm/v7m_rvm/include
+ldflags: []
+links: []
+source:
+- testsuites/samples/rte_two_task_fpu/init.c
+stlib: []
+target: testsuites/samples/rte_two_task_fpu.exe
+type: build
+use-after: []
+use-before: []

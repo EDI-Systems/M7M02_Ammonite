@@ -1,0 +1,34 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+actions:
+- set-value: true
+- env-enable: null
+build-type: option
+copyrights:
+- Copyright (C) 2021 Chris Johns (chrisj@rtems.org)
+default: []
+description: ''
+enabled-by:
+- aarch64
+- and:
+  - arm
+  - not: bsps/arm/atsam
+  - not: bsps/arm/efm32gg11
+  - not: bsps/arm/imxrt
+  - not: bsps/arm/lm3s69xx
+  - not: bsps/arm/lpc176x
+  - not: bsps/arm/lpc24xx
+  - not: bsps/arm/stm32h7
+  - not: bsps/arm/stm32f4
+  - not: bsps/arm/stm32u5
+  - not: bsps/arm/v7m_rvm
+- i386
+- microblaze
+- and:
+  - powerpc
+  - not: bsps/powerpc/mpc55xxevb
+  - not: bsps/powerpc/qoriq
+  - not: bsps/powerpc/ss555
+  - not: bsps/powerpc/t32mppc
+links: []
+name: BUILD_LIBDEBUGGER
+type: build

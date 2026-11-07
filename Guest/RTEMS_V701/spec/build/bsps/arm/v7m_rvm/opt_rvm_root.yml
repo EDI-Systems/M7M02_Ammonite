@@ -1,0 +1,17 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+actions:
+- get-string: null
+- env-assign: null
+build-type: option
+copyrights:
+- Copyright (C) 2026 Evo-Devo Instrum.
+default:
+- enabled-by: true
+  value: C:/Code_Library/M7M02_Ammonite
+description: |
+  Root of the M7M02 guest library tree.  RTE_Gen sets this from -m so the BSP
+  references the shared RVM Include/Source trees instead of vendored copies.
+enabled-by: true
+links: []
+name: RVM_ROOT
+type: build

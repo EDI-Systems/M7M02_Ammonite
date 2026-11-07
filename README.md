@@ -21,7 +21,7 @@
 
 点击 **[这里](README_CN.md)** 查看中文版。
 
-&ensp;&ensp;&ensp;&ensp;**RVM** is a virtual machine monitor (VMM) specifially designed for microcontrollers (MCUs). This VMM can efficiently paravirtualize many RTOSes and bare-metal frameworks. This is a groundbreaking technology and the future of IoT systems, and delivers many possibilities previously considered impossible. With unprecedented scalability, it can run 64 virtual-machines on 1MB SRAM.
+&ensp;&ensp;&ensp;&ensp;**RVM** is a virtual machine monitor (VMM) specifially designed for microcontrollers (MCUs). This VMM can efficiently paravirtualize many RTOSes and bare-metal frameworks. This is a groundbreaking technology and the future of IoT systems, and delivers many possibilities previously considered impossible. With unprecedented scalability, it can run 16 virtual machines on 128KB SRAM.
 
 &ensp;&ensp;&ensp;&ensp;The manual of the virtual machine monitor can be found **[here](https://github.com/EDI-Systems/M7M2_MuAmmonite/blob/master/Documents/M7M2_RTVMM-User-Manual.pdf)**.
 

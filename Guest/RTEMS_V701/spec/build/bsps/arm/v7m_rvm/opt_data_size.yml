@@ -1,0 +1,20 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+actions:
+- get-integer: null
+- env-assign: null
+build-type: option
+copyrights:
+- Copyright (C) 2026 Evo-Devo Instrum.
+default:
+- enabled-by: true
+  value: 0xCB50
+description: |
+  Size of the RTEMS DATA region inside the RVM data block.  This is the exact
+  remainder of the block after the RVM register/state blocks and the two
+  monitor-provided stacks, minus a 1 KiB guard.  rvgen writes this value into
+  the generated config.ini; do not hand-edit it when regenerating.
+enabled-by: true
+format: '{:#010x}'
+links: []
+name: RVM_DATA_SIZE
+type: build

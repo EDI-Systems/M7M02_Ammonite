@@ -60,8 +60,8 @@ void djy_bench_int_init(void)
         while(1);
     }
 
-    /* Re-arm right before the source starts: a late vector-thread init
-     * must not be able to leave the line unregistered. */
+    /* Idempotent re-arm before the source starts; insurance for a VM
+     * restart. */
     djy_arm_handlers();
 
     /* TIM4 - the interrupt source, at the chip header defined rate. */
@@ -89,10 +89,8 @@ void djy_main(void)
     DJY_TIM2_ARR = 0xFFFFFFFFUL;
     DJY_TIM2_CR1 = 1UL;
 
-    djy_dbg_puts("[7]");
 
     djy_bench_boot();       /* register the event types */
-    djy_dbg_puts("[b0]");
 
     djy_port_start();       /* never returns */
 }

@@ -71,11 +71,6 @@
     .extern djy_from_vm
     .extern djy_to_vm
     .extern djy_switch_flag
-    .extern djy_sci_calls
-    .extern djy_defer_hits
-    .extern djy_unalign_hits
-    .extern djy_turnto_lr
-    .extern djy_turnto_vm
     .extern djy_rs_new_vm
     .extern djy_switch_err
 
@@ -254,10 +249,6 @@ __asm_reset_thread:
     .global djy_switch_defer
     .type   djy_switch_defer, %function
 djy_switch_defer:
-    ldr     r2, =djy_defer_hits     /* how often the slow path is used */
-    ldr     r3, [r2]
-    adds    r3, #1
-    str     r3, [r2]
     ldr     r2, =djy_switch_flag  /* arm the request: the context handler */
     movs    r3, #1                /* consumes exactly this latch once    */
     str     r3, [r2]
@@ -321,14 +312,10 @@ djy_turnto_done:
     .pool
 
 /*
-@ The dirty branch of a context entry: remember who asked and with
-@ which vm, so a rejected frame can be traced to its source.
+@ The dirty branch of a context entry: the manual unstacking path cannot
+@ restore ICI/IT state, so hand the switch to the deferred handler.
  */
 djy_turnto_dirty:
-    ldr     r2, =djy_turnto_lr
-    str     lr, [r2]
-    ldr     r2, =djy_turnto_vm
-    str     r0, [r2]
     b       djy_switch_defer
 
 /*
@@ -365,10 +352,6 @@ djy_swc_aligned:
     DJY_MASQ 8, djy_swc_exit
     b       djy_swc_stacked
 djy_swc_unaligned:
-    ldr     r2, =djy_unalign_hits    /* padded frames must be rare */
-    ldr     r3, [r2]
-    adds    r3, #1
-    str     r3, [r2]
     DJY_MASQ 8+1, djy_swc_exit
 
 djy_swc_stacked:
@@ -450,10 +433,6 @@ __asm_reset_switch:
     .global __asm_switch_context_int
     .type   __asm_switch_context_int, %function
 __asm_switch_context_int:
-    ldr     r2, =djy_sci_calls
-    ldr     r3, [r2]
-    adds    r3, #1
-    str     r3, [r2]
     ldr     r2, =djy_switch_flag
     ldr     r3, [r2]
     cmp     r3, #0

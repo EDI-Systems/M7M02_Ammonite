@@ -1,0 +1,17 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+actions:
+- get-boolean: null
+- env-enable: null
+build-type: option
+copyrights:
+- Copyright (C) 2026 Evo-Devo Instrum.
+default:
+- enabled-by: true
+  value: false
+description: |
+  Enable the RTE application target.  RTE_Gen sets this when benchmark Virt1 is
+  selected or when a user application exists in the per-VM app folder.
+enabled-by: true
+links: []
+name: RTE_APP_ENABLE
+type: build

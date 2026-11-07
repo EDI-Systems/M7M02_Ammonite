@@ -12,6 +12,42 @@ Currently distributed:
 | uC/OS-III | uC/OS-3 V3.08.02 + uC/CPU V1.32.01 + uC/LIB V1.39.01 | ARMv6-M, ARMv7-M, RV32 | GCC, ARM, IAR |
 | RT-Thread | V4.1.1 | ARMv6-M, ARMv7-M, RV32P | GCC, RVDS (ARMCC), IAR (RV32P: GCC only) |
 | DjyOS | V1.1.0 | ARMv7-M | GCC (commemorative port, single combination: H743) |
+| KLite | V5.2.1 | ARMv7-M | GCC (commemorative port, single combination: H743) |
+| uC/OS-II | V2.93 | ARMv6-M, ARMv7-M, RV32 | GCC, ARM, IAR (RV32: GCC only) |
+| RTEMS (RTE) | 7.0-rc1 | ARMv7-M (H743/F429) | GCC |
+
+RTE is distributed as the `RTEMS_V701` BSP/spec/sample subset.  Its generated
+build-time staging files (`prc_virt1.c`/`_desc.c`, `rte_prc.h`,
+`rte_config.h` and `app/`) are produced by RTE_Gen and `rte_copy.sh`, so they
+are not part of the mirror.  The RTE BSP references the M7M02 RVM `Include/`
+and `Source/` trees through `RVM_ROOT`; all RVM headers, including the generated
+platform adapters, are staged by `rte_copy.sh`, so no RVM implementation is
+kept in the BSP source tree.  RTE defaults to the direct task-stack context
+switch fast path; setting `RTE_FAST_PATH` to `False` in the generated
+`rte_config.ini` routes every switch through the RVM vector thread and omits
+the assembly fast routine from the image.  Cortex-M7/STM32H743 and
+Cortex-M4F/STM32F429 (the connected board reports NUCLEO-F439ZI, same 0x419
+family) are both verified; `RTE_CPU_FLAGS` selects the CPU/FPU options from
+the `.rvp` coprocessor.  The RTEMS build uses the BSP `-O2` optimization
+flags; performance archives live in
+`testsuites/samples/rte_benchmark/chip/rte_test_<chip>.h`.
+
+Installation is a full-file overlay:
+
+1. Have a complete official RTEMS 7.0-rc1 tree.
+2. Copy this `RTEMS_V701/` tree over it, overwriting same-name files.
+
+The RVM CPU port is the new `cpukit/score/cpu/arm/v7m_rvm/` directory, plus
+the `cpuarm_rvm` spec and the small `cpuarm`/`librtemscpu`/`optincludes`
+selection changes; the shared `cpukit/score/cpu/arm` sources are unmodified.
+The port consists of 8 `cpukit` files: seven `v7m_*_rvm` sources and the
+`include/rtems/score/cpu.h` overlay.
+The rest of `cpukit`, the other RTEMS directories and the BSP shared code come
+from the official tree.  Do not copy the original `cpukit` into this delta tree
+and do not use this delta tree standalone: it is an overlay, not a complete
+RTEMS tree.  If a separate build tree is wanted, copy the whole official
+RTEMS tree first, then overlay this `RTEMS_V701/` tree on top.  Copyright
+headers are preserved; no patch utility is required.
 
 RMP is **not** distributed here: RMP carries its RVM platform layers natively
 (`Source/Platform/*_RVM/` in the RMP tree) and needs no guest-side packaging.
@@ -22,7 +58,7 @@ directory.
 
 ### The repositories around this library
 
-This library is one piece of an eight-repository system. The project generator
+This library is one piece of a ten-repository system. The project generator
 (`rvgen`) locates them by relative path, so keep them as siblings under one
 root:
 
@@ -42,22 +78,27 @@ root:
 ├─ RTThread_V411/      the RT-Thread V4.1.1 tree — ports in libcpu/*_rvm, tests in test/
 ├─ DjyOS_V110/         the DjyOS V1.1.0 tree — port in bsp/arch/arm/cortex-m/armv7e-m_rvm,
 │                      benchmark in test/
-└─ KLite_V521/         the KLite V5.2.1 tree — port in sources/cpu/armv7-m_rvm,
-                       benchmark in test/
+├─ KLite_V521/         the KLite V5.2.1 tree — port in sources/cpu/armv7-m_rvm,
+│                      benchmark in test/
+├─ uCOSII_V293/        the uC/OS-II V2.93 tree — ports in Ports/*-RVM,
+│                      benchmark in Test/
+└─ RTEMS_V701/         the RTEMS 7.0-rc1 tree — RTE BSP/spec/sample subset
+                       overlay, not a complete RTEMS tree
 ```
 
 When you overlay this library onto your official FreeRTOS / uC/OS-III /
-RT-Thread / DjyOS / KLite trees (next section), those trees take the place
-of the `*_Vxxx/` entries in the layout above.
+RT-Thread / DjyOS / KLite / uC/OS-II / RTEMS trees (next section), those
+trees take the place of the `*_Vxxx/` entries in the layout above.
 
 ---
 
 ## 1. Installation
 
 The library mirrors the relative layout of the target trees and contains
-**only the files we added** 鈥?official kernel files are never included, so
-a plain overlay is safe: it cannot overwrite any of your official files,
-and every port lands in its intended place.
+**only the files we added or changed** — official kernel files are never
+included, so installing never deletes your files; the only official files
+overwritten are the RTE `spec/build` selection files and the top-level
+`wscript`, and every port lands in its intended place.
 
 - Copy `FreeRTOS_V900/` over the root of your official FreeRTOS **V9.0.0**
   tree (merge directories).
@@ -79,6 +120,13 @@ and every port lands in its intended place.
   benchmark tree under `test/`). This is also a commemorative port with
   the same single combination: Cortex-M7 + GCC + the H743 board — pass
   the `-klt` flag to the project generator to use it.
+- Copy `uCOSII_V293/` over the root of your official Micrium uC/OS-II
+  **V2.93** tree (merge directories; the overlay adds the ARMv6-M,
+  ARMv7-M and RV32 `*-RVM` ports and the `Test/` benchmark tree).
+- For RTEMS, first prepare a complete official RTEMS **7.0-rc1** tree, then
+  copy `RTEMS_V701/` over it, overwriting same-name files.  This directory
+  is an overlay, not a standalone RTEMS tree; do not copy the original
+  `cpukit` into it.  Pass `-rte` to the project generator.
 
 After the overlay, the RVM port directories sit beside the official ones,
 exactly like additional official ports:
@@ -128,6 +176,19 @@ DjyOS-V1.1.0/                         <- your official distribution root
 │  ├─ armv7e-m/                                <- official, untouched
 │  └─ armv7e-m_rvm/                            <- added by the overlay
 └─ test/                                       <- merged (four benchmark files only)
+
+uC/OS-II-V2.93/                       <- your official distribution root
+├─ Ports/
+│  ├─ ARM-Cortex-M/ARMv6-M-RVM/  ARMv7-M-RVM/  <- added by the overlay
+│  └─ RISC-V/RV32-RVM/                         <- added by the overlay
+└─ Test/                                       <- merged benchmark tree
+
+RTEMS-7.0-rc1/                        <- complete official RTEMS tree first
+├─ bsps/arm/v7m_rvm/                           <- RTE BSP, added by the overlay
+├─ cpukit/score/cpu/arm/v7m_rvm/               <- new CPU port, added by the overlay
+├─ spec/build/bsps/arm/v7m_rvm/                <- BSP/spec options, added
+├─ spec/build/cpukit/cpuarm_rvm.yml            <- new CPU port spec, added
+└─ testsuites/samples/rte_*/                   <- RTE samples/benchmark, added
 ```
 
 ### 1.1 Configuration macros
@@ -155,20 +216,29 @@ requirements instead:
 | RT-Thread | `RT_USING_LIBC` (the kernel's `va_list` fallback only exists on the `__GNUC__`-without-`__ARMCC_VERSION` branch; ARM Compiler and IAR need the libc header) |
 | DjyOS | the guest must be compiled with `-mfloat-abi=soft` (the port builds integer-only frames; `cpus.s` turns a float ABI into a build error) |
 
+RTEMS/RTE (in the generated `rte_config.ini`):
+
+| Macro | Meaning | Notes |
+|---|---|---|
+| `RTE_FAST_PATH` | 1 = clean task frames switch directly on the task stacks; 0 = every switch goes through the RVM vector thread | `False` also removes the assembly fast routine from the image |
+| `RTE_CPU_FLAGS` | `-mcpu/-mfpu` for the selected Cortex-M variant | set by `RTE_Gen` from the `.rvp` coprocessor: FPV4_SP -> M4F, FPV5_SP/FPV5_DP -> M7 |
+
 ### 1.2 Project generation
 
 All guests are driven by the RVM project generator (`rvgen`, through
 `benchmark.sh` in the RVM `Project/` directory). The `.rvp` project file
 selects chip, platform and guest type
-(`<Guest_Type>FRT|UO3|RMP|RTT|DJY</Guest_Type>`); the generator copies the
-port files into the generated workspace and emits the build system
+(`<Guest_Type>FRT|UO3|RMP|RTT|DJY|KLT|UO2|RTE</Guest_Type>`); the generator
+copies the port files into the generated workspace and emits the build system
 (Makefile / IAR / RVDS) with correct include order. Building by hand is
-possible but not covered here.
+possible but not covered here.  RTE is the exception on the build side: its
+Virt makefile runs `rte_copy.sh` and then drives the RTEMS waf build, rather
+than compiling a copied port tree directly.
 
 `generate.sh` runs the same generator **without** the benchmark option: the
 guest is then booted by the plain application in `<guest>_main.c`, which the
 generator copies into the workspace as `main.c` (with the idle-parking hook
-described in §2.8). Both scripts must be given the same source roots.
+described in §2.10). Both scripts must be given the same source roots.
 
 
 ---
@@ -401,10 +471,50 @@ mechanism — `vApplicationIdleHook` (`configUSE_IDLE_HOOK 1`) for FreeRTOS,
 `klt_set_idle_hook()` for KLite, whose `cpu_sys_sleep()` runs it inside a
 mask bracket (the kernel calls it with the mask held); and
 `djy_set_idle_hook()` for DjyOS, whose `CleanWakeupEvent` invokes it with the
-virtual interrupt mask open. Benchmark builds deliberately keep the hook
-inert (FreeRTOS defines an empty one because the config is shared) so idle
-never enters the measured paths.
+virtual interrupt mask open.  RTEMS supplies the idle task body
+(`CONFIGURE_IDLE_TASK_BODY`) in the application; the RTE benchmark uses an
+idle body that calls `RVM_Hyp_Vct_Wait()`.  Benchmark builds deliberately
+keep the hook inert (FreeRTOS defines an empty one because the config is
+shared) so idle never enters the measured paths.
 
+
+### 2.11 RTEMS (RTE): contract, strategy, and the subtle deviations
+
+**Contract.** RTEMS runs as an unprivileged RVM user thread and cannot
+program the NVIC, SCB, VTOR or SysTick, nor enter PendSV.  The dispatcher
+runs on the RVM vector thread for interrupt-driven scheduling, while a
+task-level context switch happens in the user thread.  The port must
+therefore either switch clean frames directly on the task stacks or hand a
+dirty/ISR-captured frame to the RVM context handler.
+
+**Strategy.** The task frame is the same masqueraded exception frame used by
+the other A7M ports: five hypercall parameter words, R4-R11 plus the saved
+`EXC_RETURN`, S16-S31 for an extended frame, and the hardware frame
+R0-R3/R12/LR/PC/xPSR with S0-S15/FPSCR above it.  Basic frames are 22 words
+and hard-float extended frames 56 words.  Clean task-to-task switches take
+the fast path in `v7m_context_switch_rvm.S`; dirty frames, ISR-captured
+frames and any failed validity check store `rte_pending_heir` and call
+`RVM_Virt_Yield()`, and the Vct context handler loads the heir into
+`RVM_REG`.  `register_lr` is the frame-kind marker (1 = dispatcher/initial
+frame, 0 = ISR-captured frame).  `_CPU_Initialize()` is deliberately empty:
+the common ARM implementation would program SVC/PendSV priorities through
+the NVIC, which the guest must not touch.  ISR entry/leave updates the
+per-CPU nesting counts and dispatches on the vector thread; the physical
+switch remains deferred to the context handler.
+
+**Deviations and why they are sound.** The fast path bypasses the monitor
+only when the current XPSR has no EPSR ICI/IT continuation, the heir frame
+is executable and clean, and no switch is pending; dirty frames always take
+the real exception return through the Vct.  Initial and dispatcher frames
+are clean by construction.  The extended frame is restored with the
+`RTE_EXC_POP` in-place transformation, including the XPSR bit 9 alignment
+pad; treating a basic frame as extended (or vice versa) would restore the
+wrong PC/SP.  `RTE_FAST_PATH=0` compiles out both the C branch and the
+assembly fast routine, so an all-Vct build has no fast-path push at all.
+`RTE_CPU_FLAGS` selects Cortex-M4F/FPv4-SP or Cortex-M7/FPv5 from the `.rvp`
+coprocessor; the RTEMS build uses the BSP `-O2` flags.  RTE guest
+applications and the benchmark are C; `librtemscxx` is buildable but no C++
+guest application is exercised.
 
 ---
 
@@ -438,4 +548,9 @@ never enters the measured paths.
 - Transparent vectors bypass the mask by design; no port in this library
   uses them, and their interaction with kernel critical sections is
   untested.
+- RTE is validated as a C guest (C applications and the C benchmark);
+  `librtemscxx` can be built, but no C++ RTE application is exercised.
+- RTE's ISR-relay benchmark samples after the task resumes, while the
+  other guests sample at ISR entry; the relay numbers are not directly
+  comparable.
 

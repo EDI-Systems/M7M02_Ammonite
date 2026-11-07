@@ -1,0 +1,30 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+actions:
+- get-string: null
+- split: null
+- env-append: null
+build-type: option
+copyrights:
+- Copyright (C) 2026 Evo-Devo Instrum.
+default:
+- enabled-by: RTE_FAST_PATH
+  value:
+  - -mthumb
+  - -mfloat-abi=hard
+  - -pipe
+  - -DRTEMS_RVM
+  - -DRTE_FAST_PATH=1
+- enabled-by:
+    not: RTE_FAST_PATH
+  value:
+  - -mthumb
+  - -mfloat-abi=hard
+  - -pipe
+  - -DRTEMS_RVM
+  - -DRTE_FAST_PATH=0
+description: |
+  ABI flags for the RVM ARMv7-M guest.
+enabled-by: true
+links: []
+name: ABI_FLAGS
+type: build
