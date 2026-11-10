@@ -1,0 +1,13 @@
+\chapter{Appendix}\label{ch:9-appendix}
+
+\section{Known Issues and Constraints of RVM}\label{sec:9-1}
+
+RVM has some known limitations and constraints. These limitations and constraints are described one by one below.
+
+\subsection{No Multicore Support}\label{subsec:9-1-1}
+
+RVM does not currently support multicore microcontrollers. This is because the product logic of microcontrollers and microprocessors is completely different. The greatest significance of multicore microcontrollers lies in real-time performance and reliability: the functions of the different cores are statically allocated during system design, and once any hardware or software problem occurs in one core---even a permanent deadlock or core damage caused by a hardware fault---the other cores can continue to run unaffected. For this reason, the differences between the cores of multicore microcontrollers are often very large; some CPUs support an FPU while others do not; some CPUs support an MPU while others do not; and even the instruction sets of the cores are completely incompatible. Porting RME and RVM to such platforms is possible, but their ease of use would be greatly reduced. If you are interested in such an application, please contact us.
+
+\section{References for This Chapter}\label{sec:9-2}
+
+None

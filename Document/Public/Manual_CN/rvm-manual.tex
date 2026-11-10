@@ -1,0 +1,40 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% M7M02 (Ammonite) Microcontroller Hypervisor -- Chinese User Manual
+%
+% Build with XeLaTeX:
+%   latexmk -xelatex -outdir=Build rvm-manual.tex
+%
+% Nine-chapter R3T1 organisation.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[10pt,a4paper,twoside,openany]{book}
+\usepackage{rvm-style}
+
+\begin{document}
+
+\frontmatter
+\input{Chapter/00-frontmatter}
+
+\tableofcontents
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{表目录}
+\listoftables
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{图目录}
+\listoffigures
+\clearpage
+\RVMRevisionHistory
+
+\mainmatter
+\input{Chapter/01-overview}
+\input{Chapter/02-architecture}
+\input{Chapter/03-native-process}
+\input{Chapter/04-virtual-machine}
+\input{Chapter/05-generator}
+\input{Chapter/06-using-rvm}
+\input{Chapter/07-new-chip}
+\input{Chapter/08-porting}
+\input{Chapter/09-appendix}
+
+\end{document}

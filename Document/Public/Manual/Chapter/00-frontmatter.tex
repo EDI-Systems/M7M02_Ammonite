@@ -1,0 +1,75 @@
+\begin{titlepage}
+    \thispagestyle{empty}
+    \centering
+    \vspace*{1.6cm}
+    \includegraphics[width=5.55cm]{Figure/logo.png}\par
+    \vspace{0.55cm}
+    {\sffamily\small\color{rvmmid}AMMONITE\par}
+    \vfill
+    {\sffamily\fontsize{28}{34}\selectfont\color{rvmpurple}
+        M7M02 (Ammonite) R3T1\\[6pt]
+        Microcontroller Embedded Virtual Machine Monitor\\[2pt]
+        (Rev. 3 Typ. 1)\par}
+    \vspace{1.1em}
+    {\sffamily\fontsize{21}{25}\selectfont\color{rvmgray}Technical Reference Manual\par}
+    \vspace{1.4em}
+    {\rmfamily\large\color{rvmmid}
+    Version R3T1\quad$\cdot$\quad March 20, 2025\par}
+    \vfill
+    {\sffamily\small\color{rvmmid}
+    EDI-Systems\quad$\cdot$\quad \texttt{www.edi-systems.org}\par}
+    \vspace*{1.4cm}
+\end{titlepage}
+
+\chapter*{System Features}
+\addcontentsline{toc}{chapter}{System Features}
+\markboth{System Features}{}
+
+\begin{center}
+{\sffamily\large\color{rvmgray}Mutatus $\cdot$ Mesozoa $\cdot$ Ammonite (R.VII)}\\[10pt]
+{\sffamily\large\color{rvmgray}M7M02 (Ammonite) R3T1}\\[4pt]
+{\sffamily\Large\bfseries\color{rvmgray}Microcontroller Embedded Virtual Machine Monitor (Rev. 3 Typ. 1)}\\[8pt]
+{\rmfamily\color{rvmmid}Technical Manual}\\[12pt]
+\end{center}
+
+\begin{description}[leftmargin=0pt,labelindent=0pt,style=nextline,itemsep=8pt]
+    \item[\textsf{\color{rvmpurple}High-Performance Real-Time Response}]
+    Native processes provide excellent real-time performance.
+    Virtual machine processes provide excellent compatibility and execution efficiency.
+
+    \item[\textsf{\color{rvmpurple}Broad Architecture Support}]
+    Easily portable across multiple architectures.
+    Supports paravirtualization on microcontrollers.
+
+    \item[\textsf{\color{rvmpurple}High Security}]
+    Hardware isolation between virtual machines.
+    Supports fault restart.
+
+    \item[\textsf{\color{rvmpurple}Comprehensive Ecosystem}]
+    Supports virtualization of most operating systems.
+    Original system applications run without modification.
+
+    \item[\textsf{\color{rvmpurple}High Usability}]
+    Provides a graphical project generator.
+\end{description}
+
+\newcommand{\RVMRevisionHistory}{%
+\chapter*{Revision History}
+\addcontentsline{toc}{chapter}{Revision History}
+\markboth{Revision History}{}
+\begin{table}[htbp]
+    \centering
+    \renewcommand{\arraystretch}{1.25}
+    \small
+    \begin{tabularx}{\textwidth}{@{}>{\sffamily\bfseries\color{rvmpurple}}m{1.8cm}
+                                  >{\raggedright\arraybackslash}m{3.2cm}X@{}}
+    \toprule
+    Version & Date (YYYY-MM-DD) & Description \\
+    \midrule
+    R1T1 & 2018-03-09 & Initial release. \\
+    R2T1 & 2018-09-18 & Added porting instructions. \\
+    R3T1 & 2025-03-20 & Published the R3T1 Technical Reference Manual. \\
+    \bottomrule
+    \end{tabularx}
+\end{table}
+}

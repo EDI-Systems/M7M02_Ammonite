@@ -1,0 +1,685 @@
+\chapter{虚拟机}\label{ch:4-virtual-machines}
+
+\section{简介}\label{sec:4-1}
+
+虚拟机内部可以虚拟化任意的小型RTOS\footnote{如RMP、FreeRTOS、uC/OS和RT-Thread等}，并为其提供一个虚拟微控制器环境。该环境的时空和其它虚拟机是互相隔离的，一个虚拟机的崩溃仅会导致自身的重启，而不会导致其它虚拟机的崩溃。这样，故障或安全漏洞在不同组件间的传播就受到限制，使单点失效不至于导致系统整体失效。
+
+虚拟机是一种特殊的RME进程，它的一切操作都由RVM接管。它的头部也有和原生进程相同的进程描述符，描述其中的所有入口点。然而，虚拟机进程中只有固定的三个入口点，分别是（1）中断向量处理线程Vct（2）用户程序线程Usr和（3）跳板，且不能拥有除了内核功能调用和信号发送端点之外的任何权能。不推荐在虚拟机中调用除信号发送\footnote{这是为了和原生进程通信}以外的任何RME系统调用；原则上一切功能均由RVM超级调用接管。
+
+\section{登记虚拟机到RVM}\label{sec:4-2}
+
+在RVM中，每个虚拟机的配置被表示成一个struct RVM\_Vmap\_Struct类型的结构体。这些结构体组成一个常量结构体数组RVM\_Vmap，内部储存有关于系统中全部虚拟机的信息。这些信息包括虚拟机的起始执行地址、起始栈地址、状态区地址、所使用的内存区域和所使用的特殊内核调用等等。这些信息帮助RVM正确加载和配置各个虚拟机。此外，RVM还需要存放这些虚拟机状态的另一个结构体类型struct RVM\_Virt\_Struct组成的数组
+RVM\_Virt来存放那些虚拟机运行状态的有关数据。这两个结构体数组的长度必须是一样的。用户需要在RVM启动时调用函数RVM\_Virt\_Crt批量注册这些虚拟机到系统中。除了结构体信息填充以外，还要进行一些内核对象的创建和初始化。
+
+工程生成器可以完全自动化地进行这个过程，因此我们推荐使用工程生成器建立各个虚拟机。
+
+\subsection{虚拟机信息的填充}\label{subsec:4-2-1}
+
+用户应当静态声明结构体数组const struct RVM\_Vmap\_Struct RVM\_Vmap{[}{]}，并填充各个虚拟机的相关内容。该结构体的各个域的意义如下表所列。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{struct RVM\_\allowbreak{}Virt\_\allowbreak{}Map中各个域的意义}\label{tab:4-1}\\
+\toprule
+域名称 & 作用\tabularnewline
+\endfirsthead
+\toprule
+域名称 & 作用\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+s8\_\allowbreak{}t* Name &
+虚拟机的名称。它是一个字符串。它实际上并不会被RVM使用，仅作为方便用户调试之用。\tabularnewline
+ptr\_\allowbreak{}t Prio &
+虚拟机的优先级。这个优先级必须小于RVM配置时的虚拟机优先级数。\tabularnewline
+ptr\_\allowbreak{}t Slice & 虚拟机的运行时间片。该值不可以设置为0。\tabularnewline
+ptr\_\allowbreak{}t Period &
+虚拟机时钟中断的周期。设置为X，即表示RVM在收到X个时钟嘀嗒后会给该虚拟机发送一个虚拟时钟中断。推荐将该值设置为一个大于10的数字。\tabularnewline
+ptr\_\allowbreak{}t Watchdog &
+虚拟机看门狗超时时间。设置为X，即表示该虚拟机运行超过X个时钟嘀嗒后还没有喂狗则重置该虚拟机。如果该项设置为0，则表明未对此虚拟机启用看门狗。\tabularnewline
+ptr\_\allowbreak{}t Vct\_\allowbreak{}Num &
+虚拟机虚拟中断向量的数目，这个数目不能超过1920。通常而言任何一个虚拟机都很难用到如此大量的中断源。\tabularnewline
+struct RVM\_\allowbreak{}Thd\_\allowbreak{}Reg* Reg\_\allowbreak{}Base &
+虚拟机的虚拟寄存器缓冲区地址。它指向的内存地址必须不小于本架构的struct RVM\_Thd\_Reg结构体的大小。它应当与登记在虚拟机进程内部的RVM\_VIRT\_REG\_BASE配置项维持一致。\tabularnewline
+struct RVM\_\allowbreak{}State* State\_\allowbreak{}Base &
+虚拟机的状态缓冲区地址。它指向的内存地址必须不小于struct RVM\_State结构体的大小。该结构体包括了虚拟机的状态信息，以及其中断向量标志位。它应当与登记在虚拟机进程内部的RVM\_\allowbreak{}VIRT\_\allowbreak{}STATE\_\allowbreak{}BASE配置项维持一致。\tabularnewline
+ptr\_\allowbreak{}t State\_\allowbreak{}Size & 虚拟机的状态缓冲区大小，单位是字节。\tabularnewline
+ptr\_\allowbreak{}t Desc\_\allowbreak{}Base &
+虚拟机描述头的基地址。它的位置就在虚拟机进程的代码段的开头。\tabularnewline
+cid\_\allowbreak{}t Vct\_\allowbreak{}Sig\_\allowbreak{}Cap &
+虚拟机中断向量端点的权能号。这个权能号是RVM中的权能号。下面提到的各个权能号也是一样的。\tabularnewline
+cid\_\allowbreak{}t Vct\_\allowbreak{}Thd\_\allowbreak{}Cap & 虚拟机中断向量处理线程的权能号。\tabularnewline
+ptr\_\allowbreak{}t Vct\_\allowbreak{}Stack\_\allowbreak{}Base &
+虚拟机中断向量处理线程的栈基址。\tabularnewline
+ptr\_\allowbreak{}t Vct\_\allowbreak{}Stack\_\allowbreak{}Size &
+虚拟机中断向量处理线程的栈大小。这个大小必须超过使用栈量最大的虚拟中断向量函数的栈大小。\tabularnewline
+cid\_\allowbreak{}t Usr\_\allowbreak{}Thd\_\allowbreak{}Cap & 虚拟机用户程序处理线程的权能号。\tabularnewline
+ptr\_\allowbreak{}t Usr\_\allowbreak{}Stack\_\allowbreak{}Base &
+虚拟机用户程序处理线程的栈基址。\tabularnewline
+ptr\_\allowbreak{}t Usr\_\allowbreak{}Stack\_\allowbreak{}Size &
+虚拟机用户程序处理线程的栈大小。对于单线程裸机程序，这个大小必须超过用户程序逻辑使用的栈大小；由于RTOS在启动后的各个线程往往会切换到由RTOS自行管理的专用栈，因此该值只要超过RTOS启动和初始化序列使用的栈大小即可。如果RTOS的内核运行中使用这个栈，那么这个栈要设计得至少要足够RTOS使用。\tabularnewline
+\end{xltabular}
+
+工程生成器可以自动生成该数据结构，当然也可以选择手动填充。
+
+\subsection{创建虚拟机并初始化}\label{subsec:4-2-2}
+
+在完成虚拟机信息填充后，我们还要为每个虚拟机创建一个信号端点，并将其传递到该虚拟机内部权能表的1号位，使中断向量处理线程Vct能进行中断接收。该被传递的权能应当具备所有的接收和发送方式的操作属性，也即RVM\_SIG\_FLAG\_ALL。另外，还要将虚拟机超级调用的信号端点传递到该虚拟机内部权能表的0号位，使虚拟机能够发起超级调用。该被传递的权能应当仅允许发送操作属性，也即RVM\_SIG\_FLAG\_SND。
+
+\subsection{虚拟机批量注册}\label{subsec:4-2-3}
+
+用户首先应当静态声明结构体数组struct RVM\_Virt\_Struct
+RVM\_Virt{[}{]}以存放运行时数据，然后在内核对象初始化钩子RVM\_Boot\_Kobj\_Init的最后调用函数RVM\_Virt\_Crt批量注册虚拟机。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{虚拟机批量注册钩子}\label{tab:4-2}\\
+\toprule
+函数原型\strut
+ & void RVM\_\allowbreak{}Virt\_\allowbreak{}Crt(struct RVM\_\allowbreak{}Virt\_\allowbreak{}Struct* Virt,
+
+const struct RVM\_\allowbreak{}Vmap\_\allowbreak{}Struct* Vmap,
+
+rvm\_\allowbreak{}ptr\_\allowbreak{}t Virt\_\allowbreak{}Num)\strut
+\tabularnewline
+\endfirsthead
+\toprule
+函数原型\strut
+ & void RVM\_\allowbreak{}Virt\_\allowbreak{}Crt(struct RVM\_\allowbreak{}Virt\_\allowbreak{}Struct* Virt,
+
+const struct RVM\_\allowbreak{}Vmap\_\allowbreak{}Struct* Vmap,
+
+rvm\_\allowbreak{}ptr\_\allowbreak{}t Virt\_\allowbreak{}Num)\strut
+\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+返回值 & 无。\tabularnewline
+\multirow{3}{*}{参数} & struct RVM\_\allowbreak{}Virt\_\allowbreak{}Struct* Virt
+
+静态声明的虚拟机运行时数据结构体数组的首地址。\strut
+\tabularnewline
+\strut
+ & const struct RVM\_\allowbreak{}Vmap\_\allowbreak{}Struct* Vmap
+
+静态声明的虚拟机信息结构体数组的首地址。\strut
+\tabularnewline
+\strut
+ & ptr\_\allowbreak{}t Virt\_\allowbreak{}Num
+
+虚拟机的数量。静态声明的上述两个结构体数组的长度均应该等于这个值。\strut
+\tabularnewline
+\end{xltabular}
+
+\section{虚拟机内部应当存在的宏定义}\label{sec:4-3}
+
+除了那些在原生进程内部必须具备的宏定义之外，虚拟机内部还需要存在如下的配置宏定义。这些宏定义可以由工程生成器负责填充，也可以由用户手动填充。这些宏定义的列表如下。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{虚拟机进程内应当存在的宏定义一览}\label{tab:4-3}\\
+\toprule
+宏名称 & 作用\tabularnewline
+\endfirsthead
+\toprule
+宏名称 & 作用\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+RVM\_\allowbreak{}VIRT\_\allowbreak{}LIB\_\allowbreak{}ENABLE\strut
+ & 准虚拟化库的使能宏。在虚拟机内它应当被定义为1。
+
+例子：
+
+\#define RVM\_\allowbreak{}VIRT\_\allowbreak{}LIB\_\allowbreak{}ENABLE (1U)\strut
+\tabularnewline
+RVM\_\allowbreak{}VIRT\_\allowbreak{}VCT\_\allowbreak{}NUM\strut
+ & 虚拟中断向量的数量。它应当与登记在RVM虚拟机结构体中的同名配置项维持一致。
+
+例子：
+
+\#define RVM\_\allowbreak{}VIRT\_\allowbreak{}VCT\_\allowbreak{}NUM (10U)\strut
+\tabularnewline
+RVM\_\allowbreak{}VIRT\_\allowbreak{}STATE\_\allowbreak{}BASE\strut
+ & 虚拟机状态区域的基地址。它应当与登记在RVM虚拟机结构体中的同名配置项维持一致。
+
+例子：
+
+\#define RVM\_\allowbreak{}VIRT\_\allowbreak{}STATE\_\allowbreak{}BASE (0x20005700U)\strut
+\tabularnewline
+RVM\_\allowbreak{}VIRT\_\allowbreak{}STATE\_\allowbreak{}SIZE\strut
+ & 虚拟机状态区域的大小，单位为字节。它应当与登记在RVM虚拟机结构体中的同名配置项维持一致。
+
+例子：
+
+\#define RVM\_\allowbreak{}VIRT\_\allowbreak{}STATE\_\allowbreak{}SIZE (0x50U)\strut
+\tabularnewline
+RVM\_\allowbreak{}VIRT\_\allowbreak{}REG\_\allowbreak{}BASE\strut
+ & 用户线程虚拟寄存器组的基地址。它应当与登记在RVM中的同名配置项维持一致。
+
+例子：
+
+\#define RVM\_\allowbreak{}VIRT\_\allowbreak{}REG\_\allowbreak{}BASE (0x20005400U)\strut
+\tabularnewline
+RVM\_\allowbreak{}VIRT\_\allowbreak{}REG\_\allowbreak{}SIZE\strut
+ & 用户线程虚拟寄存器组的大小，单位为字节。它应当与登记在RVM中的同名配置项维持一致。
+
+例子：
+
+\#define RVM\_\allowbreak{}VIRT\_\allowbreak{}REG\_\allowbreak{}SIZE (0x70U)\strut
+\tabularnewline
+\end{xltabular}
+
+\section{虚拟机可以使用的超级调用}\label{sec:4-4}
+
+虚拟机间的通信和基本管理都是通过超级调用实现的。这些超级调用可以在用户线程中调用，也可以在虚拟中断服务程序中调用。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{虚拟机可以使用的超级调用一览}\label{tab:4-4}\\
+\toprule
+函数 & 意义\tabularnewline
+\endfirsthead
+\toprule
+函数 & 意义\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+RVM\_\allowbreak{}Hyp\_\allowbreak{}Putchar & 打印单个字符。\tabularnewline
+RVM\_\allowbreak{}Hyp\_\allowbreak{}Reboot & 重启虚拟机。\tabularnewline
+RVM\_\allowbreak{}Hyp\_\allowbreak{}Int\_\allowbreak{}Ena & 开启虚拟总中断。\tabularnewline
+RVM\_\allowbreak{}Hyp\_\allowbreak{}Int\_\allowbreak{}Dis & 关闭虚拟总中断。\tabularnewline
+RVM\_\allowbreak{}Hyp\_\allowbreak{}Vct\_\allowbreak{}Phys & 映射物理中断源到虚拟中断源。\tabularnewline
+RVM\_\allowbreak{}Hyp\_\allowbreak{}Vct\_\allowbreak{}Evt & 映射事件源到虚拟中断源。\tabularnewline
+RVM\_\allowbreak{}Hyp\_\allowbreak{}Vct\_\allowbreak{}Del & 解除虚拟中断源上的映射。\tabularnewline
+RVM\_\allowbreak{}Hyp\_\allowbreak{}Vct\_\allowbreak{}Lck & 锁定虚拟中断源映射。\tabularnewline
+RVM\_\allowbreak{}Hyp\_\allowbreak{}Vct\_\allowbreak{}Wait & 等待虚拟中断源被触发。\tabularnewline
+RVM\_\allowbreak{}Hyp\_\allowbreak{}Evt\_\allowbreak{}Add & 授权向某事件源进行发送。\tabularnewline
+RVM\_\allowbreak{}Hyp\_\allowbreak{}Evt\_\allowbreak{}Del & 撤销向某事件源进行发送的授权。\tabularnewline
+RVM\_\allowbreak{}Hyp\_\allowbreak{}Evt\_\allowbreak{}Snd & 向某事件源进行发送。\tabularnewline
+RVM\_\allowbreak{}Hyp\_\allowbreak{}Wdg\_\allowbreak{}Clr & 激活并投喂看门狗。\tabularnewline
+\end{xltabular}
+
+\subsection{打印单个字符}\label{subsec:4-4-1}
+
+本超级调用会在虚拟机监视器的调试输出中打印一个字符。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{打印单个字符}\label{tab:4-5}\\
+\toprule
+函数原型 & void RVM\_\allowbreak{}Hyp\_\allowbreak{}Putchar(char Char)\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & void RVM\_\allowbreak{}Hyp\_\allowbreak{}Putchar(char Char)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+返回值 & 无。该调用总是成功。\tabularnewline
+参数\strut
+ & char Char
+
+要输出到系统控制台的字符。\strut
+\tabularnewline
+\end{xltabular}
+
+\subsection{重启虚拟机}\label{subsec:4-4-2}
+
+本超级调用会无条件重启虚拟机。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{重启虚拟机}\label{tab:4-6}\\
+\toprule
+函数原型 & void RVM\_\allowbreak{}Hyp\_\allowbreak{}Reboot(void)\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & void RVM\_\allowbreak{}Hyp\_\allowbreak{}Reboot(void)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+返回值 & 无。该调用总是成功。\tabularnewline
+参数 & 无。\tabularnewline
+\end{xltabular}
+
+\subsection{开启虚拟总中断}\label{subsec:4-4-3}
+
+本超级调用开启虚拟机的虚拟中断接收。虚拟机在启动后，虚拟中断默认是关闭的，此时不会再有更多中断被发送到虚拟机。这是为了模拟微控制器的行为：微控制器启动时其总中断一般也是关闭的。因此，在虚拟机中的RTOS需要在初始化结束后调用这一函数开启虚拟中断。本超级调用没有嵌套计数，因此需要用户自行进行嵌套计数。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{开启虚拟总中断}\label{tab:4-7}\\
+\toprule
+函数原型 & void RVM\_\allowbreak{}Hyp\_\allowbreak{}Int\_\allowbreak{}Ena(void)\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & void RVM\_\allowbreak{}Hyp\_\allowbreak{}Int\_\allowbreak{}Ena(void)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+返回值 & 无。该调用总是成功。\tabularnewline
+参数 & 无。\tabularnewline
+\end{xltabular}
+
+\subsection{关闭虚拟总中断}\label{subsec:4-4-4}
+
+本超级调用关闭虚拟中断。当虚拟中断被关闭后，RVM将不再向此虚拟机发送任何中断，因此即便是透明中断也会失去响应。本超级调用没有嵌套计数，因此需要用户自行进行嵌套计数。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{关闭虚拟总中断}\label{tab:4-8}\\
+\toprule
+函数原型 & void RVM\_\allowbreak{}Hyp\_\allowbreak{}Int\_\allowbreak{}Dis(void)\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & void RVM\_\allowbreak{}Hyp\_\allowbreak{}Int\_\allowbreak{}Dis(void)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+返回值 & 无。该调用总是成功。\tabularnewline
+参数 & 无。\tabularnewline
+\end{xltabular}
+
+\subsection{映射物理中断源到虚拟中断源}\label{subsec:4-4-5}
+
+本超级调用映射一个物理中断源到本虚拟机的一个虚拟中断源。在物理中断源被触发后，对应的虚拟中断源上会收到中断，虚拟机将调用注册于该中断的处理函数。在同一个虚拟机内部，同一个物理中断源只能被映射一次，且同一个虚拟中断源只能被一个物理中断源或事件源映射到，但同一个物理中断源可以分别映射到不同的虚拟机中，此时一旦物理中断源被触发，所有的虚拟机都会收到虚拟中断。每一次映射都会消耗一个映射块，系统中的映射块数量由RVM在配置时的RVM\_VIRT\_MAP\_NUM决定。
+
+这一超级调用并非是实时的。因此，我们仅推荐在系统启动时调用它。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.6000\hsize\raggedright\arraybackslash}X>{\hsize=0.8000\hsize\raggedright\arraybackslash}X>{\hsize=1.6000\hsize\raggedright\arraybackslash}X@{}}
+\caption{映射物理中断源到虚拟中断源}\label{tab:4-9}\\
+\toprule
+函数原型 & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Vct\_\allowbreak{}Phys(ptr\_\allowbreak{}t Phys\_\allowbreak{}Num, ptr\_\allowbreak{}t Vct\_\allowbreak{}Num)}\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Vct\_\allowbreak{}Phys(ptr\_\allowbreak{}t Phys\_\allowbreak{}Num, ptr\_\allowbreak{}t Vct\_\allowbreak{}Num)}\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\multirow{6}{*}{返回值} & ret\_\allowbreak{}t & 如果成功，返回0。如果失败则会返回如下负值：\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}RANGE & 传入的物理中断向量号或虚拟中断向量号越界。\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}STATE & 本虚拟机的虚拟中断源映射关系已经锁定。\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}PHYS & 该物理向量已被映射到了到本虚拟机的某虚拟中断向量。\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}VIRT & 本虚拟中断向量已被映射到了物理中断向量或者事件源。\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}MAP & 映射块用尽，无法进行映射。\tabularnewline
+\multirow{2}{*}{参数} & ptr\_\allowbreak{}t Phys\_\allowbreak{}Num & 物理中断源的中断向量号。\tabularnewline
+ & ptr\_\allowbreak{}t Vct\_\allowbreak{}Num & 虚拟中断源的中断向量号。该编号越小，非抢占优先级就越高。\tabularnewline
+\end{xltabular}
+
+\subsection{映射事件源到虚拟中断源}\label{subsec:4-4-6}
+
+本超级调用映射一个事件源到本虚拟机的一个虚拟中断源。在事件源被触发后，对应的虚拟中断源上会收到中断，虚拟机将调用注册于该中断的处理函数。在同一个虚拟机内部，同一个事件源只能被映射一次，且同一个虚拟中断源只能被一个物理中断源或事件源映射到，但同一个事件源可以分别映射到不同的虚拟机中，此时一旦事件源被触发，所有的虚拟机都会收到虚拟中断。每一次映射都会消耗一个映射块，系统中的映射块数量由RVM在配置时的RVM\_VIRT\_MAP\_NUM决定。
+
+\needspace{22\baselineskip}
+这一超级调用并非是实时的。因此，我们仅推荐在系统启动时调用它。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.6000\hsize\raggedright\arraybackslash}X>{\hsize=0.8000\hsize\raggedright\arraybackslash}X>{\hsize=1.6000\hsize\raggedright\arraybackslash}X@{}}
+\caption{映射事件源到虚拟中断源}\label{tab:4-10}\\
+\toprule
+函数原型 & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Vct\_\allowbreak{}Evt(ptr\_\allowbreak{}t Evt\_\allowbreak{}Num, ptr\_\allowbreak{}t Vct\_\allowbreak{}Num)}\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Vct\_\allowbreak{}Evt(ptr\_\allowbreak{}t Evt\_\allowbreak{}Num, ptr\_\allowbreak{}t Vct\_\allowbreak{}Num)}\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\multirow{6}{*}{返回值} & ret\_\allowbreak{}t & 如果成功，返回0。如果失败则会返回如下负值：\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}RANGE & 传入的事件源号或虚拟中断向量号越界。\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}STATE & 本虚拟机的虚拟中断源映射关系已经锁定。\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}PHYS & 该事件源已被映射到了到本虚拟机的某虚拟中断向量。\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}VIRT & 本虚拟中断向量已被映射到了物理中断向量或者事件源。\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}MAP & 映射块用尽，无法进行映射。\tabularnewline
+\multirow{2}{*}{参数} & ptr\_\allowbreak{}t Evt\_\allowbreak{}Num & 事件源的事件源号。\tabularnewline
+ & ptr\_\allowbreak{}t Vct\_\allowbreak{}Num & 虚拟中断源的中断向量号。该编号越小，非抢占优先级就越高。\tabularnewline
+\end{xltabular}
+
+\subsection{解除虚拟中断源上的映射}\label{subsec:4-4-7}
+
+本超级调用解除虚拟中断源上的任何映射，无论是物理中断源还是事件源。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.6000\hsize\raggedright\arraybackslash}X>{\hsize=0.8000\hsize\raggedright\arraybackslash}X>{\hsize=1.6000\hsize\raggedright\arraybackslash}X@{}}
+\caption{解除虚拟中断源上的映射}\label{tab:4-11}\\
+\toprule
+函数原型 & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Vct\_\allowbreak{}Del(ptr\_\allowbreak{}t Vct\_\allowbreak{}Num)}\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Vct\_\allowbreak{}Del(ptr\_\allowbreak{}t Vct\_\allowbreak{}Num)}\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\multirow{4}{*}{返回值} & ret\_\allowbreak{}t & 如果成功，返回0。如果失败则会返回如下负值：\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}RANGE & 传入的虚拟中断向量号越界。\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}STATE & 本虚拟机的虚拟中断源映射关系已经锁定。\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}VIRT & 本虚拟中断向量没有被注册到任何物理中断向量或者事件源。\tabularnewline
+参数 & ptr\_\allowbreak{}t Vct\_\allowbreak{}Num & 虚拟中断源的中断向量号。\tabularnewline
+\end{xltabular}
+
+\subsection{锁定虚拟中断源映射}\label{subsec:4-4-8}
+
+本超级调用锁定当前虚拟机的虚拟中断源映射，这包括了物理中断源到虚拟中断源的映射、事件源到虚拟中断源的映射和虚拟机的事件源发送授权。锁定一经生效即为永久的。除非当前虚拟机崩溃重启，否则不可能对虚拟中断源映射做出任何进一步的修改。这是防止某些虚拟机被攻破后大量映射物理中断源或事件源，或者向事件源大量发送而造成拒绝服务攻击。
+
+我们推荐在每一个虚拟机的启动时即完成所有上述初始化，然后使用本超级调用锁定它们。由于在微控制器上，修改放置在Flash中或在上电时加载到RAM中的代码段是不可能的\footnote{即便RME内核也没有权限修改它们，只有加载器（Bootloader）有此权限}，因此可以保证在锁定前当前虚拟机的执行都是可信的。这样，在锁定后可以完全保证系统的信息安全。只有对那些非常复杂、高度灵活的虚拟机，我们才不进行锁定。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.6000\hsize\raggedright\arraybackslash}X>{\hsize=0.8000\hsize\raggedright\arraybackslash}X>{\hsize=1.6000\hsize\raggedright\arraybackslash}X@{}}
+\caption{锁定虚拟中断源映射}\label{tab:4-12}\\
+\toprule
+函数原型 & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Vct\_\allowbreak{}Lck(void)}\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Vct\_\allowbreak{}Lck(void)}\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\multirow{2}{*}{返回值} & ret\_\allowbreak{}t & 如果成功，返回0。如果失败则会返回如下负值：\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}STATE & 本虚拟机的虚拟中断源映射关系已经锁定，无需再次锁定。\tabularnewline
+参数 & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{无。}\tabularnewline
+\end{xltabular}
+
+\subsection{等待虚拟中断源被触发}\label{subsec:4-4-9}
+
+本超级调用会让虚拟机进入休眠状态，等待下一次它的任何虚拟中断源被激活再继续执行。要调用这个超级调用，虚拟机的虚拟总中断必须是开启状态，否则RVM会拒绝该超级调用\footnote{若不拒绝该超级调用，虚拟机一旦进入休眠就无法唤醒；在真实的处理器上，先关中断再休眠同样会导致死机}。通常而言，这个超级调用会被放置在RTOS的空闲线程钩子内被反复调用，它在微控制器上的等价物是那些可能导致进入休眠状态的指令\footnote{如ARMv7-M的WFE和WFI}。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.6000\hsize\raggedright\arraybackslash}X>{\hsize=0.8000\hsize\raggedright\arraybackslash}X>{\hsize=1.6000\hsize\raggedright\arraybackslash}X@{}}
+\caption{等待虚拟中断源被触发}\label{tab:4-13}\\
+\toprule
+函数原型 & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Vct\_\allowbreak{}Wait(void)}\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Vct\_\allowbreak{}Wait(void)}\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\multirow{2}{*}{返回值} & ret\_\allowbreak{}t & 如果成功，返回0。如果失败则会返回如下负值：\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}STATE & 本虚拟机的虚拟总中断处于关闭状态，不能进入休眠。\tabularnewline
+参数 & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{无。}\tabularnewline
+\end{xltabular}
+
+\subsection{授予向某事件源进行发送的权限}\label{subsec:4-4-10}
+
+本超级调用授权虚拟机向某个事件源进行发送操作。要向任何一个事件源进行发送操作都需要此等授权。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.6000\hsize\raggedright\arraybackslash}X>{\hsize=0.8000\hsize\raggedright\arraybackslash}X>{\hsize=1.6000\hsize\raggedright\arraybackslash}X@{}}
+\caption{授予向某事件源进行发送的权限}\label{tab:4-14}\\
+\toprule
+函数原型 & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Evt\_\allowbreak{}Add(ptr\_\allowbreak{}t Evt\_\allowbreak{}Num)}\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Evt\_\allowbreak{}Add(ptr\_\allowbreak{}t Evt\_\allowbreak{}Num)}\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\multirow{4}{*}{返回值} & ret\_\allowbreak{}t & 如果成功，返回0。如果失败则会返回如下负值：\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}RANGE & 传入的事件源号越界。\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}STATE & 本虚拟机的虚拟中断源映射关系已经锁定。\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}EVT & 本虚拟机已经具有向该事件源进行发送的权限，无需授权。\tabularnewline
+参数 & ptr\_\allowbreak{}t Evt\_\allowbreak{}Num & 事件源的事件源号。\tabularnewline
+\end{xltabular}
+
+\subsection{撤销向某事件源进行发送的授权}\label{subsec:4-4-11}
+
+本超级调用撤销虚拟机向某个事件源进行发送的授权。撤销后，虚拟机将不再能向该事件源进行发送。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.6000\hsize\raggedright\arraybackslash}X>{\hsize=0.8000\hsize\raggedright\arraybackslash}X>{\hsize=1.6000\hsize\raggedright\arraybackslash}X@{}}
+\caption{撤销向某事件源进行发送的授权}\label{tab:4-15}\\
+\toprule
+函数原型 & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Evt\_\allowbreak{}Del(ptr\_\allowbreak{}t Evt\_\allowbreak{}Num)}\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Evt\_\allowbreak{}Del(ptr\_\allowbreak{}t Evt\_\allowbreak{}Num)}\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\multirow{4}{*}{返回值} & ret\_\allowbreak{}t & 如果成功，返回0。如果失败则会返回如下负值：\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}RANGE & 传入的事件源号越界。\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}STATE & 本虚拟机的虚拟中断源映射关系已经锁定。\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}EVT & 本虚拟机原本就没有向该事件源进行发送的权限，无需撤销。\tabularnewline
+参数 & ptr\_\allowbreak{}t Evt\_\allowbreak{}Num & 事件源的事件源号。\tabularnewline
+\end{xltabular}
+
+\subsection{向某事件源进行发送}\label{subsec:4-4-12}
+
+本超级调用会令虚拟机向某个事件源进行发送。此发送将会激活所有的在该事件源上注册了的虚拟机的中断向量。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.6000\hsize\raggedright\arraybackslash}X>{\hsize=0.8000\hsize\raggedright\arraybackslash}X>{\hsize=1.6000\hsize\raggedright\arraybackslash}X@{}}
+\caption{向某事件源进行发送}\label{tab:4-16}\\
+\toprule
+函数原型 & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Evt\_\allowbreak{}Snd(ptr\_\allowbreak{}t Evt\_\allowbreak{}Num)}\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Evt\_\allowbreak{}Snd(ptr\_\allowbreak{}t Evt\_\allowbreak{}Num)}\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\multirow{3}{*}{返回值} & ret\_\allowbreak{}t & 如果成功，返回0。如果失败则会返回如下负值：\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}RANGE & 传入的事件源号越界。\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}EVT & 本虚拟机没有向该事件源进行发送的权限。\tabularnewline
+参数 & ptr\_\allowbreak{}t Evt\_\allowbreak{}Num & 要激活的事件源的编号。\tabularnewline
+\end{xltabular}
+
+\subsection{激活并投喂看门狗}\label{subsec:4-4-13}
+
+当虚拟机信息中的Watchdog项不为0时，本超级调用可用。在虚拟机创建时，看门狗默认是关闭的；而当本超级调用第一次被调用时，看门狗即会启动和开始倒数来计算虚拟机的运行时间\footnote{看门狗只计算虚拟机本身的运行时间，而非真实系统的运行时间}，一旦倒数到0则重启虚拟机。本超级调用也可以用来投喂看门狗。看门狗一经启用便无法停止，除非虚拟机因故障或看门狗超时重启。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.6000\hsize\raggedright\arraybackslash}X>{\hsize=0.8000\hsize\raggedright\arraybackslash}X>{\hsize=1.6000\hsize\raggedright\arraybackslash}X@{}}
+\caption{激活并投喂看门狗}\label{tab:4-17}\\
+\toprule
+函数原型 & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Wdg\_\allowbreak{}Clr(void)}\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Wdg\_\allowbreak{}Clr(void)}\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\multirow{2}{*}{返回值} & ret\_\allowbreak{}t & 如果成功，返回0。如果失败则会返回如下负值：\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}STATE & ptr\_t Watchdog项为0，本虚拟机无法启用看门狗。\tabularnewline
+参数 & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{无。}\tabularnewline
+\end{xltabular}
+
+\section{虚拟机可以使用的内部功能函数}\label{sec:4-5}
+
+除了超级调用之外，虚拟机还有一些内部功能函数可以使用。这些内部功能函数不是超级调用，它们仅仅对虚拟机内部的数据结构进行调整来达到它们的效果，因此比超级调用来得高效的多。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{虚拟机可以使用的内部功能函数一览}\label{tab:4-18}\\
+\toprule
+函数 & 意义\tabularnewline
+\endfirsthead
+\toprule
+函数 & 意义\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+RVM\_\allowbreak{}Virt\_\allowbreak{}Init & 虚拟机数据结构初始化。\tabularnewline
+RVM\_\allowbreak{}Vct\_\allowbreak{}Loop & 运行虚拟中断向量处理循环。\tabularnewline
+RVM\_\allowbreak{}Virt\_\allowbreak{}Int\_\allowbreak{}Mask & 屏蔽虚拟中断向量处理。\tabularnewline
+RVM\_\allowbreak{}Virt\_\allowbreak{}Int\_\allowbreak{}Unmask & 解除虚拟中断向量处理屏蔽。\tabularnewline
+RVM\_\allowbreak{}Virt\_\allowbreak{}Vct\_\allowbreak{}Reg & 注册普通虚拟中断向量处理函数。\tabularnewline
+RVM\_\allowbreak{}Virt\_\allowbreak{}Tim\_\allowbreak{}Reg & 注册时钟虚拟中断向量处理函数\tabularnewline
+RVM\_\allowbreak{}Virt\_\allowbreak{}Ctx\_\allowbreak{}Reg & 注册线程切换虚拟中断向量处理函数。\tabularnewline
+RVM\_\allowbreak{}Virt\_\allowbreak{}Yield & 触发虚拟线程切换中断向量。\tabularnewline
+\end{xltabular}
+
+\subsection{虚拟机数据结构初始化}\label{subsec:4-5-1}
+
+本操作初始化虚拟机的内部数据结构。该操作应该由中断处理线程Vct在虚拟机启动时最先调用。在使用工程生成器的场合，工程生成器会在生成的Vct线程中调用本函数。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{虚拟机数据结构初始化}\label{tab:4-19}\\
+\toprule
+函数原型 & void RVM\_\allowbreak{}Virt\_\allowbreak{}Init(void)\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & void RVM\_\allowbreak{}Virt\_\allowbreak{}Init(void)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+返回值 & 无。该操作总是成功。\tabularnewline
+参数 & 无。\tabularnewline
+\end{xltabular}
+
+\subsection{运行虚拟中断向量处理循环}\label{subsec:4-5-2}
+
+本操作循环处理虚拟机内部的中断向量，一经调用永不返回。该操作应该由中断处理线程Vct在最后调用。在使用工程生成器的场合，工程生成器会在生成的Vct线程中调用本函数。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{运行虚拟中断向量处理循环}\label{tab:4-20}\\
+\toprule
+函数原型 & void RVM\_\allowbreak{}Vct\_\allowbreak{}Loop(void)\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & void RVM\_\allowbreak{}Vct\_\allowbreak{}Loop(void)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+返回值 & 无。该操作永不返回。\tabularnewline
+参数 & 无。\tabularnewline
+\end{xltabular}
+
+\subsection{屏蔽虚拟中断向量处理}\label{subsec:4-5-3}
+
+本操作屏蔽虚拟机内部对中断向量的处理。虚拟机仍然会接收中断，因此用户程序线程Usr仍然会被中断处理线程Vct打断，但是接收到的中断都将悬起而等到屏蔽结束后一起处理。相比关闭虚拟总中断的RVM\_Hyp\_Int\_Dis超级调用，本操作无需唤起虚拟机监视器，因此高效得多，非常适合用于RTOS锁调度器的场合。本操作没有嵌套计数，因此需要客户机RTOS自行进行嵌套计数。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{屏蔽虚拟中断向量处理}\label{tab:4-21}\\
+\toprule
+函数原型 & void RVM\_\allowbreak{}Virt\_\allowbreak{}Int\_\allowbreak{}Mask(void)\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & void RVM\_\allowbreak{}Virt\_\allowbreak{}Int\_\allowbreak{}Mask(void)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+返回值 & 无。该操作总是成功。\tabularnewline
+参数 & 无。\tabularnewline
+\end{xltabular}
+
+\subsection{解除虚拟中断向量处理屏蔽}\label{subsec:4-5-4}
+
+本操作解除虚拟机内部对中断向量处理的屏蔽，是RVM\_Virt\_Int\_Mask的逆操作。在解除屏蔽后，如果发现在中断屏蔽期间有虚拟中断悬起\footnote{已被触发但尚未被处理}，则会立刻触发Vct线程的运行来处理它们。本操作没有嵌套计数，因此需要客户机RTOS自行进行嵌套计数。本操作不会屏蔽被设为RME\_VCT\_TRANSPARENT的透明中断。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{解除虚拟中断向量处理屏蔽}\label{tab:4-22}\\
+\toprule
+函数原型 & void RVM\_\allowbreak{}Virt\_\allowbreak{}Int\_\allowbreak{}Unmask(void)\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & void RVM\_\allowbreak{}Virt\_\allowbreak{}Int\_\allowbreak{}Unmask(void)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+返回值 & 无。该操作总是成功。\tabularnewline
+参数 & 无。\tabularnewline
+\end{xltabular}
+
+\subsection{注册普通虚拟中断向量}\label{subsec:4-5-5}
+
+本操作对一个普通虚拟中断向量注册处理函数。该处理函数将在该虚拟中断向量激活时被调用。在虚拟机启动时，所有的中断向量默认都未注册；如果一个未注册中断向量处理函数的虚拟中断被激活，则该中断将被直接略过。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.6000\hsize\raggedright\arraybackslash}X>{\hsize=0.8000\hsize\raggedright\arraybackslash}X>{\hsize=1.6000\hsize\raggedright\arraybackslash}X@{}}
+\caption{注册普通虚拟中断向量}\label{tab:4-23}\\
+\toprule
+函数原型 & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Virt\_\allowbreak{}Vct\_\allowbreak{}Reg(ptr\_\allowbreak{}t Vct\_\allowbreak{}Num, void
+(*Vct)(void), ptr\_\allowbreak{}t Vct\_\allowbreak{}Attr)}\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Virt\_\allowbreak{}Vct\_\allowbreak{}Reg(ptr\_\allowbreak{}t Vct\_\allowbreak{}Num, void
+(*Vct)(void), ptr\_\allowbreak{}t Vct\_\allowbreak{}Attr)}\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\multirow{2}{*}{返回值} & ret\_\allowbreak{}t & 如果成功，返回0。如果失败则会返回如下负值：\tabularnewline
+& RVM\_\allowbreak{}ERR\_\allowbreak{}RANGE & 传入的虚拟中断源的中断向量号越界。\tabularnewline
+\multicolumn{3}{@{}l}{\textbf{参数}}\tabularnewline
+\multicolumn{2}{>{\hsize=1.4\hsize\raggedright\arraybackslash}X}{ptr\_\allowbreak{}t Vct\_\allowbreak{}Num} & 虚拟中断源的中断向量号。\tabularnewline
+\multicolumn{2}{>{\hsize=1.4\hsize\raggedright\arraybackslash}X}{void (*Vct)(void)} & 指向中断向量处理函数的函数指针。该函数推荐为void (*)(void)类型；如果为其他类型，那么其参数的值是未定义的，返回值则会被直接抛弃。如果对该项传入0\footnote{空指针，也即NULL}，那么意味着解除对该中断向量的注册。\tabularnewline
+\multicolumn{2}{>{\hsize=1.4\hsize\raggedright\arraybackslash}X}{ptr\_\allowbreak{}t Vct\_\allowbreak{}Attr} & 虚拟中断源的的属性。当前仅包括其掩蔽属性，为RME\_VCT\_MASKABLE时该中断对客户机操作系统而言为可感知中断，它会被RVM\_Virt\_Int\_Mask掩蔽，但内部可以调用RTOS客户机的中断IPC功能\footnote{如FreeRTOS的FromISR系列、RMP的\_ISR系列等}；为RME\_VCT\_TRANSPARENT时该中断对客户机操作系统而言为透明中断，它不会被RVM\_Virt\_Int\_Mask掩蔽，但内部可以不能调用RTOS客户机的中断IPC功能。如果需要较好的中断实时性且无需调用中断IPC，则可选择后者。\tabularnewline
+\end{xltabular}
+
+\subsection{注册时钟虚拟中断向量}\label{subsec:4-5-6}
+
+本操作对时钟虚拟中断向量注册其处理函数。每当时钟中断发生时，该处理函数即被调用。客户机RTOS在初始化序列中应当通过本操作注册其时钟虚拟中断向量。时钟虚拟中断向量总是一个可掩蔽的可感知中断。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{注册时钟虚拟中断向量}\label{tab:4-24}\\
+\toprule
+函数原型 & void RVM\_\allowbreak{}Virt\_\allowbreak{}Tim\_\allowbreak{}Reg(void (*Tim)(void))\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & void RVM\_\allowbreak{}Virt\_\allowbreak{}Tim\_\allowbreak{}Reg(void (*Tim)(void))\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+返回值 & 无。该操作总是成功。\tabularnewline
+参数\strut
+ & void (*Tim)(void)
+
+指向时钟中断向量处理函数的函数指针。该函数推荐为void
+(*)(void)类型；如果为其他类型，那么其参数的值是未定义的，返回值则会被直接抛弃。如果对该项传入0\footnote{空指针，也即NULL}，那么意味着解除对时钟中断向量的注册。\strut
+\tabularnewline
+\end{xltabular}
+
+\subsection{注册线程切换虚拟中断向量}\label{subsec:4-5-7}
+
+本操作对线程切换虚拟中断向量注册其处理函数。每当线程切换中断发生时，该处理函数即被调用。客户机RTOS在初始化序列中应当通过本操作注册其线程切换虚拟中断向量。线程切换虚拟中断向量总是一个可掩蔽的可感知中断。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{注册线程切换虚拟中断向量}\label{tab:4-25}\\
+\toprule
+函数原型 & void void RVM\_\allowbreak{}Virt\_\allowbreak{}Ctx\_\allowbreak{}Reg(void
+(*Ctx)(void))\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & void void RVM\_\allowbreak{}Virt\_\allowbreak{}Ctx\_\allowbreak{}Reg(void
+(*Ctx)(void))\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+返回值 & 无。该操作总是成功。\tabularnewline
+参数\strut
+ & void (*Ctx)(void)
+
+指向线程切换中断向量处理函数的函数指针。该函数推荐为void
+(*)(void)类型；如果为其他类型，那么其参数的值是未定义的，返回值则会被直接抛弃。如果对该项传入0\footnote{空指针，也即NULL}，那么意味着解除对线程切换中断向量的注册。\strut
+\tabularnewline
+\end{xltabular}
+
+\subsection{触发线程切换虚拟中断向量}\label{subsec:4-5-8}
+
+本操作直接触发虚拟机的线程切换中断向量。如果虚拟机的总中断被关闭或者中断向量处理被屏蔽，那么线程切换中断向量将会悬起，待开启总中断或解除屏蔽后立即执行。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{触发线程切换虚拟中断向量}\label{tab:4-26}\\
+\toprule
+函数原型 & void RVM\_\allowbreak{}Virt\_\allowbreak{}Yield(void)\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & void RVM\_\allowbreak{}Virt\_\allowbreak{}Yield(void)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+返回值 & 无。该操作总是成功。\tabularnewline
+参数 & 无。\tabularnewline
+\end{xltabular}
+
+\section{本章参考文献}\label{sec:4-6}
+
+无
+

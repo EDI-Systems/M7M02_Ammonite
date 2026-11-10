@@ -1,0 +1,2165 @@
+\chapter{工程生成器}\label{ch:5-generator}
+
+
+\section{简介}\label{sec:5-1}
+
+工程生成器负责根据工程描述文件生成所需的启动文件、链接器脚本和构建系统，免去手动配置系统的繁琐。在内部，它分为输入分析模块、工程生成模块和工程输出模块三个部分。它可以通过命令行界面调用，也可以通过图形前端调用。
+
+工程生成器不支持非ASCII路径\footnote{比如含有中文、日文、法文等的路径}，并会在检测到此种情况时报错。支持非ASCII路径没有意义，因为相当多数开发工具本身就不支持非ASCII路径；此时，即便在非ASCII路径中正确生成了工程，也没有成功编译的希望。
+
+\subsection{输入分析模块}\label{subsec:5-1-1}
+
+输入分析模块负责分析各个描述文件并将其打包成内部数据结构传递给工程生成模块。它会进行以下工作：
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  分析工程描述文件（*.rvp），
+\item
+  根据工程描述文件读取合适的平台描述文件（*.rva），
+\item
+  根据工程描述文件读取合适的芯片描述文件（*.rvc），
+\item
+  检查各描述文件的合法性，以及
+\item
+  加载工程描述文件对应的架构平台、编译工具链、构建系统与客户机操作系统的相关生成工具。
+\end{enumerate}
+
+\subsection{工程生成模块}\label{subsec:5-1-2}
+
+工程生成模块负责读取输入分析模块提供工程信息、平台信息和芯片信息，生成工程所需的各项数据，并将这些数据交由工程输出模块生成真正的工程。它会进行以下工作：
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  对齐工程中声明的内存块，
+\item
+  为工程中声明的内存块分配实际基地址，
+\item
+  将共享内存添加到各个进程的内存布局，
+\item
+  为各个进程分配页表，
+\item
+  为各个内核对象分配权能编号，
+\item
+  决定内核对象的权能托管（授权）布局，以及
+\item
+  为各个内核对象分配内核内存。
+\end{enumerate}
+
+\subsection{工程输出模块}\label{subsec:5-1-3}
+
+工程输出模块负责读取工程生成模块的输出，并且生成实际工程文件。它会进行以下工作：
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  生成内核配置头文件（rme\_platform\_conf.h及rme\_platform\_xxx.h），
+\item
+  生成内核启动头文件（rme\_boot.h），
+\item
+  生成内核启动源文件（rme\_boot.c），
+\item
+  生成内核钩子源文件（rme\_hook.c），
+\item
+  生成内核中断向量源文件（rme\_handler\_xxx.c），
+\item
+  生成内核链接器脚本（rme\_platform\_xxx.ld等），
+\item
+  生成内核构建工程文件（makefile等），
+\item
+  生成虚拟机监视器配置头文件（rvm\_platform\_conf.h及rvm\_platform\_xxx.h），
+\item
+  生成虚拟机监视器启动头文件（rvm\_boot.h），
+\item
+  生成虚拟机监视器启动源文件（rvm\_boot.c），
+\item
+  生成虚拟机监视器钩子源文件（rvm\_hook.c），
+\item
+  生成虚拟机监视器链接器脚本（rvm\_platform\_xxx.ld等），
+\item
+  生成虚拟机监视器构建工程文件（makefile等），
+\item
+  生成各进程的主要头文件（prc\_xxx.h），
+\item
+  生成各进程的入口点源文件（prc\_xxx\_thd\_xxx.c及prc\_xxx\_inv\_xxx.c），
+\item
+  生成各进程的描述符源文件（prc\_xxx\_desc.c），
+\item
+  生成各个进程的主要源文件（prc\_xxx.c），
+\item
+  如果进程是虚拟机，生成虚拟机配置头文件（随客户机操作系统不同而不同），
+\item
+  如果进程是虚拟机，生成虚拟机配置源文件（随客户机操作系统不同而不同），
+\item
+  生成各进程链接器脚本（prc\_xxx.ld等），
+\item
+  生成各进程构建工程文件（makefile等），以及
+\item
+  生成包含以上各工程文件的工作空间（如果适用的话）。
+\end{enumerate}
+
+\subsection{图形前端模块}\label{subsec:5-1-4}
+
+由于工程描述文件内部结构也较为繁琐，手动编辑容易引发错误，工程生成器还提供了用来编辑工程的图形前端。该图形前端能够让工程编辑变得更加直观便捷。
+
+
+\section{命令行参数描述}\label{sec:5-2}
+
+工程生成器的命令行参数仅包括一项-i，它指定了工程描述文件的路径。工程描述文件的后缀为*.rvp，内部包含了生成工程所需的其它一切信息。
+
+例如：-i path/to/input.rvp
+
+
+\section{工程描述文件结构<Project>{}}\label{sec:5-3}
+
+工程主文件记载了关于该工程的一切信息，其后缀名为*.rvp；其内部的的所有标签都位于一个<Project>{}大标签下。
+
+所有标签，只要下述描述中有，不论其内容有无，均不可省略。
+
+\subsection{工程名称<Name>{}}\label{subsec:5-3-1}
+
+该配置项记录了工程的名称。通常而言，它与工程文件的名称是一致的。
+
+工程生成器不关心该配置项的值。
+
+\subsection{工程版本<Version>{}}\label{subsec:5-3-2}
+
+该配置项记录了工程的版本。
+
+工程生成器不关心该配置项的值。
+
+\subsection{启用断言<Assert\_Enable>{}}\label{subsec:5-3-3}
+
+该配置项决定了是否检查代码中的断言，可以是``Yes''或``No''。如果假设所有断言均正确而不加检查，可以选择``No''；这会略微提升运行速度并减小代码体积。
+
+\subsection{启用调试打印<Debug\_Log\_Enable>{}}\label{subsec:5-3-4}
+
+该配置项决定了是否以启用RVM\_DBG\_开头的调试打印宏，可以是``Yes''或``No''。如果不需要调试打印输出，可以选择``No''；这会略微提升运行速度并减小代码体积。
+
+\subsection{启用固定式裸页表<Pgtbl\_Raw\_Enable>{}}\label{subsec:5-3-5}
+
+该配置项决定了是否启用固定的用户态MPU元数据，可以是``Yes''或``No''。一旦启用，每个进程的、包含了其一切地址空间信息的MPU元数据都将提前一次性生成并在进程创建时加载给内核，内核中涉及页表的系统调用和动态页功能将不再编译，页表内核对象在启动时也不再创建。这在那些空间吃紧，且不需要动态页提供的额外灵活性的场景中非常有效。
+
+\subsection{工作空间构建系统<Buildsystem>{}}\label{subsec:5-3-6}
+
+该配置项记录了工作空间使用的构建系统。部分构建工具\footnote{如Keil uVision允许使用*.uvmpw工作空间包含多个*.uvprojx工程文件}允许将多个工程组成一个工作空间，在这里选择它的类别。当然，也可以选择``None''，此时不输出任何工作空间。
+
+\subsection{工作空间输出目录<Workspace\_Output>{}}\label{subsec:5-3-7}
+
+该配置项是一个相对路径，记载了工作空间的输出目录。
+
+\subsection{工作空间输出覆盖<Workspace\_Overwrite>{}}\label{subsec:5-3-8}
+
+该配置项指定了工作空间文件是否会在重新生成工程时被覆盖，可以是``Yes''或``No''。有时我们已经对工作空间文件进行了一定的手动修改，不希望它被覆盖，此时可以选择``No''。
+
+\subsection{芯片配置<Chip>{}}\label{subsec:5-3-9}
+
+本配置组负责架构平台和芯片型号的选择。工程编译器将从此配置项中抽取信息决定读取的平台描述文件（*.rva）和芯片描述文件（*.rvc）。
+
+\subsubsection{目标平台<Platform>{}}\label{subsubsec:5-3-9-1}
+
+该配置项记录了工程的架构平台。每个平台用一个代号代表，比如A7M对应于ARMv7-M平台。每个平台都对应一个平台描述文件，它们位于Include/Platform/XXX/rvm\_platform\_xxx.rva。有关这些描述文件的结构，请参见\protect5.4
+。
+
+\subsubsection{芯片类别<Class>{}}\label{subsubsec:5-3-9-2}
+
+该配置项记录了具体的芯片类别。该类别仅仅决定芯片的内部计算资源配置，并不指定到具体封装，比如STM32F767IG可以兼容STM32F767IGT6和STM32F767IGK6。每个芯片类别都对应一个芯片描述文件，它们位于Include/Platform/XXX/Chip/rvm\_platform\_xxx.rvc。有关这些描述文件的结构，请参见\protect5.5
+。
+
+\subsubsection{芯片名称<Name>{}}\label{subsubsec:5-3-9-3}
+
+该配置项记录了芯片的精确全名，如STM32F767IGT6。工程生成器将检查该全名是否在芯片类别指定的兼容芯片中。如果不在，则工程生成器将报错。
+
+\subsubsection{启用协处理器<Coprocessor>{}}\label{subsubsec:5-3-9-4}
+
+该配置项是一个逗号分隔列表，它记录了项目中需要启用的协处理器，如FPU等，只有在这里启用的协处理器才会被内核初始化。工程生成器将检查该协处理器是否在芯片中存在。如果不在，则工程生成器将报错。
+
+\subsubsection{初始化配置<Config>{}}\label{subsubsec:5-3-9-5}
+
+初始化配置组包括了架构的初始化参数和芯片的初始化参数；这些参数的存储方式都是<标签> 值</标签>。这些参数是依架构和芯片而异的；平台描述文件和芯片描述文件中声明的全部参数在这里都必须一个不多一个不少地填写。
+
+\subsection{额外存储器<Extmem><En>{}}\label{subsec:5-3-10}
+
+本配置组包含了要添加进系统的额外内存块的属性。额外内存是指微控制器可以访问的外部存储器，比如外扩的SDRAM、SRAM等等。如果需要工程生成器调用它们，那么就必须将它们的信息登记在该组内部。此时，总可用存储器就是芯片固有存储器\footnote{请参见\protect5.5.12}与此处所列的额外存储器的总和，共享存储块\footnote{请参见\protect5.3.11}和进程私有存储块将从总可用存储器分配。此外，还必须在内核启动钩子中编写合适的外扩存储器初始化代码\footnote{如STM32、GD32、HC32等微控制器具备的FSMC、FMC或EMC等}，以确保这些存储器可以正确访问。
+
+\subsubsection{额外段基址<Base>{}}\label{subsubsec:5-3-10-1}
+
+该配置项是一个十六进制值，决定了该外部内存段的起始地址。
+
+\subsubsection{额外段长度<Size>{}}\label{subsubsec:5-3-10-2}
+
+该配置项是一个十六进制值，决定了该外部内存段的长度。
+
+\subsubsection{额外段类别<Type>{}}\label{subsubsec:5-3-10-3}
+
+该配置项决定了存储段的类别。可以选择的类别有三种：代码（Code）、数据（Data）、设备（Device）。工程生成器在分配内存时，会使用这个类别决定将该段存储器用于何种用途。
+
+\subsubsection{额外段属性<Attribute>{}}\label{subsubsec:5-3-10-4}
+
+该配置项决定了内存段的属性。内存段属性分别有可读（Readable，R）、可写（Writable，W）、可执行（eXecutable，X）、可缓冲（Bufferable，B）、可缓存（Cacheable，C）、静态映射（Static，S）六种，它们可以以任意组合进行叠加。工程生成器在分配存储器时，仅会安排属性是此属性子集的存储段到该物理存储段上。比如，用户若指定某额外存储段的属性不包括可写\footnote{比如外挂XIP SPI Flash}，那么工程生成器将绝不会将可写内容分配在该存储段上。
+
+一般地，代码段ROM的属性应设置为RXBCS，数据段RAM的属性应设置为RWBCS。设备段的属性则应设置为RWS。
+
+\subsection{共享存储块<Shmem><Sn>{}}\label{subsec:5-3-11}
+
+本配置组包含了系统中存在的共享存储块的属性。共享存储块是指可以被多个进程或虚拟机访问的存储区域，比如数据缓冲区等等；它类似于Linux等系统中的共享内存，可用于多个进程或虚拟机间的受控信息传递。本配置组中声明的共享存储块会从总可用存储器\footnote{请参见\protect5.3.10}中分配，然后被添加进每一个引用它的进程或虚拟机的页表中。
+
+\subsubsection{共享段名称<Name>{}}\label{subsubsec:5-3-11-1}
+
+该配置项是一个必填的字段，要求用户输入该共享内存段的名称。该名称必须是合法的标识符，并且必须独一无二。
+
+\subsubsection{共享段基址<Base>{}}\label{subsubsec:5-3-11-2}
+
+该配置项是一个可选的十六进制值。用户应该填入该共享内存段的起始地址。如果填写``Auto''，则代表该共享内存段的位置由编译器自动分配。
+
+\subsubsection{共享段长度<Size>{}}\label{subsubsec:5-3-11-3}
+
+该配置项是一个必填的十六进制值。用户应该填入该共享内存段的长度。
+
+\subsubsection{共享段对齐方式<Align>{}}\label{subsubsec:5-3-11-4}
+
+该配置项是一个必填的十进制值，决定了该存储器的对齐方式。
+
+当段基址为``Auto''时，如果填写为N，则该段存储器在自动分配时对齐到2\textsuperscript{N}；如果填写为``Auto''，则代表该共享内存段的对齐方式由编译器自主决定。
+
+当段基址是固定值时，该配置项必须填写``Auto''。
+
+对于同一段内存，不同的架构支持的对齐方式可能有不同。
+
+\subsubsection{共享段类别<Type>{}}\label{subsubsec:5-3-11-5}
+
+该配置项是决定了内存段的类别。可以选择的类别有三种：代码（Code）、数据（Data）、设备（Device）。编译器在分配内存时，会使用这个类别决定将该共享内存段分配到哪一种存储器。
+
+\subsubsection{共享段属性<Attribute>{}}\label{subsubsec:5-3-11-6}
+
+该配置项决定了内存段的属性。内存段属性分别有可读（Readable，R）、可写（Writable，W）、可执行（eXecutable，X）、可缓冲（Bufferable，B）、可缓存（Cacheable，C）、静态映射（Static，S）六种，它们可以以任意组合进行叠加。编译器在检查在各个进程或虚拟机中声明的对共享内存的引用时，仅会允许这个属性的子集出现。比如，用户若指定该共享内存段的属性不包括可写，那么编译器会检查并确保后续的对共享内存的引用不包括写属性。
+
+\subsection{内核配置<Kernel>{}}\label{subsec:5-3-12}
+
+本配置组负责RME内核的基本配置，包括内核使用的存储器、内核支持的优先级，以及内核工程包含的各文件的存储位置等。
+
+\subsubsection{代码段基址<Code\_Base>{}}\label{subsubsec:5-3-12-1}
+
+该配置项决定了内核所使用的代码段的基址。
+
+\subsubsection{代码段长度<Code\_Size>{}}\label{subsubsec:5-3-12-2}
+
+该配置项决定了内核所使用的代码段的长度。内核的代码段包括了内核的汇编代码以及其只读数据区，通常在某个架构上是一个固定值。
+
+\subsubsection{数据段基址<Data\_Base>{}}\label{subsubsec:5-3-12-3}
+
+该配置项决定了内核所使用的数据段的基址。
+
+\subsubsection{数据段长度<Data\_Size>{}}\label{subsubsec:5-3-12-4}
+
+该配置项决定了内核所使用的数据段的长度。内核的数据段包括了内核的可读写数据区、内核对象用内存区和内核栈区，通常要根据创建的内核对象的多寡进行调整。如果生成器报告内核数据内存耗尽而无法分配内核对象，那么可以尝试将这个值修改的大一些。
+
+\subsubsection{内核栈长度<Stack\_Size>{}}\label{subsubsec:5-3-12-5}
+
+该配置项决定了内核所使用的内核栈段的长度。作为微控制器上运行的微内核，1kB的内核栈对于大多数用途都足够了。
+
+\subsubsection{额外内核对象用内存长度<Extra\_Kom>{}}\label{subsubsec:5-3-12-6}
+
+该配置项决定了在系统创建完所有与生成器生成的代码相关的的内核对象后，还额外需要保留给用户用来创建内核对象的额外内核内存长度。它只有在用户要手动在生成器生成的RVM启动代码中添加内核对象的创建代码时才需要设置为不为0的数字。通常而言，我们不推荐用户手动创建内核对象，这意味着用户有可能破坏系统的信息安全性。
+
+\subsubsection{内核内存分配粒度<Kom\_Order>{}}\label{subsubsec:5-3-12-7}
+
+该配置项决定了系统的内核内存分配粒度，是2的次方。推荐在8字节，16字节和32字节这三项中选一个最适合的，其中8字节则填写3，16字节则填写4，32字节则填写5。系统在创建内核对象时会将所有的内核内存都对齐到这一粒度。如果系统本身的内存比较少，推荐使用8字节对齐分配以减少碎片；如果系统本身的内存较多，则可以采用32字节分配以降低内存分配登记表本身的大小。在默认状况下，设置为16字节分配即可。
+
+\subsubsection{优先级数量<Kern\_Prio>{}}\label{subsubsec:5-3-12-8}
+
+该配置项决定了系统中内核态优先级的数量，应该填入一个是处理器字长的整数倍的十进制数值。通常而言，只要填入处理器字长就足够了，比如是32位处理器则填写32。
+
+\subsubsection{构建系统<Buildsystem>{}}\label{subsubsec:5-3-12-9}
+
+决定内核工程采取何构建系统。
+
+\subsubsection{构建工具链<Toolchain>{}}\label{subsubsec:5-3-12-10}
+
+决定内核工程采取何构建工具链。
+
+\subsubsection{优化等级<Optimization>{}}\label{subsubsec:5-3-12-11}
+
+决定内核工程所使用的优化等级。可选择的优化等级有不优化（O0）、基本优化（O1）、全面优化（O2）、极限优化（O3）、速度优化（Of）和体积优化（Os）。
+
+\subsubsection{内核根目录<Kernel\_Root>{}}\label{subsubsec:5-3-12-12}
+
+决定RME内核源码根文件夹的位置，是一个相对于工程描述文件的路径。生成的内核工程将引用这里的存放的RME内核文件。
+
+\subsubsection{工程输出目录<Project\_Output>{}}\label{subsubsec:5-3-12-13}
+
+决定内核工程的输出目录，是一个相对于工程描述文件的路径。
+
+\subsubsection{工程覆盖<Project\_Overwrite>{}}\label{subsubsec:5-3-12-14}
+
+决定在重新生成时是否覆盖之前生成的内核工程文件\footnote{如Keil uVision的*.uvprojx等}，可以是``Yes''或``No''。如果用户手动编辑了工程而希望保留这些更改，可以选择``No''以保留原来的老版本。
+
+\subsubsection{链接器脚本输出目录<Linker\_Output>{}}\label{subsubsec:5-3-12-15}
+
+决定内核工程链接器脚本rme\_platform\_xxx.ld\footnote{随选择的工具链不同，这里的后缀名也可能不同}的输出目录，是一个相对于工程描述文件的路径。内核链接器脚本在每次生成中总是会被覆盖。
+
+\subsubsection{配置头文件输出目录<Config\_Header\_Output>{}}\label{subsubsec:5-3-12-16}
+
+决定内核配置头文件rme\_platform\_conf.h和rme\_platform\_xxx.h的输出目录，是一个相对于工程描述文件的路径。内核配置头文件在每次生成中总是会被覆盖。
+
+\subsubsection{启动头文件输出目录<Boot\_Header\_Output>{}}\label{subsubsec:5-3-12-17}
+
+决定内核启动用头文件rme\_boot.h的输出目录，是一个相对于工程描述文件的路径。内核启动头文件在每次生成中总是会被覆盖。
+
+\subsubsection{启动源文件输出目录<Boot\_Source\_Output>{}}\label{subsubsec:5-3-12-18}
+
+决定内核启动用源文件rme\_boot.c的输出目录，是一个相对于工程描述文件的路径。它在每次生成中总是会被覆盖。在该源文件中会完成对内核中断向量信号端点的创建操作。
+
+\subsubsection{钩子源文件输出目录<Hook\_Source\_Output>{}}\label{subsubsec:5-3-12-19}
+
+决定内核钩子源文件rme\_hook.c的输出目录，是一个相对于工程描述文件的路径。该文件内部包含四个钩子函数，可以利用它在内核初始化流程中插入一些操作。其中：
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  RME\_Boot\_Pre\_Init钩子会在内核初始化数据结构前被调用，用户可在其中完成内核启动前必须完成的软硬件初始化工作。
+\item
+  RME\_Boot\_Post\_Init钩子会在内核进入用户态执行前被调用，用户可在其中完成额外的内核对象定制创建工作。启动权能表\footnote{也即RVM虚拟机监视器进程使用的权能表；它是系统中第一个权能表}中保留的额外项数由<Monitor><Extra\_Captbl>决定，保留的额外内核内存则由<Kernel><Extra\_Kom>决定。其中，可用的权能表项从RME\_RVM\_CAP\_DONE\_FRONT开始直到RME\_RVM\_INIT\_CPT\_SIZE-1，而可用的内核内存从RME\_RVM\_KOM\_DONE\_FRONT开始直到RME\_KOM\_VA\_SIZE-1。需要注意的是，这些额外保留资源是和RVM的启动时钩子共享的\footnote{对应宏的值也是完全相同的；关于这些宏请参见\protect8.2.2}，如果选择在RME的钩子中使用这些资源，在RVM的钩子中就不能再次使用它们了。当然，也可以将其中一部分资源用来在RME启动时创建内核对象，另一部分资源则留到RVM启动时来创建内核对象；此时两部分资源的划分需要用户自行手动完成。
+\item
+  RME\_Reboot\_Failsafe钩子会在内核发生严重故障\footnote{如断言检查失败}时被调用，用户可在其中完成相应的安全处理工作。
+\item
+  RME\_Hook\_Kfn\_Handler钩子会在内核遇到未预定义的内核功能调用时被调用，用户可在其中定制额外的内核功能调用。
+\end{enumerate}
+
+\subsubsection{钩子源文件覆盖<Hook\_Source\_Overwrite>{}}\label{subsubsec:5-3-12-20}
+
+决定在重新生成时是否覆盖之前生成的内核钩子源文件，可以是``Yes''或``No''。如果用户手动编辑了钩子源文件且希望保留更改，可以选择``No''以保留原来的老版本。
+
+\subsubsection{中断向量源文件输出目录<Handler\_Source\_Output>{}}\label{subsubsec:5-3-12-21}
+
+决定内核中断向量上半部源文件rme\_handler\_xxx.c的输出目录，是一个相对于工程描述文件的路径。每个物理中断向量都对应一个独立的源文件；用户可以编辑其中的RME\_Vct\_XXX\_Handler函数以在进入物理中断时做一些工作，比如实现中断的上半部处理\footnote{上半部-下半部二分法是非常常见的一种中断处理方法：它将中断处理中那些最紧要的部分放在内核中执行，并将那些不甚紧要的部分传递到用户态执行。}。这个函数允许用户返回一个返回值，决定中断上半部结束后如何发送信号：（1）若返回RME\_RVM\_VCT\_SIG\_ALL则向自身的专用端点和RME\_BOOT\_INIT\_VCT端点都发送信号，（2）若返回RME\_RVM\_VCT\_SIG\_SELF则仅向自身的专用端点发送信号，（3）若返回RME\_RVM\_VCT\_SIG\_INIT则仅向RME\_BOOT\_INIT\_VCT端点发送信号，（4）若返回RME\_RVM\_VCT\_SIG\_NONE则不向任何端点发送信号。
+
+\subsubsection{中断向量源文件覆盖<Handler\_Source\_Overwrite>{}}\label{subsubsec:5-3-12-22}
+
+决定在重新生成时是否覆盖之前生成的中断向量源文件。如果用户手动编辑了中断向量源文件且希望保留更改，可以选择``No''以保留原来的老版本。
+
+\subsection{监视器配置<Monitor>{}}\label{subsec:5-3-13}
+
+本配置组负责RVM虚拟机监视器的基本配置，包括RVM使用的存储器、支持的虚拟优先级数目、支持的事件源数目及虚拟中断映射数目，以及RVM工程包含的各文件的存储位置等。
+
+\subsubsection{代码段长度<Code\_Size>{}}\label{subsubsec:5-3-13-1}
+
+该配置项是决定了RVM所使用的代码段的长度。RVM的代码段包括了其汇编代码以及其只读数据区，通常在某个架构上是一个固定值。需要注意的是，RVM的代码起始地址永远直接位于内核代码段后面，因此代码内存基址是自动决定好的，无需用户手动设置。
+
+\subsubsection{数据段长度<Data\_Size>{}}\label{subsubsec:5-3-13-2}
+
+该配置项决定了RVM所使用的数据段的长度。RVM的数据段包括了其可读写数据区和栈区，通常要根据是否开启虚拟机功能以及虚拟机的数量决定。如果在编译RVM时提示内存不够，那么可以尝试将这个值修改的大一些。需要注意的是，RVM的数据段永远直接位于内核数据段后，因此数据段基址是自动决定好的，无需用户手动设置。
+
+\subsubsection{启动守护线程栈长度<Init\_Stack\_Size>{}}\label{subsubsec:5-3-13-3}
+
+该配置项决定了启动守护线程INIT的栈长度。通常而言，256B是足够的。
+
+\subsubsection{安全守护线程栈长度<Sftd\_Stack\_Size>{}}\label{subsubsec:5-3-13-4}
+
+该配置项决定了安全守护线程SFTD的栈长度。通常而言，256B是足够的。
+
+\subsubsection{虚拟机守护线程栈长度<Vmmd\_Stack\_Size>{}}\label{subsubsec:5-3-13-5}
+
+该配置项决定了虚拟机守护线程VMMD的栈长度。通常而言，512B是足够的。该线程将同时用于超级调用守护协程HYPD、向量守护协程VCTD和时间守护协程TIMD的协同运行。
+
+\subsubsection{额外权能表槽位数<Extra\_Captbl>{}}\label{subsubsec:5-3-13-6}
+
+该配置项决定了系统创建完所有与生成器生成的代码相关的内核对象后，还额外需要保留给用户用来创建内核对象的额外权能表槽位数。它只有在用户要手动在生成器生成的RVM启动代码中添加内核对象的创建代码时才需要设置为不为0的数字。通常而言，我们不推荐用户手动创建内核对象，这意味着用户有可能破坏系统的信息安全性。
+
+\subsubsection{启用空闲休眠<Idle\_Sleep\_Enable>{}}\label{subsubsec:5-3-13-7}
+
+该配置项决定了在没有原生进程和虚拟机可供运行时是否使处理器进入休眠状态，可以是``Yes''或``No''。如果不希望进入低功耗休眠状态以尽量降低中断延迟，可以选择``No''。
+
+\subsubsection{虚拟化优先级数<Virt\_Prio>{}}\label{subsubsec:5-3-13-8}
+
+该配置项决定了虚拟机监视器支持的优先级的数量。该优先级数量仅对虚拟机生效，而且必须是处理器字长的整数倍。通常而言，填充为处理器字长，如32位处理器则填充32就可以了。如果不使用虚拟机的话，这里可以填充为0。
+
+\subsubsection{虚拟机事件源数<Virt\_Event>{}}\label{subsubsec:5-3-13-9}
+
+该配置项决定了虚拟机监视器支持的事件源的数量，它必须是处理器字长的整数倍，而且在使用虚拟机的情况下不能为0。同时，事件源的数量不能超过1024的硬性限制。事件源是用于从原生进程到虚拟机以及虚拟机本身之间的沟通的，它可以被映射到虚拟机的虚拟中断向量。
+
+\subsubsection{虚拟机向量映射数<Virt\_Map>{}}\label{subsubsec:5-3-13-10}
+
+该配置项决定了事件源或物理中断源到虚拟中断向量映射的总数目，它必须大于事件源的数量，而且在使用虚拟机的情况下不能为0。一个事件源或物理中断源可以被映射到多个虚拟向量，每一次从具体源到具体虚拟向量的映射都会消耗一个映射数。
+
+\subsubsection{构建系统<Buildsystem>{}}\label{subsubsec:5-3-13-11}
+
+决定虚拟机监视器工程采取何构建系统。
+
+\subsubsection{构建工具链<Toolchain>{}}\label{subsubsec:5-3-13-12}
+
+决定虚拟机监视器工程采取何构建工具链。
+
+\subsubsection{优化等级<Optimization>{}}\label{subsubsec:5-3-13-13}
+
+决定虚拟机监视器工程所使用的优化等级。可选择的优化等级有不优化（O0）、基本优化（O1）、全面优化（O2）、极限优化（O3）、速度优化（Of）和体积优化（Os）。
+
+\subsubsection{虚拟机监视器根目录<Monitor\_Root>{}}\label{subsubsec:5-3-13-14}
+
+决定RVM虚拟机监视器源码根文件夹的位置，是一个相对于工程描述文件的路径。生成的虚拟机监视器工程将以相对路径引用这里的虚拟机监视器源文件。
+
+\subsubsection{工程输出目录<Project\_Output>{}}\label{subsubsec:5-3-13-15}
+
+决定RVM工程的输出目录，是一个相对于工程描述文件的路径。
+
+\subsubsection{工程覆盖<Project\_Overwrite>{}}\label{subsubsec:5-3-13-16}
+
+决定在重新生成时是否覆盖之前生成的虚拟机监视器工程文件\footnote{如Keil uVision的*.uvprojx等}，可以是``Yes''或``No''。如果用户手动编辑了工程而希望保留这些更改，可以选择``No''以保留原来的老版本。
+
+\subsubsection{链接器脚本输出目录<Linker\_Output>{}}\label{subsubsec:5-3-13-17}
+
+决定虚拟机监视器工程链接器脚本rvm\_platform\_xxx.ld\footnote{随选择的工具链不同，这里的后缀名也可能不同}的输出目录，是一个相对于工程描述文件的路径。链接器脚本在每次生成中总是会被覆盖。
+
+\subsubsection{配置头文件输出目录<Config\_Header\_Output>{}}\label{subsubsec:5-3-13-18}
+
+决定虚拟机监视器配置头文件rvm\_platform\_conf.h和rvm\_platform\_xxx.h的输出目录，是一个相对于工程描述文件的路径。配置头文件在每次生成中总是会被覆盖。
+
+\subsubsection{启动头文件输出目录<Boot\_Header\_Output>{}}\label{subsubsec:5-3-13-19}
+
+决定虚拟机监视器启动头文件rvm\_boot.h的输出目录，是一个相对于工程描述文件的路径。启动头文件在每次生成中总是会被覆盖。
+
+\subsubsection{启动源文件输出目录<Boot\_Source\_Output>{}}\label{subsubsec:5-3-13-20}
+
+决定虚拟机监视器启动源文件rvm\_boot.c的输出目录，是一个相对于工程描述文件的路径。启动源文件在每次生成中总是会被覆盖。
+
+\subsubsection{钩子源文件输出目录<Hook\_Source\_Output>{}}\label{subsubsec:5-3-13-21}
+
+决定虚拟机监视器钩子源文件rvm\_hook.c的输出目录，是一个相对于工程描述文件的路径。该文件是用户可编辑的，可以利用它在虚拟机监视器启动之前以及启动之后做一些硬件初始化操作。其中：
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  RVM\_Boot\_Pre\_Init钩子会在虚拟机监视器初始化数据结构前被调用，用户可在其中完成虚拟机监视器启动前必须完成的软硬件初始化工作。
+\item
+  RVM\_Boot\_Post\_Init钩子会在虚拟机监视器初始化结束后被调用，用户可在其中完成额外的内核对象定制创建工作。启动权能表\footnote{也即RVM虚拟机监视器进程使用的权能表；它是系统中第一个权能表}中保留的额外项数由<Monitor><Extra\_Captbl> 决定，保留的额外内核内存则由<Kernel><Extra\_Kom> 决定。其中，可用的权能表项从RVM\_CAP\_DONE\_FRONT开始直到RVM\_BOOT\_CPT\_SIZE-1，而可用的内核内存从RVM\_KOM\_DONE\_FRONT开始直到RVM\_KOM\_VA\_SIZE-1。需要注意的是，这些额外保留资源是和RME的启动时钩子共享的\footnote{对应宏的值也是完全相同的；关于这些宏请参见\protect8.2.2}，如果选择在RME的钩子中使用这些资源，在RVM的钩子中就不能再次使用它们了。当然，也可以将其中一部分资源用来在RME启动时创建内核对象，另一部分资源则留到RVM启动时来创建内核对象；此时两部分资源的划分需要用户自行手动完成。
+\end{enumerate}
+
+\subsubsection{钩子源文件覆盖<Hook\_Source\_Overwrite>{}}\label{subsubsec:5-3-13-22}
+
+决定在重新生成时是否覆盖之前生成的虚拟机监视器钩子源文件，可以是``Yes''或``No''。如果用户手动编辑了钩子源文件且希望保留更改，可以选择``No''以保留原来的老版本。
+
+\subsection{原生进程配置<Process><Pn>{}}\label{subsec:5-3-14}
+
+本配置组负责系统中的原生进程的配置。系统中可以有一个或多个原生进程，因此该类可以有一个或多个实例。这些实例均会被显示在左侧第二栏中。每一个实例都有十个配置组，它们分别占据一个选项卡。
+
+\subsubsection{进程名称<Name>{}}\label{subsubsec:5-3-14-1}
+
+该配置项是一个必填的字段，决定进程的名称。该名称必须是一个合法的标识符，并且和系统中的其他进程、虚拟机的名称不得重复。
+
+\subsubsection{额外权能表槽位数<Extra\_Captbl>{}}\label{subsubsec:5-3-14-2}
+
+该配置项是一个必填的整数值。用户应该填入额外需要保留给用户使用的该进程的权能表槽位数。它只有在用户要手动添加内核对象到该进程的权能表时才需要设置为不为0的数字。通常而言，我们不推荐用户手动创建内核对象，这意味着用户有可能破坏系统的信息安全性。
+
+\subsubsection{启用协处理器<Coprocessor>{}}\label{subsubsec:5-3-14-3}
+
+该配置项是一个逗号分隔列表，它记录了进程工程中需要启用的协处理器，如FPU等，只有在这里启用的协处理器才会被内核初始化。工程生成器将检查该协处理器是否在在项目中被启用。如果不在，则工程生成器将报错。
+
+\subsubsection{构建系统<Buildsystem>{}}\label{subsubsec:5-3-14-4}
+
+决定进程工程采取何构建系统。
+
+\subsubsection{构建工具链<Toolchain>{}}\label{subsubsec:5-3-14-5}
+
+决定进程工程采取何构建工具链。
+
+\subsubsection{优化等级<Optimization>{}}\label{subsubsec:5-3-14-6}
+
+决定进程工程所使用的优化等级。可选择的优化等级有不优化（O0）、基本优化（O1）、全面优化（O2）、极限优化（O3）、速度优化（Of）和体积优化（Os）。
+
+\subsubsection{工程输出目录<Project\_Output>{}}\label{subsubsec:5-3-14-7}
+
+决定进程工程的输出目录，是一个相对于工程描述文件的路径。
+
+\subsubsection{工程覆盖<Project\_Overwrite>{}}\label{subsubsec:5-3-14-8}
+
+决定在重新生成时是否覆盖之前生成的进程工程文件\footnote{如Keil uVision的*.uvprojx等}，可以是``Yes''或``No''。如果用户手动编辑了工程而希望保留这些更改，可以选择``No''以保留原来的老版本。
+
+\subsubsection{链接器脚本输出目录<Linker\_Output>{}}\label{subsubsec:5-3-14-9}
+
+决定进程工程链接器脚本prc\_xxx\_xxx.ld\footnote{随选择的工具链不同，这里的后缀名也可能不同}的输出目录，是一个相对于工程描述文件的路径。链接器脚本在每次生成中总是会被覆盖。
+
+\subsubsection{主头文件输出目录<Main\_Source\_Output>{}}\label{subsubsec:5-3-14-10}
+
+决定进程主头文件prc\_xxx.h的输出目录，是一个相对于工程描述文件的路径。主头文件在每次生成中总是会被覆盖。
+
+\subsubsection{主源文件输出目录<Main\_Source\_Output>{}}\label{subsubsec:5-3-14-11}
+
+决定进程主源文件prc\_xxx.c以及描述符文件prc\_xxx\_desc.c的输出目录，是一个相对于工程描述文件的路径。主源文件和描述符文件在每次生成中总是会被覆盖；主源文件内含一个用户可填充的调试打印函数RVM\_Putchar，如果用户填充它且使能了调试打印，则可以使用所有RVM\_DBG\_开头的调试打印宏。
+
+\subsubsection{入口点源文件输出目录<Entry\_Source\_Output>{}}\label{subsubsec:5-3-14-12}
+
+决定进程中线程与迁移调用入口点源文件prc\_xxx\_thd\_xxx.c和prc\_xxx\_inv\_xxx.c的输出目录，是一个相对于工程描述文件的路径。这些文件与进程中定义的线程和迁移调用入口是一一对应的；修改这些文件即可实现接管相关线程或迁移调用的执行。其中，原生线程应当永不返回，而迁移调用在结尾处必须调用RVM\_Inv\_Ret主动返回。
+
+此配置项仅适用于原生进程，对虚拟机不存在。
+
+\subsubsection{入口点源文件覆盖<Entry\_Source\_Overwrite>{}}\label{subsubsec:5-3-14-13}
+
+决定在重新生成时是否覆盖之前生成的进程入口点源文件，可以是``Yes''或``No''。如果用户手动编辑了入口点源文件而希望保留这些更改，可以选择``No''以保留原来的老版本。
+
+此配置项仅适用于原生进程，对虚拟机不存在。
+
+\subsubsection{私有存储块<Memory><Mn>{}}\label{subsubsec:5-3-14-14}
+
+本配置组包含了该进程中存在的私有存储块的属性。该组中至少要包含一块代码（Code）存储块和一块数据（Data）存储块；声明的第一块代码存储块将存放进程的全部代码，声明的第一块数据存储块将来存放进程的全部数据区和栈区。其余的代码存储块和数据存储块通常用来存放共享的代码和数据，可通过指针形式使用。
+
+\paragraph{私有段名称<Name>{}}\label{par:5-3-14-14-1}
+
+该配置项是一个选填的字段\footnote{匿名内存段的<Name> 标签可以不存在，也可以存在但为空；工程生成器对两种写法都接受}，可决定该私有内存段的名称。该名称必须是合法C标识符，并且在一个进程内部的内存段之间必须不分大小写地不同。工程生成器和RVM本身并不使用该名称，但若用户提供该名称，在内核的启动头文件rme\_boot.h、虚拟机监视器的启动头文件rvm\_boot.h和进程的主头文件prc\_xxx.h中将生成各内存段的基址与长度的宏定义，方便用户编程：代码段的基址和长度分别表示为CODE\_XXX\_BASE和CODE\_XXX\_SIZE，数据段的长度和基址分别表示为DATA\_XXX\_BASE和DATA\_XXX\_SIZE，设备段的长度和基址分别表示为DEVICE\_XXX\_BASE和DEVICE\_XXX\_SIZE。
+
+如果用户不填写该字段，那么该内存段将作为匿名内存段存在，上述宏将不会被定义。
+
+\paragraph{私有段基址<Base>{}}\label{par:5-3-14-14-2}
+
+该配置项是一个可选的十六进制值。用户应该填入该共享内存段的起始地址。如果填写``Auto''，则代表该共享内存段的位置由编译器自动分配。设备段是一个例外，其段基址不能为``Auto''，必须被手动指定。
+
+\paragraph{私有段长度<Size>{}}\label{par:5-3-14-14-3}
+
+该配置项是一个必填的十六进制值。用户应该填入该共享内存段的长度。
+
+\paragraph{私有段对齐方式<Align>{}}\label{par:5-3-14-14-4}
+
+该配置项是一个必填的十进制值，决定了该存储器的对齐方式。
+
+当段基址为``Auto''时，如果填写为N，则该段存储器在自动分配时对齐到2\textsuperscript{N}；如果填写为``Auto''，则代表该段的对齐方式由编译器自主决定。
+
+当段基址是固定值时，该配置项必须填写``Auto''。
+
+对于同一段内存，不同的架构支持的对齐方式可能有不同。
+
+\paragraph{私有段类别<Type>{}}\label{par:5-3-14-14-5}
+
+该配置项是决定了内存段的类别。可以选择的类别有三种：代码（Code）、数据（Data）、设备（Device）。编译器在分配内存时，会使用这个类别决定将该共享内存段分配到哪一种存储器。
+
+\paragraph{私有段属性<Attribute>{}}\label{par:5-3-14-14-6}
+
+该配置项决定了内存段的属性；有关属性的内容，请参见\protect5.3.11.6
+。
+
+\subsubsection{共享存储块引用<Shmem><Sn>{}}\label{subsubsec:5-3-14-15}
+
+本配置组包含了该进程要引用的共享内存块的属性。
+
+\paragraph{共享段名称<Name>{}}\label{par:5-3-14-15-1}
+
+该配置项决定了要添加进本内存的共享内存段。该共享内存段必须在\protect5.3.11
+中声明。
+
+\paragraph{共享段属性<Attribute>{}}\label{par:5-3-14-15-2}
+
+该配置项决定了共享存储块映射进本进程时的属性，该属性必须是共享内存段声明时的属性的一个子集；这实现了细粒度的受控共享。比如，某共享存储块声明时的属性为RWBCS，但在本进程中引用时属性为RBCS，则本进程只能读取而不能写入该共享存储块\footnote{其它引用本共享存储块且属性包含W的进程才有写权限}。有关属性的内容，请参见\protect5.3.11.6
+。
+
+\subsubsection{线程<Thread><Tn>{}}\label{subsubsec:5-3-14-16}
+
+本配置组包含了在该进程中运行的线程的属性。每一个进程中至少要有一个线程存在。
+
+此配置组仅适用于原生进程，对虚拟机不存在。
+
+\paragraph{线程名称<Name>{}}\label{par:5-3-14-16-1}
+
+该配置项是一个必填的字段，决定了线程的名称。该名称必须是一个合法C标识符，而且在同一个进程内应当是唯一的。
+
+\paragraph{线程栈大小<Stack\_Size>{}}\label{par:5-3-14-16-2}
+
+该配置项是一个必填的十六进制值，决定了线程栈的大小。该大小可根据需求斟酌决定。
+
+\paragraph{线程参数<Parameter>{}}\label{par:5-3-14-16-3}
+
+该配置项是一个可选的十六进制值，决定了线程启动时传递给它的参数。如果不填写，那么默认为0。
+
+\paragraph{线程优先级<Priority>{}}\label{par:5-3-14-16-4}
+
+该配置项是一个必填的整数值，决定了线程的实时优先级。该优先级必须在Kern\_Prio-2和5之间\footnote{最高优先级Kern\_Prio-1被安全守护线程SFTD占据，而优先级4及以下被RVM及其负责管理的虚拟机使用}。比如，如果内核优先级数Kern\_Prio是32，那么该值可以在5和30之间挑选。该值越大，那么线程的优先级越高。
+
+\subsubsection{迁移调用目标<Invocation><In>{}}\label{subsubsec:5-3-14-17}
+
+本配置组包含了在该进程中设置的迁移调用目标的相关信息。在进程中可以有迁移调用目标也可以没有；当其他进程内的线程激活迁移调用目标时，即跳转到该迁移调用目标处执行，执行完后再返回原进程。
+
+此配置项仅适用于原生进程，对虚拟机不存在。
+
+\paragraph{迁移调用名称<Name>{}}\label{par:5-3-14-17-1}
+
+该配置项是一个必填的字段，决定了迁移调用的名称。该名称必须是一个合法C标识符，而且在同一个进程内应当是唯一的。
+
+\paragraph{迁移调用栈大小<Stack\_Size>{}}\label{par:5-3-14-17-2}
+
+该配置项是一个必填的十六进制值，决定了迁移调用栈的大小。该大小可根据需求斟酌决定。
+
+\subsubsection{迁移调用入口<Port><Pn>{}}\label{subsubsec:5-3-14-18}
+
+本配置组包含了从该进程可以调用的迁移调用的相关信息。在进程中可以有迁移调用入口也可以没有；迁移调用入口一旦激活，激活它的线程就会跳转到迁移调用目标处执行，并在完成后返回自己的进程继续执行。
+
+此配置项仅适用于原生进程，对虚拟机不存在。
+
+\paragraph{迁移调用目标名称<Name>{}}\label{par:5-3-14-18-1}
+
+该配置项决定了迁移调用要进入的具体目标。
+
+\paragraph{迁移调用目标所在进程名称<Process>{}}\label{par:5-3-14-18-2}
+
+该配置项决定了迁移调用目标所在进程。对一个迁移调用的引用由目标名称和目标所在进程名称唯一确定。
+
+\subsubsection{信号接收端点<Receive><Rn>{}}\label{subsubsec:5-3-14-19}
+
+该配置组包含了该进程中的线程可以阻塞接收信息的所有接收信号端点。在进程中可以有接收信号端点也可以没有；一旦与接收信号端点对应的发送信号端点遭到激活，接收信号端点上的线程就会解除等待开始运行，直到其再次阻塞。
+
+\paragraph{接收端点名称<Name>{}}\label{par:5-3-14-19-1}
+
+该配置项是一个必填的字段，决定了接收端点的名称。该名称必须是一个合法C标识符，而且在同一个进程内应当是唯一的。在进程的主头文件prc\_xxx.h中将生成各接收端点的形如RCV\_XXX的宏定义，以方便用户在RME\_Sig\_Rcv等系统调用中引用。
+
+\subsubsection{信号发送端点<Send><Sn>{}}\label{subsubsec:5-3-14-20}
+
+本配置组包含了该进程中的线程可以发送到的所有发送信号端点。在进程刚刚建立时，该项为空。在进程中可以有发送信号端点也可以没有；一旦发送信号端点遭到激活，与之对应的接收信号端点上的线程就会解除等待开始运行，直到其再次阻塞。
+
+此配置项在虚拟机中也可以存在，此时它作为虚拟机向原生进程发送信号的重要手段。更多信息请参见\protect2.2.7.2
+。
+
+\paragraph{信号接收端点名称<Name>{}}\label{par:5-3-14-20-1}
+
+该配置项决定了该信号发送端点对应的信号接收端点的名称。在进程的主头文件prc\_xxx.h中将生成各发送端点的形如SND\_XXX\_PRC\_XXX的宏定义，以方便用户在RME\_Sig\_Snd等系统调用中引用。
+
+\paragraph{信号接收端点所在进程名称<Process>{}}\label{par:5-3-14-20-2}
+
+该配置项决定了信号接收端点所在进程。对一个信号接收端点的引用由端点名称和端点所在进程名称唯一确定。
+
+\subsubsection{向量接收端点<Vector><Vn>{}}\label{subsubsec:5-3-14-21}
+
+本配置组包含了该进程中的线程可以阻塞接收的所有物理中断的向量信号端点。在进程中可以有物理向量接收端点也可以没有；一旦该中断向量遭到激活，与之对应的物理向量端点上的线程就会解除等待开始运行，直到其再次阻塞。
+
+此配置项仅适用于原生进程，对虚拟机不存在。
+
+\paragraph{向量端点名称<Name>{}}\label{par:5-3-14-21-1}
+
+该配置项决定了物理中断向量的名称。该名称可由用户自行决定。在进程的主头文件prc\_xxx.h中将生成各发送端点的形如VCT\_XXX的宏定义，以方便用户在RME\_Sig\_Rcv等系统调用中引用。
+
+\paragraph{向量号<Number>{}}\label{par:5-3-14-21-2}
+
+该配置项决定了物理中断向量的向量号。该向量号必须小于芯片描述文件中声明的向量总数，且每一个向量号只能在配置文件中出现一次。
+
+\subsubsection{内核功能调用<Kfunc><Kn>{}}\label{subsubsec:5-3-14-22}
+
+本配置组包含了该进程中的线程可以激活的所有内核功能调用。在进程中可以有内核功能调用也可以没有；进程中的线程可以通过激活内核调用来访问一些特殊的需要在内核态执行的操作。
+
+此配置项在虚拟机中也可以存在，此时它可用来授权特定的虚拟机进行一些内核级敏感操作。需要注意的是，如果内核功能调用被滥用，系统的安全性会遭到严重损害，因此任何内核功能授权行为都需要进行全面的系统安全评估后慎重做出。
+
+\paragraph{功能调用名称<Name>{}}\label{par:5-3-14-22-1}
+
+该配置项决定了该内核功能调用的名称。该名称必须是一个合法C标识符，而且在同一个进程内应当是唯一的。在进程的主头文件prc\_xxx.h中将生成各发送端点的形如KFN\_XXX的宏定义，以方便用户在RME\_Kfn\_Act等系统调用中引用。
+
+\paragraph{主功能号起始值<Begin>{}}\label{par:5-3-14-22-2}
+
+该配置项是一个十六进制值，决定了该内核功能调用允许的主功能号的开始点。
+
+\paragraph{主功能号结束值<End>{}}\label{par:5-3-14-22-3}
+
+该配置项是一个十六进制值，决定了该内核功能调用允许的主功能号的结束点。这个值不能比起始值低。如一个内核功能调用的主功能号开始点为0x10，结束点为0x1F，那么可以调用的内核功能的主功能号在0x10到0x1F之间，包括了0x10和0x1F。
+
+\subsection{虚拟机配置<Virtual><Vn>{}}\label{subsec:5-3-15}
+
+本配置组负责系统中的虚拟机的配置。系统中可以有一个或多个虚拟机，因此该类可以有一个或多个实例。虚拟机实际上是基于原生进程实现的，它拥有原生进程的大多数配置项，但又有所不同。相比原生进程，虚拟机不能拥有线程<Thread>、迁移调用目标<Invocation>、迁移调用入口<Port>、信号接收端点<Receive>以及向量接收端点<Vector>，但却可以拥有私有存储块<Memory>、共享存储块引用<Shmem>以及信号发送端点<Send>。此外，相比原生进程，虚拟机还额外多出一些配置项；接下来将对这些虚拟机特有的配置项进行一一讲解。
+
+\subsubsection{中断处理线程栈大小<Vector\_Stack\_Size>{}}\label{subsubsec:5-3-15-1}
+
+该配置项是一个十六进制值，决定了虚拟机中断处理线程Vct的栈大小。该大小可以比照裸机RTOS中的中断向量专用堆栈的大小，具体数值需要视乎登记的虚拟中断向量处理函数使用的栈深度。一般地，512B是一个很好的参考值。
+
+\subsubsection{用户程序线程栈大小<User\_Stack\_Size>{}}\label{subsubsec:5-3-15-2}
+
+该配置项是一个十六进制值，决定了虚拟机用户程序线程Usr的栈大小。该大小可以比照裸机RTOS中的启动时堆栈大小，它一般不需要很大，只要能够完成RTOS自身的初始化即可；RTOS启动后一般不会再被使用该栈，而是会为每个RTOS线程分配专属的栈。一般地，256B是一个很好的参考值。
+
+\subsubsection{优先级<Priority>{}}\label{subsubsec:5-3-15-3}
+
+该配置项是一个整数值，决定了虚拟机的虚拟化优先级。该优先级必须在虚拟机优先级数-1和0之间。比如，如果虚拟化优先级数是32，那么该值可以在0和31之间挑选。该值越大，那么虚拟机的优先级越高。
+
+需要注意的是，虚拟机优先级和原生进程中的线程优先级不是一回事；虚拟机的优先级比任何原生进程都低，它使用的优先级是虚拟化优先级。只有当所有原生进程中的线程都阻塞时，高优先级虚拟机才运行；当高优先级的虚拟机完全阻塞不运行时，才轮到低优先级虚拟机运行。
+
+\subsubsection{时间片<Timeslice>{}}\label{subsubsec:5-3-15-4}
+
+该配置项是一个大于0的整数值，决定了虚拟机的时间片数量，单位为RVM时钟嘀嗒\footnote{请参见\protect2.1.2.4
+  ，下同}数。在系统中，不同优先级的虚拟机之间为全抢占关系，而相同优先级的虚拟机之间则为时间片轮转调度关系。一般推荐将这个值设的比较大，比如50或100，这样可以避免频繁进行虚拟机间的切换，提高系统的性能。
+
+\subsubsection{时钟周期<Period>{}}\label{subsubsec:5-3-15-5}
+
+该配置项是一个大于0的整数值，决定了虚拟机的虚拟时钟中断的分频系数，单位为RVM时钟嘀嗒数：每经过Period个RVM时钟嘀嗒，才会向本虚拟机发送一次定时器中断Tim\footnote{请参见2.2.4.1}。一般推荐将这个值设的比较大，比如5或10，以防止时钟嘀嗒大量消耗系统资源。
+
+\subsubsection{看门狗超时时间<Watchdog>{}}\label{subsubsec:5-3-15-6}
+
+该配置项是一个整数值，决定了虚拟机的看门狗超时时间，单位为RVM时钟嘀嗒数。一旦某虚拟机失去响应而导致看门狗超时，RVM即会重启该超时的虚拟机。通常而言看门狗超时时间推荐设为1秒左右，这大概是100个或1000个RVM时钟嘀嗒。如果本配置项设置为0，那么意味着本虚拟机不启用看门狗。
+
+看门狗超时时间是按照虚拟机运行时间来计算的，而非真实系统的运行时间。假设看门狗超时时间设置为1秒，那么意味着该虚拟机的净运行时间需要超过1秒且未调用RVM\_Hyp\_Wdg\_Clr喂狗才会导致看门狗超时。
+
+\subsubsection{虚拟中断向量数<Vect\_Num>{}}\label{subsubsec:5-3-15-7}
+
+该配置项决定了虚拟机的虚拟中断源的数量。推荐在够用的前提下将该值设置得尽量小，以节约系统资源。
+
+\subsubsection{客户机操作系统类型<Guest\_Type>{}}\label{subsubsec:5-3-15-8}
+
+该配置项决定了运行的客户机操作系统的类型。
+
+\subsubsection{客户机操作系统根目录<Guest\_Root>{}}\label{subsubsec:5-3-15-9}
+
+该配置项决定了客户机操作系统的根目录，是一个相对于工程描述文件的路径。生成的虚拟机工程会从这个目录引用客户机操作系统的文件。
+
+\subsubsection{客户机头文件输出目录<Virtual\_Header\_Output>{}}\label{subsubsec:5-3-15-10}
+
+该配置项决定了客户机RTOS头文件的输出目录，是一个相对于工程描述文件的路径。具体生成什么配置头文件，以及其内容如何，由选择的具体客户机操作系统而定。
+
+\subsubsection{客户机头文件覆盖<Virtual\_Header\_Overwrite>{}}\label{subsubsec:5-3-15-11}
+
+决定在重新生成时是否覆盖之前生成的客户机RTOS头文件，可以是``Yes''或``No''。如果用户手动编辑了客户机头文件而希望保留这些更改，可以选择``No''以保留原来的老版本。值得注意的是，即便选择了No，具体哪些头文件被保留、哪些头文件被覆盖仍是由具体的客户机生成工具决定的，但生成工具会尽量使那些用户可编辑的头文件不被覆盖。
+
+\subsubsection{客户机头文件输出目录<Virtual\_Source\_Output>{}}\label{subsubsec:5-3-15-12}
+
+该配置项决定了客户机RTOS源文件的输出目录，是一个相对于工程描述文件的路径。具体生成什么配置源文件，以及其内容如何，由选择的具体客户机操作系统而定。
+
+\subsubsection{客户机头文件覆盖<Virtual\_Header\_Overwrite>{}}\label{subsubsec:5-3-15-13}
+
+决定在重新生成时是否覆盖之前生成的客户机RTOS源文件，可以是``Yes''或``No''。如果用户手动编辑了客户机源RTOS文件而希望保留这些更改，可以选择``No''以保留原来的老版本。值得注意的是，即便选择了No，具体哪些源文件被保留、哪些源文件被覆盖仍是由具体的客户机生成工具决定的，但生成工具会尽量使那些用户可编辑的源文件不被覆盖。
+
+
+\section{平台描述文件结构<Platform>{}}\label{sec:5-4}
+
+本文件负责记载平台的基本信息。工程生成器将用这些信息来判断平台的具体型号和兼容性。
+
+\subsection{名称<Name>{}}\label{subsec:5-4-1}
+
+架构的名称。必须和平台的标准名称\footnote{平台的文件夹缩写名}一致。工程生成器将依赖该名称来查找平台描述文件，并交叉确认工程文件、平台描述文件和芯片描述文件中的架构缩写一致。
+
+\subsection{版本<Version>{}}\label{subsec:5-4-2}
+
+该配置项记录了平台描述文件的版本。
+
+工程生成器不关心该配置项的值。
+
+\subsection{字长<Wordlength>{}}\label{subsec:5-4-3}
+
+该配置项记录该平台的处理器字长，单位为位。典型值为32或64。
+
+\subsection{允许协处理器<Coprocessor>{}}\label{subsec:5-4-4}
+
+该配置项是一个逗号分隔列表，它记录了架构中允许的协处理器，如FPU的型号等。工程生成器将据此检查具体的芯片配置文件的合法性。如果某种架构没有协处理器，那么可以空着不填。
+
+\subsection{客户机列表<Guest>{}}\label{subsec:5-4-5}
+
+该配置项是一个逗号分隔列表，记录了所有该架构允许的客户机操作系统。
+
+\subsection{构建系统列表<Buildsystem>{}}\label{subsec:5-4-6}
+
+该配置项是一个逗号分隔列表，记录了所有该架构允许的构建系统。
+
+\subsection{工具链列表<Toolchain>{}}\label{subsec:5-4-7}
+
+该配置项是一个逗号分隔列表，记录了所有该架构允许的编译工具链。
+
+\subsection{架构选项<Config><Cn>{}}\label{subsec:5-4-8}
+
+本配置组负责记载架构本身具备的固有选项。工程编译器会试图从工程中查询这些固有选项的配置。
+
+\subsubsection{名称<Name>{}}\label{subsubsec:5-4-8-1}
+
+该配置项决定了该选项的内部名称。工程生成器将使用这个名称到工程文件中检索对应的选项。
+
+\subsubsection{类别<Type>{}}\label{subsubsec:5-4-8-2}
+
+该配置项是一个字段，决定了该选项的性质。类别只有两种，一种是Choice（选择），另外一种是Range（范围）。前者代表可以在<Range> 标签列出的各个值之中选择一个作为其值，后者代表<Range> 标签列出的两个值之间的所有值都可以。
+
+\subsubsection{宏定义<Macro>{}}\label{subsubsec:5-4-8-3}
+
+该配置项是一个字段，决定了该选项对应的宏名。工程生成器会根据该宏名生成配置文件。
+
+\subsubsection{取值范围<Range>{}}\label{subsubsec:5-4-8-4}
+
+该配置项是一个逗号分隔符字段。当选项是Choice类型时，该分隔符字段列出所有选项可能取的值，这些值可以是数字也可以是任意字符串；当选项是Range类型，该分隔符字段中只能有两个非负整型数值，这两个值决定了取值范围。
+
+
+\section{芯片描述文件结构<Chip>{}}\label{sec:5-5}
+
+本文件负责记载芯片的基本信息。这些基本信息将被生成器用来判断芯片的具体型号和兼容性。
+
+\subsection{名称<Name>{}}\label{subsec:5-5-1}
+
+该配置项是一个字段，决定了芯片大类名称。凡属于这个类别的芯片都使用这个芯片XML进行描述。通常而言，会放在一个类别内的各个芯片仅仅具有管脚数量、外设数量的细微差异，其存储器布局都应当完全一致；芯片描述文件的后续配置项会详细定义它们。
+
+\subsection{版本<Version>{}}\label{subsec:5-5-2}
+
+该配置项记录了芯片描述文件的版本。
+
+工程生成器不关心该配置项的值。
+
+\subsection{平台架构<Platform>{}}\label{subsec:5-5-3}
+
+该配置项决定了芯片的凭他架构。该名称必须与芯片位于的平台文件夹的简称一致。工程生成器将交叉确认工程文件、平台描述文件和芯片描述文件中的架构缩写一致。
+
+\subsection{兼容列表<Compatible>{}}\label{subsec:5-5-4}
+
+该配置项是一个逗号分隔列表，决定了本描述文件兼容的具体的芯片的全名。只有列出在该字段内的芯片才可以被兼容；工程描述文件中给出的芯片具体型号必须在此列表中。
+
+\subsection{厂商<Vendor>{}}\label{subsec:5-5-5}
+
+该配置项决定了芯片的制造厂商。它在生成某些工具链的工程时会用到。
+
+\subsection{中断向量数<Vector>{}}\label{subsec:5-5-6}
+
+该配置项决定了芯片的外部设备中断向量的数量。
+
+\subsection{通用内存保护区域数<Region>{}}\label{subsec:5-5-7}
+
+该配置项决定了芯片的通用MPU区域数量。通用MPU区域既可以用于代码段，也可以用于数据段和设备段。
+
+\subsection{代码内存保护区域数<Iregion>{}}\label{subsec:5-5-8}
+
+该配置项决定了芯片的代码专用MPU区域数量。这些MPU区域与通用MPU区域不同，它们只能用于代码段。
+
+工程生成器暂时不读取该选项。
+
+\subsection{数据内存保护区域数<Dregion>{}}\label{subsec:5-5-9}
+
+该配置项是一个十进制数，决定了芯片的数据专用MPU区域数量。这些MPU区域与通用MPU区域不同，它们只能用于数据段和设备段。
+
+工程生成器暂时不读取该选项。
+
+\subsection{存在协处理器<Coprocessor>{}}\label{subsec:5-5-10}
+
+该配置项是一个逗号分隔列表，它记录了具体芯片中存在的协处理器，如FPU的型号等。工程生成器将根据架构描述文件检测它的合法性，也将据此检查具体的工程描述文件的合法性。如果某个具体芯片没有协处理器，那么可以空着不填。
+
+\subsection{架构属性组<Attribute>{}}\label{subsec:5-5-11}
+
+本配置组决定了架构相关的特有属性。这些信息随着每个架构都有可能不同，如CPU的具体类型、FPU的有无及型号，等等。这些属性不能由用户设置，是固有于芯片本身的配置项。
+
+\subsection{芯片固有存储器<Memory><Mn>{}}\label{subsec:5-5-12}
+
+本配置组负责记载芯片的片上存储器信息。芯片上存在的一切片上存储器都必须被登录在此。具体的登录方法与额外存储器\footnote{请参见\protect5.3.10}是一样的。
+
+\subsubsection{存储段基址<Base>{}}\label{subsubsec:5-5-12-1}
+
+该配置项是一个十六进制值，决定了该内存段的起始地址。
+
+\subsubsection{存储段长度<Size>{}}\label{subsubsec:5-5-12-2}
+
+该配置项是一个十六进制值，决定了该内存段的长度。
+
+\subsubsection{存储段类别<Type>{}}\label{subsubsec:5-5-12-3}
+
+该配置项是一个字段，决定了内存段的类别。可能的类别有三种：代码（Code）、数据（Data）和设备（Device）。
+
+\subsubsection{存储段属性<Attribute>{}}\label{subsubsec:5-5-12-4}
+
+该配置项是一个字段，决定了内存段的属性。内存段属性分别有可读（Readable，R）、可写（Writable，W）、可执行（eXecutable，X）、可缓冲（Bufferable，B）、可缓存（Cacheable，C）、静态映射（Static，S）六种，它们可以以任意组合进行叠加。
+
+一般地，代码段ROM的属性应设置为RXBCS，数据段RAM的属性应设置为RWBCS。设备段的属性则应设置为RWS。
+
+\subsection{芯片选项<Config><Cn>{}}\label{subsec:5-5-13}
+
+本类负责记载芯片本身具备的固有选项\footnote{不包括架构的固有选项；那些选型在平台描述文件中列出，而非这里；请参见\protect5.4.8}。工程编译器会试图从工程中查询这些固有选项的配置。这些选项的组织方式与架构固有选项是一样的。
+
+\subsubsection{名称<Name>{}}\label{subsubsec:5-5-13-1}
+
+该配置项决定了该选项的内部名称。工程生成器将使用这个名称到工程文件中检索对应的选项。
+
+\subsubsection{类别<Type>{}}\label{subsubsec:5-5-13-2}
+
+该配置项是一个字段，决定了该选项的性质。类别只有两种，一种是Choice（选择），另外一种是Range（范围）。前者代表可以在<Range> 标签列出的各个值之中选择一个作为其值，后者代表<Range> 标签列出的两个值之间的所有值都可以。
+
+\subsubsection{宏定义<Macro>{}}\label{subsubsec:5-5-13-3}
+
+该配置项是一个字段，决定了该选项对应的宏名。工程生成器会根据该宏名生成配置文件。
+
+\subsubsection{取值范围<Range>{}}\label{subsubsec:5-5-13-4}
+
+该配置项是一个逗号分隔符字段。当选项是Choice类型时，该分隔符字段列出所有选项可能取的值，这些值可以是数字也可以是任意字符串；当选项是Range类型，该分隔符字段中只能有两个非负整型数值，这两个值决定了取值范围。
+
+
+\needspace{30\baselineskip}
+\section{工程生成器错误信息}\label{sec:5-6}
+
+\needspace{20\baselineskip}
+\subsection{命令行参数分析错误（C0000-C9999）}\label{subsec:5-6-1}
+
+本工具支持的所有输出格式如下：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{支持的输出工具链}\label{tab:5-1}\\
+\toprule
+输出工具链选项 & 工程组织 & 编译器\tabularnewline
+\endfirsthead
+\toprule
+输出工具链选项 & 工程组织 & 编译器\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+makefile & Makefile & GCC\tabularnewline
+keil & Keil uVision & ARMCC 5.0\tabularnewline
+\end{xltabular}
+
+本步骤可能产生的所有报错信息如下（C0000 -\/- C9999）：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{命令行参数分析可能产生的报错信息}\label{tab:5-2}\\
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\endfirsthead
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+C0000 & Too many or too few input parameters. &
+输入了过少或过多的命令行参数。\tabularnewline
+C0001 & More than one input file. &
+指定了多于一个的输入文件。\tabularnewline
+C0002 & More than one output path. &
+指定了多于一个的输出路径。\tabularnewline
+C0003 & More than one output format. &
+指定了多于一个的输出格式。\tabularnewline
+C0004 & Unrecognized command line argument. &
+未能识别的命令行参数。\tabularnewline
+C0005 & No input file specified. & 没有指定输入文件。\tabularnewline
+C0006 & No output path specified. & 没有指定输出路径。\tabularnewline
+C0007 & No output project format specified. &
+没有指定输出工程格式。\tabularnewline
+\end{xltabular}
+
+\newpage
+\subsection{工程XML文件分析错误（P0000-P9999）}\label{subsec:5-6-2}
+
+该模块分析工程描述XML文件，也即GUI模块生成的XML文件。它首先按照输入的路径读取XML文件生成其DOM，然后逐步分析该DOM中的各个组件，并最终生成方便引用的内部数据结构。下面将分章节讲解每个分步骤的具体内容。
+
+\needspace{20\baselineskip}
+\subsubsection{工程配置分析（P0000-P0099）}\label{subsubsec:5-6-2-1}
+
+在本步骤中，系统中的额外内存信息、共享内存信息和一些工程基本信息会经分析后直接填充在内部数据结构中。可能产生的所有报错信息如下（P0000
+-\/- P0099）：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{工程配置初步分析阶段可能产生的报错信息}\label{tab:5-3}\\
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\endfirsthead
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+P0000 & Project XML parsing failed. &
+工程XML文件存在语法错误，无法解析。\tabularnewline
+P0001 & Project XML is malformed. &
+工程XML中不存在<Project> 标签。\tabularnewline
+P0002 & Name section is missing. & 不存在。\tabularnewline
+P0003 & Name section is empty. & 为空。\tabularnewline
+P0004 & Platform section is missing. &
+目标平台<Platform> 不存在。\tabularnewline
+P0005 & Platform section is empty. &
+目标平台<Platform> 为空。\tabularnewline
+P0006 & Chip class section is missing. &
+芯片名称<Name> 不存在。\tabularnewline
+P0007 & Chip class section is empty. &
+芯片名称<Name> 为空。\tabularnewline
+P0008 & Chip fullname section is missing. &
+芯片类别<Class> 不存在。\tabularnewline
+P0009 & Chip fullname section is empty. &
+芯片类别<Class> 为空。\tabularnewline
+P0010 & RME section is missing. &
+工程XML中不存在<RME> 标签。\tabularnewline
+P0011 & RVM section is missing. &
+工程XML中不存在<RVM> 标签。\tabularnewline
+P0012 & Extra memory section is missing. &
+工程XML中不存在<Extmem> 标签。\tabularnewline
+P0013 & Extra memory section parsing internal error. &
+解析<Extmem> 标签及其内容时遇到未知错误。请检查该标签的完整性。\tabularnewline
+P0014 & Extra memory type section is missing. &
+额外段类别<Type> 不存在。\tabularnewline
+P0015 & Extra memory type section is empty. &
+额外段类别<Type> 为空。\tabularnewline
+P0016 & Extra memory type is malformed. &
+额外段类别<Type> 必须是Code，Data或Device三者之一。当前值无法识别。\tabularnewline
+P0017 & Shared memory section is missing. &
+工程XML中不存在<Shmem> 标签。\tabularnewline
+P0018 & Shared memory section parsing internal error. &
+解析<Shmem> 标签及其内容时遇到未知错误。请检查该标签的完整性。\tabularnewline
+P0019 & Shared memory type section is missing. &
+共享段类别<Type> 不存在。\tabularnewline
+P0020 & Shared memory type section is empty. &
+共享段类别<Type> 为空。\tabularnewline
+P0021 & Shared memory name cannot be omitted. &
+共享段名称<Name> 是必填的，它不可以被省略不写。\tabularnewline
+P0022 & Shared memory type is malformed. &
+额外段类别<Type> 必须是Code，Data或Device三者之一。当前值无法识别。\tabularnewline
+P0023 & Process section parsing internal error. &
+解析<Process> 标签及其内容时遇到未知错误。请检查该标签的完整性。\tabularnewline
+P0024 & Virtual machine section parsing internal error. &
+解析<Virtual> 标签及其内容时遇到未知错误。请检查该标签的完整性。\tabularnewline
+P0025 & Project XML and chip XML platform does not match. &
+工程XML和芯片XML中的平台类型不对应。请检查工程XML是否指定了错误的平台。\tabularnewline
+P0026 & Project XML and chip XML chip class does not match. &
+工程XML和芯片XML中的芯片类别不对应。请检查工程XML是否指定了错误的芯片类别。\tabularnewline
+P0027 & The specific chip designated in project XML not found in chip
+XML. &
+工程XML中指定的芯片在芯片XML中不被兼容。请检查是否指定了错误的芯片型号。\tabularnewline
+P0028 & The specific platform is currently not supported. &
+工程XML中指定的平台现在不被支持。请检查是否指定了错误的平台。\tabularnewline
+\end{xltabular}
+
+\newpage
+\needspace{20\baselineskip}
+\subsubsection{内核配置分析（P0100-P0199）}\label{subsubsec:5-6-2-2}
+
+本阶段分析内核的基本配置信息，它们都位于<RME> 标签下。可能产生的所有报错如下表所示（P0100
+-\/- P0199）：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{内核配置分析阶段可能产生的报错信息}\label{tab:5-4}\\
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\endfirsthead
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+P0100 & Code base section is missing. &
+代码段基址<Code\_\allowbreak{}Base> 不存在。\tabularnewline
+P0101 & Code base is not a valid hex integer. &
+代码段基址<Code\_\allowbreak{}Base> 不是十六进制。\tabularnewline
+P0102 & Code size section is missing. &
+代码段长度<Code\_\allowbreak{}Size> 不存在。\tabularnewline
+P0103 & Code size is not a valid hex integer. &
+代码段长度<Code\_\allowbreak{}Size> 不是十六进制。\tabularnewline
+P0104 & Data base section is missing. &
+数据段基址<Data\_\allowbreak{}Base> 不存在。\tabularnewline
+P0105 & Data base is not a valid hex integer. &
+数据段基址<Data\_\allowbreak{}Base> 不是十六进制。\tabularnewline
+P0106 & Data size section is missing. &
+数据段长度<Data\_\allowbreak{}Size> 不是十六进制。\tabularnewline
+P0107 & Data size is not a valid hex integer. &
+数据段长度<Data\_\allowbreak{}Size> 不是十六进制。\tabularnewline
+P0108 & Stack size section is missing. &
+内核栈长度<Stack\_\allowbreak{}Size> 不存在。\tabularnewline
+P0109 & Stack size is not a valid hex integer. &
+内核栈长度<Stack\_\allowbreak{}Size> 不是十六进制。\tabularnewline
+P0110 & Extra kernel memory section is missing. &
+额外内核对象用内存长度<Extra\_\allowbreak{}Kom> 不存在。\tabularnewline
+P0111 & Extra kernel memory is not a valid hex integer. &
+额外内核对象用内存长度<Extra\_\allowbreak{}Kom> 不是十六进制。\tabularnewline
+P0112 & Kernel memory order section is missing. &
+内核内存分配粒度<Kom\_\allowbreak{}Order> 不存在。\tabularnewline
+P0113 & Kernel memory order is not a valid unsigned integer. &
+内核内存分配粒度<Kom\_\allowbreak{}Order> 不是十进制。\tabularnewline
+P0114 & Priority number section is missing. &
+优先级数量<Kern\_\allowbreak{}Prio> 不存在。\tabularnewline
+P0115 & Priority number is not a valid unsigned integer. &
+优先级数量<Kern\_\allowbreak{}Prio> 不是十进制。\tabularnewline
+P0116 & Compiler option section is missing. &
+<Compiler> 标签不存在。\tabularnewline
+P0117 & Platform option section is missing. &
+<Platform> 标签不存在。\tabularnewline
+P0118 & Platform option section parsing internal error. &
+解析<Platform> 标签及其内容时遇到未知错误。请检查该标签的完整性。\tabularnewline
+P0119 & Chip option section is missing. &
+<Chip> 标签不存在。\tabularnewline
+P0120 & Chip option section parsing internal error. &
+解析<Chip> 标签及其内容时遇到未知错误。请检查该标签的完整性。\tabularnewline
+P0121 & Chip option mismatch in project option list. &
+<Chip> 标签下所提供的某个选项在芯片XML中找不到，或者并非芯片XML中的所有选项都被指定。请检查是否指定了错误或多余的标签，或者漏掉了某些标签。\tabularnewline
+P0122 & Value conversion failure. &
+某Range类型选项的设置值转换失败了。请检查工程XML中该选项是否被设置为无符号整数。\tabularnewline
+P0123 & Value overflow. &
+某Range类型选项的设置值超出了允许范围的上界。请检查并重新设置。\tabularnewline
+P0124 & Value underflow. &
+某Range类型选项的设置值超出了允许范围的下界。请检查并重新设置。\tabularnewline
+P0125 & Value not found. &
+某Select类型选项的设置值不在允许的选项列表中。请检查并重新设置。\tabularnewline
+\end{xltabular}
+
+\needspace{20\baselineskip}
+\subsubsection{用户态库配置分析（P0200-P0299）}\label{subsubsec:5-6-2-3}
+
+本阶段分析用户态库的基本配置信息，它们都位于<RVM> 标签下。可能产生的所有报错如下表所示（P0200
+-\/- P0299）：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{用户态库配置分析阶段可能产生的报错信息}\label{tab:5-5}\\
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\endfirsthead
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+P0200 & Code size section is missing. &
+代码段长度<Code\_\allowbreak{}Size> 不存在。\tabularnewline
+P0201 & Code size is not a valid hex integer. &
+代码段长度<Code\_\allowbreak{}Size> 不是十六进制。\tabularnewline
+P0202 & Data size section is missing. &
+数据段长度<Data\_\allowbreak{}Size> 不存在。\tabularnewline
+P0203 & Data size is not a valid hex integer. &
+数据段长度<Data\_\allowbreak{}Size> 不是十六进制。\tabularnewline
+P0204 & Stack size section is missing. &
+启动守护线程栈长度<Init\_\allowbreak{}Stack\_\allowbreak{}Size> 不存在。\tabularnewline
+P0205 & Stack size is not a valid hex integer. &
+启动守护线程栈长度<Init\_\allowbreak{}Stack\_\allowbreak{}Size> 不是十六进制。\tabularnewline
+P0206 & Extra capability table size section is missing. &
+额外权能表槽位数<Extra\_\allowbreak{}Captbl> 不存在。\tabularnewline
+P0207 & Extra capability table size is not a valid unsigned integer. &
+额外权能表槽位数<Extra\_\allowbreak{}Captbl> 不是十进制。\tabularnewline
+P0208 & Compiler section is missing. &
+<Compiler> 标签不存在。\tabularnewline
+P0209 & Virtual machine priorities section is missing. &
+虚拟化优先级数<Virt\_\allowbreak{}Prio> 不存在。\tabularnewline
+P0210 & Virtual machine priorities is not a valid unsigned integer. &
+虚拟化优先级数<Virt\_\allowbreak{}Prio> 不是十进制。\tabularnewline
+P0211 & Virtual machine event number section is missing. &
+虚拟机事件源数<Virt\_\allowbreak{}Event> 不存在。\tabularnewline
+P0212 & Virtual machine event number is not a valid unsigned integer. &
+虚拟机事件源数<Virt\_\allowbreak{}Event> 不是十进制。\tabularnewline
+P0213 & Virtual machine mapping total number section is missing. &
+虚拟机向量映射数<Virt\_\allowbreak{}Map> 不存在。\tabularnewline
+P0214 & Virtual machine mapping total number is not a valid unsigned
+integer. &
+虚拟机向量映射数<Virt\_\allowbreak{}Map> 不是十进制。\tabularnewline
+\end{xltabular}
+
+\needspace{14\baselineskip}
+\needspace{20\baselineskip}
+\subsubsection{进程配置分析（P0300-P0399）}\label{subsubsec:5-6-2-4}
+
+本阶段分析各个进程的基本配置信息，它们都位于<Process> 标签下。可能产生的所有报错如下表所示（P0300
+-\/- P0399）：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{进程配置分析阶段可能产生的报错信息}\label{tab:5-6}\\
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\endfirsthead
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+P0300 & Name section is missing. &
+进程名称<Name> 不存在。\tabularnewline
+P0301 & Name section is empty. &
+进程名称<Name> 为空。\tabularnewline
+P0302 & Extra capability table size section is missing. &
+额外权能表槽位数<Extra\_\allowbreak{}Captbl> 不存在。\tabularnewline
+P0303 & Extra capability table size is not a valid unsigned integer. &
+额外权能表槽位数<Extra\_\allowbreak{}Captbl> 不是十进制。\tabularnewline
+P0304 & Compiler section is missing. &
+<Compiler> 标签不存在。\tabularnewline
+P0305 & Memory section is missing. &
+<Memory> 标签不存在。\tabularnewline
+P0306 & Memory section parsing internal error. &
+解析<Memory> 标签及其内容时遇到未知错误。请检查该标签的完整性。\tabularnewline
+P0307 & Memory section is empty. &
+<Memory> 标签为空，这意味着无私有内存段。\tabularnewline
+P0308 & Memory type section is missing. & 该标签不存在。\tabularnewline
+P0309 & Memory type section is empty. & 该标签为空。\tabularnewline
+P0310 & Memory type is malformed. & 该标签必须是Code，Data或Device三者之一。当前值无法识别。\tabularnewline
+P0311 & Shared memory section is missing. &
+<Shmem> 标签不存在。\tabularnewline
+P0312 & Shared memory section parsing internal error. &
+解析<Shmem> 标签及其内容时遇到未知错误。请检查该标签的完整性。\tabularnewline
+P0313 & Shared memory type section is missing. & 该标签不存在。\tabularnewline
+P0314 & Shared memory type section is empty. & 该标签为空。\tabularnewline
+P0315 & Shared memory type is malformed. & 该标签必须是Code，Data或Device三者之一。当前值无法识别。\tabularnewline
+P0316 & Thread section is missing. &
+<Thread> 标签不存在。\tabularnewline
+P0317 & Thread section parsing internal error. &
+解析<Thread> 标签及其内容时遇到未知错误。请检查该标签的完整性。\tabularnewline
+P0318 & Thread section is empty. &
+<Thread> 标签为空，这意味着无线程存在。\tabularnewline
+P0319 & Invocation section is missing. &
+<Invocation> 标签不存在。\tabularnewline
+P0320 & Invocation section parsing internal error. &
+解析<Invocation> 标签及其内容时遇到未知错误。请检查该标签的完整性。\tabularnewline
+P0321 & Port section is missing. &
+<Port> 标签不存在。\tabularnewline
+P0322 & Port section parsing internal error. &
+解析<Port> 标签及其内容时遇到未知错误。请检查该标签的完整性。\tabularnewline
+P0323 & Receive section is missing. &
+<Receive> 标签不存在。\tabularnewline
+P0324 & Receive section parsing internal error. &
+解析<Receive> 标签及其内容时遇到未知错误。请检查该标签的完整性。\tabularnewline
+P0325 & Send section is missing. &
+<Send> 标签不存在。\tabularnewline
+P0326 & Send section parsing internal error. &
+解析<Send> 标签及其内容时遇到未知错误。请检查该标签的完整性。\tabularnewline
+P0327 & Vector section missing. &
+<Vector> 标签不存在。\tabularnewline
+P0328 & Vector section parsing internal error. &
+解析<Vector> 标签及其内容时遇到未知错误。请检查该标签的完整性。\tabularnewline
+P0329 & Kernel function section missing. &
+<Kernel> 标签不存在。\tabularnewline
+P0330 & Kernel function section parsing internal error. &
+解析<Kernel> 标签及其内容时遇到未知错误。请检查该标签的完整性。\tabularnewline
+P0331 & No primary code section exists. &
+该进程中必须至少有一个私有的Code内存段作为主代码内存段，用来存放代码。\tabularnewline
+P0332 & No primary data section exists. &
+该进程中必须至少有一个私有的Data内存段作为主数据内存段，用来存放数据。\tabularnewline
+P0333 & Primary code section does not have RXS attribute. &
+进程的主代码段没有具备完整的RXS属性（可读可执行，且静态映射）。它必须具备该属性才能作为主代码段。\tabularnewline
+P0334 & Primary data section does not have RWS attribute. &
+进程的主数据段没有具备完整的RWS属性（可读写且静态映射）。它必须具备该属性才能作为主数据段。\tabularnewline
+P0335 & No thread exists. &
+进程中至少要有一个线程，现在没有。\tabularnewline
+\end{xltabular}
+
+\needspace{20\baselineskip}
+\subsubsection{虚拟机配置分析（P0400-P0499）}\label{subsubsec:5-6-2-5}
+
+本阶段分析各个虚拟机的基本配置信息，它们都位于<Virtual> 标签下。可能产生的所有报错如下表所示（P0400
+-\/- P0499）：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{虚拟机配置分析阶段可能产生的报错信息}\label{tab:5-7}\\
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\endfirsthead
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+P0400 & Name section is missing. & 该标签不存在。\tabularnewline
+P0401 & Name section is empty. & 该标签为空。\tabularnewline
+P0402 & Guest operating system selection section is missing. & 该标签不存在。\tabularnewline
+P0403 & Guest operating system selection section is empty. & 该标签为空。\tabularnewline
+P0404 & Extra capability table size section is missing. & 该标签不存在。\tabularnewline
+P0405 & Extra capability table size is not a valid unsigned integer. &
+该标签不是十进制。\tabularnewline
+P0406 & Stack size section is missing. & 该标签不存在。\tabularnewline
+P0407 & Stack size is not a valid hex integer. & 该标签不是十六进制。\tabularnewline
+P0408 & Priority section is missing. & 该标签不存在。\tabularnewline
+P0409 & Priority is not a valid unsigned integer. & 该标签不是十六进制。\tabularnewline
+P0410 & Timeslices section is missing. & 该标签不存在。\tabularnewline
+P0411 & Timeslices is not a valid unsigned integer. & 该标签不是十进制。\tabularnewline
+P0412 & Timeslices cannot be zero. & 该标签不能为0。\tabularnewline
+P0413 & Timer interrupt period section is missing. & 该标签不存在。\tabularnewline
+P0414 & Timer interrupt period is not a valid unsigned integer. & 该标签不是十进制。\tabularnewline
+P0415 & Timer interrupt period cannot be zero. & 该标签不能为0。\tabularnewline
+P0416 & Watchdog timeout section is missing. & 该标签不存在。\tabularnewline
+P0417 & Watchdog timeout is not a valid unsigned integer. & 该标签不是十进制。\tabularnewline
+P0418 & Virtual vector number section is missing. & 该标签不存在。\tabularnewline
+P0419 & Virtual vector number is not a valid unsigned integer. & 该标签不是十进制。\tabularnewline
+P0420 & Virtual vector number too large. & 该标签大于768，不支持。\tabularnewline
+P0421 & Virtual vector number cannot be zero. & 该标签不能为0。\tabularnewline
+P0422 & Compiler section is missing. &
+<Compiler> 标签不存在。\tabularnewline
+P0423 & Memory section is missing. &
+<Memory> 标签不存在。\tabularnewline
+P0424 & Memory section parsing internal error. &
+解析<Memory> 标签及其内容时遇到未知错误。请检查该标签的完整性。\tabularnewline
+P0425 & Memory section is empty. &
+<Memory> 标签为空，这意味着无私有内存段。\tabularnewline
+P0426 & Memory type section is missing. & 该标签不存在。\tabularnewline
+P0427 & Memory type section is empty. & 该标签为空。\tabularnewline
+P0428 & Memory type is malformed. & 该标签必须是Code，Data或Device三者之一。当前值无法识别。\tabularnewline
+P0429 & Shared memory section is missing. &
+<Shmem> 标签不存在。\tabularnewline
+P0430 & Shared memory section parsing internal error. &
+解析<Shmem> 标签及其内容时遇到未知错误。请检查该标签的完整性。\tabularnewline
+P0431 & Shared memory type section is missing. & 该标签不存在。\tabularnewline
+P0432 & Shared memory type section is empty. & 该标签为空。\tabularnewline
+P0433 & Shared memory type is malformed. & 该标签必须是Code，Data或Device三者之一。当前值无法识别。\tabularnewline
+P0434 & Send section is missing. &
+<Send> 标签不存在。\tabularnewline
+P0435 & Send section parsing internal error. &
+解析<Send> 标签及其内容时遇到未知错误。请检查该标签的完整性。\tabularnewline
+P0436 & Kernel function section missing. &
+<Kernel> 标签不存在。\tabularnewline
+P0437 & Kernel function section parsing internal error. &
+解析<Kernel> 标签及其内容时遇到未知错误。请检查该标签的完整性。\tabularnewline
+P0438 & No primary code section exists. &
+该虚拟机中必须至少有一个私有的Code内存段作为主代码内存段，用来存放代码。\tabularnewline
+P0439 & No primary data section exists. &
+该虚拟机中必须至少有一个私有的Data内存段作为主数据内存段，用来存放数据。\tabularnewline
+P0440 & Primary code section does not have RXS attribute. &
+虚拟机的主代码段没有具备完整的RXS属性（可读可执行，且静态映射）。它必须具备该属性才能作为主代码段。\tabularnewline
+P0441 & Primary data section does not have RWS attribute. &
+虚拟机的主数据段没有具备完整的RWS属性（可读写且静态映射）。它必须具备该属性才能作为主数据段。\tabularnewline
+\end{xltabular}
+
+\newpage
+\needspace{20\baselineskip}
+\subsubsection{内存段配置分析（P0500-P0599）}\label{subsubsec:5-6-2-6}
+
+内存段配置分析会在分析额外内存（<Extmem>）、系统共享内存(<Project><Shmem>)和各个进程（<Process>）或虚拟机（<Virtual>）的内存（<Memory>）时被调用。它也会在分析芯片自带内存时被调用，因此这些错误也适用于芯片自带内存（<Chip><Memory>，见后文）的分析。可能产生的所有报错如下表所示（P0500
+-\/- P0599）：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{内存段配置分析阶段可能产生的报错信息}\label{tab:5-8}\\
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\endfirsthead
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+P0500 & Base section is missing. &
+额外段基址<Base>、共享段基址<Base> 该标签、该标签或存储段基址<Base> 不存在。\tabularnewline
+P0501 & Base is neither automatically allocated nor a valid hex integer.
+&
+额外段基址<Base>、共享段基址<Base> 该标签、该标签或存储段基址<Base> 不是十六进制，也没有注明自动分配。\tabularnewline
+P0502 & Size section is missing. &
+额外段长度<Size>、共享段长度<Size>、该标签、该标签或存储段长度<Size> 不存在。\tabularnewline
+P0503 & Size is not a valid hex integer. &
+额外段长度<Size>、共享段长度<Size>、该标签、该标签或存储段长度<Size> 不是十六进制。\tabularnewline
+P0504 & Size cannot be zero. &
+额外段长度<Size>、共享段长度<Size>、该标签、该标签或存储段长度<Size> 不能为0。\tabularnewline
+P0505 & Size is out of bound. &
+额外段长度<Size>、共享段长度<Size>、该标签、该标签或存储段长度<Size> 的大小超过了4GB。\tabularnewline
+P0506 & Type section is missing. &
+额外段类别<Type>、共享段类别<Type>、该标签、该标签或存储段类别<Type> 不存在。\tabularnewline
+P0507 & Device-type memory cannot be automatically allocated. &
+设备（Device）类别的内存不能被设置为自动分配，必须手动指明其起始地址。\tabularnewline
+P0508 & Attribute section is missing. &
+额外段属性<Attribute>、共享段属性<Attribute>、该标签、该标签或存储段属性<Attribute> 不存在。\tabularnewline
+P0509 & Attribute section is empty. &
+额外段属性<Attribute>、共享段属性<Attribute>、该标签、该标签或存储段属性<Attribute> 为空。\tabularnewline
+P0510 & Attribute does not allow any access and is malformed. &
+额外段属性<Attribute>、共享段属性<Attribute>、该标签、该标签或存储段属性<Attribute> 不允许任何形式的访问（不可读、不可写且不可执行）。\tabularnewline
+\end{xltabular}
+
+\needspace{20\baselineskip}
+\subsubsection{共享内存段引用配置分析（P0600-P0699）}\label{subsubsec:5-6-2-7}
+
+本节介绍的共享内存段引用指位于各个进程（<Process>）或虚拟机（<Virtual>）内的对之前声明的共享内存（<Shmem>）的引用，而非共享内存段的声明本身。可能产生的所有报错如下表所示（P0600
+-\/- P0699）：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{共享内存段配置分析阶段可能产生的报错信息}\label{tab:5-9}\\
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\endfirsthead
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+P0600 & Name section is missing. &
+共享段名称<Name> 不存在。\tabularnewline
+P0601 & Name section is empty. &
+共享段名称<Name> 为空。\tabularnewline
+P0602 & Attribute section is missing. &
+共享段属性<Attribute> 不存在。\tabularnewline
+P0603 & Attribute section is empty. &
+共享段属性<Attribute> 为空。\tabularnewline
+P0604 & Attribute does not allow any access and is malformed. &
+共享段属性<Attribute> 不允许任何形式的访问（不可读、不可写且不可执行），这是不允许的。\tabularnewline
+\end{xltabular}
+
+\needspace{14\baselineskip}
+\needspace{20\baselineskip}
+\subsubsection{线程配置分析（P0700-P0799）}\label{subsubsec:5-6-2-8}
+
+线程配置分析产生会在分析各个进程（<Process>）的线程（<Thread>）时使用。可能产生的所有报错如下表所示（P0700
+-\/- P0799）：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{线程配置分析阶段可能产生的报错信息}\label{tab:5-10}\\
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\endfirsthead
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+P0700 & Name section is missing. &
+线程名称<Name> 不存在。\tabularnewline
+P0701 & Name section is empty. &
+线程名称<Name> 为空。\tabularnewline
+P0702 & Stack size section is missing. &
+线程栈大小<Stack\_\allowbreak{}Size> 不存在。\tabularnewline
+P0703 & Stack size is not a valid hex integer. &
+线程栈大小<Stack\_\allowbreak{}Size> 不是十六进制。\tabularnewline
+P0704 & Stack size cannot be zero. &
+线程栈大小<Stack\_\allowbreak{}Size> 不能为0。\tabularnewline
+P0705 & Parameter section is missing. &
+线程参数<Parameter> 不存在。\tabularnewline
+P0706 & Parameter is not a valid hex integer. &
+线程参数<Parameter> 不是十六进制。\tabularnewline
+P0707 & Priority section is missing. &
+线程优先级<Priority> 不存在。\tabularnewline
+P0708 & Priority is not a valid unsigned integer. &
+线程优先级<Priority> 不是十进制。\tabularnewline
+\end{xltabular}
+
+\needspace{20\baselineskip}
+\subsubsection{迁移调用目标配置分析（P0800-P0899）}\label{subsubsec:5-6-2-9}
+
+迁移调用目标配置分析产生会在分析各个进程（<Process>）的迁移调用目标（<Invocation>）时使用。可能产生的所有报错如下表所示（P0800
+-\/- P0899）：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{迁移调用目标配置分析阶段可能产生的报错信息}\label{tab:5-11}\\
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\endfirsthead
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+P0800 & Name section is missing. &
+迁移调用名称<Name> 不存在。\tabularnewline
+P0801 & Name section is empty. &
+迁移调用名称<Name> 为空。\tabularnewline
+P0802 & Stack size section is missing. &
+迁移调用栈大小<Stack\_\allowbreak{}Size> 不存在。\tabularnewline
+P0803 & Stack size is not a valid hex integer. &
+迁移调用栈大小<Stack\_\allowbreak{}Size> 不是十六进制。\tabularnewline
+P0804 & Stack size cannot be zero. &
+迁移调用栈大小<Stack\_\allowbreak{}Size> 不能为0。\tabularnewline
+\end{xltabular}
+
+\needspace{20\baselineskip}
+\subsubsection{迁移调用入口配置分析（P0900-P0999）}\label{subsubsec:5-6-2-10}
+
+迁移调用入口配置分析产生会在分析各个进程（<Process>）的迁移调用入口（<Port>）时使用。可能产生的所有报错如下表所示（P0900
+-\/- P0999）：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{迁移调用入口配置分析阶段可能产生的报错信息}\label{tab:5-12}\\
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\endfirsthead
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+P0900 & Name section is missing. &
+迁移调用目标名称<Name> 不存在。\tabularnewline
+P0901 & Name section is empty. &
+迁移调用目标名称<Name> 为空。\tabularnewline
+P0902 & Process name section is missing. &
+迁移调用目标所在进程名称<Process> 不存在。\tabularnewline
+P0903 & Process name section is empty. &
+迁移调用目标所在进程名称<Process> 为空。\tabularnewline
+\end{xltabular}
+
+\needspace{20\baselineskip}
+\subsubsection{接收信号端点配置分析（P1000-P1099）}\label{subsubsec:5-6-2-11}
+
+接收信号端点配置分析产生会在分析各个进程（<Process>）的接收信号端点（<Receive>）时使用。可能产生的所有报错如下表所示（P1000
+-\/- P1099）：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{接收信号端点配置分析阶段可能产生的报错信息}\label{tab:5-13}\\
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\endfirsthead
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+P1000 & Name section is missing. &
+接收端点名称<Name> 不存在。\tabularnewline
+P1001 & Name section is empty. &
+接收端点名称<Name> 为空。\tabularnewline
+\end{xltabular}
+
+\needspace{20\baselineskip}
+\subsubsection{发送信号端点配置分析（P1100-P1199）}\label{subsubsec:5-6-2-12}
+
+发送信号端点配置分析会在分析各个进程（<Process>）的发送信号端点（<Send>）时使用。可能产生的所有报错如下表所示（P1100
+-\/- P1199）：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{发送信号端点配置分析阶段可能产生的报错信息}\label{tab:5-14}\\
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\endfirsthead
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+P1100 & Name section is missing. &
+信号发送端点名称<Name> 不存在。\tabularnewline
+P1101 & Name section is empty. &
+信号发送端点名称<Name> 为空。\tabularnewline
+P1102 & Process name section is missing. &
+信号发送端点所在进程名称<Process> 不存在。\tabularnewline
+P1103 & Process name section is empty. &
+信号发送端点所在进程名称<Process> 为空。\tabularnewline
+\end{xltabular}
+
+\needspace{20\baselineskip}
+\subsubsection{物理向量信号端点配置分析（P1200-P1299）}\label{subsubsec:5-6-2-13}
+
+物理向量信号端点配置分析产生会在分析各个进程（<Process>）的物理向量信号端点（<Vector>）时使用。它也在分析芯片的物理信号端点时被使用（<Chip><Vector>，见后文）可能产生的所有报错如下表所示（P1200
+-\/- P1299）：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{物理向量信号端点配置分析阶段可能产生的报错信息}\label{tab:5-15}\\
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\endfirsthead
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+P1200 & Name section is missing. &
+向量端点名称<Name> 不存在。\tabularnewline
+P1201 & Name section is empty. &
+向量端点名称<Name> 为空。\tabularnewline
+P1202 & Number section is missing. &
+向量端点名称<Name> 不存在。\tabularnewline
+P1203 & Number is not a valid unsigned integer. &
+向量端点名称<Name> 不是十进制。\tabularnewline
+\end{xltabular}
+
+\subsubsection{内核功能配置分析（P1300-P1399）}\label{subsubsec:5-6-2-14}
+
+内核功能配置分析会在分析各个进程（<Process>）或虚拟机（<Virtual>）的内核功能（<Kernel>）时使用。可能产生的所有报错如下表所示（P1300
+-\/- P1399）：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{内核功能配置分析阶段可能产生的报错信息}\label{tab:5-16}\\
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\endfirsthead
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+P1300 & Name section is missing. &
+功能调用名称<Name> 不存在。\tabularnewline
+P1301 & Name section is empty. &
+功能调用名称<Name> 为空。\tabularnewline
+P1302 & Starting kernel function number section is missing. &
+主功能号起始值<Begin> 不存在。\tabularnewline
+P1303 & Starting kernel function number is not a valid hex integer. &
+主功能号起始值<Begin> 不是十六进制。\tabularnewline
+P1304 & Ending kernel function number section is missing. &
+主功能号结束值<End> 不存在。\tabularnewline
+P1305 & Ending kernel function number is not a valid hex integer. &
+主功能号结束值<End> 不是十六进制。\tabularnewline
+P1306 & Ending kernel function number is smaller than the starting
+kernel function number. &
+结束值项比起始值项大，这是不允许的。结束值项至少应当等于起始值项。\tabularnewline
+\end{xltabular}
+
+\newpage
+\subsection{芯片XML文件分析错误（D0000-D9999）}\label{subsec:5-6-3}
+
+该模块分析芯片描述XML文件。这些文件是编译器自带的。下面将分章节讲解每个分步骤的具体内容。
+
+\needspace{20\baselineskip}
+\subsubsection{芯片信息初步分析（D0000-D0099）}\label{subsubsec:5-6-3-1}
+
+在本步骤中，系统中的额外内存信息、共享内存信息和一些工程基本信息会经分析后直接填充在内部数据结构中。可能产生的所有报错信息如下（D0000
+-\/- D0099）：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{芯片信息初步分析阶段可能产生的报错信息}\label{tab:5-17}\\
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\endfirsthead
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+D0000 & Chip XML parsing failed. &
+芯片XML文件存在语法错误，无法解析。\tabularnewline
+D0001 & Chip XML is malformed. &
+芯片XML中不存在<Chip> 标签。\tabularnewline
+D0002 & Class section is missing. &
+名称<Name> 不存在。\tabularnewline
+D0003 & Class section is empty. &
+名称<Name> 为空。\tabularnewline
+D0004 & Compatible variant section is missing. &
+兼容列表<Compatible> 不存在。\tabularnewline
+D0005 & Compatible variant section is empty. &
+兼容列表<Compatible> 为空。\tabularnewline
+D0006 & Vendor section is missing. &
+厂商<Vendor> 不存在。\tabularnewline
+D0007 & Vendor section is empty. &
+厂商<Vendor> 为空。\tabularnewline
+D0008 & Platform section is missing. &
+平台架构<Platform> 不存在。\tabularnewline
+D0009 & Platform section is empty. &
+平台架构<Platform> 为空。\tabularnewline
+D0010 & Cores section is missing. & 该标签不存在。\tabularnewline
+D0011 & Cores is not an unsigned integer. & 该标签为空。\tabularnewline
+D0012 & Regions section is missing. &
+通用内存保护区域数<Region> 不存在。\tabularnewline
+D0013 & Regions is not an unsigned integer. &
+通用内存保护区域数<Region> 为空。\tabularnewline
+D0014 & Attribute section missing. &
+架构属性组<Attribute> 不存在。\tabularnewline
+D0015 & Attribute section parsing internal error. &
+解析架构属性组<Attribute> 及其内容时发生未知错误。请检查<Attribute> 标签及其内容。\tabularnewline
+D0016 & Memory section is missing. &
+芯片XML中不存在<Memory> 标签。\tabularnewline
+D0017 & Memory section parsing internal error. &
+解析<Memory> 标签及其内容时遇到未知错误。请检查该标签的完整性。\tabularnewline
+D0018 & Memory section is empty. &
+<Memory> 标签内部为空。\tabularnewline
+D0019 & Memory type section is missing. &
+存储段类别<Type> 不存在。\tabularnewline
+D0020 & Memory type section is empty. &
+存储段类别<Type> 为空。\tabularnewline
+D0021 & Memory type is malformed. &
+存储段类别<Type> 必须是Code，Data或Device三者之一。当前值无法识别。\tabularnewline
+D0022 & No code section exists. &
+芯片中没有可用于代码段的内存。\tabularnewline
+D0023 & No data section exists. &
+芯片中没有可用于数据段的内存。\tabularnewline
+D0024 & No device section exists. &
+芯片中没有可用于设备段的内存。\tabularnewline
+D0025 & Option section is missing. &
+芯片XML中不存在<Option> 标签。\tabularnewline
+D0026 & Option section parsing internal error. &
+解析<Option> 标签及其内容时遇到未知错误。请检查该标签的完整性。\tabularnewline
+D0027 & Vector section missing. &
+芯片XML中不存在<Vector> 标签。\tabularnewline
+D0028 & Vector section parsing internal error. &
+解析<Vector> 标签及其内容时遇到未知错误。请检查该标签的完整性。\tabularnewline
+\end{xltabular}
+
+\subsubsection{芯片内存分析（P0500-P0599）}\label{subsubsec:5-6-3-2}
+
+本步骤分析芯片本身的内存存储器。本部分所可能产生的报错（P0500 -\/-
+P0599）已经在前面完成介绍，因此在这里我们将其略去。
+
+\subsubsection{芯片选项分析（D0100-D0199）}\label{subsubsec:5-6-3-3}
+
+本步骤分析芯片本身的选项。可能产生的所有报错信息如下（D0100 -\/-
+D0199）：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{芯片选项分析阶段可能产生的报错信息}\label{tab:5-18}\\
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\endfirsthead
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+D0100 & Name section is missing. & 该标签不存在。\tabularnewline
+D0101 & Name section is empty. & 该标签为空。\tabularnewline
+D0102 & Type section is missing. & 该标签不存在。\tabularnewline
+D0103 & Type section is empty. & 该标签为空。\tabularnewline
+D0104 & Type is malformed. & 该标签必须是Select或Range两者之一。当前值无法识别。\tabularnewline
+D0105 & Macro section is missing. & 该标签不存在。\tabularnewline
+D0106 & Macro section is empty. & 该标签为空。\tabularnewline
+D0107 & Range section is missing. & 该标签不存在。\tabularnewline
+D0108 & Range section is empty. & 该标签为空。\tabularnewline
+D0109 & Range section have an empty value. & 该标签之中出现了一个空值。空值是指两个逗号之间没有内容，或者第一个逗号之前没有内容，或者最后一个逗号之后没有内容。\tabularnewline
+D0110 & Range typed option cannot have more or less than two ends
+specified. & Range类型的选项的该标签之中必须正好有两个值标注其起止点。多或者少都是不允许的。\tabularnewline
+D0111 & Starting point or ending point conversion failure. &
+某Range类型选项的该标签中有不是整数的数值。请检查其起止点确实为无符号整数。\tabularnewline
+D0112 & Range typed option starting point must be smaller than the
+corresponding ending point. & Range类型的选项的该标签的起点值必须严格小于止点值，否则选项将无可选择。\tabularnewline
+D0113 & Select typed option's possible values must all be valid C
+identifiers or numbers. & Select类型的选项的该标签的所有可能值必须全部是合法的C标识符，或者是一个数字。\tabularnewline
+\end{xltabular}
+
+\subsubsection{芯片向量分析（P1200-P1299）}\label{subsubsec:5-6-3-4}
+
+本步骤分析芯片本身的中断向量。本部分所可能产生的报错（P1200 -\/-
+P1299）已经在前面完成介绍，因此在这里我们将其略去。
+
+\subsection{内存分配错误（M0000-M0999）}\label{subsec:5-6-4}
+
+该步骤确定各个自动分配的内存段的首地址，以及决定页表的具体构造方式。它又可以分成内存对齐、内存段分配、页表生成三个子部骤。
+
+\subsubsection{内存对齐（A0000-A9999）}\label{subsubsec:5-6-4-1}
+
+该步骤主要检查并且对齐各个内存块。给RME和RVM保留的内存必须被对齐到某个由目标架构决定的粒度。各个线程的栈也要对齐到这个粒度。各个内存块的起始地址和大小也会被检查，如果有不符合该对齐粒度的情况出现，那么将会报错。这些报错随着各个架构都有所不同，具体所产生的错误需要参见该架构的相应文档。
+
+\needspace{20\baselineskip}
+\subsubsection{内存段分配（M0000-M0099）}\label{subsubsec:5-6-4-2}
+
+该步骤将那些没有指定起始地址的内存段分配固定的内存地址。在这一步骤中，我们先将外部内存段添加进芯片的内存布局中并检查是否有交错；如果没有，那么接下来决定各个未分配的代码和数据内存段的起始地址。
+
+分配器使用一个高度智能化的算法决定各个内存段的位置。分配结束后，我们将检查每个进程的内存布局，确定没有交错，以及确定各个进程的主代码段是互相独立的\footnote{主数据段则无该要求}。最后，我们还要检查所有的用户指定了初始地址和长度的那些内存段都落在芯片内存布局中。
+
+可能产生的所有报错信息如下（M0000 -\/- M0099）：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{内存段分配阶段可能产生的报错信息}\label{tab:5-19}\\
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\endfirsthead
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+M0000 & Chip internal and/or extra memory section overlapped. &
+芯片的内存布局有重叠。比如，添加的额外内存和芯片本身提供的内存发生了交叠，这在物理上是不可实现的。\tabularnewline
+M0001 & RME code section is invalid, either wrong range or wrong
+attribute. &
+RME的代码段位置不正常，因为在芯片的内存布局中这个位置不允许存放代码，或者不可读、不可执行或不可静态映射。\tabularnewline
+M0002 & RVM code section is invalid, either wrong range or wrong
+attribute. &
+RVM的代码段位置不正常，因为在芯片的内存布局中这个位置不允许存放代码，或者不可读、不可执行或不可静态映射。\tabularnewline
+M0003 & Code section is invalid, either wrong range or wrong attribute.
+&
+某进程的代码段或共享代码段位置不正常，因为在芯片的内存布局中这个位置不允许存放代码，或者无法满足该代码段声明时的那些访问权限。\tabularnewline
+M0004 & Code memory fitter failed. &
+代码段分配失败。这可能是由于使用了过多的代码存储，或者声明的代码段数过多导致代码内存碎片化。\tabularnewline
+M0005 & RME data section is invalid, either wrong range or wrong
+attribute. &
+RME的数据段位置不正常，因为在芯片的内存布局中这个位置不允许存放代码，或者不可读、不可写或不可静态映射。\tabularnewline
+M0006 & RVM data section is invalid, either wrong range or wrong
+attribute. &
+RVM的代码段位置不正常，因为在芯片的内存布局中这个位置不允许存放数据，或者不可读、不可写或不可静态映射。\tabularnewline
+M0007 & Data section is invalid, either wrong range or wrong attribute.
+&
+某进程的数据段或共享数据段位置不正常，因为在芯片的内存布局中这个位置不允许存放代码，或者无法满足该数据段声明时的那些访问权限。\tabularnewline
+M0008 & Data memory fitter failed. &
+数据段分配失败。这可能是由于使用了过多的数据存储，或者声明的数据段数过多导致数据内存碎片化。\tabularnewline
+M0009 & Name is duplicate or invalid. &
+同一种类型的共享内存重名或者同一进程内部对同一共享内存的引用重复。\tabularnewline
+M0010 & Entry not found in global database. &
+进程或内对共享内存的引用在共享内存的声明中找不到。\tabularnewline
+M0011 & Attributes not satisfied by global entry. &
+进程内对共享内存的引用\tabularnewline
+M0012 & Private and/or shared memory section overlapped. &
+在同一进程内部发生了地址空间交叠。这可能是由于两段被指定了起始地址和长度的私有内存发生交叠，也有可能是由于共享内存和私有内存发生交叠。\tabularnewline
+M0013 & Process primary code section overlapped. &
+不同进程间的私有主代码空间发生了地址交叠。这是不允许的，因为主代码空间对于各个进程而言是独占的。\tabularnewline
+M0014 & Device memory have wrong attributes. &
+芯片内存布局中的设备段无法满足该设备内存声明的访问权限。\tabularnewline
+M0015 & Device memory segment is out of bound. &
+声明的设备内存无法在芯片的内存布局中找到。这可能是由于芯片的这个位置不允许存放设备内存。\tabularnewline
+\end{xltabular}
+
+\subsubsection{页表生成（A0000-A9999）}\label{subsubsec:5-6-4-3}
+
+该步骤将生成该工程中各个进程和虚拟机的页表。该部分完全是由具体的架构所决定的，因此产生的具体报错信息需要查看该架构对应的手册。
+
+\newpage
+\subsection{权能表分配错误（M1000-M1999）}\label{subsec:5-6-5}
+
+该步骤自动分配各个内核对象的权能表权能号。权能号包括两个，一个是在RVM中创建该内核对象时使用的全局权能号，另一个是在各个进程中引用这些权能时使用的本地权能号。它又可以分为合规检查、本地权能号分配、全局权能号分配、权能宏名分配和权能配对五个步骤。
+
+\subsubsection{合规检查（M1000-M1099）}\label{subsubsec:5-6-5-1}
+
+该步骤主要进行内核对象的不能在解析XML时确定的较为复杂的参数检查。可能产生的所有报错信息如下（M1000
+-\/- M1099）：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{合规检查阶段可能产生的报错信息}\label{tab:5-20}\\
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\endfirsthead
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+M1000 & Total number of kernel priorities must be a multiple of word
+size. &
+内核态优先级的总数必须是机器字长的整数倍。不是整数倍的值不允许。\tabularnewline
+M1001 & Kernel memory allocation granularity order must be no less than
+2\^{}3=8 bytes. & 内核内存分配粒度级数必须大于等于3。\tabularnewline
+M1002 & Kernel memory allocation granularity order must be no more than
+2\^{}5=32 bytes. & 内核内存分配粒度级数必须小于等于5。\tabularnewline
+M1003 & There are neither virtual machines nor processes in the system.
+& 系统中既没有虚拟机也没有原生进程。这是不允许的。\tabularnewline
+M1004 & Virtual machine exists but the total number of virtual machine
+priorities is set to 0. &
+系统中存在虚拟机，但是虚拟机优先级数量却被设置为0。这是不允许的。\tabularnewline
+M1005 & Total number of virtual machine priorities must be a multiple of
+word size. &
+虚拟机优先级的总数必须是机器字长的整数倍。不是整数倍的值不允许。\tabularnewline
+M1006 & Virtual machine exists but the total number of virtual event
+sources is set to 0. &
+系统中存在虚拟机，但是虚拟机事件源的数量却被设置为0。这是不允许的。\tabularnewline
+M1007 & Total number of virtual event sources must be a multiple of word
+size. &
+虚拟机事件源的总数必须是机器字长的整数倍。不是整数倍的值不允许。\tabularnewline
+M1008 & Total number of virtual event sources cannot exceed 1024. &
+虚拟机事件源的总数量不能超过1024。\tabularnewline
+M1009 & Total number of virtual event to interrupt mappings cannot be
+smaller than the virtual event source number. &
+总计的事件源或物理中断到虚拟机虚拟向量的映射允许上限必须大于虚拟机事件源的总数量。\tabularnewline
+M1010 & Priority must be bigger than service daemons' priority (4). &
+用户进程中的线程的优先级必须大于各个服务守护线程的优先级，也即必须大于4。\tabularnewline
+M1011 & Priority must be smaller than safety daemon priority
+(Kern\_\allowbreak{}Prios-1). &
+用户进程中的线程的优先级必须小于安全守护线程的优先级，也即必须小于内核优先级总数-1。\tabularnewline
+M1012 & Priority must be smaller than total number of virtual machine
+priorities. & 虚拟机的优先级必须小于虚拟机优先级的总数。\tabularnewline
+M1013 & Extra capacity cannot be larger than the architectural limits. &
+额外权能表的表项数量不能超过架构允许的数量。在32位机器上这个限制为128；在64位机器上这个限制为32768。\tabularnewline
+M1014 & Kernel function number range exceeded architectural limits. &
+内核功能的功能号超过了架构允许的范围。在32位机器上它的最大值为2\textsuperscript{16}，在64位机器上它的最大值为2\textsuperscript{32}。\tabularnewline
+M1015 & Name is duplicate or invalid. &
+系统中存在重复的内核对象名称。有可能是进程的名称重复，也有可能是进程内同一类内核对象的名称重复。\tabularnewline
+M1016 & Name/process name is duplicate or invalid. &
+同一进程内部的迁移调用入口或者信号发送端点声明的目标的名称和所在进程都相同。这是不允许的。\tabularnewline
+M1017 & Name/number is duplicate or invalid. &
+中断向量的名称或者中断号重复。这是不允许的。\tabularnewline
+\end{xltabular}
+
+\newpage
+\needspace{20\baselineskip}
+\subsubsection{本地权能号分配（M1100-M1199）}\label{subsubsec:5-6-5-2}
+
+该步骤主要分配各个进程的本地权能表中的权能号。可能产生的所有报错信息如下（M1100
+-\/- M1199）：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{本地权能号分配阶段可能产生的报错信息}\label{tab:5-21}\\
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\endfirsthead
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+M1100 & Capability table size exceeded architectural limits. &
+本地权能表的大小超过了架构允许的现值。这是不允许的。\tabularnewline
+\end{xltabular}
+
+\subsubsection{全局权能号分配（M1200-M1299）}\label{subsubsec:5-6-5-3}
+
+该步骤主要分配RVM在创建各个内核资源时的全局权能号。本阶段不会产生任何报错信息。
+
+\newpage
+\subsubsection{权能宏名分配（M1300-M1399）}\label{subsubsec:5-6-5-4}
+
+该步骤主要分配供引用权能使用的权能宏名。本阶段不会产生任何报错信息。
+
+\needspace{20\baselineskip}
+\subsubsection{权能配对（M1400-M1499）}\label{subsubsec:5-6-5-5}
+
+该步骤会将信号发送端点和迁移调用入口分别与信号接收端点和迁移调用目标配对。如果编译器发现无法配对的信号发送端点和迁移调用入口，则会报错。该步骤也同时检查所有声明的物理向量名称是否能够在芯片XML中被找到，如果不能则报错。可能产生的所有报错信息如下（M1400
+-\/- M1499）：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{权能配对阶段可能产生的报错信息}\label{tab:5-22}\\
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\endfirsthead
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+M1400 & Invalid process name. &
+信号发送端点或迁移调用入口引用的进程不存在。\tabularnewline
+M1401 & Invalid invocation name. &
+迁移调用入口引用的迁移调用目标不存在。\tabularnewline
+M1402 & Invalid receive endpoint name. &
+信号发送端点引用的信号接收端点不存在。\tabularnewline
+M1403 & Invalid vector number. &
+物理向量端点的向量号和芯片XML中记载的不一致。\tabularnewline
+M1404 & Invalid vector name. &
+物理向量端点引用的向量名称在芯片XML中无记载。\tabularnewline
+\end{xltabular}
+
+\subsection{内核对象分配错误（M2000-M2999）}\label{subsec:5-6-6}
+
+该步骤分配各个内核对象的内核内存地址，以及各个进程内部的线程、迁移调用目标的内存布局。它又可以分为内核对象内存试分配、内核对象内存分配、内核其他内存分配、用户态库内存分配和进程内存分配五个步骤。
+
+\newpage
+\needspace{20\baselineskip}
+\subsubsection{内核对象内存试分配和分配（M2000-M2099）}\label{subsubsec:5-6-6-1}
+
+由于在开始分配内核对象时用户态库的主权能表的大小是未知的，因此需要经过一个试分配阶段。试分配阶段将分配所有的内核对象的内存地址，但不分配主权能表所占的大小。在决定了内核对象的数量后，主权能表的大小随即决定，然后在进行一轮分配得到各个内核对象的真实地址。可能产生的所有报错信息如下（M2000
+-\/- M2099）：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{内核对象试分配和分配阶段可能产生的报错信息}\label{tab:5-23}\\
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\endfirsthead
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+M2000 & RVM capability table size exceeded the architectural limit. &
+RVM的权能表大小超过了架构允许的长度。请考虑减少RVM的额外权能表槽位数，或降低系统的复杂性。\tabularnewline
+\end{xltabular}
+
+\needspace{20\baselineskip}
+\subsubsection{内核其他内存分配（M2100-M2199）}\label{subsubsec:5-6-6-2}
+
+本步骤分配内核中存在的其他内存，诸如内核栈等等。某些内存段是内核运行所必需的，另外一些内存段则是内核与用户态库交流所必需的。可能产生的所有报错信息如下（M2100
+-\/- M2199）：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{内核其他内存分配阶段可能产生的报错信息}\label{tab:5-24}\\
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\endfirsthead
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+M2100 & RME data section is not big enough, unable to allocate vector
+flags. &
+RME的数据段不够大，无法分配向量标志位内存。请考虑将RME的数据段修改得大一些。\tabularnewline
+M2101 & RME data section is not big enough, unable to allocate event
+flags. &
+RME的数据段不够大，无法分配向量标志位内存。请考虑将RME的数据段修改得大一些。\tabularnewline
+M2102 & RME data section is not big enough, unable to allocate kernel
+stacks. &
+RME的数据段不够大，无法分配向量标志位内存。请考虑将RME的数据段修改得大一些。\tabularnewline
+M2103 & RME data section is not big enough, unable to allocate kernel
+object memory. &
+RME的数据段不够大，无法分配向量标志位内存。请考虑将RME的数据段修改得大一些。\tabularnewline
+\end{xltabular}
+
+\needspace{20\baselineskip}
+\subsubsection{用户态库内存分配（M2200-M2299）}\label{subsubsec:5-6-6-3}
+
+本步骤分配用户态库内存，诸如各个守护线程所使用的栈等等。可能产生的所有报错信息如下（M2200
+-\/- M2299）：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{用户态库内存分配阶段可能产生的报错信息}\label{tab:5-25}\\
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\endfirsthead
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+M2200 & RVM data section is not big enough, unable to allocate init
+thread stack. &
+RVM的数据段不够大，无法分配启动守护线程栈。请考虑将RVM的数据段修改得大一些。\tabularnewline
+M2201 & RVM data section is not big enough, unable to allocate safety
+daemon thread stack. &
+RVM的数据段不够大，无法分配安全守护线程栈。请考虑将RVM的数据段修改得大一些。\tabularnewline
+M2202 & RVM data section is not big enough, unable to allocate virtual
+machine monitor daemon thread stack. &
+RVM的数据段不够大，无法分配超调用守护线程栈。请考虑将RVM的数据段修改得大一些。\tabularnewline
+M2203 & RVM data section is not big enough, unable to allocate vector
+handling daemon stack. &
+RVM的数据段不够大，无法分配向量守护线程栈。请考虑将RVM的数据段修改得大一些。\tabularnewline
+M2204 & RVM data section is not big enough, unable to allocate timer
+handling thread stack. &
+RVM的数据段不够大，无法分配时间守护线程栈。请考虑将RVM的数据段修改得大一些。\tabularnewline
+\end{xltabular}
+
+\subsubsection{进程内存分配（M2300-M2399）}\label{subsubsec:5-6-6-4}
+
+本步骤分配进程本身的内存，诸如各个线程和迁移调用目标的栈等等。如果该进程实际上是一个虚拟机，那么还要分配与虚拟机监视器相关的内存。可能产生的所有报错信息如下（M2300
+-\/- M2399）：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{进程内存分配阶段可能产生的报错信息}\label{tab:5-26}\\
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\endfirsthead
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+M2300 & Data section size is not big enough, unable to allocate stack. &
+进程的数据段不够大，无法分配线程或迁移调用目标的栈。请考虑将进程的数据段修改得大一些。\tabularnewline
+M2301 & Data section size is not big enough, unable to allocate virtual
+machine interrupt flags. &
+虚拟机的数据段不够大，无法分配虚拟向量标志内存区。请考虑将虚拟机的数据段修改得大一些。\tabularnewline
+M2302 & Data section size is not big enough, unable to allocate virtual
+machine parameters. &
+虚拟机的数据段不够大，无法分配超调用参数区。请考虑将虚拟机的数据段修改得大一些。\tabularnewline
+M2303 & Data section size is not big enough, unable to allocate virtual
+machine registers. &
+虚拟机的数据段不够大，无法分配虚拟化寄存器区。请考虑将虚拟机的数据段修改得大一些。\tabularnewline
+\end{xltabular}
+
+\subsection{内核工程生成错误（G0000-G0999）}\label{subsec:5-6-7}
+
+该步骤生成RME内核的工程。它又可以分为文件夹结构生成、配置头文件生成、启动序列源文件生成、用户可编辑源文件生成、架构相关文件生成五个步骤。
+
+在文件夹结构生成步骤，内核所需的各个文件夹将被建立，还将填充内核源码到文件夹内。
+
+在配置头文件生成步骤，生成选择架构所使用的配置头文件。
+
+在启动序列源文件生成步骤，用于在启动时创建内核对象的头文件和源文件将被建立。
+
+在用户可编辑源文件生成步骤，用户可编辑源文件将被建立。用户可编辑源文件主要负责内核态中断向量的填充。
+
+在架构相关文件生成阶段，相关工具链或IDE的工程将被建立，从而将各个生成的源文件组织起来成为可编译的工程。
+
+总的而言，本步骤及其五个子部骤都没有独立的报错信息。
+
+\needspace{14\baselineskip}
+\subsection{用户态库工程生成错误（G1000-G1999）}\label{subsec:5-6-8}
+
+该步骤负责生成RVM用户态库的工程。它又可以分为文件夹结构生成、配置头文件生成、启动序列源文件生成、架构相关文件生成四个步骤。
+
+在文件夹结构生成步骤，用户态库工程所需的各个文件夹将被建立，还将填充用户态库源码到文件夹内。
+
+在配置头文件生成步骤，生成选择架构所使用的配置头文件。
+
+在启动序列源文件生成步骤，用于在启动时创建内核对象的头文件和源文件将被建立。
+
+在用户可编辑源文件生成步骤，用户可编辑源文件将被建立。用户可编辑源文件主要负责进一步初始化以及某些可以定制的处理逻辑的编写。
+
+在架构相关文件文件生成阶段，相关工具链或IDE的工程将被建立，从而将各个生成的源文件组织起来成为可编译的工程。
+
+总的而言，本步骤可能产生的报错信息如下（G1000 -\/- G1999）：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{用户态库工程生成时可能产生的报错信息}\label{tab:5-27}\\
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\endfirsthead
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+G1000 & Internal capability table computation failure. &
+内部权能表大小计算错误，无法生成内核对象创建代码。出现此错误说明编译器遇到内部故障，请向我们报告此故障。\tabularnewline
+\end{xltabular}
+
+\subsection{用户进程工程生成错误（G2000-G2999）}\label{subsec:5-6-9}
+
+该步骤负责生成各个用户进程的工程。它又可以分为文件夹结构生成、进程源文件生成、架构相关文件生成三个步骤。
+
+在文件夹结构生成步骤，进程工程所需的各个文件夹将被建立，还将填充进程调用系统服务所需的库源码到文件夹内。
+
+在进程源文件生成步骤，进程中声明的可在本地引用的各个内核对象的宏定义将会被给出，方面用户引用；另外，用户声明的线程和迁移调用目标的空函数也将被创建，等待用户填充。
+
+在架构相关文件生成步骤，关工具链或IDE的工程将被建立，从而将各个生成的源文件组织起来成为可编译的工程。
+
+总的而言，本步骤可能产生的报错信息如下（G2000 -\/- G2999）：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{用户进程工程生成时可能产生的报错信息}\label{tab:5-28}\\
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\endfirsthead
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+G2000 & Virtual machine should not have threads other than Vect and
+User. &
+在虚拟机中只允许存在两个线程，一个是负责运行用户程序的User线程，另一个是负责接收中断的Vect线程。出现此错误说明编译器遇到内部故障，请向我们报告此故障。\tabularnewline
+\end{xltabular}
+
+\subsection{工作空间生成错误（G3000-G3999）}\label{subsec:5-6-10}
+
+该步骤负责生成工作空间。生成的各个子项目都将被置于工作空间之下，便于统一管理和编译。它又可以分为文件夹结构生成和架构相关文件生成两个步骤。
+
+在文件夹结构生成步骤，工作空间的文件夹将被建立。
+
+在架构相关文件生成步骤，我们则直接生成和架构相关的工作空间文件。
+
+总的而言，本步骤及其两个子部骤都没有独立的报错信息。
+
+\needspace{20\baselineskip}
+\subsection{文件系统操作错误（F0000-F9999）}\label{subsec:5-6-11}
+
+在上面提到的工程生成步骤中，大量使用了文件系统读写操作。这些文件读写操作可能产生的报错信息如下（F1000
+-\/- F1999）：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{文件系统操作时可能产生的报错信息}\label{tab:5-29}\\
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\endfirsthead
+\toprule
+错误编号 & 错误信息 & 原因\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+F0000 & Folder creation failed. &
+在输出文件夹中创建文件夹遇到问题。检查输出文件夹是否允许读写。\tabularnewline
+F0001 & Cannot open source file. &
+不能打开作为输入的源文件。检查输出文件夹是否允许读写。\tabularnewline
+F0002 & Cannot read file. &
+不能打开文件进行读取。检查输出文件夹是否允许读写。\tabularnewline
+F0003 & Windows/Linux stat failed. &
+用来判别文件大小的stat系统调用失败。检查文件系统相关配置是否正确。\tabularnewline
+F0004 & Cannot open destination file. &
+无法打开作为输出的目标文件。检查输出文件夹是否允许读写。\tabularnewline
+\end{xltabular}
+
+\subsection{架构相关文件生成错误（A0000-A9999）}\label{subsec:5-6-12}
+
+本章提到的所有生成步骤中独有架构相关文件的生成。这些文件的生成是架构相关的，因此其报错需要查看架构相关手册来判明。
+
+
+\section{工程生成器图形前端}\label{sec:5-7}
+
+由于输入XML来生成系统仍然十分麻烦并且容易出错，因此本编译器也提供一个图形化用户界面。藉由本章节对图形界面模块的描述，我们也介绍编译器的功能。
+
+\subsection{启动图形前端}\label{subsec:5-7-1}
+
+打开编译器的可执行文件并等待其加载完毕。在加载完毕后，如下的界面会弹出，用户需要选择生成工程的位置、使用的微控制器的架构以及微控制器本身的型号。
+
+在用户选择完毕后，编译器正式启动，弹出其工作界面。工作区可以分为三个部分，分别是配置组选择区、配置项选择区和配置内容区。关于各个区域的用途和使用方式我们将在下面的章节分别介绍。
+
+在下面的章节中，每一个标题都会对应展示XML文件中的相关域的名称。在域的名称前的标识符的意义如下：S代表字符串，D代表下拉选项框，C代表多项选择框，H代表十六进制数，N代表整数。如果环绕标识符的是圆括号``()''，那么该项是可填充也可不填充的；如果环绕标识符的是方括号``{[}{]}''，那么该项必须得到填充。
+
+\subsection{配置类选择区}\label{subsec:5-7-2}
+
+该区域负责选择配置大类。配置大类一共有七类，分别是工程配置、硬件配置、存储配置、RME内核配置、RVM用户态库配置、原生进程配置和虚拟机配置。其中，前五类配置每类只有一项，后两类配置的项目多少依赖于创建的进程和虚拟机的数量而定。这些配置大类都展示在左侧第一栏中，其中最下方的第八个按钮负责在被点击后生成工程。下图展示了一个典型的配置类选择区的状态。
+
+\subsection{配置对象选择区}\label{subsec:5-7-3}
+
+对于原生进程和虚拟机配置类，每个原生进程和虚拟机对象都有一系列配置组。此时，左侧第二栏负责展示这些原生进程或虚拟机对象。当对应的对象被选中时，该对象的配置组会在配置组选择区被展示。下图展示了一个典型的配置对象选择区的状态。
+
+\subsection{配置组选择区}\label{subsec:5-7-4}
+
+配置组选择区负责一个配置大类下的各个配置组。对于每个配置大类，其配置组的内容都不同，请参见具体章节。下图展示了一个典型的进程配置类的配置组选择区的状态。
+
+\subsection{配置项展示区}\label{subsec:5-7-5}
+
+配置项展示区负责具体的配置项的展示和配置。同样地，针对每个配置组，其配置项的内容也不同，需要参见具体章节。下图展示了一个典型的内存块的配置项的状态。
+
+\subsection{工程生成按钮}\label{subsec:5-7-6}
+
+工程生成按钮在界面左边栏的最下方。点击这个按钮后，会弹出一个界面，让用户选择所需要生成的工程对应的IDE和地址。每一个架构都有可能支持不同的IDE；当这两者均选定后，点击生成工程按钮，即可生成最终的工程。在手机APP上，工程生成的功能不提供，而是生成可以被电脑版读取的XML文件。工程生成的界面如下。
+
+
+\section{本章参考文献}\label{sec:5-8}
+
+无
+

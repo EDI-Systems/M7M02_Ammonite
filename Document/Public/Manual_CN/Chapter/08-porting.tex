@@ -1,0 +1,597 @@
+\chapter{移植RVM到新架构}\label{ch:8-porting-rvm}
+
+\section{简介}\label{sec:8-1}
+
+将RVM移植到其他架构的过程称为RVM本身的移植。在移植之前，首先要确定RME已经被移植到该架构。RVM的移植分为两个部分：第一个部分是RVM本身的移植，第二个部分是RVM客户机库的编写。
+
+本章的预定读者是那些需要移植RVM到新架构的开发者。
+
+\section{用户态库的移植}\label{sec:8-2}
+
+RVM本身的移植包括其类型定义、宏定义、数据结构和函数体。RVM的架构相关部分代码的源文件全部都放在Platform文件夹的对应架构名称下。如ARMv7-M架构的文件夹名称为Platform/A7M。其头文件在Include/Platform/A7M，其他架构依此类推。
+
+每个架构都包含一个或多个源文件和一个或多个头文件。用户态库包含架构相关头文件时，总是会包含rvm\_platform.h，而这是一个包含了对应架构顶层头文件的头文件。在更改RVM的编译目标平台时，通过修改这个头文件来达成对不同目标的相应头文件的包含。比如，要针对ARMv7-M架构进行编译，那么该头文件就应该包含对应ARMv7-M的底层函数实现的全部头文件。
+
+在移植之前，可以先浏览已有的移植，并寻找一个与目标架构的逻辑组织最相近的架构的移植。然后，可以将这个移植拷贝一份，并将其当做模板进行修改。
+
+\subsection{类型定义}\label{subsec:8-2-1}
+
+对于每个架构/编译器，首先需要移植的部分就是RVM的类型定义。在定义类型定义时，需要逐一确认编译器的各个原始整数类型对应的处理器字长数。RVM的类型定义一共有如下五个：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{RVM的类型定义}\label{tab:8-1}\\
+\toprule
+类型 & 作用\tabularnewline
+\endfirsthead
+\toprule
+类型 & 作用\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+tid\_\allowbreak{}t\strut
+ & 线程号的类型。这个类型应该被typedef为与处理器字长相等的有符号整数。
+
+例子：typedef tid\_t long;\strut
+\tabularnewline
+ptr\_\allowbreak{}t\strut
+ & 指针整数的类型。这个类型应该被typedef为与处理器字长相等的无符号整数。
+
+例子：typedef ptr\_t unsigned long;\strut
+\tabularnewline
+cnt\_\allowbreak{}t\strut
+ & 计数变量的类型。这个类型应该被typedef为与处理器字长相等的有符号整数。
+
+例子：typedef cnt\_t long;\strut
+\tabularnewline
+cid\_\allowbreak{}t\strut
+ & 权能号的类型。这个类型应该被typedef为与处理器字长相等的有符号整数。
+
+例子：typedef cid\_t long;\strut
+\tabularnewline
+ret\_\allowbreak{}t\strut
+ & 函数返回值的类型。这个类型应该被typedef为与处理器字长相等的有符号整数。
+
+例子：typedef ret\_t long;\strut
+\tabularnewline
+\end{xltabular}
+
+为了使得底层函数的编写更加方便，推荐使用如下的几个typedef来定义经常使用到的确定位数的整形。在定义这些整形时，也需要确定编译器的char、short、int、long等究竟是多少个机器字的长度。有些编译器不提供六十四位整数，那么这个类型可以略去。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{常用的其他类型定义}\label{tab:8-2}\\
+\toprule
+类型 & 意义\tabularnewline
+\endfirsthead
+\toprule
+类型 & 意义\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+s8\_\allowbreak{}t\strut
+ & 一个有符号八位整形。
+
+例如：typedef char s8\_t;\strut
+\tabularnewline
+s16\_\allowbreak{}t\strut
+ & 一个有符号十六位整形。
+
+例如：typedef short s16\_t;\strut
+\tabularnewline
+s32\_\allowbreak{}t\strut
+ & 一个有符号三十二位整形。
+
+例如：typedef int s32\_t;\strut
+\tabularnewline
+s64\_\allowbreak{}t\strut
+ & 一个有符号六十四位整形。
+
+例如：typedef long s64\_t;\strut
+\tabularnewline
+u8\_\allowbreak{}t\strut
+ & 一个无符号八位整形。
+
+例如：typedef unsigned char u8\_t;\strut
+\tabularnewline
+u16\_\allowbreak{}t\strut
+ & 一个无符号十六位整形。
+
+例如：typedef unsigned short u16\_t;\strut
+\tabularnewline
+u32\_\allowbreak{}t\strut
+ & 一个无符号三十二位整形。
+
+例如：typedef unsigned int u32\_t;\strut
+\tabularnewline
+u64\_\allowbreak{}t\strut
+ & 一个有符号六十四位整形。
+
+例如：typedef unsigned long u64\_t;\strut
+\tabularnewline
+\end{xltabular}
+
+\subsection{和RME配置项有关的、工程生成器自动填充的宏}\label{subsec:8-2-2}
+
+下面列出的宏和RME的内核配置有关。它们需要与RME在编译时的选项维持一致。关于这些宏的具体意义在此不加介绍，请参看RME的手册中的对应宏。工程生成器会自动维持这些宏的一致性，因此在头文件中只要列出这些宏并为各个选项填充一个典型值就可以了。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{和RME配置项有关的、工程生成器自动填充的宏}\label{tab:8-3}\\
+\toprule
+宏名称 & 对应的RME宏\tabularnewline
+\endfirsthead
+\toprule
+宏名称 & 对应的RME宏\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+RVM\_\allowbreak{}WORD\_\allowbreak{}ORDER & RME\_\allowbreak{}WORD\_\allowbreak{}ORDER\tabularnewline
+RVM\_\allowbreak{}REGION\_\allowbreak{}FIXED & RME\_\allowbreak{}PGT\_\allowbreak{}RAW\_\allowbreak{}USER\tabularnewline
+RVM\_\allowbreak{}KOM\_\allowbreak{}VA\_\allowbreak{}START & RME\_\allowbreak{}KOM\_\allowbreak{}VA\_\allowbreak{}START\tabularnewline
+RVM\_\allowbreak{}KOM\_\allowbreak{}VA\_\allowbreak{}SIZE & RME\_\allowbreak{}KOM\_\allowbreak{}VA\_\allowbreak{}SIZE\tabularnewline
+RVM\_\allowbreak{}KOM\_\allowbreak{}SLOT\_\allowbreak{}ORDER & RME\_\allowbreak{}KOM\_\allowbreak{}SLOT\_\allowbreak{}ORDER\tabularnewline
+RVM\_\allowbreak{}PREEMPT\_\allowbreak{}PRIO\_\allowbreak{}NUM & RME\_\allowbreak{}PREEMPT\_\allowbreak{}PRIO\_\allowbreak{}NUM\tabularnewline
+RVM\_\allowbreak{}PHYS\_\allowbreak{}VCT\_\allowbreak{}NUM & RME\_\allowbreak{}RVM\_\allowbreak{}PHYS\_\allowbreak{}VCT\_\allowbreak{}NUM\tabularnewline
+RVM\_\allowbreak{}PHYS\_\allowbreak{}VCTF\_\allowbreak{}BASE & RME\_\allowbreak{}RVM\_\allowbreak{}PHYS\_\allowbreak{}VCTF\_\allowbreak{}BASE\tabularnewline
+RVM\_\allowbreak{}PHYS\_\allowbreak{}VCTF\_\allowbreak{}SIZE & RME\_\allowbreak{}RVM\_\allowbreak{}PHYS\_\allowbreak{}VCTF\_\allowbreak{}SIZE\tabularnewline
+RVM\_\allowbreak{}VIRT\_\allowbreak{}EVT\_\allowbreak{}NUM & RME\_\allowbreak{}RVM\_\allowbreak{}VIRT\_\allowbreak{}EVT\_\allowbreak{}NUM\tabularnewline
+RVM\_\allowbreak{}VIRT\_\allowbreak{}EVTF\_\allowbreak{}BASE & RME\_\allowbreak{}RVM\_\allowbreak{}VIRT\_\allowbreak{}EVTF\_\allowbreak{}BASE\tabularnewline
+RVM\_\allowbreak{}VIRT\_\allowbreak{}EVTF\_\allowbreak{}SIZE & RME\_\allowbreak{}RVM\_\allowbreak{}VIRT\_\allowbreak{}EVTF\_\allowbreak{}SIZE\tabularnewline
+RVM\_\allowbreak{}INIT\_\allowbreak{}CPT\_\allowbreak{}SIZE & RME\_\allowbreak{}RVM\_\allowbreak{}INIT\_\allowbreak{}CPT\_\allowbreak{}SIZE\tabularnewline
+RVM\_\allowbreak{}CAP\_\allowbreak{}BOOT\_\allowbreak{}FRONT & RME\_\allowbreak{}RVM\_\allowbreak{}CAP\_\allowbreak{}BOOT\_\allowbreak{}FRONT\tabularnewline
+RVM\_\allowbreak{}KOM\_\allowbreak{}BOOT\_\allowbreak{}FRONT & RME\_\allowbreak{}RVM\_\allowbreak{}KOM\_\allowbreak{}BOOT\_\allowbreak{}FRONT\tabularnewline
+RVM\_\allowbreak{}CAP\_\allowbreak{}DONE\_\allowbreak{}FRONT & RME\_\allowbreak{}RVM\_\allowbreak{}CAP\_\allowbreak{}DONE\_\allowbreak{}FRONT\tabularnewline
+RVM\_\allowbreak{}KOM\_\allowbreak{}DONE\_\allowbreak{}FRONT & RME\_\allowbreak{}RVM\_\allowbreak{}KOM\_\allowbreak{}DONE\_\allowbreak{}FRONT\tabularnewline
+\end{xltabular}
+
+此外，还有一些和架构有关的配置宏。这些配置宏也需要和内核中编译时确定的相关宏维持一致，工程生成器也会自动填充它们。
+
+\subsection{和RME配置项有关的、不变的的宏}\label{subsec:8-2-3}
+
+下面列出的宏和RME的内核配置有关。它们需要与RME在编译时的选项维持一致。关于这些宏的具体意义在此不加介绍，请参看RME的手册中的对应宏。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{和RME配置项有关的、不变的宏}\label{tab:8-4}\\
+\toprule
+宏名称 & 对应的RME宏\tabularnewline
+\endfirsthead
+\toprule
+宏名称 & 对应的RME宏\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+EXTERN & EXTERN\tabularnewline
+RVM\_\allowbreak{}THD\_\allowbreak{}WORD\_\allowbreak{}SIZE &
+该项应填入线程内核对象的固定大小，单位为字长\tabularnewline
+RVM\_\allowbreak{}PGTBL\_\allowbreak{}WORD\_\allowbreak{}SIZE\_\allowbreak{}NOM(X) &
+RME\_\allowbreak{}PGTBL\_\allowbreak{}WORD\_\allowbreak{}SIZE\_\allowbreak{}NOM(X)\tabularnewline
+RVM\_\allowbreak{}PGTBL\_\allowbreak{}WORD\_\allowbreak{}SIZE\_\allowbreak{}TOP(X) &
+RME\_\allowbreak{}PGTBL\_\allowbreak{}WORD\_\allowbreak{}SIZE\_\allowbreak{}TOP(X)\tabularnewline
+\end{xltabular}
+
+此外，还有一些和架构有关的配置宏。这些配置宏也需要和内核中编译时确定的相关宏维持一致。
+
+\subsection{和RVM配置项有关的、工程生成器自动填充的宏}\label{subsec:8-2-4}
+
+下面列出的宏和RVM的配置有关，可以根据RVM的配置状况灵活选择。它们会被工程生成器自动填充，因此在头文件中只要列出这些宏并为各个选项填充一个典型值就可以了。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{和RVM配置有关的宏}\label{tab:8-5}\\
+\toprule
+宏名称 & 作用\tabularnewline
+\endfirsthead
+\toprule
+宏名称 & 作用\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+RVM\_\allowbreak{}PREEMPT\_\allowbreak{}VPRIO\_\allowbreak{}NUM\strut
+ & RVM的虚拟机优先级数。必须是处理器字长的整数倍。
+
+例子：
+
+\#define RVM\_\allowbreak{}PREEMPT\_\allowbreak{}VPRIO\_\allowbreak{}NUM (32U)\strut
+\tabularnewline
+RVM\_\allowbreak{}VIRT\_\allowbreak{}MAP\_\allowbreak{}NUM\strut
+ & 虚拟机监视器允许的从事件源或物理中断源到虚拟机的最大映射数量。这个值必须不比事件源的数量小。
+
+例子：
+
+\#define RVM\_\allowbreak{}VIRT\_\allowbreak{}MAP\_\allowbreak{}NUM (32U)\strut
+\tabularnewline
+\end{xltabular}
+
+此外，还有一些和架构有关的配置宏。工程生成器会自动填充它们。
+
+\subsection{数据结构定义}\label{subsec:8-2-5}
+
+需要移植的RVM的数据结构只有RVM\_Regs一个。它是处理器的寄存器组结构体，用于在RVM中读取和修改虚拟机用户线程的寄存器组。这个结构体应当和RME中的完全一致。
+
+\subsection{汇编底层函数的移植}\label{subsec:8-2-6}
+
+RVM一共要实现以下6个汇编函数。这6个汇编函数主要负责RVM本身的启动和系统调用等。这些函数的列表如下：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{RVM移植涉及的汇编函数}\label{tab:8-6}\\
+\toprule
+函数 & 意义\tabularnewline
+\endfirsthead
+\toprule
+函数 & 意义\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\_\allowbreak{}\_\allowbreak{}RVM\_\allowbreak{}Entry & RVM的入口点。\tabularnewline
+\_\allowbreak{}\_\allowbreak{}RVM\_\allowbreak{}Stub & 线程创建和线程迁移用跳板。\tabularnewline
+RVM\_\allowbreak{}MSB\_\allowbreak{}GET &
+得到一个字的最高位位置。它实际上是一个宏。\tabularnewline
+RVM\_\allowbreak{}Inv\_\allowbreak{}Act & 进行线程迁移调用。\tabularnewline
+RVM\_\allowbreak{}Inv\_\allowbreak{}Ret & 进行线程迁移返回。\tabularnewline
+RVM\_\allowbreak{}Svc & 调用RME的系统调用。\tabularnewline
+\end{xltabular}
+
+这些函数的具体实现细节和注意事项会被接下来的各段一一介绍。
+
+\subsubsection{\_\_RVM\_Entry的实现}\label{subsubsec:8-2-6-1}
+
+本函数是RVM的入口，负责初始化RVM的C运行时库并跳转到RVM的main函数。本函数必须被链接到RVM映像的头部，而且其链接地址必须与RME内核编译时确定的Init线程的入口相同。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{\_\allowbreak{}\_\allowbreak{}RVM\_\allowbreak{}Entry的实现}\label{tab:8-7}\\
+\toprule
+函数原型 & void \_\allowbreak{}\_\allowbreak{}RVM\_\allowbreak{}Entry(void)\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & void \_\allowbreak{}\_\allowbreak{}RVM\_\allowbreak{}Entry(void)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+意义 & RVM的入口。\tabularnewline
+返回值 & 无。\tabularnewline
+参数 & 无。\tabularnewline
+\end{xltabular}
+
+\subsubsection{\_\_RVM\_Stub的实现}\label{subsubsec:8-2-6-2}
+
+本函数用于在线程第一次运行或者线程迁移调用运行时，跳转到真正的入口。对于通常的架构，这个函数不是必需的，只要将它实现为直接返回即可，该函数也不使用。\needspace{8\baselineskip}
+该函数的使用场景大致包括如下两类：
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  对于那些如ARMv7-M等中断退出时PC保存在用户栈上的架构，我们无法在创建新线程时通过设置线程的PC来确立返回地址。我们只能在内存中模拟一个返回堆栈，并借由返回堆栈中的PC值来设定将返回的地址。由于这个返回用堆栈是可能被反复使用的\footnote{比如我们创建A线程，然后销毁A线程，再试图在同一个栈上创建B线程}，我们不希望频繁修改它内部所含的PC值。因此，我们将返回堆栈中的PC值设置为\_\_RVM\_Stub。其中，我们会给PC赋予线程创建时放在其他寄存器中的值，正确地向线程或者迁移调用传递其参数，并正式跳转到线程的入口执行。
+\item
+  对于那些如RISC-V等需要提前设置gp等寄存器\footnote{一种简单的、默认开启的链接时优化（Link-Time
+    Optimization，LTO）``链接器松弛（Linker
+    Relaxation）''要求设置这个寄存器}的架构，如果在创建新线程时直接将线程的pc设置成线程入口，gp寄存器的设置便无法提前进行了。因此，我们将一个进程内的一切入口点均设置成\_\_RVM\_Stub，并采取和ARMv7-M类似的策略将真正的入口点放在栈上。执行到\_\_RVM\_Stub时先设置gp，再从栈中取出真正的入口点，然后跳转到该入口点。
+
+  无论是上面哪种情况，一旦使用到\_\_RVM\_Stub，则需要在RVM\_Stack\_Init中实现对应的栈初始化流程。
+\end{enumerate}
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{\_\allowbreak{}\_\allowbreak{}RVM\_\allowbreak{}Stub的实现}\label{tab:8-8}\\
+\toprule
+函数原型 & void \_\allowbreak{}\_\allowbreak{}RVM\_\allowbreak{}Stub(ptr\_\allowbreak{}t Entry, ptr\_\allowbreak{}t Param)\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & void \_\allowbreak{}\_\allowbreak{}RVM\_\allowbreak{}Stub(ptr\_\allowbreak{}t Entry, ptr\_\allowbreak{}t Param)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+意义 & 辅助跳转到正确的线程或迁移调用入口。\tabularnewline
+返回值 & 无。\tabularnewline
+\multirow{2}{*}{参数} & ptr\_\allowbreak{}t Entry
+
+线程的入口。\strut
+\tabularnewline
+\strut
+ & ptr\_\allowbreak{}t Param
+
+线程的参数。\strut
+\tabularnewline
+\end{xltabular}
+
+\subsubsection{RVM\_MSB\_GET的实现}\label{subsubsec:8-2-6-3}
+
+该函数返回该字最高位的位置。最高位的定义是第一个``1''出现的位置，位置是从LSB开始计算的\footnote{LSB算作第0位}。比如该数为32位的0x12345678，那么第一个``1''出现在第28位，这个函数就会返回28。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{RVM\_\allowbreak{}MSB\_\allowbreak{}GET的实现}\label{tab:8-9}\\
+\toprule
+函数原型 & ptr\_\allowbreak{}t \_\allowbreak{}RVM\_\allowbreak{}MSB\_\allowbreak{}GET(ptr\_\allowbreak{}t Val)\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & ptr\_\allowbreak{}t \_\allowbreak{}RVM\_\allowbreak{}MSB\_\allowbreak{}GET(ptr\_\allowbreak{}t Val)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+意义 &
+得到一个与处理器字长相等的无符号数的最高位位置，也即其二进制表示从左向右数第一个数字``1''的位置。\tabularnewline
+返回值\strut
+ & ptr\_\allowbreak{}t
+
+返回第一个``1''的位置。\strut
+\tabularnewline
+参数\strut
+ & ptr\_\allowbreak{}t Val
+
+要计算最高位位置的数字。\strut
+\tabularnewline
+\end{xltabular}
+
+由于该函数需要被高效实现，因此其实现方法在不同的处理器上差别很大。对于那些提供了最高位计算指令的架构，直接以汇编形式实现本函数，使用该指令即可。对于那些提供了前导零计算指令（CLZ）的架构\footnote{如ARM等}，也可以用汇编函数先计算出前导零的数量，然后用处理器的字长-1（单位为Bit）减去这个值。比如0x12345678的前导零一共有3个，用31减去3即得到28。
+
+对于那些没有实现特定指令的架构，推荐使用折半查找的方法。先判断一个字的高半字是否为0，如果不为0，再在这高半字中折半查找，如果为0，那么在低半字中折半查找，直到确定第一个``1''的位置为止。在折半到16位或者8位时，可以使用一个查找表直接对应到第一个``1''在这16或8位中的相对位置，从而不需要再进行折半，然后综合各次折半的结果计算第一个``1''的位置即可。如果不想手工编写该汇编函数，RVM也提供一个通用版本\_RVM\_MSB\_Generic，可直接将此宏定义为该函数名。
+
+\subsubsection{RVM\_Inv\_Act的实现}\label{subsubsec:8-2-6-4}
+
+该函数进行一个标准线程迁移调用。在实现时，应当注意将参数按照内核调用约定按顺序放入正确的寄存器。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{RVM\_\allowbreak{}Inv\_\allowbreak{}Act的实现}\label{tab:8-10}\\
+\toprule
+函数原型 & ret\_\allowbreak{}t RVM\_\allowbreak{}Inv\_\allowbreak{}Act(cid\_\allowbreak{}t Cap\_\allowbreak{}Inv, ptr\_\allowbreak{}t Param, ptr\_\allowbreak{}t*
+Retval)\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & ret\_\allowbreak{}t RVM\_\allowbreak{}Inv\_\allowbreak{}Act(cid\_\allowbreak{}t Cap\_\allowbreak{}Inv, ptr\_\allowbreak{}t Param, ptr\_\allowbreak{}t*
+Retval)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+意义 & 进行一个标准的线程迁移调用。\tabularnewline
+返回值\strut
+ & ret\_\allowbreak{}t
+
+线程迁移系统调用本身的返回值。\strut
+\tabularnewline
+\multirow{3}{*}{参数} & cid\_\allowbreak{}t Cap\_\allowbreak{}Inv
+
+线程迁移调用权能的权能号。\strut
+\tabularnewline
+\strut
+ & ptr\_\allowbreak{}t Param
+
+线程迁移调用的参数。\strut
+\tabularnewline
+\strut
+ & ptr\_\allowbreak{}t* Retval
+
+该参数用于输出，是一个指向存放线程迁移调用返回值的指针。如果传入0（NULL），那么表示不接收由RVM\_Inv\_Ret返回的返回值。\strut
+\tabularnewline
+\end{xltabular}
+
+由于RME的内核在线程迁移调用中不负责保存除了控制流相关寄存器之外的任何寄存器，因此用户态要将它们压栈。如果用户态没有用到其中的几个寄存器，那么可以不将这些没用到的寄存器压栈。这个函数应当被实现为一个标准的迁移调用，也即压栈所有的通用寄存器组，但是不压栈协处理器寄存器组。该函数还应当判断传入的Retval指针是否为0（NULL），如果为0那么不输出线程迁移调用的返回值给Retval指向的地址。
+
+\subsubsection{RVM\_Inv\_Ret的实现}\label{subsubsec:8-2-6-5}
+
+该函数用于从线程迁移调用中返回。在实现时，应当注意将参数按照内核调用约定按顺序放入正确的寄存器。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{RVM\_\allowbreak{}Inv\_\allowbreak{}Ret的实现}\label{tab:8-11}\\
+\toprule
+函数原型 & ret\_\allowbreak{}t RVM\_\allowbreak{}Inv\_\allowbreak{}Ret(ptr\_\allowbreak{}t Retval)\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & ret\_\allowbreak{}t RVM\_\allowbreak{}Inv\_\allowbreak{}Ret(ptr\_\allowbreak{}t Retval)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+意义 & 从线程迁移调用中返回。\tabularnewline
+返回值\strut
+ & ret\_\allowbreak{}t
+
+如果成功，函数不会返回；如果失败，返回线程迁移返回系统调用的返回值。\strut
+\tabularnewline
+参数\strut
+ & ptr\_\allowbreak{}t Retval
+
+线层迁移调用的返回值。如果调用端的ptr\_t* Retval不为0（NULL）的话，那么该参数将会被赋予调用端的*Retval。\strut
+\tabularnewline
+\end{xltabular}
+
+\subsubsection{RVM\_Svc的实现}\label{subsubsec:8-2-6-6}
+
+该函数用于进行RME的系统调用。在实现时，应当注意将参数按照内核调用约定按顺序放入正确的寄存器。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{RVM\_\allowbreak{}Svc的实现}\label{tab:8-12}\\
+\toprule
+函数原型 & ret\_\allowbreak{}t RVM\_\allowbreak{}Svc(ptr\_\allowbreak{}t Op\_\allowbreak{}Capid, ptr\_\allowbreak{}t Arg1, ptr\_\allowbreak{}t Arg2,
+ptr\_\allowbreak{}t Arg3)\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & ret\_\allowbreak{}t RVM\_\allowbreak{}Svc(ptr\_\allowbreak{}t Op\_\allowbreak{}Capid, ptr\_\allowbreak{}t Arg1, ptr\_\allowbreak{}t Arg2,
+ptr\_\allowbreak{}t Arg3)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+意义 & 进行RME系统调用。\tabularnewline
+返回值\strut
+ & ret\_\allowbreak{}t
+
+RME系统调用的返回值。\strut
+\tabularnewline
+\multirow{4}{*}{参数} & ptr\_\allowbreak{}t Op\_\allowbreak{}Capid
+
+由系统调用号N和权能表权能号C合成的参数P0。\strut
+\tabularnewline
+\strut
+ & ptr\_\allowbreak{}t Arg1
+
+系统调用的第一个参数P1。\strut
+\tabularnewline
+\strut
+ & ptr\_\allowbreak{}t Arg2
+
+系统调用的第二个参数P2。\strut
+\tabularnewline
+\strut
+ & ptr\_\allowbreak{}t Arg3
+
+系统调用的第三个参数P3。\strut
+\tabularnewline
+\end{xltabular}
+
+\subsection{C语言函数的移植}\label{subsec:8-2-7}
+
+RVM一共有五个C语言函数，涵盖了底层调试打印、线程栈初始化、进入低功耗状态和页表设置等等。这些函数的列表如下：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{RVM移植涉及的C语言函数}\label{tab:8-13}\\
+\toprule
+函数 & 意义\tabularnewline
+\endfirsthead
+\toprule
+函数 & 意义\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+RVM\_\allowbreak{}Putchar & 底层打印函数，打印一个字符到控制台。\tabularnewline
+RVM\_\allowbreak{}Stack\_\allowbreak{}Init & 初始化线程的线程栈。\tabularnewline
+RVM\_\allowbreak{}Idle & 将系统置于休眠状态。\tabularnewline
+RVM\_\allowbreak{}Thd\_\allowbreak{}Print\_\allowbreak{}Exc &
+根据线程错误原因打印字符串到控制台。\tabularnewline
+RVM\_\allowbreak{}Thd\_\allowbreak{}Print\_\allowbreak{}Reg & 打印线程的寄存器组。\tabularnewline
+\end{xltabular}
+
+\subsubsection{RVM\_Putchar的实现}\label{subsubsec:8-2-7-1}
+
+本操作打印一个字符到控制台。该函数较为特殊，它无需用户主动编写。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{RVM\_\allowbreak{}Putchar的实现}\label{tab:8-14}\\
+\toprule
+函数原型 & void RVM\_\allowbreak{}Putchar(char Char)\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & void RVM\_\allowbreak{}Putchar(char Char)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+意义 & 输出一个字符到控制台。\tabularnewline
+返回值 & 无。\tabularnewline
+参数\strut
+ & char Char
+
+要输出到系统控制台的字符。\strut
+\tabularnewline
+\end{xltabular}
+
+\subsubsection{RVM\_Stack\_Init的实现}\label{subsubsec:8-2-7-2}
+
+本操作初始化线程的线程栈。部分架构如ARMv7-M要求在线程运行前将其栈初始化。这个函数用来初始化栈的内容。如果架构不要求线程运行前对栈进行初始化，那么这个函数可以实现为直接返回合适的栈地址。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{RVM\_\allowbreak{}Stack\_\allowbreak{}Init的实现}\label{tab:8-15}\\
+\toprule
+函数原型 & ptr\_\allowbreak{}t RVM\_\allowbreak{}Stack\_\allowbreak{}Init(ptr\_\allowbreak{}t Stack, ptr\_\allowbreak{}t Size, ptr\_\allowbreak{}t*
+Entry, ptr\_\allowbreak{}t Stub)\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & ptr\_\allowbreak{}t RVM\_\allowbreak{}Stack\_\allowbreak{}Init(ptr\_\allowbreak{}t Stack, ptr\_\allowbreak{}t Size, ptr\_\allowbreak{}t*
+Entry, ptr\_\allowbreak{}t Stub)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+意义 & 初始化线程的线程栈。\tabularnewline
+返回值\strut
+ & ptr\_\allowbreak{}t
+
+用来初始化线程的寄存器组的（也即要向RVM\_Thd\_Exec\_Set传入的）栈指针地址。\strut
+\tabularnewline
+\multirow{4}{*}{参数} & ptr\_\allowbreak{}t Stack
+
+栈区的起始地址。\strut
+\tabularnewline
+\strut
+ & ptr\_\allowbreak{}t Size
+
+栈区的大小。\strut
+\tabularnewline
+\strut
+ & ptr\_\allowbreak{}t* Entry
+
+线程的入口。考虑到那些需要将入口点改为\_\allowbreak{}\_\allowbreak{}RVM\_\allowbreak{}Stub的场景,该参数同时也用于输出。\strut
+\tabularnewline
+\strut
+ & ptr\_\allowbreak{}t Stub
+
+\_\allowbreak{}\_\allowbreak{}RVM\_\allowbreak{}Stub的入口位置。该参数未必会被使用。\strut
+\tabularnewline
+\end{xltabular}
+
+\subsubsection{RVM\_Thd\_Print\_Exc的实现}\label{subsubsec:8-2-7-3}
+
+本操作打印线程错误的确切原因，以便于调试。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{RVM\_\allowbreak{}Thd\_\allowbreak{}Print\_\allowbreak{}Exc的实现}\label{tab:8-16}\\
+\toprule
+函数原型 & void RVM\_\allowbreak{}Thd\_\allowbreak{}Print\_\allowbreak{}Exc(cid\_\allowbreak{}t Cap\_\allowbreak{}Thd)\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & void RVM\_\allowbreak{}Thd\_\allowbreak{}Print\_\allowbreak{}Exc(cid\_\allowbreak{}t Cap\_\allowbreak{}Thd)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+意义 & 打印线程错误的确切原因。\tabularnewline
+返回值 & 无。\tabularnewline
+参数\strut
+ & cid\_\allowbreak{}t Cap\_\allowbreak{}Thd
+
+该线程的权能号。可以是一级编码或二级编码。\strut
+\tabularnewline
+\end{xltabular}
+
+\newpage
+\subsubsection{RVM\_Thd\_Print\_Reg的实现}\label{subsubsec:8-2-7-4}
+
+本操作打印一个线程的所有寄存器组。寄存器的具体值需要使用RME扩展标准中定义的标准内核功能调用RVM\_KERN\_DEBUG\_REG\_MOD得到。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{RVM\_\allowbreak{}Thd\_\allowbreak{}Print\_\allowbreak{}Reg的实现}\label{tab:8-17}\\
+\toprule
+函数原型 & ret\_\allowbreak{}t RVM\_\allowbreak{}Thd\_\allowbreak{}Print\_\allowbreak{}Reg(cid\_\allowbreak{}t Cap\_\allowbreak{}Thd)\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & ret\_\allowbreak{}t RVM\_\allowbreak{}Thd\_\allowbreak{}Print\_\allowbreak{}Reg(cid\_\allowbreak{}t Cap\_\allowbreak{}Thd)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+意义 & 打印线程的寄存器组。\tabularnewline
+返回值\strut
+ & ret\_\allowbreak{}t
+
+操作成功时返回0，失败时返回负值。\strut
+\tabularnewline
+参数\strut
+ & cid\_\allowbreak{}t Cap\_\allowbreak{}Thd
+
+该线程的权能号。可以是一级编码或二级编码。\strut
+\tabularnewline
+\end{xltabular}
+
+\section{工程生成器的移植}\label{sec:8-3}
+
+本节内容在原稿中尚未提供，将在后续版本补充。
+
+\section{本章参考文献}\label{sec:8-4}
+
+无
+

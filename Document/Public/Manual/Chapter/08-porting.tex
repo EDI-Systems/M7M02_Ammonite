@@ -1,0 +1,596 @@
+\chapter{Porting the RVM to a New Architecture}\label{ch:8-porting-rvm}
+
+\section{Introduction}\label{sec:8-1}
+
+The process of porting the RVM to another architecture is called the porting of the RVM itself. Before porting, you must first confirm that the RME has already been ported to that architecture. RVM porting consists of two parts: the first part is the porting of the RVM itself, and the second part is the writing of the RVM guest library.
+
+The intended readers of this chapter are developers who need to port the RVM to a new architecture.
+
+\section{Porting the User-Mode Library}\label{sec:8-2}
+
+Porting the RVM itself includes its type definitions, macro definitions, data structures and function bodies. The source files of the architecture-dependent parts of the RVM code are all placed under the corresponding architecture name in the Platform folder. For example, the folder name for the ARMv7-M architecture is Platform/A7M. Its header files are in Include/Platform/A7M, and so on for other architectures.
+
+Each architecture contains one or more source files and one or more header files. When the user-mode library includes architecture-dependent header files, it always includes rvm\_platform.h, which is a header file that includes the top-level header file of the corresponding architecture. When changing the compilation target platform of the RVM, the inclusion of the corresponding header files for different targets is achieved by modifying this header file. For example, to compile for the ARMv7-M architecture, this header file should include all the header files of the low-level function implementations for ARMv7-M.
+
+Before porting, you can first browse the existing ports and look for the port of an architecture whose logical organization is closest to that of the target architecture. Then you can copy that port and use it as a template for modification.
+
+\subsection{Type Definitions}\label{subsec:8-2-1}
+
+For each architecture/compiler, the first part that needs to be ported is the RVM type definitions. When defining the type definitions, you need to confirm one by one the number of processor word lengths corresponding to each primitive integer type of the compiler. The RVM has the following five type definitions in total:
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{RVM type definitions}\label{tab:8-1}\\
+\toprule
+Type & Purpose\tabularnewline
+\endfirsthead
+\toprule
+Type & Purpose\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+tid\_\allowbreak{}t\strut
+ & The type of a thread ID. This type should be typedef'd to a signed integer equal in size to the processor word length.
+
+Example: typedef tid\_t long;\strut
+\tabularnewline
+ptr\_\allowbreak{}t\strut
+ & The type of a pointer-sized integer. This type should be typedef'd to an unsigned integer equal in size to the processor word length.
+
+Example: typedef ptr\_t unsigned long;\strut
+\tabularnewline
+cnt\_\allowbreak{}t\strut
+ & The type of a count variable. This type should be typedef'd to a signed integer equal in size to the processor word length.
+
+Example: typedef cnt\_t long;\strut
+\tabularnewline
+cid\_\allowbreak{}t\strut
+ & The type of a capability ID. This type should be typedef'd to a signed integer equal in size to the processor word length.
+
+Example: typedef cid\_t long;\strut
+\tabularnewline
+ret\_\allowbreak{}t\strut
+ & The type of a function return value. This type should be typedef'd to a signed integer equal in size to the processor word length.
+
+Example: typedef ret\_t long;\strut
+\tabularnewline
+\end{xltabular}
+
+To make writing low-level functions more convenient, it is recommended to use the following typedefs to define the fixed-width integer types that are frequently used. When defining these integer types, you also need to determine exactly how many machine words long the compiler's char, short, int, long, etc. are. Some compilers do not provide a 64-bit integer, in which case this type can be omitted.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Other commonly used type definitions}\label{tab:8-2}\\
+\toprule
+Type & Meaning\tabularnewline
+\endfirsthead
+\toprule
+Type & Meaning\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+s8\_\allowbreak{}t\strut
+ & A signed 8-bit integer.
+
+For example: typedef char s8\_t;\strut
+\tabularnewline
+s16\_\allowbreak{}t\strut
+ & A signed 16-bit integer.
+
+For example: typedef short s16\_t;\strut
+\tabularnewline
+s32\_\allowbreak{}t\strut
+ & A signed 32-bit integer.
+
+For example: typedef int s32\_t;\strut
+\tabularnewline
+s64\_\allowbreak{}t\strut
+ & A signed 64-bit integer.
+
+For example: typedef long s64\_t;\strut
+\tabularnewline
+u8\_\allowbreak{}t\strut
+ & An unsigned 8-bit integer.
+
+For example: typedef unsigned char u8\_t;\strut
+\tabularnewline
+u16\_\allowbreak{}t\strut
+ & An unsigned 16-bit integer.
+
+For example: typedef unsigned short u16\_t;\strut
+\tabularnewline
+u32\_\allowbreak{}t\strut
+ & An unsigned 32-bit integer.
+
+For example: typedef unsigned int u32\_t;\strut
+\tabularnewline
+u64\_\allowbreak{}t\strut
+ & A signed 64-bit integer.
+
+For example: typedef unsigned long u64\_t;\strut
+\tabularnewline
+\end{xltabular}
+
+\subsection{Macros Related to RME Configuration Items and Filled In Automatically by the Project Generator}\label{subsec:8-2-2}
+
+The macros listed below are related to the RME's kernel configuration. They need to remain consistent with the RME's compile-time options. The specific meaning of these macros is not introduced here; please refer to the corresponding macros in the RME manual. The project generator automatically maintains the consistency of these macros, so in the header file you only need to list these macros and fill in a typical value for each option.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Macros related to RME configuration items and filled in automatically by the project generator}\label{tab:8-3}\\
+\toprule
+Macro name & Corresponding RME macro\tabularnewline
+\endfirsthead
+\toprule
+Macro name & Corresponding RME macro\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+RVM\_\allowbreak{}WORD\_\allowbreak{}ORDER & RME\_\allowbreak{}WORD\_\allowbreak{}ORDER\tabularnewline
+RVM\_\allowbreak{}REGION\_\allowbreak{}FIXED & RME\_\allowbreak{}PGT\_\allowbreak{}RAW\_\allowbreak{}USER\tabularnewline
+RVM\_\allowbreak{}KOM\_\allowbreak{}VA\_\allowbreak{}START & RME\_\allowbreak{}KOM\_\allowbreak{}VA\_\allowbreak{}START\tabularnewline
+RVM\_\allowbreak{}KOM\_\allowbreak{}VA\_\allowbreak{}SIZE & RME\_\allowbreak{}KOM\_\allowbreak{}VA\_\allowbreak{}SIZE\tabularnewline
+RVM\_\allowbreak{}KOM\_\allowbreak{}SLOT\_\allowbreak{}ORDER & RME\_\allowbreak{}KOM\_\allowbreak{}SLOT\_\allowbreak{}ORDER\tabularnewline
+RVM\_\allowbreak{}PREEMPT\_\allowbreak{}PRIO\_\allowbreak{}NUM & RME\_\allowbreak{}PREEMPT\_\allowbreak{}PRIO\_\allowbreak{}NUM\tabularnewline
+RVM\_\allowbreak{}PHYS\_\allowbreak{}VCT\_\allowbreak{}NUM & RME\_\allowbreak{}RVM\_\allowbreak{}PHYS\_\allowbreak{}VCT\_\allowbreak{}NUM\tabularnewline
+RVM\_\allowbreak{}PHYS\_\allowbreak{}VCTF\_\allowbreak{}BASE & RME\_\allowbreak{}RVM\_\allowbreak{}PHYS\_\allowbreak{}VCTF\_\allowbreak{}BASE\tabularnewline
+RVM\_\allowbreak{}PHYS\_\allowbreak{}VCTF\_\allowbreak{}SIZE & RME\_\allowbreak{}RVM\_\allowbreak{}PHYS\_\allowbreak{}VCTF\_\allowbreak{}SIZE\tabularnewline
+RVM\_\allowbreak{}VIRT\_\allowbreak{}EVT\_\allowbreak{}NUM & RME\_\allowbreak{}RVM\_\allowbreak{}VIRT\_\allowbreak{}EVT\_\allowbreak{}NUM\tabularnewline
+RVM\_\allowbreak{}VIRT\_\allowbreak{}EVTF\_\allowbreak{}BASE & RME\_\allowbreak{}RVM\_\allowbreak{}VIRT\_\allowbreak{}EVTF\_\allowbreak{}BASE\tabularnewline
+RVM\_\allowbreak{}VIRT\_\allowbreak{}EVTF\_\allowbreak{}SIZE & RME\_\allowbreak{}RVM\_\allowbreak{}VIRT\_\allowbreak{}EVTF\_\allowbreak{}SIZE\tabularnewline
+RVM\_\allowbreak{}INIT\_\allowbreak{}CPT\_\allowbreak{}SIZE & RME\_\allowbreak{}RVM\_\allowbreak{}INIT\_\allowbreak{}CPT\_\allowbreak{}SIZE\tabularnewline
+RVM\_\allowbreak{}CAP\_\allowbreak{}BOOT\_\allowbreak{}FRONT & RME\_\allowbreak{}RVM\_\allowbreak{}CAP\_\allowbreak{}BOOT\_\allowbreak{}FRONT\tabularnewline
+RVM\_\allowbreak{}KOM\_\allowbreak{}BOOT\_\allowbreak{}FRONT & RME\_\allowbreak{}RVM\_\allowbreak{}KOM\_\allowbreak{}BOOT\_\allowbreak{}FRONT\tabularnewline
+RVM\_\allowbreak{}CAP\_\allowbreak{}DONE\_\allowbreak{}FRONT & RME\_\allowbreak{}RVM\_\allowbreak{}CAP\_\allowbreak{}DONE\_\allowbreak{}FRONT\tabularnewline
+RVM\_\allowbreak{}KOM\_\allowbreak{}DONE\_\allowbreak{}FRONT & RME\_\allowbreak{}RVM\_\allowbreak{}KOM\_\allowbreak{}DONE\_\allowbreak{}FRONT\tabularnewline
+\end{xltabular}
+
+In addition, there are some architecture-related configuration macros. These configuration macros also need to remain consistent with the relevant macros determined at compile time in the kernel, and the project generator will also fill them in automatically.
+
+\subsection{Macros Related to RME Configuration Items That Do Not Change}\label{subsec:8-2-3}
+
+The macros listed below are related to the RME's kernel configuration. They need to remain consistent with the RME's compile-time options. The specific meaning of these macros is not introduced here; please refer to the corresponding macros in the RME manual.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Macros related to RME configuration items that do not change}\label{tab:8-4}\\
+\toprule
+Macro name & Corresponding RME macro\tabularnewline
+\endfirsthead
+\toprule
+Macro name & Corresponding RME macro\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+EXTERN & EXTERN\tabularnewline
+RVM\_\allowbreak{}THD\_\allowbreak{}WORD\_\allowbreak{}SIZE &
+This item should be filled with the fixed size of the thread kernel object, in units of word length\tabularnewline
+RVM\_\allowbreak{}PGTBL\_\allowbreak{}WORD\_\allowbreak{}SIZE\_\allowbreak{}NOM(X) &
+RME\_\allowbreak{}PGTBL\_\allowbreak{}WORD\_\allowbreak{}SIZE\_\allowbreak{}NOM(X)\tabularnewline
+RVM\_\allowbreak{}PGTBL\_\allowbreak{}WORD\_\allowbreak{}SIZE\_\allowbreak{}TOP(X) &
+RME\_\allowbreak{}PGTBL\_\allowbreak{}WORD\_\allowbreak{}SIZE\_\allowbreak{}TOP(X)\tabularnewline
+\end{xltabular}
+
+In addition, there are some architecture-related configuration macros. These configuration macros also need to remain consistent with the relevant macros determined at compile time in the kernel.
+
+\subsection{Macros Related to RVM Configuration Items and Filled In Automatically by the Project Generator}\label{subsec:8-2-4}
+
+The macros listed below are related to the RVM's configuration and can be chosen flexibly according to the RVM's configuration state. They are filled in automatically by the project generator, so in the header file you only need to list these macros and fill in a typical value for each option.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Macros related to the RVM configuration}\label{tab:8-5}\\
+\toprule
+Macro name & Purpose\tabularnewline
+\endfirsthead
+\toprule
+Macro name & Purpose\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+RVM\_\allowbreak{}PREEMPT\_\allowbreak{}VPRIO\_\allowbreak{}NUM\strut
+ & The number of virtual machine priorities of the RVM. Must be an integer multiple of the processor word length.
+
+Example:
+
+\#define RVM\_\allowbreak{}PREEMPT\_\allowbreak{}VPRIO\_\allowbreak{}NUM (32U)\strut
+\tabularnewline
+RVM\_\allowbreak{}VIRT\_\allowbreak{}MAP\_\allowbreak{}NUM\strut
+ & The maximum number of mappings from event sources or physical interrupt sources to virtual machines that the virtual machine monitor allows. This value must not be smaller than the number of event sources.
+
+Example:
+
+\#define RVM\_\allowbreak{}VIRT\_\allowbreak{}MAP\_\allowbreak{}NUM (32U)\strut
+\tabularnewline
+\end{xltabular}
+
+In addition, there are some architecture-related configuration macros. The project generator fills them in automatically.
+
+\subsection{Data Structure Definitions}\label{subsec:8-2-5}
+
+The only RVM data structure that needs to be ported is RVM\_Regs. It is a structure for the processor's register set, used in the RVM to read and modify the register set of VM user threads. This structure should be exactly the same as the one in the RME.
+
+\subsection{Porting the Low-Level Assembly Functions}\label{subsec:8-2-6}
+
+The RVM has to implement the following 6 assembly functions in total. These 6 assembly functions are mainly responsible for the startup of the RVM itself and system calls, etc. The list of these functions is as follows:
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Assembly functions involved in RVM porting}\label{tab:8-6}\\
+\toprule
+Function & Meaning\tabularnewline
+\endfirsthead
+\toprule
+Function & Meaning\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\_\allowbreak{}\_\allowbreak{}RVM\_\allowbreak{}Entry & The entry point of the RVM.\tabularnewline
+\_\allowbreak{}\_\allowbreak{}RVM\_\allowbreak{}Stub & A trampoline for thread creation and thread invocation.\tabularnewline
+RVM\_\allowbreak{}MSB\_\allowbreak{}GET &
+Obtain the position of the most significant bit of a word. It is actually a macro.\tabularnewline
+RVM\_\allowbreak{}Inv\_\allowbreak{}Act & Perform a thread invocation.\tabularnewline
+RVM\_\allowbreak{}Inv\_\allowbreak{}Ret & Perform a thread invocation return.\tabularnewline
+RVM\_\allowbreak{}Svc & Call the RME's system call.\tabularnewline
+\end{xltabular}
+
+The specific implementation details and caveats of these functions are introduced one by one in the following paragraphs.
+
+\subsubsection{Implementation of \_\_RVM\_Entry}\label{subsubsec:8-2-6-1}
+
+This function is the entry point of the RVM; it is responsible for initializing the RVM's C runtime library and jumping to the RVM's main function. This function must be linked at the head of the RVM image, and its link address must be the same as the entry of the Init thread determined when the RME kernel is compiled.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Implementation of \_\allowbreak{}\_\allowbreak{}RVM\_\allowbreak{}Entry}\label{tab:8-7}\\
+\toprule
+Function prototype & void \_\allowbreak{}\_\allowbreak{}RVM\_\allowbreak{}Entry(void)\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & void \_\allowbreak{}\_\allowbreak{}RVM\_\allowbreak{}Entry(void)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Meaning & The entry point of the RVM.\tabularnewline
+Return value & None.\tabularnewline
+Parameters & None.\tabularnewline
+\end{xltabular}
+
+\subsubsection{Implementation of \_\_RVM\_Stub}\label{subsubsec:8-2-6-2}
+
+This function is used to jump to the real entry when a thread runs for the first time or when a thread invocation runs. For typical architectures this function is not necessary; you only need to implement it as a direct return, and this function is not used either.\needspace{8\baselineskip}
+The usage scenarios of this function roughly include the following two types:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  For architectures such as ARMv7-M where the PC is saved on the user stack when an interrupt exits, we cannot establish the return address by setting the thread's PC when creating a new thread. We can only simulate a return stack in memory and use the PC value in the return stack to set the address to which execution will return. Since this return stack may be used repeatedly\footnote{For example, we create thread A, then destroy thread A, and then try to create thread B on the same stack}, we do not want to modify the PC value contained in it frequently. Therefore, we set the PC value in the return stack to \_\_RVM\_Stub. In it, we assign to the PC the values placed in other registers when the thread was created, correctly pass its parameters to the thread or invocation, and formally jump to the thread's entry for execution.
+\item
+  For architectures such as RISC-V that require registers such as gp to be set in advance\footnote{A simple link-time optimization (Link-Time
+    Optimization, LTO) enabled by default, ``linker
+    relaxation (Linker Relaxation)'', requires this register to be set}, if the thread's pc is set directly to the thread entry when creating a new thread, the gp register cannot be set in advance. Therefore, we set all entry points within a process to \_\_RVM\_Stub and adopt a strategy similar to ARMv7-M, placing the real entry point on the stack. When execution reaches \_\_RVM\_Stub, gp is set first, then the real entry point is taken from the stack, and then execution jumps to that entry point.
+
+  In either case above, once \_\_RVM\_Stub is used, the corresponding stack initialization flow needs to be implemented in RVM\_Stack\_Init.
+\end{enumerate}
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Implementation of \_\allowbreak{}\_\allowbreak{}RVM\_\allowbreak{}Stub}\label{tab:8-8}\\
+\toprule
+Function prototype & void \_\allowbreak{}\_\allowbreak{}RVM\_\allowbreak{}Stub(ptr\_\allowbreak{}t Entry, ptr\_\allowbreak{}t Param)\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & void \_\allowbreak{}\_\allowbreak{}RVM\_\allowbreak{}Stub(ptr\_\allowbreak{}t Entry, ptr\_\allowbreak{}t Param)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Meaning & Assist in jumping to the correct thread or invocation entry.\tabularnewline
+Return value & None.\tabularnewline
+\multirow{2}{*}{Parameters} & ptr\_\allowbreak{}t Entry
+
+The entry of the thread.\strut
+\tabularnewline
+\strut
+ & ptr\_\allowbreak{}t Param
+
+The parameter of the thread.\strut
+\tabularnewline
+\end{xltabular}
+
+\subsubsection{Implementation of RVM\_MSB\_GET}\label{subsubsec:8-2-6-3}
+
+This function returns the position of the most significant bit of the word. The most significant bit is defined as the position where the first ``1'' appears, counted starting from the LSB\footnote{The LSB counts as bit 0}. For example, if the number is the 32-bit 0x12345678, then the first ``1'' appears at bit 28, and this function returns 28.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Implementation of RVM\_\allowbreak{}MSB\_\allowbreak{}GET}\label{tab:8-9}\\
+\toprule
+Function prototype & ptr\_\allowbreak{}t \_\allowbreak{}RVM\_\allowbreak{}MSB\_\allowbreak{}GET(ptr\_\allowbreak{}t Val)\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & ptr\_\allowbreak{}t \_\allowbreak{}RVM\_\allowbreak{}MSB\_\allowbreak{}GET(ptr\_\allowbreak{}t Val)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Meaning &
+Obtain the position of the most significant bit of an unsigned number equal in size to the processor word length, that is, the position of the first digit ``1'' counted from left to right in its binary representation.\tabularnewline
+Return value\strut
+ & ptr\_\allowbreak{}t
+
+Returns the position of the first ``1''.\strut
+\tabularnewline
+Parameters\strut
+ & ptr\_\allowbreak{}t Val
+
+The number whose most significant bit position is to be computed.\strut
+\tabularnewline
+\end{xltabular}
+
+Since this function needs to be implemented efficiently, its implementation differs greatly across processors. For architectures that provide a most-significant-bit instruction, simply implement this function in assembly and use that instruction. For architectures that provide a count-leading-zeros instruction (CLZ)\footnote{such as ARM}, you can also use an assembly function to first compute the number of leading zeros, and then subtract this value from the processor word length minus 1 (in bits). For example, 0x12345678 has 3 leading zeros in total, and subtracting 3 from 31 gives 28.
+
+For architectures that do not implement a specific instruction, the binary search method is recommended. First determine whether the high halfword of a word is 0; if it is not 0, perform a binary search within this high halfword; if it is 0, perform a binary search in the low halfword, until the position of the first ``1'' is determined. When binary search narrows down to 16 or 8 bits, a lookup table can be used to map directly to the relative position of the first ``1'' within those 16 or 8 bits, so that further binary search is unnecessary; then the position of the first ``1'' can be computed by combining the results of each binary search step. If you do not want to write this assembly function by hand, the RVM also provides a generic version, \_RVM\_MSB\_Generic, and this macro can be defined directly as that function name.
+
+\subsubsection{Implementation of RVM\_Inv\_Act}\label{subsubsec:8-2-6-4}
+
+This function performs a standard thread invocation. When implementing it, take care to place the parameters into the correct registers in order according to the kernel calling convention.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Implementation of RVM\_\allowbreak{}Inv\_\allowbreak{}Act}\label{tab:8-10}\\
+\toprule
+Function prototype & ret\_\allowbreak{}t RVM\_\allowbreak{}Inv\_\allowbreak{}Act(cid\_\allowbreak{}t Cap\_\allowbreak{}Inv, ptr\_\allowbreak{}t Param, ptr\_\allowbreak{}t*
+Retval)\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & ret\_\allowbreak{}t RVM\_\allowbreak{}Inv\_\allowbreak{}Act(cid\_\allowbreak{}t Cap\_\allowbreak{}Inv, ptr\_\allowbreak{}t Param, ptr\_\allowbreak{}t*
+Retval)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Meaning & Perform a standard thread invocation.\tabularnewline
+Return value\strut
+ & ret\_\allowbreak{}t
+
+The return value of the thread invocation system call itself.\strut
+\tabularnewline
+\multirow{3}{*}{Parameters} & cid\_\allowbreak{}t Cap\_\allowbreak{}Inv
+
+The capability ID of the thread invocation capability.\strut
+\tabularnewline
+\strut
+ & ptr\_\allowbreak{}t Param
+
+The parameter of the thread invocation.\strut
+\tabularnewline
+\strut
+ & ptr\_\allowbreak{}t* Retval
+
+This parameter is used for output; it is a pointer to where the return value of the thread invocation is stored. If 0 (NULL) is passed in, it means that the return value returned by RVM\_Inv\_Ret is not to be received.\strut
+\tabularnewline
+\end{xltabular}
+
+Since the RME kernel does not take responsibility for saving any registers other than the control-flow-related registers during a thread invocation, user mode must push them onto the stack. If user mode does not use some of these registers, those unused registers need not be pushed onto the stack. This function should be implemented as a standard invocation, that is, push all general-purpose register sets but do not push coprocessor register sets. The function should also determine whether the passed-in Retval pointer is 0 (NULL); if it is 0, the return value of the thread invocation is not output to the address pointed to by Retval.
+
+\subsubsection{Implementation of RVM\_Inv\_Ret}\label{subsubsec:8-2-6-5}
+
+This function is used to return from a thread invocation. When implementing it, take care to place the parameters into the correct registers in order according to the kernel calling convention.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Implementation of RVM\_\allowbreak{}Inv\_\allowbreak{}Ret}\label{tab:8-11}\\
+\toprule
+Function prototype & ret\_\allowbreak{}t RVM\_\allowbreak{}Inv\_\allowbreak{}Ret(ptr\_\allowbreak{}t Retval)\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & ret\_\allowbreak{}t RVM\_\allowbreak{}Inv\_\allowbreak{}Ret(ptr\_\allowbreak{}t Retval)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Meaning & Return from a thread invocation.\tabularnewline
+Return value\strut
+ & ret\_\allowbreak{}t
+
+If successful, the function does not return; if it fails, it returns the return value of the thread invocation return system call.\strut
+\tabularnewline
+Parameters\strut
+ & ptr\_\allowbreak{}t Retval
+
+The return value of the thread invocation. If the caller's ptr\_t* Retval is not 0 (NULL), then this parameter will be assigned the caller's *Retval.\strut
+\tabularnewline
+\end{xltabular}
+
+\subsubsection{Implementation of RVM\_Svc}\label{subsubsec:8-2-6-6}
+
+This function is used to perform the RME's system calls. When implementing it, take care to place the parameters into the correct registers in order according to the kernel calling convention.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Implementation of RVM\_\allowbreak{}Svc}\label{tab:8-12}\\
+\toprule
+Function prototype & ret\_\allowbreak{}t RVM\_\allowbreak{}Svc(ptr\_\allowbreak{}t Op\_\allowbreak{}Capid, ptr\_\allowbreak{}t Arg1, ptr\_\allowbreak{}t Arg2,
+ptr\_\allowbreak{}t Arg3)\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & ret\_\allowbreak{}t RVM\_\allowbreak{}Svc(ptr\_\allowbreak{}t Op\_\allowbreak{}Capid, ptr\_\allowbreak{}t Arg1, ptr\_\allowbreak{}t Arg2,
+ptr\_\allowbreak{}t Arg3)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Meaning & Perform an RME system call.\tabularnewline
+Return value\strut
+ & ret\_\allowbreak{}t
+
+The return value of the RME system call.\strut
+\tabularnewline
+\multirow{4}{*}{Parameters} & ptr\_\allowbreak{}t Op\_\allowbreak{}Capid
+
+Parameter P0 composed from the system call number N and the capability table capability ID C.\strut
+\tabularnewline
+\strut
+ & ptr\_\allowbreak{}t Arg1
+
+The first parameter P1 of the system call.\strut
+\tabularnewline
+\strut
+ & ptr\_\allowbreak{}t Arg2
+
+The second parameter P2 of the system call.\strut
+\tabularnewline
+\strut
+ & ptr\_\allowbreak{}t Arg3
+
+The third parameter P3 of the system call.\strut
+\tabularnewline
+\end{xltabular}
+
+\subsection{Porting the C Language Functions}\label{subsec:8-2-7}
+
+The RVM has five C language functions in total, covering low-level debug printing, thread stack initialization, entering a low-power state, page table setup, and so on. The list of these functions is as follows:
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{C language functions involved in RVM porting}\label{tab:8-13}\\
+\toprule
+Function & Meaning\tabularnewline
+\endfirsthead
+\toprule
+Function & Meaning\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+RVM\_\allowbreak{}Putchar & Low-level printing function; prints one character to the console.\tabularnewline
+RVM\_\allowbreak{}Stack\_\allowbreak{}Init & Initialize a thread's thread stack.\tabularnewline
+RVM\_\allowbreak{}Idle & Put the system into a sleep state.\tabularnewline
+RVM\_\allowbreak{}Thd\_\allowbreak{}Print\_\allowbreak{}Exc &
+Print a string to the console according to the thread error reason.\tabularnewline
+RVM\_\allowbreak{}Thd\_\allowbreak{}Print\_\allowbreak{}Reg & Print a thread's register set.\tabularnewline
+\end{xltabular}
+
+\subsubsection{Implementation of RVM\_Putchar}\label{subsubsec:8-2-7-1}
+
+This operation prints one character to the console. This function is somewhat special; it does not need to be written by the user.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Implementation of RVM\_\allowbreak{}Putchar}\label{tab:8-14}\\
+\toprule
+Function prototype & void RVM\_\allowbreak{}Putchar(char Char)\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & void RVM\_\allowbreak{}Putchar(char Char)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Meaning & Output one character to the console.\tabularnewline
+Return value & None.\tabularnewline
+Parameters\strut
+ & char Char
+
+The character to be output to the system console.\strut
+\tabularnewline
+\end{xltabular}
+
+\subsubsection{Implementation of RVM\_Stack\_Init}\label{subsubsec:8-2-7-2}
+
+This operation initializes a thread's thread stack. Some architectures, such as ARMv7-M, require a thread's stack to be initialized before the thread runs. This function is used to initialize the contents of the stack. If the architecture does not require the stack to be initialized before the thread runs, this function can be implemented to simply return a suitable stack address.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Implementation of RVM\_\allowbreak{}Stack\_\allowbreak{}Init}\label{tab:8-15}\\
+\toprule
+Function prototype & ptr\_\allowbreak{}t RVM\_\allowbreak{}Stack\_\allowbreak{}Init(ptr\_\allowbreak{}t Stack, ptr\_\allowbreak{}t Size, ptr\_\allowbreak{}t*
+Entry, ptr\_\allowbreak{}t Stub)\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & ptr\_\allowbreak{}t RVM\_\allowbreak{}Stack\_\allowbreak{}Init(ptr\_\allowbreak{}t Stack, ptr\_\allowbreak{}t Size, ptr\_\allowbreak{}t*
+Entry, ptr\_\allowbreak{}t Stub)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Meaning & Initialize a thread's thread stack.\tabularnewline
+Return value\strut
+ & ptr\_\allowbreak{}t
+
+The stack pointer address used to initialize the thread's register set (that is, the one to be passed to RVM\_Thd\_Exec\_Set).\strut
+\tabularnewline
+\multirow{4}{*}{Parameters} & ptr\_\allowbreak{}t Stack
+
+The start address of the stack area.\strut
+\tabularnewline
+\strut
+ & ptr\_\allowbreak{}t Size
+
+The size of the stack area.\strut
+\tabularnewline
+\strut
+ & ptr\_\allowbreak{}t* Entry
+
+The entry of the thread. Considering the scenarios where the entry point needs to be changed to \_\allowbreak{}\_\allowbreak{}RVM\_\allowbreak{}Stub, this parameter is also used for output.\strut
+\tabularnewline
+\strut
+ & ptr\_\allowbreak{}t Stub
+
+The entry location of \_\allowbreak{}\_\allowbreak{}RVM\_\allowbreak{}Stub. This parameter may not necessarily be used.\strut
+\tabularnewline
+\end{xltabular}
+
+\subsubsection{Implementation of RVM\_Thd\_Print\_Exc}\label{subsubsec:8-2-7-3}
+
+This operation prints the exact reason for the thread error, so as to facilitate debugging.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Implementation of RVM\_\allowbreak{}Thd\_\allowbreak{}Print\_\allowbreak{}Exc}\label{tab:8-16}\\
+\toprule
+Function prototype & void RVM\_\allowbreak{}Thd\_\allowbreak{}Print\_\allowbreak{}Exc(cid\_\allowbreak{}t Cap\_\allowbreak{}Thd)\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & void RVM\_\allowbreak{}Thd\_\allowbreak{}Print\_\allowbreak{}Exc(cid\_\allowbreak{}t Cap\_\allowbreak{}Thd)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Meaning & Print the exact reason for the thread error.\tabularnewline
+Return value & None.\tabularnewline
+Parameters\strut
+ & cid\_\allowbreak{}t Cap\_\allowbreak{}Thd
+
+The capability ID of the thread. It can be a first-level encoding or a second-level encoding.\strut
+\tabularnewline
+\end{xltabular}
+
+\subsubsection{Implementation of RVM\_Thd\_Print\_Reg}\label{subsubsec:8-2-7-4}
+
+This operation prints all register sets of a thread. The specific register values need to be obtained using the standard kernel function call RVM\_KERN\_DEBUG\_REG\_MOD defined in the RME extension standard.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Implementation of RVM\_\allowbreak{}Thd\_\allowbreak{}Print\_\allowbreak{}Reg}\label{tab:8-17}\\
+\toprule
+Function prototype & ret\_\allowbreak{}t RVM\_\allowbreak{}Thd\_\allowbreak{}Print\_\allowbreak{}Reg(cid\_\allowbreak{}t Cap\_\allowbreak{}Thd)\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & ret\_\allowbreak{}t RVM\_\allowbreak{}Thd\_\allowbreak{}Print\_\allowbreak{}Reg(cid\_\allowbreak{}t Cap\_\allowbreak{}Thd)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Meaning & Print a thread's register set.\tabularnewline
+Return value\strut
+ & ret\_\allowbreak{}t
+
+Returns 0 on success and a negative value on failure.\strut
+\tabularnewline
+Parameters\strut
+ & cid\_\allowbreak{}t Cap\_\allowbreak{}Thd
+
+The capability ID of the thread. It can be a first-level encoding or a second-level encoding.\strut
+\tabularnewline
+\end{xltabular}
+
+\section{Porting the Project Generator}\label{sec:8-3}
+
+The content of this section has not yet been provided in the original manuscript and will be supplemented in a later version.
+
+\section{References for This Chapter}\label{sec:8-4}
+
+None
+

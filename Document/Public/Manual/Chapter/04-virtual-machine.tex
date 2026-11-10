@@ -1,0 +1,685 @@
+\chapter{Virtual Machine}\label{ch:4-virtual-machines}
+
+\section{Introduction}\label{sec:4-1}
+
+Any small RTOS\footnote{such as RMP, FreeRTOS, uC/OS and RT-Thread, etc.} can be virtualized inside a virtual machine, and a virtual microcontroller environment is provided for it. The time and space of this environment are isolated from those of other virtual machines: a crash of one virtual machine only causes its own restart and does not cause other virtual machines to crash. In this way, the propagation of faults or security vulnerabilities among different components is limited, so that a single point of failure does not cause the entire system to fail.
+
+A virtual machine is a special kind of RME process, and all of its operations are taken over by RVM. Its header also has the same process descriptor as a native process, describing all the entry points in it. However, there are only three fixed entry points in a virtual machine process, namely (1) the interrupt vector handling thread Vct, (2) the user program thread Usr, and (3) the trampoline, and it cannot possess any capabilities other than kernel function calls and the signal sending endpoint. It is not recommended to call any RME system call in a virtual machine other than for signal sending\footnote{this is for communicating with native processes}; in principle all functions are taken over by RVM hypercalls.
+
+\section{Registering Virtual Machines with RVM}\label{sec:4-2}
+
+In RVM, the configuration of each virtual machine is represented as a structure of type struct RVM\_Vmap\_Struct. These structures form a constant structure array RVM\_Vmap, which internally stores information about all the virtual machines in the system. This information includes the initial execution address, initial stack address, state area address, the memory regions used, and the special kernel calls used by the virtual machine, etc. This information helps RVM load and configure each virtual machine correctly. In addition, RVM also needs an array RVM\_Virt composed of another structure type struct RVM\_Virt\_Struct to store data related to the running state of those virtual machines. The lengths of these two structure arrays must be the same. The user needs to call the function RVM\_Virt\_Crt during RVM startup to register these virtual machines into the system in batches. Besides filling in the structure information, some kernel objects also need to be created and initialized.
+
+The project generator can perform this process fully automatically, so we recommend using the project generator to create each virtual machine.
+
+\subsection{Filling in Virtual Machine Information}\label{subsec:4-2-1}
+
+The user should statically declare the structure array const struct RVM\_Vmap\_Struct RVM\_Vmap{[}{]} and fill in the relevant content of each virtual machine. The meaning of each field of this structure is listed in the following table.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{The meaning of each field in struct RVM\_\allowbreak{}Virt\_\allowbreak{}Map}\label{tab:4-1}\\
+\toprule
+Field name & Purpose\tabularnewline
+\endfirsthead
+\toprule
+Field name & Purpose\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+s8\_\allowbreak{}t* Name &
+The name of the virtual machine. It is a string. It is actually not used by RVM and only serves to facilitate user debugging.\tabularnewline
+ptr\_\allowbreak{}t Prio &
+The priority of the virtual machine. This priority must be less than the number of virtual machine priorities configured for RVM.\tabularnewline
+ptr\_\allowbreak{}t Slice & The running timeslice of the virtual machine. This value must not be set to 0.\tabularnewline
+ptr\_\allowbreak{}t Period &
+The period of the virtual machine's clock interrupt. Setting it to X means that RVM sends a virtual clock interrupt to the virtual machine after receiving X ticks. It is recommended to set this value to a number greater than 10.\tabularnewline
+ptr\_\allowbreak{}t Watchdog &
+The timeout of the virtual machine watchdog. Setting it to X means that if the virtual machine has run for more than X ticks without feeding the watchdog, the virtual machine is reset. If this item is set to 0, it indicates that the watchdog is not enabled for this virtual machine.\tabularnewline
+ptr\_\allowbreak{}t Vct\_\allowbreak{}Num &
+The number of virtual interrupt vectors of the virtual machine; this number cannot exceed 1920. Generally speaking, it is very difficult for any virtual machine to use such a large number of interrupt sources.\tabularnewline
+struct RVM\_\allowbreak{}Thd\_\allowbreak{}Reg* Reg\_\allowbreak{}Base &
+The address of the virtual register buffer of the virtual machine. The memory address it points to must be no smaller than the size of the struct RVM\_Thd\_Reg structure of this architecture. It should be kept consistent with the RVM\_VIRT\_REG\_BASE configuration item registered inside the virtual machine process.\tabularnewline
+struct RVM\_\allowbreak{}State* State\_\allowbreak{}Base &
+The address of the state buffer of the virtual machine. The memory address it points to must be no smaller than the size of the struct RVM\_State structure. This structure includes the state information of the virtual machine as well as its interrupt vector flags. It should be kept consistent with the RVM\_\allowbreak{}VIRT\_\allowbreak{}STATE\_\allowbreak{}BASE configuration item registered inside the virtual machine process.\tabularnewline
+ptr\_\allowbreak{}t State\_\allowbreak{}Size & The size of the state buffer of the virtual machine, in bytes.\tabularnewline
+ptr\_\allowbreak{}t Desc\_\allowbreak{}Base &
+The base address of the virtual machine description header. It is located at the beginning of the code segment of the virtual machine process.\tabularnewline
+cid\_\allowbreak{}t Vct\_\allowbreak{}Sig\_\allowbreak{}Cap &
+The capability number of the virtual machine's interrupt vector endpoint. This capability number is a capability number in RVM. The same applies to the various capability numbers mentioned below.\tabularnewline
+cid\_\allowbreak{}t Vct\_\allowbreak{}Thd\_\allowbreak{}Cap & The capability number of the virtual machine's interrupt vector handling thread.\tabularnewline
+ptr\_\allowbreak{}t Vct\_\allowbreak{}Stack\_\allowbreak{}Base &
+The stack base address of the virtual machine's interrupt vector handling thread.\tabularnewline
+ptr\_\allowbreak{}t Vct\_\allowbreak{}Stack\_\allowbreak{}Size &
+The stack size of the virtual machine's interrupt vector handling thread. This size must exceed the stack size of the virtual interrupt vector function that uses the most stack.\tabularnewline
+cid\_\allowbreak{}t Usr\_\allowbreak{}Thd\_\allowbreak{}Cap & The capability number of the virtual machine's user program handling thread.\tabularnewline
+ptr\_\allowbreak{}t Usr\_\allowbreak{}Stack\_\allowbreak{}Base &
+The stack base address of the virtual machine's user program handling thread.\tabularnewline
+ptr\_\allowbreak{}t Usr\_\allowbreak{}Stack\_\allowbreak{}Size &
+The stack size of the virtual machine's user program handling thread. For a single-threaded bare-metal program, this size must exceed the stack size used by the user program logic; since the various threads of an RTOS after startup usually switch to dedicated stacks managed by the RTOS itself, this value only needs to exceed the stack size used by the RTOS startup and initialization sequence. If the RTOS kernel uses this stack during operation, then this stack must be designed to be at least sufficient for the RTOS to use.\tabularnewline
+\end{xltabular}
+
+The project generator can automatically generate this data structure; of course, manual filling is also an option.
+
+\subsection{Creating and Initializing Virtual Machines}\label{subsec:4-2-2}
+
+After completing the filling of virtual machine information, we also need to create a signal endpoint for each virtual machine and transfer it to slot 1 of the capability table inside that virtual machine, so that the interrupt vector handling thread Vct can receive interrupts. The transferred capability should possess all operation attributes for receiving and sending, namely RVM\_SIG\_FLAG\_ALL. In addition, the signal endpoint for virtual machine hypercalls must be transferred to slot 0 of the capability table inside that virtual machine, so that the virtual machine can initiate hypercalls. The transferred capability should only allow the send operation attribute, namely RVM\_SIG\_FLAG\_SND.
+
+\subsection{Batch Registration of Virtual Machines}\label{subsec:4-2-3}
+
+The user should first statically declare the structure array struct RVM\_Virt\_Struct RVM\_Virt{[}{]} to hold runtime data, and then call the function RVM\_Virt\_Crt at the end of the kernel object initialization hook RVM\_Boot\_Kobj\_Init to register the virtual machines in batches.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Virtual machine batch registration hook}\label{tab:4-2}\\
+\toprule
+Function prototype\strut
+ & void RVM\_\allowbreak{}Virt\_\allowbreak{}Crt(struct RVM\_\allowbreak{}Virt\_\allowbreak{}Struct* Virt,
+
+const struct RVM\_\allowbreak{}Vmap\_\allowbreak{}Struct* Vmap,
+
+rvm\_\allowbreak{}ptr\_\allowbreak{}t Virt\_\allowbreak{}Num)\strut
+\tabularnewline
+\endfirsthead
+\toprule
+Function prototype\strut
+ & void RVM\_\allowbreak{}Virt\_\allowbreak{}Crt(struct RVM\_\allowbreak{}Virt\_\allowbreak{}Struct* Virt,
+
+const struct RVM\_\allowbreak{}Vmap\_\allowbreak{}Struct* Vmap,
+
+rvm\_\allowbreak{}ptr\_\allowbreak{}t Virt\_\allowbreak{}Num)\strut
+\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Return value & None.\tabularnewline
+\multirow[t]{3}{*}{Parameters} & struct RVM\_\allowbreak{}Virt\_\allowbreak{}Struct* Virt
+
+The first address of the statically declared array of virtual machine runtime data structures.\strut
+\tabularnewline
+\strut
+ & const struct RVM\_\allowbreak{}Vmap\_\allowbreak{}Struct* Vmap
+
+The first address of the statically declared array of virtual machine information structures.\strut
+\tabularnewline
+\strut
+ & ptr\_\allowbreak{}t Virt\_\allowbreak{}Num
+
+The number of virtual machines. The lengths of both statically declared structure arrays above should equal this value.\strut
+\tabularnewline
+\end{xltabular}
+
+\section{Macros That Should Exist Inside a Virtual Machine}\label{sec:4-3}
+
+In addition to the macros that must exist inside a native process, the following configuration macros also need to exist inside a virtual machine. These macros can be filled in by the project generator or manually by the user. The list of these macros is as follows.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{List of macros that should exist in a virtual machine process}\label{tab:4-3}\\
+\toprule
+Macro name & Purpose\tabularnewline
+\endfirsthead
+\toprule
+Macro name & Purpose\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+RVM\_\allowbreak{}VIRT\_\allowbreak{}LIB\_\allowbreak{}ENABLE\strut
+ & The enable macro of the paravirtualization library. Inside a virtual machine it should be defined as 1.
+
+Example:
+
+\#define RVM\_\allowbreak{}VIRT\_\allowbreak{}LIB\_\allowbreak{}ENABLE (1U)\strut
+\tabularnewline
+RVM\_\allowbreak{}VIRT\_\allowbreak{}VCT\_\allowbreak{}NUM\strut
+ & The number of virtual interrupt vectors. It should be kept consistent with the configuration item of the same name registered in the RVM virtual machine structure.
+
+Example:
+
+\#define RVM\_\allowbreak{}VIRT\_\allowbreak{}VCT\_\allowbreak{}NUM (10U)\strut
+\tabularnewline
+RVM\_\allowbreak{}VIRT\_\allowbreak{}STATE\_\allowbreak{}BASE\strut
+ & The base address of the virtual machine state area. It should be kept consistent with the configuration item of the same name registered in the RVM virtual machine structure.
+
+Example:
+
+\#define RVM\_\allowbreak{}VIRT\_\allowbreak{}STATE\_\allowbreak{}BASE (0x20005700U)\strut
+\tabularnewline
+RVM\_\allowbreak{}VIRT\_\allowbreak{}STATE\_\allowbreak{}SIZE\strut
+ & The size of the virtual machine state area, in bytes. It should be kept consistent with the configuration item of the same name registered in the RVM virtual machine structure.
+
+Example:
+
+\#define RVM\_\allowbreak{}VIRT\_\allowbreak{}STATE\_\allowbreak{}SIZE (0x50U)\strut
+\tabularnewline
+RVM\_\allowbreak{}VIRT\_\allowbreak{}REG\_\allowbreak{}BASE\strut
+ & The base address of the user thread virtual register set. It should be kept consistent with the configuration item of the same name registered in RVM.
+
+Example:
+
+\#define RVM\_\allowbreak{}VIRT\_\allowbreak{}REG\_\allowbreak{}BASE (0x20005400U)\strut
+\tabularnewline
+RVM\_\allowbreak{}VIRT\_\allowbreak{}REG\_\allowbreak{}SIZE\strut
+ & The size of the user thread virtual register set, in bytes. It should be kept consistent with the configuration item of the same name registered in RVM.
+
+Example:
+
+\#define RVM\_\allowbreak{}VIRT\_\allowbreak{}REG\_\allowbreak{}SIZE (0x70U)\strut
+\tabularnewline
+\end{xltabular}
+
+\section{Hypercalls Available to Virtual Machines}\label{sec:4-4}
+
+Communication between virtual machines and basic management are all implemented through hypercalls. These hypercalls can be called in the user thread or in virtual interrupt service routines.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{List of hypercalls available to virtual machines}\label{tab:4-4}\\
+\toprule
+Function & Meaning\tabularnewline
+\endfirsthead
+\toprule
+Function & Meaning\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+RVM\_\allowbreak{}Hyp\_\allowbreak{}Putchar & Print a single character.\tabularnewline
+RVM\_\allowbreak{}Hyp\_\allowbreak{}Reboot & Restart the virtual machine.\tabularnewline
+RVM\_\allowbreak{}Hyp\_\allowbreak{}Int\_\allowbreak{}Ena & Enable virtual global interrupts.\tabularnewline
+RVM\_\allowbreak{}Hyp\_\allowbreak{}Int\_\allowbreak{}Dis & Disable virtual global interrupts.\tabularnewline
+RVM\_\allowbreak{}Hyp\_\allowbreak{}Vct\_\allowbreak{}Phys & Map a physical interrupt source to a virtual interrupt source.\tabularnewline
+RVM\_\allowbreak{}Hyp\_\allowbreak{}Vct\_\allowbreak{}Evt & Map an event source to a virtual interrupt source.\tabularnewline
+RVM\_\allowbreak{}Hyp\_\allowbreak{}Vct\_\allowbreak{}Del & Remove the mapping on a virtual interrupt source.\tabularnewline
+RVM\_\allowbreak{}Hyp\_\allowbreak{}Vct\_\allowbreak{}Lck & Lock the virtual interrupt source mapping.\tabularnewline
+RVM\_\allowbreak{}Hyp\_\allowbreak{}Vct\_\allowbreak{}Wait & Wait for a virtual interrupt source to be triggered.\tabularnewline
+RVM\_\allowbreak{}Hyp\_\allowbreak{}Evt\_\allowbreak{}Add & Authorize sending to an event source.\tabularnewline
+RVM\_\allowbreak{}Hyp\_\allowbreak{}Evt\_\allowbreak{}Del & Revoke the authorization to send to an event source.\tabularnewline
+RVM\_\allowbreak{}Hyp\_\allowbreak{}Evt\_\allowbreak{}Snd & Send to an event source.\tabularnewline
+RVM\_\allowbreak{}Hyp\_\allowbreak{}Wdg\_\allowbreak{}Clr & Activate and feed the watchdog.\tabularnewline
+\end{xltabular}
+
+\subsection{Printing a Single Character}\label{subsec:4-4-1}
+
+This hypercall prints a single character in the debug output of the virtual machine monitor.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Printing a single character}\label{tab:4-5}\\
+\toprule
+Function prototype & void RVM\_\allowbreak{}Hyp\_\allowbreak{}Putchar(char Char)\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & void RVM\_\allowbreak{}Hyp\_\allowbreak{}Putchar(char Char)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Return value & None. This call always succeeds.\tabularnewline
+Parameters\strut
+ & char Char
+
+The character to output to the system console.\strut
+\tabularnewline
+\end{xltabular}
+
+\subsection{Restarting the Virtual Machine}\label{subsec:4-4-2}
+
+This hypercall unconditionally restarts the virtual machine.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Restarting the virtual machine}\label{tab:4-6}\\
+\toprule
+Function prototype & void RVM\_\allowbreak{}Hyp\_\allowbreak{}Reboot(void)\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & void RVM\_\allowbreak{}Hyp\_\allowbreak{}Reboot(void)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Return value & None. This call always succeeds.\tabularnewline
+Parameters & None.\tabularnewline
+\end{xltabular}
+
+\subsection{Enabling Virtual Global Interrupts}\label{subsec:4-4-3}
+
+This hypercall enables the virtual machine's virtual interrupt reception. After a virtual machine starts, virtual interrupts are disabled by default, and at this time no more interrupts are sent to the virtual machine. This is to simulate the behavior of a microcontroller: the global interrupts of a microcontroller are generally also disabled when it starts. Therefore, an RTOS in a virtual machine needs to call this function after initialization is complete to enable virtual interrupts. This hypercall has no nesting count, so the user needs to perform nesting counting by themselves.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Enabling virtual global interrupts}\label{tab:4-7}\\
+\toprule
+Function prototype & void RVM\_\allowbreak{}Hyp\_\allowbreak{}Int\_\allowbreak{}Ena(void)\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & void RVM\_\allowbreak{}Hyp\_\allowbreak{}Int\_\allowbreak{}Ena(void)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Return value & None. This call always succeeds.\tabularnewline
+Parameters & None.\tabularnewline
+\end{xltabular}
+
+\subsection{Disabling Virtual Global Interrupts}\label{subsec:4-4-4}
+
+This hypercall disables virtual interrupts. Once virtual interrupts are disabled, RVM will no longer send any interrupts to this virtual machine, so even transparent interrupts will go unanswered. This hypercall has no nesting count, so the user needs to perform nesting counting by themselves.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Disabling virtual global interrupts}\label{tab:4-8}\\
+\toprule
+Function prototype & void RVM\_\allowbreak{}Hyp\_\allowbreak{}Int\_\allowbreak{}Dis(void)\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & void RVM\_\allowbreak{}Hyp\_\allowbreak{}Int\_\allowbreak{}Dis(void)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Return value & None. This call always succeeds.\tabularnewline
+Parameters & None.\tabularnewline
+\end{xltabular}
+
+\subsection{Mapping a Physical Interrupt Source to a Virtual Interrupt Source}\label{subsec:4-4-5}
+
+This hypercall maps a physical interrupt source to a virtual interrupt source of this virtual machine. After the physical interrupt source is triggered, an interrupt is received on the corresponding virtual interrupt source, and the virtual machine calls the handler function registered for that interrupt. Within the same virtual machine, the same physical interrupt source can only be mapped once, and the same virtual interrupt source can only be mapped by one physical interrupt source or event source; however, the same physical interrupt source can be mapped to different virtual machines respectively, in which case once the physical interrupt source is triggered, all the virtual machines receive the virtual interrupt. Each mapping consumes one mapping block; the number of mapping blocks in the system is determined by RVM\_VIRT\_MAP\_NUM at RVM configuration time.
+
+This hypercall is not real-time. Therefore, we only recommend calling it during system startup.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.6000\hsize\raggedright\arraybackslash}X>{\hsize=0.8000\hsize\raggedright\arraybackslash}X>{\hsize=1.6000\hsize\raggedright\arraybackslash}X@{}}
+\caption{Mapping a physical interrupt source to a virtual interrupt source}\label{tab:4-9}\\
+\toprule
+Function prototype & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Vct\_\allowbreak{}Phys(ptr\_\allowbreak{}t Phys\_\allowbreak{}Num, ptr\_\allowbreak{}t Vct\_\allowbreak{}Num)}\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Vct\_\allowbreak{}Phys(ptr\_\allowbreak{}t Phys\_\allowbreak{}Num, ptr\_\allowbreak{}t Vct\_\allowbreak{}Num)}\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\multirow{6}{*}{Return value} & ret\_\allowbreak{}t & If successful, returns 0. If it fails, the following negative values are returned:\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}RANGE & The passed physical interrupt vector number or virtual interrupt vector number is out of range.\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}STATE & The virtual interrupt source mapping of this virtual machine has already been locked.\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}PHYS & This physical vector has already been mapped to some virtual interrupt vector of this virtual machine.\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}VIRT & This virtual interrupt vector has already been mapped to a physical interrupt vector or event source.\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}MAP & The mapping blocks are exhausted, so mapping cannot be performed.\tabularnewline
+\multirow[t]{2}{*}{Parameters} & ptr\_\allowbreak{}t Phys\_\allowbreak{}Num & The interrupt vector number of the physical interrupt source.\tabularnewline
+ & ptr\_\allowbreak{}t Vct\_\allowbreak{}Num & The interrupt vector number of the virtual interrupt source. The smaller this number, the higher the non-preemptive priority.\tabularnewline
+\end{xltabular}
+
+\subsection{Mapping an Event Source to a Virtual Interrupt Source}\label{subsec:4-4-6}
+
+This hypercall maps an event source to a virtual interrupt source of this virtual machine. After the event source is triggered, an interrupt is received on the corresponding virtual interrupt source, and the virtual machine calls the handler function registered for that interrupt. Within the same virtual machine, the same event source can only be mapped once, and the same virtual interrupt source can only be mapped by one physical interrupt source or event source; however, the same event source can be mapped to different virtual machines respectively, in which case once the event source is triggered, all the virtual machines receive the virtual interrupt. Each mapping consumes one mapping block; the number of mapping blocks in the system is determined by RVM\_VIRT\_MAP\_NUM at RVM configuration time.
+
+\needspace{22\baselineskip}
+This hypercall is not real-time. Therefore, we only recommend calling it during system startup.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.6000\hsize\raggedright\arraybackslash}X>{\hsize=0.8000\hsize\raggedright\arraybackslash}X>{\hsize=1.6000\hsize\raggedright\arraybackslash}X@{}}
+\caption{Mapping an event source to a virtual interrupt source}\label{tab:4-10}\\
+\toprule
+Function prototype & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Vct\_\allowbreak{}Evt(ptr\_\allowbreak{}t Evt\_\allowbreak{}Num, ptr\_\allowbreak{}t Vct\_\allowbreak{}Num)}\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Vct\_\allowbreak{}Evt(ptr\_\allowbreak{}t Evt\_\allowbreak{}Num, ptr\_\allowbreak{}t Vct\_\allowbreak{}Num)}\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\multirow{6}{*}{Return value} & ret\_\allowbreak{}t & If successful, returns 0. If it fails, the following negative values are returned:\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}RANGE & The passed event source number or virtual interrupt vector number is out of range.\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}STATE & The virtual interrupt source mapping of this virtual machine has already been locked.\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}PHYS & This event source has already been mapped to some virtual interrupt vector of this virtual machine.\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}VIRT & This virtual interrupt vector has already been mapped to a physical interrupt vector or event source.\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}MAP & The mapping blocks are exhausted, so mapping cannot be performed.\tabularnewline
+\multirow[t]{2}{*}{Parameters} & ptr\_\allowbreak{}t Evt\_\allowbreak{}Num & The event source number of the event source.\tabularnewline
+ & ptr\_\allowbreak{}t Vct\_\allowbreak{}Num & The interrupt vector number of the virtual interrupt source. The smaller this number, the higher the non-preemptive priority.\tabularnewline
+\end{xltabular}
+
+\subsection{Removing the Mapping on a Virtual Interrupt Source}\label{subsec:4-4-7}
+
+This hypercall removes any mapping on a virtual interrupt source, whether it is a physical interrupt source or an event source.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.6000\hsize\raggedright\arraybackslash}X>{\hsize=0.8000\hsize\raggedright\arraybackslash}X>{\hsize=1.6000\hsize\raggedright\arraybackslash}X@{}}
+\caption{Removing the mapping on a virtual interrupt source}\label{tab:4-11}\\
+\toprule
+Function prototype & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Vct\_\allowbreak{}Del(ptr\_\allowbreak{}t Vct\_\allowbreak{}Num)}\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Vct\_\allowbreak{}Del(ptr\_\allowbreak{}t Vct\_\allowbreak{}Num)}\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\multirow{4}{*}{Return value} & ret\_\allowbreak{}t & If successful, returns 0. If it fails, the following negative values are returned:\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}RANGE & The passed virtual interrupt vector number is out of range.\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}STATE & The virtual interrupt source mapping of this virtual machine has already been locked.\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}VIRT & This virtual interrupt vector has not been registered to any physical interrupt vector or event source.\tabularnewline
+Parameters & ptr\_\allowbreak{}t Vct\_\allowbreak{}Num & The interrupt vector number of the virtual interrupt source.\tabularnewline
+\end{xltabular}
+
+\subsection{Locking the Virtual Interrupt Source Mapping}\label{subsec:4-4-8}
+
+This hypercall locks the virtual interrupt source mapping of the current virtual machine, which includes the mapping from physical interrupt sources to virtual interrupt sources, the mapping from event sources to virtual interrupt sources, and the virtual machine's event source sending authorization. Once the lock takes effect, it is permanent. Unless the current virtual machine crashes and restarts, no further modification can be made to the virtual interrupt source mapping. This is to prevent certain virtual machines, after being compromised, from mapping a large number of physical interrupt sources or event sources, or sending in large quantities to event sources, thereby causing denial-of-service attacks.
+
+We recommend completing all the above initialization at the startup of each virtual machine, and then using this hypercall to lock them. Since on a microcontroller it is impossible to modify the code segments placed in Flash or loaded into RAM at power-on\footnote{even the RME kernel does not have permission to modify them; only the loader (Bootloader) has this permission}, it can be guaranteed that the execution of the current virtual machine before locking is trustworthy. In this way, the information security of the system can be fully guaranteed after locking. Only for those very complex and highly flexible virtual machines do we not perform locking.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.6000\hsize\raggedright\arraybackslash}X>{\hsize=0.8000\hsize\raggedright\arraybackslash}X>{\hsize=1.6000\hsize\raggedright\arraybackslash}X@{}}
+\caption{Locking the virtual interrupt source mapping}\label{tab:4-12}\\
+\toprule
+Function prototype & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Vct\_\allowbreak{}Lck(void)}\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Vct\_\allowbreak{}Lck(void)}\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\multirow{2}{*}{Return value} & ret\_\allowbreak{}t & If successful, returns 0. If it fails, the following negative values are returned:\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}STATE & The virtual interrupt source mapping of this virtual machine has already been locked; there is no need to lock it again.\tabularnewline
+Parameters & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{None.}\tabularnewline
+\end{xltabular}
+
+\subsection{Waiting for a Virtual Interrupt Source to Be Triggered}\label{subsec:4-4-9}
+
+This hypercall puts the virtual machine into a dormant state and waits until any of its virtual interrupt sources is activated next time before continuing execution. To call this hypercall, the virtual machine's virtual global interrupts must be enabled; otherwise RVM rejects this hypercall\footnote{if this hypercall were not rejected, the virtual machine could not be woken up once it entered dormancy; on a real processor, disabling interrupts first and then going to sleep likewise causes a crash}. Generally speaking, this hypercall is placed in the RTOS idle thread hook and called repeatedly; its equivalent on a microcontroller is those instructions that may cause entry into a dormant state\footnote{such as WFE and WFI of ARMv7-M}.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.6000\hsize\raggedright\arraybackslash}X>{\hsize=0.8000\hsize\raggedright\arraybackslash}X>{\hsize=1.6000\hsize\raggedright\arraybackslash}X@{}}
+\caption{Waiting for a virtual interrupt source to be triggered}\label{tab:4-13}\\
+\toprule
+Function prototype & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Vct\_\allowbreak{}Wait(void)}\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Vct\_\allowbreak{}Wait(void)}\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\multirow{2}{*}{Return value} & ret\_\allowbreak{}t & If successful, returns 0. If it fails, the following negative values are returned:\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}STATE & The virtual global interrupts of this virtual machine are disabled, so it cannot enter dormancy.\tabularnewline
+Parameters & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{None.}\tabularnewline
+\end{xltabular}
+
+\needspace{14\baselineskip}
+\subsection{Granting Permission to Send to an Event Source}\label{subsec:4-4-10}
+
+This hypercall authorizes the virtual machine to perform a send operation to an event source. Performing a send operation to any event source requires such authorization.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.6000\hsize\raggedright\arraybackslash}X>{\hsize=0.8000\hsize\raggedright\arraybackslash}X>{\hsize=1.6000\hsize\raggedright\arraybackslash}X@{}}
+\caption{Granting permission to send to an event source}\label{tab:4-14}\\
+\toprule
+Function prototype & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Evt\_\allowbreak{}Add(ptr\_\allowbreak{}t Evt\_\allowbreak{}Num)}\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Evt\_\allowbreak{}Add(ptr\_\allowbreak{}t Evt\_\allowbreak{}Num)}\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\multirow{4}{*}{Return value} & ret\_\allowbreak{}t & If successful, returns 0. If it fails, the following negative values are returned:\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}RANGE & The passed event source number is out of range.\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}STATE & The virtual interrupt source mapping of this virtual machine has already been locked.\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}EVT & This virtual machine already has permission to send to this event source; no authorization is needed.\tabularnewline
+Parameters & ptr\_\allowbreak{}t Evt\_\allowbreak{}Num & The event source number of the event source.\tabularnewline
+\end{xltabular}
+
+\subsection{Revoking the Authorization to Send to an Event Source}\label{subsec:4-4-11}
+
+This hypercall revokes the virtual machine's authorization to send to an event source. After revocation, the virtual machine can no longer send to that event source.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.6000\hsize\raggedright\arraybackslash}X>{\hsize=0.8000\hsize\raggedright\arraybackslash}X>{\hsize=1.6000\hsize\raggedright\arraybackslash}X@{}}
+\caption{Revoking the authorization to send to an event source}\label{tab:4-15}\\
+\toprule
+Function prototype & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Evt\_\allowbreak{}Del(ptr\_\allowbreak{}t Evt\_\allowbreak{}Num)}\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Evt\_\allowbreak{}Del(ptr\_\allowbreak{}t Evt\_\allowbreak{}Num)}\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\multirow{4}{*}{Return value} & ret\_\allowbreak{}t & If successful, returns 0. If it fails, the following negative values are returned:\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}RANGE & The passed event source number is out of range.\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}STATE & The virtual interrupt source mapping of this virtual machine has already been locked.\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}EVT & This virtual machine never had permission to send to this event source; no revocation is needed.\tabularnewline
+Parameters & ptr\_\allowbreak{}t Evt\_\allowbreak{}Num & The event source number of the event source.\tabularnewline
+\end{xltabular}
+
+\subsection{Sending to an Event Source}\label{subsec:4-4-12}
+
+This hypercall causes the virtual machine to send to an event source. This send activates the interrupt vectors of all virtual machines registered on that event source.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.6000\hsize\raggedright\arraybackslash}X>{\hsize=0.8000\hsize\raggedright\arraybackslash}X>{\hsize=1.6000\hsize\raggedright\arraybackslash}X@{}}
+\caption{Sending to an event source}\label{tab:4-16}\\
+\toprule
+Function prototype & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Evt\_\allowbreak{}Snd(ptr\_\allowbreak{}t Evt\_\allowbreak{}Num)}\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Evt\_\allowbreak{}Snd(ptr\_\allowbreak{}t Evt\_\allowbreak{}Num)}\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\multirow{3}{*}{Return value} & ret\_\allowbreak{}t & If successful, returns 0. If it fails, the following negative values are returned:\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}RANGE & The passed event source number is out of range.\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}EVT & This virtual machine does not have permission to send to this event source.\tabularnewline
+Parameters & ptr\_\allowbreak{}t Evt\_\allowbreak{}Num & The number of the event source to activate.\tabularnewline
+\end{xltabular}
+
+\subsection{Activating and Feeding the Watchdog}\label{subsec:4-4-13}
+
+This hypercall is available when the Watchdog item in the virtual machine information is not 0. When a virtual machine is created, the watchdog is disabled by default; when this hypercall is called for the first time, the watchdog starts and begins counting down to account for the virtual machine's running time\footnote{the watchdog only counts the running time of the virtual machine itself, not the running time of the real system}, and once the countdown reaches 0 the virtual machine is restarted. This hypercall can also be used to feed the watchdog. Once enabled, the watchdog cannot be stopped, unless the virtual machine restarts due to a fault or a watchdog timeout.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.6000\hsize\raggedright\arraybackslash}X>{\hsize=0.8000\hsize\raggedright\arraybackslash}X>{\hsize=1.6000\hsize\raggedright\arraybackslash}X@{}}
+\caption{Activating and feeding the watchdog}\label{tab:4-17}\\
+\toprule
+Function prototype & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Wdg\_\allowbreak{}Clr(void)}\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Wdg\_\allowbreak{}Clr(void)}\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\multirow{2}{*}{Return value} & ret\_\allowbreak{}t & If successful, returns 0. If it fails, the following negative values are returned:\tabularnewline
+ & RVM\_\allowbreak{}ERR\_\allowbreak{}STATE & The ptr\_t Watchdog item is 0, so this virtual machine cannot enable the watchdog.\tabularnewline
+Parameters & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{None.}\tabularnewline
+\end{xltabular}
+
+\section{Internal Utility Functions Available to Virtual Machines}\label{sec:4-5}
+
+In addition to hypercalls, virtual machines have some internal utility functions they can use. These internal utility functions are not hypercalls; they achieve their effects merely by adjusting the data structures inside the virtual machine, and are therefore much more efficient than hypercalls.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{List of internal utility functions available to virtual machines}\label{tab:4-18}\\
+\toprule
+Function & Meaning\tabularnewline
+\endfirsthead
+\toprule
+Function & Meaning\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+RVM\_\allowbreak{}Virt\_\allowbreak{}Init & Virtual machine data structure initialization.\tabularnewline
+RVM\_\allowbreak{}Vct\_\allowbreak{}Loop & Run the virtual interrupt vector handling loop.\tabularnewline
+RVM\_\allowbreak{}Virt\_\allowbreak{}Int\_\allowbreak{}Mask & Mask virtual interrupt vector handling.\tabularnewline
+RVM\_\allowbreak{}Virt\_\allowbreak{}Int\_\allowbreak{}Unmask & Unmask virtual interrupt vector handling.\tabularnewline
+RVM\_\allowbreak{}Virt\_\allowbreak{}Vct\_\allowbreak{}Reg & Register an ordinary virtual interrupt vector handler function.\tabularnewline
+RVM\_\allowbreak{}Virt\_\allowbreak{}Tim\_\allowbreak{}Reg & Register a clock virtual interrupt vector handler function\tabularnewline
+RVM\_\allowbreak{}Virt\_\allowbreak{}Ctx\_\allowbreak{}Reg & Register a thread switch virtual interrupt vector handler function.\tabularnewline
+RVM\_\allowbreak{}Virt\_\allowbreak{}Yield & Trigger the virtual thread switch interrupt vector.\tabularnewline
+\end{xltabular}
+
+\subsection{Virtual Machine Data Structure Initialization}\label{subsec:4-5-1}
+
+This operation initializes the internal data structures of the virtual machine. This operation should be called first by the interrupt handling thread Vct when the virtual machine starts. In cases where the project generator is used, the project generator calls this function in the generated Vct thread.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Virtual machine data structure initialization}\label{tab:4-19}\\
+\toprule
+Function prototype & void RVM\_\allowbreak{}Virt\_\allowbreak{}Init(void)\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & void RVM\_\allowbreak{}Virt\_\allowbreak{}Init(void)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Return value & None. This operation always succeeds.\tabularnewline
+Parameters & None.\tabularnewline
+\end{xltabular}
+
+\needspace{14\baselineskip}
+\subsection{Running the Virtual Interrupt Vector Handling Loop}\label{subsec:4-5-2}
+
+This operation processes the interrupt vectors inside the virtual machine in a loop and never returns once called. This operation should be called last by the interrupt handling thread Vct. In cases where the project generator is used, the project generator calls this function in the generated Vct thread.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Running the virtual interrupt vector handling loop}\label{tab:4-20}\\
+\toprule
+Function prototype & void RVM\_\allowbreak{}Vct\_\allowbreak{}Loop(void)\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & void RVM\_\allowbreak{}Vct\_\allowbreak{}Loop(void)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Return value & None. This operation never returns.\tabularnewline
+Parameters & None.\tabularnewline
+\end{xltabular}
+
+\subsection{Masking Virtual Interrupt Vector Handling}\label{subsec:4-5-3}
+
+This operation masks the handling of interrupt vectors inside the virtual machine. The virtual machine still receives interrupts, so the user program thread Usr will still be preempted by the interrupt handling thread Vct, but the received interrupts are all pended and processed together after masking ends. Compared with the RVM\_Hyp\_Int\_Dis hypercall that disables virtual global interrupts, this operation does not need to invoke the virtual machine monitor and is therefore much more efficient, making it very suitable for situations where the RTOS locks its scheduler. This operation has no nesting count, so the guest RTOS needs to perform nesting counting by itself.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Masking virtual interrupt vector handling}\label{tab:4-21}\\
+\toprule
+Function prototype & void RVM\_\allowbreak{}Virt\_\allowbreak{}Int\_\allowbreak{}Mask(void)\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & void RVM\_\allowbreak{}Virt\_\allowbreak{}Int\_\allowbreak{}Mask(void)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Return value & None. This operation always succeeds.\tabularnewline
+Parameters & None.\tabularnewline
+\end{xltabular}
+
+\subsection{Unmasking Virtual Interrupt Vector Handling}\label{subsec:4-5-4}
+
+This operation removes the masking of interrupt vector handling inside the virtual machine and is the inverse operation of RVM\_Virt\_Int\_Mask. After unmasking, if it is found that virtual interrupts were pended during interrupt masking\footnote{triggered but not yet handled}, the Vct thread is immediately triggered to run to handle them. This operation has no nesting count, so the guest RTOS needs to perform nesting counting by itself. This operation does not mask transparent interrupts that are set to RME\_VCT\_TRANSPARENT.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Unmasking virtual interrupt vector handling}\label{tab:4-22}\\
+\toprule
+Function prototype & void RVM\_\allowbreak{}Virt\_\allowbreak{}Int\_\allowbreak{}Unmask(void)\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & void RVM\_\allowbreak{}Virt\_\allowbreak{}Int\_\allowbreak{}Unmask(void)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Return value & None. This operation always succeeds.\tabularnewline
+Parameters & None.\tabularnewline
+\end{xltabular}
+
+\needspace{18\baselineskip}
+\subsection{Registering an Ordinary Virtual Interrupt Vector}\label{subsec:4-5-5}
+
+This operation registers a handler function for an ordinary virtual interrupt vector. This handler function will be called when the virtual interrupt vector is activated. When a virtual machine starts, all interrupt vectors are unregistered by default; if a virtual interrupt with no registered interrupt vector handler function is activated, that interrupt is simply skipped.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.6000\hsize\raggedright\arraybackslash}X>{\hsize=0.8000\hsize\raggedright\arraybackslash}X>{\hsize=1.6000\hsize\raggedright\arraybackslash}X@{}}
+\caption{Registering an ordinary virtual interrupt vector}\label{tab:4-23}\\
+\toprule
+Function prototype & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Virt\_\allowbreak{}Vct\_\allowbreak{}Reg(ptr\_\allowbreak{}t Vct\_\allowbreak{}Num, void
+(*Vct)(void), ptr\_\allowbreak{}t Vct\_\allowbreak{}Attr)}\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & \multicolumn{2}{>{\hsize=2.4\hsize\raggedright\arraybackslash}X}{ret\_\allowbreak{}t RVM\_\allowbreak{}Virt\_\allowbreak{}Vct\_\allowbreak{}Reg(ptr\_\allowbreak{}t Vct\_\allowbreak{}Num, void
+(*Vct)(void), ptr\_\allowbreak{}t Vct\_\allowbreak{}Attr)}\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\multirow{2}{*}{Return value} & ret\_\allowbreak{}t & If successful, returns 0. If it fails, the following negative values are returned:\tabularnewline
+& RVM\_\allowbreak{}ERR\_\allowbreak{}RANGE & The passed interrupt vector number of the virtual interrupt source is out of range.\tabularnewline
+\multicolumn{3}{@{}l}{\textbf{Parameters}}\tabularnewline
+\multicolumn{2}{>{\hsize=1.4\hsize\raggedright\arraybackslash}X}{ptr\_\allowbreak{}t Vct\_\allowbreak{}Num} & The interrupt vector number of the virtual interrupt source.\tabularnewline
+\multicolumn{2}{>{\hsize=1.4\hsize\raggedright\arraybackslash}X}{void (*Vct)(void)} & A function pointer pointing to the interrupt vector handler function. This function is recommended to be of type void (*)(void); if it is of another type, the values of its parameters are undefined and its return value is discarded directly. If 0\footnote{a null pointer, i.e., NULL} is passed for this item, it means removing the registration of this interrupt vector.\tabularnewline
+\multicolumn{2}{>{\hsize=1.4\hsize\raggedright\arraybackslash}X}{ptr\_\allowbreak{}t Vct\_\allowbreak{}Attr} & The attribute of the virtual interrupt source. Currently it only includes its masking attribute: when it is RME\_VCT\_MASKABLE, this interrupt is a perceptible interrupt to the guest operating system, and it is masked by RVM\_Virt\_Int\_Mask, but the interrupt IPC functions of the RTOS guest can be called inside it\footnote{such as the FromISR series of FreeRTOS, the \_ISR series of RMP, etc.}; when it is RME\_VCT\_TRANSPARENT, this interrupt is a transparent interrupt to the guest operating system, and it is not masked by RVM\_Virt\_Int\_Mask, but the interrupt IPC functions of the RTOS guest cannot be called inside it. If better interrupt real-time performance is required and interrupt IPC does not need to be called, the latter can be chosen.\tabularnewline
+\end{xltabular}
+
+\subsection{Registering the Clock Virtual Interrupt Vector}\label{subsec:4-5-6}
+
+This operation registers the handler function for the clock virtual interrupt vector. Whenever a clock interrupt occurs, this handler function is called. The guest RTOS should register its clock virtual interrupt vector through this operation in its initialization sequence. The clock virtual interrupt vector is always a maskable perceptible interrupt.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Registering the clock virtual interrupt vector}\label{tab:4-24}\\
+\toprule
+Function prototype & void RVM\_\allowbreak{}Virt\_\allowbreak{}Tim\_\allowbreak{}Reg(void (*Tim)(void))\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & void RVM\_\allowbreak{}Virt\_\allowbreak{}Tim\_\allowbreak{}Reg(void (*Tim)(void))\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Return value & None. This operation always succeeds.\tabularnewline
+Parameters\strut
+ & void (*Tim)(void)
+
+A function pointer pointing to the clock interrupt vector handler function. This function is recommended to be of type void
+(*)(void); if it is of another type, the values of its parameters are undefined and its return value is discarded directly. If 0\footnote{a null pointer, i.e., NULL} is passed for this item, it means removing the registration of the clock interrupt vector.\strut
+\tabularnewline
+\end{xltabular}
+
+\subsection{Registering the Thread Switch Virtual Interrupt Vector}\label{subsec:4-5-7}
+
+This operation registers the handler function for the thread switch virtual interrupt vector. Whenever a thread switch interrupt occurs, this handler function is called. The guest RTOS should register its thread switch virtual interrupt vector through this operation in its initialization sequence. The thread switch virtual interrupt vector is always a maskable perceptible interrupt.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Registering the thread switch virtual interrupt vector}\label{tab:4-25}\\
+\toprule
+Function prototype & void void RVM\_\allowbreak{}Virt\_\allowbreak{}Ctx\_\allowbreak{}Reg(void
+(*Ctx)(void))\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & void void RVM\_\allowbreak{}Virt\_\allowbreak{}Ctx\_\allowbreak{}Reg(void
+(*Ctx)(void))\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Return value & None. This operation always succeeds.\tabularnewline
+Parameters\strut
+ & void (*Ctx)(void)
+
+A function pointer pointing to the thread switch interrupt vector handler function. This function is recommended to be of type void
+(*)(void); if it is of another type, the values of its parameters are undefined and its return value is discarded directly. If 0\footnote{a null pointer, i.e., NULL} is passed for this item, it means removing the registration of the thread switch interrupt vector.\strut
+\tabularnewline
+\end{xltabular}
+
+\subsection{Triggering the Thread Switch Virtual Interrupt Vector}\label{subsec:4-5-8}
+
+This operation directly triggers the thread switch interrupt vector of the virtual machine. If the virtual machine's global interrupts are disabled or interrupt vector handling is masked, the thread switch interrupt vector will be pended and will execute immediately after the global interrupts are enabled or the masking is removed.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Triggering the thread switch virtual interrupt vector}\label{tab:4-26}\\
+\toprule
+Function prototype & void RVM\_\allowbreak{}Virt\_\allowbreak{}Yield(void)\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & void RVM\_\allowbreak{}Virt\_\allowbreak{}Yield(void)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Return value & None. This operation always succeeds.\tabularnewline
+Parameters & None.\tabularnewline
+\end{xltabular}
+
+\section{References for This Chapter}\label{sec:4-6}
+
+None

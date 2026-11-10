@@ -1,0 +1,2143 @@
+\chapter{Project Generator}\label{ch:5-generator}
+
+
+\section{Introduction}\label{sec:5-1}
+
+The project generator is responsible for generating the required boot files, linker scripts and build system from the project description file, sparing the tedium of manually configuring the system. Internally, it is divided into three parts: the input analysis module, the project generation module and the project output module. It can be invoked through a command-line interface or through a graphical frontend.
+
+The project generator does not support non-ASCII paths\footnote{such as paths containing Chinese, Japanese, French, and so on}, and reports an error when such a case is detected. Supporting non-ASCII paths is meaningless, because a considerable number of development tools themselves do not support non-ASCII paths; in that case, even if the project is correctly generated in a non-ASCII path, there is no hope of compiling it successfully.
+
+\subsection{Input Analysis Module}\label{subsec:5-1-1}
+
+The input analysis module is responsible for analyzing the various description files and packaging them into an internal data structure passed to the project generation module. It performs the following work:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Analyze the project description file (*.rvp),
+\item
+  Read the appropriate platform description file (*.rva) according to the project description file,
+\item
+  Read the appropriate chip description file (*.rvc) according to the project description file,
+\item
+  Check the validity of each description file, and
+\item
+  Load the generation tools related to the architecture platform, compilation toolchain, build system and guest operating system corresponding to the project description file.
+\end{enumerate}
+
+\subsection{Project Generation Module}\label{subsec:5-1-2}
+
+The project generation module is responsible for reading the project information, platform information and chip information provided by the input analysis module, generating the various data required by the project, and handing these data to the project output module to generate the actual project. It performs the following work:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Align the memory blocks declared in the project,
+\item
+  Allocate actual base addresses for the memory blocks declared in the project,
+\item
+  Add shared memory to the memory layout of each process,
+\item
+  Allocate page tables for each process,
+\item
+  Allocate capability numbers for each kernel object,
+\item
+  Determine the capability hosting (authorization) layout of the kernel objects, and
+\item
+  Allocate kernel memory for each kernel object.
+\end{enumerate}
+
+\subsection{Project Output Module}\label{subsec:5-1-3}
+
+The project output module is responsible for reading the output of the project generation module and generating the actual project files. It performs the following work:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Generate the kernel configuration header files (rme\_platform\_conf.h and rme\_platform\_xxx.h),
+\item
+  Generate the kernel boot header file (rme\_boot.h),
+\item
+  Generate the kernel boot source file (rme\_boot.c),
+\item
+  Generate the kernel hook source file (rme\_hook.c),
+\item
+  Generate the kernel interrupt vector source file (rme\_handler\_xxx.c),
+\item
+  Generate the kernel linker script (rme\_platform\_xxx.ld etc.),
+\item
+  Generate the kernel build project file (makefile etc.),
+\item
+  Generate the virtual machine monitor configuration header files (rvm\_platform\_conf.h and rvm\_platform\_xxx.h),
+\item
+  Generate the virtual machine monitor boot header file (rvm\_boot.h),
+\item
+  Generate the virtual machine monitor boot source file (rvm\_boot.c),
+\item
+  Generate the virtual machine monitor hook source file (rvm\_hook.c),
+\item
+  Generate the virtual machine monitor linker script (rvm\_platform\_xxx.ld etc.),
+\item
+  Generate the virtual machine monitor build project file (makefile etc.),
+\item
+  Generate the main header file of each process (prc\_xxx.h),
+\item
+  Generate the entry point source files of each process (prc\_xxx\_thd\_xxx.c and prc\_xxx\_inv\_xxx.c),
+\item
+  Generate the descriptor source file of each process (prc\_xxx\_desc.c),
+\item
+  Generate the main source file of each process (prc\_xxx.c),
+\item
+  If the process is a virtual machine, generate the virtual machine configuration header file (varies with the guest operating system),
+\item
+  If the process is a virtual machine, generate the virtual machine configuration source file (varies with the guest operating system),
+\item
+  Generate the linker script of each process (prc\_xxx.ld etc.),
+\item
+  Generate the build project file of each process (makefile etc.), and
+\item
+  Generate the workspace containing the above project files (if applicable).
+\end{enumerate}
+
+\subsection{Graphical Frontend Module}\label{subsec:5-1-4}
+
+Since the internal structure of the project description file is also rather cumbersome, manual editing easily introduces errors, so the project generator also provides a graphical frontend for editing projects. This graphical frontend makes project editing more intuitive and convenient.
+
+
+\section{Command-Line Parameter Description}\label{sec:5-2}
+
+The command-line parameter of the project generator consists of only one item, -i, which specifies the path of the project description file. The project description file has the suffix *.rvp and internally contains all other information required to generate the project.
+
+For example: -i path/to/input.rvp
+
+\section{Project Description File Structure<Project>{}}\label{sec:5-3}
+
+The project main file records all information about the project, and its suffix is *.rvp; all of its internal tags are located under one large <Project>{} tag.
+
+All tags, as long as they are described below, must not be omitted regardless of whether they have content.
+
+\subsection{Project Name<Name>{}}\label{subsec:5-3-1}
+
+This configuration item records the name of the project. Generally, it is consistent with the name of the project file.
+
+The project generator does not care about the value of this configuration item.
+
+\subsection{Project Version<Version>{}}\label{subsec:5-3-2}
+
+This configuration item records the version of the project.
+
+The project generator does not care about the value of this configuration item.
+
+\subsection{Enable Assertions<Assert\_Enable>{}}\label{subsec:5-3-3}
+
+This configuration item determines whether the assertions in the code are checked, and can be ``Yes'' or ``No''. If it is assumed that all assertions are correct and no check is performed, ``No'' can be chosen; this slightly improves the running speed and reduces the code size.
+
+\subsection{Enable Debug Printing<Debug\_Log\_Enable>{}}\label{subsec:5-3-4}
+
+This configuration item determines whether the debug print macros beginning with RVM\_DBG\_ are enabled, and can be ``Yes'' or ``No''. If debug print output is not needed, ``No'' can be chosen; this slightly improves the running speed and reduces the code size.
+
+\subsection{Enable Fixed Raw Page Tables<Pgtbl\_Raw\_Enable>{}}\label{subsec:5-3-5}
+
+This configuration item determines whether the fixed user-mode MPU metadata is enabled, and can be ``Yes'' or ``No''. Once enabled, the MPU metadata of each process, which contains all of its address space information, will be generated all at once in advance and loaded to the kernel when the process is created; the system calls involving page tables and the dynamic page function in the kernel will no longer be compiled, and the page table kernel object will no longer be created at startup. This is very effective in scenarios where space is tight and the additional flexibility provided by dynamic pages is not needed.
+
+\subsection{Workspace Build System<Buildsystem>{}}\label{subsec:5-3-6}
+
+This configuration item records the build system used by the workspace. Some build tools\footnote{such as Keil uVision, which allows a *.uvmpw workspace to contain multiple *.uvprojx project files} allow multiple projects to be combined into one workspace; here its category is selected. Of course, ``None'' can also be selected, in which case no workspace is output.
+
+\subsection{Workspace Output Directory<Workspace\_Output>{}}\label{subsec:5-3-7}
+
+This configuration item is a relative path that records the output directory of the workspace.
+
+\subsection{Workspace Output Overwrite<Workspace\_Overwrite>{}}\label{subsec:5-3-8}
+
+This configuration item specifies whether the workspace file will be overwritten when the project is regenerated, and can be ``Yes'' or ``No''. Sometimes we have already made certain manual modifications to the workspace file and do not want it to be overwritten; in this case ``No'' can be chosen.
+
+\subsection{Chip Configuration<Chip>{}}\label{subsec:5-3-9}
+
+This configuration group is responsible for the selection of the architecture platform and the chip model. The project compiler will extract information from this configuration item to determine the platform description file (*.rva) and the chip description file (*.rvc) to be read.
+
+\subsubsection{Target Platform<Platform>{}}\label{subsubsec:5-3-9-1}
+
+This configuration item records the architecture platform of the project. Each platform is represented by a code, for example A7M corresponds to the ARMv7-M platform. Each platform corresponds to one platform description file, and they are located at Include/Platform/XXX/rvm\_platform\_xxx.rva. For the structure of these description files, please see \protect5.4.
+
+\subsubsection{Chip Class<Class>{}}\label{subsubsec:5-3-9-2}
+
+This configuration item records the specific chip class. The class only determines the internal computing resource configuration of the chip and does not specify a specific package; for example, STM32F767IG is compatible with STM32F767IGT6 and STM32F767IGK6. Each chip class corresponds to one chip description file, and they are located at Include/Platform/XXX/Chip/rvm\_platform\_xxx.rvc. For the structure of these description files, please see \protect5.5.
+
+\subsubsection{Chip Name<Name>{}}\label{subsubsec:5-3-9-3}
+
+This configuration item records the exact full name of the chip, such as STM32F767IGT6. The project generator will check whether this full name is among the compatible chips specified by the chip class. If not, the project generator will report an error.
+
+\subsubsection{Enable Coprocessors<Coprocessor>{}}\label{subsubsec:5-3-9-4}
+
+This configuration item is a comma-separated list that records the coprocessors that need to be enabled in the project, such as the FPU; only the coprocessors enabled here will be initialized by the kernel. The project generator will check whether the coprocessor exists in the chip. If not, the project generator will report an error.
+
+\subsubsection{Initialization Configuration<Config>{}}\label{subsubsec:5-3-9-5}
+
+The initialization configuration group includes the initialization parameters of the architecture and the initialization parameters of the chip; these parameters are all stored in the form <tag> value</tag>. These parameters vary with the architecture and the chip; all the parameters declared in the platform description file and the chip description file must be filled in here, no more and no less.
+
+\subsection{Extra Memory<Extmem><En>{}}\label{subsec:5-3-10}
+
+This configuration group contains the attributes of the extra memory blocks to be added into the system. Extra memory refers to the external memory that the microcontroller can access, such as externally expanded SDRAM, SRAM, and so on. If the project generator is to use them, then their information must be registered inside this group. In this case, the total available memory is the sum of the chip's built-in memory\footnote{please see \protect5.5.12} and the extra memory listed here, and the shared memory blocks\footnote{please see \protect5.3.11} and the process-private memory blocks will be allocated from the total available memory. In addition, appropriate external memory initialization code\footnote{such as the FSMC, FMC, or EMC possessed by microcontrollers such as STM32, GD32, HC32, etc.} must be written in the kernel startup hook, to ensure that these memories can be accessed correctly.
+
+\subsubsection{Extra Segment Base Address<Base>{}}\label{subsubsec:5-3-10-1}
+
+This configuration item is a hexadecimal value that determines the start address of this external memory segment.
+
+\subsubsection{Extra Segment Size<Size>{}}\label{subsubsec:5-3-10-2}
+
+This configuration item is a hexadecimal value that determines the length of this external memory segment.
+
+\subsubsection{Extra Segment Type<Type>{}}\label{subsubsec:5-3-10-3}
+
+This configuration item determines the type of the memory segment. There are three types to choose from: code (Code), data (Data), and device (Device). When allocating memory, the project generator will use this type to determine what purpose the segment of memory is used for.
+
+\subsubsection{Extra Segment Attributes<Attribute>{}}\label{subsubsec:5-3-10-4}
+
+This configuration item determines the attributes of the memory segment. The memory segment attributes include six kinds: readable (Readable, R), writable (Writable, W), executable (eXecutable, X), bufferable (Bufferable, B), cacheable (Cacheable, C), and static mapping (Static, S), which can be superposed in any combination. When allocating memory, the project generator will only place memory segments whose attributes are a subset of this attribute onto this physical memory segment. For example, if the user specifies that the attributes of an extra memory segment do not include writable\footnote{such as an external XIP SPI Flash}, then the project generator will never allocate writable content on this memory segment.
+
+Generally, the attributes of a code segment ROM should be set to RXBCS, and the attributes of a data segment RAM should be set to RWBCS. The attributes of a device segment should be set to RWS.
+
+\subsection{Shared Memory Block<Shmem><Sn>{}}\label{subsec:5-3-11}
+
+This configuration group contains the attributes of the shared memory blocks present in the system. A shared memory block refers to a memory region that can be accessed by multiple processes or virtual machines, such as a data buffer, and so on; it is similar to shared memory in systems such as Linux, and can be used for controlled information transfer between multiple processes or virtual machines. The shared memory blocks declared in this configuration group will be allocated from the total available memory\footnote{please see \protect5.3.10}, and then added into the page table of each process or virtual machine that references it.
+
+\subsubsection{Shared Segment Name<Name>{}}\label{subsubsec:5-3-11-1}
+
+This configuration item is a required field, requiring the user to enter the name of this shared memory segment. The name must be a valid identifier and must be unique.
+
+\subsubsection{Shared Segment Base Address<Base>{}}\label{subsubsec:5-3-11-2}
+
+This configuration item is an optional hexadecimal value. The user should fill in the start address of this shared memory segment. If ``Auto'' is filled in, it means that the location of this shared memory segment is automatically allocated by the compiler.
+
+\subsubsection{Shared Segment Size<Size>{}}\label{subsubsec:5-3-11-3}
+
+This configuration item is a required hexadecimal value. The user should fill in the length of this shared memory segment.
+
+\subsubsection{Shared Segment Alignment<Align>{}}\label{subsubsec:5-3-11-4}
+
+This configuration item is a required decimal value that determines the alignment of this memory.
+
+When the segment base address is ``Auto'', if N is filled in, then the segment of memory is aligned to 2\textsuperscript{N} during automatic allocation; if ``Auto'' is filled in, it means that the alignment of this shared memory segment is determined by the compiler at its own discretion.
+
+When the segment base address is a fixed value, this configuration item must be filled in as ``Auto''.
+
+For the same segment of memory, the alignments supported by different architectures may differ.
+
+\subsubsection{Shared Segment Type<Type>{}}\label{subsubsec:5-3-11-5}
+
+This configuration item determines the type of the memory segment. There are three types to choose from: code (Code), data (Data), and device (Device). When allocating memory, the compiler will use this type to determine which kind of memory this shared memory segment is allocated to.
+
+\subsubsection{Shared Segment Attributes<Attribute>{}}\label{subsubsec:5-3-11-6}
+
+This configuration item determines the attributes of the memory segment. The memory segment attributes include six kinds: readable (Readable, R), writable (Writable, W), executable (eXecutable, X), bufferable (Bufferable, B), cacheable (Cacheable, C), and static mapping (Static, S), which can be superposed in any combination. When checking the references to the shared memory declared in each process or virtual machine, the compiler will only allow a subset of this attribute to appear. For example, if the user specifies that the attributes of this shared memory segment do not include writable, then the compiler will check and ensure that the subsequent references to the shared memory do not include the write attribute.
+
+\subsection{Kernel Configuration<Kernel>{}}\label{subsec:5-3-12}
+
+This configuration group is responsible for the basic configuration of the RME kernel, including the memory used by the kernel, the priorities supported by the kernel, and the storage locations of the various files included in the kernel project, and so on.
+
+\subsubsection{Code Segment Base Address<Code\_Base>{}}\label{subsubsec:5-3-12-1}
+
+This configuration item determines the base address of the code segment used by the kernel.
+
+\subsubsection{Code Segment Size<Code\_Size>{}}\label{subsubsec:5-3-12-2}
+
+This configuration item determines the length of the code segment used by the kernel. The code segment of the kernel includes the assembly code of the kernel and its read-only data area, and is usually a fixed value on a given architecture.
+
+\subsubsection{Data Segment Base Address<Data\_Base>{}}\label{subsubsec:5-3-12-3}
+
+This configuration item determines the base address of the data segment used by the kernel.
+
+\subsubsection{Data Segment Size<Data\_Size>{}}\label{subsubsec:5-3-12-4}
+
+This configuration item determines the length of the data segment used by the kernel. The data segment of the kernel includes the kernel's read-write data area, the memory area for kernel objects, and the kernel stack area, and usually needs to be adjusted according to the number of kernel objects created. If the generator reports that the kernel data memory is exhausted and kernel objects cannot be allocated, then you can try to modify this value to be somewhat larger.
+
+\subsubsection{Kernel Stack Size<Stack\_Size>{}}\label{subsubsec:5-3-12-5}
+
+This configuration item determines the length of the kernel stack segment used by the kernel. As a microkernel running on a microcontroller, a 1kB kernel stack is sufficient for most purposes.
+
+\subsubsection{Extra Kernel Object Memory Size<Extra\_Kom>{}}\label{subsubsec:5-3-12-6}
+
+This configuration item determines, after the system has created all the kernel objects related to the generator-generated code, the length of the extra kernel memory that additionally needs to be reserved for the user to create kernel objects. It only needs to be set to a non-zero number when the user wants to manually add kernel object creation code in the generator-generated RVM startup code. Generally, we do not recommend that the user manually create kernel objects, because this means that the user may compromise the information security of the system.
+
+\subsubsection{Kernel Memory Allocation Granularity<Kom\_Order>{}}\label{subsubsec:5-3-12-7}
+
+This configuration item determines the kernel memory allocation granularity of the system, which is a power of 2. It is recommended to choose the most suitable one among 8 bytes, 16 bytes, and 32 bytes: fill in 3 for 8 bytes, 4 for 16 bytes, and 5 for 32 bytes. When creating kernel objects, the system will align all kernel memory to this granularity. If the system itself has relatively little memory, it is recommended to use 8-byte aligned allocation to reduce fragmentation; if the system itself has more memory, then 32-byte allocation can be adopted to reduce the size of the memory allocation registry itself. By default, setting it to 16-byte allocation is sufficient.
+
+\subsubsection{Number of Priorities<Kern\_Prio>{}}\label{subsubsec:5-3-12-8}
+
+This configuration item determines the number of kernel-mode priorities in the system, and should be filled with a decimal value that is an integer multiple of the processor word length. Generally, filling in the processor word length is sufficient; for example, fill in 32 for a 32-bit processor.
+
+\subsubsection{Build System<Buildsystem>{}}\label{subsubsec:5-3-12-9}
+
+Determines which build system the kernel project adopts.
+
+\subsubsection{Build Toolchain<Toolchain>{}}\label{subsubsec:5-3-12-10}
+
+Determines which build toolchain the kernel project adopts.
+
+\subsubsection{Optimization Level<Optimization>{}}\label{subsubsec:5-3-12-11}
+
+Determines the optimization level used by the kernel project. The available optimization levels are no optimization (O0), basic optimization (O1), full optimization (O2), extreme optimization (O3), speed optimization (Of), and size optimization (Os).
+
+\subsubsection{Kernel Root Directory<Kernel\_Root>{}}\label{subsubsec:5-3-12-12}
+
+Determines the location of the RME kernel source root folder, which is a path relative to the project description file. The generated kernel project will reference the RME kernel files stored here.
+
+\subsubsection{Project Output Directory<Project\_Output>{}}\label{subsubsec:5-3-12-13}
+
+Determines the output directory of the kernel project, which is a path relative to the project description file.
+
+\subsubsection{Project Overwrite<Project\_Overwrite>{}}\label{subsubsec:5-3-12-14}
+
+Determines whether to overwrite the previously generated kernel project file\footnote{such as Keil uVision's *.uvprojx, etc.} when regenerating, and can be ``Yes'' or ``No''. If the user has manually edited the project and wishes to keep these changes, ``No'' can be chosen to keep the original old version.
+
+\subsubsection{Linker Script Output Directory<Linker\_Output>{}}\label{subsubsec:5-3-12-15}
+
+Determines the output directory of the kernel project linker script rme\_platform\_xxx.ld\footnote{the suffix here may also differ depending on the selected toolchain}, which is a path relative to the project description file. The kernel linker script is always overwritten in each generation.
+
+\subsubsection{Configuration Header File Output Directory<Config\_Header\_Output>{}}\label{subsubsec:5-3-12-16}
+
+Determines the output directory of the kernel configuration header files rme\_platform\_conf.h and rme\_platform\_xxx.h, which is a path relative to the project description file. The kernel configuration header files are always overwritten in each generation.
+
+\subsubsection{Boot Header File Output Directory<Boot\_Header\_Output>{}}\label{subsubsec:5-3-12-17}
+
+Determines the output directory of the kernel boot header file rme\_boot.h, which is a path relative to the project description file. The kernel boot header file is always overwritten in each generation.
+
+\subsubsection{Boot Source File Output Directory<Boot\_Source\_Output>{}}\label{subsubsec:5-3-12-18}
+
+Determines the output directory of the kernel boot source file rme\_boot.c, which is a path relative to the project description file. It is always overwritten in each generation. In this source file, the creation of the kernel interrupt vector signal endpoints is completed.
+
+\subsubsection{Hook Source File Output Directory<Hook\_Source\_Output>{}}\label{subsubsec:5-3-12-19}
+
+Determines the output directory of the kernel hook source file rme\_hook.c, which is a path relative to the project description file. This file internally contains four hook functions, which can be used to insert some operations into the kernel initialization process. Among them:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  The RME\_Boot\_Pre\_Init hook is called before the kernel initializes the data structures, and the user can complete in it the software and hardware initialization work that must be completed before the kernel starts.
+\item
+  The RME\_Boot\_Post\_Init hook is called before the kernel enters user-mode execution, and the user can complete in it the customized creation of additional kernel objects. The number of extra entries reserved in the boot capability table\footnote{that is, the capability table used by the RVM virtual machine monitor process; it is the first capability table in the system} is determined by <Monitor><Extra\_Captbl>, and the reserved extra kernel memory is determined by <Kernel><Extra\_Kom>. Among them, the available capability table entries start from RME\_RVM\_CAP\_DONE\_FRONT up to RME\_RVM\_INIT\_CPT\_SIZE-1, and the available kernel memory starts from RME\_RVM\_KOM\_DONE\_FRONT up to RME\_KOM\_VA\_SIZE-1. It should be noted that these extra reserved resources are shared with RVM's startup hooks\footnote{the values of the corresponding macros are also exactly the same; for these macros please see \protect8.2.2}; if you choose to use these resources in RME's hooks, they can no longer be used again in RVM's hooks. Of course, it is also possible to use part of the resources to create kernel objects at RME startup, and leave the other part of the resources for creating kernel objects at RVM startup; in this case, the division of the two parts of resources needs to be done manually by the user.
+\item
+  The RME\_Reboot\_Failsafe hook is called when a serious failure\footnote{such as an assertion check failure} occurs in the kernel, and the user can complete the corresponding safety handling work in it.
+\item
+  The RME\_Hook\_Kfn\_Handler hook is called when the kernel encounters an undefined kernel function call, and the user can customize additional kernel function calls in it.
+\end{enumerate}
+
+\subsubsection{Hook Source File Overwrite<Hook\_Source\_Overwrite>{}}\label{subsubsec:5-3-12-20}
+
+Determines whether to overwrite the previously generated kernel hook source file when regenerating, and can be ``Yes'' or ``No''. If the user has manually edited the hook source file and wishes to keep the changes, ``No'' can be chosen to keep the original old version.
+
+\subsubsection{Interrupt Vector Source File Output Directory<Handler\_Source\_Output>{}}\label{subsubsec:5-3-12-21}
+
+Determines the output directory of the kernel interrupt vector top-half source files rme\_handler\_xxx.c, which is a path relative to the project description file. Each physical interrupt vector corresponds to an independent source file; the user can edit the RME\_Vct\_XXX\_Handler function in it to do some work when entering the physical interrupt, such as implementing the top-half processing of the interrupt\footnote{the top-half-bottom-half dichotomy is a very common interrupt handling method: it puts the most critical parts of interrupt handling in the kernel for execution, and passes the less critical parts to user mode for execution.}. This function allows the user to return a return value, which determines how signals are sent after the top half of the interrupt ends: (1) if RME\_RVM\_VCT\_SIG\_ALL is returned, signals are sent to both its own dedicated endpoint and the RME\_BOOT\_INIT\_VCT endpoint; (2) if RME\_RVM\_VCT\_SIG\_SELF is returned, a signal is sent only to its own dedicated endpoint; (3) if RME\_RVM\_VCT\_SIG\_INIT is returned, a signal is sent only to the RME\_BOOT\_INIT\_VCT endpoint; (4) if RME\_RVM\_VCT\_SIG\_NONE is returned, no signal is sent to any endpoint.
+
+\subsubsection{Interrupt Vector Source File Overwrite<Handler\_Source\_Overwrite>{}}\label{subsubsec:5-3-12-22}
+
+Determines whether to overwrite the previously generated interrupt vector source files when regenerating. If the user has manually edited the interrupt vector source files and wishes to keep the changes, ``No'' can be chosen to keep the original old version.
+
+\subsection{Monitor Configuration<Monitor>{}}\label{subsec:5-3-13}
+
+This configuration group is responsible for the basic configuration of the RVM virtual machine monitor, including the memory used by RVM, the number of virtual priorities supported, the number of event sources supported and the number of virtual interrupt mappings, as well as the storage locations of the various files included in the RVM project, and so on.
+
+\subsubsection{Code Segment Size<Code\_Size>{}}\label{subsubsec:5-3-13-1}
+
+This configuration item determines the length of the code segment used by RVM. The code segment of RVM includes its assembly code and its read-only data area, and is usually a fixed value on a given architecture. It should be noted that the RVM code start address is always located directly after the kernel code segment, so the code memory base address is determined automatically and does not need to be set manually by the user.
+
+\subsubsection{Data Segment Size<Data\_Size>{}}\label{subsubsec:5-3-13-2}
+
+This configuration item determines the length of the data segment used by RVM. The data segment of RVM includes its read-write data area and stack area, and is usually determined according to whether the virtual machine function is enabled and the number of virtual machines. If a memory shortage is reported when compiling RVM, then you can try to modify this value to be somewhat larger. It should be noted that the data segment of RVM is always located directly after the kernel data segment, so the data segment base address is determined automatically and does not need to be set manually by the user.
+
+\subsubsection{Startup Daemon Thread Stack Size<Init\_Stack\_Size>{}}\label{subsubsec:5-3-13-3}
+
+This configuration item determines the stack length of the startup daemon thread INIT. Generally, 256B is sufficient.
+
+\subsubsection{Safety Daemon Thread Stack Size<Sftd\_Stack\_Size>{}}\label{subsubsec:5-3-13-4}
+
+This configuration item determines the stack length of the safety daemon thread SFTD. Generally, 256B is sufficient.
+
+\subsubsection{Virtual Machine Daemon Thread Stack Size<Vmmd\_Stack\_Size>{}}\label{subsubsec:5-3-13-5}
+
+This configuration item determines the stack length of the virtual machine daemon thread VMMD. Generally, 512B is sufficient. This thread will also be used for the cooperative operation of the hypercall daemon coroutine HYPD, the vector daemon coroutine VCTD, and the time daemon coroutine TIMD.
+
+\subsubsection{Extra Capability Table Slot Count<Extra\_Captbl>{}}\label{subsubsec:5-3-13-6}
+
+This configuration item determines, after the system has created all the kernel objects related to the generator-generated code, the number of extra capability table slots that additionally need to be reserved for the user to create kernel objects. It only needs to be set to a non-zero number when the user wants to manually add kernel object creation code in the generator-generated RVM startup code. Generally, we do not recommend that the user manually create kernel objects, because this means that the user may compromise the information security of the system.
+
+\subsubsection{Enable Idle Sleep<Idle\_Sleep\_Enable>{}}\label{subsubsec:5-3-13-7}
+
+This configuration item determines whether to put the processor into the sleep state when there are no native processes and virtual machines available to run, and can be ``Yes'' or ``No''. If you do not wish to enter the low-power sleep state in order to minimize the interrupt latency, ``No'' can be chosen.
+
+\subsubsection{Number of Virtualization Priorities<Virt\_Prio>{}}\label{subsubsec:5-3-13-8}
+
+This configuration item determines the number of priorities supported by the virtual machine monitor. This priority count is only effective for virtual machines, and must be an integer multiple of the processor word length. Generally, filling in the processor word length is sufficient; for example, filling in 32 for a 32-bit processor is enough. If virtual machines are not used, this can be filled in as 0.
+
+\subsubsection{Number of Virtual Machine Event Sources<Virt\_Event>{}}\label{subsubsec:5-3-13-9}
+
+This configuration item determines the number of event sources supported by the virtual machine monitor; it must be an integer multiple of the processor word length, and cannot be 0 when virtual machines are used. At the same time, the number of event sources cannot exceed the hard limit of 1024. Event sources are used for communication from native processes to virtual machines and among the virtual machines themselves, and they can be mapped to the virtual interrupt vectors of virtual machines.
+
+\subsubsection{Number of Virtual Machine Vector Mappings<Virt\_Map>{}}\label{subsubsec:5-3-13-10}
+
+This configuration item determines the total number of mappings from event sources or physical interrupt sources to virtual interrupt vectors; it must be greater than the number of event sources, and cannot be 0 when virtual machines are used. One event source or physical interrupt source can be mapped to multiple virtual vectors, and each mapping from a specific source to a specific virtual vector consumes one mapping count.
+
+\subsubsection{Build System<Buildsystem>{}}\label{subsubsec:5-3-13-11}
+
+Determines which build system the virtual machine monitor project adopts.
+
+\subsubsection{Build Toolchain<Toolchain>{}}\label{subsubsec:5-3-13-12}
+
+Determines which build toolchain the virtual machine monitor project adopts.
+
+\subsubsection{Optimization Level<Optimization>{}}\label{subsubsec:5-3-13-13}
+
+Determines the optimization level used by the virtual machine monitor project. The available optimization levels are no optimization (O0), basic optimization (O1), full optimization (O2), extreme optimization (O3), speed optimization (Of), and size optimization (Os).
+
+\subsubsection{Virtual Machine Monitor Root Directory<Monitor\_Root>{}}\label{subsubsec:5-3-13-14}
+
+Determines the location of the RVM virtual machine monitor source root folder, which is a path relative to the project description file. The generated virtual machine monitor project will reference the virtual machine monitor source files here by relative path.
+
+\subsubsection{Project Output Directory<Project\_Output>{}}\label{subsubsec:5-3-13-15}
+
+Determines the output directory of the RVM project, which is a path relative to the project description file.
+
+\subsubsection{Project Overwrite<Project\_Overwrite>{}}\label{subsubsec:5-3-13-16}
+
+Determines whether to overwrite the previously generated virtual machine monitor project file\footnote{such as Keil uVision's *.uvprojx, etc.} when regenerating, and can be ``Yes'' or ``No''. If the user has manually edited the project and wishes to keep these changes, ``No'' can be chosen to keep the original old version.
+
+\subsubsection{Linker Script Output Directory<Linker\_Output>{}}\label{subsubsec:5-3-13-17}
+
+Determines the output directory of the virtual machine monitor project linker script rvm\_platform\_xxx.ld\footnote{the suffix here may also differ depending on the selected toolchain}, which is a path relative to the project description file. The linker script is always overwritten in each generation.
+
+\subsubsection{Configuration Header File Output Directory<Config\_Header\_Output>{}}\label{subsubsec:5-3-13-18}
+
+Determines the output directory of the virtual machine monitor configuration header files rvm\_platform\_conf.h and rvm\_platform\_xxx.h, which is a path relative to the project description file. The configuration header files are always overwritten in each generation.
+
+\subsubsection{Boot Header File Output Directory<Boot\_Header\_Output>{}}\label{subsubsec:5-3-13-19}
+
+Determines the output directory of the virtual machine monitor boot header file rvm\_boot.h, which is a path relative to the project description file. The boot header file is always overwritten in each generation.
+
+\subsubsection{Boot Source File Output Directory<Boot\_Source\_Output>{}}\label{subsubsec:5-3-13-20}
+
+Determines the output directory of the virtual machine monitor boot source file rvm\_boot.c, which is a path relative to the project description file. The boot source file is always overwritten in each generation.
+
+\subsubsection{Hook Source File Output Directory<Hook\_Source\_Output>{}}\label{subsubsec:5-3-13-21}
+
+Determines the output directory of the virtual machine monitor hook source file rvm\_hook.c, which is a path relative to the project description file. This file is user-editable, and can be used to do some hardware initialization operations before and after the virtual machine monitor starts. Among them:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  The RVM\_Boot\_Pre\_Init hook is called before the virtual machine monitor initializes the data structures, and the user can complete in it the software and hardware initialization work that must be completed before the virtual machine monitor starts.
+\item
+  The RVM\_Boot\_Post\_Init hook is called after the initialization of the virtual machine monitor ends, and the user can complete in it the customized creation of additional kernel objects. The number of extra entries reserved in the boot capability table\footnote{that is, the capability table used by the RVM virtual machine monitor process; it is the first capability table in the system} is determined by <Monitor><Extra\_Captbl>, and the reserved extra kernel memory is determined by <Kernel><Extra\_Kom>. Among them, the available capability table entries start from RVM\_CAP\_DONE\_FRONT up to RVM\_BOOT\_CPT\_SIZE-1, and the available kernel memory starts from RVM\_KOM\_DONE\_FRONT up to RVM\_KOM\_VA\_SIZE-1. It should be noted that these extra reserved resources are shared with RME's startup hooks\footnote{the values of the corresponding macros are also exactly the same; for these macros please see \protect8.2.2}; if you choose to use these resources in RME's hooks, they can no longer be used again in RVM's hooks. Of course, it is also possible to use part of the resources to create kernel objects at RME startup, and leave the other part of the resources for creating kernel objects at RVM startup; in this case, the division of the two parts of resources needs to be done manually by the user.
+\end{enumerate}
+
+\subsubsection{Hook Source File Overwrite<Hook\_Source\_Overwrite>{}}\label{subsubsec:5-3-13-22}
+
+Determines whether to overwrite the previously generated virtual machine monitor hook source file when regenerating, and can be ``Yes'' or ``No''. If the user has manually edited the hook source file and wishes to keep the changes, ``No'' can be chosen to keep the original old version.
+
+\subsection{Native Process Configuration<Process><Pn>{}}\label{subsec:5-3-14}
+
+This configuration group is responsible for the configuration of the native processes in the system. The system can have one or more native processes, so this class can have one or more instances. These instances are all displayed in the second column on the left. Each instance has ten configuration groups, and they each occupy one tab.
+
+\subsubsection{Process Name<Name>{}}\label{subsubsec:5-3-14-1}
+
+This configuration item is a required field, and determines the name of the process. The name must be a valid identifier, and must not duplicate the names of other processes and virtual machines in the system.
+
+\subsubsection{Extra Capability Table Slot Count<Extra\_Captbl>{}}\label{subsubsec:5-3-14-2}
+
+This configuration item is a required integer value. The user should fill in the number of capability table slots of this process that additionally need to be reserved for user use. It only needs to be set to a non-zero number when the user wants to manually add kernel objects to the capability table of this process. Generally, we do not recommend that the user manually create kernel objects, because this means that the user may compromise the information security of the system.
+
+\subsubsection{Enable Coprocessors<Coprocessor>{}}\label{subsubsec:5-3-14-3}
+
+This configuration item is a comma-separated list that records the coprocessors that need to be enabled in the process project, such as the FPU; only the coprocessors enabled here will be initialized by the kernel. The project generator will check whether the coprocessor is enabled in the project. If not, the project generator will report an error.
+
+\subsubsection{Build System<Buildsystem>{}}\label{subsubsec:5-3-14-4}
+
+Determines which build system the process project adopts.
+
+\subsubsection{Build Toolchain<Toolchain>{}}\label{subsubsec:5-3-14-5}
+
+Determines which build toolchain the process project adopts.
+
+\subsubsection{Optimization Level<Optimization>{}}\label{subsubsec:5-3-14-6}
+
+Determines the optimization level used by the process project. The available optimization levels are no optimization (O0), basic optimization (O1), full optimization (O2), extreme optimization (O3), speed optimization (Of), and size optimization (Os).
+
+\subsubsection{Project Output Directory<Project\_Output>{}}\label{subsubsec:5-3-14-7}
+
+Determines the output directory of the process project, which is a path relative to the project description file.
+
+\subsubsection{Project Overwrite<Project\_Overwrite>{}}\label{subsubsec:5-3-14-8}
+
+Determines whether to overwrite the previously generated process project file\footnote{such as Keil uVision's *.uvprojx, etc.} when regenerating, and can be ``Yes'' or ``No''. If the user has manually edited the project and wishes to keep these changes, ``No'' can be chosen to keep the original old version.
+
+\subsubsection{Linker Script Output Directory<Linker\_Output>{}}\label{subsubsec:5-3-14-9}
+
+Determines the output directory of the process project linker script prc\_xxx\_xxx.ld\footnote{the suffix here may also differ depending on the selected toolchain}, which is a path relative to the project description file. The linker script is always overwritten in each generation.
+
+\subsubsection{Main Header File Output Directory<Main\_Source\_Output>{}}\label{subsubsec:5-3-14-10}
+
+Determines the output directory of the process main header file prc\_xxx.h, which is a path relative to the project description file. The main header file is always overwritten in each generation.
+
+\subsubsection{Main Source File Output Directory<Main\_Source\_Output>{}}\label{subsubsec:5-3-14-11}
+
+Determines the output directory of the process main source file prc\_xxx.c and the descriptor file prc\_xxx\_desc.c, which is a path relative to the project description file. The main source file and the descriptor file are always overwritten in each generation; the main source file contains a user-fillable debug print function RVM\_Putchar, and if the user fills it in and enables debug printing, then all the debug print macros beginning with RVM\_DBG\_ can be used.
+
+\subsubsection{Entry Point Source File Output Directory<Entry\_Source\_Output>{}}\label{subsubsec:5-3-14-12}
+
+Determines the output directory of the thread and invocation entry point source files prc\_xxx\_thd\_xxx.c and prc\_xxx\_inv\_xxx.c in the process, which is a path relative to the project description file. These files correspond one-to-one with the threads and invocation entries defined in the process; modifying these files can take over the execution of the related threads or invocations. Among them, native threads should never return, and invocations must call RVM\_Inv\_Ret at the end to actively return.
+
+This configuration item applies only to native processes, and does not exist for virtual machines.
+
+\subsubsection{Entry Point Source File Overwrite<Entry\_Source\_Overwrite>{}}\label{subsubsec:5-3-14-13}
+
+Determines whether to overwrite the previously generated process entry point source files when regenerating, and can be ``Yes'' or ``No''. If the user has manually edited the entry point source files and wishes to keep these changes, ``No'' can be chosen to keep the original old version.
+
+This configuration item applies only to native processes, and does not exist for virtual machines.
+
+\subsubsection{Private Memory Block<Memory><Mn>{}}\label{subsubsec:5-3-14-14}
+
+This configuration group contains the attributes of the private memory blocks present in this process. This group must contain at least one code (Code) memory block and one data (Data) memory block; the first declared code memory block will hold all the code of the process, and the first declared data memory block will hold all the data area and stack area of the process. The remaining code memory blocks and data memory blocks are usually used to hold shared code and data, and can be used in the form of pointers.
+
+\paragraph{Private Segment Name<Name>{}}\label{par:5-3-14-14-1}
+
+This configuration item is an optional field\footnote{the <Name> tag of an anonymous memory segment may be absent, or may be present but empty; the project generator accepts both forms}, and can determine the name of this private memory segment. The name must be a valid C identifier, and must be case-insensitively different among the memory segments within a process. The project generator and RVM itself do not use this name, but if the user provides it, macro definitions for the base address and length of each memory segment will be generated in the kernel boot header file rme\_boot.h, the virtual machine monitor boot header file rvm\_boot.h, and the process main header file prc\_xxx.h, to facilitate user programming: the base address and length of a code segment are represented as CODE\_XXX\_BASE and CODE\_XXX\_SIZE respectively, the length and base address of a data segment are represented as DATA\_XXX\_BASE and DATA\_XXX\_SIZE respectively, and the length and base address of a device segment are represented as DEVICE\_XXX\_BASE and DEVICE\_XXX\_SIZE respectively.
+
+If the user does not fill in this field, then this memory segment will exist as an anonymous memory segment, and the above macros will not be defined.
+
+\paragraph{Private Segment Base Address<Base>{}}\label{par:5-3-14-14-2}
+
+This configuration item is an optional hexadecimal value. The user should fill in the start address of this shared memory segment. If ``Auto'' is filled in, it means that the location of this shared memory segment is automatically allocated by the compiler. The device segment is an exception: its segment base address cannot be ``Auto'', and must be specified manually.
+
+\paragraph{Private Segment Size<Size>{}}\label{par:5-3-14-14-3}
+
+This configuration item is a required hexadecimal value. The user should fill in the length of this shared memory segment.
+
+\paragraph{Private Segment Alignment<Align>{}}\label{par:5-3-14-14-4}
+
+This configuration item is a required decimal value that determines the alignment of this memory.
+
+When the segment base address is ``Auto'', if N is filled in, then the segment of memory is aligned to 2\textsuperscript{N} during automatic allocation; if ``Auto'' is filled in, it means that the alignment of this segment is determined by the compiler at its own discretion.
+
+When the segment base address is a fixed value, this configuration item must be filled in as ``Auto''.
+
+For the same segment of memory, the alignments supported by different architectures may differ.
+
+\paragraph{Private Segment Type<Type>{}}\label{par:5-3-14-14-5}
+
+This configuration item determines the type of the memory segment. There are three types to choose from: code (Code), data (Data), and device (Device). When allocating memory, the compiler will use this type to determine which kind of memory this shared memory segment is allocated to.
+
+\paragraph{Private Segment Attributes<Attribute>{}}\label{par:5-3-14-14-6}
+
+This configuration item determines the attributes of the memory segment; for the content of the attributes, please see \protect5.3.11.6.
+
+\subsubsection{Shared Memory Block Reference<Shmem><Sn>{}}\label{subsubsec:5-3-14-15}
+
+This configuration group contains the attributes of the shared memory blocks to be referenced by this process.
+
+\paragraph{Shared Segment Name<Name>{}}\label{par:5-3-14-15-1}
+
+This configuration item determines the shared memory segment to be added into this memory. This shared memory segment must be declared in \protect5.3.11.
+
+\paragraph{Shared Segment Attributes<Attribute>{}}\label{par:5-3-14-15-2}
+
+This configuration item determines the attributes when the shared memory block is mapped into this process; this attribute must be a subset of the attributes at the time the shared memory segment was declared; this achieves fine-grained controlled sharing. For example, if the attributes of a shared memory block at declaration are RWBCS, but the attributes are RBCS when referenced in this process, then this process can only read but cannot write this shared memory block\footnote{only other processes that reference this shared memory block and whose attributes include W have write permission}. For the content of the attributes, please see \protect5.3.11.6.
+
+\subsubsection{Thread<Thread><Tn>{}}\label{subsubsec:5-3-14-16}
+
+This configuration group contains the attributes of the threads running in this process. Each process must have at least one thread.
+
+This configuration group applies only to native processes, and does not exist for virtual machines.
+
+\paragraph{Thread Name<Name>{}}\label{par:5-3-14-16-1}
+
+This configuration item is a required field, and determines the name of the thread. The name must be a valid C identifier, and should be unique within the same process.
+
+\paragraph{Thread Stack Size<Stack\_Size>{}}\label{par:5-3-14-16-2}
+
+This configuration item is a required hexadecimal value that determines the size of the thread stack. The size can be decided according to the requirements.
+
+\paragraph{Thread Parameter<Parameter>{}}\label{par:5-3-14-16-3}
+
+This configuration item is an optional hexadecimal value that determines the parameter passed to the thread when it starts. If not filled in, it defaults to 0.
+
+\paragraph{Thread Priority<Priority>{}}\label{par:5-3-14-16-4}
+
+This configuration item is a required integer value that determines the real-time priority of the thread. The priority must be between Kern\_Prio-2 and 5\footnote{the highest priority Kern\_Prio-1 is occupied by the safety daemon thread SFTD, while priority 4 and below are used by RVM and the virtual machines it manages}. For example, if the kernel priority count Kern\_Prio is 32, then this value can be chosen between 5 and 30. The larger the value, the higher the priority of the thread.
+
+\subsubsection{Invocation Target<Invocation><In>{}}\label{subsubsec:5-3-14-17}
+
+This configuration group contains the related information of the invocation targets set in this process. The process may or may not have invocation targets; when a thread in another process activates an invocation target, it jumps to the invocation target for execution, and returns to the original process after execution.
+
+This configuration item applies only to native processes, and does not exist for virtual machines.
+
+\paragraph{Invocation Name<Name>{}}\label{par:5-3-14-17-1}
+
+This configuration item is a required field, and determines the name of the invocation. The name must be a valid C identifier, and should be unique within the same process.
+
+\paragraph{Invocation Stack Size<Stack\_Size>{}}\label{par:5-3-14-17-2}
+
+This configuration item is a required hexadecimal value that determines the size of the invocation stack. The size can be decided according to the requirements.
+
+\subsubsection{Invocation Entry<Port><Pn>{}}\label{subsubsec:5-3-14-18}
+
+This configuration group contains the related information of the invocations that can be called from this process. The process may or may not have invocation entries; once an invocation entry is activated, the thread that activates it will jump to the invocation target for execution, and after completion return to its own process to continue execution.
+
+This configuration item applies only to native processes, and does not exist for virtual machines.
+
+\paragraph{Invocation Target Name<Name>{}}\label{par:5-3-14-18-1}
+
+This configuration item determines the specific target that the invocation is to enter.
+
+\paragraph{Name of the Process Containing the Invocation Target<Process>{}}\label{par:5-3-14-18-2}
+
+This configuration item determines the process in which the invocation target is located. A reference to an invocation is uniquely determined by the target name and the name of the process in which the target is located.
+
+\subsubsection{Signal Receive Endpoint<Receive><Rn>{}}\label{subsubsec:5-3-14-19}
+
+This configuration group contains all the receive signal endpoints on which the threads in this process can block to receive information. The process may or may not have receive signal endpoints; once the send signal endpoint corresponding to a receive signal endpoint is activated, the thread on the receive signal endpoint will be released from waiting and start running, until it blocks again.
+
+\paragraph{Receive Endpoint Name<Name>{}}\label{par:5-3-14-19-1}
+
+This configuration item is a required field, and determines the name of the receive endpoint. The name must be a valid C identifier, and should be unique within the same process. In the process main header file prc\_xxx.h, macro definitions of the form RCV\_XXX for each receive endpoint will be generated, to facilitate the user's reference in system calls such as RME\_Sig\_Rcv.
+
+\subsubsection{Signal Send Endpoint<Send><Sn>{}}\label{subsubsec:5-3-14-20}
+
+This configuration group contains all the send signal endpoints to which the threads in this process can send. When the process has just been created, this item is empty. The process may or may not have send signal endpoints; once a send signal endpoint is activated, the thread on the corresponding receive signal endpoint will be released from waiting and start running, until it blocks again.
+
+This configuration item can also exist in virtual machines, where it serves as an important means for virtual machines to send signals to native processes. For more information, please see \protect2.2.7.2.
+
+\paragraph{Signal Receive Endpoint Name<Name>{}}\label{par:5-3-14-20-1}
+
+This configuration item determines the name of the signal receive endpoint corresponding to this signal send endpoint. In the process main header file prc\_xxx.h, macro definitions of the form SND\_XXX\_PRC\_XXX for each send endpoint will be generated, to facilitate the user's reference in system calls such as RME\_Sig\_Snd.
+
+\paragraph{Name of the Process Containing the Signal Receive Endpoint<Process>{}}\label{par:5-3-14-20-2}
+
+This configuration item determines the process in which the signal receive endpoint is located. A reference to a signal receive endpoint is uniquely determined by the endpoint name and the name of the process in which the endpoint is located.
+
+\subsubsection{Vector Receive Endpoint<Vector><Vn>{}}\label{subsubsec:5-3-14-21}
+
+This configuration group contains the vector signal endpoints of all the physical interrupts that the threads in this process can block to receive. The process may or may not have physical vector receive endpoints; once the interrupt vector is activated, the thread on the corresponding physical vector endpoint will be released from waiting and start running, until it blocks again.
+
+This configuration item applies only to native processes, and does not exist for virtual machines.
+
+\paragraph{Vector Endpoint Name<Name>{}}\label{par:5-3-14-21-1}
+
+This configuration item determines the name of the physical interrupt vector. The name can be decided by the user. In the process main header file prc\_xxx.h, macro definitions of the form VCT\_XXX for each send endpoint will be generated, to facilitate the user's reference in system calls such as RME\_Sig\_Rcv.
+
+\paragraph{Vector Number<Number>{}}\label{par:5-3-14-21-2}
+
+This configuration item determines the vector number of the physical interrupt vector. The vector number must be less than the total number of vectors declared in the chip description file, and each vector number can appear only once in the configuration file.
+
+\subsubsection{Kernel Function Call<Kfunc><Kn>{}}\label{subsubsec:5-3-14-22}
+
+This configuration group contains all the kernel function calls that the threads in this process can activate. The process may or may not have kernel function calls; the threads in the process can access some special operations that need to be executed in kernel mode by activating kernel function calls.
+
+This configuration item can also exist in virtual machines, where it can be used to authorize specific virtual machines to perform some kernel-level sensitive operations. It should be noted that if kernel function calls are abused, the security of the system will be severely damaged, so any kernel function authorization behavior needs to be made cautiously after a comprehensive system security assessment.
+
+\paragraph{Function Call Name<Name>{}}\label{par:5-3-14-22-1}
+
+This configuration item determines the name of this kernel function call. The name must be a valid C identifier, and should be unique within the same process. In the process main header file prc\_xxx.h, macro definitions of the form KFN\_XXX for each send endpoint will be generated, to facilitate the user's reference in system calls such as RME\_Kfn\_Act.
+
+\paragraph{Major Function Number Start Value<Begin>{}}\label{par:5-3-14-22-2}
+
+This configuration item is a hexadecimal value that determines the start point of the major function numbers allowed by this kernel function call.
+
+\paragraph{Major Function Number End Value<End>{}}\label{par:5-3-14-22-3}
+
+This configuration item is a hexadecimal value that determines the end point of the major function numbers allowed by this kernel function call. This value cannot be lower than the start value. If the start point of the major function numbers of a kernel function call is 0x10 and the end point is 0x1F, then the major function numbers of the kernel functions that can be called are between 0x10 and 0x1F, including 0x10 and 0x1F.
+
+\subsection{Virtual Machine Configuration<Virtual><Vn>{}}\label{subsec:5-3-15}
+
+This configuration group is responsible for the configuration of the virtual machines in the system. The system can have one or more virtual machines, so this class can have one or more instances. Virtual machines are actually implemented based on native processes; they have most of the configuration items of native processes, but are also somewhat different. Compared with native processes, virtual machines cannot have threads<Thread>, invocation targets<Invocation>, invocation entries<Port>, signal receive endpoints<Receive>, or vector receive endpoints<Vector>, but can have private memory blocks<Memory>, shared memory block references<Shmem>, and signal send endpoints<Send>. In addition, compared with native processes, virtual machines also have some additional configuration items; these virtual-machine-specific configuration items will be explained one by one next.
+
+\subsubsection{Interrupt Handling Thread Stack Size<Vector\_Stack\_Size>{}}\label{subsubsec:5-3-15-1}
+
+This configuration item is a hexadecimal value that determines the stack size of the virtual machine interrupt handling thread Vct. This size can be compared with the size of the dedicated stack for interrupt vectors in a bare-metal RTOS; the specific value depends on the stack depth used by the registered virtual interrupt vector handling functions. Generally, 512B is a very good reference value.
+
+\subsubsection{User Program Thread Stack Size<User\_Stack\_Size>{}}\label{subsubsec:5-3-15-2}
+
+This configuration item is a hexadecimal value that determines the stack size of the virtual machine user program thread Usr. This size can be compared with the startup stack size in a bare-metal RTOS; it generally does not need to be very large, as long as it can complete the initialization of the RTOS itself; after the RTOS starts, this stack is generally no longer used, and instead a dedicated stack is allocated for each RTOS thread. Generally, 256B is a very good reference value.
+
+\subsubsection{Priority<Priority>{}}\label{subsubsec:5-3-15-3}
+
+This configuration item is an integer value that determines the virtualization priority of the virtual machine. The priority must be between the virtual machine priority count-1 and 0. For example, if the virtualization priority count is 32, then this value can be chosen between 0 and 31. The larger the value, the higher the priority of the virtual machine.
+
+It should be noted that the virtual machine priority and the thread priority in native processes are not the same thing; the priority of a virtual machine is lower than that of any native process, and it uses the virtualization priority. Only when all the threads in all native processes are blocked does a high-priority virtual machine run; only when the high-priority virtual machines are completely blocked and not running does it come to the turn of the low-priority virtual machines to run.
+
+\subsubsection{Timeslice<Timeslice>{}}\label{subsubsec:5-3-15-4}
+
+This configuration item is an integer value greater than 0 that determines the number of timeslices of the virtual machine, in units of RVM clock ticks\footnote{please see \protect2.1.2.4, the same below}. In the system, virtual machines of different priorities are in a fully preemptive relationship, while virtual machines of the same priority are in a timeslice round-robin scheduling relationship. It is generally recommended to set this value relatively large, such as 50 or 100, so as to avoid frequent switching between virtual machines and improve the performance of the system.
+
+\subsubsection{Clock Period<Period>{}}\label{subsubsec:5-3-15-5}
+
+This configuration item is an integer value greater than 0 that determines the frequency division coefficient of the virtual clock interrupt of the virtual machine, in units of RVM clock ticks: only after every Period RVM clock ticks is a timer interrupt Tim\footnote{please see 2.2.4.1} sent to this virtual machine. It is generally recommended to set this value relatively large, such as 5 or 10, to prevent the clock ticks from consuming a large amount of system resources.
+
+\subsubsection{Watchdog Timeout<Watchdog>{}}\label{subsubsec:5-3-15-6}
+
+This configuration item is an integer value that determines the watchdog timeout of the virtual machine, in units of RVM clock ticks. Once a virtual machine loses response and the watchdog times out, RVM will restart that timed-out virtual machine. Generally, the watchdog timeout is recommended to be set to about 1 second, which is roughly 100 or 1000 RVM clock ticks. If this configuration item is set to 0, it means that the watchdog is not enabled for this virtual machine.
+
+The watchdog timeout is calculated according to the running time of the virtual machine, rather than the running time of the real system. Assuming the watchdog timeout is set to 1 second, it means that the net running time of the virtual machine needs to exceed 1 second without calling RVM\_Hyp\_Wdg\_Clr to feed the watchdog before a watchdog timeout occurs.
+
+\subsubsection{Number of Virtual Interrupt Vectors<Vect\_Num>{}}\label{subsubsec:5-3-15-7}
+
+This configuration item determines the number of virtual interrupt sources of the virtual machine. It is recommended to set this value as small as possible on the premise of being sufficient, so as to save system resources.
+
+\subsubsection{Guest Operating System Type<Guest\_Type>{}}\label{subsubsec:5-3-15-8}
+
+This configuration item determines the type of the guest operating system being run.
+
+\subsubsection{Guest Operating System Root Directory<Guest\_Root>{}}\label{subsubsec:5-3-15-9}
+
+This configuration item determines the root directory of the guest operating system, which is a path relative to the project description file. The generated virtual machine project will reference the files of the guest operating system from this directory.
+
+\subsubsection{Guest Header File Output Directory<Virtual\_Header\_Output>{}}\label{subsubsec:5-3-15-10}
+
+This configuration item determines the output directory of the guest RTOS header files, which is a path relative to the project description file. Which configuration header files are generated specifically, and what their contents are, is determined by the specific guest operating system selected.
+
+\subsubsection{Guest Header File Overwrite<Virtual\_Header\_Overwrite>{}}\label{subsubsec:5-3-15-11}
+
+Determines whether to overwrite the previously generated guest RTOS header files when regenerating, and can be ``Yes'' or ``No''. If the user has manually edited the guest header files and wishes to keep these changes, ``No'' can be chosen to keep the original old version. It is worth noting that even if No is chosen, which header files are retained and which header files are overwritten is still determined by the specific guest generation tool, but the generation tool will try as much as possible to keep those user-editable header files from being overwritten.
+
+\subsubsection{Guest Header File Output Directory<Virtual\_Source\_Output>{}}\label{subsubsec:5-3-15-12}
+
+This configuration item determines the output directory of the guest RTOS source files, which is a path relative to the project description file. Which configuration source files are generated specifically, and what their contents are, is determined by the specific guest operating system selected.
+
+\subsubsection{Guest Header File Overwrite<Virtual\_Header\_Overwrite>{}}\label{subsubsec:5-3-15-13}
+
+Determines whether to overwrite the previously generated guest RTOS source files when regenerating, and can be ``Yes'' or ``No''. If the user has manually edited the guest RTOS source files and wishes to keep these changes, ``No'' can be chosen to keep the original old version. It is worth noting that even if No is chosen, which source files are retained and which source files are overwritten is still determined by the specific guest generation tool, but the generation tool will try as much as possible to keep those user-editable source files from being overwritten.
+\section{Platform Description File Structure<Platform>{}}\label{sec:5-4}
+
+This file records the basic information of the platform. The project generator uses this information to determine the specific model and compatibility of the platform.
+
+\subsection{Name<Name>{}}\label{subsec:5-4-1}
+
+The name of the architecture. It must be consistent with the standard name\footnote{The abbreviated folder name of the platform} of the platform. The project generator relies on this name to locate the platform description file, and cross-checks that the architecture abbreviations in the project file, the platform description file, and the chip description file are consistent.
+
+\subsection{Version<Version>{}}\label{subsec:5-4-2}
+
+This configuration item records the version of the platform description file.
+
+The project generator does not care about the value of this configuration item.
+
+\subsection{Word Length<Wordlength>{}}\label{subsec:5-4-3}
+
+This configuration item records the processor word length of the platform, in bits. Typical values are 32 or 64.
+
+\subsection{Allowed Coprocessors<Coprocessor>{}}\label{subsec:5-4-4}
+
+This configuration item is a comma-separated list that records the coprocessors allowed in the architecture, such as the model of the FPU, etc. The project generator uses this to check the legality of a specific chip configuration file. If an architecture has no coprocessors, it can be left blank.
+
+\subsection{Guest List<Guest>{}}\label{subsec:5-4-5}
+
+This configuration item is a comma-separated list that records all guest operating systems allowed by the architecture.
+
+\subsection{Build System List<Buildsystem>{}}\label{subsec:5-4-6}
+
+This configuration item is a comma-separated list that records all build systems allowed by the architecture.
+
+\subsection{Toolchain List<Toolchain>{}}\label{subsec:5-4-7}
+
+This configuration item is a comma-separated list that records all compilation toolchains allowed by the architecture.
+
+\subsection{Architecture Options<Config><Cn>{}}\label{subsec:5-4-8}
+
+This configuration group records the inherent options that the architecture itself possesses. The project compiler attempts to query the configuration of these inherent options from the project.
+
+\subsubsection{Name<Name>{}}\label{subsubsec:5-4-8-1}
+
+This configuration item determines the internal name of the option. The project generator uses this name to retrieve the corresponding option from the project file.
+
+\subsubsection{Category<Type>{}}\label{subsubsec:5-4-8-2}
+
+This configuration item is a field that determines the nature of the option. There are only two categories: one is Choice (selection) and the other is Range (range). The former means that one of the values listed by the <Range> tag can be selected as its value; the latter means that any value between the two values listed by the <Range> tag is acceptable.
+
+\subsubsection{Macro Definition<Macro>{}}\label{subsubsec:5-4-8-3}
+
+This configuration item is a field that determines the macro name corresponding to the option. The project generator generates the configuration file based on this macro name.
+
+\subsubsection{Value Range<Range>{}}\label{subsubsec:5-4-8-4}
+
+This configuration item is a comma-separator field. When the option is of Choice type, this separator field lists all possible values that the option can take, and these values may be numbers or arbitrary strings; when the option is of Range type, this separator field may contain only two non-negative integer values, and these two values determine the value range.
+
+
+\section{Chip Description File Structure<Chip>{}}\label{sec:5-5}
+
+This file records the basic information of the chip. This basic information will be used by the generator to determine the specific model and compatibility of the chip.
+
+\subsection{Name<Name>{}}\label{subsec:5-5-1}
+
+This configuration item is a field that determines the name of the chip family. All chips belonging to this category are described using this chip XML. Generally, the various chips placed in one category differ only slightly in pin count and peripheral count, and their memory layouts should all be completely identical; the subsequent configuration items of the chip description file define these in detail.
+
+\subsection{Version<Version>{}}\label{subsec:5-5-2}
+
+This configuration item records the version of the chip description file.
+
+The project generator does not care about the value of this configuration item.
+
+\subsection{Platform Architecture<Platform>{}}\label{subsec:5-5-3}
+
+This configuration item determines the platform architecture of the chip. This name must be consistent with the short name of the platform folder in which the chip resides. The project generator will cross-check that the architecture abbreviations in the project file, the platform description file, and the chip description file are consistent.
+
+\subsection{Compatible List<Compatible>{}}\label{subsec:5-5-4}
+
+This configuration item is a comma-separated list that determines the full names of the specific chips compatible with this description file. Only chips listed in this field can be compatible; the specific chip model given in the project description file must be in this list.
+
+\subsection{Vendor<Vendor>{}}\label{subsec:5-5-5}
+
+This configuration item determines the manufacturer of the chip. It is used when generating projects for certain toolchains.
+
+\subsection{Number of Interrupt Vectors<Vector>{}}\label{subsec:5-5-6}
+
+This configuration item determines the number of external device interrupt vectors of the chip.
+
+\subsection{Number of General Memory Protection Regions<Region>{}}\label{subsec:5-5-7}
+
+This configuration item determines the number of general MPU regions of the chip. General MPU regions can be used for code segments as well as for data segments and device segments.
+
+\subsection{Number of Code Memory Protection Regions<Iregion>{}}\label{subsec:5-5-8}
+
+This configuration item determines the number of code-dedicated MPU regions of the chip. These MPU regions differ from general MPU regions in that they can only be used for code segments.
+
+The project generator does not read this option for the time being.
+
+\subsection{Number of Data Memory Protection Regions<Dregion>{}}\label{subsec:5-5-9}
+
+This configuration item is a decimal number that determines the number of data-dedicated MPU regions of the chip. These MPU regions differ from general MPU regions in that they can only be used for data segments and device segments.
+
+The project generator does not read this option for the time being.
+
+\subsection{Present Coprocessors<Coprocessor>{}}\label{subsec:5-5-10}
+
+This configuration item is a comma-separated list that records the coprocessors present in a specific chip, such as the model of the FPU, etc. The project generator checks its legality against the architecture description file, and will also check the legality of a specific project description file on this basis. If a specific chip has no coprocessors, it can be left blank.
+
+\subsection{Architecture Attribute Group<Attribute>{}}\label{subsec:5-5-11}
+
+This configuration group determines the architecture-specific attributes. This information may differ for each architecture, such as the specific type of the CPU, the presence and model of the FPU, and so on. These attributes cannot be set by the user; they are configuration items inherent to the chip itself.
+
+\subsection{Chip Inherent Memory<Memory><Mn>{}}\label{subsec:5-5-12}
+
+This configuration group records the on-chip memory information of the chip. All on-chip memory present on the chip must be registered here. The specific registration method is the same as that for extra memory\footnote{Please refer to \protect5.3.10}.
+
+\subsubsection{Memory Segment Base Address<Base>{}}\label{subsubsec:5-5-12-1}
+
+This configuration item is a hexadecimal value that determines the start address of this memory segment.
+
+\subsubsection{Memory Segment Length<Size>{}}\label{subsubsec:5-5-12-2}
+
+This configuration item is a hexadecimal value that determines the length of this memory segment.
+
+\subsubsection{Memory Segment Category<Type>{}}\label{subsubsec:5-5-12-3}
+
+This configuration item is a field that determines the category of the memory segment. There are three possible categories: code (Code), data (Data) and device (Device).
+
+\subsubsection{Memory Segment Attributes<Attribute>{}}\label{subsubsec:5-5-12-4}
+
+This configuration item is a field that determines the attributes of the memory segment. There are six memory segment attributes: readable (Readable, R), writable (Writable, W), executable (eXecutable, X), bufferable (Bufferable, B), cacheable (Cacheable, C) and static mapping (Static, S), and they can be superimposed in any combination.
+
+Generally, the attributes of a code segment ROM should be set to RXBCS, and the attributes of a data segment RAM should be set to RWBCS. The attributes of a device segment should be set to RWS.
+
+\subsection{Chip Options<Config><Cn>{}}\label{subsec:5-5-13}
+
+This class records the inherent options that the chip itself possesses\footnote{Excluding the inherent options of the architecture; those options are listed in the platform description file rather than here; please refer to \protect5.4.8}. The project compiler attempts to query the configuration of these inherent options from the project. These options are organized in the same way as the architecture inherent options.
+
+\subsubsection{Name<Name>{}}\label{subsubsec:5-5-13-1}
+
+This configuration item determines the internal name of the option. The project generator uses this name to retrieve the corresponding option from the project file.
+
+\subsubsection{Category<Type>{}}\label{subsubsec:5-5-13-2}
+
+This configuration item is a field that determines the nature of the option. There are only two categories: one is Choice (selection) and the other is Range (range). The former means that one of the values listed by the <Range> tag can be selected as its value; the latter means that any value between the two values listed by the <Range> tag is acceptable.
+
+\subsubsection{Macro Definition<Macro>{}}\label{subsubsec:5-5-13-3}
+
+This configuration item is a field that determines the macro name corresponding to the option. The project generator generates the configuration file based on this macro name.
+
+\subsubsection{Value Range<Range>{}}\label{subsubsec:5-5-13-4}
+
+This configuration item is a comma-separator field. When the option is of Choice type, this separator field lists all possible values that the option can take, and these values may be numbers or arbitrary strings; when the option is of Range type, this separator field may contain only two non-negative integer values, and these two values determine the value range.
+
+
+\needspace{30\baselineskip}
+\section{Project Generator Error Messages}\label{sec:5-6}
+
+\needspace{12\baselineskip}
+\subsection{Command-line argument analysis errors (C0000-C9999)}\label{subsec:5-6-1}
+
+All output formats supported by this tool are as follows:
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Supported output toolchains}\label{tab:5-1}\\
+\toprule
+Output toolchain option & Project organization & Compiler\tabularnewline
+\endfirsthead
+\toprule
+Output toolchain option & Project organization & Compiler\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+makefile & Makefile & GCC\tabularnewline
+keil & Keil uVision & ARMCC 5.0\tabularnewline
+\end{xltabular}
+
+All possible error messages that may occur in this step are as follows (C0000 -\/- C9999):
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Error messages that may occur during the command-line argument analysis stage}\label{tab:5-2}\\
+\toprule
+Error number & Error message & Cause\tabularnewline
+\endfirsthead
+\toprule
+Error number & Error message & Cause\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+C0000 & Too many or too few input parameters. &
+Too few or too many command-line arguments were entered.\tabularnewline
+C0001 & More than one input file. &
+More than one input file was specified.\tabularnewline
+C0002 & More than one output path. &
+More than one output path was specified.\tabularnewline
+C0003 & More than one output format. &
+More than one output format was specified.\tabularnewline
+C0004 & Unrecognized command line argument. &
+A command-line argument that cannot be recognized.\tabularnewline
+C0005 & No input file specified. & No input file was specified.\tabularnewline
+C0006 & No output path specified. & No output path was specified.\tabularnewline
+C0007 & No output project format specified. &
+No output project format was specified.\tabularnewline
+\end{xltabular}
+
+\subsection{Project XML file analysis errors (P0000-P9999)}\label{subsec:5-6-2}
+
+This module analyses the project description XML file, that is, the XML file generated by the GUI module. It first reads the XML file according to the input path and generates its DOM, then analyses each component in the DOM step by step, and finally generates internal data structures that are convenient for reference. The specific content of each sub-step is explained section by section below.
+
+\needspace{12\baselineskip}
+\subsubsection{Project configuration analysis (P0000-P0099)}\label{subsubsec:5-6-2-1}
+
+In this step, the extra memory information, the shared memory information and some basic project information in the system are analysed and then directly filled into the internal data structures. All possible error messages that may occur are as follows (P0000
+-\/- P0099):
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Error messages that may occur during the preliminary project configuration analysis stage}\label{tab:5-3}\\
+\toprule
+Error number & Error message & Cause\tabularnewline
+\endfirsthead
+\toprule
+Error number & Error message & Cause\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+P0000 & Project XML parsing failed. &
+The project XML file contains a syntax error and cannot be parsed.\tabularnewline
+P0001 & Project XML is malformed. &
+The <Project> tag does not exist in the project XML.\tabularnewline
+P0002 & Name section is missing. & It does not exist.\tabularnewline
+P0003 & Name section is empty. & It is empty.\tabularnewline
+P0004 & Platform section is missing. &
+The target platform <Platform> does not exist.\tabularnewline
+P0005 & Platform section is empty. &
+The target platform <Platform> is empty.\tabularnewline
+P0006 & Chip class section is missing. &
+The chip name <Name> does not exist.\tabularnewline
+P0007 & Chip class section is empty. &
+The chip name <Name> is empty.\tabularnewline
+P0008 & Chip fullname section is missing. &
+The chip class <Class> does not exist.\tabularnewline
+P0009 & Chip fullname section is empty. &
+The chip class <Class> is empty.\tabularnewline
+P0010 & RME section is missing. &
+The <RME> tag does not exist in the project XML.\tabularnewline
+P0011 & RVM section is missing. &
+The <RVM> tag does not exist in the project XML.\tabularnewline
+P0012 & Extra memory section is missing. &
+The <Extmem> tag does not exist in the project XML.\tabularnewline
+P0013 & Extra memory section parsing internal error. &
+An unknown error was encountered while parsing the <Extmem> tag and its contents. Please check the integrity of this tag.\tabularnewline
+P0014 & Extra memory type section is missing. &
+The extra segment type <Type> does not exist.\tabularnewline
+P0015 & Extra memory type section is empty. &
+The extra segment type <Type> is empty.\tabularnewline
+P0016 & Extra memory type is malformed. &
+The extra segment type <Type> must be one of Code, Data or Device. The current value cannot be recognized.\tabularnewline
+P0017 & Shared memory section is missing. &
+The <Shmem> tag does not exist in the project XML.\tabularnewline
+P0018 & Shared memory section parsing internal error. &
+An unknown error was encountered while parsing the <Shmem> tag and its contents. Please check the integrity of this tag.\tabularnewline
+P0019 & Shared memory type section is missing. &
+The shared segment type <Type> does not exist.\tabularnewline
+P0020 & Shared memory type section is empty. &
+The shared segment type <Type> is empty.\tabularnewline
+P0021 & Shared memory name cannot be omitted. &
+The shared segment name <Name> is mandatory and cannot be omitted.\tabularnewline
+P0022 & Shared memory type is malformed. &
+The extra segment type <Type> must be one of Code, Data or Device. The current value cannot be recognized.\tabularnewline
+P0023 & Process section parsing internal error. &
+An unknown error was encountered while parsing the <Process> tag and its contents. Please check the integrity of this tag.\tabularnewline
+P0024 & Virtual machine section parsing internal error. &
+An unknown error was encountered while parsing the <Virtual> tag and its contents. Please check the integrity of this tag.\tabularnewline
+P0025 & Project XML and chip XML platform does not match. &
+The platform type in the project XML and that in the chip XML do not correspond. Please check whether the project XML specifies a wrong platform.\tabularnewline
+P0026 & Project XML and chip XML chip class does not match. &
+The chip class in the project XML and that in the chip XML do not correspond. Please check whether the project XML specifies a wrong chip class.\tabularnewline
+P0027 & The specific chip designated in project XML not found in chip
+XML. &
+The chip specified in the project XML is not compatible in the chip XML. Please check whether a wrong chip model is specified.\tabularnewline
+P0028 & The specific platform is currently not supported. &
+The platform specified in the project XML is currently not supported. Please check whether a wrong platform is specified.\tabularnewline
+\end{xltabular}
+
+\needspace{12\baselineskip}
+\subsubsection{Kernel configuration analysis (P0100-P0199)}\label{subsubsec:5-6-2-2}
+
+This stage analyses the basic configuration information of the kernel; all of it is located under the <RME> tag. All possible errors that may occur are shown in the table below (P0100
+-\/- P0199):
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Error messages that may occur during the kernel configuration analysis stage}\label{tab:5-4}\\
+\toprule
+Error number & Error message & Cause\tabularnewline
+\endfirsthead
+\toprule
+Error number & Error message & Cause\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+P0100 & Code base section is missing. &
+The code segment base address <Code\_\allowbreak{}Base> does not exist.\tabularnewline
+P0101 & Code base is not a valid hex integer. &
+The code segment base address <Code\_\allowbreak{}Base> is not a hexadecimal number.\tabularnewline
+P0102 & Code size section is missing. &
+The code segment size <Code\_\allowbreak{}Size> does not exist.\tabularnewline
+P0103 & Code size is not a valid hex integer. &
+The code segment size <Code\_\allowbreak{}Size> is not a hexadecimal number.\tabularnewline
+P0104 & Data base section is missing. &
+The data segment base address <Data\_\allowbreak{}Base> does not exist.\tabularnewline
+P0105 & Data base is not a valid hex integer. &
+The data segment base address <Data\_\allowbreak{}Base> is not a hexadecimal number.\tabularnewline
+P0106 & Data size section is missing. &
+The data segment size <Data\_\allowbreak{}Size> is not a hexadecimal number.\tabularnewline
+P0107 & Data size is not a valid hex integer. &
+The data segment size <Data\_\allowbreak{}Size> is not a hexadecimal number.\tabularnewline
+P0108 & Stack size section is missing. &
+The kernel stack size <Stack\_\allowbreak{}Size> does not exist.\tabularnewline
+P0109 & Stack size is not a valid hex integer. &
+The kernel stack size <Stack\_\allowbreak{}Size> is not a hexadecimal number.\tabularnewline
+P0110 & Extra kernel memory section is missing. &
+The extra kernel object memory size <Extra\_\allowbreak{}Kom> does not exist.\tabularnewline
+P0111 & Extra kernel memory is not a valid hex integer. &
+The extra kernel object memory size <Extra\_\allowbreak{}Kom> is not a hexadecimal number.\tabularnewline
+P0112 & Kernel memory order section is missing. &
+The kernel memory allocation granularity <Kom\_\allowbreak{}Order> does not exist.\tabularnewline
+P0113 & Kernel memory order is not a valid unsigned integer. &
+The kernel memory allocation granularity <Kom\_\allowbreak{}Order> is not a decimal number.\tabularnewline
+P0114 & Priority number section is missing. &
+The number of priorities <Kern\_\allowbreak{}Prio> does not exist.\tabularnewline
+P0115 & Priority number is not a valid unsigned integer. &
+The number of priorities <Kern\_\allowbreak{}Prio> is not a decimal number.\tabularnewline
+P0116 & Compiler option section is missing. &
+The <Compiler> tag does not exist.\tabularnewline
+P0117 & Platform option section is missing. &
+The <Platform> tag does not exist.\tabularnewline
+P0118 & Platform option section parsing internal error. &
+An unknown error was encountered while parsing the <Platform> tag and its contents. Please check the integrity of this tag.\tabularnewline
+P0119 & Chip option section is missing. &
+The <Chip> tag does not exist.\tabularnewline
+P0120 & Chip option section parsing internal error. &
+An unknown error was encountered while parsing the <Chip> tag and its contents. Please check the integrity of this tag.\tabularnewline
+P0121 & Chip option mismatch in project option list. &
+An option provided under the <Chip> tag cannot be found in the chip XML, or not all options in the chip XML are specified. Please check whether a wrong or redundant tag is specified, or some tags are missing.\tabularnewline
+P0122 & Value conversion failure. &
+Conversion of the value set for a Range-type option failed. Please check whether this option is set to an unsigned integer in the project XML.\tabularnewline
+P0123 & Value overflow. &
+The value set for a Range-type option exceeds the upper bound of the allowed range. Please check and set it again.\tabularnewline
+P0124 & Value underflow. &
+The value set for a Range-type option exceeds the lower bound of the allowed range. Please check and set it again.\tabularnewline
+P0125 & Value not found. &
+The value set for a Select-type option is not in the list of allowed options. Please check and set it again.\tabularnewline
+\end{xltabular}
+
+\needspace{12\baselineskip}
+\subsubsection{User-mode library configuration analysis (P0200-P0299)}\label{subsubsec:5-6-2-3}
+
+This stage analyses the basic configuration information of the user-mode library; all of it is located under the <RVM> tag. All possible errors that may occur are shown in the table below (P0200
+-\/- P0299):
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Error messages that may occur during the user-mode library configuration analysis stage}\label{tab:5-5}\\
+\toprule
+Error number & Error message & Cause\tabularnewline
+\endfirsthead
+\toprule
+Error number & Error message & Cause\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+P0200 & Code size section is missing. &
+The code segment size <Code\_\allowbreak{}Size> does not exist.\tabularnewline
+P0201 & Code size is not a valid hex integer. &
+The code segment size <Code\_\allowbreak{}Size> is not a hexadecimal number.\tabularnewline
+P0202 & Data size section is missing. &
+The data segment size <Data\_\allowbreak{}Size> does not exist.\tabularnewline
+P0203 & Data size is not a valid hex integer. &
+The data segment size <Data\_\allowbreak{}Size> is not a hexadecimal number.\tabularnewline
+P0204 & Stack size section is missing. &
+The startup daemon thread stack size <Init\_\allowbreak{}Stack\_\allowbreak{}Size> does not exist.\tabularnewline
+P0205 & Stack size is not a valid hex integer. &
+The startup daemon thread stack size <Init\_\allowbreak{}Stack\_\allowbreak{}Size> is not a hexadecimal number.\tabularnewline
+P0206 & Extra capability table size section is missing. &
+The number of extra capability table slots <Extra\_\allowbreak{}Captbl> does not exist.\tabularnewline
+P0207 & Extra capability table size is not a valid unsigned integer. &
+The number of extra capability table slots <Extra\_\allowbreak{}Captbl> is not a decimal number.\tabularnewline
+P0208 & Compiler section is missing. &
+The <Compiler> tag does not exist.\tabularnewline
+P0209 & Virtual machine priorities section is missing. &
+The number of virtualization priorities <Virt\_\allowbreak{}Prio> does not exist.\tabularnewline
+P0210 & Virtual machine priorities is not a valid unsigned integer. &
+The number of virtualization priorities <Virt\_\allowbreak{}Prio> is not a decimal number.\tabularnewline
+P0211 & Virtual machine event number section is missing. &
+The number of virtual machine event sources <Virt\_\allowbreak{}Event> does not exist.\tabularnewline
+P0212 & Virtual machine event number is not a valid unsigned integer. &
+The number of virtual machine event sources <Virt\_\allowbreak{}Event> is not a decimal number.\tabularnewline
+P0213 & Virtual machine mapping total number section is missing. &
+The number of virtual machine vector mappings <Virt\_\allowbreak{}Map> does not exist.\tabularnewline
+P0214 & Virtual machine mapping total number is not a valid unsigned
+integer. &
+The number of virtual machine vector mappings <Virt\_\allowbreak{}Map> is not a decimal number.\tabularnewline
+\end{xltabular}
+
+\needspace{14\baselineskip}
+\needspace{12\baselineskip}
+\subsubsection{Process configuration analysis (P0300-P0399)}\label{subsubsec:5-6-2-4}
+
+This stage analyses the basic configuration information of each process; all of it is located under the <Process> tag. All possible errors that may occur are shown in the table below (P0300
+-\/- P0399):
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Error messages that may occur during the process configuration analysis stage}\label{tab:5-6}\\
+\toprule
+Error number & Error message & Cause\tabularnewline
+\endfirsthead
+\toprule
+Error number & Error message & Cause\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+P0300 & Name section is missing. &
+The process name <Name> does not exist.\tabularnewline
+P0301 & Name section is empty. &
+The process name <Name> is empty.\tabularnewline
+P0302 & Extra capability table size section is missing. &
+The number of extra capability table slots <Extra\_\allowbreak{}Captbl> does not exist.\tabularnewline
+P0303 & Extra capability table size is not a valid unsigned integer. &
+The number of extra capability table slots <Extra\_\allowbreak{}Captbl> is not a decimal number.\tabularnewline
+P0304 & Compiler section is missing. &
+The <Compiler> tag does not exist.\tabularnewline
+P0305 & Memory section is missing. &
+The <Memory> tag does not exist.\tabularnewline
+P0306 & Memory section parsing internal error. &
+An unknown error was encountered while parsing the <Memory> tag and its contents. Please check the integrity of this tag.\tabularnewline
+P0307 & Memory section is empty. &
+The <Memory> tag is empty, which means there is no private memory segment.\tabularnewline
+P0308 & Memory type section is missing. & This tag does not exist.\tabularnewline
+P0309 & Memory type section is empty. & This tag is empty.\tabularnewline
+P0310 & Memory type is malformed. & This tag must be one of Code, Data or Device. The current value cannot be recognized.\tabularnewline
+P0311 & Shared memory section is missing. &
+The <Shmem> tag does not exist.\tabularnewline
+P0312 & Shared memory section parsing internal error. &
+An unknown error was encountered while parsing the <Shmem> tag and its contents. Please check the integrity of this tag.\tabularnewline
+P0313 & Shared memory type section is missing. & This tag does not exist.\tabularnewline
+P0314 & Shared memory type section is empty. & This tag is empty.\tabularnewline
+P0315 & Shared memory type is malformed. & This tag must be one of Code, Data or Device. The current value cannot be recognized.\tabularnewline
+P0316 & Thread section is missing. &
+The <Thread> tag does not exist.\tabularnewline
+P0317 & Thread section parsing internal error. &
+An unknown error was encountered while parsing the <Thread> tag and its contents. Please check the integrity of this tag.\tabularnewline
+P0318 & Thread section is empty. &
+The <Thread> tag is empty, which means there is no thread.\tabularnewline
+P0319 & Invocation section is missing. &
+The <Invocation> tag does not exist.\tabularnewline
+P0320 & Invocation section parsing internal error. &
+An unknown error was encountered while parsing the <Invocation> tag and its contents. Please check the integrity of this tag.\tabularnewline
+P0321 & Port section is missing. &
+The <Port> tag does not exist.\tabularnewline
+P0322 & Port section parsing internal error. &
+An unknown error was encountered while parsing the <Port> tag and its contents. Please check the integrity of this tag.\tabularnewline
+P0323 & Receive section is missing. &
+The <Receive> tag does not exist.\tabularnewline
+P0324 & Receive section parsing internal error. &
+An unknown error was encountered while parsing the <Receive> tag and its contents. Please check the integrity of this tag.\tabularnewline
+P0325 & Send section is missing. &
+The <Send> tag does not exist.\tabularnewline
+P0326 & Send section parsing internal error. &
+An unknown error was encountered while parsing the <Send> tag and its contents. Please check the integrity of this tag.\tabularnewline
+P0327 & Vector section missing. &
+The <Vector> tag does not exist.\tabularnewline
+P0328 & Vector section parsing internal error. &
+An unknown error was encountered while parsing the <Vector> tag and its contents. Please check the integrity of this tag.\tabularnewline
+P0329 & Kernel function section missing. &
+The <Kernel> tag does not exist.\tabularnewline
+P0330 & Kernel function section parsing internal error. &
+An unknown error was encountered while parsing the <Kernel> tag and its contents. Please check the integrity of this tag.\tabularnewline
+P0331 & No primary code section exists. &
+There must be at least one private Code memory segment in this process as the primary code memory segment, which is used to store code.\tabularnewline
+P0332 & No primary data section exists. &
+There must be at least one private Data memory segment in this process as the primary data memory segment, which is used to store data.\tabularnewline
+P0333 & Primary code section does not have RXS attribute. &
+The primary code segment of the process does not possess the complete RXS attributes (readable and executable, and statically mapped). It must possess these attributes to serve as the primary code segment.\tabularnewline
+P0334 & Primary data section does not have RWS attribute. &
+The primary data segment of the process does not possess the complete RWS attributes (readable, writable and statically mapped). It must possess these attributes to serve as the primary data segment.\tabularnewline
+P0335 & No thread exists. &
+There must be at least one thread in the process, but there is currently none.\tabularnewline
+\end{xltabular}
+
+\needspace{12\baselineskip}
+\subsubsection{Virtual machine configuration analysis (P0400-P0499)}\label{subsubsec:5-6-2-5}
+
+This stage analyses the basic configuration information of each virtual machine; all of it is located under the <Virtual> tag. All possible errors that may occur are shown in the table below (P0400
+-\/- P0499):
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Error messages that may occur during the virtual machine configuration analysis stage}\label{tab:5-7}\\
+\toprule
+Error number & Error message & Cause\tabularnewline
+\endfirsthead
+\toprule
+Error number & Error message & Cause\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+P0400 & Name section is missing. & This tag does not exist.\tabularnewline
+P0401 & Name section is empty. & This tag is empty.\tabularnewline
+P0402 & Guest operating system selection section is missing. & This tag does not exist.\tabularnewline
+P0403 & Guest operating system selection section is empty. & This tag is empty.\tabularnewline
+P0404 & Extra capability table size section is missing. & This tag does not exist.\tabularnewline
+P0405 & Extra capability table size is not a valid unsigned integer. &
+This tag is not a decimal number.\tabularnewline
+P0406 & Stack size section is missing. & This tag does not exist.\tabularnewline
+P0407 & Stack size is not a valid hex integer. & This tag is not a hexadecimal number.\tabularnewline
+P0408 & Priority section is missing. & This tag does not exist.\tabularnewline
+P0409 & Priority is not a valid unsigned integer. & This tag is not a hexadecimal number.\tabularnewline
+P0410 & Timeslices section is missing. & This tag does not exist.\tabularnewline
+P0411 & Timeslices is not a valid unsigned integer. & This tag is not a decimal number.\tabularnewline
+P0412 & Timeslices cannot be zero. & This tag cannot be 0.\tabularnewline
+P0413 & Timer interrupt period section is missing. & This tag does not exist.\tabularnewline
+P0414 & Timer interrupt period is not a valid unsigned integer. & This tag is not a decimal number.\tabularnewline
+P0415 & Timer interrupt period cannot be zero. & This tag cannot be 0.\tabularnewline
+P0416 & Watchdog timeout section is missing. & This tag does not exist.\tabularnewline
+P0417 & Watchdog timeout is not a valid unsigned integer. & This tag is not a decimal number.\tabularnewline
+P0418 & Virtual vector number section is missing. & This tag does not exist.\tabularnewline
+P0419 & Virtual vector number is not a valid unsigned integer. & This tag is not a decimal number.\tabularnewline
+P0420 & Virtual vector number too large. & This tag is greater than 768, which is not supported.\tabularnewline
+P0421 & Virtual vector number cannot be zero. & This tag cannot be 0.\tabularnewline
+P0422 & Compiler section is missing. &
+The <Compiler> tag does not exist.\tabularnewline
+P0423 & Memory section is missing. &
+The <Memory> tag does not exist.\tabularnewline
+P0424 & Memory section parsing internal error. &
+An unknown error was encountered while parsing the <Memory> tag and its contents. Please check the integrity of this tag.\tabularnewline
+P0425 & Memory section is empty. &
+The <Memory> tag is empty, which means there is no private memory segment.\tabularnewline
+P0426 & Memory type section is missing. & This tag does not exist.\tabularnewline
+P0427 & Memory type section is empty. & This tag is empty.\tabularnewline
+P0428 & Memory type is malformed. & This tag must be one of Code, Data or Device. The current value cannot be recognized.\tabularnewline
+P0429 & Shared memory section is missing. &
+The <Shmem> tag does not exist.\tabularnewline
+P0430 & Shared memory section parsing internal error. &
+An unknown error was encountered while parsing the <Shmem> tag and its contents. Please check the integrity of this tag.\tabularnewline
+P0431 & Shared memory type section is missing. & This tag does not exist.\tabularnewline
+P0432 & Shared memory type section is empty. & This tag is empty.\tabularnewline
+P0433 & Shared memory type is malformed. & This tag must be one of Code, Data or Device. The current value cannot be recognized.\tabularnewline
+P0434 & Send section is missing. &
+The <Send> tag does not exist.\tabularnewline
+P0435 & Send section parsing internal error. &
+An unknown error was encountered while parsing the <Send> tag and its contents. Please check the integrity of this tag.\tabularnewline
+P0436 & Kernel function section missing. &
+The <Kernel> tag does not exist.\tabularnewline
+P0437 & Kernel function section parsing internal error. &
+An unknown error was encountered while parsing the <Kernel> tag and its contents. Please check the integrity of this tag.\tabularnewline
+P0438 & No primary code section exists. &
+There must be at least one private Code memory segment in this virtual machine as the primary code memory segment, which is used to store code.\tabularnewline
+P0439 & No primary data section exists. &
+There must be at least one private Data memory segment in this virtual machine as the primary data memory segment, which is used to store data.\tabularnewline
+P0440 & Primary code section does not have RXS attribute. &
+The primary code segment of the virtual machine does not possess the complete RXS attributes (readable and executable, and statically mapped). It must possess these attributes to serve as the primary code segment.\tabularnewline
+P0441 & Primary data section does not have RWS attribute. &
+The primary data segment of the virtual machine does not possess the complete RWS attributes (readable, writable and statically mapped). It must possess these attributes to serve as the primary data segment.\tabularnewline
+\end{xltabular}
+
+\needspace{12\baselineskip}
+\subsubsection{Memory segment configuration analysis (P0500-P0599)}\label{subsubsec:5-6-2-6}
+
+Memory segment configuration analysis is called when analysing the extra memory (<Extmem>), the system shared memory (<Project><Shmem>) and the memory (<Memory>) of each process (<Process>) or virtual machine (<Virtual>). It is also called when analysing the built-in memory of the chip, so these errors also apply to the analysis of the built-in chip memory (<Chip><Memory>, see later). All possible errors that may occur are shown in the table below (P0500
+-\/- P0599):
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Error messages that may occur during the memory segment configuration analysis stage}\label{tab:5-8}\\
+\toprule
+Error number & Error message & Cause\tabularnewline
+\endfirsthead
+\toprule
+Error number & Error message & Cause\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+P0500 & Base section is missing. &
+The extra segment base address <Base>, the shared segment base address <Base>, this tag, this tag or the storage segment base address <Base> does not exist.\tabularnewline
+P0501 & Base is neither automatically allocated nor a valid hex integer.
+&
+The extra segment base address <Base>, the shared segment base address <Base>, this tag, this tag or the storage segment base address <Base> is not a hexadecimal number, and is not marked as automatically allocated.\tabularnewline
+P0502 & Size section is missing. &
+The extra segment size <Size>, the shared segment size <Size>, this tag, this tag or the storage segment size <Size> does not exist.\tabularnewline
+P0503 & Size is not a valid hex integer. &
+The extra segment size <Size>, the shared segment size <Size>, this tag, this tag or the storage segment size <Size> is not a hexadecimal number.\tabularnewline
+P0504 & Size cannot be zero. &
+The extra segment size <Size>, the shared segment size <Size>, this tag, this tag or the storage segment size <Size> cannot be 0.\tabularnewline
+P0505 & Size is out of bound. &
+The extra segment size <Size>, the shared segment size <Size>, this tag, this tag or the storage segment size <Size> is larger than 4GB.\tabularnewline
+P0506 & Type section is missing. &
+The extra segment type <Type>, the shared segment type <Type>, this tag, this tag or the storage segment type <Type> does not exist.\tabularnewline
+P0507 & Device-type memory cannot be automatically allocated. &
+Memory of the Device category cannot be set as automatically allocated; its start address must be specified manually.\tabularnewline
+P0508 & Attribute section is missing. &
+The extra segment attribute <Attribute>, the shared segment attribute <Attribute>, this tag, this tag or the storage segment attribute <Attribute> does not exist.\tabularnewline
+P0509 & Attribute section is empty. &
+The extra segment attribute <Attribute>, the shared segment attribute <Attribute>, this tag, this tag or the storage segment attribute <Attribute> is empty.\tabularnewline
+P0510 & Attribute does not allow any access and is malformed. &
+The extra segment attribute <Attribute>, the shared segment attribute <Attribute>, this tag, this tag or the storage segment attribute <Attribute> does not allow any form of access (not readable, not writable and not executable).\tabularnewline
+\end{xltabular}
+
+\needspace{12\baselineskip}
+\subsubsection{Shared memory segment reference configuration analysis (P0600-P0699)}\label{subsubsec:5-6-2-7}
+
+The shared memory segment references described in this section refer to the references to previously declared shared memory (<Shmem>) that are located in each process (<Process>) or virtual machine (<Virtual>), rather than the declarations of the shared memory segments themselves. All possible errors that may occur are shown in the table below (P0600
+-\/- P0699):
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Error messages that may occur during the shared memory segment configuration analysis stage}\label{tab:5-9}\\
+\toprule
+Error number & Error message & Cause\tabularnewline
+\endfirsthead
+\toprule
+Error number & Error message & Cause\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+P0600 & Name section is missing. &
+The shared segment name <Name> does not exist.\tabularnewline
+P0601 & Name section is empty. &
+The shared segment name <Name> is empty.\tabularnewline
+P0602 & Attribute section is missing. &
+The shared segment attribute <Attribute> does not exist.\tabularnewline
+P0603 & Attribute section is empty. &
+The shared segment attribute <Attribute> is empty.\tabularnewline
+P0604 & Attribute does not allow any access and is malformed. &
+The shared segment attribute <Attribute> does not allow any form of access (not readable, not writable and not executable), which is not allowed.\tabularnewline
+\end{xltabular}
+
+\subsubsection{Thread configuration analysis (P0700-P0799)}\label{subsubsec:5-6-2-8}
+
+Thread configuration analysis is used when analysing the threads (<Thread>) of each process (<Process>). All possible errors that may occur are shown in the table below (P0700
+-\/- P0799):
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Error messages that may occur during the thread configuration analysis stage}\label{tab:5-10}\\
+\toprule
+Error number & Error message & Cause\tabularnewline
+\endfirsthead
+\toprule
+Error number & Error message & Cause\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+P0700 & Name section is missing. &
+The thread name <Name> does not exist.\tabularnewline
+P0701 & Name section is empty. &
+The thread name <Name> is empty.\tabularnewline
+P0702 & Stack size section is missing. &
+The thread stack size <Stack\_\allowbreak{}Size> does not exist.\tabularnewline
+P0703 & Stack size is not a valid hex integer. &
+The thread stack size <Stack\_\allowbreak{}Size> is not a hexadecimal number.\tabularnewline
+P0704 & Stack size cannot be zero. &
+The thread stack size <Stack\_\allowbreak{}Size> cannot be 0.\tabularnewline
+P0705 & Parameter section is missing. &
+The thread parameter <Parameter> does not exist.\tabularnewline
+P0706 & Parameter is not a valid hex integer. &
+The thread parameter <Parameter> is not a hexadecimal number.\tabularnewline
+P0707 & Priority section is missing. &
+The thread priority <Priority> does not exist.\tabularnewline
+P0708 & Priority is not a valid unsigned integer. &
+The thread priority <Priority> is not a decimal number.\tabularnewline
+\end{xltabular}
+
+\needspace{12\baselineskip}
+\subsubsection{Invocation target configuration analysis (P0800-P0899)}\label{subsubsec:5-6-2-9}
+
+Invocation target configuration analysis is used when analysing the invocation targets (<Invocation>) of each process (<Process>). All possible errors that may occur are shown in the table below (P0800
+-\/- P0899):
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Error messages that may occur during the invocation target configuration analysis stage}\label{tab:5-11}\\
+\toprule
+Error number & Error message & Cause\tabularnewline
+\endfirsthead
+\toprule
+Error number & Error message & Cause\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+P0800 & Name section is missing. &
+The invocation name <Name> does not exist.\tabularnewline
+P0801 & Name section is empty. &
+The invocation name <Name> is empty.\tabularnewline
+P0802 & Stack size section is missing. &
+The invocation stack size <Stack\_\allowbreak{}Size> does not exist.\tabularnewline
+P0803 & Stack size is not a valid hex integer. &
+The invocation stack size <Stack\_\allowbreak{}Size> is not a hexadecimal number.\tabularnewline
+P0804 & Stack size cannot be zero. &
+The invocation stack size <Stack\_\allowbreak{}Size> cannot be 0.\tabularnewline
+\end{xltabular}
+
+\needspace{12\baselineskip}
+\subsubsection{Invocation entry configuration analysis (P0900-P0999)}\label{subsubsec:5-6-2-10}
+
+Invocation entry configuration analysis is used when analysing the invocation entries (<Port>) of each process (<Process>). All possible errors that may occur are shown in the table below (P0900
+-\/- P0999):
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Error messages that may occur during the invocation entry configuration analysis stage}\label{tab:5-12}\\
+\toprule
+Error number & Error message & Cause\tabularnewline
+\endfirsthead
+\toprule
+Error number & Error message & Cause\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+P0900 & Name section is missing. &
+The invocation target name <Name> does not exist.\tabularnewline
+P0901 & Name section is empty. &
+The invocation target name <Name> is empty.\tabularnewline
+P0902 & Process name section is missing. &
+The name of the process in which the invocation target resides <Process> does not exist.\tabularnewline
+P0903 & Process name section is empty. &
+The name of the process in which the invocation target resides <Process> is empty.\tabularnewline
+\end{xltabular}
+
+\needspace{12\baselineskip}
+\subsubsection{Receive signal endpoint configuration analysis (P1000-P1099)}\label{subsubsec:5-6-2-11}
+
+Receive signal endpoint configuration analysis is used when analysing the receive signal endpoints (<Receive>) of each process (<Process>). All possible errors that may occur are shown in the table below (P1000
+-\/- P1099):
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Error messages that may occur during the receive signal endpoint configuration analysis stage}\label{tab:5-13}\\
+\toprule
+Error number & Error message & Cause\tabularnewline
+\endfirsthead
+\toprule
+Error number & Error message & Cause\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+P1000 & Name section is missing. &
+The receive endpoint name <Name> does not exist.\tabularnewline
+P1001 & Name section is empty. &
+The receive endpoint name <Name> is empty.\tabularnewline
+\end{xltabular}
+
+\needspace{12\baselineskip}
+\subsubsection{Send signal endpoint configuration analysis (P1100-P1199)}\label{subsubsec:5-6-2-12}
+
+Send signal endpoint configuration analysis is used when analysing the send signal endpoints (<Send>) of each process (<Process>). All possible errors that may occur are shown in the table below (P1100
+-\/- P1199):
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Error messages that may occur during the send signal endpoint configuration analysis stage}\label{tab:5-14}\\
+\toprule
+Error number & Error message & Cause\tabularnewline
+\endfirsthead
+\toprule
+Error number & Error message & Cause\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+P1100 & Name section is missing. &
+The signal send endpoint name <Name> does not exist.\tabularnewline
+P1101 & Name section is empty. &
+The signal send endpoint name <Name> is empty.\tabularnewline
+P1102 & Process name section is missing. &
+The name of the process in which the signal send endpoint resides <Process> does not exist.\tabularnewline
+P1103 & Process name section is empty. &
+The name of the process in which the signal send endpoint resides <Process> is empty.\tabularnewline
+\end{xltabular}
+
+\needspace{12\baselineskip}
+\subsubsection{Physical vector signal endpoint configuration analysis (P1200-P1299)}\label{subsubsec:5-6-2-13}
+
+Physical vector signal endpoint configuration analysis is used when analysing the physical vector signal endpoints (<Vector>) of each process (<Process>). It is also used when analysing the physical signal endpoints of the chip (<Chip><Vector>, see later). All possible errors that may occur are shown in the table below (P1200
+-\/- P1299):
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Error messages that may occur during the physical vector signal endpoint configuration analysis stage}\label{tab:5-15}\\
+\toprule
+Error number & Error message & Cause\tabularnewline
+\endfirsthead
+\toprule
+Error number & Error message & Cause\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+P1200 & Name section is missing. &
+The vector endpoint name <Name> does not exist.\tabularnewline
+P1201 & Name section is empty. &
+The vector endpoint name <Name> is empty.\tabularnewline
+P1202 & Number section is missing. &
+The vector endpoint name <Name> does not exist.\tabularnewline
+P1203 & Number is not a valid unsigned integer. &
+The vector endpoint name <Name> is not a decimal number.\tabularnewline
+\end{xltabular}
+
+\subsubsection{Kernel function configuration analysis (P1300-P1399)}\label{subsubsec:5-6-2-14}
+
+Kernel function configuration analysis is used when analysing the kernel functions (<Kernel>) of each process (<Process>) or virtual machine (<Virtual>). All possible errors that may occur are shown in the table below (P1300
+-\/- P1399):
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Error messages that may occur during the kernel function configuration analysis stage}\label{tab:5-16}\\
+\toprule
+Error number & Error message & Cause\tabularnewline
+\endfirsthead
+\toprule
+Error number & Error message & Cause\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+P1300 & Name section is missing. &
+The function call name <Name> does not exist.\tabularnewline
+P1301 & Name section is empty. &
+The function call name <Name> is empty.\tabularnewline
+P1302 & Starting kernel function number section is missing. &
+The starting value of the primary function number <Begin> does not exist.\tabularnewline
+P1303 & Starting kernel function number is not a valid hex integer. &
+The starting value of the primary function number <Begin> is not a hexadecimal number.\tabularnewline
+P1304 & Ending kernel function number section is missing. &
+The ending value of the primary function number <End> does not exist.\tabularnewline
+P1305 & Ending kernel function number is not a valid hex integer. &
+The ending value of the primary function number <End> is not a hexadecimal number.\tabularnewline
+P1306 & Ending kernel function number is smaller than the starting
+kernel function number. &
+The ending value is larger than the starting value, which is not allowed. The ending value should be at least equal to the starting value.\tabularnewline
+\end{xltabular}
+
+\subsection{Chip XML file analysis errors (D0000-D9999)}\label{subsec:5-6-3}
+
+This module analyses the chip description XML files. These files are bundled with the compiler. The specific content of each sub-step is explained section by section below.
+
+\needspace{12\baselineskip}
+\subsubsection{Preliminary chip information analysis (D0000-D0099)}\label{subsubsec:5-6-3-1}
+
+In this step, the extra memory information, the shared memory information and some basic project information in the system are analysed and then directly filled into the internal data structures. All possible error messages are as follows (D0000
+-\/- D0099):
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Error messages that may occur during the preliminary chip information analysis stage}\label{tab:5-17}\\
+\toprule
+Error number & Error message & Cause\tabularnewline
+\endfirsthead
+\toprule
+Error number & Error message & Cause\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+D0000 & Chip XML parsing failed. &
+The chip XML file contains a syntax error and cannot be parsed.\tabularnewline
+D0001 & Chip XML is malformed. &
+The <Chip> tag does not exist in the chip XML.\tabularnewline
+D0002 & Class section is missing. &
+The name <Name> does not exist.\tabularnewline
+D0003 & Class section is empty. &
+The name <Name> is empty.\tabularnewline
+D0004 & Compatible variant section is missing. &
+The compatible list <Compatible> does not exist.\tabularnewline
+D0005 & Compatible variant section is empty. &
+The compatible list <Compatible> is empty.\tabularnewline
+D0006 & Vendor section is missing. &
+The vendor <Vendor> does not exist.\tabularnewline
+D0007 & Vendor section is empty. &
+The vendor <Vendor> is empty.\tabularnewline
+D0008 & Platform section is missing. &
+The platform architecture <Platform> does not exist.\tabularnewline
+D0009 & Platform section is empty. &
+The platform architecture <Platform> is empty.\tabularnewline
+D0010 & Cores section is missing. & This tag does not exist.\tabularnewline
+D0011 & Cores is not an unsigned integer. & This tag is empty.\tabularnewline
+D0012 & Regions section is missing. &
+The number of general memory protection regions <Region> does not exist.\tabularnewline
+D0013 & Regions is not an unsigned integer. &
+The number of general memory protection regions <Region> is empty.\tabularnewline
+D0014 & Attribute section missing. &
+The architecture attribute group <Attribute> does not exist.\tabularnewline
+D0015 & Attribute section parsing internal error. &
+An unknown error occurred while parsing the architecture attribute group <Attribute> and its contents. Please check the <Attribute> tag and its contents.\tabularnewline
+D0016 & Memory section is missing. &
+The <Memory> tag does not exist in the chip XML.\tabularnewline
+D0017 & Memory section parsing internal error. &
+An unknown error was encountered while parsing the <Memory> tag and its contents. Please check the integrity of this tag.\tabularnewline
+D0018 & Memory section is empty. &
+The inside of the <Memory> tag is empty.\tabularnewline
+D0019 & Memory type section is missing. &
+The memory section type <Type> does not exist.\tabularnewline
+D0020 & Memory type section is empty. &
+The memory section type <Type> is empty.\tabularnewline
+D0021 & Memory type is malformed. &
+The memory section type <Type> must be one of Code, Data or Device. The current value cannot be recognized.\tabularnewline
+D0022 & No code section exists. &
+There is no memory available for code sections in the chip.\tabularnewline
+D0023 & No data section exists. &
+There is no memory available for data sections in the chip.\tabularnewline
+D0024 & No device section exists. &
+There is no memory available for device sections in the chip.\tabularnewline
+D0025 & Option section is missing. &
+The <Option> tag does not exist in the chip XML.\tabularnewline
+D0026 & Option section parsing internal error. &
+An unknown error was encountered while parsing the <Option> tag and its contents. Please check the integrity of this tag.\tabularnewline
+D0027 & Vector section missing. &
+The <Vector> tag does not exist in the chip XML.\tabularnewline
+D0028 & Vector section parsing internal error. &
+An unknown error was encountered while parsing the <Vector> tag and its contents. Please check the integrity of this tag.\tabularnewline
+\end{xltabular}
+
+\subsubsection{Chip memory analysis (P0500-P0599)}\label{subsubsec:5-6-3-2}
+
+This step analyses the memory storage of the chip itself. The errors that may occur in this part (P0500 -\/
+P0599) have already been introduced earlier, so we omit them here.
+
+\subsubsection{Chip option analysis (D0100-D0199)}\label{subsubsec:5-6-3-3}
+
+This step analyses the options of the chip itself. All possible error messages are as follows (D0100 -\/
+D0199):
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Error messages that may occur during the chip option analysis stage}\label{tab:5-18}\\
+\toprule
+Error number & Error message & Cause\tabularnewline
+\endfirsthead
+\toprule
+Error number & Error message & Cause\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+D0100 & Name section is missing. & This tag does not exist.\tabularnewline
+D0101 & Name section is empty. & This tag is empty.\tabularnewline
+D0102 & Type section is missing. & This tag does not exist.\tabularnewline
+D0103 & Type section is empty. & This tag is empty.\tabularnewline
+D0104 & Type is malformed. & This tag must be either Select or Range. The current value cannot be recognized.\tabularnewline
+D0105 & Macro section is missing. & This tag does not exist.\tabularnewline
+D0106 & Macro section is empty. & This tag is empty.\tabularnewline
+D0107 & Range section is missing. & This tag does not exist.\tabularnewline
+D0108 & Range section is empty. & This tag is empty.\tabularnewline
+D0109 & Range section have an empty value. & An empty value appears in this tag. An empty value means that there is no content between two commas, or no content before the first comma, or no content after the last comma.\tabularnewline
+D0110 & Range typed option cannot have more or less than two ends
+specified. & This tag of a Range typed option must have exactly two values marking its starting and ending points. More or fewer are not allowed.\tabularnewline
+D0111 & Starting point or ending point conversion failure. &
+Some value in this tag of a Range typed option is not an integer. Please check that its starting and ending points are indeed unsigned integers.\tabularnewline
+D0112 & Range typed option starting point must be smaller than the
+corresponding ending point. & The starting point value in this tag of a Range typed option must be strictly smaller than the ending point value, otherwise the option will have nothing to select.\tabularnewline
+D0113 & Select typed option's possible values must all be valid C
+identifiers or numbers. & All possible values in this tag of a Select typed option must all be valid C identifiers, or a number.\tabularnewline
+\end{xltabular}
+
+\subsubsection{Chip vector analysis (P1200-P1299)}\label{subsubsec:5-6-3-4}
+
+This step analyses the interrupt vectors of the chip itself. The errors that may occur in this part (P1200 -\/
+P1299) have already been introduced earlier, so we omit them here.
+
+\subsection{Memory allocation errors (M0000-M0999)}\label{subsec:5-6-4}
+
+This step determines the start address of each automatically allocated memory section, and decides the specific construction method of the page tables. It can in turn be divided into three sub-steps: memory alignment, memory section allocation and page table generation.
+
+\subsubsection{Memory alignment (A0000-A9999)}\label{subsubsec:5-6-4-1}
+
+This step mainly checks and aligns each memory block. The memory reserved for the RME and the RVM must be aligned to a granularity determined by the target architecture. The stacks of the individual threads must also be aligned to this granularity. The start address and size of each memory block are also checked, and if any case does not conform to this alignment granularity, an error will be reported. These errors differ from architecture to architecture; for the specific errors produced, refer to the corresponding documentation of that architecture.
+
+\needspace{12\baselineskip}
+\subsubsection{Memory section allocation (M0000-M0099)}\label{subsubsec:5-6-4-2}
+
+This step assigns fixed memory addresses to those memory sections that do not have a specified start address. In this step, we first add the extra memory sections into the chip's memory layout and check whether there is any overlap; if there is none, we then determine the start addresses of the unallocated code and data memory sections.
+
+The allocator uses a highly intelligent algorithm to determine the position of each memory section. After allocation finishes, we check the memory layout of each process to determine that there is no overlap, and to determine that the primary code sections of the individual processes are mutually independent\footnote{There is no such requirement for the primary data section}. Finally, we also check that all those memory sections for which the user specified a start address and length fall within the chip memory layout.
+
+All possible error messages are as follows (M0000 -\/- M0099):
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Error messages that may occur during the memory section allocation stage}\label{tab:5-19}\\
+\toprule
+Error number & Error message & Cause\tabularnewline
+\endfirsthead
+\toprule
+Error number & Error message & Cause\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+M0000 & Chip internal and/or extra memory section overlapped. &
+The chip's memory layout has overlaps. For example, the added extra memory and the memory provided by the chip itself overlap, which is physically impossible.\tabularnewline
+M0001 & RME code section is invalid, either wrong range or wrong
+attribute. &
+The location of the RME's code section is abnormal, because in the chip's memory layout this location does not allow code to be placed, or is not readable, not executable, or cannot be statically mapped.\tabularnewline
+M0002 & RVM code section is invalid, either wrong range or wrong
+attribute. &
+The location of the RVM's code section is abnormal, because in the chip's memory layout this location does not allow code to be placed, or is not readable, not executable, or cannot be statically mapped.\tabularnewline
+M0003 & Code section is invalid, either wrong range or wrong attribute.
+&
+The location of a process's code section or shared code section is abnormal, because in the chip's memory layout this location does not allow code to be placed, or cannot satisfy the access permissions declared for that code section.\tabularnewline
+M0004 & Code memory fitter failed. &
+Code section allocation failed. This may be because too much code storage is used, or because too many code sections are declared and the code memory thus becomes fragmented.\tabularnewline
+M0005 & RME data section is invalid, either wrong range or wrong
+attribute. &
+The location of the RME's data section is abnormal, because in the chip's memory layout this location does not allow code to be placed, or is not readable, not writable, or cannot be statically mapped.\tabularnewline
+M0006 & RVM data section is invalid, either wrong range or wrong
+attribute. &
+The location of the RVM's code section is abnormal, because in the chip's memory layout this location does not allow data to be placed, or is not readable, not writable, or cannot be statically mapped.\tabularnewline
+M0007 & Data section is invalid, either wrong range or wrong attribute.
+&
+The location of a process's data section or shared data section is abnormal, because in the chip's memory layout this location does not allow code to be placed, or cannot satisfy the access permissions declared for that data section.\tabularnewline
+M0008 & Data memory fitter failed. &
+Data section allocation failed. This may be because too much data storage is used, or because too many data sections are declared and the data memory thus becomes fragmented.\tabularnewline
+M0009 & Name is duplicate or invalid. &
+Shared memory of the same type has a duplicate name, or references to the same shared memory within the same process are duplicated.\tabularnewline
+M0010 & Entry not found in global database. &
+The reference to the shared memory within the process cannot be found in the shared memory declarations.\tabularnewline
+M0011 & Attributes not satisfied by global entry. &
+The reference to the shared memory within the process\tabularnewline
+M0012 & Private and/or shared memory section overlapped. &
+An address space overlap occurred within the same process. This may be because two private memory blocks with specified start addresses and lengths overlap, or because shared memory and private memory overlap.\tabularnewline
+M0013 & Process primary code section overlapped. &
+The private primary code spaces of different processes overlap in address. This is not allowed, because the primary code space is exclusive to each process.\tabularnewline
+M0014 & Device memory have wrong attributes. &
+The device sections in the chip's memory layout cannot satisfy the access permissions declared for that device memory.\tabularnewline
+M0015 & Device memory segment is out of bound. &
+The declared device memory cannot be found in the chip's memory layout. This may be because this location of the chip does not allow device memory to be placed.\tabularnewline
+\end{xltabular}
+
+\subsubsection{Page table generation (A0000-A9999)}\label{subsubsec:5-6-4-3}
+
+This step generates the page tables of each process and each virtual machine in the project. This part is entirely determined by the specific architecture, so the specific error messages produced need to be looked up in the manual corresponding to that architecture.
+
+\subsection{Capability table allocation errors (M1000-M1999)}\label{subsec:5-6-5}
+
+This step automatically allocates the capability table capability numbers of each kernel object. There are two capability numbers: one is the global capability number used when creating the kernel object in the RVM, and the other is the local capability number used when referencing these capabilities in each process. It can in turn be divided into five steps: compliance check, local capability number allocation, global capability number allocation, capability macro name allocation and capability pairing.
+
+\subsubsection{Compliance check (M1000-M1099)}\label{subsubsec:5-6-5-1}
+
+This step mainly performs the more complex parameter checks on kernel objects that cannot be determined when parsing the XML. All possible error messages are as follows (M1000
+-\/- M1099):
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Error messages that may occur during the compliance check stage}\label{tab:5-20}\\
+\toprule
+Error number & Error message & Cause\tabularnewline
+\endfirsthead
+\toprule
+Error number & Error message & Cause\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+M1000 & Total number of kernel priorities must be a multiple of word
+size. &
+The total number of kernel-mode priorities must be an integer multiple of the machine word size. Values that are not an integer multiple are not allowed.\tabularnewline
+M1001 & Kernel memory allocation granularity order must be no less than
+2\^{}3=8 bytes. & The kernel memory allocation granularity order must be greater than or equal to 3.\tabularnewline
+M1002 & Kernel memory allocation granularity order must be no more than
+2\^{}5=32 bytes. & The kernel memory allocation granularity order must be less than or equal to 5.\tabularnewline
+M1003 & There are neither virtual machines nor processes in the system.
+& There are neither virtual machines nor native processes in the system. This is not allowed.\tabularnewline
+M1004 & Virtual machine exists but the total number of virtual machine
+priorities is set to 0. &
+A virtual machine exists in the system, but the number of virtual machine priorities is set to 0. This is not allowed.\tabularnewline
+M1005 & Total number of virtual machine priorities must be a multiple of
+word size. &
+The total number of virtual machine priorities must be an integer multiple of the machine word size. Values that are not an integer multiple are not allowed.\tabularnewline
+M1006 & Virtual machine exists but the total number of virtual event
+sources is set to 0. &
+A virtual machine exists in the system, but the number of virtual event sources is set to 0. This is not allowed.\tabularnewline
+M1007 & Total number of virtual event sources must be a multiple of word
+size. &
+The total number of virtual event sources must be an integer multiple of the machine word size. Values that are not an integer multiple are not allowed.\tabularnewline
+M1008 & Total number of virtual event sources cannot exceed 1024. &
+The total number of virtual event sources cannot exceed 1024.\tabularnewline
+M1009 & Total number of virtual event to interrupt mappings cannot be
+smaller than the virtual event source number. &
+The allowed upper limit of the total mappings from event sources or physical interrupts to virtual machine virtual vectors must be greater than the total number of virtual event sources.\tabularnewline
+M1010 & Priority must be bigger than service daemons' priority (4). &
+The priority of threads in user processes must be greater than the priority of each service daemon thread, that is, must be greater than 4.\tabularnewline
+M1011 & Priority must be smaller than safety daemon priority
+(Kern\_\allowbreak{}Prios-1). &
+The priority of threads in user processes must be smaller than the priority of the safety daemon thread, that is, must be smaller than the total number of kernel priorities minus 1.\tabularnewline
+M1012 & Priority must be smaller than total number of virtual machine
+priorities. & The priority of a virtual machine must be smaller than the total number of virtual machine priorities.\tabularnewline
+M1013 & Extra capacity cannot be larger than the architectural limits. &
+The number of entries in the extra capability table cannot exceed the number allowed by the architecture. On 32-bit machines this limit is 128; on 64-bit machines this limit is 32768.\tabularnewline
+M1014 & Kernel function number range exceeded architectural limits. &
+The function number of the kernel function exceeds the range allowed by the architecture. On 32-bit machines its maximum value is 2\textsuperscript{16}, and on 64-bit machines its maximum value is 2\textsuperscript{32}.\tabularnewline
+M1015 & Name is duplicate or invalid. &
+Duplicate kernel object names exist in the system. This may be a duplicate process name, or a duplicate name of the same kind of kernel object within a process.\tabularnewline
+M1016 & Name/process name is duplicate or invalid. &
+The targets declared by an invocation entry or a signal sending endpoint within the same process have the same name and the same owning process. This is not allowed.\tabularnewline
+M1017 & Name/number is duplicate or invalid. &
+The name or interrupt number of the interrupt vector is duplicated. This is not allowed.\tabularnewline
+\end{xltabular}
+
+\needspace{12\baselineskip}
+\subsubsection{Local capability number allocation (M1100-M1199)}\label{subsubsec:5-6-5-2}
+
+This step mainly allocates the capability numbers in the local capability table of each process. All possible error messages are as follows (M1100
+-\/- M1199):
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Error messages that may occur during the local capability number allocation stage}\label{tab:5-21}\\
+\toprule
+Error number & Error message & Cause\tabularnewline
+\endfirsthead
+\toprule
+Error number & Error message & Cause\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+M1100 & Capability table size exceeded architectural limits. &
+The size of the local capability table exceeds the value allowed by the architecture. This is not allowed.\tabularnewline
+\end{xltabular}
+
+\subsubsection{Global capability number allocation (M1200-M1299)}\label{subsubsec:5-6-5-3}
+
+This step mainly allocates the global capability numbers used when the RVM creates each kernel resource. This stage produces no error messages.
+
+\subsubsection{Capability macro name allocation (M1300-M1399)}\label{subsubsec:5-6-5-4}
+
+This step mainly allocates the capability macro names used for referencing capabilities. This stage produces no error messages.
+
+\subsubsection{Capability pairing (M1400-M1499)}\label{subsubsec:5-6-5-5}
+
+This step pairs the signal sending endpoints and the invocation entries with the signal receiving endpoints and the invocation targets respectively. If the compiler finds a signal sending endpoint or an invocation entry that cannot be paired, it reports an error. This step also checks whether all declared physical vector names can be found in the chip XML, and reports an error if they cannot. All possible error messages are as follows (M1400
+-\/- M1499):
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Error messages that may occur during the capability pairing stage}\label{tab:5-22}\\
+\toprule
+Error number & Error message & Cause\tabularnewline
+\endfirsthead
+\toprule
+Error number & Error message & Cause\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+M1400 & Invalid process name. &
+The process referenced by the signal sending endpoint or the invocation entry does not exist.\tabularnewline
+M1401 & Invalid invocation name. &
+The invocation target referenced by the invocation entry does not exist.\tabularnewline
+M1402 & Invalid receive endpoint name. &
+The signal receiving endpoint referenced by the signal sending endpoint does not exist.\tabularnewline
+M1403 & Invalid vector number. &
+The vector number of the physical vector endpoint is inconsistent with that recorded in the chip XML.\tabularnewline
+M1404 & Invalid vector name. &
+The vector name referenced by the physical vector endpoint is not recorded in the chip XML.\tabularnewline
+\end{xltabular}
+
+\subsection{Kernel object allocation errors (M2000-M2999)}\label{subsec:5-6-6}
+
+This step allocates the kernel memory addresses of each kernel object, as well as the memory layout of the threads and invocation targets within each process. It can in turn be divided into five steps: kernel object memory trial allocation, kernel object memory allocation, other kernel memory allocation, user-mode library memory allocation and process memory allocation.
+
+\needspace{12\baselineskip}
+\subsubsection{Kernel object memory trial allocation and allocation (M2000-M2099)}\label{subsubsec:5-6-6-1}
+
+Because the size of the primary capability table of the user-mode library is unknown when kernel object allocation begins, a trial allocation stage is needed. The trial allocation stage allocates the memory addresses of all kernel objects, but does not allocate the size occupied by the primary capability table. After the number of kernel objects is determined, the size of the primary capability table is determined immediately, and then a round of allocation is performed to obtain the real addresses of each kernel object. All possible error messages are as follows (M2000
+-\/- M2099):
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Error messages that may occur during the kernel object trial allocation and allocation stage}\label{tab:5-23}\\
+\toprule
+Error number & Error message & Cause\tabularnewline
+\endfirsthead
+\toprule
+Error number & Error message & Cause\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+M2000 & RVM capability table size exceeded the architectural limit. &
+The size of the RVM's capability table exceeds the length allowed by the architecture. Please consider reducing the number of extra capability table slots of the RVM, or reducing the complexity of the system.\tabularnewline
+\end{xltabular}
+
+\needspace{12\baselineskip}
+\subsubsection{Other kernel memory allocation (M2100-M2199)}\label{subsubsec:5-6-6-2}
+
+This step allocates the other memory that exists in the kernel, such as kernel stacks and so on. Some memory sections are required for the kernel to run, and other memory sections are required for the kernel to communicate with the user-mode library. All possible error messages are as follows (M2100
+-\/- M2199):
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Error messages that may occur during the other kernel memory allocation stage}\label{tab:5-24}\\
+\toprule
+Error number & Error message & Cause\tabularnewline
+\endfirsthead
+\toprule
+Error number & Error message & Cause\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+M2100 & RME data section is not big enough, unable to allocate vector
+flags. &
+The RME's data section is not large enough to allocate the vector flag memory. Please consider making the RME's data section larger.\tabularnewline
+M2101 & RME data section is not big enough, unable to allocate event
+flags. &
+The RME's data section is not large enough to allocate the vector flag memory. Please consider making the RME's data section larger.\tabularnewline
+M2102 & RME data section is not big enough, unable to allocate kernel
+stacks. &
+The RME's data section is not large enough to allocate the vector flag memory. Please consider making the RME's data section larger.\tabularnewline
+M2103 & RME data section is not big enough, unable to allocate kernel
+object memory. &
+The RME's data section is not large enough to allocate the vector flag memory. Please consider making the RME's data section larger.\tabularnewline
+\end{xltabular}
+
+\subsubsection{User-mode library memory allocation (M2200-M2299)}\label{subsubsec:5-6-6-3}
+
+This step allocates user-mode library memory, such as the stacks used by each daemon thread. All possible error messages are as follows (M2200
+-\/- M2299):
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Error messages that may occur during the user-mode library memory allocation stage}\label{tab:5-25}\\
+\toprule
+Error number & Error message & Cause\tabularnewline
+\endfirsthead
+\toprule
+Error number & Error message & Cause\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+M2200 & RVM data section is not big enough, unable to allocate init
+thread stack. &
+The RVM's data section is not large enough to allocate the startup daemon thread stack. Please consider making the RVM's data section larger.\tabularnewline
+M2201 & RVM data section is not big enough, unable to allocate safety
+daemon thread stack. &
+The RVM's data section is not large enough to allocate the safety daemon thread stack. Please consider making the RVM's data section larger.\tabularnewline
+M2202 & RVM data section is not big enough, unable to allocate virtual
+machine monitor daemon thread stack. &
+The RVM's data section is not large enough to allocate the hypercall daemon thread stack. Please consider making the RVM's data section larger.\tabularnewline
+M2203 & RVM data section is not big enough, unable to allocate vector
+handling daemon stack. &
+The RVM's data section is not large enough to allocate the vector daemon thread stack. Please consider making the RVM's data section larger.\tabularnewline
+M2204 & RVM data section is not big enough, unable to allocate timer
+handling thread stack. &
+The RVM's data section is not large enough to allocate the time daemon thread stack. Please consider making the RVM's data section larger.\tabularnewline
+\end{xltabular}
+
+\subsubsection{Process memory allocation (M2300-M2399)}\label{subsubsec:5-6-6-4}
+
+This step allocates the memory of the process itself, such as the stacks of each thread and each invocation target. If the process is actually a virtual machine, memory related to the virtual machine monitor must also be allocated. All possible error messages are as follows (M2300
+-\/- M2399):
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Error messages that may occur during the process memory allocation stage}\label{tab:5-26}\\
+\toprule
+Error number & Error message & Cause\tabularnewline
+\endfirsthead
+\toprule
+Error number & Error message & Cause\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+M2300 & Data section size is not big enough, unable to allocate stack. &
+The process's data section is not large enough to allocate the stacks of threads or invocation targets. Please consider making the process's data section larger.\tabularnewline
+M2301 & Data section size is not big enough, unable to allocate virtual
+machine interrupt flags. &
+The virtual machine's data section is not large enough to allocate the virtual vector flag memory area. Please consider making the virtual machine's data section larger.\tabularnewline
+M2302 & Data section size is not big enough, unable to allocate virtual
+machine parameters. &
+The virtual machine's data section is not large enough to allocate the hypercall parameter area. Please consider making the virtual machine's data section larger.\tabularnewline
+M2303 & Data section size is not big enough, unable to allocate virtual
+machine registers. &
+The virtual machine's data section is not large enough to allocate the virtualization register area. Please consider making the virtual machine's data section larger.\tabularnewline
+\end{xltabular}
+
+\subsection{Kernel project generation errors (G0000-G0999)}\label{subsec:5-6-7}
+
+This step generates the RME kernel project. It can in turn be divided into five steps: folder structure generation, configuration header file generation, startup sequence source file generation, user-editable source file generation and architecture-related file generation.
+
+In the folder structure generation step, the various folders required by the kernel are created, and the kernel source code is also filled into the folders.
+
+In the configuration header file generation step, the configuration header file used for selecting the architecture is generated.
+
+In the startup sequence source file generation step, the header files and source files used to create kernel objects at startup are created.
+
+In the user-editable source file generation step, the user-editable source files are created. The user-editable source files are mainly responsible for filling in the kernel-mode interrupt vectors.
+
+In the architecture-related file generation stage, the project of the relevant toolchain or IDE is created, thereby organizing the generated source files into a compilable project.
+
+Overall, this step and its five sub-steps have no independent error messages.
+
+\needspace{14\baselineskip}
+\subsection{User-mode library project generation errors (G1000-G1999)}\label{subsec:5-6-8}
+
+This step is responsible for generating the RVM user-mode library project. It can in turn be divided into four steps: folder structure generation, configuration header file generation, startup sequence source file generation and architecture-related file generation.
+
+In the folder structure generation step, the various folders required by the user-mode library project are created, and the user-mode library source code is also filled into the folders.
+
+In the configuration header file generation step, the configuration header file used for selecting the architecture is generated.
+
+In the startup sequence source file generation step, the header files and source files used to create kernel objects at startup are created.
+
+In the user-editable source file generation step, the user-editable source files are created. The user-editable source files are mainly responsible for further initialization as well as writing some customizable handling logic.
+
+In the architecture-related file generation stage, the project of the relevant toolchain or IDE is created, thereby organizing the generated source files into a compilable project.
+
+Overall, the error messages that may occur in this step are as follows (G1000 -\/- G1999):
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Error messages that may occur when generating the user-mode library project}\label{tab:5-27}\\
+\toprule
+Error number & Error message & Cause\tabularnewline
+\endfirsthead
+\toprule
+Error number & Error message & Cause\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+G1000 & Internal capability table computation failure. &
+Internal capability table size computation error; the kernel object creation code cannot be generated. The occurrence of this error indicates that the compiler has encountered an internal failure; please report this failure to us.\tabularnewline
+\end{xltabular}
+
+\subsection{User process project generation errors (G2000-G2999)}\label{subsec:5-6-9}
+
+This step is responsible for generating the project of each user process. It can in turn be divided into three steps: folder structure generation, process source file generation and architecture-related file generation.
+
+In the folder structure generation step, the various folders required by the process project are created, and the library source code needed by the process to invoke system services is also filled into the folders.
+
+In the process source file generation step, the macro definitions of the various kernel objects that are declared in the process and can be referenced locally are provided, so that users can reference them conveniently; in addition, empty functions for the threads and invocation targets declared by the user are also created, waiting for the user to fill in.
+
+In the architecture-related file generation step, the project of the relevant toolchain or IDE is created, thereby organizing the generated source files into a compilable project.
+
+Overall, the error messages that may occur in this step are as follows (G2000 -\/- G2999):
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Error messages that may occur when generating the user process project}\label{tab:5-28}\\
+\toprule
+Error number & Error message & Cause\tabularnewline
+\endfirsthead
+\toprule
+Error number & Error message & Cause\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+G2000 & Virtual machine should not have threads other than Vect and
+User. &
+Only two threads are allowed to exist in a virtual machine: one is the User thread responsible for running the user program, and the other is the Vect thread responsible for receiving interrupts. The occurrence of this error indicates that the compiler has encountered an internal failure; please report this failure to us.\tabularnewline
+\end{xltabular}
+
+\subsection{Workspace generation errors (G3000-G3999)}\label{subsec:5-6-10}
+
+This step is responsible for generating the workspace. Each generated sub-project is placed under the workspace, facilitating unified management and compilation. It can in turn be divided into two steps: folder structure generation and architecture-related file generation.
+
+In the folder structure generation step, the folders of the workspace are created.
+
+In the architecture-related file generation step, we directly generate the architecture-related workspace files.
+
+Overall, this step and its two sub-steps have no independent error messages.
+
+\needspace{12\baselineskip}
+\subsection{File system operation errors (F0000-F9999)}\label{subsec:5-6-11}
+
+In the project generation steps mentioned above, file system read and write operations are used extensively. The error messages that may occur with these file read and write operations are as follows (F1000
+-\/- F1999):
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Error messages that may occur during file system operations}\label{tab:5-29}\\
+\toprule
+Error number & Error message & Cause\tabularnewline
+\endfirsthead
+\toprule
+Error number & Error message & Cause\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+F0000 & Folder creation failed. &
+A problem was encountered while creating a folder in the output folder. Check whether the output folder allows read and write.\tabularnewline
+F0001 & Cannot open source file. &
+Cannot open the source file used as input. Check whether the output folder allows read and write.\tabularnewline
+F0002 & Cannot read file. &
+Cannot open the file for reading. Check whether the output folder allows read and write.\tabularnewline
+F0003 & Windows/Linux stat failed. &
+The stat system call used to determine the file size failed. Check whether the file system related configuration is correct.\tabularnewline
+F0004 & Cannot open destination file. &
+Cannot open the destination file used as output. Check whether the output folder allows read and write.\tabularnewline
+\end{xltabular}
+
+\subsection{Architecture-related file generation errors (A0000-A9999)}\label{subsec:5-6-12}
+
+Among all the generation steps mentioned in this chapter, only the generation of architecture-related files is unique. The generation of these files is architecture-dependent, so their errors need to be determined by consulting the architecture-related manual.
+
+
+\section{Graphical Front End of the Project Generator}\label{sec:5-7}
+
+Since generating a system by inputting XML is still quite troublesome and error-prone, this compiler also provides a graphical user interface. By means of the description of the graphical interface module in this chapter, we also introduce the functions of the compiler.
+
+\subsection{Starting the Graphical Front End}\label{subsec:5-7-1}
+
+Open the executable file of the compiler and wait for it to finish loading. After loading is complete, the following interface pops up, and the user needs to select the location where the project is to be generated, the architecture of the microcontroller to be used, and the model of the microcontroller itself.
+
+After the user has finished selecting, the compiler officially starts and its working interface pops up. The workspace can be divided into three parts, namely the configuration group selection area, the configuration item selection area, and the configuration content area. We will introduce the purpose and usage of each area separately in the following sections.
+
+In the following sections, each heading will show the name of the relevant field in the XML file. The meaning of the identifier before the field name is as follows: S stands for string, D stands for drop-down selection box, C stands for multiple-choice box, H stands for hexadecimal number, and N stands for integer. If the identifier is surrounded by round brackets ``()'', then the item may or may not be filled in; if the identifier is surrounded by square brackets ``{[}{]}'', then the item must be filled in.
+
+\subsection{Configuration Category Selection Area}\label{subsec:5-7-2}
+
+This area is responsible for selecting the configuration category. There are seven configuration categories in total, namely project configuration, hardware configuration, storage configuration, RME kernel configuration, RVM user-mode library configuration, native process configuration and virtual machine configuration. Among them, each of the first five configuration categories has only one item, while the number of items in the latter two categories depends on the number of created processes and virtual machines. These configuration categories are all displayed in the first column on the left, where the eighth button at the very bottom is responsible for generating the project when clicked. The figure below shows the state of a typical configuration category selection area.
+
+\subsection{Configuration Object Selection Area}\label{subsec:5-7-3}
+
+For the native process and virtual machine configuration categories, each native process and virtual machine object has a series of configuration groups. In this case, the second column on the left is responsible for displaying these native process or virtual machine objects. When the corresponding object is selected, the configuration groups of that object are displayed in the configuration group selection area. The figure below shows the state of a typical configuration object selection area.
+
+\subsection{Configuration Group Selection Area}\label{subsec:5-7-4}
+
+The configuration group selection area is responsible for the individual configuration groups under a configuration category. For each configuration category, the content of its configuration groups is different; please refer to the specific chapters. The figure below shows the state of the configuration group selection area of a typical process configuration category.
+
+\subsection{Configuration Item Display Area}\label{subsec:5-7-5}
+
+The configuration item display area is responsible for the display and configuration of specific configuration items. Similarly, for each configuration group, the content of its configuration items is different, and reference should be made to the specific chapters. The figure below shows the state of the configuration items of a typical memory block.
+
+\subsection{Project Generation Button}\label{subsec:5-7-6}
+
+The project generation button is at the very bottom of the left sidebar of the interface. After clicking this button, an interface pops up allowing the user to select the IDE and address corresponding to the project to be generated. Each architecture may support different IDEs; once both have been selected, click the generate project button to generate the final project. On the mobile APP, the project generation function is not provided; instead, an XML file that can be read by the desktop version is generated. The project generation interface is as follows.
+
+
+\section{References for This Chapter}\label{sec:5-8}
+
+None
+

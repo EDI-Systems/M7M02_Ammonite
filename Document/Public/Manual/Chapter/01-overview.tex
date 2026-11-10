@@ -1,0 +1,157 @@
+\chapter{Overview}\label{ch:1-overview}
+
+\section{Introduction}\label{sec:1-1}
+
+In modern microcontroller (MCU) applications, the requirements for flexibility, safety and reliability are increasing day by day. More and more microcontroller applications require applications from multiple mutually untrusted sources to run together, and may also simultaneously require real-time reliable parts\footnote{such as motor control, etc.}, performance-first parts\footnote{such as network protocol stacks, high-level language virtual machines, etc.} and certain applications with information security requirements\footnote{such as encryption and decryption algorithms, etc.} to run together, and they must not interfere with each other. When some applications crash, they are required to be able to restart independently, and in this process it is also required to ensure that those applications that directly control physical electromechanical outputs are not disturbed.
+
+Since the kernel and applications of a traditional real-time operating system (Real-Time Operating
+System, RTOS) are usually statically linked together, and there is no memory protection isolation between them, they cannot meet the requirement of information isolation between applications; once one of the applications crashes and corrupts kernel data, all other applications will inevitably crash at the same time. Some RTOSes claim to provide memory protection, but their specific implementation mechanisms show that their memory protection can only provide a certain degree of reliability between applications and cannot provide security between applications, and is not suitable for the information security requirements of modern microcontroller applications. In addition, the kernel services\footnote{such as kernel timers, etc.} of traditional RTOSes are shared between high-priority applications and low-priority applications; once a low-priority application calls a large number of kernel services, it will inevitably affect the response of kernel services to high-priority applications, thereby causing time interference problems\protect\hyperref[cite:1-1]{{[}1{]}}.
+
+RVM (Real-time Virtual machine
+Monitor) is a user-mode library based on the RME microkernel, proposed to address the above problems and oriented toward high-performance MCUs. It is a hosted virtual machine monitor running on the RME operating system, which makes it possible to run multiple virtual machines on a microcontroller platform, while also satisfying users' need to run native RME applications. In this way, the requirement of running real-time and non-real-time applications together does not produce time interference between real-time applications and non-real-time applications. It also enables applications from multiple sources to run on the same chip without information security problems.
+
+Since RVM forcibly isolates the secure part and the insecure part of the system, these two parts can be developed and certified separately using different standards. This facilitates debugging and saves development and certification costs, especially when using those relatively complex, less certified and less real-time software packages such as graphical
+user
+interface (Graphical
+User
+Interface, GUI) and high-level language virtual machines (Python, Java virtual machines), etc. In addition, microcontroller applications already certified on legacy platforms can run directly on RVM as a virtual machine without re-certification; this further saves costs.
+
+This manual provides a functional description of RVM from the user's perspective. For the specific use of each architecture, please refer to the corresponding manual for each architecture. In this manual, we first briefly review several concepts about virtualization, and then introduce the features and API of RVM chapter by chapter.
+
+\subsection{Characteristics of microcontrollers}\label{subsec:1-1-1}
+
+In practical applications, MCU systems occupy a considerable portion of real-time systems. They often have the following characteristics:
+
+\subsubsection{Deeply embedded}\label{subsubsec:1-1-1-1}
+
+Microcontroller applications are often integrated with the device itself, and users usually cannot directly perceive the existence of such systems. Once a microcontroller application program\footnote{usually called ``firmware''} is written, it often does not change during the entire life cycle, or changes very rarely. Even if there is an upgrade requirement, the upgrade is often performed by the manufacturer.
+
+\subsubsection{Highly reliable}\label{subsubsec:1-1-1-2}
+
+Microcontroller applications have an almost paranoid pursuit of reliability, and any system failure will cause relatively serious consequences. From small electric pressure cookers to large cranes, these systems do not allow serious errors, otherwise they will cause major property losses or personal injuries. In addition, there are also very high requirements for the real-time performance of applications; they usually either require the entire system to be a hard real-time system, or require the part of the system that directly controls the physical system to be a hard real-time system.
+
+\subsubsection{Limited resources}\label{subsubsec:1-1-1-3}
+
+Since microcontrollers themselves have few resources, it is very important to use them efficiently. The software used by microcontrollers is generally optimized for space complexity both in writing and in compilation, and only a small part of the programs that are crucial to performance and functionality use time complexity optimization.
+
+\subsubsection{Static allocation and linking}\label{subsubsec:1-1-1-4}
+
+Unlike microprocessors, due to deep embedding, the vast majority of resources in microcontroller applications, including memory and devices, are created and allocated when the system is powered on. Generally speaking, it is unwise to use too many dynamic features in microcontrollers, because dynamic features not only put pressure on the real-time response of the system, but also increase the uncertainty of successful execution of functions. If some crucial function and an ordinary function both depend on dynamic memory allocation, then when the ordinary function exhausts the memory, it may cause the memory allocation of the important function to fail. For the same or similar reasons, the vast majority of code in microcontrollers is statically linked, and dynamic linking is generally not used.
+
+\subsubsection{Physical address space only}\label{subsubsec:1-1-1-5}
+
+Unlike microprocessors, microcontrollers usually do not have a memory management
+unit (Memory Management
+Unit, MMU), so they cannot realize the conversion from physical addresses to virtual addresses. However, RVM also supports the use of a memory
+protection
+unit (Memory
+Protection
+Unit, MPU), and a large number of mid-to-high-end microcontrollers are equipped with an MPU. Unlike the MMU, the MPU often only supports protecting one or several memory ranges, and some also have very complex address alignment restrictions, so memory management functions on microcontrollers are often very limited.
+
+\subsubsection{Single-core processor}\label{subsubsec:1-1-1-6}
+
+Nowadays, the vast majority of microprocessors are multi-core designs. However, unlike microprocessors, microcontrollers are usually single-core designs, so there is no need to consider many race hazard problems. This can further simplify the design of the microcontroller user-mode library. Considering that a small number of microcontrollers indeed adopt multi-core designs or even asymmetric multi-core designs, RVM also supports multi-core operating environments. Of course, this first requires that the underlying RME is correctly configured to support multi-core.
+
+Considering the above points, when designing RVM, all kernel objects are completely created at system startup, and at this time, the upper limit of available kernel objects in the system is also determined. Each virtual machine is solidified in the on-chip non-volatile memory of the microcontroller.
+
+\subsection{Software copyright and license}\label{subsec:1-1-2}
+
+Taking into comprehensive account the different requirements of microcontroller applications, deeply embedded applications and traditional applications for open-source systems, the license adopted by the RVM microcontroller library is Unlicensed, but special provisions apply to some special cases\footnote{such as security equipment, military systems, aerospace equipment, power systems and medical equipment, etc.}. These special provisions are decided on a case-by-case basis, and the specific terms will be different for each possible case.
+
+\subsection{Main reference systems}\label{subsec:1-1-3}
+
+The implementation of RTOS common services mainly refers to the following systems:
+
+\begin{quote}
+RMProkaron (@EDI)
+
+FreeRTOS (@Real-Time Engineering LTD)
+
+Contiki (@The Contiki Community)
+\end{quote}
+
+\needspace{8\baselineskip}
+The design of the Contiki virtual machine monitor refers to the implementation of the following systems:
+
+\begin{quote}
+Nova (@TU Dresden)
+
+XEN (@Cambridge University)
+
+KVM (@The Linux Foundation)
+\end{quote}
+
+The references and reference materials for the other chapters are listed in that chapter.
+
+\section{Preface}\label{sec:1-2}
+
+As a virtual machine monitor, RVM relies on the kernel services provided by the underlying RME operating system to maintain operation. RVM adopts paravirtualization technology to minimize virtualization overhead, typically adding only about 1\% of CPU overhead.
+
+RVM fully supports low-power technology, and can enable each partition of the virtualized system to operate without ticks, minimizing power requirements.
+
+For RME native process applications, the response time is comparable to that of a small RTOS on the level of FreeRTOS, and can fully satisfy those applications with the most stringent real-time requirements.
+
+For RVM hosted virtual machines\footnote{see the classification of virtual machines below}, the interrupt response time and thread switching time will increase to about 4 times those of the original small RTOS. It is worth noting that RVM itself does not provide any POSIX support; POSIX support depends on the ported operating system itself. Fortunately, many RTOSes have POSIX support, so virtualizing them directly allows their POSIX functionality to be used.
+
+In a full-featured configuration, RME and RVM together occupy a minimum of 16kB of memory\footnote{in this case 4 virtual machines can be supported; if 128kB of memory is allocated, 32 virtual machines can be supported}, plus a fixed occupation of 48kB of program memory, and are suitable for mid-to-high-performance microcontrollers. In addition, if multiple RVM virtual machines use components such as network protocol stacks at the same time, using this technology can even save memory, because shared components such as network protocol stacks can be created as only one copy in the system, and the underlying switching code and management logic of multiple operating systems are completely abstracted out, so there is only one copy in the system.
+
+Here we review the types of virtualization. In this manual, we classify virtual machines into three categories according to their running platform, called native (type I), hosted (type II) and container-based (type III) respectively. At the same time, according to the different ways in which virtual machines support virtualization, they can be further divided into full
+virtualization (Full
+Virtualization, FV) and paravirtualization (Para-Virtualization, PV). These two classification methods are independent of each other.
+
+\subsection{Native virtual machine monitor}\label{subsec:1-2-1}
+
+A native virtual machine monitor runs directly on the hardware as underlying software, creating multiple instances of physical machines; it is also called a type I virtual machine monitor. Multiple virtual machines run on these instances of physical machines. The advantage of this type of virtual machine monitor lies in high performance and low overhead, but the disadvantage is that it does not have virtual machine management functions itself and requires domain 0\footnote{that is, the first-started virtual machine with management privileges} to manage other virtual machines, and it cannot run lightweight ordinary processes like a conventional operating system. Such virtual machine monitors include KVM\footnote{KVM blurs the boundary between native and hosted, and strictly speaking does not belong to either category}, Hyper-V, VMware ESXi Server, Xen, XtratuM, etc.
+
+\subsection{Hosted virtual machine monitor}\label{subsec:1-2-2}
+
+A hosted virtual machine monitor runs on the operating system as an application, creating multiple instances of physical machines; it is also called a type II virtual machine monitor. Multiple virtual machines run on these instances of physical machines. The advantage of this type of virtual machine lies in being system-independent, having certain management functions itself, and allowing their virtual machine processes to be scheduled together with other ordinary host processes, so it has been most widely applied, but its efficiency is generally considered to be somewhat lower than that of the native type. Such virtual machine monitors include VMware Workstation, Virtual Box, QEMU\footnote{excluding its KVM version}, etc. RVM is an application developed on RME, and its virtual machines also run on RME as processes, so it also belongs to the hosted virtual machine monitor category.
+
+\subsection{Container-based virtual machine monitor}\label{subsec:1-2-3}
+
+The container-based virtual machine monitor is a function provided by the operating system itself, creating multiple isolated independent instances of operating system resource allocation spaces; strictly speaking it does not belong to virtual machine monitors, but because it also has a certain resource partitioning function, it is called a type III virtual machine monitor on some occasions. Multiple applications run directly on these resource allocation space instances. Generally speaking, this type of virtual machine monitor has the highest performance and the lowest memory and time overhead for virtualization, but it requires that applications must be written for the interface it provides. Generally speaking, this interface is consistent with the operating system's own system calls, while other interfaces are not compatible, so its universality is very poor. Such virtual machine monitors include Docker, Pouch, RKT, LXC, etc. When the performance overhead caused by RVM is considered inappropriate, since the RME operating system itself also natively has the capability of a container-based virtual machine monitor, it is also possible not to use RVM and instead use the user-mode library it provides to develop native container-based virtual machine applications. In fact, if no virtual machine is declared in the RVM configuration file, RVM's virtualization function will be automatically removed from the system at compile time to adapt to extremely resource-constrained environments\footnote{such as environments like Cortex-M0+ with RAM around 20KiB}.
+
+\subsection{Full virtualization virtual machine monitor}\label{subsec:1-2-4}
+
+A full virtualization virtual machine monitor is a virtual machine monitor capable of creating hardware instances completely identical to the original bare metal. Generally speaking, this requires the intervention of an MMU for address translation, and privileged instructions must be handled by binary translation, trap redirection or dedicated hardware\footnote{such as Intel VT-x, AMD AMD-V, etc.}, and I/O also requires special hardware functions\footnote{such as Intel VT-d, etc.} for redirection. Such virtual machines are difficult to implement in an MCU environment, because microcontrollers usually do not provide an MMU, nor do they provide corresponding virtualization hardware for redirection functions. Such virtual machine monitors include VMware Workstation, Virtual Box, QEMU, KVM, Hyper-V, ESX Server, etc.
+
+\subsection{Paravirtualization virtual machine monitor}\label{subsec:1-2-5}
+
+A paravirtualization virtual machine monitor is a virtual machine monitor that creates hardware instances somewhat different from the original bare metal. It uses hypercalls (Hypercall) to handle privileged instructions and special I/O, thereby avoiding those complex and unnecessary details that full virtualization must provide. Such virtual machines can be implemented with relatively high performance in the MCU environment. Such virtual machine monitors include Xen, etc. RVM is also a paravirtualization virtual machine monitor, handling system functions through hypercalls.
+
+\section{Manual overview}\label{sec:1-3}
+
+This manual explains the basic composition and operating principles of RVM from the user's perspective, and assumes that the reader has a general understanding of the basic concepts of virtualization. In this manual, the ``rvm\_'' prefix before all typedef types is omitted.
+
+The first part of this manual is \protect\hyperref[sec:2-1]{Chapter 2}.
+In this chapter, the architecture of RVM will be outlined; detailed reading is recommended.
+
+The second part of this manual is Chapters 3 to 5. In these chapters, the technical details of RVM will be described in detail respectively; consultation as needed is recommended. Among them, \protect\hyperref[sec:3-1]{Chapter 3}
+introduces detailed information about native processes, \protect\hyperref[sec:4-1]{Chapter 4}
+introduces detailed information about virtual machines, and \protect\hyperref[sec:5-1]{Chapter 5}
+introduces detailed information about the project generator.
+
+The third part of this manual is \protect\hyperref[ch:6-using-rvm]{Chapter 6}.
+In this chapter, the usage of RVM and its project generator will be described in detail from the user's perspective; detailed reading is recommended.
+
+The last part of this manual is \protect\hyperref[sec:8-1]{Chapter 8}.
+In this chapter, how to port RVM to a new architecture will be described in detail. If the user does not need to perform porting, there is no need to read this chapter.
+
+\needspace{12\baselineskip}
+\section{References for this chapter}\label{sec:1-4}
+
+\begin{enumerate}
+\def\labelenumi{{[}\arabic{enumi}{]}}
+\item
+  \protect\phantomsection\label{cite:1-1}
+  P. Patel, M. Vanga, and B. B. Brandenburg, ``TimerShield: protecting
+  high-priority tasks from low-priority timer interference,'' in
+  \textit{Proceedings of the IEEE Real-Time and Embedded Technology and
+  Applications Symposium (RTAS)}, 2017, pp. 3--12.
+\item
+  \protect\phantomsection\label{cite:1-2}
+  A. Dunkels, B. Gronvall, and T. Voigt, ``Contiki---a lightweight and
+  flexible operating system for tiny networked sensors,'' in
+  \textit{Proceedings of the 29th Annual IEEE International Conference
+  on Local Computer Networks}, 2004, pp. 455--462.
+\end{enumerate}

@@ -1,0 +1,335 @@
+\chapter{Using the RVM in a Project}\label{ch:6-using-rvm}
+
+\section{Overview}\label{sec:6-1}
+
+This chapter describes the general workflow for using the RVM and its project generator in a project. The workflow first divides functionality into protection domains, then writes the project description file to reflect this division, and finally makes certain adjustments to the generated project to add behavior details.
+
+Due to space limitations, this chapter describes only the settings of some important configuration items; for other configuration items, please refer to the preceding chapters.
+
+\section{Dividing Software Components into Protection Domains}\label{sec:6-2}
+
+Unlike bare-metal development, in a project that uses the RVM, each software component is assigned to a different protection domain, and the permissions of each protection domain are restricted to constrain the behavior of the software within it. Once one protection domain crashes due to a coding fault, the remaining protection domains keep running and are not disturbed; even if a protection domain is hijacked by a hacker, the hacker can obtain only the permissions of that protection domain and cannot control the entire system.
+
+Deciding how to divide the components of the software into appropriate protection domains is crucial. At least the following three aspects must be considered: (1) the granularity of component division, (2) the requirements of components for compatibility and real-time performance, and (3) the requirements of components for device access. To better control system performance, it is recommended to first run various benchmarks on the target microcontroller, and after the tests are completed, decide the component division granularity according to the cost of each operation.
+
+\subsection{Granularity of Component Division}\label{subsec:6-2-1}
+
+The granularity of component division refers to the size of an individual component. In theory, any software is infinitely divisible, down to the level of a single instruction, and the finer the division granularity, the better the protection effect\footnote{A protection domain divided to the extreme is roughly equivalent to data-flow security}. However, the finer the division granularity, the more cross-protection-domain communication there is, and cross-protection-domain communication has a cost\footnote{These costs can be seen in benchmarks}. Therefore, it is recommended to divide components into an appropriate size to avoid this overhead as much as possible. A reasonable component division must satisfy the principle of high cohesion and low coupling: the internal connections within a component should be tight, while the connections between components should be sparse. In other words, a component should be responsible for one function that cannot be or is difficult to split, all states and logic of that function should be located within the component, and the interfaces that the component provides to other components should be concise and easy to use.
+
+At the start of the division, each independent function of the software can be divided into components as finely as possible, and then one can observe whether there is tight coupling of control flow and data flow in the division. Tightly coupled components have one of the following characteristics:
+
+1.
+The frequency of mutual invocation between the two components is far higher than the average level of other components, for example, repeatedly calling another component within a computation loop; once the two components are placed in separate protection domains, their communication overhead becomes intolerable.
+
+2.
+The two components share a data structure, and both may initiate write operations on that data structure that are difficult to isolate and difficult to make atomic, such as graph transformation operations, data sorting, etc.; placing the two components in separate protection domains is meaningless, because a crash of one component inevitably leaves the data structure incomplete, thereby causing the other component to crash.
+
+3.
+The two components can be regarded as a split of a natural function that is better described as a whole, and after merging, the description of the component becomes more concise instead; if this is the case, assigning the two components to separate protection domains may be of limited significance, because they are not a single logical function and do not need independent recovery capability after a crash.
+
+If such tight coupling is found in the existing division, the two components can be merged into one component; when all tightly coupled components have been merged, the result is a reasonable component partition. If performance still falls short of expectations after the initial consolidation, components can continue to be merged until a good trade-off between security and performance is obtained.
+
+\subsection{Requirements of Components for Compatibility and Real-Time Performance}\label{subsec:6-2-2}
+
+After the division of components into protection domains is completed, the form of the protection domains must be further decided. The RVM provides two kinds of protection domains, namely native processes and virtual machines, each with its own advantages and disadvantages.
+
+In terms of compatibility, native processes must be programmed using RME native system calls, and their compatibility with other runtime environments is poor, so manual porting is required if such an environment is to be used; virtual machines, by contrast, can flexibly use any guest RTOS and are directly compatible with the entire ecosystem of that RTOS. In terms of real-time performance, native processes do not need the virtual machine monitor as an intermediary, so cross-protection-domain communication performs better and interrupt latency is lower, allowing performance comparable to a bare-metal RTOS; virtual machines are the opposite: cross-protection-domain communication requires mediation by the virtual machine monitor, and the interrupt latency is approximately 3-4 times that of bare metal.
+
+Several common examples are described in the table below.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=1.0000\hsize\raggedright\arraybackslash}X>{\hsize=1.0000\hsize\raggedright\arraybackslash}X>{\hsize=1.0000\hsize\raggedright\arraybackslash}X>{\hsize=1.0000\hsize\raggedright\arraybackslash}X@{}}
+\caption{Examples of Component Division}\label{tab:6-1}\\
+\toprule
+Component Name & Component Division & Reason & Representative Software\tabularnewline
+\endfirsthead
+\toprule
+Component Name & Component Division & Reason & Representative Software\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Keyed remote-control code decoding\strut
+ & Native process\strut
+ & Requires high real-time performance, the code is simple, and accurate timer ticks are needed.\strut
+ & PT2262/PT2272 decoding
+
+38kHz infrared decoding\strut
+\tabularnewline
+Electric drive driver\strut
+ & Native process\strut
+ & Requires high real-time performance, the code is simple, and does not depend on an RTOS.\strut
+ & Stepper/servo motor driver
+
+Inverter switching transistor control driver\strut
+\tabularnewline
+Single-wire bus driver\strut
+ & Native process\strut
+ & Requires high real-time performance, the code is simple, and does not depend on an RTOS.\strut
+ & DS18B20
+
+ATECC608A\strut
+\tabularnewline
+Audio bus driver\strut
+ & Native process\strut
+ & Requires high real-time performance, the code is simple, and the audio buffer must be refreshed in time.\strut
+ & Various I2S sound card drivers
+
+Various SPDIF output drivers\strut
+\tabularnewline
+Ladder diagram executor & Native process &
+Although the code is complex, it is usually strictly reviewed and needs to be executed periodically, so it must be ported to a native process.
+& OpenPLC\tabularnewline
+Network protocol stack\strut
+ & Virtual machine\strut
+ & The real-time requirement is not high, but the internal logic is relatively complex and requires RTOS support.\strut
+ & LwIP
+
+uIP\strut
+\tabularnewline
+Graphical user interface\strut
+ & Virtual machine\strut
+ & The real-time requirement is not high, and it may depend on RTOS support.\strut
+ & uC/GUI
+
+LVGL\strut
+\tabularnewline
+File system\strut
+ & Virtual machine\strut
+ & The real-time requirement is not high, and it may depend on RTOS support.\strut
+ & ElmChan-FatFS
+
+Yaffs\strut
+\tabularnewline
+Script interpreter\strut
+ & Virtual machine\strut
+ & The real-time requirement is not high, and it may depend on RTOS support.\strut
+ & Micropython
+
+Lua\strut
+\tabularnewline
+Serial memory driver\strut
+ & Virtual machine\strut
+ & Although this driver is simple, its real-time requirement is not high, so it can be placed in a virtual machine.\strut
+ & AT24C02 driver
+
+W25Q64 driver\strut
+\tabularnewline
+\end{xltabular}
+
+\subsection{Requirements of Components for Device Access}\label{subsec:6-2-3}
+
+Some driver components may need to access devices, so the devices must be exposed to the protection domain in which the component resides. The most common and simplest approach is (1) to make only the required devices visible to the protection domain, which can be achieved by adding the device's memory mapping to the memory description of that protection domain. If (2) multiple protection domains all need to use the same device, the device driver can be encapsulated in a separate protection domain, and other protection domains can delegate transfers to it.
+
+For some devices with strong autonomy, using approach (1) to expose them directly to untrusted protection domains would lead to major information security risks. Although code inside a protection domain is incapable of breaking through the space-time protection domain, it can configure these autonomous devices and use them as a springboard to access arbitrary memory addresses, or generate high-frequency interrupts to launch a denial-of-service attack. The most common devices of this kind are direct memory access (Direct
+Memory
+Access, DMA) and timers; malicious code can manipulate the former to modify kernel space, or manipulate the latter to generate high-frequency interrupts.
+
+For hardware such as DMA that autonomously accesses memory, the recommended approach is to hand it over to a separate trusted protection domain; when other protection domains need to use DMA, they must delegate it to the trusted protection domain. Although this increases DMA latency, it guarantees that DMA cannot be exploited to break the isolation boundary. Of course, if the microcontroller has an input/output memory protection unit (I/O
+Memory Protection
+Unit, IOMPU), this can also be used to limit the access range of DMA, in which case a separate trusted protection domain is not needed.
+
+For hardware such as timers that autonomously initiate high-frequency interrupts, in addition to handing it over to a trusted protection domain, one can also throttle (Throttle) the number of interrupts in its interrupt vector, shutting it off once the interrupt frequency is found to be too high, until the user enables the interrupt again. Of course, if the microcontroller has hardware throttling capability, this can also be used to limit the interrupt frequency.
+
+\section{Dividing Interrupt Vectors into Protection Domains}\label{sec:6-3}
+
+The RVM's interrupt distribution chain starts at the kernel and goes all the way down into the virtual machine. On this chain, the closer a part is to the kernel, the better its real-time performance and the higher the interrupt frequency it supports, but the lower its security and the higher the reliability requirements on the interrupt vector. Therefore, for an interrupt vector of a particular frequency, an appropriate position must be chosen for it. This subsection classifies interrupts into four categories according to occurrence frequency: low frequency, medium frequency, high frequency, and ultra-high frequency, as shown in the table below\footnote{Although some interrupt sources have a low frequency, they require very low latency; in this case, their frequency should be calculated based on latency; for example, if an interrupt occurs once every millisecond but must be responded to within 1 microsecond after it occurs, its interrupt frequency should be treated as 1MHz}.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=1.0000\hsize\raggedright\arraybackslash}X>{\hsize=1.0000\hsize\raggedright\arraybackslash}X>{\hsize=1.0000\hsize\raggedright\arraybackslash}X>{\hsize=1.0000\hsize\raggedright\arraybackslash}X>{\hsize=1.0000\hsize\raggedright\arraybackslash}X@{}}
+\caption{Classification of Interrupts by Occurrence Frequency}\label{tab:6-2}\\
+\toprule
+Category & Occurrence Frequency & Interval Time & Representative Interrupt Sources & Recommended Division Method\tabularnewline
+\endfirsthead
+\toprule
+Category & Occurrence Frequency & Interval Time & Representative Interrupt Sources & Recommended Division Method\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Low frequency & Within 1kHz & More than 1 millisecond; more than 100k cycles & Touch screen interrupt &
+Virtual machine interrupt/thread\tabularnewline
+Medium frequency & 1-10kHz & 1 millisecond-100 microseconds; more than 10k cycles & IIC communication interrupt &
+Within a native process\tabularnewline
+High frequency & 10-100kHz & 10 microseconds-100 microseconds; more than 1k cycles & SPI communication interrupt &
+Kernel-perceptible interrupt\tabularnewline
+Ultra-high frequency & Above 1MHz & Less than 1 microsecond; within 100 cycles &
+Ultra-high baud rate\footnote{1M and above} serial port interrupt & Kernel-transparent interrupt\tabularnewline
+\end{xltabular}
+
+\subsection{Low-Frequency Interrupt Vectors}\label{subsec:6-3-1}
+
+This kind of interrupt vector has very low performance requirements, so it can remain inside the virtual machine. For ported code, the overall structure needs no changes; it is only necessary to move the interrupt acknowledgement handling into the kernel, while the bulk of the interrupt can remain inside the virtual machine; when handled this way, the interrupt latency is generally several thousand machine cycles, that is, around a dozen microseconds. These interrupts are generally generated by human-machine interaction devices or communication devices with buffers, and good results can be achieved without very aggressive response times.
+
+In terms of security, the execution of this kind of interrupt vector is fully governed by the virtual machine monitor, and no matter what error occurs, it will not cause any impact outside the virtual machine.
+
+\subsection{Medium-Frequency Interrupt Vectors}\label{subsec:6-3-2}
+
+This kind of interrupt vector has certain performance requirements, and leaving it inside the virtual machine may cause interrupts to be lost. Therefore, moving it into a native process is necessary; when handled this way, the interrupt latency is generally several hundred machine cycles, that is, around a few microseconds. Specifically, the vector can be declared in a native process; the project generator will generate the handling stub corresponding to this vector in the kernel and generate the signal endpoint corresponding to this vector in the native process. Interrupt acknowledgement must be performed in the handling stub, and when the stub returns, indicate RME\_RVM\_VCT\_SIG\_SELF to send a signal only to its dedicated endpoint. The endpoint in the native process then receives this signal and unblocks the interrupt vector.
+
+In terms of security, the execution of this kind of interrupt vector is still restricted by the protection domain provided by the kernel, but is no longer fully governed by the virtual machine monitor; it has only confidentiality and does not have integrity or availability, so its code must be reviewed to ensure that no security vulnerabilities are introduced.
+
+\subsection{High-Frequency Interrupt Vectors}\label{subsec:6-3-3}
+
+This kind of interrupt vector imposes quite high performance requirements, and leaving it in any protection domain is impossible, because the interrupt latency to a protection domain requires at least several microseconds. Therefore, the most critical part of such interrupt vectors can only be placed in the kernel, and the processing of the non-critical part is deferred by sending a signal to a native process or sending an event to a virtual machine; when handled this way, the interrupt latency is generally several dozen machine cycles, that is, around a few hundred nanoseconds, but the entire interrupt vector may run for several hundred machine cycles in order to complete sending to the signal endpoint; if another interrupt vector is executing when this interrupt occurs, the interrupt must wait until the previous interrupt vector finishes executing, causing a delay of several hundred machine cycles.
+
+In terms of security, this kind of interrupt vector is not subject to any restriction. If the code is not strictly reviewed, it will lead to serious functional and information security problems.
+
+\subsection{Ultra-High-Frequency Interrupt Vectors}\label{subsec:6-3-4}
+
+This kind of interrupt vector often imposes extreme requirements on both response time and occurrence frequency, so much so that any signal endpoint send from within it is impossible; otherwise, on the one hand the latency would exceed the limit, and on the other hand CPU occupancy would be too high, and user mode might even be unable to execute, losing the meaning of delivering signals to user mode. Sometimes these interrupts must also be able to preempt any execution in the system, including kernel execution, to ensure a fixed latency. In this case, the only option is to make these interrupt vectors transparent interrupts and give them a preemption priority higher than the kernel\footnote{The preemption priority of a transparent interrupt is}: on entry they push only those registers that are caller-saved in the calling convention, then immediately begin executing C code, and after completion they immediately pop and exit without notifying the kernel; when handled this way, the interrupt latency is generally several dozen machine cycles, that is, around a few hundred nanoseconds, and the running time of the entire interrupt vector can also be made less than one hundred machine cycles, achieving bare-metal-level responsiveness.
+
+To enable ultra-high-frequency interrupts to somehow notify user mode when they occur, a separate perceptible interrupt vector can be set up, triggered through a software interrupt\footnote{Such as the STIR register trigger method on ARMv7-M} when this interrupt vector exits, and it can notify the kernel on behalf of this vector. Of course, considering the ultra-high frequency of the interrupts, the frequency of triggering the perceptible interrupt cannot be too high; otherwise the perceptible interrupt would consume the entire CPU; in this case, cumulative counting or rate limiting can be applied to the interrupts, so that multiple ultra-high-frequency interrupts correspond to only one perceptible interrupt trigger.
+
+In terms of security, this kind of interrupt vector is not subject to any restriction. If the code is not strictly reviewed, it will lead to serious functional and information security problems.
+
+\section{Choosing a Communication Method Between Protection Domains}\label{sec:6-4}
+
+The RVM provides three communication methods between protection domains, namely invocation, signal endpoints, and event sources. Among them, invocation and signal endpoints can only be used between native processes, while event sources are suitable for communication between native processes and virtual machines and between virtual machines and virtual machines. This subsection introduces the recommended communication method case by case.
+
+\subsection{Tightly Coupled Native Processes}\label{subsec:6-4-1}
+
+For tightly coupled, performance-sensitive communication between native processes, invocation is recommended; it allows a thread in one process to migrate into another process to run, and both on entry (RVM\_Inv\_Act) and on return (RVM\_Inv\_Ret) a small amount of data can be carried in the register set, without the need to transfer it through shared memory. It is the fastest, but it may cause concurrent access within the target process: after an old thread migrates into the target process, its access to data structures may be interrupted by a new thread selected by the scheduler; at this time the new thread can also migrate into the target process and initiate a synchronous access before the old thread's access ends.
+
+Therefore, if invocation is to be used, the possible concurrency must be handled by oneself: add locks, or use reasonable lock-free data structures.
+
+\subsection{Loosely Coupled Native Processes}\label{subsec:6-4-2}
+
+For loosely coupled, performance-insensitive communication between native processes, signal endpoints and shared memory are recommended. A signal endpoint itself has serialization capability; even if the sending side (RVM\_Sig\_Snd) has multiple threads, the receiving side (RVM\_Sig\_Rcv) can still be a single thread, which can greatly simplify communication programming.
+
+It is worth noting that a signal endpoint has only receiving-side single-thread blocking capability, but does not have sending-side blocking capability, nor receiving-side multi-thread blocking capability. Fortunately, these missing capabilities can be implemented using native signal endpoints: if sending-side blocking is required, a receive endpoint can be prepared for each sending thread, and after the receiving side completes the service and returns the result, it returns a signal to the corresponding sender endpoint, causing the sender to unblock; if receiving-side multi-thread blocking capability is required, multiple receive endpoints can be used, and the sending side can determine whether a receiving thread is busy before sending in order to decide which receiving thread to wake. Of course, this can also be achieved by cleverly arranging the priorities of the server and the clients: if the server's priority is higher than that of the clients\footnote{and they are all located on the same CPU, which is naturally satisfied for the RVM}, then once the server is woken, the clients naturally block immediately, and the above two problems are readily solved; moreover, a client can indicate its own identity by the number of signals it sends.
+
+\subsection{Native Processes and Virtual Machines}\label{subsec:6-4-3}
+
+Communication from a native process to a virtual machine and from a virtual machine to a native process must be implemented through signal endpoints. Sending from a virtual machine to a native process is no different from sending between native processes: a sending endpoint exists in the virtual machine and a receiving endpoint exists in the native process; once a send is initiated on that sending endpoint in the virtual machine, the thread on the receiving endpoint in the native process is unblocked. However, sending from a native process to a virtual machine is different: the receiving virtual machine must register its virtual interrupt with an event source (RVM\_Hyp\_Vct\_Evt) in its startup code, then lock the virtual machine's permission settings (RVM\_Hyp\_Vct\_Lck) to prevent subsequent tampering\footnote{Since the virtual machine is forced to run a segment of user-customized trusted startup code on every restart to perform authorization and locking, self-authorization is safe}, and finally bind the corresponding interrupt vector entry to that virtual interrupt (RVM\_Virt\_Vct\_Reg)\footnote{the internal interrupt vector entry}; a native process, by contrast, can send to any event source (RVM\_Prc\_Evt\_Snd)\footnote{This does not break the availability of the virtual machine, because all native processes inherently have higher priority than virtual machines}. Once the sending native process sends a signal, the virtual interrupt of the receiving virtual machine is triggered.
+
+\subsection{Virtual Machines and Virtual Machines}\label{subsec:6-4-4}
+
+Communication between virtual machines is also carried out through event sources. The sending virtual machine can first grant itself the permission to send to an event source (RVM\_Hyp\_Evt\_Add), and then lock the virtual machine's permission settings. The receiving side registers its virtual interrupt with the event source in its startup code, then likewise locks the virtual machine's permission settings, and finally binds the corresponding interrupt vector entry to that virtual interrupt.
+
+\section{Pre-Generation Settings}\label{sec:6-5}
+
+Before generating a project, sufficient valid information must be provided to the project generator. For the use of the project generator, please refer to \protect\hyperref[sec:5-1]{Chapter 5}
+; this subsection only introduces the points to note when filling in the various settings.
+
+\subsection{General Settings}\label{subsec:6-5-1}
+
+This subsection introduces the recommended method for the project's general settings.
+
+\subsubsection{Setting Basic Options}\label{subsubsec:6-5-1-1}
+
+``Basic Options'' includes three items: ``Project Name'', ``Enable Assertions'', and ``Enable Debug Printing'', of which ``Project Name'' can be decided as needed. ``Enable Assertions'' enables the kernel's internal stricter boundary condition checks, and ``Enable Debug Printing'' outputs information on the debug printing port. The debug printing port is generally a serial port, and this serial port is specified in the chip's RME startup header file.
+
+\subsubsection{Setting the Workspace}\label{subsubsec:6-5-1-2}
+
+``Workspace'' includes ``Workspace Build System'' and ``Workspace Output Overwrite''. These two items control whether a unified workspace is generated and whether that workspace needs to be overwritten. The location of the ``Workspace'' is specified on the generator's command line or in the settings of its graphical interface.
+
+Many build systems, such as Keil and Makefile, can generate a top-level workspace; once a build is ordered in the top-level workspace, the builds of the individual sub-workspaces start simultaneously. To use this feature, a build system must be selected in ``Workspace Build System'', and the build systems of the kernel, virtual machine monitor, native processes, and virtual machines in the subsequent configuration files must all be the same as this one; otherwise, only ``None'' can be selected for this item, that is, no unified high-level workspace build system is generated.
+
+``Workspace Output Overwrite'' refers to whether, when the entire project is regenerated, the old versions of the workspace files should be overwritten with the newly generated workspace files. If the old versions of the files already contain some modifications that the user wishes to keep, the user can choose not to overwrite; in fact, this is also the default option provided by the graphical interface configurator. The ``Output Overwrite'' option also applies to some other options in this chapter; at those options we will point out that they also have an ``Output Overwrite'' option, without further explaining the intent of that option.
+
+\subsubsection{Setting Chip Information}\label{subsubsec:6-5-1-3}
+
+``Chip Information'' includes the chip's ``Architecture'', ``Category'', and ``Name'', as well as the configuration items of the specific chip. Taking STM32F767IGT6 as an example, its architecture is ARMv7-M, so the architecture should be ``A7M''; the type is ``STM32F767'', and the specific full chip name is ``STM32F767IGT6''. The reason for separating ``Category'' and ``Name'' into two setting items is that some chips are very similar in hardware configuration and differ only in package\footnote{Package differences are generally reflected in the suffix}; there is no need to separate them into different categories, because each category corresponds to an independent chip description file. Chip information
+
+After the chip is selected, the coprocessors to be enabled, as well as some other parameters, must also be decided. ``Coprocessor'' generally refers to a floating-point processor; for example, the Cortex-M7 core of the STM32F767 has three coprocessor instruction sets, FPV4\_SP, FPV5\_SP, and FPV5\_DP. The selected coprocessors will be enabled in the project; coprocessors not selected here are not allowed to be used in any process or virtual machine.
+
+``Other Parameters'' follow no fixed rule, but generally include at least the timer timeout value setting. ``Timer Timeout Value'' refers to the number of counting periods of the RME kernel system tick timer; once this number of timer periods has elapsed, a clock interrupt is generated. In general, it is recommended to set this value so that interrupts occur less often than once per millisecond, so that the interrupt frequency is not too high and does not consume a large amount of system performance. Taking STM32F767 as an example, its main frequency is 216MHz, so the timer timeout value should be set to at least 216000. The maximum timer period can be relaxed all the way to the minimum time granularity required by the system: assuming that all delay times in the system are in units of 10 milliseconds, the timer timeout value can be set to 10 milliseconds to minimize system overhead.
+
+\subsubsection{Setting Off-Chip Memory}\label{subsubsec:6-5-1-4}
+
+``Off-Chip Memory'' refers to the external memory of the microcontroller. Some microcontrollers have an off-chip memory interface, and such off-chip memory can be accessed directly by memory access instructions just like on-chip memory. Since off-chip memory is not in the chip description file, if the project generator is to know of its existence, it must be declared separately here.
+
+Some chips have no on-chip ROM/RAM; in this case all ROM/RAM is off-chip memory, which needs to be added separately at this location when creating the project so that it can be used in subsequent configuration.
+
+\subsubsection{Setting Shared Memory}\label{subsubsec:6-5-1-5}
+
+``Shared Memory'' refers to device memory that multiple protection domains have permission to access. Their base addresses and lengths, as well as the maximum possible permissions, must be declared in the shared memory list before they can be referenced in the shared memory lists of the various protection domains, so that each relevant protection domain is able to access that region of shared memory. The permissions at the time of reference must be a subset of the maximum permissions; this means that even for the same region of shared memory, different protection domains may have different access permissions to it.
+
+The name of each shared memory region must be specified for later reference; except that the base address of device-segment memory must be specified manually and its alignment must be ``Auto'', the base addresses and alignments of the other categories of memory can all be decided by the project generator itself.
+
+\subsubsection{Setting the Page Table Mode}\label{subsubsec:6-5-1-6}
+
+If memory permissions are not modified throughout the process\footnote{This is the case in the vast majority of situations where the project generator is used}, and dynamically mapped pages are not used\footnote{The memory declared by each protection domain}, the ``Enable Fixed Bare Page Table'' switch can be turned on to remove the page table logic from the kernel; in this case, the page table is replaced by a fixed MPU data table in ROM, saving the space occupied by the page table data structures and management code.
+
+\subsection{Kernel Settings}\label{subsec:6-5-2}
+
+This subsection introduces the recommended settings for the RME kernel.
+
+\subsubsection{Adding Memory}\label{subsubsec:6-5-2-1}
+
+The kernel needs one code-segment memory and one data-segment memory to hold itself. The start address of the code segment is recommended to be placed at the beginning of the on-chip ROM address space, where the interrupt vector table is generally also stored. The size of the code segment only needs to be enough to hold the kernel and pass linking. The start address of the data segment is likewise recommended to be placed at the beginning of the on-chip RAM address space\footnote{If the chip has tightly-coupled memory (Tightly-Coupled
+  Memory, TCM), it is recommended to place it there to maximize performance}, and its size only needs to be sufficient to pass compilation. The data segment contains, in addition to the kernel's own fixed data structures, kernel objects, kernel stacks, and so on, but these structures have already been taken into account by the generated linker script; as long as linking passes, the amount of RAM allocated is appropriate.
+
+To simplify the user's mental model and improve system reliability, in all official standard ports, RME always disables the memory protection unit during execution and thus uses the default memory mapping attributes\footnote{That is, the mapping attributes used by classic bare-metal programs; for example, in ARMv7-M, on-chip memory starting at 0x2000000 is RWBXCS by default}. The user must ensure that the code segment and data segment are usable under the default mapping and have appropriate permissions and cache attributes; this holds for the on-chip memory of all current microcontrollers\footnote{To facilitate bare-metal programming, manufacturers usually design the default memory mapping attributes this way}.
+
+\subsubsection{Kernel Parameter Settings}\label{subsubsec:6-5-2-2}
+
+``Kernel Stack Size'' is the size of the stack used by the kernel. Setting this value to 1kB is generally sufficient; if the custom interrupt top half occupies too large a stack, it can be changed to 4kB.
+
+``Extra Kernel Object Memory Size'' is generally configured as 0, unless kernel objects need to be created manually; this is only needed for full customization.
+
+``Kernel Memory Allocation Granularity'' is the power of 2 used as the granularity when kernel objects are created. The larger the granularity, the coarser the allocation, but the smaller the space occupied by the kernel memory registry table that records whether a block of memory is allocated. Common kernel objects are mostly within 16 bytes.
+
+For small systems, setting it to 3 is recommended, in which case kernel memory is allocated at a granularity of 8 bytes; for more complex situations that consume more kernel memory, it can be set to 4, in which case kernel memory is allocated at a granularity of 16 bytes to reduce the size of the kernel memory registry table; if the system is extremely complex, setting it to 5 or even 6 is also acceptable, in which case the granularity is 32 or 64.
+
+\subsubsection{Toolchain Settings}\label{subsubsec:6-5-2-3}
+
+In ``Toolchain Settings'', ``Toolchain'', ``Build System'', and ``Optimization Level'' can be set. ``Toolchain'' and ``Build System'' are linked; not all combinations of toolchain and build system can be selected. Once a toolchain is selected, only build systems compatible with it will appear in the build system options, and once the project is generated, it cannot be changed later. ``Optimization Level'' can be freely set to an appropriate level.
+
+\subsubsection{File Path Settings}\label{subsubsec:6-5-2-4}
+
+``File Path Settings'' sets the relative paths of various files. These relative paths are relative to the sub-project folders, which are created together when the project is created. If there are no special requirements, these paths can use the default values given in the project generator's graphical interface, and no changes are needed.
+
+\subsection{Virtual Machine Monitor Settings}\label{subsec:6-5-3}
+
+This subsection introduces the recommended settings for the RVM virtual machine monitor.
+
+\subsubsection{Adding Memory}\label{subsubsec:6-5-3-1}
+
+The virtual machine monitor also needs one code-segment memory and one data-segment memory to hold itself. However, unlike the kernel, the start addresses of its code segment and data segment are placed directly after the kernel, so only the sizes of its code segment and data segment can be configured; these sizes also only need to be sufficient to pass compilation, and as long as linking passes, the memory allocation is appropriate.
+
+To adapt to various microcontroller architectures, the virtual machine monitor itself always maps the entire address space with cacheable and bufferable attributes, including those potential device regions. This is not a problem, because the virtual machine monitor does not access any device\footnote{If the user actively inserts code that accesses devices into the virtual machine monitor's hooks, then memory access attributes must be noted; to reduce the user's mental burden, it is not recommended to access devices in the virtual machine monitor's hooks (such as filters for physical interrupt sources and event sources)}. However, the virtual machine monitor needs to access a region of kernel memory that holds the flag bits of interrupt sources and event sources, and this kernel memory uses background region attributes in the kernel. Therefore, the user must ensure that the kernel memory is also cacheable and bufferable under the background region attributes.
+
+\subsubsection{Virtualization Parameter Settings}\label{subsubsec:6-5-3-2}
+
+Unlike the kernel, the virtual machine monitor has three stack sizes to configure, namely ``Startup Daemon Thread Stack Size'', ``Safety Daemon Thread Stack Size'', and ``Virtual Machine Daemon Thread Stack Size'', which is because the virtual machine monitor consists of three threads. The ``startup daemon thread'' and the ``safety daemon thread'' have relatively simple responsibilities, and a 256B stack is generally sufficient; the virtual machine daemon thread, however, requires a stack of at least 512B. Where memory space is abundant, the stack budget can be doubled.
+
+``Number of Extra Capability Table Slots'' is generally configured as 0, unless kernel objects need to be created manually; this is only needed for full customization.
+
+``Enable Idle Sleep'' indicates that the virtual machine monitor's ``startup daemon thread'' puts the processor into sleep mode when idle. This item is generally set to Yes; if one does not wish to enter the low-power sleep state in order to minimize interrupt latency, ``No'' can be selected.
+
+``Number of Virtualization Priorities'' is generally configured as one machine word, because the processors supported by the RVM are at least 32-bit, and 32 priorities are sufficient for a typical virtualization system. If the virtualization feature is not used, this parameter can be configured as 0.
+
+``Number of Virtual Machine Event Sources'' and ``Number of Virtual Machine Vector Mappings'' can be configured as needed, however many are used. The number of event sources must be an integer multiple of the processor word size and cannot exceed 1024; the number of mappings has no such restriction. If the virtualization feature is not used, both can be configured as 0.
+
+\subsubsection{Toolchain Settings}\label{subsubsec:6-5-3-3}
+
+This setting is no different from the kernel setting; please refer to the relevant section on kernel settings.
+
+\subsubsection{File Path Settings}\label{subsubsec:6-5-3-4}
+
+This setting is not much different from the kernel setting; it is recommended to keep the default options unchanged.
+
+\subsection{Native Process Settings}\label{subsec:6-5-4}
+
+This subsection introduces the recommended settings for native processes.
+
+\subsubsection{Adding Private Memory}\label{subsubsec:6-5-4-1}
+
+A native process's private memory includes at least one code-segment memory, at least one data-segment memory, and any number of device-segment memories. At compile time, its code segment and data segment are always placed on the first code-segment memory and the first data-segment memory in the list, respectively. Except that the base address of device-segment memory must be specified manually and its alignment must be ``Auto'', the base addresses and alignments of the other categories of memory can all be decided by the project generator itself. If no name is specified, the memory region is an anonymous memory region, and the macros for its base address and length are unavailable.
+
+\subsubsection{Adding Shared Memory}\label{subsubsec:6-5-4-2}
+
+A native process may or may not contain shared memory. To reference shared memory, it is sufficient to fill in their names and their permissions in this process. For the settings of the base address, length, alignment, and maximum permissions of shared memory, see\protect\hyperref[subsubsec:6-5-1-5]{6.5.1.5}
+.
+
+\subsection{Virtual Machine Settings}\label{subsec:6-5-5}
+
+This subsection introduces the recommended settings for virtual machines.
+
+\subsubsection{Adding Private Memory}\label{subsubsec:6-5-5-1}
+
+Similar to a native process, a virtual machine's private memory also includes at least one code-segment memory, at least one data-segment memory, and any number of device-segment memories. At compile time, its code segment and data segment are likewise always placed on the first code-segment memory and the first data-segment memory in the list, respectively. However, because the register set memory of the Usr thread inside the virtual machine is shared with the kernel, the access attributes of the virtual machine's first data segment must be consistent with the default memory mapping attributes.
+
+\subsubsection{Adding Shared Memory}\label{subsubsec:6-5-5-2}
+
+The method for adding shared memory is the same as for native processes.

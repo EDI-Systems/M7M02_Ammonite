@@ -1,0 +1,714 @@
+\chapter{Native Process}\label{ch:3-native-process}
+
+\section{Introduction}\label{sec:3-1}
+
+Native processes run directly on top of the RME microkernel, so they run the fastest and with the smallest overhead. The RVM virtual machine monitor is only responsible for starting them with INIT, and cannot provide them with any services. Therefore, a native process can only use the system calls of RME itself, and cannot use RVM hypercalls. To make it convenient for users to use RME system calls, the user-mode library provided by RVM wraps them in C language interfaces. These interfaces are all thread-safe.
+
+The project generator can generate a project that contains native processes. A project can even contain only native processes; in this case the functionality of the application must be implemented directly with native processes.
+
+\section{Process Descriptor}\label{sec:3-2}
+
+Every native process (and virtual machine) has a process descriptor at its head, and this header records every possible entry point in the process. These entry points are recognized by the virtual machine monitor so that it can initialize its internal data structures. The composition of the process header is shown in the following table.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Structure of the process descriptor}\label{tab:3-1}\\
+\toprule
+Address (word) & Content\tabularnewline
+\endfirsthead
+\toprule
+Address (word) & Content\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+0 &
+Magic number; it is 0x49535953 for a native process and 0x56495254 for a virtual machine.\tabularnewline
+1 & The number N of entry table entries in the process header.\tabularnewline
+2 & Entry table entry 0.\tabularnewline
+3 & Entry table entry 1.\tabularnewline
+... & ...\tabularnewline
+N+1 & Entry table entry N-2.\tabularnewline
+N+2 &
+Entry N-1, which is fixed to hold the trampoline. On conventional architectures this entry is useless; on those architectures that restore the PC from the stack\footnote{e.g., ARMv7-M}, a trampoline is required, and this trampoline is responsible for jumping the program to the true entry point for execution. For a description of this trampoline, please refer to\protect8.2.6.2
+.\tabularnewline
+\end{xltabular}
+
+The project generator can generate this process descriptor, and of course it can also be filled in manually.
+
+\section{Registering a Native Process with the RVM}\label{sec:3-3}
+
+To register a native process with the RVM, the user must manually use RME system calls to create its capability table, page table, and all kernel objects that may be used inside it, and transfer the capabilities of all kernel objects usable inside the process into that process's capability table. When the permission relationships are very complex, this is very tedious and error-prone. The project generator can generate highly optimized data structures to complete the above flow automatically, greatly reducing the configuration burden. If this procedure needs to be done manually, the following two hook functions in rvm\_init.c can be rewritten, and each of the kernel objects can be created and initialized inside them respectively.
+
+\subsection{Kernel Object Creation Hook}\label{subsec:3-3-1}
+
+The user should create all kernel objects inside this hook.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Kernel object creation hook}\label{tab:3-2}\\
+\toprule
+Function prototype & void RVM\_\allowbreak{}Boot\_\allowbreak{}Kobj\_\allowbreak{}Crt(void)\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & void RVM\_\allowbreak{}Boot\_\allowbreak{}Kobj\_\allowbreak{}Crt(void)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Return value & None.\tabularnewline
+Parameters & None.\tabularnewline
+\end{xltabular}
+
+\subsection{Kernel Object Initialization Hook}\label{subsec:3-3-2}
+
+The user should initialize all kernel objects inside this hook.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Kernel object initialization hook}\label{tab:3-3}\\
+\toprule
+Function prototype & void void RVM\_\allowbreak{}Boot\_\allowbreak{}Kobj\_\allowbreak{}Init(void)\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & void void RVM\_\allowbreak{}Boot\_\allowbreak{}Kobj\_\allowbreak{}Init(void)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Return value & None.\tabularnewline
+Parameters & None.\tabularnewline
+\end{xltabular}
+
+\section{Macro Definitions That Should Exist in a Native Process}\label{sec:3-4}
+
+The following configuration macro definitions need to exist inside a native process; they are referenced by other files inside the native process. These macro definitions can be filled in by the project generator, or filled in manually by the user. The list of these macro definitions is as follows.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{List of macro definitions that should exist in a native process}\label{tab:3-4}\\
+\toprule
+Macro name & Purpose\tabularnewline
+\endfirsthead
+\toprule
+Macro name & Purpose\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+RVM\_\allowbreak{}VIRT\_\allowbreak{}LIB\_\allowbreak{}ENABLE\strut
+ & The enable macro of the paravirtualization library. Inside a native process it should be defined as 1.
+
+Example:
+
+\#define RVM\_\allowbreak{}VIRT\_\allowbreak{}LIB\_\allowbreak{}ENABLE (0U)\strut
+\tabularnewline
+RVM\_\allowbreak{}PREEMPT\_\allowbreak{}PRIO\_\allowbreak{}NUM\strut
+ & The number of priorities of the kernel. It should remain consistent with the configuration macro of the same name in RME.
+
+Example:
+
+\#define RVM\_\allowbreak{}PREEMPT\_\allowbreak{}PRIO\_\allowbreak{}NUM (4U)\strut
+\tabularnewline
+RVM\_\allowbreak{}PREEMPT\_\allowbreak{}VPRIO\_\allowbreak{}NUM\strut
+ & The number of virtual priorities of the virtual machine monitor. It should be consistent with the value in the virtual machine monitor configuration.
+
+Example:
+
+\#define RVM\_\allowbreak{}PREEMPT\_\allowbreak{}VPRIO\_\allowbreak{}NUM (32U)\strut
+\tabularnewline
+RVM\_\allowbreak{}KOM\_\allowbreak{}SLOT\_\allowbreak{}ORDER\strut
+ & The granularity order of kernel memory allocation. It should remain consistent with the configuration macro of the same name in RME.
+
+Example:
+
+\#define RVM\_\allowbreak{}KOM\_\allowbreak{}SLOT\_\allowbreak{}ORDER (4U)\strut
+\tabularnewline
+RVM\_\allowbreak{}ASSERT\_\allowbreak{}ENABLE\strut
+ & Controls whether assertions pass by default. If it is defined as 0, assertions are no longer checked.
+
+Example:
+
+\#define RVM\_\allowbreak{}ASSERT\_\allowbreak{}ENABLE (1U)\strut
+\tabularnewline
+RVM\_\allowbreak{}DBGLOG\_\allowbreak{}ENABLE\strut
+ & The switch that controls debug printing. If it is defined as 0, debug printing is no longer performed.
+
+Example:
+
+\#define RVM\_\allowbreak{}DBGLOG\_\allowbreak{}ENABLE (1U)\strut
+\tabularnewline
+\end{xltabular}
+
+\section{System Calls Available to Native Processes}\label{sec:3-5}
+
+All system calls provided by RME can be used directly in native processes. The generic parts of the implementation of these system calls are located in rmv\_guest.c and rvm\_guest.h under the Guest folder, while the architecture-related parts are located in rvm\_guest\_xxx.c, rvm\_guest\_xxx.h, and rvm\_guest\_xxx\_conf.h in the subfolder. The following only gives a brief description of these system calls; for specific information about these system calls, please refer to the RME manual.
+
+\subsection{Capability Table Related System Calls}\label{subsec:3-5-1}
+
+These interfaces provide C language interfaces for these capability table related calls. The specific function list is as follows:
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Capability table related system calls}\label{tab:3-5}\\
+\toprule
+Name & Interface function prototype\tabularnewline
+\endfirsthead
+\toprule
+Name & Interface function prototype\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Create capability table\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Cpt\_\allowbreak{}Crt(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt\_\allowbreak{}Crt, cid\_\allowbreak{}t Cap\_\allowbreak{}Kom,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt, ptr\_\allowbreak{}t Raddr, ptr\_\allowbreak{}t Entry\_\allowbreak{}Num)\strut
+\tabularnewline
+Delete capability table & ret\_\allowbreak{}t RVM\_\allowbreak{}Cpt\_\allowbreak{}Del(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt\_\allowbreak{}Del, cid\_\allowbreak{}t
+Cap\_\allowbreak{}Del)\tabularnewline
+Transfer ordinary capability\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Cpt\_\allowbreak{}Add(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt\_\allowbreak{}Dst, cid\_\allowbreak{}t Cap\_\allowbreak{}Dst,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt\_\allowbreak{}Src, cid\_\allowbreak{}t Cap\_\allowbreak{}Src, ptr\_\allowbreak{}t Flag)
+
+Note: this function can only be used to transfer capabilities other than page directory capabilities, kernel function call capabilities, and kernel memory capabilities.\strut
+\tabularnewline
+Transfer page table capability\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Cpt\_\allowbreak{}Pgt(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt\_\allowbreak{}Dst, cid\_\allowbreak{}t Cap\_\allowbreak{}Dst,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt\_\allowbreak{}Src, cid\_\allowbreak{}t Cap\_\allowbreak{}Src,
+
+ptr\_\allowbreak{}t Begin, ptr\_\allowbreak{}t End, ptr\_\allowbreak{}t Flag)
+
+Note: this function cannot be used to transfer other types of capabilities. The two parameters Begin and End mark the start slot and the end slot of the new page table capability, that is, its operation range. This range includes End.\strut
+\tabularnewline
+Transfer kernel function call capability\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Cpt\_\allowbreak{}Kern(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt\_\allowbreak{}Dst, cid\_\allowbreak{}t Cap\_\allowbreak{}Dst,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt\_\allowbreak{}Src, cid\_\allowbreak{}t Cap\_\allowbreak{}Src,
+
+ptr\_\allowbreak{}t Begin, ptr\_\allowbreak{}t End)
+
+Note: this function cannot be used to transfer other types of capabilities. The two parameters Begin and End mark the start slot and the end slot of the new kernel function call capability, that is, its operation range. This range includes End.\strut
+\tabularnewline
+Transfer kernel memory capability\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Cpt\_\allowbreak{}Kom(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt\_\allowbreak{}Dst, cid\_\allowbreak{}t Cap\_\allowbreak{}Dst,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt\_\allowbreak{}Src, cid\_\allowbreak{}t Cap\_\allowbreak{}Src,
+
+ptr\_\allowbreak{}t Begin, ptr\_\allowbreak{}t End, ptr\_\allowbreak{}t Flag)
+
+Note: this function cannot be used to transfer other types of capabilities. The two parameters Begin and End mark the start address and the end address of the new kernel memory capability, and they are forcibly aligned to 64Byte
+. This range does not include End.\strut
+\tabularnewline
+Freeze capability & ret\_\allowbreak{}t RVM\_\allowbreak{}Cpt\_\allowbreak{}Frz(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt\_\allowbreak{}Frz, cid\_\allowbreak{}t
+Cap\_\allowbreak{}Frz)\tabularnewline
+Remove capability & ret\_\allowbreak{}t RVM\_\allowbreak{}Cpt\_\allowbreak{}Rem(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt\_\allowbreak{}Rem, cid\_\allowbreak{}t
+Cap\_\allowbreak{}Rem)\tabularnewline
+\end{xltabular}
+
+\subsection{Kernel Function Related System Calls}\label{subsec:3-5-2}
+
+These interfaces provide C language interfaces for these kernel function related calls. The specific function list is as follows:
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Kernel function related system calls}\label{tab:3-6}\\
+\toprule
+Name & Interface function prototype\tabularnewline
+\endfirsthead
+\toprule
+Name & Interface function prototype\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Kernel call activation\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Kfn\_\allowbreak{}Act(cid\_\allowbreak{}t Cap\_\allowbreak{}Kfn, ptr\_\allowbreak{}t Func\_\allowbreak{}ID,
+
+ptr\_\allowbreak{}t Sub\_\allowbreak{}ID, ptr\_\allowbreak{}t Param1, ptr\_\allowbreak{}t Param2)\strut
+\tabularnewline
+\end{xltabular}
+
+\subsection{Page Table Related System Calls}\label{subsec:3-5-3}
+
+These interfaces provide C language interfaces for these page table related calls. The specific function list is as follows:
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Page table related system calls}\label{tab:3-7}\\
+\toprule
+Name & Interface function prototype\tabularnewline
+\endfirsthead
+\toprule
+Name & Interface function prototype\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Page directory creation\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Pgt\_\allowbreak{}Crt(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt, cid\_\allowbreak{}t Cap\_\allowbreak{}Kom, cid\_\allowbreak{}t Cap\_\allowbreak{}Pgt,
+
+ptr\_\allowbreak{}t Raddr, ptr\_\allowbreak{}t Start\_\allowbreak{}Addr, ptr\_\allowbreak{}t Is\_\allowbreak{}Top,
+
+ptr\_\allowbreak{}t Size\_\allowbreak{}Order, ptr\_\allowbreak{}t Num\_\allowbreak{}Order)\strut
+\tabularnewline
+Delete page directory & ret\_\allowbreak{}t RVM\_\allowbreak{}Pgt\_\allowbreak{}Del(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt, cid\_\allowbreak{}t
+Cap\_\allowbreak{}Pgt)\tabularnewline
+Map memory page\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Pgt\_\allowbreak{}Add(cid\_\allowbreak{}t Cap\_\allowbreak{}Pgt\_\allowbreak{}Dst, ptr\_\allowbreak{}t Pos\_\allowbreak{}Dst, ptr\_\allowbreak{}t
+Flag\_\allowbreak{}Dst,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Pgt\_\allowbreak{}Src, ptr\_\allowbreak{}t Pos\_\allowbreak{}Src, ptr\_\allowbreak{}t Index)\strut
+\tabularnewline
+Remove memory page & ret\_\allowbreak{}t RVM\_\allowbreak{}Pgt\_\allowbreak{}Rem(cid\_\allowbreak{}t Cap\_\allowbreak{}Pgt, ptr\_\allowbreak{}t
+Pos)\tabularnewline
+Construct page directory\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Pgt\_\allowbreak{}Con(cid\_\allowbreak{}t Cap\_\allowbreak{}Pgt\_\allowbreak{}Parent, ptr\_\allowbreak{}t Pos,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Pgt\_\allowbreak{}Child, ptr\_\allowbreak{}t Flags\_\allowbreak{}Childs)\strut
+\tabularnewline
+Destruct page directory & ret\_\allowbreak{}t RVM\_\allowbreak{}Pgt\_\allowbreak{}Des(cid\_\allowbreak{}t Cap\_\allowbreak{}Pgt\_\allowbreak{}Parent, ptr\_\allowbreak{}t Pos,
+cid\_\allowbreak{}t Cap\_\allowbreak{}Pgt\_\allowbreak{}Child)\tabularnewline
+\end{xltabular}
+
+\subsection{Process Related System Calls}\label{subsec:3-5-4}
+
+These interfaces provide C language interfaces for these process related calls. The specific function list is as follows:
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Process related system calls}\label{tab:3-8}\\
+\toprule
+Name & Interface function prototype\tabularnewline
+\endfirsthead
+\toprule
+Name & Interface function prototype\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Create process\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Prc\_\allowbreak{}Crt(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt\_\allowbreak{}Crt,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Prc, cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt, cid\_\allowbreak{}t Cap\_\allowbreak{}Pgt)\strut
+\tabularnewline
+Delete process & ret\_\allowbreak{}t RVM\_\allowbreak{}Prc\_\allowbreak{}Del(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt, cid\_\allowbreak{}t
+Cap\_\allowbreak{}Prc)\tabularnewline
+Change capability table & ret\_\allowbreak{}t RVM\_\allowbreak{}Prc\_\allowbreak{}Cpt(cid\_\allowbreak{}t Cap\_\allowbreak{}Prc, cid\_\allowbreak{}t
+Cap\_\allowbreak{}Cpt)\tabularnewline
+Change page table & ret\_\allowbreak{}t RVM\_\allowbreak{}Prc\_\allowbreak{}Pgt(cid\_\allowbreak{}t Cap\_\allowbreak{}Prc, cid\_\allowbreak{}t
+Cap\_\allowbreak{}Pgt)\tabularnewline
+\end{xltabular}
+
+\subsection{Thread Related System Calls}\label{subsec:3-5-5}
+
+These interfaces provide C language interfaces for these thread related calls. The specific function list is as follows:
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Thread related system calls}\label{tab:3-9}\\
+\toprule
+Name & Interface function prototype\tabularnewline
+\endfirsthead
+\toprule
+Name & Interface function prototype\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Create thread\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Thd\_\allowbreak{}Crt(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt, cid\_\allowbreak{}t Cap\_\allowbreak{}Kom, cid\_\allowbreak{}t Cap\_\allowbreak{}Thd,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Prc, ptr\_\allowbreak{}t Max\_\allowbreak{}Prio, ptr\_\allowbreak{}t Raddr, ptr\_\allowbreak{}t Attr)\strut
+\tabularnewline
+Create virtual machine dedicated thread\footnote{Do not call unless you want to implement the virtual machine monitor yourself}\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Crt(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt, cid\_\allowbreak{}t Cap\_\allowbreak{}Kom, cid\_\allowbreak{}t Cap\_\allowbreak{}Thd,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Prc, ptr\_\allowbreak{}t Max\_\allowbreak{}Prio, ptr\_\allowbreak{}t Raddr, ptr\_\allowbreak{}t Attr)\strut
+\tabularnewline
+Delete thread & ret\_\allowbreak{}t RVM\_\allowbreak{}Thd\_\allowbreak{}Del(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt, cid\_\allowbreak{}t
+Cap\_\allowbreak{}Thd)\tabularnewline
+Set execution attributes & ret\_\allowbreak{}t RVM\_\allowbreak{}Thd\_\allowbreak{}Exec\_\allowbreak{}Set(cid\_\allowbreak{}t Cap\_\allowbreak{}Thd, void* Entry,
+void* Stack, void* Param)\tabularnewline
+Thread binding\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Thd\_\allowbreak{}Sched\_\allowbreak{}Bind(cid\_\allowbreak{}t Cap\_\allowbreak{}Thd, cid\_\allowbreak{}t Cap\_\allowbreak{}Thd\_\allowbreak{}Sched,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Sig, tid\_\allowbreak{}t TID, ptr\_\allowbreak{}t Prio)\strut
+\tabularnewline
+Virtual machine dedicated thread binding\footnote{Do not call unless you want to implement the virtual machine monitor yourself}\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Sched\_\allowbreak{}Bind(cid\_\allowbreak{}t Cap\_\allowbreak{}Thd, cid\_\allowbreak{}t Cap\_\allowbreak{}Thd\_\allowbreak{}Sched,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Sig, tid\_\allowbreak{}t TID, ptr\_\allowbreak{}t Prio, ptr\_\allowbreak{}t Haddr)\strut
+\tabularnewline
+Change priority & ret\_\allowbreak{}t RVM\_\allowbreak{}Thd\_\allowbreak{}Sched\_\allowbreak{}Prio(cid\_\allowbreak{}t Cap\_\allowbreak{}Thd, ptr\_\allowbreak{}t
+Prio)\tabularnewline
+Change priorities (2)\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Thd\_\allowbreak{}Sched\_\allowbreak{}Prio2(cid\_\allowbreak{}t Cap\_\allowbreak{}Thd0, ptr\_\allowbreak{}t Prio0,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Thd1, ptr\_\allowbreak{}t Prio1)
+
+Note: the priorities of two threads can be modified at one time.\strut
+\tabularnewline
+Change priorities (3)\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Thd\_\allowbreak{}Sched\_\allowbreak{}Prio3(cid\_\allowbreak{}t Cap\_\allowbreak{}Thd0, ptr\_\allowbreak{}t Prio0,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Thd1, ptr\_\allowbreak{}t Prio1,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Thd2, ptr\_\allowbreak{}t Prio2)
+
+Note: the priorities of three threads can be modified at one time.\strut
+\tabularnewline
+Change priorities (4)\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Thd\_\allowbreak{}Sched\_\allowbreak{}Prio4(cid\_\allowbreak{}t Cap\_\allowbreak{}Thd0, ptr\_\allowbreak{}t Prio0,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Thd1, ptr\_\allowbreak{}t Prio1,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Thd2, ptr\_\allowbreak{}t Prio2,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Thd3, ptr\_\allowbreak{}t Prio3)
+
+Note: the priorities of four threads can be modified at one time.\strut
+\tabularnewline
+Receive scheduling event & ret\_\allowbreak{}t RVM\_\allowbreak{}Thd\_\allowbreak{}Sched\_\allowbreak{}Rcv(cid\_\allowbreak{}t
+Cap\_\allowbreak{}Thd)\tabularnewline
+Unbind & ret\_\allowbreak{}t RVM\_\allowbreak{}Thd\_\allowbreak{}Sched\_\allowbreak{}Free(cid\_\allowbreak{}t Cap\_\allowbreak{}Thd)\tabularnewline
+Transfer timeslice & ret\_\allowbreak{}t RVM\_\allowbreak{}Thd\_\allowbreak{}Time\_\allowbreak{}Xfer(cid\_\allowbreak{}t Cap\_\allowbreak{}Thd\_\allowbreak{}Dst, cid\_\allowbreak{}t
+Cap\_\allowbreak{}Thd\_\allowbreak{}Src, ptr\_\allowbreak{}t Time)\tabularnewline
+Switch to a thread & ret\_\allowbreak{}t RVM\_\allowbreak{}Thd\_\allowbreak{}Swt(cid\_\allowbreak{}t Cap\_\allowbreak{}Thd, ptr\_\allowbreak{}t
+Is\_\allowbreak{}Yield)\tabularnewline
+\end{xltabular}
+
+\subsection{Asynchronous Signal Endpoint Related System Calls}\label{subsec:3-5-6}
+
+These interfaces provide C language interfaces for these signal endpoint related calls. The specific function list is as follows:
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Asynchronous signal endpoint related system calls}\label{tab:3-10}\\
+\toprule
+Name & Interface function prototype\tabularnewline
+\endfirsthead
+\toprule
+Name & Interface function prototype\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Create signal endpoint & ret\_\allowbreak{}t RVM\_\allowbreak{}Sig\_\allowbreak{}Crt(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt, cid\_\allowbreak{}t
+Cap\_\allowbreak{}Sig)\tabularnewline
+Delete signal endpoint & ret\_\allowbreak{}t RVM\_\allowbreak{}Sig\_\allowbreak{}Del(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt, cid\_\allowbreak{}t
+Cap\_\allowbreak{}Sig)\tabularnewline
+Send to endpoint & ret\_\allowbreak{}t RVM\_\allowbreak{}Sig\_\allowbreak{}Snd(cid\_\allowbreak{}t Cap\_\allowbreak{}Sig, ptr\_\allowbreak{}t
+Number)\tabularnewline
+Receive from endpoint & ret\_\allowbreak{}t RVM\_\allowbreak{}Sig\_\allowbreak{}Rcv(cid\_\allowbreak{}t Cap\_\allowbreak{}Sig, ptr\_\allowbreak{}t
+Option)\tabularnewline
+\end{xltabular}
+
+\subsection{Synchronous Invocation Related System Calls}\label{subsec:3-5-7}
+
+These interfaces provide C language interfaces for these thread invocation related calls. The specific function list is as follows:
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Synchronous invocation related system calls}\label{tab:3-11}\\
+\toprule
+Name & Interface function prototype\tabularnewline
+\endfirsthead
+\toprule
+Name & Interface function prototype\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Create synchronous invocation\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Inv\_\allowbreak{}Crt(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt, cid\_\allowbreak{}t Cap\_\allowbreak{}Kom,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Inv, cid\_\allowbreak{}t Cap\_\allowbreak{}Prc, ptr\_\allowbreak{}t Raddr)\strut
+\tabularnewline
+Delete synchronous invocation & ret\_\allowbreak{}t RVM\_\allowbreak{}Inv\_\allowbreak{}Del(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt, cid\_\allowbreak{}t
+Cap\_\allowbreak{}Inv)\tabularnewline
+Set execution attributes\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Inv\_\allowbreak{}Set(cid\_\allowbreak{}t Cap\_\allowbreak{}Inv, ptr\_\allowbreak{}t Entry,
+
+ptr\_\allowbreak{}t Stack, ptr\_\allowbreak{}t Is\_\allowbreak{}Exc\_\allowbreak{}Ret)\strut
+\tabularnewline
+Activate synchronous invocation & ret\_\allowbreak{}t RVM\_\allowbreak{}Inv\_\allowbreak{}Act(cid\_\allowbreak{}t Cap\_\allowbreak{}Inv, ptr\_\allowbreak{}t Param,
+ptr\_\allowbreak{}t* Retval)\tabularnewline
+Return from synchronous invocation & ret\_\allowbreak{}t RVM\_\allowbreak{}Inv\_\allowbreak{}Ret(ptr\_\allowbreak{}t Retval)\tabularnewline
+\end{xltabular}
+
+\subsection{Event Source Activation Related System Calls}\label{subsec:3-5-8}
+
+To send a message from a native process to a virtual machine, the RVM\_Prc\_Evt\_Snd function can be used to activate any event source, and every virtual machine that has registered that event source will receive a virtual interrupt. Since the priority of a native process itself is higher than that of the entire virtual machine subsystem\footnote{this even includes all threads in the virtual machine monitor except SFTD}, this function therefore imposes no restriction on the event source target, and a native process can decide by itself to send a signal to any event source. For event sources, please refer to\protect\hyperref[subsec:2-2-7]{2.2.7}
+.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Parameters required to activate an event source}\label{tab:3-12}\\
+\toprule
+Prototype & ret\_\allowbreak{}t RVM\_\allowbreak{}Prc\_\allowbreak{}Evt\_\allowbreak{}Snd(ptr\_\allowbreak{}t Evt\_\allowbreak{}Num) &\tabularnewline
+\endfirsthead
+\toprule
+Prototype & ret\_\allowbreak{}t RVM\_\allowbreak{}Prc\_\allowbreak{}Evt\_\allowbreak{}Snd(ptr\_\allowbreak{}t Evt\_\allowbreak{}Num) &\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Parameter name & Type & Description\tabularnewline
+Evt\_\allowbreak{}Num & ptr\_\allowbreak{}t & The number of the event source.\tabularnewline
+\end{xltabular}
+
+\section{Other Helper Functions Available to Native Processes}\label{sec:3-6}
+
+To facilitate the writing of common data structures, debug printing, and thread stack initialization, RVM also provides some helper functions. All helper functions listed below can be used in native processes.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{List of other helper functions available to native processes}\label{tab:3-13}\\
+\toprule
+Function & Meaning\tabularnewline
+\endfirsthead
+\toprule
+Function & Meaning\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+RVM\_\allowbreak{}Clear & Clear a variable.\tabularnewline
+RVM\_\allowbreak{}List\_\allowbreak{}Crt & Create a doubly linked circular list.\tabularnewline
+RVM\_\allowbreak{}List\_\allowbreak{}Del & Delete a node in a doubly linked circular list.\tabularnewline
+RVM\_\allowbreak{}List\_\allowbreak{}Ins & Insert a node in a doubly linked circular list.\tabularnewline
+RVM\_\allowbreak{}Putchar & Print a single character.\tabularnewline
+RVM\_\allowbreak{}Int\_\allowbreak{}Print & Print an integer number.\tabularnewline
+RVM\_\allowbreak{}Hex\_\allowbreak{}Print & Print an unsigned integer number.\tabularnewline
+RVM\_\allowbreak{}Str\_\allowbreak{}Print & Print a string.\tabularnewline
+\end{xltabular}
+
+\subsection{Variable Clearing}\label{subsec:3-6-1}
+
+This function is used to clear a region in the kernel. This function is essentially equivalent to the special case of the memset function of the C language runtime library when filling with 0.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Parameters required for variable clearing}\label{tab:3-14}\\
+\toprule
+Prototype & void RVM\_\allowbreak{}Clear(volatile void* Addr, ptr\_\allowbreak{}t Size)
+&\tabularnewline
+\endfirsthead
+\toprule
+Prototype & void RVM\_\allowbreak{}Clear(volatile void* Addr, ptr\_\allowbreak{}t Size)
+&\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Parameter name & Type & Description\tabularnewline
+Addr & volatile void* & The start address of the region to be cleared.\tabularnewline
+Size & ptr\_\allowbreak{}t & The number of bytes of the region to be cleared.\tabularnewline
+\end{xltabular}
+
+\subsection{Creating a Doubly Linked Circular List}\label{subsec:3-6-2}
+
+This operation initializes the list head of a doubly linked circular list.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Creating a doubly linked circular list}\label{tab:3-15}\\
+\toprule
+Function prototype & void RVM\_\allowbreak{}List\_\allowbreak{}Crt(struct RVM\_\allowbreak{}List* Head)\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & void RVM\_\allowbreak{}List\_\allowbreak{}Crt(struct RVM\_\allowbreak{}List* Head)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Return value & None.\tabularnewline
+Parameters\strut
+ & struct RVM\_\allowbreak{}List* Head
+
+Pointer to the list head structure to be initialized.\strut
+\tabularnewline
+\end{xltabular}
+
+\subsection{Deleting a Node in a Doubly Linked Circular List}\label{subsec:3-6-3}
+
+This operation deletes one node or a series of nodes from a doubly linked list.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Deleting a node in a doubly linked circular list}\label{tab:3-16}\\
+\toprule
+Function prototype\strut
+ & void RVM\_\allowbreak{}List\_\allowbreak{}Del(struct RVM\_\allowbreak{}List* Prev,
+
+struct RVM\_\allowbreak{}List* Next)\strut
+\tabularnewline
+\endfirsthead
+\toprule
+Function prototype\strut
+ & void RVM\_\allowbreak{}List\_\allowbreak{}Del(struct RVM\_\allowbreak{}List* Prev,
+
+struct RVM\_\allowbreak{}List* Next)\strut
+\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Return value & None.\tabularnewline
+\multirow{2}{*}{Parameters} & struct RVM\_\allowbreak{}List* Prev
+
+Pointer to the predecessor node of the node (group) to be deleted.\strut
+\tabularnewline
+\strut
+ & struct RVM\_\allowbreak{}List* Next
+
+Pointer to the successor node of the node (group) to be deleted.\strut
+\tabularnewline
+\end{xltabular}
+
+\needspace{16\baselineskip}
+\subsection{Inserting a Node in a Doubly Linked Circular List}\label{subsec:3-6-4}
+
+This operation inserts a node into a doubly linked list.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Inserting a node in a doubly linked circular list}\label{tab:3-17}\\
+\toprule
+Function prototype\strut
+ & void RVM\_\allowbreak{}List\_\allowbreak{}Ins(struct RVM\_\allowbreak{}List* New,
+
+struct RVM\_\allowbreak{}List* Prev,
+
+struct RVM\_\allowbreak{}List* Next)\strut
+\tabularnewline
+\endfirsthead
+\toprule
+Function prototype\strut
+ & void RVM\_\allowbreak{}List\_\allowbreak{}Ins(struct RVM\_\allowbreak{}List* New,
+
+struct RVM\_\allowbreak{}List* Prev,
+
+struct RVM\_\allowbreak{}List* Next)\strut
+\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Return value & None.\tabularnewline
+\multirow{3}{*}{Parameters} & struct RVM\_\allowbreak{}List* New
+
+Pointer to the new node to be inserted.\strut
+\tabularnewline
+\strut
+ & struct RVM\_\allowbreak{}List* Prev
+
+Pointer to the predecessor node of the position to be inserted at.\strut
+\tabularnewline
+\strut
+ & struct RVM\_\allowbreak{}List* Next
+
+Pointer to the successor node of the position to be inserted at.\strut
+\tabularnewline
+\end{xltabular}
+
+\subsection{Printing a Single Character}\label{subsec:3-6-5}
+
+This operation prints one character to the console. This function needs to be declared and implemented by the user. In the implementation of this function, it is usually only necessary to redirect its output to some peripheral. If this function is not implemented, all the debug printing functions later in this document cannot be used. The project generator will provide the prototype of this function in the generated process file, and the user only needs to fill it in with appropriate content.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Printing a single character}\label{tab:3-18}\\
+\toprule
+Function prototype & ptr\_\allowbreak{}t RVM\_\allowbreak{}Putchar(char Char)\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & ptr\_\allowbreak{}t RVM\_\allowbreak{}Putchar(char Char)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Meaning & Output one character to the console.\tabularnewline
+Return value\strut
+ & ptr\_\allowbreak{}t
+
+Always returns 0.\strut
+\tabularnewline
+Parameters\strut
+ & char Char
+
+The character to be output to the system console.\strut
+\tabularnewline
+\end{xltabular}
+
+\subsection{Printing an Integer Number}\label{subsec:3-6-6}
+
+This operation prints a machine-word-sized integer number in decimal with sign to the debug console. This function has an equivalent macro RVM\_DBG\_I controlled by the debug switch. To use this function, RVM\_Putchar needs to be declared and implemented in the process.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Printing an integer number}\label{tab:3-19}\\
+\toprule
+Function prototype & cnt\_\allowbreak{}t RVM\_\allowbreak{}Int\_\allowbreak{}Print(cnt\_\allowbreak{}t Int)\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & cnt\_\allowbreak{}t RVM\_\allowbreak{}Int\_\allowbreak{}Print(cnt\_\allowbreak{}t Int)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Return value\strut
+ & cnt\_\allowbreak{}t
+
+Returns the number of characters printed.\strut
+\tabularnewline
+Parameters\strut
+ & cnt\_\allowbreak{}t Int
+
+The integer number to be printed.\strut
+\tabularnewline
+\end{xltabular}
+
+\needspace{16\baselineskip}
+\subsection{Printing an Unsigned Integer Number}\label{subsec:3-6-7}
+
+This operation prints a machine-word-sized unsigned integer number in hexadecimal without prefix to the debug console. This function has an equivalent macro RVM\_DBG\_H controlled by the debug switch. To use this function, RVM\_Putchar needs to be declared and implemented in the process.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Printing an unsigned integer number}\label{tab:3-20}\\
+\toprule
+Function prototype & cnt\_\allowbreak{}t RVM\_\allowbreak{}Hex\_\allowbreak{}Print(ptr\_\allowbreak{}t Uint)\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & cnt\_\allowbreak{}t RVM\_\allowbreak{}Hex\_\allowbreak{}Print(ptr\_\allowbreak{}t Uint)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Return value\strut
+ & cnt\_\allowbreak{}t
+
+Returns the number of characters printed.\strut
+\tabularnewline
+Parameters\strut
+ & ptr\_\allowbreak{}t Uint
+
+The unsigned integer number to be printed.\strut
+\tabularnewline
+\end{xltabular}
+
+\subsection{Printing a String}\label{subsec:3-6-8}
+
+This operation prints a string of at most 127 characters to the debug console. This function has an equivalent macro RVM\_DBG\_S controlled by the debug switch. To use this function, RVM\_Putchar needs to be declared and implemented in the process.
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{Printing a string}\label{tab:3-21}\\
+\toprule
+Function prototype & cnt\_\allowbreak{}t RVM\_\allowbreak{}Str\_\allowbreak{}Print(s8\_\allowbreak{}t* String)\tabularnewline
+\endfirsthead
+\toprule
+Function prototype & cnt\_\allowbreak{}t RVM\_\allowbreak{}Str\_\allowbreak{}Print(s8\_\allowbreak{}t* String)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Return value\strut
+ & cnt\_\allowbreak{}t
+
+Returns the number of characters printed.\strut
+\tabularnewline
+Parameters\strut
+ & s8\_\allowbreak{}t* String
+
+The string to be printed.\strut
+\tabularnewline
+\end{xltabular}
+
+\section{References for This Chapter}\label{sec:3-7}
+
+None
+

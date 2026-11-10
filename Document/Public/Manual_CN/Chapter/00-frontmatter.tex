@@ -1,0 +1,76 @@
+\begin{titlepage}
+    \thispagestyle{empty}
+    \centering
+    \vspace*{1.6cm}
+    \includegraphics[width=5.55cm]{Figure/logo.png}\par
+    \vspace{0.55cm}
+    {\sffamily\small\color{rvmmid}AMMONITE\par}
+    \vfill
+    {\sffamily\fontsize{28}{34}\selectfont\color{rvmpurple}
+        M7M02（Ammonite）R3T1\\[6pt]
+        微控制器嵌入式虚拟机监视器\\[2pt]
+        （三版一型）\par}
+    \vspace{1.1em}
+    {\sffamily\fontsize{21}{25}\selectfont\color{rvmgray}技术参考手册\par}
+    \vspace{1.4em}
+    {\rmfamily\large\color{rvmmid}
+    版本 R3T1\quad$\cdot$\quad 二〇二五年三月二十日\par}
+    \vfill
+    {\sffamily\small\color{rvmmid}
+    EDI-Systems\quad$\cdot$\quad \texttt{www.edi-systems.org}\par}
+    \vspace*{1.4cm}
+\end{titlepage}
+
+\chapter*{系统特性}
+\addcontentsline{toc}{chapter}{系统特性}
+\markboth{系统特性}{}
+
+\begin{center}
+{\sffamily\large\color{rvmgray}突越·中生·菊石（七阶）}\\[4pt]
+{\sffamily\large\color{rvmgray}Mutatus·Mesozoa·Ammonite（R.VII）}\\[10pt]
+{\sffamily\large\color{rvmgray}M7M02（Ammonite）R3T1}\\[4pt]
+{\sffamily\Large\bfseries\color{rvmgray}微控制器嵌入式虚拟机监视器（三版一型）}\\[8pt]
+{\rmfamily\color{rvmmid}技术手册}\\[12pt]
+\end{center}
+
+\begin{description}[leftmargin=0pt,labelindent=0pt,style=nextline,itemsep=8pt]
+    \item[\textsf{\color{rvmpurple}高性能实时响应}]
+    原生进程提供优秀的实时性能。
+    虚拟机进程提供优秀的兼容性和执行效率。
+
+    \item[\textsf{\color{rvmpurple}全面的体系架构支持}]
+    可简易地在多种架构之间移植。
+    在微控制器上支持准虚拟化。
+
+    \item[\textsf{\color{rvmpurple}高安全性}]
+    虚拟机之间硬件隔离。
+    支持故障重启功能。
+
+    \item[\textsf{\color{rvmpurple}全面的生态环境}]
+    支持虚拟化绝大多数操作系统。
+    原系统应用程序无需修改即可使用。
+
+    \item[\textsf{\color{rvmpurple}高易用性}]
+    提供带图形化界面的工程生成器。
+\end{description}
+
+\newcommand{\RVMRevisionHistory}{%
+\chapter*{版本历史}
+\addcontentsline{toc}{chapter}{版本历史}
+\markboth{版本历史}{}
+\begin{table}[htbp]
+    \centering
+    \renewcommand{\arraystretch}{1.25}
+    \small
+    \begin{tabularx}{\textwidth}{@{}>{\sffamily\bfseries\color{rvmpurple}}m{1.8cm}
+                                  >{\raggedright\arraybackslash}m{3.2cm}X@{}}
+    \toprule
+    版本 & 日期（年-月-日） & 说明 \\
+    \midrule
+    R1T1 & 2018-03-09 & 初始发布。 \\
+    R2T1 & 2018-09-18 & 增加了移植说明。 \\
+    R3T1 & 2025-03-20 & 发布 R3T1 技术参考手册。 \\
+    \bottomrule
+    \end{tabularx}
+\end{table}
+}

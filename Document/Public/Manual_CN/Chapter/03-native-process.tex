@@ -1,0 +1,713 @@
+\chapter{原生进程}\label{ch:3-native-process}
+
+\section{简介}\label{sec:3-1}
+
+原生进程直接运行在RME微内核之上，因此其运行速度最快，开销最小。RVM虚拟机监视器仅仅负责用INIT启动它们，而不能对它们提供任何服务。因此，原生进程仅能使用RME本身的系统调用，不能使用RVM超级调用。为了方便用户使用RME系统调用，RVM提供的用户态库对它们做了C语言接口封装。这些接口都是线程安全的。
+
+工程生成器可以生成包含原生进程的工程。一个工程甚至可以仅仅包含原生进程，此时需要用原生进程直接完成应用程序的功能。
+
+\section{进程描述符}\label{sec:3-2}
+
+每一个原生进程（和虚拟机）都有一个位于其首部的进程描述符，该头部记载了进程中的每一个可能的入口点。这些入口点被虚拟机监视器识别，以用来初始化其内部数据结构。进程头的组成如下表所示。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{进程描述符的结构}\label{tab:3-1}\\
+\toprule
+地址（字） & 内容\tabularnewline
+\endfirsthead
+\toprule
+地址（字） & 内容\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+0 &
+魔法数字，对于原生进程而言是0x49535953，对于虚拟机而言是0x56495254。\tabularnewline
+1 & 进程头的入口表项数N。\tabularnewline
+2 & 第0个入口表项。\tabularnewline
+3 & 第1个入口表项。\tabularnewline
+... & ...\tabularnewline
+N+1 & 第N-2个入口表项。\tabularnewline
+N+2 &
+第N-1个表项，固定存放跳板。在常规架构上，该项无用；在那些从栈中恢复PC的架构\footnote{如ARMv7-M}上，一段跳板是必须的，该跳板负责跳转程序到真正的入口点去执行。有关该跳板的描述请参见\protect8.2.6.2
+。\tabularnewline
+\end{xltabular}
+
+工程生成器可以生成此进程描述符，当然也可以手动对其进行填充。
+
+\section{登记原生进程到RVM}\label{sec:3-3}
+
+要登记原生进程到RVM，需要用户手动使用RME系统调用创建其权能表、页表，以及其内部可能使用到的所有内核对象，并将进程内部可以使用的内核对象的权能全部传递到该进程的权能表内部。当权限关系十分复杂时，这是十分繁琐、容易出错的。工程生成器可以生成高度优化的数据结构自动完成上述流程，大大降低配置负担。如果需要手动完成该过程，可以重写rvm\_init.c中的如下两个钩子函数，并在其内部分别创建和初始化各个内核对象。
+
+\subsection{内核对象创建钩子}\label{subsec:3-3-1}
+
+用户应当在本钩子内部创建所有的内核对象。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{内核对象创建钩子}\label{tab:3-2}\\
+\toprule
+函数原型 & void RVM\_\allowbreak{}Boot\_\allowbreak{}Kobj\_\allowbreak{}Crt(void)\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & void RVM\_\allowbreak{}Boot\_\allowbreak{}Kobj\_\allowbreak{}Crt(void)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+返回值 & 无。\tabularnewline
+参数 & 无。\tabularnewline
+\end{xltabular}
+
+\subsection{内核对象初始化钩子}\label{subsec:3-3-2}
+
+用户应当在本钩子内部初始化所有的内核对象。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{内核对象初始化钩子}\label{tab:3-3}\\
+\toprule
+函数原型 & void void RVM\_\allowbreak{}Boot\_\allowbreak{}Kobj\_\allowbreak{}Init(void)\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & void void RVM\_\allowbreak{}Boot\_\allowbreak{}Kobj\_\allowbreak{}Init(void)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+返回值 & 无。\tabularnewline
+参数 & 无。\tabularnewline
+\end{xltabular}
+
+\section{原生进程内应当存在的宏定义}\label{sec:3-4}
+
+原生进程内部需要存在如下的配置宏定义，它们被原生进程内部的其他文件引用。这些宏定义可以由工程生成器负责填充，也可以由用户手动填充。这些宏定义的列表如下。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{原生进程内应当存在的宏定义一览}\label{tab:3-4}\\
+\toprule
+宏名称 & 作用\tabularnewline
+\endfirsthead
+\toprule
+宏名称 & 作用\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+RVM\_\allowbreak{}VIRT\_\allowbreak{}LIB\_\allowbreak{}ENABLE\strut
+ & 准虚拟化库的使能宏。在原生进程内它应当被定义为1。
+
+例子：
+
+\#define RVM\_\allowbreak{}VIRT\_\allowbreak{}LIB\_\allowbreak{}ENABLE (0U)\strut
+\tabularnewline
+RVM\_\allowbreak{}PREEMPT\_\allowbreak{}PRIO\_\allowbreak{}NUM\strut
+ & 内核的优先级数量。它应当与RME中的同名配置宏维持一致。
+
+例子：
+
+\#define RVM\_\allowbreak{}PREEMPT\_\allowbreak{}PRIO\_\allowbreak{}NUM (4U)\strut
+\tabularnewline
+RVM\_\allowbreak{}PREEMPT\_\allowbreak{}VPRIO\_\allowbreak{}NUM\strut
+ & 虚拟机监视器的虚拟优先级数量。它应当与虚拟机监视器配置中的值一致。
+
+例子：
+
+\#define RVM\_\allowbreak{}PREEMPT\_\allowbreak{}VPRIO\_\allowbreak{}NUM (32U)\strut
+\tabularnewline
+RVM\_\allowbreak{}KOM\_\allowbreak{}SLOT\_\allowbreak{}ORDER\strut
+ & 内核内存分配粒度级数。它应当与RME中的同名配置宏维持一致。
+
+例子：
+
+\#define RVM\_\allowbreak{}KOM\_\allowbreak{}SLOT\_\allowbreak{}ORDER (4U)\strut
+\tabularnewline
+RVM\_\allowbreak{}ASSERT\_\allowbreak{}ENABLE\strut
+ & 控制断言宏是否默认通过。如果它定义为0，则不再检查断言。
+
+例子：
+
+\#define RVM\_\allowbreak{}ASSERT\_\allowbreak{}ENABLE (1U)\strut
+\tabularnewline
+RVM\_\allowbreak{}DBGLOG\_\allowbreak{}ENABLE\strut
+ & 控制调试打印的开关。如果它定义为0，则不再调试打印。
+
+例子：
+
+\#define RVM\_\allowbreak{}DBGLOG\_\allowbreak{}ENABLE (1U)\strut
+\tabularnewline
+\end{xltabular}
+
+\section{原生进程可以使用的系统调用}\label{sec:3-5}
+
+RME提供的所有系统调用都可以直接在原生进程中使用。这些系统调用的实现的通用部分都位于Guest文件夹下的rmv\_guest.c和rvm\_guest.h中，架构相关部分则位于子文件夹的rvm\_guest\_xxx.c，rvm\_guest\_xxx.h，rvm\_guest\_xxx\_conf.h中。下面仅对这些系统调用做简单描述；有关这些系统调用的具体信息，请查看RME的手册。
+
+\subsection{权能表相关系统调用}\label{subsec:3-5-1}
+
+这些接口向外提供了这些权能表相关调用的C语言接口。具体的函数列表如下所述：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{权能表相关系统调用}\label{tab:3-5}\\
+\toprule
+名称 & 接口函数原型\tabularnewline
+\endfirsthead
+\toprule
+名称 & 接口函数原型\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+创建权能表\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Cpt\_\allowbreak{}Crt(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt\_\allowbreak{}Crt, cid\_\allowbreak{}t Cap\_\allowbreak{}Kom,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt, ptr\_\allowbreak{}t Raddr, ptr\_\allowbreak{}t Entry\_\allowbreak{}Num)\strut
+\tabularnewline
+删除权能表 & ret\_\allowbreak{}t RVM\_\allowbreak{}Cpt\_\allowbreak{}Del(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt\_\allowbreak{}Del, cid\_\allowbreak{}t
+Cap\_\allowbreak{}Del)\tabularnewline
+传递普通权能\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Cpt\_\allowbreak{}Add(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt\_\allowbreak{}Dst, cid\_\allowbreak{}t Cap\_\allowbreak{}Dst,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt\_\allowbreak{}Src, cid\_\allowbreak{}t Cap\_\allowbreak{}Src, ptr\_\allowbreak{}t Flag)
+
+备注：该函数只能用来传递页目录权能、内核功能调用权能、内核内存权能之外的权能。\strut
+\tabularnewline
+传递页表权能\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Cpt\_\allowbreak{}Pgt(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt\_\allowbreak{}Dst, cid\_\allowbreak{}t Cap\_\allowbreak{}Dst,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt\_\allowbreak{}Src, cid\_\allowbreak{}t Cap\_\allowbreak{}Src,
+
+ptr\_\allowbreak{}t Begin, ptr\_\allowbreak{}t End, ptr\_\allowbreak{}t Flag)
+
+备注：该函数不能被用来传递其他类型的权能。Begin和End两个参数标志了新的页表权能的起始槽位和终止槽位，也即其操作范围。该范围包括End。\strut
+\tabularnewline
+传递内核功能调用权能\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Cpt\_\allowbreak{}Kern(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt\_\allowbreak{}Dst, cid\_\allowbreak{}t Cap\_\allowbreak{}Dst,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt\_\allowbreak{}Src, cid\_\allowbreak{}t Cap\_\allowbreak{}Src,
+
+ptr\_\allowbreak{}t Begin, ptr\_\allowbreak{}t End)
+
+备注：该函数不能被用来传递其他类型的权能。Begin和End两个参数标志了新的内核功能调用权能的起始槽位和终止槽位，也即其操作范围。该范围包括End。\strut
+\tabularnewline
+传递内核内存权能\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Cpt\_\allowbreak{}Kom(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt\_\allowbreak{}Dst, cid\_\allowbreak{}t Cap\_\allowbreak{}Dst,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt\_\allowbreak{}Src, cid\_\allowbreak{}t Cap\_\allowbreak{}Src,
+
+ptr\_\allowbreak{}t Begin, ptr\_\allowbreak{}t End, ptr\_\allowbreak{}t Flag)
+
+备注：该函数不能被用来传递其他类型的权能。Begin和End两个参数标志了新的内核内存权能的起始地址和终止地址，它们被强制对齐到64Byte
+。该范围不包括End。\strut
+\tabularnewline
+权能冻结 & ret\_\allowbreak{}t RVM\_\allowbreak{}Cpt\_\allowbreak{}Frz(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt\_\allowbreak{}Frz, cid\_\allowbreak{}t
+Cap\_\allowbreak{}Frz)\tabularnewline
+权能移除 & ret\_\allowbreak{}t RVM\_\allowbreak{}Cpt\_\allowbreak{}Rem(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt\_\allowbreak{}Rem, cid\_\allowbreak{}t
+Cap\_\allowbreak{}Rem)\tabularnewline
+\end{xltabular}
+
+\subsection{内核功能相关系统调用}\label{subsec:3-5-2}
+
+这些接口向外提供了这些内核功能相关调用的C语言接口。具体的函数列表如下所述：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{内核功能相关系统调用}\label{tab:3-6}\\
+\toprule
+名称 & 接口函数原型\tabularnewline
+\endfirsthead
+\toprule
+名称 & 接口函数原型\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+内核调用激活\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Kfn\_\allowbreak{}Act(cid\_\allowbreak{}t Cap\_\allowbreak{}Kfn, ptr\_\allowbreak{}t Func\_\allowbreak{}ID,
+
+ptr\_\allowbreak{}t Sub\_\allowbreak{}ID, ptr\_\allowbreak{}t Param1, ptr\_\allowbreak{}t Param2)\strut
+\tabularnewline
+\end{xltabular}
+
+\newpage
+\subsection{页表相关系统调用}\label{subsec:3-5-3}
+
+这些接口向外提供了这些页表相关调用的C语言接口。具体的函数列表如下所述：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{页表相关系统调用}\label{tab:3-7}\\
+\toprule
+名称 & 接口函数原型\tabularnewline
+\endfirsthead
+\toprule
+名称 & 接口函数原型\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+页目录创建\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Pgt\_\allowbreak{}Crt(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt, cid\_\allowbreak{}t Cap\_\allowbreak{}Kom, cid\_\allowbreak{}t Cap\_\allowbreak{}Pgt,
+
+ptr\_\allowbreak{}t Raddr, ptr\_\allowbreak{}t Start\_\allowbreak{}Addr, ptr\_\allowbreak{}t Is\_\allowbreak{}Top,
+
+ptr\_\allowbreak{}t Size\_\allowbreak{}Order, ptr\_\allowbreak{}t Num\_\allowbreak{}Order)\strut
+\tabularnewline
+删除页目录 & ret\_\allowbreak{}t RVM\_\allowbreak{}Pgt\_\allowbreak{}Del(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt, cid\_\allowbreak{}t
+Cap\_\allowbreak{}Pgt)\tabularnewline
+映射内存页\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Pgt\_\allowbreak{}Add(cid\_\allowbreak{}t Cap\_\allowbreak{}Pgt\_\allowbreak{}Dst, ptr\_\allowbreak{}t Pos\_\allowbreak{}Dst, ptr\_\allowbreak{}t
+Flag\_\allowbreak{}Dst,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Pgt\_\allowbreak{}Src, ptr\_\allowbreak{}t Pos\_\allowbreak{}Src, ptr\_\allowbreak{}t Index)\strut
+\tabularnewline
+移除内存页 & ret\_\allowbreak{}t RVM\_\allowbreak{}Pgt\_\allowbreak{}Rem(cid\_\allowbreak{}t Cap\_\allowbreak{}Pgt, ptr\_\allowbreak{}t
+Pos)\tabularnewline
+构造页目录\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Pgt\_\allowbreak{}Con(cid\_\allowbreak{}t Cap\_\allowbreak{}Pgt\_\allowbreak{}Parent, ptr\_\allowbreak{}t Pos,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Pgt\_\allowbreak{}Child, ptr\_\allowbreak{}t Flags\_\allowbreak{}Childs)\strut
+\tabularnewline
+析构页目录 & ret\_\allowbreak{}t RVM\_\allowbreak{}Pgt\_\allowbreak{}Des(cid\_\allowbreak{}t Cap\_\allowbreak{}Pgt\_\allowbreak{}Parent, ptr\_\allowbreak{}t Pos,
+cid\_\allowbreak{}t Cap\_\allowbreak{}Pgt\_\allowbreak{}Child)\tabularnewline
+\end{xltabular}
+
+\subsection{进程相关系统调用}\label{subsec:3-5-4}
+
+这些接口向外提供了这些进程相关调用的C语言接口。具体的函数列表如下所述：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{进程相关系统调用}\label{tab:3-8}\\
+\toprule
+名称 & 接口函数原型\tabularnewline
+\endfirsthead
+\toprule
+名称 & 接口函数原型\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+创建进程\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Prc\_\allowbreak{}Crt(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt\_\allowbreak{}Crt,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Prc, cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt, cid\_\allowbreak{}t Cap\_\allowbreak{}Pgt)\strut
+\tabularnewline
+删除进程 & ret\_\allowbreak{}t RVM\_\allowbreak{}Prc\_\allowbreak{}Del(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt, cid\_\allowbreak{}t
+Cap\_\allowbreak{}Prc)\tabularnewline
+更改权能表 & ret\_\allowbreak{}t RVM\_\allowbreak{}Prc\_\allowbreak{}Cpt(cid\_\allowbreak{}t Cap\_\allowbreak{}Prc, cid\_\allowbreak{}t
+Cap\_\allowbreak{}Cpt)\tabularnewline
+更改页表 & ret\_\allowbreak{}t RVM\_\allowbreak{}Prc\_\allowbreak{}Pgt(cid\_\allowbreak{}t Cap\_\allowbreak{}Prc, cid\_\allowbreak{}t
+Cap\_\allowbreak{}Pgt)\tabularnewline
+\end{xltabular}
+
+\subsection{线程相关系统调用}\label{subsec:3-5-5}
+
+这些接口向外提供了这些线程相关调用的C语言接口。具体的函数列表如下所述：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{线程相关系统调用}\label{tab:3-9}\\
+\toprule
+名称 & 接口函数原型\tabularnewline
+\endfirsthead
+\toprule
+名称 & 接口函数原型\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+创建线程\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Thd\_\allowbreak{}Crt(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt, cid\_\allowbreak{}t Cap\_\allowbreak{}Kom, cid\_\allowbreak{}t Cap\_\allowbreak{}Thd,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Prc, ptr\_\allowbreak{}t Max\_\allowbreak{}Prio, ptr\_\allowbreak{}t Raddr, ptr\_\allowbreak{}t Attr)\strut
+\tabularnewline
+创建虚拟机专用线程\footnote{除非要自行实现虚拟机监视器，否则不要调用}\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Crt(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt, cid\_\allowbreak{}t Cap\_\allowbreak{}Kom, cid\_\allowbreak{}t Cap\_\allowbreak{}Thd,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Prc, ptr\_\allowbreak{}t Max\_\allowbreak{}Prio, ptr\_\allowbreak{}t Raddr, ptr\_\allowbreak{}t Attr)\strut
+\tabularnewline
+删除线程 & ret\_\allowbreak{}t RVM\_\allowbreak{}Thd\_\allowbreak{}Del(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt, cid\_\allowbreak{}t
+Cap\_\allowbreak{}Thd)\tabularnewline
+设置执行属性 & ret\_\allowbreak{}t RVM\_\allowbreak{}Thd\_\allowbreak{}Exec\_\allowbreak{}Set(cid\_\allowbreak{}t Cap\_\allowbreak{}Thd, void* Entry,
+void* Stack, void* Param)\tabularnewline
+线程绑定\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Thd\_\allowbreak{}Sched\_\allowbreak{}Bind(cid\_\allowbreak{}t Cap\_\allowbreak{}Thd, cid\_\allowbreak{}t Cap\_\allowbreak{}Thd\_\allowbreak{}Sched,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Sig, tid\_\allowbreak{}t TID, ptr\_\allowbreak{}t Prio)\strut
+\tabularnewline
+虚拟机专用线程绑定\footnote{除非要自行实现虚拟机监视器，否则不要调用}\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Hyp\_\allowbreak{}Sched\_\allowbreak{}Bind(cid\_\allowbreak{}t Cap\_\allowbreak{}Thd, cid\_\allowbreak{}t Cap\_\allowbreak{}Thd\_\allowbreak{}Sched,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Sig, tid\_\allowbreak{}t TID, ptr\_\allowbreak{}t Prio, ptr\_\allowbreak{}t Haddr)\strut
+\tabularnewline
+更改优先级 & ret\_\allowbreak{}t RVM\_\allowbreak{}Thd\_\allowbreak{}Sched\_\allowbreak{}Prio(cid\_\allowbreak{}t Cap\_\allowbreak{}Thd, ptr\_\allowbreak{}t
+Prio)\tabularnewline
+更改优先级(2)\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Thd\_\allowbreak{}Sched\_\allowbreak{}Prio2(cid\_\allowbreak{}t Cap\_\allowbreak{}Thd0, ptr\_\allowbreak{}t Prio0,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Thd1, ptr\_\allowbreak{}t Prio1)
+
+备注：一次可修改两个线程的优先级。\strut
+\tabularnewline
+更改优先级(3)\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Thd\_\allowbreak{}Sched\_\allowbreak{}Prio3(cid\_\allowbreak{}t Cap\_\allowbreak{}Thd0, ptr\_\allowbreak{}t Prio0,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Thd1, ptr\_\allowbreak{}t Prio1,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Thd2, ptr\_\allowbreak{}t Prio2)
+
+备注：一次可修改三个线程的优先级。\strut
+\tabularnewline
+更改优先级(4)\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Thd\_\allowbreak{}Sched\_\allowbreak{}Prio4(cid\_\allowbreak{}t Cap\_\allowbreak{}Thd0, ptr\_\allowbreak{}t Prio0,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Thd1, ptr\_\allowbreak{}t Prio1,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Thd2, ptr\_\allowbreak{}t Prio2,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Thd3, ptr\_\allowbreak{}t Prio3)
+
+备注：一次可修改四个线程的优先级。\strut
+\tabularnewline
+接收调度事件 & ret\_\allowbreak{}t RVM\_\allowbreak{}Thd\_\allowbreak{}Sched\_\allowbreak{}Rcv(cid\_\allowbreak{}t
+Cap\_\allowbreak{}Thd)\tabularnewline
+解除绑定 & ret\_\allowbreak{}t RVM\_\allowbreak{}Thd\_\allowbreak{}Sched\_\allowbreak{}Free(cid\_\allowbreak{}t Cap\_\allowbreak{}Thd)\tabularnewline
+传递时间片 & ret\_\allowbreak{}t RVM\_\allowbreak{}Thd\_\allowbreak{}Time\_\allowbreak{}Xfer(cid\_\allowbreak{}t Cap\_\allowbreak{}Thd\_\allowbreak{}Dst, cid\_\allowbreak{}t
+Cap\_\allowbreak{}Thd\_\allowbreak{}Src, ptr\_\allowbreak{}t Time)\tabularnewline
+切换到某线程 & ret\_\allowbreak{}t RVM\_\allowbreak{}Thd\_\allowbreak{}Swt(cid\_\allowbreak{}t Cap\_\allowbreak{}Thd, ptr\_\allowbreak{}t
+Is\_\allowbreak{}Yield)\tabularnewline
+\end{xltabular}
+
+\subsection{异步信号端点相关系统调用}\label{subsec:3-5-6}
+
+这些接口向外提供了这些信号端点相关调用的C语言接口。具体的函数列表如下所述：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{异步信号端点相关系统调用}\label{tab:3-10}\\
+\toprule
+名称 & 接口函数原型\tabularnewline
+\endfirsthead
+\toprule
+名称 & 接口函数原型\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+创建信号端点 & ret\_\allowbreak{}t RVM\_\allowbreak{}Sig\_\allowbreak{}Crt(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt, cid\_\allowbreak{}t
+Cap\_\allowbreak{}Sig)\tabularnewline
+删除信号端点 & ret\_\allowbreak{}t RVM\_\allowbreak{}Sig\_\allowbreak{}Del(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt, cid\_\allowbreak{}t
+Cap\_\allowbreak{}Sig)\tabularnewline
+向端点发送 & ret\_\allowbreak{}t RVM\_\allowbreak{}Sig\_\allowbreak{}Snd(cid\_\allowbreak{}t Cap\_\allowbreak{}Sig, ptr\_\allowbreak{}t
+Number)\tabularnewline
+从端点接收 & ret\_\allowbreak{}t RVM\_\allowbreak{}Sig\_\allowbreak{}Rcv(cid\_\allowbreak{}t Cap\_\allowbreak{}Sig, ptr\_\allowbreak{}t
+Option)\tabularnewline
+\end{xltabular}
+
+\subsection{同步迁移调用相关系统调用}\label{subsec:3-5-7}
+
+这些接口向外提供了这些线程迁移相关调用的C语言接口。具体的函数列表如下所述：
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{同步迁移调用相关系统调用}\label{tab:3-11}\\
+\toprule
+名称 & 接口函数原型\tabularnewline
+\endfirsthead
+\toprule
+名称 & 接口函数原型\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+创建同步迁移调用\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Inv\_\allowbreak{}Crt(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt, cid\_\allowbreak{}t Cap\_\allowbreak{}Kom,
+
+cid\_\allowbreak{}t Cap\_\allowbreak{}Inv, cid\_\allowbreak{}t Cap\_\allowbreak{}Prc, ptr\_\allowbreak{}t Raddr)\strut
+\tabularnewline
+删除同步迁移调用 & ret\_\allowbreak{}t RVM\_\allowbreak{}Inv\_\allowbreak{}Del(cid\_\allowbreak{}t Cap\_\allowbreak{}Cpt, cid\_\allowbreak{}t
+Cap\_\allowbreak{}Inv)\tabularnewline
+设置执行属性\strut
+ & ret\_\allowbreak{}t RVM\_\allowbreak{}Inv\_\allowbreak{}Set(cid\_\allowbreak{}t Cap\_\allowbreak{}Inv, ptr\_\allowbreak{}t Entry,
+
+ptr\_\allowbreak{}t Stack, ptr\_\allowbreak{}t Is\_\allowbreak{}Exc\_\allowbreak{}Ret)\strut
+\tabularnewline
+激活同步迁移调用 & ret\_\allowbreak{}t RVM\_\allowbreak{}Inv\_\allowbreak{}Act(cid\_\allowbreak{}t Cap\_\allowbreak{}Inv, ptr\_\allowbreak{}t Param,
+ptr\_\allowbreak{}t* Retval)\tabularnewline
+从同步迁移调用返回 & ret\_\allowbreak{}t RVM\_\allowbreak{}Inv\_\allowbreak{}Ret(ptr\_\allowbreak{}t Retval)\tabularnewline
+\end{xltabular}
+
+\subsection{事件源激活相关系统调用}\label{subsec:3-5-8}
+
+要从原生进程发送消息给虚拟机，可以使用RVM\_Prc\_Evt\_Snd函数来激活任何一个事件源，注册了该事件源的虚拟机均会得到一个虚拟中断。由于原生进程本身的优先级高于整个虚拟机子系统\footnote{这甚至包括了虚拟机监视器中除SFTD以外的一切线程}，因此本函数并对事件源目标加以限制，原生进程可自行决定发送信号给任意一个事件源。有关事件源，请参见\protect\hyperref[subsec:2-2-7]{2.2.7}
+。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{激活事件源的所需参数}\label{tab:3-12}\\
+\toprule
+原型 & ret\_\allowbreak{}t RVM\_\allowbreak{}Prc\_\allowbreak{}Evt\_\allowbreak{}Snd(ptr\_\allowbreak{}t Evt\_\allowbreak{}Num) &\tabularnewline
+\endfirsthead
+\toprule
+原型 & ret\_\allowbreak{}t RVM\_\allowbreak{}Prc\_\allowbreak{}Evt\_\allowbreak{}Snd(ptr\_\allowbreak{}t Evt\_\allowbreak{}Num) &\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+参数名称 & 类型 & 描述\tabularnewline
+Evt\_\allowbreak{}Num & ptr\_\allowbreak{}t & 事件源的编号。\tabularnewline
+\end{xltabular}
+
+\section{原生进程可以使用的其他助手函数}\label{sec:3-6}
+
+为了方便常用数据结构编写、调试打印、线程栈初始化，RVM还提供了一些助手函数。下面列出的所有助手函数均可以在原生进程中使用。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{原生进程可以使用的其他助手函数一览}\label{tab:3-13}\\
+\toprule
+函数 & 意义\tabularnewline
+\endfirsthead
+\toprule
+函数 & 意义\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+RVM\_\allowbreak{}Clear & 变量清空。\tabularnewline
+RVM\_\allowbreak{}List\_\allowbreak{}Crt & 创建双向循环链表。\tabularnewline
+RVM\_\allowbreak{}List\_\allowbreak{}Del & 在双向循环链表中删除节点。\tabularnewline
+RVM\_\allowbreak{}List\_\allowbreak{}Ins & 在双向循环链表中插入节点。\tabularnewline
+RVM\_\allowbreak{}Putchar & 打印单个字符。\tabularnewline
+RVM\_\allowbreak{}Int\_\allowbreak{}Print & 打印整形数字。\tabularnewline
+RVM\_\allowbreak{}Hex\_\allowbreak{}Print & 打印无符号整形数字。\tabularnewline
+RVM\_\allowbreak{}Str\_\allowbreak{}Print & 打印字符串。\tabularnewline
+\end{xltabular}
+
+\subsection{变量清空}\label{subsec:3-6-1}
+
+该函数用来在内核中清零一片区域。该函数实质上等价于C语言运行时库的memset函数填充0时的特殊情况。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.5500\hsize\raggedright\arraybackslash}X>{\hsize=0.7500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{变量清空的所需参数}\label{tab:3-14}\\
+\toprule
+原型 & void RVM\_\allowbreak{}Clear(volatile void* Addr, ptr\_\allowbreak{}t Size)
+&\tabularnewline
+\endfirsthead
+\toprule
+原型 & void RVM\_\allowbreak{}Clear(volatile void* Addr, ptr\_\allowbreak{}t Size)
+&\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+参数名称 & 类型 & 描述\tabularnewline
+Addr & volatile void* & 需要清零区域的起始地址。\tabularnewline
+Size & ptr\_\allowbreak{}t & 需要清零区域的字节数。\tabularnewline
+\end{xltabular}
+
+\subsection{创建双向循环链表}\label{subsec:3-6-2}
+
+本操作初始化双向循环链表的链表头。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{创建双向循环链表}\label{tab:3-15}\\
+\toprule
+函数原型 & void RVM\_\allowbreak{}List\_\allowbreak{}Crt(struct RVM\_\allowbreak{}List* Head)\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & void RVM\_\allowbreak{}List\_\allowbreak{}Crt(struct RVM\_\allowbreak{}List* Head)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+返回值 & 无。\tabularnewline
+参数\strut
+ & struct RVM\_\allowbreak{}List* Head
+
+指向要初始化的链表头结构体的指针。\strut
+\tabularnewline
+\end{xltabular}
+
+\subsection{在双向循环链表中删除节点}\label{subsec:3-6-3}
+
+本操作从双向链表中删除一个或一系列节点。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{在双向循环链表中删除节点}\label{tab:3-16}\\
+\toprule
+函数原型\strut
+ & void RVM\_\allowbreak{}List\_\allowbreak{}Del(struct RVM\_\allowbreak{}List* Prev,
+
+struct RVM\_\allowbreak{}List* Next)\strut
+\tabularnewline
+\endfirsthead
+\toprule
+函数原型\strut
+ & void RVM\_\allowbreak{}List\_\allowbreak{}Del(struct RVM\_\allowbreak{}List* Prev,
+
+struct RVM\_\allowbreak{}List* Next)\strut
+\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+返回值 & 无。\tabularnewline
+\multirow{2}{*}{参数} & struct RVM\_\allowbreak{}List* Prev
+
+指向要删除的节点（组）的前继节点的指针。\strut
+\tabularnewline
+\strut
+ & struct RVM\_\allowbreak{}List* Next
+
+指向要删除的节点（组）的后继节点的指针。\strut
+\tabularnewline
+\end{xltabular}
+
+\subsection{在双向循环链表中插入节点}\label{subsec:3-6-4}
+
+本操作从双向链表中插入一个节点。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{在双向循环链表中插入节点}\label{tab:3-17}\\
+\toprule
+函数原型\strut
+ & void RVM\_\allowbreak{}List\_\allowbreak{}Ins(struct RVM\_\allowbreak{}List* New,
+
+struct RVM\_\allowbreak{}List* Prev,
+
+struct RVM\_\allowbreak{}List* Next)\strut
+\tabularnewline
+\endfirsthead
+\toprule
+函数原型\strut
+ & void RVM\_\allowbreak{}List\_\allowbreak{}Ins(struct RVM\_\allowbreak{}List* New,
+
+struct RVM\_\allowbreak{}List* Prev,
+
+struct RVM\_\allowbreak{}List* Next)\strut
+\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+返回值 & 无。\tabularnewline
+\multirow{3}{*}{参数} & struct RVM\_\allowbreak{}List* New
+
+指向要插入的新节点的指针。\strut
+\tabularnewline
+\strut
+ & struct RVM\_\allowbreak{}List* Prev
+
+指向要被插入的位置的前继节点的指针。\strut
+\tabularnewline
+\strut
+ & struct RVM\_\allowbreak{}List* Next
+
+指向要被插入的位置的后继节点的指针。\strut
+\tabularnewline
+\end{xltabular}
+
+\subsection{打印单个字符}\label{subsec:3-6-5}
+
+本操作打印一个字符到控制台。该函数需要用户自行声明和实现。在该函数的实现中，通常只需要重定向其输出到某外设即可。如果不实现该函数，后文的一切调试打印函数都无法使用。工程生成器会在生成的进程文件中提供该函数的原型，用户只需要使用合适的内容来填充它。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{打印单个字符}\label{tab:3-18}\\
+\toprule
+函数原型 & ptr\_\allowbreak{}t RVM\_\allowbreak{}Putchar(char Char)\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & ptr\_\allowbreak{}t RVM\_\allowbreak{}Putchar(char Char)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+意义 & 输出一个字符到控制台。\tabularnewline
+返回值\strut
+ & ptr\_\allowbreak{}t
+
+总是返回0。\strut
+\tabularnewline
+参数\strut
+ & char Char
+
+要输出到系统控制台的字符。\strut
+\tabularnewline
+\end{xltabular}
+
+\subsection{打印整形数字}\label{subsec:3-6-6}
+
+本操作以包含符号的十进制打印一个机器字长的整形数字到调试控制台。该函数有一个受调试开关控制的同功能宏RVM\_DBG\_I。要使用这个函数，需要RVM\_Putchar在进程内被声明和实现。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{打印整形数字}\label{tab:3-19}\\
+\toprule
+函数原型 & cnt\_\allowbreak{}t RVM\_\allowbreak{}Int\_\allowbreak{}Print(cnt\_\allowbreak{}t Int)\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & cnt\_\allowbreak{}t RVM\_\allowbreak{}Int\_\allowbreak{}Print(cnt\_\allowbreak{}t Int)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+返回值\strut
+ & cnt\_\allowbreak{}t
+
+返回打印的字符数量。\strut
+\tabularnewline
+参数\strut
+ & cnt\_\allowbreak{}t Int
+
+要打印的整形数字。\strut
+\tabularnewline
+\end{xltabular}
+
+\subsection{打印无符号整形数字}\label{subsec:3-6-7}
+
+本操作以无前缀十六进制打印一个机器字长的无符号整形数字到调试控制台。该函数有一个受调试开关控制的同功能宏RVM\_DBG\_H。要使用这个函数，需要RVM\_Putchar在进程内被声明和实现。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{打印无符号整形数字}\label{tab:3-20}\\
+\toprule
+函数原型 & cnt\_\allowbreak{}t RVM\_\allowbreak{}Hex\_\allowbreak{}Print(ptr\_\allowbreak{}t Uint)\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & cnt\_\allowbreak{}t RVM\_\allowbreak{}Hex\_\allowbreak{}Print(ptr\_\allowbreak{}t Uint)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+返回值\strut
+ & cnt\_\allowbreak{}t
+
+返回打印的字符数量。\strut
+\tabularnewline
+参数\strut
+ & ptr\_\allowbreak{}t Uint
+
+要打印的无符号整形数字。\strut
+\tabularnewline
+\end{xltabular}
+
+\subsection{打印字符串}\label{subsec:3-6-8}
+
+本操作打印一个最长不超过127字符的字符串到调试控制台。该函数有一个受调试开关控制的同功能宏RVM\_DBG\_S。要使用这个函数，需要RVM\_Putchar在进程内被声明和实现。
+
+\begin{xltabular}{\textwidth}{@{}>{\hsize=0.4500\hsize\raggedright\arraybackslash}X>{\hsize=1.5500\hsize\raggedright\arraybackslash}X@{}}
+\caption{打印字符串}\label{tab:3-21}\\
+\toprule
+函数原型 & cnt\_\allowbreak{}t RVM\_\allowbreak{}Str\_\allowbreak{}Print(s8\_\allowbreak{}t* String)\tabularnewline
+\endfirsthead
+\toprule
+函数原型 & cnt\_\allowbreak{}t RVM\_\allowbreak{}Str\_\allowbreak{}Print(s8\_\allowbreak{}t* String)\tabularnewline
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+返回值\strut
+ & cnt\_\allowbreak{}t
+
+返回打印的字符数量。\strut
+\tabularnewline
+参数\strut
+ & s8\_\allowbreak{}t* String
+
+要打印的字符串。\strut
+\tabularnewline
+\end{xltabular}
+
+\section{本章参考文献}\label{sec:3-7}
+
+无
+

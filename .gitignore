@@ -66,3 +66,30 @@ Utility/**/.tempFiles/
 Utility/**/.jxbrowser.userdata/
 Utility/**/RemoteSystemsTempFiles/
 
+# LaTeX build products (manuals)
+Document/Public/Manual/Build/
+Document/Public/Manual_CN/Build/
+*.aux
+*.bcf
+*.bbl
+*.blg
+*.dvi
+*.fdb_latexmk
+*.fls
+*.idx
+*.ilg
+*.ind
+*.lof
+*.lot
+*.nav
+*.run.xml
+*.snm
+*.synctex.gz
+*.toc
+*.vrb
+*.xdv
+
+# vscode
+.vscode/
+.vs/
+.zcode/
