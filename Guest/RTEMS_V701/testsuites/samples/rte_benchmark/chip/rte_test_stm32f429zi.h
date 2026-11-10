@@ -19,17 +19,17 @@
  * Notification                        : 1638 /  7552 / 1636
  * Activation                          : 1478 /  7404 / 1476
  * Semaphore                           : 1726 /  3884 / 1724
+ * FIFO                                :  200 /  2244 /  200
  * Message queue                       : 1802 /  7692 / 1800
  * Blocking message queue              : 1802 /  7832 / 1796
- * FIFO                                :  200 /  2244 /  200
  * Alarm combination (1/2/3/5/7)       : 1946 /  4712 / 1208
  * Memory allocation/free pair         : 2113 /  2861 / 2110
  * ISR Notification                    : 2971 /  6240 / 2180
- * ISR RVM activation relay            : 6369 /  9636 / 5080
+ * ISR Activation                      : 2816 /  2816 / 2816
  * ISR Semaphore                       : 3042 /  8848 / 3036
  * ISR Message queue                   : 3124 /  4080 / 3124
  * ISR Blocking message queue          : 3130 /  8940 / 3124
- * ISR Activation                      : 2816 /  2816 / 2816
+ * ISR RVM activation relay            : 6369 /  9636 / 5080
  */
 
 #ifndef RTE_TEST_STM32F429ZI_H

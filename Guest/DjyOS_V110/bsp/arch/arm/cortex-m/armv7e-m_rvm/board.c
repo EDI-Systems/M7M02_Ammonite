@@ -135,7 +135,6 @@ void Sys_ModuleInit(void)
  */
 void djy_port_boot(void)
 {
-    djy_dbg_puts("\r\nDjyOS V1.1.0 on RVM - starting boot sequence.\r\n");
 
     Heap_StaticModuleInit();
     __DjyInitTick();

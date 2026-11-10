@@ -13,21 +13,21 @@
  * Notification                        :  408 /  776 /  408
  * Activation                          :  398 / 1776 /  388
  * Semaphore                           :  190 /  304 /  184
+ * FIFO                                :  244 /  468 /  244
  * Message queue                       :  328 / 1640 /  328
  * Blocking message queue              :  451 / 4584 /  244
- * FIFO                                :  244 /  468 /  244
  * Alarm                               :  468 / 1952 /  460
  * Memory allocation/free pair         :  732 / 2112 /  732
- * ISR Notification (poll)             :  604 / 3076 /  576
- * ISR RVM activation relay (poll)     :  604 /  616 /  604
- * ISR Semaphore (poll)                :  604 / 3088 /  576
- * ISR Message queue (poll)            :  604 /  616 /  604
- * ISR Blocking message queue (poll)   :  604 / 3100 /  576
- * ISR Activation (poll)               :  604 /  620 /  604
+ * ISR Notification                    :  604 / 3076 /  576
+ * ISR Activation                      :  604 /  620 /  604
+ * ISR Semaphore                       :  604 / 3088 /  576
+ * ISR Message queue                   :  604 /  616 /  604
+ * ISR Blocking message queue          :  604 / 3100 /  576
+ * ISR RVM activation relay            :  604 /  616 /  604
  *
  * The ISR rows sample in the RVM virtual-vector hook and expose the result to
  * a polling benchmark thread; this is the same 10 kHz TIM4 source used by the
- * native benchmark and the RTE port.  The six (poll) rows share that single
+ * native benchmark and the RTE port.  The six ISR rows share that single
  * hook; their labels do not select different ISR mechanisms.
  */
 

@@ -229,13 +229,14 @@ RME 10 ms tick, so `Period = 10` gives a 100 ms (10 Hz) RTEMS tick.
 ## Benchmark
 
 `testsuites/samples/rte_benchmark` is the RTEMS counterpart of the RMP
-benchmark.  It reports 15 rows: Yield, Notification, Activation, Semaphore,
-Message queue, Blocking message queue, FIFO, Alarm combination, Memory,
-ISR Notification, ISR RVM activation relay, ISR Semaphore, ISR Message queue,
-ISR Blocking message queue and ISR Activation.  Notification and Activation are
-RTEMS-specific extra rows.  TIM2 is the free-running cycle counter and TIM4 is
-a 100 us virtual-vector interrupt source.  The per-chip performance archive is
-in the chip test headers
+benchmark.  It reports 15 rows in RMP order: Yield, Notification, Activation,
+Semaphore, FIFO, Message queue, Blocking message queue, Alarm combination,
+Memory, ISR Notification, ISR Activation, ISR Semaphore, ISR Message queue,
+ISR Blocking message queue and ISR RVM activation relay.  Notification and
+Activation are RTEMS-specific extras; Activation sits next to Notification so
+the shared rows keep the RMP sequence.  TIM2 is the free-running cycle counter
+and TIM4 is a 100 us virtual-vector interrupt source.  The per-chip
+performance archive is in the chip test headers
 (`testsuites/samples/rte_benchmark/chip/rte_test_stm32h743zi.h` and
 `rte_test_stm32f429zi.h`); the baseline documents keep the build configuration
 and the exact RMP-to-RTEMS mapping.

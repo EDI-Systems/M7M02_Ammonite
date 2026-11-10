@@ -19,17 +19,17 @@
  * Notification                        : 1164 /  2820 / 1108
  * Activation                          : 1008 /  2464 /  976
  * Semaphore                           : 1146 /  5756 / 1116
+ * FIFO                                :  229 /   272 /  180
  * Message queue                       : 1206 /  5776 / 1176
  * Blocking message queue              : 1221 /  3004 / 1180
- * FIFO                                :  229 /   272 /  180
  * Alarm combination (1/2/3/5/7)       : 1432 /  3228 /  784
  * Memory allocation/free pair         : 1654 /  2176 / 1627
  * ISR Notification                    : 2193 /  3176 / 1828
- * ISR RVM activation relay            : 4768 /  6452 / 4448
+ * ISR Activation                      : 2141 /  3048 / 1952
  * ISR Semaphore                       : 2280 /  4864 / 2108
  * ISR Message queue                   : 2391 /  3568 / 2204
  * ISR Blocking message queue          : 2404 /  4948 / 2204
- * ISR Activation                      : 2141 /  3048 / 1952
+ * ISR RVM activation relay            : 4768 /  6452 / 4448
  *
  * All-Vct mode (RTE_FAST_PATH=0), same optimized build:
  *
@@ -38,17 +38,17 @@
  * Notification                        : 2417 /  3932 / 2300
  * Activation                          : 2305 /  6596 / 2204
  * Semaphore                           : 2426 /  4264 / 2332
+ * FIFO                                :  231 /   256 /  184
  * Message queue                       : 2531 /  5828 / 2404
  * Blocking message queue              : 2545 /  4108 / 2404
- * FIFO                                :  231 /   256 /  184
  * Alarm combination (1/2/3/5/7)       : 1329 /  3512 /  724
  * Memory allocation/free pair         : 1606 /  2186 / 1582
  * ISR Notification                    : 2125 /  4576 / 1828
- * ISR RVM activation relay            : 4752 /  7788 / 4468
+ * ISR Activation                      : 2113 /  4524 / 1912
  * ISR Semaphore                       : 2183 /  3168 / 2012
  * ISR Message queue                   : 2272 /  5304 / 2068
  * ISR Blocking message queue          : 2283 /  3252 / 2100
- * ISR Activation                      : 2113 /  4524 / 1912
+ * ISR RVM activation relay            : 4752 /  7788 / 4468
  */
 
 #ifndef RTE_TEST_STM32H743ZI_H

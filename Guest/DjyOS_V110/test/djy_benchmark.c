@@ -29,6 +29,10 @@
  *  ISR Message queue- timer async signal MsgQ_Send, 4 byte messages
  *  ISR RVM relay    - the kernel-side interrupt stamp readback
  *
+ * The rows present follow the RMP order.  DjyOS has no FIFO, blocking
+ * message queue or alarm item; its thread/ISR Activation rows are extras
+ * placed next to the corresponding Notification row.
+ *
  * All timing is in CPU cycles through the free-running TIM2 of the
  * chip header.  The measurement loops are silent; the reports print
  * after each phase completes.
@@ -81,7 +85,18 @@ static void djy_stat_record(struct djy_stat *s, u32 val)
 
 static void djy_stat_report(const char *name, struct djy_stat *s)
 {
+    u32 len;
+
+    len = 0U;
+    while(name[len] != 0)
+        len++;
+
     djy_dbg_puts(name);
+    while(len < 34U)
+    {
+        djy_dbg_puts(" ");
+        len++;
+    }
     djy_dbg_puts(" : ");
     djy_dbg_putu32((u32)(s->sum / s->cnt));
     djy_dbg_puts(" / ");
@@ -242,7 +257,6 @@ static ptu32_t djy_yield_b_script(void)
 
 static void djy_bench_yield(void)
 {
-    djy_dbg_puts("\r\nYield test (event turnover ping-pong).\r\n");
     djy_round = 0U;
     djy_stat_reset(&djy_yield_stat);
     DJY_EventPop(djy_yield_a_id, NULL, 0U, 0U, 0U, 0U);
@@ -271,10 +285,6 @@ static ptu32_t djy_notify_script(void)
 static void djy_bench_notify_once(u16 id, struct djy_stat *s, const char *name)
 {
     u32 round;
-
-    djy_dbg_puts("\r\n");
-    djy_dbg_puts(name);
-    djy_dbg_puts(" test (pooled event dispatch cycle).\r\n");
 
     djy_stat_reset(s);
     djy_notify_target = s;
@@ -310,7 +320,6 @@ static void djy_bench_activate(void)
 {
     u32 round;
 
-    djy_dbg_puts("\r\nActivation test (independent event full cycle).\r\n");
 
     djy_stat_reset(&djy_stat_one);
     for(round = 0U; round < BENCH_TEST_ROUNDS + BENCH_DISCARD_ROUNDS; round++)
@@ -378,7 +387,6 @@ static ptu32_t djy_sem_b_script(void)
 
 static void djy_bench_sem(void)
 {
-    djy_dbg_puts("\r\nSemaphore test (Lock_SempPost/Pend ping-pong).\r\n");
     djy_round = 0U;
     djy_stat_reset(&djy_sem_stat);
     /* Start the two workers: they immediately park in their pend. */
@@ -433,7 +441,6 @@ static ptu32_t djy_mq_b_script(void)
 
 static void djy_bench_mq(void)
 {
-    djy_dbg_puts("\r\nMessage queue test (MsgQ 4B ping-pong).\r\n");
     djy_round = 0U;
     djy_stat_reset(&djy_mq_stat);
     /* Start the two workers: they immediately park in their receive. */
@@ -454,7 +461,6 @@ static void djy_bench_mem(void)
     struct djy_stat s;
     void *p;
 
-    djy_dbg_puts("\r\nMemory test (M_Malloc/M_Free pairs).\r\n");
     djy_stat_reset(&s);
     for(round = 0U; round < BENCH_TEST_ROUNDS + BENCH_DISCARD_ROUNDS; round++)
     {
@@ -591,7 +597,7 @@ static const char * const djy_isr_names[DJY_ISR_PHASE_NUM] =
     "ISR Activation",
     "ISR Semaphore",
     "ISR Message queue",
-    "ISR RVM relay"
+    "ISR RVM activation relay"
 };
 u32 djy_bench_isr(ptu32_t para)
 {
@@ -700,7 +706,6 @@ static void djy_bench_isr_sequence(void)
 
     for(i = 0U; i < DJY_ISR_PHASE_NUM; i++)
         djy_stat_report(djy_isr_names[i], djy_isr_stats[i]);
-    djy_dbg_puts("\r\nThe interrupt-driven sequence is complete.\r\n");
 }
 
 /* The semaphore-park wake trick: post once after done so the parked
@@ -753,11 +758,6 @@ static ptu32_t djy_driver_script(void)
 
     djy_bench_int_init(djy_bench_isr);
 
-    /* The interrupt-driven items run first, while the ready queue holds
-     * nothing but this driver: any event left over from a thread level
-     * test would otherwise be picked up by the very first dispatch. */
-    djy_bench_isr_sequence();
-
     djy_bench_yield();
     djy_bench_notify_once(djy_notify_id, &djy_notify_stat, "Notification");
     /* The 256B variant is a diagnostic control for the stack repaint,
@@ -769,9 +769,8 @@ static ptu32_t djy_driver_script(void)
     djy_bench_mq();
     djy_bench_mem();
 
-    /* The four interrupt-driven items have already run at the head of
-     * the script (see djy_bench_isr_sequence). */
-    /* djy_bench_isr_sequence(); */
+    /* Thread rows first, then the interrupt rows, matching the RMP order. */
+    djy_bench_isr_sequence();
 
     djy_bench_isr_park_release();
 

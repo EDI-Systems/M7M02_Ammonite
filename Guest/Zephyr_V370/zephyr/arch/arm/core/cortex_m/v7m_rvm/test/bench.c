@@ -70,6 +70,7 @@ static uint32_t Bench_Cycles(void)
 }
 
 static void Bench_Report(const char *name);
+static void Bench_Isr_Store(const char *name);
 
 static volatile uint32_t Isr_Stamp;
 static volatile uint32_t Isr_Flag;
@@ -103,14 +104,49 @@ static void Bench_Isr_Row(const char *name, uint32_t mode)
 		Bench_Stats_Record();
 	}
 	Isr_Mode = 0U;
-	Bench_Report(name);
+	Bench_Isr_Store(name);
 }
 
 static void Bench_Report(const char *name)
 {
-	printk("%s : %u / %u / %u\r\n", name,
+	printk("%-34s : %u / %u / %u\r\n", name,
 	       (unsigned int) (Total / BENCH_ROUNDS),
 	       (unsigned int) Maximum, (unsigned int) Minimum);
+}
+
+/* Keep the six ISR rows buffered until the whole interrupt phase is over.
+ * Printing while the 10 kHz source is still running interleaves UART output
+ * with the measured path. */
+#define BENCH_ISR_QTY 6U
+static const char *Bench_Isr_Name[BENCH_ISR_QTY];
+static uint32_t Bench_Isr_Avg[BENCH_ISR_QTY];
+static uint32_t Bench_Isr_Max[BENCH_ISR_QTY];
+static uint32_t Bench_Isr_Min[BENCH_ISR_QTY];
+static uint32_t Bench_Isr_Count;
+
+static void Bench_Isr_Store(const char *name)
+{
+	uint32_t idx = Bench_Isr_Count;
+
+	if (idx < BENCH_ISR_QTY) {
+		Bench_Isr_Name[idx] = name;
+		Bench_Isr_Avg[idx] = Total / BENCH_ROUNDS;
+		Bench_Isr_Max[idx] = Maximum;
+		Bench_Isr_Min[idx] = Minimum;
+		Bench_Isr_Count = idx + 1U;
+	}
+}
+
+static void Bench_Isr_Print(void)
+{
+	uint32_t idx;
+
+	for (idx = 0U; idx < Bench_Isr_Count; ++idx) {
+		printk("%-34s : %u / %u / %u\r\n", Bench_Isr_Name[idx],
+		       (unsigned int) Bench_Isr_Avg[idx],
+		       (unsigned int) Bench_Isr_Max[idx],
+		       (unsigned int) Bench_Isr_Min[idx]);
+	}
 }
 
 static void Yield_Worker(void *p1, void *p2, void *p3)
@@ -325,7 +361,7 @@ static void Bench_Memory(void)
 		CntEnd = Bench_Cycles();
 		Bench_Stats_Record();
 	}
-	Bench_Report("Memory");
+	Bench_Report("Memory allocation/free pair");
 }
 
 int main(void)
@@ -345,25 +381,20 @@ int main(void)
 	Bench_Notification();
 	Bench_Activation();
 	Bench_Semaphore();
+	Bench_Fifo();
 	Bench_Message_Queue();
 	Bench_Blocking_Message_Queue();
-	Bench_Fifo();
 	Bench_Alarm();
 	Bench_Memory();
 	ZPR_Test_Int_Init(Bench_Isr_Handler);
-	/*
-	 * The six rows below all execute the same TIM4 vector hook.  The mode
-	 * only tags the row so the benchmark keeps the 15-row layout shared
-	 * with the other RVM guests; it does not select a different ISR path.
-	 */
-	printk("ISR rows: one vector hook, six labels (poll)\r\n");
-	Bench_Isr_Row("ISR Notification (poll)", 1U);
-	Bench_Isr_Row("ISR RVM activation relay (poll)", 2U);
-	Bench_Isr_Row("ISR Semaphore (poll)", 3U);
-	Bench_Isr_Row("ISR Message queue (poll)", 4U);
-	Bench_Isr_Row("ISR Blocking message queue (poll)", 5U);
-	Bench_Isr_Row("ISR Activation (poll)", 6U);
+	Bench_Isr_Row("ISR Notification", 1U);
+	Bench_Isr_Row("ISR Activation", 6U);
+	Bench_Isr_Row("ISR Semaphore", 3U);
+	Bench_Isr_Row("ISR Message queue", 4U);
+	Bench_Isr_Row("ISR Blocking message queue", 5U);
+	Bench_Isr_Row("ISR RVM activation relay", 2U);
 	ZPR_Test_Int_Disable();
+	Bench_Isr_Print();
 
 	printk("Benchmark complete\r\n");
 	return 0;

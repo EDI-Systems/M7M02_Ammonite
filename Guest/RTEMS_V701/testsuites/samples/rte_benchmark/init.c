@@ -4,14 +4,15 @@
  * RTE on RVM standard benchmark.
  *
  * This is the RTEMS counterpart of the RMP benchmark.  It runs the RMP
- * thread-level items (Yield, Semaphore, FIFO, Message queue, Blocking
- * message queue, Alarm combination, Memory allocation/free pair) and the
- * interrupt-level items (ISR Notification, ISR Semaphore, ISR Message queue,
- * ISR Blocking message queue, ISR Activation) plus the RVM activation relay.
- * The Notification and Activation rows are RTEMS-specific extras.  TIM2 is the
- * free running cycle counter; TIM4 is the 100 us interrupt source delivered to
- * the guest through a virtual vector, exactly like the uC/OS-II and uC/OS-III
- * RVM test headers.
+ * thread-level items in RMP order (Yield, Notification, Semaphore, FIFO,
+ * Message queue, Blocking message queue, Alarm combination, Memory
+ * allocation/free pair) with the RTEMS Activation row next to Notification,
+ * and the interrupt-level items in RMP order (ISR Notification, ISR
+ * Semaphore, ISR Message queue, ISR Blocking message queue, ISR RVM
+ * activation relay) with ISR Activation next to ISR Notification.  TIM2 is
+ * the free running cycle counter; TIM4 is the 100 us interrupt source
+ * delivered to the guest through a virtual vector, exactly like the uC/OS-II
+ * and uC/OS-III RVM test headers.
  */
 
 #include <rtems.h>
@@ -81,17 +82,58 @@ static volatile uint32_t Bench_IntRounds;
 
 static void Bench_Report(const char *name)
 {
-  printf("%s : %lu / %lu / %lu\r\n", name,
+  printf("%s: %lu / %lu / %lu\r\n", name,
     (unsigned long) (Total / BENCH_TEST_ROUNDS),
     (unsigned long) Maximum, (unsigned long) Minimum);
 }
 
 static void Bench_ReportScaled(const char *name, uint32_t divisor)
 {
-  printf("%s : %lu / %lu / %lu\r\n", name,
+  printf("%s: %lu / %lu / %lu\r\n", name,
     (unsigned long) (Total / (BENCH_TEST_ROUNDS * divisor)),
     (unsigned long) (Maximum / divisor),
     (unsigned long) (Minimum / divisor));
+}
+
+/* ISR rows are printed as one block after the whole interrupt phase. Printing
+ * each row while the 10 kHz source is still running interleaves UART output
+ * with the measured path and makes the console look like a progress log. */
+#define BENCH_ISR_QTY 6u
+static const char *Bench_Isr_Name[BENCH_ISR_QTY];
+static uint32_t Bench_Isr_Avg[BENCH_ISR_QTY];
+static uint32_t Bench_Isr_Max[BENCH_ISR_QTY];
+static uint32_t Bench_Isr_Min[BENCH_ISR_QTY];
+static uint32_t Bench_Isr_Count;
+
+static void Bench_Isr_StoreValues(const char *name, uint32_t avg,
+                                  uint32_t max, uint32_t min)
+{
+  uint32_t idx = Bench_Isr_Count;
+
+  if (idx < BENCH_ISR_QTY) {
+    Bench_Isr_Name[idx] = name;
+    Bench_Isr_Avg[idx] = avg;
+    Bench_Isr_Max[idx] = max;
+    Bench_Isr_Min[idx] = min;
+    Bench_Isr_Count = idx + 1U;
+  }
+}
+
+static void Bench_Isr_Store(const char *name)
+{
+  Bench_Isr_StoreValues(name, Total / BENCH_TEST_ROUNDS, Maximum, Minimum);
+}
+
+static void Bench_Isr_Print(void)
+{
+  uint32_t idx;
+
+  for (idx = 0U; idx < Bench_Isr_Count; ++idx) {
+    printf("%s: %lu / %lu / %lu\r\n", Bench_Isr_Name[idx],
+      (unsigned long) Bench_Isr_Avg[idx],
+      (unsigned long) Bench_Isr_Max[idx],
+      (unsigned long) Bench_Isr_Min[idx]);
+  }
 }
 
 static void Bench_StatReset(void)
@@ -176,7 +218,7 @@ static void Bench_AlarmTest(void)
 
   RVM_Hyp_Int_Ena();
 
-  Bench_Report("Alarm combination (1/2/3/5/7)      ");
+  Bench_Report("Alarm combination (1/2/3/5/7)     ");
 
   for (idx = 0U; idx < BENCH_ALARM_QTY; ++idx) {
     if (Bench_Alarm_Count[idx] != expect[idx]) {
@@ -252,7 +294,9 @@ static void Bench_IntTest(uint32_t mode, const char *name)
   Bench_IntMode = mode;
   Bench_IntRounds = BENCH_TEST_ROUNDS;
   Bench_StatReset();
-  Bench_RelayReset();
+  if (mode == BENCH_INT_EVENT) {
+    Bench_RelayReset();
+  }
 
   for (cnt = 0U; cnt < BENCH_TEST_ROUNDS; ++cnt) {
     if (mode == BENCH_INT_EVENT) {
@@ -282,13 +326,7 @@ static void Bench_IntTest(uint32_t mode, const char *name)
     }
   }
 
-  Bench_Report(name);
-
-  if (mode == BENCH_INT_EVENT) {
-    printf("ISR RVM activation relay          : %lu / %lu / %lu\r\n",
-      (unsigned long) (RelayTotal / BENCH_TEST_ROUNDS),
-      (unsigned long) RelayMax, (unsigned long) RelayMin);
-  }
+  Bench_Isr_Store(name);
 }
 
 static void Bench_Task1(rtems_task_argument arg)
@@ -368,7 +406,7 @@ static void Bench_Task2(rtems_task_argument arg)
     Bench_StatRecord();
   }
 
-  Bench_Report("Yield                              ");
+  Bench_Report("Yield                             ");
 
   (void) rtems_task_set_priority(RTEMS_SELF, BENCH_TASK2_PRIO, &old);
 
@@ -382,7 +420,7 @@ static void Bench_Task2(rtems_task_argument arg)
     CntEnd = BENCH_TIME_GET();
     Bench_StatRecord();
   }
-  Bench_Report("Notification                       ");
+  Bench_Report("Notification                      ");
 
   /* Activation: the generator resumes us from the suspended state. */
   Bench_StatReset();
@@ -391,7 +429,7 @@ static void Bench_Task2(rtems_task_argument arg)
     CntEnd = BENCH_TIME_GET();
     Bench_StatRecord();
   }
-  Bench_Report("Activation                         ");
+  Bench_Report("Activation                        ");
 
   /* Counting semaphore. */
   Bench_StatReset();
@@ -401,7 +439,10 @@ static void Bench_Task2(rtems_task_argument arg)
     CntEnd = BENCH_TIME_GET();
     Bench_StatRecord();
   }
-  Bench_Report("Semaphore                          ");
+  Bench_Report("Semaphore                         ");
+
+  /* FIFO: local chain append/get, same order as the RMP FIFO row. */
+  Bench_FifoTest();
 
   /* Message queue. */
   Bench_StatReset();
@@ -412,7 +453,7 @@ static void Bench_Task2(rtems_task_argument arg)
     CntEnd = BENCH_TIME_GET();
     Bench_StatRecord();
   }
-  Bench_Report("Message queue                      ");
+  Bench_Report("Message queue                     ");
 
   /* Blocking message queue: one slot, blocking receive. */
   Bench_StatReset();
@@ -423,9 +464,8 @@ static void Bench_Task2(rtems_task_argument arg)
     CntEnd = BENCH_TIME_GET();
     Bench_StatRecord();
   }
-  Bench_Report("Blocking message queue             ");
+  Bench_Report("Blocking message queue            ");
 
-  Bench_FifoTest();
   Bench_AlarmTest();
 
   /* Memory allocation/free pairs.  RMP reports one alloc/free pair, so
@@ -442,17 +482,19 @@ static void Bench_Task2(rtems_task_argument arg)
     CntEnd = BENCH_TIME_GET();
     Bench_StatRecord();
   }
-  Bench_ReportScaled("Memory allocation/free pair        ", BENCH_MEM_BLK_QTY);
+  Bench_ReportScaled("Memory allocation/free pair       ", BENCH_MEM_BLK_QTY);
 
   /* Interrupt driven items. */
-  printf("Interrupt driven tests, TIM4 @100 us\r\n");
   RTE_Test_Int_Init(Bench_TestIntHandler);
-  Bench_IntTest(BENCH_INT_EVENT, "ISR Notification                   ");
-  Bench_IntTest(BENCH_INT_SEM, "ISR Semaphore                      ");
-  Bench_IntTest(BENCH_INT_QUEUE, "ISR Message queue                  ");
-  Bench_IntTest(BENCH_INT_BMQ, "ISR Blocking message queue         ");
-  Bench_IntTest(BENCH_INT_ACT, "ISR Activation                     ");
+  Bench_IntTest(BENCH_INT_EVENT, "ISR Notification                  ");
+  Bench_IntTest(BENCH_INT_ACT, "ISR Activation                    ");
+  Bench_IntTest(BENCH_INT_SEM, "ISR Semaphore                     ");
+  Bench_IntTest(BENCH_INT_QUEUE, "ISR Message queue                 ");
+  Bench_IntTest(BENCH_INT_BMQ, "ISR Blocking message queue        ");
+  Bench_Isr_StoreValues("ISR RVM activation relay          ",
+    RelayTotal / BENCH_TEST_ROUNDS, RelayMax, RelayMin);
   RTE_Test_Int_Disable();
+  Bench_Isr_Print();
 
   printf("Benchmark complete\r\n");
 
