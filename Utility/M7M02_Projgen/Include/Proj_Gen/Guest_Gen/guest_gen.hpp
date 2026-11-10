@@ -45,6 +45,11 @@ public:
 
     virtual void Process_Virt_Hdr(class Virtual* Virt)=0;
     virtual void Process_Virt_Src(class Virtual* Virt, class Tool_Gen* Tool)=0;
+    virtual void Process_Linker(std::unique_ptr<std::vector<std::string>>& List,
+                                const class Process* Prc, class Tool_Gen* Tool);
+    /* Descriptor policy: the guest owns its user entry. */
+    virtual std::string Desc_Usr_Entry(void);
+
 };
 /*****************************************************************************/
 /* __GUEST_GEN_CLASS__ */

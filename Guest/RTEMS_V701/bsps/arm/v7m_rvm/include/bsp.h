@@ -21,14 +21,6 @@
 
 #include <bspopts.h>
 
-/*
- * No hardware vector table, NVIC, VTOR or SysTick is owned by the guest.
- * IRQ priority definitions exist only for code that includes them; the
- * RVM variant of the CPU port never programs the NVIC.
- */
-#define BSP_ARMV7M_IRQ_PRIORITY_DEFAULT (13 << 4)
-#define BSP_ARMV7M_SYSTICK_PRIORITY (14 << 4)
-
 #ifndef ASM
 
 #include <bsp/default-initial-extension.h>

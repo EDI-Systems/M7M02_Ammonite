@@ -109,8 +109,7 @@ public:
     static std::string Guest_UO3_Root;
     static std::string Guest_MPY_Root;
     static std::string Guest_RTE_Root;
-    static std::string Guest_RTE_Prefix;
-    static std::string Guest_RTE_App;
+    static std::string Guest_ZPR_Root;
     static std::string Workspace_Output;
     static std::string Report_Output;
     static ptr_t Verbose;

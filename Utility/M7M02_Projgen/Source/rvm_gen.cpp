@@ -132,8 +132,7 @@ std::string Main::Guest_UO3_Root;
 std::string Main::Guest_DJY_Root;
 std::string Main::Guest_KLT_Root;
 std::string Main::Guest_RTE_Root;
-std::string Main::Guest_RTE_Prefix;
-std::string Main::Guest_RTE_App;
+std::string Main::Guest_ZPR_Root;
 std::string Main::Workspace_Output;
 std::string Main::Report_Output;
 ptr_t Main::Verbose=0;
@@ -2155,18 +2154,12 @@ Return      : None.
                 Main::Guest_RTE_Root=Main::Path_Absolute(PATH_DIR, "", argv[Count+1]);
                 Count+=2;
             }
-            else if(strcmp(argv[Count],"-rte-prefix")==0)
+            /* Input ZPR (Zephyr-on-RVM) root/prefix/west */
+            else if(strcmp(argv[Count],"-zpr")==0)
             {
-                if(Main::Guest_RTE_Prefix!="")
-                    Main::Error("XXXXX: More than one RTE toolchain prefix specified.");
-                Main::Guest_RTE_Prefix=Main::Path_Absolute(PATH_DIR, "", argv[Count+1]);
-                Count+=2;
-            }
-            else if(strcmp(argv[Count],"-rte-app")==0)
-            {
-                if(Main::Guest_RTE_App!="")
-                    Main::Error("XXXXX: More than one RTE application specified.");
-                Main::Guest_RTE_App=argv[Count+1];
+                if(Main::Guest_ZPR_Root!="")
+                    Main::Error("XXXXX: More than one directory specified for the same guest.");
+                Main::Guest_ZPR_Root=Main::Path_Absolute(PATH_DIR, "", argv[Count+1]);
                 Count+=2;
             }
             /* Input KLite root folder */
@@ -2256,6 +2249,8 @@ Return      : None.
                                 "       -klt: KLite root folder; needed when KLite is the guest.\n"
                                 "       -uo2: uC/OS II root folder; needed when uC/OS II is the guest.\n"
                                 "       -uo3: uC/OS III root folder; needed when uC/OS III is the guest.\n"
+                                "       -rte: RTEMS root folder; needed when RTEMS is the guest.\n"
+                                "       -zpr: Zephyr workspace root; needed when Zephyr is the guest.\n"
                                 "       -w: Workspace output folder.\n"
                                 "Auxiliary parameters:\n"
                                 "       -r report.txt: Generate report.\n"

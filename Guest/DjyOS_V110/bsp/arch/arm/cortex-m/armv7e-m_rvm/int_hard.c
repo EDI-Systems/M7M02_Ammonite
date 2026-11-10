@@ -239,7 +239,8 @@ void Djy_Ctx_Handler(void)
         u32 pc = f[20];
         u32 xs = f[21];
 
-        if((pc < 0x08050000U) || (pc >= 0x08060000U) ||
+        if((pc < CODE_CODE1_BASE) ||
+           (pc >= (CODE_CODE1_BASE + CODE_CODE1_SIZE)) ||
            ((xs & 0x01000000U) == 0U) || ((xs & 0x00000200U) != 0U))
         {
             return;

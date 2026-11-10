@@ -9,8 +9,9 @@
  *
  * RVM_Virt_Init() runs in the higher priority vector thread before the user
  * thread starts.  Therefore the user thread registers the virtual timer
- * handler first (install the vector) and then performs the init/enable
- * sequence in rte_clock_initialize().
+ * handler first (install the vector); rte_clock_initialize() only marks the
+ * tick ready.  RVM interrupts stay masked until the first context restore
+ * enables them in rte_rvm_start_heir().
  */
 
 #include <bsp.h>
@@ -34,9 +35,9 @@ void rte_rvm_register_vectors( void );
 
 void rte_rvm_tick_handler( void )
 {
-  if (rte_clock_ready) {
+  if ( rte_clock_ready ) {
     _ARMV7M_Interrupt_service_enter();
-    Clock_isr(NULL);
+    Clock_isr( NULL );
     _ARMV7M_Interrupt_service_leave();
   }
 }
@@ -47,16 +48,13 @@ void rte_rvm_tick_handler( void )
  */
 void rte_rvm_register_vectors( void )
 {
-  RVM_Virt_Tim_Reg(rte_rvm_tick_handler);
-  RVM_Virt_Ctx_Reg(rte_rvm_ctx_handler);
+  RVM_Virt_Tim_Reg( rte_rvm_tick_handler );
+  RVM_Virt_Ctx_Reg( rte_rvm_ctx_handler );
 }
 
 static void rte_clock_initialize( void )
 {
   rte_clock_ready = true;
-
-  RVM_Hyp_Int_Ena();
-  RVM_Virt_Int_Unmask();
 }
 
 /*

@@ -190,7 +190,7 @@ def _enable_asm_explicit_target(self):
 @after("apply_link")
 @feature("cprogram", "cxxprogram")
 def process_start_files(self):
-    if getattr(self, "start_files", False):
+    if getattr(self, "start_files", False) and getattr(self.bld, "start_files", None):
         self.link_task.dep_nodes.extend(self.bld.start_files)
 
 

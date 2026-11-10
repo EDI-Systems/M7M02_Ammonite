@@ -6,11 +6,12 @@
  * This is the RTEMS counterpart of the RMP benchmark.  It runs the RMP
  * thread-level items (Yield, Semaphore, FIFO, Message queue, Blocking
  * message queue, Alarm combination, Memory allocation/free pair) and the
- * RMP interrupt-level items (ISR Semaphore, ISR Message queue, ISR Blocking
- * message queue) plus the RVM activation relay.  The Notification and
- * Activation rows are RTEMS-specific extras.  TIM2 is the free running cycle
- * counter; TIM4 is the 100 us interrupt source delivered to the guest through
- * a virtual vector, exactly like the uC/OS-II and uC/OS-III RVM test headers.
+ * interrupt-level items (ISR Notification, ISR Semaphore, ISR Message queue,
+ * ISR Blocking message queue, ISR Activation) plus the RVM activation relay.
+ * The Notification and Activation rows are RTEMS-specific extras.  TIM2 is the
+ * free running cycle counter; TIM4 is the 100 us interrupt source delivered to
+ * the guest through a virtual vector, exactly like the uC/OS-II and uC/OS-III
+ * RVM test headers.
  */
 
 #include <rtems.h>
@@ -211,32 +212,11 @@ static void Bench_FifoTest(void)
   Bench_Report("FIFO                              ");
 }
 
-static void Bench_TimerSetup(void)
-{
-  RCC_APB1ENR |= RCC_APB1ENR_TIM2;
-  TIM2_CR1 = 0U;
-  TIM2_PSC = 0U;
-  TIM2_ARR = 0xFFFFFFFFUL;
-  TIM2_CR1 |= TIM_CR1_CEN;
-}
-
-static void Bench_TestIntDisable(void)
-{
-  TIM4_CR1 = 0U;
-  TIM4_SR = 0U;
-  TIM4_DIER = 0U;
-
-  (void) RVM_A7M_Int_Local_Mod(
-    KFN_INT_LOCAL_MOD, RTE_TEST_INT_PHYS,
-    RVM_A7M_KFN_INT_LOCAL_MOD_STATE_SET, 0U);
-  RVM_Virt_Vct_Reg(RTE_TEST_INT_VCT, RVM_NULL, RVM_VCT_MASKABLE);
-}
-
 static void Bench_TestIntHandler(void)
 {
   _ARMV7M_Interrupt_service_enter();
 
-  TIM4_SR = 0U;
+  RTE_TEST_INT_CLEAR();
   CntStart = BENCH_TIME_GET();
 
   if (Bench_IntMode == BENCH_INT_EVENT) {
@@ -260,29 +240,6 @@ static void Bench_TestIntHandler(void)
   }
 
   _ARMV7M_Interrupt_service_leave();
-}
-
-static void Bench_TestIntSetup(void)
-{
-  if (RVM_Hyp_Vct_Phys(RTE_TEST_INT_PHYS, RTE_TEST_INT_VCT) != 0) {
-    printf("vct phys failed\r\n");
-  }
-  (void) RVM_A7M_Int_Local_Mod(
-    KFN_INT_LOCAL_MOD, RTE_TEST_INT_PHYS,
-    RVM_A7M_KFN_INT_LOCAL_MOD_PRIO_SET, 0xFFU);
-  (void) RVM_A7M_Int_Local_Mod(
-    KFN_INT_LOCAL_MOD, RTE_TEST_INT_PHYS,
-    RVM_A7M_KFN_INT_LOCAL_MOD_STATE_SET, 1U);
-  RVM_Virt_Vct_Reg(
-    RTE_TEST_INT_VCT, Bench_TestIntHandler, RVM_VCT_MASKABLE);
-
-  RCC_APB1ENR |= RCC_APB1ENR_TIM4;
-  TIM4_CR1 = TIM_CR1_DIR;
-  TIM4_PSC = 0U;
-  TIM4_ARR = RTE_TEST_TIM_ARR;
-  TIM4_SR &= ~TIM_SR_UIF;
-  TIM4_DIER |= TIM_DIER_UIE;
-  TIM4_CR1 |= TIM_CR1_CEN;
 }
 
 static void Bench_IntTest(uint32_t mode, const char *name)
@@ -489,13 +446,13 @@ static void Bench_Task2(rtems_task_argument arg)
 
   /* Interrupt driven items. */
   printf("Interrupt driven tests, TIM4 @100 us\r\n");
-  Bench_TestIntSetup();
+  RTE_Test_Int_Init(Bench_TestIntHandler);
   Bench_IntTest(BENCH_INT_EVENT, "ISR Notification                   ");
   Bench_IntTest(BENCH_INT_SEM, "ISR Semaphore                      ");
   Bench_IntTest(BENCH_INT_QUEUE, "ISR Message queue                  ");
   Bench_IntTest(BENCH_INT_BMQ, "ISR Blocking message queue         ");
   Bench_IntTest(BENCH_INT_ACT, "ISR Activation                     ");
-  Bench_TestIntDisable();
+  RTE_Test_Int_Disable();
 
   printf("Benchmark complete\r\n");
 
@@ -512,7 +469,7 @@ rtems_task Init(rtems_task_argument ignored)
 
   (void) ignored;
 
-  Bench_TimerSetup();
+  RTE_Test_Timer_Init();
 
   if (rtems_semaphore_create(
       rtems_build_name('B', 'S', 'E', 'M'), 0U, RTEMS_COUNTING_SEMAPHORE,

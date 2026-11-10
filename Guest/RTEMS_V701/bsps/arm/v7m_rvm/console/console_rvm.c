@@ -17,7 +17,7 @@
 
 static void rvm_output_char( char c )
 {
-  RVM_Hyp_Putchar(c);
+  RVM_Hyp_Putchar( c );
 }
 
 BSP_output_char_function_type BSP_output_char = rvm_output_char;

@@ -129,9 +129,14 @@
  * latches the timestamp of its own interrupt handler entry into the shared
  * memory this virtual machine can read back, so the activation relay
  * latency can be measured as well. */
+#include "rvm.h"
+
 #define RVM_TEST_VIRTUAL_INC
 #include "rvm_test.h"
 #undef RVM_TEST_VIRTUAL_INC
+
+#include "djyos.h"
+#include "int.h"
 
 /*-----------------------------------------------------------*/
 
@@ -187,7 +192,7 @@
 #define DJY_TIM4_RELOAD                         (20000UL)   /* x2 = 40000 CPU cycles */
 
 /* The kernel tick source is the RVM virtual timer channel (registered
- * through RVM_Virt_Tim_Reg in djy_board.c), the same source the other
+ * through RVM_Virt_Tim_Reg in the port's board.c), the same source the other
  * RVM guests on this hypervisor use.  A guest cannot own the physical
  * SysTick, so the virtual timer feeds DJY_ScheduleIsr(1) once per
  * delivery; no general purpose timer is spent on the tick. */
@@ -195,5 +200,63 @@
 /* The stack sizes for the benchmark event types. */
 #define DJY_EVTT_STK_SIZE                       (2048UL)
 #define DJY_LOW_STK_SIZE                        (256UL)
+
+/*-----------------------------------------------------------*/
+
+/* Chip/test wiring, following the RMP test-header split: the chip header
+ * owns every peripheral register access and the RVM/DjyOS interrupt-line
+ * setup; the benchmark source defines only the ISR body and the
+ * measurement flow. */
+#define DJY_BENCH_INT_CLEAR() \
+do { DJY_TIM4_SR &= ~DJY_TIM4_SR_UIF; } while(0)
+
+/* Port helpers used by the interrupt wiring below. */
+extern void djy_dbg_puts(const char *str);
+extern bool_t djy_attach_phys(rvm_ptr_t phys_num, rvm_ptr_t vct_num);
+extern void djy_arm_handlers(void);
+
+/* TIM2 - the free running benchmark cycle counter. */
+static inline void djy_bench_timer_init(void)
+{
+    DJY_RCC_APB1ENR |= DJY_RCC_APB1ENR_TIM2;
+    DJY_TIM2_PSC = 0U;
+    DJY_TIM2_ARR = 0xFFFFFFFFUL;
+    DJY_TIM2_CR1 = 1UL;
+}
+
+/* TIM4 and the DjyOS interrupt line that delivers it to this VM. */
+static inline void djy_bench_int_init(u32 (*Isr)(ptu32_t))
+{
+    /* Register the line first: the kernel allocates the struct IntLine
+     * on the heap and fills tg_pIntLineTable[] - without it every Int_*
+     * call below silently no-ops and the first vector delivery
+     * dereferences a NULL slot. */
+    if(Int_Register(DJY_VCT_TIM4) == false)
+    {
+        djy_dbg_puts("djy: failed to register the interrupt line.\r\n");
+        while(1);
+    }
+    Int_IsrConnect(DJY_VCT_TIM4, Isr);
+    Int_SetIsrPara(DJY_VCT_TIM4, 0U);
+    Int_SetClearType(DJY_VCT_TIM4, CN_INT_CLEAR_USER);
+    Int_EnableLine(DJY_VCT_TIM4);
+
+    if(djy_attach_phys(DJY_PHYS_TIM4, DJY_VCT_TIM4) == false)
+    {
+        djy_dbg_puts("djy: failed to attach the interrupt source.\r\n");
+        while(1);
+    }
+
+    /* Idempotent re-arm before the source starts; insurance for a VM
+     * restart. */
+    djy_arm_handlers();
+
+    DJY_RCC_APB1ENR |= DJY_RCC_APB1ENR_TIM4;
+    DJY_TIM4_PSC = 0U;
+    DJY_TIM4_ARR = DJY_TIM4_RELOAD;
+    DJY_TIM4_SR = 0U;
+    DJY_TIM4_DIER = DJY_TIM4_DIER_UIE;
+    DJY_TIM4_CR1 = DJY_TIM4_CR1_CEN;
+}
 
 #endif /* DJY_TEST_STM32H743ZI_RVM_H */

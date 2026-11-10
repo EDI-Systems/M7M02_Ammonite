@@ -8,10 +8,11 @@ copyrights:
 - Copyright (C) 2026 Evo-Devo Instrum.
 default:
 - enabled-by: true
-  value: -mcpu=cortex-m7 -mfpu=fpv5-d16
+  value: -mcpu=cortex-m7 -mfpu=fpv5-d16 -mfloat-abi=hard
 description: |
-  CPU and FPU flags for the RTE guest.  RTE_Gen selects the value from the
-  virtual machine coprocessor: Cortex-M4/FPv4-SP or Cortex-M7/FPv5-DP.
+  CPU, FPU and float-ABI flags for the RTE guest.  RTE_Gen selects the value
+  from the virtual machine coprocessor: Cortex-M4/FPv4-SP or Cortex-M7/FPv5;
+  a VM without a coprocessor gets soft-float flags.
 enabled-by: true
 format: '{}'
 links: []

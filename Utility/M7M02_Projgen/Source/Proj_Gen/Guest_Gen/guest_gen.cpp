@@ -22,11 +22,19 @@ extern "C"
 
 #define __HDR_DEF__
 #include "rvm_gen.hpp"
+#include "Proj_Gen/proj_gen.hpp"
+#include "Proj_Gen/Tool_Gen/tool_gen.hpp"
+#include "Proj_Info/Kobj/kobj.hpp"
+#include "Proj_Info/Process/process.hpp"
 #include "Proj_Gen/Guest_Gen/guest_gen.hpp"
 #undef __HDR_DEF__
 
 #define __HDR_CLASS__
 #include "rvm_gen.hpp"
+#include "Proj_Gen/proj_gen.hpp"
+#include "Proj_Gen/Tool_Gen/tool_gen.hpp"
+#include "Proj_Info/Kobj/kobj.hpp"
+#include "Proj_Info/Process/process.hpp"
 #include "Proj_Gen/Guest_Gen/guest_gen.hpp"
 #undef __HDR_CLASS__
 /* End Include ***************************************************************/
@@ -58,6 +66,36 @@ Return      : None.
     }
 }
 /* End Function:Guest_Gen::Guest_Gen *****************************************/
+
+/* Function:Guest_Gen::Process_Linker *****************************************
+Description : Generate the linker script for a virtual process by default.
+              Guest generators that own their linker script override this.
+Input       : std::unique_ptr<std::vector<std::string>>& List - The lines.
+              const class Process* Prc - The process to generate for.
+              class Tool_Gen* Tool - The toolchain generator.
+Output      : None.
+Return      : None.
+******************************************************************************/
+void Guest_Gen::Process_Linker(std::unique_ptr<std::vector<std::string>>& List,
+                               const class Process* Prc, class Tool_Gen* Tool)
+{
+    Main::Info("> Generating linker script.");
+    Tool->Process_Linker(List, Prc);
+    Proj_Gen::Line_Write(List, Prc->Linker_Output+Prc->Linker_Filename);
+}
+/* End Function:Guest_Gen::Process_Linker ************************************/
+
+/* Function:Guest_Gen::Desc_Usr_Entry *****************************************
+Description : The user thread entry placed in the virtual descriptor.
+Input       : None.
+Output      : None.
+Return      : The entry symbol.
+******************************************************************************/
+std::string Guest_Gen::Desc_Usr_Entry(void)
+{
+    return "__RVM_Entry";
+}
+/* End Function:Guest_Gen::Desc_Usr_Entry ************************************/
 }
 /* End Of File ***************************************************************/
 

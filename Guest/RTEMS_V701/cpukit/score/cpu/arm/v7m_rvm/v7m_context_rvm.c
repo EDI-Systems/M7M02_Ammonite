@@ -44,27 +44,28 @@
 #include "rvm.h"
 
 #include "rte_config.h"
+#include "rte_frame.h"
 #include "rte_rvm_context.h"
 
-#define RTE_FRAME_PARAMS 5U
-#define RTE_FRAME_GP 9U
-#define RTE_FRAME_FP16 16U
-#define RTE_FRAME_BASIC 8U
-#define RTE_FRAME_FP_AREA 18U
-
-#define RTE_FRAME_BASIC_WORDS \
-  ( RTE_FRAME_PARAMS + RTE_FRAME_GP + RTE_FRAME_BASIC )
-#define RTE_FRAME_EXT_WORDS \
-  ( RTE_FRAME_PARAMS + RTE_FRAME_GP + RTE_FRAME_FP16 + RTE_FRAME_BASIC + \
-    RTE_FRAME_FP_AREA )
-
-#define RTE_FRAME_BASIC_HW ( RTE_FRAME_PARAMS + RTE_FRAME_GP )
-#define RTE_FRAME_EXT_HW \
-  ( RTE_FRAME_PARAMS + RTE_FRAME_GP + RTE_FRAME_FP16 )
-
-#define RTE_EXC_RETURN_BASIC 0xFFFFFFFDU
-#define RTE_EXC_RETURN_EXT 0xFFFFFFEDU
-
+_Static_assert(
+  RTE_FRAME_BASIC_WORDS ==
+    RTE_FRAME_PARAMS + RTE_FRAME_GP + RTE_FRAME_BASIC,
+  "basic RVM frame composition"
+);
+_Static_assert(
+  RTE_FRAME_EXT_WORDS ==
+    RTE_FRAME_PARAMS + RTE_FRAME_GP + RTE_FRAME_FP16 + RTE_FRAME_BASIC +
+      RTE_FRAME_FP_AREA,
+  "extended RVM frame composition"
+);
+_Static_assert(
+  RTE_FRAME_BASIC_HW == RTE_FRAME_PARAMS + RTE_FRAME_GP,
+  "basic hardware frame offset"
+);
+_Static_assert(
+  RTE_FRAME_EXT_HW == RTE_FRAME_PARAMS + RTE_FRAME_GP + RTE_FRAME_FP16,
+  "extended hardware frame offset"
+);
 _Static_assert(
   RTE_FRAME_BASIC_WORDS == 22,
   "basic RVM frame size"
@@ -74,11 +75,11 @@ _Static_assert(
   "extended RVM frame size"
 );
 _Static_assert(
-  offsetof( Context_Control, register_sp ) == 36,
+  offsetof( Context_Control, register_sp ) == RTE_CC_SP_OFFSET,
   "Context_Control::register_sp offset used by the assembly switch"
 );
 _Static_assert(
-  offsetof( Context_Control, isr_nest_level ) == 40,
+  offsetof( Context_Control, isr_nest_level ) == RTE_CC_NEST_OFFSET,
   "Context_Control::isr_nest_level offset"
 );
 
@@ -98,8 +99,6 @@ extern void _RVM_CPU_Context_switch_swt(
   const void *usr_params
 );
 
-#define RTE_XPSR_ICI_IT_MASK 0x0600FC00U
-
 #if defined(RTE_FAST_PATH) && (RTE_FAST_PATH != 0)
 #define RTE_USE_FAST_PATH 1
 #else
@@ -118,11 +117,23 @@ static bool rte_in_vector_stack( void )
 
 static bool rte_exc_return_is_valid( uint32_t exc )
 {
-  /*
-   * 0xFFFFFFFD (basic) and 0xFFFFFFED (extended) have bits 0..4 as the
-   * variable part and all other bits set.
-   */
-  return ( exc | 0x1EU ) == 0xFFFFFFFFU;
+  bool valid;
+
+  switch ( exc ) {
+    case 0xFFFFFFF1U: /* handler mode, MSP */
+    case 0xFFFFFFF9U: /* thread mode, MSP */
+    case 0xFFFFFFFDU: /* thread mode, PSP */
+    case 0xFFFFFFE1U: /* handler mode, MSP, FP */
+    case 0xFFFFFFE9U: /* thread mode, MSP, FP */
+    case 0xFFFFFFEDU: /* thread mode, PSP, FP */
+      valid = true;
+      break;
+    default:
+      valid = false;
+      break;
+  }
+
+  return valid;
 }
 
 static bool rte_frame_is_executable( const uint32_t *sp )
@@ -197,7 +208,7 @@ static void rte_rvm_ctx_fail( void )
   }
 }
 
-void rte_rvm_capture_executing( Context_Control *executing )
+bool rte_rvm_capture_executing( Context_Control *executing )
 {
   uint32_t *sp;
   uint32_t exc;
@@ -208,7 +219,7 @@ void rte_rvm_capture_executing( Context_Control *executing )
   if ( (uintptr_t) sp < DATA_DATA1_BASE
     || (uintptr_t) sp >= RVM_VIRT_REG_BASE
     || !rte_exc_return_is_valid( exc ) ) {
-    return;
+    return false;
   }
 
 #if RVM_COP_NUM != 0U
@@ -253,6 +264,8 @@ void rte_rvm_capture_executing( Context_Control *executing )
 
   executing->register_sp = sp;
   executing->register_lr = (void *) 0;
+
+  return true;
 }
 
 void rte_rvm_ctx_handler( void )
@@ -350,30 +363,24 @@ void _CPU_Context_Initialize(
 )
 {
   uintptr_t end;
-  uint32_t words;
-  uint32_t hw;
-  uint32_t exc;
   uint32_t *sp;
 
+  /*
+   * Match the native ARMv7-M port: is_fp is a task declaration, but the
+   * initial context has no FP state yet.  A basic frame is sufficient; the
+   * first VFP instruction sets CONTROL.FPCA and the next save creates the
+   * extended frame in rte_rvm_capture_executing().
+   */
+  (void) is_fp;
+
   end = ( (uintptr_t) stack_area_begin + stack_area_size ) & ~(uintptr_t) 7U;
+  sp = (uint32_t *) ( end - RTE_FRAME_BASIC_WORDS * 4U );
+  memset( sp, 0, RTE_FRAME_BASIC_WORDS * 4U );
 
-  if ( is_fp ) {
-    words = RTE_FRAME_EXT_WORDS;
-    hw = RTE_FRAME_EXT_HW;
-    exc = RTE_EXC_RETURN_EXT;
-  } else {
-    words = RTE_FRAME_BASIC_WORDS;
-    hw = RTE_FRAME_BASIC_HW;
-    exc = RTE_EXC_RETURN_BASIC;
-  }
-
-  sp = (uint32_t *) ( end - (uintptr_t) words * 4U );
-  memset( sp, 0, (size_t) words * 4U );
-
-  sp[13] = exc;
-  sp[hw + 5U] = 0U;
-  sp[hw + 6U] = (uint32_t) entry_point;
-  sp[hw + 7U] = 0x01000000U;
+  sp[13] = RTE_EXC_RETURN_BASIC;
+  sp[RTE_FRAME_BASIC_HW + 5U] = 0U;
+  sp[RTE_FRAME_BASIC_HW + 6U] = (uint32_t) entry_point;
+  sp[RTE_FRAME_BASIC_HW + 7U] = 0x01000000U;
 
   memset( context, 0, sizeof( *context ) );
   context->register_sp = sp;
@@ -399,7 +406,9 @@ void _CPU_Context_switch(
      */
     if ( !rte_isr_captured ) {
       executing->isr_nest_level = _RVM_CPU_ISR_Get_level();
-      rte_rvm_capture_executing( executing );
+      if ( !rte_rvm_capture_executing( executing ) ) {
+        rte_rvm_ctx_fail();
+      }
       rte_isr_captured = true;
       rte_pending_heir = heir;
       /*
@@ -456,12 +465,17 @@ void _CPU_Context_switch(
   );
 }
 
-RTEMS_NO_RETURN void _CPU_Context_restore(
+static RTEMS_NO_RETURN void rte_rvm_start_heir(
   Context_Control *heir
 )
 {
   RVM_Hyp_Int_Ena();
   rte_pending_heir = heir;
+  /*
+   * Unmask before the yield so the heir starts with virtual interrupts
+   * enabled; the second call covers this context when it is resumed later.
+   */
+  RVM_Virt_Int_Unmask();
   RVM_Virt_Yield();
   RVM_Virt_Int_Unmask();
 
@@ -470,16 +484,16 @@ RTEMS_NO_RETURN void _CPU_Context_restore(
   }
 }
 
+RTEMS_NO_RETURN void _CPU_Context_restore(
+  Context_Control *heir
+)
+{
+  rte_rvm_start_heir( heir );
+}
+
 RTEMS_NO_RETURN void _ARMV7M_Start_multitasking(
   Context_Control *heir
 )
 {
-  RVM_Hyp_Int_Ena();
-  rte_pending_heir = heir;
-  RVM_Virt_Yield();
-  RVM_Virt_Int_Unmask();
-
-  for (;;) {
-    /* The boot context is abandoned; the heir starts through the handler. */
-  }
+  rte_rvm_start_heir( heir );
 }

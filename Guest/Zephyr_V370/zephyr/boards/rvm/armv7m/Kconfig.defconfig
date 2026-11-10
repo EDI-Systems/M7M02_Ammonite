@@ -1,0 +1,72 @@
+# SPDX-License-Identifier: Unlicense
+
+if BOARD_ARMV7M
+
+config RVM_GUEST
+	default y
+
+# The RVM guest owns no physical exceptions, MPU, SysTick, SVC or NVIC.
+config ARM_MPU
+	default n
+config HW_STACK_PROTECTION
+	default n
+config USERSPACE
+	default n
+config SMP
+	default n
+config TICKLESS_KERNEL
+	default n
+config PM
+	default n
+config FPU
+	default y
+config FPU_SHARING
+	default y
+config GEN_ISR_TABLES
+	default n
+
+# RVM provides the console and the virtual timer; no STM32 peripheral.
+config MULTITHREADING
+	default y
+config SYS_CLOCK_EXISTS
+	default y
+config SYS_CLOCK_HW_CYCLES_PER_SEC
+	default 480000000 if RVM_CPU_M7
+	default 180000000 if RVM_CPU_M4
+config SYS_CLOCK_TICKS_PER_SEC
+	default 10
+config CORTEX_M_SYSTICK
+	default n
+config PRINTK
+	default y
+config BOOT_BANNER
+	default y
+config CONSOLE
+	default n
+config SERIAL
+	default n
+config UART_CONSOLE
+	default n
+config GPIO
+	default n
+config PINCTRL
+	default n
+config LOG
+	default n
+# Zephyr IRQ IDs 0..NUM_IRQS-1 must not exceed the VM's RVM virtual
+# vector count; the generated projects currently provide 8 vectors.
+config NUM_IRQS
+	default 8
+
+config MAIN_STACK_SIZE
+	default 4096
+config ISR_STACK_SIZE
+	default 4096
+config KERNEL_ENTRY
+	default "__zpr_entry"
+config XIP
+	default y
+config FLASH_LOAD_OFFSET
+	default 0
+
+endif # BOARD_ARMV7M

@@ -14,18 +14,37 @@
 | KLite | V5.2.1 | ARMv7-M | GCC（纪念性移植，单组合：H743） |
 | uC/OS-II | V2.93 | ARMv6-M、ARMv7-M、RV32 | GCC、ARM、IAR（RV32 仅 GCC） |
 | RTEMS（RTE） | 7.0-rc1 | ARMv7-M（H743/F429） | GCC |
+| Zephyr（ZPR） | 3.7.0 LTS | ARMv7-M（H743/F429） | GCC |
 
 RTE 以 `RTEMS_V701` 的 BSP/spec/样例子集分发。构建期生成的 staging 文件
 （`prc_virt1.c`/`_desc.c`、`rte_prc.h`、`rte_config.h`、`app/`）由 RTE_Gen
 和 `rte_copy.sh` 产生，不在镜像中。RTE BSP 通过 `RVM_ROOT` 引用 M7M02 的
-RVM `Include/` 与 `Source/`；所有 RVM 头（包括生成的平台适配头）都由
-`rte_copy.sh` 暂存，BSP 源码树不保留任何 RVM 实现。RTE 默认使用任务栈上的
+RVM `Include/` 与 `Source/`；生成的 VM 头由 `rte_copy.sh` 暂存，共享的
+`rvm.h` 与平台头直接引用，BSP 源码树不维护任何 RVM 实现。RTE 默认使用任务栈上的
 直接上下文切换快路径；生成的 `rte_config.ini` 里的 `RTE_FAST_PATH` 设为
 `False` 时，所有切换都走 RVM 向量线程，且汇编快路径例程不会编入镜像。
 已验证 Cortex-M7/STM32H743 与 Cortex-M4F/STM32F429（板卡为 NUCLEO-F439ZI，
-同 0x419 平台）两种芯片；CPU/FPU 选项由 `RTE_CPU_FLAGS` 按 `.rvp` 的
-coprocessor 自动选择。RTEMS 构建使用 BSP 的 `-O2` 优化选项；性能档案放在
-`testsuites/samples/rte_benchmark/chip/rte_test_<chip>.h`。
+同 0x419 平台）两种芯片；CPU/FPU 与 float-ABI 选项由 `RTE_CPU_FLAGS` 按
+`.rvp` 的 coprocessor 自动选择。BSP spec 的布局默认值是 0 哨兵，`linkcmds`
+用 `ASSERT` 要求所有布局值来自生成的 `rte_config.ini`，直接构建不会静默
+复用旧内存映射。RTEMS 构建使用 BSP 的 `-O2` 优化选项；性能档案放在
+`testsuites/samples/rte_benchmark/chip/rte_test_<chip>.h`。同一个芯片头还负责
+benchmark 的 TIM2/TIM4 初始化与中断清理
+（`RTE_Test_Timer_Init`/`RTE_Test_Int_Init`/`RTE_Test_Int_Disable`/
+`RTE_TEST_INT_CLEAR`）；`init.c` 只定义 handler 和测量流程，与 RMP 的测试头
+分工一致。基准工程（`-b`）
+会给每个 Virtual 客机都编 benchmark；该 Virt 的 `Source/app/` 里若有用户
+`.c`，用户 app 优先。普通 VM 没有用户源时，生成器写一个与 SoC 无关的桩：
+打印 `RTE guest <vm>: no application selected`，永不离开 `Init`，不用时钟
+或外设，因此工程仍能链接并启动。BSP 的入口、配置与 app 文件始终从当前构建
+的 Virt 重新暂存，因此两个 RTE 客机可以共用一个 RTEMS 树串行构建而不串镜像；
+`rte_copy.sh` 在复制前删除上一个 VM 的 `prc_*.h` 和 app 目录，复制失败时
+清理半成品。上下文帧的偏移和字长集中在
+`bsps/arm/v7m_rvm/include/rte_frame.h`，由 C 上下文代码和汇编切换共同
+include；C 侧静态断言检查 `Context_Control` 偏移，防止两份常量漂移。
+初始帧一律为基本帧，与原生 ARM“线程启动时尚无 FP 状态”的规则一致；
+`is_fp`/`RTEMS_FLOATING_POINT` 存入 TCB 但不参与初始帧选择。第一条 VFP
+指令置 FPCA，下一次保存才生成扩展帧；`rte_two_task_fpu` 已按此方式跑通。
 
 安装方式是整文件覆盖：
 
@@ -34,8 +53,10 @@ coprocessor 自动选择。RTEMS 构建使用 BSP 的 `-O2` 优化选项；性�
 
 RVM CPU port 是新目录 `cpukit/score/cpu/arm/v7m_rvm/`，加上 `cpuarm_rvm`
 spec 和 `cpuarm`/`librtemscpu`/`optincludes` 的选择改动；共享的
-`cpukit/score/cpu/arm` 源码未修改。新 port 共 8 个 `cpukit` 文件：7 个
-`v7m_*_rvm` 源文件和 `include/rtems/score/cpu.h` overlay。其余 `cpukit`、
+`cpukit/score/cpu/arm` 源码未修改。新 port 共 4 个 `cpukit` 文件：3 个
+`v7m_*_rvm` 源文件和 `include/rtems/score/cpu.h` overlay。CPU 初始化/ISR level
+包装已并入 `v7m_rvm.c`；`bsp_start()`/`bsp_reset()` 并入 `start/rvm_entry.c`，
+dummy `start-file` 已删除。其余 `cpukit`、
 RTEMS 其他目录和 BSP 公共代码都来自官方树。**不要把原版 cpukit 拷进这个
 增量树，也不要把它当独立 RTEMS 树使用**：它是覆盖包，不是完整树。如果
 要另建构建目录，先把完整官方 RTEMS 树复制过去，再覆盖本 `RTEMS_V701/`。
@@ -49,7 +70,7 @@ RTEMS 其他目录和 BSP 公共代码都来自官方树。**不要把原版 cpu
 
 ### 本库周边的仓库布局
 
-本库是一个十仓库体系的组成部分。工程生成器（`rvgen`）按相对路径定位
+本库是一个十一仓库体系的组成部分。工程生成器（`rvgen`）按相对路径定位
 各仓库，请将它们并排放在同一根目录下：
 
 ```
@@ -71,13 +92,15 @@ RTEMS 其他目录和 BSP 公共代码都来自官方树。**不要把原版 cpu
 ├─ KLite_V521/         KLite V5.2.1 源码树——端口在 sources/cpu/armv7-m_rvm，
 │                      基准在 test/
 ├─ uCOSII_V293/        uC/OS-II V2.93 源码树——端口在 Ports/*-RVM，基准在 Test/
-└─ RTEMS_V701/         RTEMS 7.0-rc1 源码树——RTE BSP/spec/样例子集覆盖包，
-                       不是完整 RTEMS 树
+├─ RTEMS_V701/         RTEMS 7.0-rc1 源码树——RTE BSP/spec/样例子集覆盖包，
+│                      不是完整 RTEMS 树
+└─ Zephyr_V370/        Zephyr 3.7.0 LTS west 工作区覆盖包——ZPR 架构端口、
+                       RVM 板级支持与 ZPR 基准应用
 ```
 
 按下一节的方法把本库覆盖到你的官方 FreeRTOS / uC/OS-III / RT-Thread /
-DjyOS / KLite / uC/OS-II / RTEMS 源码树之后，那些源码树就顶替了上表布局中
-`*_Vxxx/` 的位置。
+DjyOS / KLite / uC/OS-II / RTEMS / Zephyr 源码树之后，那些源码树就顶替了
+上表布局中 `*_Vxxx/` 的位置。
 
 ---
 
@@ -85,8 +108,9 @@ DjyOS / KLite / uC/OS-II / RTEMS 源码树之后，那些源码树就顶替了�
 
 本库的目录结构就是目标源码树相对布局的镜像，且
 **只包含我方新增或修改的文件**——官方内核文件一律不在镜像内，因此安装
-不会删除你的文件；唯一会覆盖的官方文件是 RTE 的 `spec/build` 选择文件与
-顶层 `wscript`，每个端口也都自然落到正确位置。
+不会删除你的文件；唯一会覆盖的官方文件是 RTE 的 `spec/build` 选择文件、RTEMS 顶层
+`wscript`，以及 Zephyr 的 arch 选择文件；RVM 板级/SoC 目录是新增内容，
+每个端口都自然落到正确位置。
 
 - 把 `FreeRTOS_V900/` 整体覆盖到你的官方 FreeRTOS **V9.0.0** 源码树根目录
   （目录合并）。
@@ -106,9 +130,32 @@ DjyOS / KLite / uC/OS-II / RTEMS 源码树之后，那些源码树就顶替了�
 - 把 `uCOSII_V293/` 覆盖到你的官方 Micrium uC/OS-II **V2.93** 源码树根目录
   （合并目录；覆盖添加 ARMv6-M、ARMv7-M、RV32 的 `*-RVM` 端口与 `Test/`
   基准树）。
-- RTEMS：先准备一份完整的官方 RTEMS **7.0-rc1** 树，再把 `RTEMS_V701/`
+
+### 先搭环境、装工具链、跑通原生应用（RTE/ZPR）
+
+不要一上来就编译虚拟化镜像。先准备客机源码树和对应工具链，确认未经 RVM 覆盖的原生应用能编译、链接，再覆盖 RVM 端口：
+
+- RTEMS：安装 `arm-rtems7-gcc` 15.2.0（含 Cortex-M3/M4/M7 的 newlib 与
+  C++ multilib），配置并构建官方 RTEMS **7.0-rc1** 树，再构建原生 BSP
+  样例，例如 `arm/stm32f4` 的 `hello.exe`（C++ 路径再加 `iostream.exe`）。
+- Zephyr：建立 **Zephyr 3.7.0 LTS** 的 west 工作区，安装 `west`、
+  CMake/Ninja 与 GNU Arm 工具链（或 Zephyr SDK），先用 `west build` 构建
+  官方板级样例，例如 `nucleo_h743zi` 的 `hello_world`（M4F 路径用
+  `nucleo_f429zi`）。
+
+原生构建通过后，再覆盖 `RTEMS_V701/` 或 `Zephyr_V370/` 并构建 RTE/ZPR
+虚拟化镜像。
+
+- RTEMS：准备一份完整的官方 RTEMS **7.0-rc1** 树，再把 `RTEMS_V701/`
   覆盖上去，同名文件选择覆盖。本目录是覆盖包，不是独立 RTEMS 树；不要把
-  原版 `cpukit` 拷进本目录。生成工程时传 `-rte`。
+  原版 `cpukit` 拷进本目录。生成工程时传 `-rte`；生成的 makefile 从 PATH
+  找 `arm-rtems7-gcc`，可用 `RTEMS_PREFIX` make 变量覆盖。
+- Zephyr：先准备一份 **Zephyr 3.7.0 LTS** 的 west 工作区，再把
+  `Zephyr_V370/` 覆盖上去，同名文件选择覆盖（`zephyr/` 下的 arch/SoC 文件
+  是有意保留的 RVM 改动）。生成工程时只传 `-zpr <west-root>`；
+  生成的 makefile 从 PATH 找 `arm-none-eabi-gcc` 和 `west`，可用
+  `PREFIX`/`WEST` make 变量覆盖。覆盖包只含端口、一块 RVM 板与基准应用，不含第二份 Zephyr
+  源码树。
 
 覆盖后的目录结构（RVM 端口目录与官方端口目录并排，就像额外的官方端口）：
 
@@ -200,7 +247,7 @@ RTEMS/RTE（写在生成的 `rte_config.ini`）：
 | 宏 | 含义 | 备注 |
 |---|---|---|
 | `RTE_FAST_PATH` | 1=干净任务帧在任务栈上直接切换；0=所有切换都走 RVM 向量线程 | 设 `False` 时汇编快路径例程也不会编入镜像 |
-| `RTE_CPU_FLAGS` | 所选 Cortex-M 变体的 `-mcpu/-mfpu` | `RTE_Gen` 按 `.rvp` coprocessor 自动选择：FPV4_SP→M4F，FPV5_SP/FPV5_DP→M7 |
+| `RTE_CPU_FLAGS` | 所选 Cortex-M 变体的 `-mcpu/-mfpu/-mfloat-abi` | `RTE_Gen` 按 `.rvp` coprocessor 自动选择：FPV4_SP→M4F，FPV5_SP/FPV5_DP→M7，无 coprocessor→soft-float |
 
 ### 1.2 工程生成
 
@@ -216,6 +263,24 @@ RTEMS/RTE（写在生成的 `rte_config.ini`）：
 `<guest>_main.c` 里的普通应用启动，该文件被生成器复制成工作区的
 `main.c`（含 §2.10 的空闲停车 hook）。两个脚本必须给同一组源码根。
 
+### 1.3 布局归属
+
+VM 的内存布局由生成器拥有，只有测试接线是逐芯片的。
+
+- **ZPR**：固定一块板 `armv7m`。生成器为每个 Virt 写完整
+  `zpr_board.dts`（CPU compatible、`flash0`/`sram0` 窗口、`chosen`），
+  生成的 makefile 以 `DTS_SOURCE` 选中它；`prj.conf` 只放 CPU 选择、
+  栈、事件与堆。没有 M7/M4 板级 variant。
+- **RTE**：`rte_config.ini` 提供全部代码/数据/栈值，`linkcmds` 把它们
+  替换进 `MEMORY`/`__RVM_Stack`；spec 默认值是 0 哨兵，`linkcmds` 断言
+  这些值来自生成器。CPU/FPU 与 float ABI 来自 `RTE_CPU_FLAGS`。
+- **DjyOS**：端口 `template/*.h`（board/project/component 配置）复制到
+  `<Virt>/Include/`；已存在则不覆盖，用户可逐 VM 修改 clock/tick/stack/
+  component 限制。上下文 PC 校验用生成的 `CODE_CODE1_BASE`/
+  `CODE_CODE1_SIZE`，`board.c` 断言内核栈放得进 `DATA_DATA1_SIZE`。
+
+各客机 `test/chip` 下的逐芯片文件只是 benchmark 接线（TIM/RCC/IRQ/ARR），
+不属于普通 VM 镜像，也不属于 VM 内存布局。
 
 ---
 
@@ -340,6 +405,19 @@ EXC_RETURN、8 字基本硬件帧。脏帧（EPSR ICI/IT）走延迟路径，交
 **出入与为何无碍**：帧里的 PC 存奇数 Thumb 位，因为这帧也会被内核的
 异常返回消费；客机按软浮点编译，因为端口只构建整数帧。
 
+**布局与可编辑配置**：上下文 PC 校验使用生成的 `CODE_CODE1_BASE`/
+`CODE_CODE1_SIZE`，`board.c` 静态断言内核栈放得进 `DATA_DATA1_SIZE`。
+端口 `template/*.h` 配置头会复制到 `<Virt>/Include/`，已存在则不覆盖，
+因此 clock/tick/stack/component 限制可按 VM 修改；`template/` 只是种子，
+不在编译 include path 里。
+
+**Benchmark 接线**：benchmark 的芯片相关代码全部在
+`test/chip/djy_test_stm32h743zi_rvm.h`：`djy_bench_timer_init`（TIM2）、
+`djy_bench_int_init(handler)`（DjyOS 中断线注册、`djy_attach_phys`、TIM4）
+和 `DJY_BENCH_INT_CLEAR`。`test/djy_board.c` 只保留 benchmark VM 入口/引导，
+`test/djy_benchmark.c` 只定义 `djy_bench_isr` 和测量流程，与 RMP 的
+测试头分工一致。
+
 
 ### 2.8 KLite：契约、策略与微妙出入
 
@@ -430,6 +508,85 @@ PC/SP。`RTE_FAST_PATH=0` 时 C 分支和汇编快例程都编译掉，全 Vct �
 Cortex-M4F/FPv4-SP 或 Cortex-M7/FPv5；RTEMS 构建使用 BSP 的 `-O2` 选项。
 RTE 构建以 C 应用/基准为主；`librtemscxx` 可构建，但没有 C++ 客机测试。
 
+### 2.12 Zephyr（ZPR）：契约、策略与微妙出入
+
+**契约。** Zephyr 3.7.0 LTS 以非特权 RVM 用户线程运行。
+`CONFIG_RVM_GUEST` 架构端口位于 `arch/arm/core/cortex_m/v7m_rvm/`，替换
+正常的 Cortex-M 入口、SysTick、NVIC、SVC、PendSV、MPU 与 FPU 路径；
+上游 Cortex-M 源文件保持原样，由构建系统选择新端口。调度仍用 Zephyr
+自己的 `_kernel` ready queue，但物理切换要么走 RVM 快路径，要么走 Vct
+ctx handler。
+
+**策略。** 生成器拥有的 `prc_<vm>.c` 提供 `Thd_Vct`，`prc_<vm>_desc.c`
+提供 `RVM_Desc`。描述符策略是 `Guest_Gen` 的虚方法：ZPR 报告用户入口为
+`__zpr_entry`；公共生成器直接写出入口、由入口名推导
+`RVM_EXTERN void <entry>(void);` 声明。描述符是普通 `.rodata` 中的
+`const RVM_Desc[]`，由 `zpr_desc.ld` 按生成对象 `*prc_*_desc*.o*` 的
+`.rodata` 收集到镜像基址，不需要段属性或生成后的文本补丁。端口的 `zpr_entry.c` 只提供
+`__zpr_entry`（Zephyr `z_prep_c`）；RVM 中断在 `z_prep_c`/`z_cstart` 期间保持
+关闭，直到 `zpr_switch_to_main()` 最后切 main 时才使能。`zpr_context.c` 把 Zephyr 的
+`arch_swap` 状态映射到与 RTE 相同的 22 字伪装帧；帧的 SP 位于偏移 36，
+共享的 RVM 慢路径汇编因此可以原样复用。`zpr_timer.c` 通过
+`RVM_Virt_Tim_Reg` 注册 `sys_clock_announce()`，`zpr_printk.c` 通过
+`RVM_Hyp_Putchar` 输出控制台；benchmark 的芯片头
+（`zpr_test_<chip>.h`）可在 benchmark app 调用其 `ZPR_Test_*` 初始化时把
+物理 TIM4 转发到虚拟 VCT 2。空闲线程调用 `RVM_Hyp_Vct_Wait()`，再用
+`z_reschedule_irqlock()` 回到调度器；从 idle 调 `k_yield()` 是错的，因为
+idle 有意不在 ready queue 中。ctx handler 的注册放在
+`SYS_INIT(PRE_KERNEL_1)`，确保在 `z_bss_zero()` 之后执行。定时器 ISR 在
+`sys_clock_announce()` 后调用 `zpr_reschedule_from_vector()`：若有更高优先级
+线程就绪，就捕获被中断帧并 yield；`k_thread_abort()` 使用 RVM 专用实现，
+不写 SCB->ICSR、不读 IPSR。上下文层同时支持 22 字基本帧和 56 字 FPU 扩展帧
+（`S16..S31`、硬件帧、`S0..S15/FPSCR`）：初始帧一律是基本帧，带 `K_FP_REGS`
+的线程也一样；第一条 VFP 指令置 `CONTROL.FPCA`，下一次保存才生成扩展帧。
+Vct 捕获/恢复处理 monitor 的 `EXC_RETURN=0xFFFFFFED`。H743 上两个 FP 线程与
+定时器驱动的 FP 抢占在快路径和全 Vct 构建下均通过；F429 上快路径通过，全 Vct
+帧路径两者共用。
+
+**生成器与内存。** `ZPR_Gen` 只写 Virt 工作区（Zephyr 应用、
+`zpr_config.h`、驱动 west 的 `prc_<vm>` makefile），绝不修改 Zephyr 树。
+应用的生成源表/include/linker 片段放在 `zpr_app.cmake`；缺 `CMakeLists.txt`
+时生成薄包装，手写文件保留并只追加一次 include，之前生成的包装则刷新。
+`prj.conf` 同一规则：手写文件保留用户选项，生成器拥有的旧链接值会被清除，
+缺失的 ZPR 默认项追加一次。只有一块虚拟板 `armv7m`，它把 Zephyr 镜像放在与
+RTE 完全相同的代码窗口，数据/bss/栈放在 RTE 数据窗口。生成器为每个 VM
+写 `zpr_board.dts`（CPU compatible、flash/SRAM 窗口与 `chosen`），并以
+`DTS_SOURCE` 传给 west；CPU 由 `CONFIG_RVM_CPU_M7`/`CONFIG_RVM_CPU_M4`
+选择。没有 STM32 dtsi、RCC/PLL 或外设节点。芯片外设
+（RCC、TIM4 等）经生成的 `zpr_test.h` 从
+`zephyr/arch/arm/core/cortex_m/v7m_rvm/test/chip/zpr_test_*.h` 引入；
+`zpr_config.h` 只保留代码/数据大小与快路径开关。benchmark 的 TIM2/TIM4
+接线就在该芯片头的 `ZPR_Test_Timer_Init`/`ZPR_Test_Int_Init`/
+`ZPR_Test_Int_Disable` 里，ISR handler 在 `test/bench.c`，与 RMP 的芯片头
+做法一致。`test/bench.c` 和 `zpr_test.h` 只属于 benchmark app；普通客机
+不编译、不 include 它们，也不会碰 TIM4。正常 app 与 SoC 无关：虚拟 SoC
+没有 STM32 HAL 或 SoC 初始化，唯一时钟值是
+`CONFIG_SYS_CLOCK_HW_CYCLES_PER_SEC`；用户需要外设时通过 `app.overlay`
+添加，并受 RVM 设备/IRQ 授权约束。六项 ISR
+基准行只是同一个 TIM4 虚拟向量钩子的标签，不是六种中断机制，benchmark
+会先打印该说明。多客机时板级
+DTS 的单 VM 窗口不够用：生成器把该 Virt 分配到的代码/数据窗口写进
+`zpr_board.dts`（CPU compatible、`flash0`/`sram0` 与 `chosen`），并以
+`DTS_SOURCE` 传给 west，每个客机按自己的物理窗口链接。生成后的 M7 窗口是
+114 KiB、M4 窗口是 66 KiB；
+生成器把 VM 窗口向下取整到 KiB，因此最多 848 字节不对外声明。H743 上已实测
+两个 ZPR 客机同时启动；两个
+benchmark 客机会争用同一 TIM4，不是受支持配置。该 Virt 的
+`Source/app/` 里有用户 `.c` 时，两种构建模式下都优先用户 app；只有目录为空
+且未设 `ZPR_NORMAL` 时才选 benchmark。`v7m_rvm` 的 Kconfig 依赖
+`!SMP && !USERSPACE && !ARM_MPU
+&& !CORTEX_M_SYSTICK && !TICKLESS_KERNEL && !GEN_ISR_TABLES`，C 侧用编译期
+断言钉住基本/扩展帧 ABI。已验证的 ZPR 基准使用
+`CONFIG_SYS_CLOCK_TICKS_PER_SEC=10`、minimal libc，无 userspace、无 MPU；
+FPU 支持单独启用（`CONFIG_FPU=y`、`CONFIG_FPU_SHARING=y`、hard-float ABI），
+由两个 FP 线程和定时器抢占测试验证，整数 benchmark 本身不使用 FPU。
+
+**普通构建与原生心跳。** RVM 的时间轮由物理定时器向量推进。`generate.sh`
+对 ZPR 工程自动加 `-b`，用原生基准进程充当 TIM4 心跳；镜像能启动，先跑
+完原生基准，再进入用户的 Zephyr 应用。普通客机既不编译 `test/bench.c`
+也不 include `zpr_test.h`，不会注册或改写 TIM4。原生基准输出尚未静音。
+`benchmark.sh` 使用同一心跳并运行 15 项 ZPR 基准。
+
 ---
 
 ## 3. RVM 中断模型（所有端口的共同地基）
@@ -457,4 +614,6 @@ RTE 构建以 C 应用/基准为主；`librtemscxx` 可构建，但没有 C++ �
   但没有实际运行 C++ RTE 应用。
 - RTE 的 ISR relay 在任务恢复后采样，其他客机在 ISR 入口采样；relay 数字
   不能直接横比。
+- ZPR 的 ISR 行在 RVM 虚拟向量钩子中取样、由轮询线程读出，尚不是
+  Zephyr ISR 上下文内的内核对象释放。
 

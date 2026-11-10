@@ -77,6 +77,19 @@ GUESTS+="RTEMS_V701/testsuites/samples/rte_benchmark "
 GUESTS+="RTEMS_V701/cpukit/score/cpu/arm/v7m_rvm "
 GUESTS+="RTEMS_V701/wscript "
 
+# Zephyr 3.7.0 LTS ZPR guest.  Only the port, the benchmark app, the virtual
+# ARMv7-M SoC/board and the arch files changed for CONFIG_RVM_GUEST are
+# mirrored; the rest of the west workspace is the vendor tree.
+GUESTS+="Zephyr_V370/zephyr/boards/rvm/armv7m "
+GUESTS+="Zephyr_V370/zephyr/arch/arm/core/CMakeLists.txt "
+GUESTS+="Zephyr_V370/zephyr/arch/arm/core/cortex_m/Kconfig "
+GUESTS+="Zephyr_V370/zephyr/arch/arm/core/cortex_m/CMakeLists.txt "
+GUESTS+="Zephyr_V370/zephyr/arch/arm/core/cortex_m/v7m_rvm "
+GUESTS+="Zephyr_V370/zephyr/arch/arm/include/kernel_arch_func.h "
+GUESTS+="Zephyr_V370/zephyr/soc/arm/soc.yml "
+GUESTS+="Zephyr_V370/zephyr/soc/arm/v7m_rvm "
+GUESTS+="Zephyr_V370/zephyr/dts/bindings/vendor-prefixes.txt "
+
 rm -rf ./*/
 
 for GUEST in $GUESTS; do

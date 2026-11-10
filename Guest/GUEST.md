@@ -15,22 +15,50 @@ Currently distributed:
 | KLite | V5.2.1 | ARMv7-M | GCC (commemorative port, single combination: H743) |
 | uC/OS-II | V2.93 | ARMv6-M, ARMv7-M, RV32 | GCC, ARM, IAR (RV32: GCC only) |
 | RTEMS (RTE) | 7.0-rc1 | ARMv7-M (H743/F429) | GCC |
+| Zephyr (ZPR) | 3.7.0 LTS | ARMv7-M (H743/F429) | GCC |
 
 RTE is distributed as the `RTEMS_V701` BSP/spec/sample subset.  Its generated
 build-time staging files (`prc_virt1.c`/`_desc.c`, `rte_prc.h`,
 `rte_config.h` and `app/`) are produced by RTE_Gen and `rte_copy.sh`, so they
 are not part of the mirror.  The RTE BSP references the M7M02 RVM `Include/`
-and `Source/` trees through `RVM_ROOT`; all RVM headers, including the generated
-platform adapters, are staged by `rte_copy.sh`, so no RVM implementation is
-kept in the BSP source tree.  RTE defaults to the direct task-stack context
-switch fast path; setting `RTE_FAST_PATH` to `False` in the generated
-`rte_config.ini` routes every switch through the RVM vector thread and omits
-the assembly fast routine from the image.  Cortex-M7/STM32H743 and
+and `Source/` trees through `RVM_ROOT`; the generated VM headers are staged by
+`rte_copy.sh`, while the shared `rvm.h` and platform header are included
+directly, so no RVM implementation is maintained in the BSP source tree.  RTE
+defaults to the direct task-stack context switch fast path; setting
+`RTE_FAST_PATH` to `False` in the generated `rte_config.ini` routes every
+switch through the RVM vector thread and omits the assembly fast routine from
+the image.  Cortex-M7/STM32H743 and
 Cortex-M4F/STM32F429 (the connected board reports NUCLEO-F439ZI, same 0x419
-family) are both verified; `RTE_CPU_FLAGS` selects the CPU/FPU options from
-the `.rvp` coprocessor.  The RTEMS build uses the BSP `-O2` optimization
+family) are both verified; `RTE_CPU_FLAGS` selects the CPU/FPU and float-ABI
+options from the `.rvp` coprocessor.  The BSP spec layout defaults are zero
+sentinels and `linkcmds` asserts that every layout value came from the
+generated `rte_config.ini`, so a direct build cannot silently reuse a stale
+memory map.  The RTEMS build uses the BSP `-O2` optimization
 flags; performance archives live in
-`testsuites/samples/rte_benchmark/chip/rte_test_<chip>.h`.
+`testsuites/samples/rte_benchmark/chip/rte_test_<chip>.h`.  That same chip
+header owns the benchmark's TIM2/TIM4 setup and IRQ clear
+(`RTE_Test_Timer_Init`/`RTE_Test_Int_Init`/`RTE_Test_Int_Disable`/
+`RTE_TEST_INT_CLEAR`); `init.c` only defines the handler and measurement
+flow, following the RMP test-header split.  A benchmark
+project (`-b`) builds the benchmark into every Virtual guest; a user `.c`
+file in that Virt's `Source/app/` takes precedence.  A normal VM with no user
+source gets a generated SoC-agnostic stub that prints `RTE guest <vm>: no
+application selected`, never leaves `Init`, and uses no clock or peripheral,
+so the project still links and boots.  The BSP entry, config
+and app files are re-staged from the Virt being built, so two RTE guests can
+share one RTEMS tree and build serially without leaking each other's
+descriptors; `rte_copy.sh` removes the previous VM's `prc_*.h` and app folder
+before copying and cleans half-written files on failure.  The context frame
+offsets and word counts are in `bsps/arm/v7m_rvm/include/rte_frame.h`, shared
+by the C context code and the assembly switch; static assertions check the
+`Context_Control` offsets so the two copies cannot drift.  Initial contexts are
+always basic frames, matching the native ARM rule that no FP state exists at
+thread start; `is_fp`/`RTEMS_FLOATING_POINT` is stored in the TCB but ignored
+for frame selection.  The first VFP instruction sets FPCA and the next save
+creates the extended frame; `rte_two_task_fpu` passes with this scheme.
+`RTE_FAST_PATH`
+also has a single generated source of truth: the `.ini` value becomes both
+`rte_config.h` and the assembly compile definition.
 
 Installation is a full-file overlay:
 
@@ -40,8 +68,10 @@ Installation is a full-file overlay:
 The RVM CPU port is the new `cpukit/score/cpu/arm/v7m_rvm/` directory, plus
 the `cpuarm_rvm` spec and the small `cpuarm`/`librtemscpu`/`optincludes`
 selection changes; the shared `cpukit/score/cpu/arm` sources are unmodified.
-The port consists of 8 `cpukit` files: seven `v7m_*_rvm` sources and the
-`include/rtems/score/cpu.h` overlay.
+The port consists of 4 `cpukit` files: three `v7m_*_rvm` sources and the
+`include/rtems/score/cpu.h` overlay.  The CPU-level initialization and ISR
+level wrappers were folded into `v7m_rvm.c`; `bsp_start()`/`bsp_reset()` were
+folded into `start/rvm_entry.c`, and the dummy `start-file` was removed.
 The rest of `cpukit`, the other RTEMS directories and the BSP shared code come
 from the official tree.  Do not copy the original `cpukit` into this delta tree
 and do not use this delta tree standalone: it is an overlay, not a complete
@@ -58,7 +88,7 @@ directory.
 
 ### The repositories around this library
 
-This library is one piece of a ten-repository system. The project generator
+This library is one piece of a eleven-repository system. The project generator
 (`rvgen`) locates them by relative path, so keep them as siblings under one
 root:
 
@@ -82,13 +112,15 @@ root:
 │                      benchmark in test/
 ├─ uCOSII_V293/        the uC/OS-II V2.93 tree — ports in Ports/*-RVM,
 │                      benchmark in Test/
-└─ RTEMS_V701/         the RTEMS 7.0-rc1 tree — RTE BSP/spec/sample subset
-                       overlay, not a complete RTEMS tree
+├─ RTEMS_V701/         the RTEMS 7.0-rc1 tree — RTE BSP/spec/sample subset
+│                      overlay, not a complete RTEMS tree
+└─ Zephyr_V370/        Zephyr 3.7.0 LTS west-workspace overlay — ZPR arch
+                       port, the RVM board and the ZPR benchmark app
 ```
 
 When you overlay this library onto your official FreeRTOS / uC/OS-III /
-RT-Thread / DjyOS / KLite / uC/OS-II / RTEMS trees (next section), those
-trees take the place of the `*_Vxxx/` entries in the layout above.
+RT-Thread / DjyOS / KLite / uC/OS-II / RTEMS / Zephyr trees (next section),
+those trees take the place of the `*_Vxxx/` entries in the layout above.
 
 ---
 
@@ -97,8 +129,9 @@ trees take the place of the `*_Vxxx/` entries in the layout above.
 The library mirrors the relative layout of the target trees and contains
 **only the files we added or changed** — official kernel files are never
 included, so installing never deletes your files; the only official files
-overwritten are the RTE `spec/build` selection files and the top-level
-`wscript`, and every port lands in its intended place.
+overwritten are the RTE `spec/build` selection files, the RTEMS top-level
+`wscript`, and the Zephyr arch selection files; the RVM board and SoC
+directories are new additions, and every port lands in its intended place.
 
 - Copy `FreeRTOS_V900/` over the root of your official FreeRTOS **V9.0.0**
   tree (merge directories).
@@ -123,10 +156,38 @@ overwritten are the RTE `spec/build` selection files and the top-level
 - Copy `uCOSII_V293/` over the root of your official Micrium uC/OS-II
   **V2.93** tree (merge directories; the overlay adds the ARMv6-M,
   ARMv7-M and RV32 `*-RVM` ports and the `Test/` benchmark tree).
-- For RTEMS, first prepare a complete official RTEMS **7.0-rc1** tree, then
+
+### Environment and native build first (RTE and ZPR)
+
+Do not start with the virtualized image.  Set up the guest tree and its
+toolchain, then prove that an unmodified native application builds and links
+before copying the RVM overlay:
+
+- RTEMS: install `arm-rtems7-gcc` 15.2.0 with the Cortex-M3/M4/M7 newlib and
+  C++ multilibs, configure and build the official RTEMS **7.0-rc1** tree, and
+  build a native BSP sample such as `arm/stm32f4` `hello.exe` (and
+  `iostream.exe` for the C++ path).
+- Zephyr: create a Zephyr **3.7.0 LTS** west workspace, install `west`,
+  CMake/Ninja and the GNU Arm toolchain (or Zephyr SDK), and build a stock
+  board sample such as `nucleo_h743zi` `hello_world` with `west build`
+  (`nucleo_f429zi` for the M4F path).
+
+Only after the native build is green should you apply `RTEMS_V701/` or
+`Zephyr_V370/` and build the RTE/ZPR virtualized image.
+
+- For RTEMS, prepare a complete official RTEMS **7.0-rc1** tree, then
   copy `RTEMS_V701/` over it, overwriting same-name files.  This directory
   is an overlay, not a standalone RTEMS tree; do not copy the original
-  `cpukit` into it.  Pass `-rte` to the project generator.
+  `cpukit` into it.  Pass `-rte` to the project generator; the generated
+  makefile finds `arm-rtems7-gcc` in PATH, with `RTEMS_PREFIX` as an
+  override.
+- For Zephyr, start from a west workspace at **Zephyr 3.7.0 LTS**, then copy
+  `Zephyr_V370/` over it, overwriting same-name files (the arch/SoC files
+  under `zephyr/` are intentional RVM changes).  Pass `-zpr <west-root>` to the
+  project generator; the generated makefile finds `arm-none-eabi-gcc` and
+  `west` in PATH, with `PREFIX`/`WEST` make variables available as overrides.  The overlay ships the port,
+  the RVM board and the benchmark app; it does not ship a second Zephyr
+  tree.
 
 After the overlay, the RVM port directories sit beside the official ones,
 exactly like additional official ports:
@@ -221,7 +282,7 @@ RTEMS/RTE (in the generated `rte_config.ini`):
 | Macro | Meaning | Notes |
 |---|---|---|
 | `RTE_FAST_PATH` | 1 = clean task frames switch directly on the task stacks; 0 = every switch goes through the RVM vector thread | `False` also removes the assembly fast routine from the image |
-| `RTE_CPU_FLAGS` | `-mcpu/-mfpu` for the selected Cortex-M variant | set by `RTE_Gen` from the `.rvp` coprocessor: FPV4_SP -> M4F, FPV5_SP/FPV5_DP -> M7 |
+| `RTE_CPU_FLAGS` | `-mcpu/-mfpu/-mfloat-abi` for the selected Cortex-M variant | set by `RTE_Gen` from the `.rvp` coprocessor: FPV4_SP -> M4F, FPV5_SP/FPV5_DP -> M7, no coprocessor -> soft-float |
 
 ### 1.2 Project generation
 
@@ -240,6 +301,28 @@ guest is then booted by the plain application in `<guest>_main.c`, which the
 generator copies into the workspace as `main.c` (with the idle-parking hook
 described in §2.10). Both scripts must be given the same source roots.
 
+### 1.3 Generated layout ownership
+
+A VM's memory layout is generator-owned; only the test wiring is per-chip.
+
+- **ZPR**: one board target, `armv7m`.  For every Virt the generator writes a
+  complete `zpr_board.dts` (CPU compatible, `flash0`/`sram0` windows,
+  `chosen`) and the generated makefile passes it as `DTS_SOURCE`;
+  `prj.conf` carries only the CPU choice, stacks, events and heap.  There are
+  no M7/M4 board variants.
+- **RTE**: `rte_config.ini` carries every code/data/stack value, and
+  `linkcmds` substitutes them into its `MEMORY`/`__RVM_Stack`; spec defaults
+  are zero sentinels and `linkcmds` asserts they were generated.  CPU/FPU and
+  float ABI come from `RTE_CPU_FLAGS`.
+- **DjyOS**: the port's `template/*.h` files (board, project and component
+  configuration) are copied into `<Virt>/Include/`; an existing copy wins, so
+  users can edit the clock/tick/stack/component limits per VM.  The context
+  PC check uses the generated `CODE_CODE1_BASE`/`CODE_CODE1_SIZE`, and
+  `board.c` asserts the kernel stacks fit `DATA_DATA1_SIZE`.
+
+Per-chip files under each guest's `test/chip` are benchmark wiring only
+(TIM/RCC/IRQ/ARR); they are not part of a normal VM image or of the VM memory
+map.
 
 ---
 
@@ -398,6 +481,22 @@ bit set, because the frame is also consumed by the kernel's exception return;
 the guest is compiled soft-float, because the port builds integer-only
 frames.
 
+**Generated layout and editable config.** The context PC check uses the
+generated `CODE_CODE1_BASE`/`CODE_CODE1_SIZE`, and `board.c` statically
+asserts that the kernel stacks fit `DATA_DATA1_SIZE`.  The port's
+`template/*.h` configuration headers are copied into `<Virt>/Include/`; an
+existing copy is never overwritten, so the clock, tick, stack and component
+limits are per-VM editable.  `template/` is only the seed and is not on the
+compile include path.
+
+**Benchmark wiring.** The benchmark's chip-specific code lives in
+`test/chip/djy_test_stm32h743zi_rvm.h`: `djy_bench_timer_init` (TIM2),
+`djy_bench_int_init(handler)` (DjyOS interrupt-line registration,
+`djy_attach_phys`, TIM4) and `DJY_BENCH_INT_CLEAR`.  `test/djy_board.c` is
+only the benchmark VM entry/boot sequence and `test/djy_benchmark.c` only
+defines `djy_bench_isr` and the measurement flow, following the RMP
+test-header split.
+
 
 ### 2.8 KLite: contract, strategy, and the subtle deviations
 
@@ -516,6 +615,105 @@ coprocessor; the RTEMS build uses the BSP `-O2` flags.  RTE guest
 applications and the benchmark are C; `librtemscxx` is buildable but no C++
 guest application is exercised.
 
+### 2.12 Zephyr (ZPR): contract, strategy, and the subtle deviations
+
+**Contract.** Zephyr 3.7.0 LTS runs as an unprivileged RVM user thread.
+The `CONFIG_RVM_GUEST` arch port lives in
+`arch/arm/core/cortex_m/v7m_rvm/` and replaces the normal Cortex-M entry,
+SysTick, NVIC, SVC, PendSV, MPU and FPU paths; the upstream Cortex-M source
+files remain untouched, and the build selects the new port.  The scheduler still uses Zephyr's own `_kernel` ready
+queue, but the physical switch is either the RVM fast path or the Vct
+context handler.
+
+**Strategy.** The generator-owned `prc_<vm>.c` supplies `Thd_Vct` and the
+generator-owned `prc_<vm>_desc.c` supplies `RVM_Desc`.  The descriptor policy
+is a single virtual method on `Guest_Gen`: ZPR reports that its user entry is
+`__zpr_entry`; the common generator emits the entry and derives its
+`RVM_EXTERN void <entry>(void);` declaration.  The descriptor is a plain
+`const RVM_Desc[]` in `.rodata`; `zpr_desc.ld` collects the generated
+`*prc_*_desc*.o*` object's `.rodata` at the image base, so no section
+attribute or post-generation text patch is needed.  The port's
+`zpr_entry.c` supplies only `__zpr_entry` (Zephyr `z_prep_c`); RVM
+interrupt gates stay masked through `z_prep_c`/`z_cstart`, and
+`zpr_switch_to_main()` enables them only at the final switch to main.  `zpr_context.c` maps Zephyr's
+`arch_swap` state onto the same 22-word masqueraded frame used by RTE; the
+frame's SP sits at offset 36 so the shared RVM slow-path assembly can be
+reused unchanged.  `zpr_timer.c` registers `sys_clock_announce()` through
+`RVM_Virt_Tim_Reg`, `zpr_printk.c` sends the console through
+`RVM_Hyp_Putchar`, and the benchmark chip header (`zpr_test_<chip>.h`) can
+relay a physical TIM4 to virtual VCT 2 when the benchmark app calls its
+`ZPR_Test_*` setup.  Idle calls `RVM_Hyp_Vct_Wait()` and re-enters the
+scheduler with `z_reschedule_irqlock()`; calling `k_yield()` from idle is
+wrong because idle is deliberately not in the ready queue.  The
+context-handler registration is a `SYS_INIT(PRE_KERNEL_1)` so it runs after
+`z_bss_zero()`.  The timer ISR calls `sys_clock_announce()` and then
+`zpr_reschedule_from_vector()`, which captures the interrupted frame and
+yields when a higher-priority thread became ready; `k_thread_abort()` uses an
+RVM-specific implementation that never writes SCB->ICSR or reads IPSR.  The
+context layer supports both the 22-word basic frame and the 56-word FPU
+extended frame (`S16..S31`, hardware frame, `S0..S15/FPSCR`).  Initial frames
+are always basic, including `K_FP_REGS` threads; the first VFP instruction sets
+`CONTROL.FPCA`, and the next save creates the extended frame.  The Vct
+capture/restore handles the monitor's `EXC_RETURN=0xFFFFFFED`
+frame.  Two FP threads and timer-driven FP preemption pass on H743 with both
+the fast path and all-Vct builds, and on F429 with the fast path; the all-Vct
+frame path is shared.
+
+**Generator and memory.** `ZPR_Gen` writes only the Virt workspace (the
+Zephyr app, `zpr_config.h`, the west-driving `prc_<vm>` makefile) and never
+edits the Zephyr tree.  The app's generated sources/includes/linker snippet
+live in `zpr_app.cmake`; a missing `CMakeLists.txt` is a thin wrapper around
+it, a hand-written one is preserved and gets the include appended once, and a
+generated wrapper is refreshed.  `prj.conf` follows the same rule: a
+hand-written file keeps its options and stale generator-owned link values are
+removed, while missing ZPR defaults are appended.  One virtual board,
+`armv7m`, carries the Zephyr image at exactly the RTE code window and the
+data/bss/stack in the RTE data window.  The generator writes a per-VM
+`zpr_board.dts` with the CPU compatible, flash/SRAM windows and `chosen`, and
+passes it as `DTS_SOURCE`; the CPU is selected with
+`CONFIG_RVM_CPU_M7`/`CONFIG_RVM_CPU_M4`.  There is no STM32 dtsi, RCC/PLL or
+peripheral node.  Chip
+peripherals (RCC, TIM4, ...) come from `zephyr/arch/arm/core/cortex_m/v7m_rvm/test/chip/zpr_test_*.h`
+through the generated `zpr_test.h`; `zpr_config.h` carries only code/data
+size and the fast-path switch.  The benchmark's TIM2/TIM4 setup lives in
+that chip header (`ZPR_Test_Timer_Init`/`ZPR_Test_Int_Init`/
+`ZPR_Test_Int_Disable`) and its ISR handler in `test/bench.c`, following the
+RMP chip-header pattern.  `zpr_test.h` and `test/bench.c` are benchmark-app
+files only; a normal guest never compiles or includes them and never touches
+TIM4.  A normal app is SoC-agnostic: the virtual SoC has no STM32 HAL or SoC
+init, and the only clock value is `CONFIG_SYS_CLOCK_HW_CYCLES_PER_SEC`.  A
+user app that needs a device adds it through `app.overlay`, subject to the
+RVM device/IRQ grant.  The six ISR benchmark rows are labels over one TIM4
+virtual vector hook, not six different interrupt mechanisms; the benchmark
+prints that caveat.  With more than one Virt the board
+DTS window is not enough: the generator writes each VM's allocated code/data
+window into that Virt's `zpr_board.dts` (CPU compatible, `flash0`/`sram0` and
+`chosen`) and passes it as `DTS_SOURCE`, so every guest links at its own
+physical window.  The generated M7 window is 114 KiB and the M4 window 66 KiB;
+the generator rounds the VM window down
+to whole KiB, leaving up to 848 bytes unadvertised.  Two ZPR guests have been run
+simultaneously on the H743; two benchmark guests would contend for TIM4 and
+are not a supported configuration.  A user `.c` file in that Virt's
+`Source/app/` takes precedence over the benchmark in both build modes; the
+benchmark is selected only when the folder has no `.c` and `ZPR_NORMAL` is
+unset.  The `v7m_rvm` Kconfig port depends on `!SMP &&
+!USERSPACE && !ARM_MPU && !CORTEX_M_SYSTICK && !TICKLESS_KERNEL &&
+!GEN_ISR_TABLES`, and C-side build assertions pin the basic/extended-frame
+ABI.  The validated ZPR benchmark uses `CONFIG_SYS_CLOCK_TICKS_PER_SEC=10`,
+minimal libc, no userspace and no MPU; FPU support is enabled separately
+(`CONFIG_FPU=y`, `CONFIG_FPU_SHARING=y`, hard-float ABI) and is exercised by
+the two-thread and timer-preemption FP tests, not by the integer-only
+benchmark.
+
+**Normal builds and the native heartbeat.** The RVM time wheel is advanced by
+a physical timer vector.  `generate.sh` therefore adds `-b` for ZPR projects
+and uses the native benchmark process as the TIM4 heartbeat; the image boots,
+runs the native benchmark first, then enters the user Zephyr application.  A
+normal guest never compiles `test/bench.c` or includes `zpr_test.h`, so it
+does not register or rewrite TIM4.  The native benchmark output is not yet
+silenced.  `benchmark.sh` uses the same heartbeat and runs the 15-item ZPR
+benchmark.
+
 ---
 
 ## 3. The RVM interrupt model (what every port relies on)
@@ -553,4 +751,6 @@ guest application is exercised.
 - RTE's ISR-relay benchmark samples after the task resumes, while the
   other guests sample at ISR entry; the relay numbers are not directly
   comparable.
+- ZPR's ISR rows sample in the RVM virtual-vector hook and expose the result
+  to a polling thread; they are not yet a Zephyr ISR-context release.
 

@@ -11,9 +11,12 @@ NUCLEO-F429ZI/F439ZI (STM32F429ZI class, Cortex-M4F/FPv4-SP).
 Two licenses apply:
 
 - Files derived from existing RTEMS sources retain their original terms.
-  The three `v7m_isr_*_rvm.c` sources and the top-level `wscript` are
-  BSD-2-Clause.  The files under `spec/build/` follow the RTEMS build-spec
-  license (`CC-BY-SA-4.0 OR BSD-2-Clause`).
+  `v7m_rvm.c` contains both the Unlicense port code and the
+  `_ARMV7M_Interrupt_service_enter/leave` section derived from RTEMS under
+  BSD-2-Clause; its SPDX header is therefore
+  `Unlicense AND BSD-2-Clause`.  The top-level `wscript` is BSD-2-Clause.
+  The files under `spec/build/` follow the RTEMS build-spec license
+  (`CC-BY-SA-4.0 OR BSD-2-Clause`).
 - All other files added by this port (BSP, CPU port, samples, benchmark and
   documentation) are released under the Unlicense (https://unlicense.org/).
 
@@ -41,10 +44,16 @@ and produces three things:
 3. `<Virt>/Source/app/` - the per-VM application folder; the generator
    preserves it across regeneration.  Any `*.c` files placed there are
    user-application sources and take precedence over the benchmark special
-   case.  If no user source exists, benchmark `Virt1` uses
-   `testsuites/samples/<app>/init.c` and the folder only contains `rte_test.h`
-   (selects the chip header `rte_benchmark/chip/rte_test_<chip>.h` from the
-   `.rvp` chip); other VMs get an empty `rte_app.c` template.
+   case.  If no user source exists, a benchmark build uses
+   `testsuites/samples/<app>/init.c` for every Virt and the folder only
+   contains `rte_test.h` (selects the chip header
+   `rte_benchmark/chip/rte_test_<chip>.h` from the `.rvp` chip).  A non-benchmark
+   Virt with no user source gets the generated stub `rte_app.c` instead.  The
+   chip header owns the benchmark's TIM2/TIM4 setup
+   (`RTE_Test_Timer_Init`/`RTE_Test_Int_Init`/`RTE_Test_Int_Disable`), the
+   cycle read `BENCH_TIME_GET` and the IRQ flag clear `RTE_TEST_INT_CLEAR`;
+   `init.c` defines only the ISR handler and calls those functions, following
+   the RMP chip-header pattern.
 4. `<Virt>/Project/rte_copy.sh` - a staging script generated with absolute
    source/destination paths.  The generator writes nothing into the RTEMS
    tree; the `prc_<vm>` makefile runs this script before every waf invocation,
@@ -55,16 +64,26 @@ and produces three things:
    headers are staged, not kept in the source tree), the M7M02
    `Source/Platform/A7M/rvm_platform_a7m_gcc.s` as
    `bsps/arm/v7m_rvm/start/rvm_platform_a7m_gcc.S`, and the contents of
-   `Source/app/` into `bsps/arm/v7m_rvm/app/`.  The BSP spec references the
-   shared M7M02 RVM headers and C sources directly through `RVM_ROOT`; the
-   BSP source tree contains no copied M7M02 RVM implementation or adapter.
+   `Source/app/` into `bsps/arm/v7m_rvm/app/`.  Before copying, the script
+   removes the previous VM's `prc_*.h` and the whole app directory, so a
+   Virt1 build cannot leave a `prc_virt2.h` or app file behind; it also
+   registers a trap that removes the half-written entry/config files if a
+   copy fails.  The BSP spec references the
+   shared M7M02 RVM headers and C sources directly through `RVM_ROOT`; apart
+   from the transient `start/rvm_platform_a7m_gcc.S` staging copy, the BSP
+   source tree contains no maintained M7M02 implementation or adapter.
    The app spec compiles `${RTE_APP_SOURCES}`: the benchmark `init.c` for
-   benchmark `Virt1`, or every staged user `.c` file in the app folder.  A
+   every benchmark Virt, every staged user `.c` file in the app folder, or the
+   generated SoC-agnostic stub when a normal VM has no user source.  A
    multi-file user app is therefore compiled and linked as separate
-   translation units.
-   `linkcmds.v7m_rvm` places the descriptor `.rodata` into `.PROCESS_DESC` at
-   the image base (0x080B0000).  `start/rvm_entry.c` keeps only `main()` and
-   the RVM handler registration, not a duplicate entry or descriptor.
+   translation units.  The stub prints `RTE guest <vm>: no application
+   selected`, never leaves `Init`, and uses no clock or peripheral; it exists
+   so a normal RTE project links and boots even before the user supplies an
+   application.
+   `linkcmds` places the descriptor `.rodata` into `.PROCESS_DESC` at
+   the image base (0x080B0000).  `start/rvm_entry.c` owns the BSP startup
+   glue (`main()`, `bsp_start()`, `bsp_reset()`) and the RVM handler
+   registration, not a duplicate entry or descriptor.
 5. `<Virt>/Project/prc_<vm>` - a makefile that configures and builds RTEMS
    with waf, then converts the guest executable:
 
@@ -72,7 +91,6 @@ and produces three things:
 make -f prc_<vm>
   -> sh rte_copy.sh
   -> waf configure --rtems-config=rte_config.ini --prefix=<RTEMS prefix>
-  -> sh rte_copy.sh
   -> waf
   -> arm-rtems7-objcopy -O binary .../testsuites/samples/prc_<vm>.exe <vm>.bin
   -> bincopy.exe -i <vm>.bin -o <vm>_image.c
@@ -81,14 +99,17 @@ make -f prc_<vm>
 The RVM Kernel links `<Virt>/Project/<vm>_image.c`; no prebuilt RTE binary is
 embedded by hand.  `RTE` skips `GCC_Gen`'s per-Virt linker-script generation:
 `Proj_Gen::Process_Linker` removes any stale `prc_<vm>_*.ld` and logs that the
-BSP `linkcmds.v7m_rvm` is authoritative.  Other guests still generate their
+BSP `linkcmds` is authoritative.  Other guests still generate their
 own linker scripts.  The RTE application target is always named after the VM:
 `testsuites/samples/prc_<vm>.exe`.  The benchmark is a separate application
-(`rte_benchmark`); `RTE_Gen` uses it only for `Virt1` in benchmark mode when
-the app folder has no user `.c` files.  `RTE_APP_SOURCES` is the benchmark
-`init.c` or the staged per-VM user `.c` files; the whole app folder is copied
-before waf.  The generated `rte_test.h` selects the chip header, so the
-benchmark's TIM2/TIM4/RCC definitions are not hard-coded in the test body.
+(`rte_benchmark`); `RTE_Gen` uses it for every benchmark Virt when the app
+folder has no user `.c` files.  `RTE_APP_SOURCES` is the benchmark
+`init.c` or the staged per-VM user `.c` files, or the generated default stub;
+the whole app folder is copied before waf.  The BSP has no `start-file`: the
+linker entry is `__RVM_Entry` from the RVM platform assembly, and the shared
+`wscript` permits a BSP without `start.o`.  The generated `rte_test.h` selects
+the chip header, so the benchmark's TIM2/TIM4/RCC definitions are not
+hard-coded in the test body.
 
 The RTEMS tree and `build/arm/v7m_rvm` are shared by all RTE VMs, so the
 makefile re-stages this VM's headers/sources and reruns `waf configure` with
@@ -147,8 +168,8 @@ table.  The port therefore replaces the standard ARMv7-M mechanisms:
   registers, which an unprivileged guest must not touch; the monitor owns
   those exceptions and their priorities.
 - `Thd_Vct` comes from the generated `prc_virt1.c`; `RVM_Desc` comes from the
-  generated `prc_virt1_desc.c`.  The BSP owns only `main()` and the handler
-  registration.
+  generated `prc_virt1_desc.c`.  The BSP owns `main()`, `bsp_start()`,
+  `bsp_reset()` and the handler registration.
 - The fast path in `_CPU_Context_switch` resumes a clean heir directly on the
   task stacks.  It is used only when the current XPSR has no EPSR ICI/IT
   continuation and the heir frame is executable, thumb, free of ICI/IT, and
@@ -169,7 +190,18 @@ table.  The port therefore replaces the standard ARMv7-M mechanisms:
   code at all.
 - The basic frame is 22 words; the hard-float extended frame is 56 words.
   Extended frames keep S16-S31 above the R4-R11/EXC_RETURN block, then the
-  hardware frame R0-R3/R12/LR/PC/xPSR, then S0-S15/FPSCR.
+  hardware frame R0-R3/R12/LR/PC/xPSR, then S0-S15/FPSCR.  The offsets and
+  word counts live in `bsps/arm/v7m_rvm/include/rte_frame.h`, included by
+  both `v7m_context_rvm.c` and `v7m_context_switch_rvm.S`.  Static assertions
+  in the C file check the composition and the two `Context_Control` offsets,
+  so an assembly constant can no longer drift from the C layout.
+- Initial contexts are always basic 22-word frames, matching the native ARM
+  port's rule that no FP state exists at thread start.  `is_fp` (the
+  `RTEMS_FLOATING_POINT` attribute) is stored in the TCB but ignored for frame
+  selection; the first VFP instruction sets `CONTROL.FPCA`, and the next save
+  creates the 56-word extended frame.  `rte_two_task_fpu` (two
+  `RTEMS_FLOATING_POINT` tasks with eight doubles each) passes with this
+  scheme.
 - `Context_Control::register_lr` is reused as a context-kind marker: 1 means
   a dispatcher or initial frame (the context handler restores
   `thread_dispatch_disable_level = 1`), 0 means an ISR-captured body frame
@@ -180,8 +212,9 @@ table.  The port therefore replaces the standard ARMv7-M mechanisms:
   monitor.  The context handler loads the heir frame into `RVM_REG`.
 - `RVM_Virt_Init()` clears the virtual handler table and runs in the
   higher-priority vector thread.  The user thread registers the tick and
-  context handlers afterwards, then calls `RVM_Hyp_Int_Ena()` and
-  `RVM_Virt_Int_Unmask()`.
+  context handlers afterwards.  RVM interrupts stay masked through RTEMS
+  initialization; `rte_rvm_start_heir()` enables them during the first
+  context restore, when the initial thread is published.
 
 The RTE tick is the RVM virtual timer; the `.rvp` `Period` is in units of the
 RME 10 ms tick, so `Period = 10` gives a 100 ms (10 Hz) RTEMS tick.
@@ -196,9 +229,10 @@ RME 10 ms tick, so `Period = 10` gives a 100 ms (10 Hz) RTEMS tick.
 ## Benchmark
 
 `testsuites/samples/rte_benchmark` is the RTEMS counterpart of the RMP
-benchmark: Yield, Semaphore, FIFO, Message queue, Blocking message queue,
-Alarm combination, Memory, ISR Semaphore, ISR Message queue, ISR Blocking
-message queue and the RVM activation relay.  Notification and Activation are
+benchmark.  It reports 15 rows: Yield, Notification, Activation, Semaphore,
+Message queue, Blocking message queue, FIFO, Alarm combination, Memory,
+ISR Notification, ISR RVM activation relay, ISR Semaphore, ISR Message queue,
+ISR Blocking message queue and ISR Activation.  Notification and Activation are
 RTEMS-specific extra rows.  TIM2 is the free-running cycle counter and TIM4 is
 a 100 us virtual-vector interrupt source.  The per-chip performance archive is
 in the chip test headers
@@ -208,6 +242,14 @@ and the exact RMP-to-RTEMS mapping.
 
 ## Known limitations
 
+- The RTE layout options have zero sentinels in the specs; `linkcmds`
+  asserts that `RVM_CODE_BASE`/`RVM_CODE_SIZE`/`RVM_DATA_BASE`/
+  `RVM_DATA_SIZE`/`RVM_USER_STACK_TOP` came from `rte_config.ini`.  A direct
+  build without RTE_Gen therefore fails at link time instead of silently using
+  a stale board layout.
+- The RVM CPU port is BSP-specific: `cpuarm_rvm.yml` includes the BSP staging
+  directory for the generated `rte_config.h` and the RTE frame/context
+  headers.  This is the RTE ABI boundary, not a generic cpukit dependency.
 - RTEMS message queue send is non-blocking, so RMP's blocking-send queue item
   is measured through the blocking receive path with a one-slot queue.
 - RTEMS has no public alarm-manager entry point; the alarm benchmark advances
@@ -216,9 +258,10 @@ and the exact RMP-to-RTEMS mapping.
 - The RTEMS tree is a local fork: the RVM CPU port lives in its own
   `cpukit/score/cpu/arm/v7m_rvm/` directory and is selected by the
   `cpuarm_rvm` spec; the common `arm` sources are not modified.  RTE
-  references the M7M02 RVM `Include/` and `Source/` trees through `RVM_ROOT`;
-  all RVM headers used by the BSP are staged from the generated workspace by
-  `rte_copy.sh`.
+  references the M7M02 RVM `Include/` and `Source/` trees through `RVM_ROOT`.
+  The generated VM headers (`prc_<vm>.h`, `rte_config.h`, `rte_prc.h`,
+  `rvm_platform*.h`) are staged by `rte_copy.sh`; the shared `rvm.h` and
+  `Platform/A7M/rvm_platform_a7m.h` are included directly from `RVM_ROOT`.
 - The local RTEMS 7 GCC toolchain originally shipped C libc/libgcc for many
   multilibs but `libatomic`/`libstdc++` only for Cortex-M7.  The missing
   target libraries were built from the GCC 15.2.0 source and installed for

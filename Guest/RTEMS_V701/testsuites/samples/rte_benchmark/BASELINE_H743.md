@@ -40,21 +40,22 @@
   set `RTE_FAST_PATH=0` in the generator environment before regeneration, or
   edit the value in `Virt1/Project/rte_config.ini` and rebuild, for an
   all-Vct image.  The RTE application target is `testsuites/samples/prc_virt1.exe`; the benchmark is a
-  separate app enabled only for `Virt1` (`RTE_BENCHMARK=True`).  The benchmark
-  application is `testsuites/samples/rte_benchmark/init.c`; the per-VM app
-  folder `Virt1/Source/app/` contains only `rte_test.h`, which selects
+  separate app enabled for every benchmark Virt (`RTE_APP_ENABLE=True`).  The
+  benchmark application is `testsuites/samples/rte_benchmark/init.c`; the per-VM
+  app folder `Virt1/Source/app/` contains only `rte_test.h`, which selects
   `rte_benchmark/chip/rte_test_stm32h743zi.h` from the `.rvp` chip.  The whole
   folder is staged to `bsps/arm/v7m_rvm/app/`, and `RTE_APP_SOURCES` points at
   the benchmark `init.c`.  A user multi-file app placed in
   `<Virt>/Source/app/` overrides the benchmark special case; its `.c` files
   become separate `RTE_APP_SOURCES` entries and are compiled/linked normally
   (verified with a two-file app printing `helper=42`).  A sequential
-  Virt1 (8 vectors, 0x1CB50 data) / Virt2 (16 vectors, 0x1CB40 data) build was
-  used to verify that the shared build directory switches layouts correctly.
+  multi-VM build (8/16 vectors, different data sizes) was used to verify that
+  the shared build directory switches layouts correctly.
   `Proj_Gen::Process_Linker` skips and removes the per-Virt `prc_*.ld` for
-  RTE because the BSP `linkcmds.v7m_rvm` is authoritative.  The descriptor's
-  `.rodata` is placed in `.PROCESS_DESC` at 0x080B0000 by `linkcmds.v7m_rvm`,
-  and `rvm_entry.c` now contains only `main()` and handler registration.
+  RTE because the BSP `linkcmds` is authoritative.  The descriptor's
+  `.rodata` is placed in `.PROCESS_DESC` at 0x080B0000 by `linkcmds`,
+  and `rvm_entry.c` contains `main()`, `bsp_start()`, `bsp_reset()` and the
+  handler registration.
 - Benchmark: `testsuites/samples/rte_benchmark/init.c`, RTEMS 7.
   TIM2 is the free-running cycle counter (`BENCH_TIME_GET = TIM2_CNT << 1`),
   TIM4 is the 100 us virtual-vector interrupt source (physical IRQ 30, guest

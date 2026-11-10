@@ -106,8 +106,8 @@ This software is an official work of EDI, and thus belongs to the **public domai
 
 |Machine      |Toolchain     |RTOS                                   |Flash|SRAM|Yield|Mail |Sem  |Mail/I|Sem/I|Mem  |
 |:-----------:|:------------:|:-------------------------------------:|:---:|:--:|:---:|:---:|:---:|:----:|:---:|:---:|
-|Cortex-M7    |GCC           |[DjyOS](Guest/DjyOS_V110/DJYOS.md)     |27.49|63.38| 1017| 1488|  892|  1873| 1220|  288|
-|Cortex-M7    |GCC           |[KLite](Guest/KLite_V521/KLITE.md)     |11.65|20.27|  291| 1402|  379|  1964|  996| 2751|
+|Cortex-M7    |GCC           |[DjyOS](Guest/GUEST.md#27-djyos-contract-strategy-and-the-subtle-deviations)     |27.49|63.38| 1017| 1488|  892|  1873| 1220|  288|
+|Cortex-M7    |GCC           |[KLite](Guest/GUEST.md#28-klite-contract-strategy-and-the-subtle-deviations)     |11.65|20.27|  291| 1402|  379|  1964|  996| 2751|
 
 ### Practical ports
 
@@ -142,7 +142,7 @@ This software is an official work of EDI, and thus belongs to the **public domai
 |         ...|          ...|  FreeRTOS|15.44|40.57|  372|  726|  882|  1544| 1611|  724|
 |         ...|          ...|   uCOSII|12.48|6.75| N/A|  729|  693|  2629|  849| 1597|
 |         ...|          ...|   uCOSIII|14.67|8.09|  580|  812|  849|  1759| 1820|  227|
-|         ...|          ...| RT-Thread|17.63|7.27|  648| 1173|  893|  2236| 1975| 7764|
+|         ...|          ...| RT-Thread|17.63|7.27|  648| 1173|  893|  2236| 1975| 7764| 
 |   Cortex-M7|Keil uVision 5|       RMP|22.73|37.06|  244|  384|  370|   920|  811|  284|
 |         ...|          ...|  FreeRTOS|15.06|41.57|  229|  494|  595|   954|  987|  347|
 |         ...|          ...|   uCOSII|13.35|7.73| N/A|  436|  445|  1503|  584|  849|
@@ -158,6 +158,8 @@ This software is an official work of EDI, and thus belongs to the **public domai
 |         ...|          ...|   uCOSII|12.49|6.75| N/A|  489|  468|  1544|  569|  909|
 |         ...|          ...|   uCOSIII|14.66|8.09|  404|  561|  578|  1216| 1291|  150|
 |         ...|          ...| RT-Thread|17.75|7.27|  465|  819|  674|  1570| 1435| 6402|
+|         ...|          ...|     RTEMS| N/A| N/A|  907| 1164| 1146|  2193| 2280| 1654|
+|         ...|          ...|    Zephyr|14.04|19.47|  473|  408|  190|   604|  604|  732|
 |      RISC-V|          GCC|       RMP|29.61|25.29|  322|  499|  437|  1719| 1652|  360|
 |         ...|          ...|  FreeRTOS|17.55|24.77|  319|  580|  630|  1778| 1827|  440|
 |         ...|          ...|   uCOSII|16.28|6.75| N/A|  571|  559|  2591|  570| 1337|
@@ -170,14 +172,17 @@ This software is an official work of EDI, and thus belongs to the **public domai
 - Cortex-M4 is evaluated with STM32F429ZIT6.
 - Cortex-M7 is evaluated with STM32H743ZIT6.
 - RV32IMAC is evaluated with CH32V307VCT6.
-- All figures are measured with the same benchmark suite as RVM guests, on real hardware, across all listed toolchain/RTOS combinations: GCC at -O3, IAR/Keil at their highest optimization. Flash/SRAM are guest image footprints (code+data / data+bss); all other figures are CPU clock cycles.
+- All figures are measured with the same benchmark suite as RVM guests, on real hardware, across all listed toolchain/RTOS combinations: GCC at -O3 (RTEMS uses -O2, the BSP's fixed optimization level; Zephyr uses its default -Os), IAR/Keil at their highest optimization. Flash/SRAM are guest image footprints (code+data / data+bss); all other figures are CPU clock cycles.
+- Yield is measured one-way: the producer timestamps before its yield and the consumer timestamps immediately after it is scheduled. This is the same definition used by the RTE benchmark.
+- Zephyr/ZPR normal images use the native benchmark process as the TIM4 heartbeat (`generate.sh` adds `-b`); the native benchmark rows are printed before the user application. The two Zephyr rows show the common columns of its 15-item benchmark; its Flash/SRAM footprint is the generated Zephyr image. The ISR rows sample in the RVM virtual-vector hook and expose the result to a polling thread. The full ZPR result table is in `Zephyr_V370/zephyr/arch/arm/core/cortex_m/v7m_rvm/test/chip/zpr_test_*.h`.
+- RTEMS/RTE is GCC-only. The two RTEMS rows show the common columns of its 15-item benchmark; its Flash/SRAM footprint is fixed by the RTE data block and is documented in `Guest/RTEMS_V701/bsps/arm/v7m_rvm/README.md`. The full RTE result table, including message queue, blocking message queue, FIFO, alarm, activation and all-Vct data, is in the RTE chip test headers.
 
 
-&ensp;&ensp;&ensp;&ensp;In the 2 tables above, all compiler options are the highest optimization (usually -O3) and optimized for time.
+&ensp;&ensp;&ensp;&ensp;In the 2 tables above, all compiler options are the highest optimization (usually -O3; RTEMS uses the BSP's fixed -O2) and optimized for time.
 - Yield    : The time to yield between different threads.
-- Mail     : The mailbox communication time between two threads.
+- Mail     : The notification/mailbox communication time between two threads. For ports without a mailbox, such as RTEMS, this is the native event-notification row.
 - Sem      : The semaphore communication time between two threads.
-- Mail/I   : The time to send to a mailbox from interrupt.
+- Mail/I   : The time to send a notification/mailbox from interrupt. For RTEMS this is the ISR Notification row.
 - Sem/I    : The time to post to a semaphore from interrupt.
 - Mem      : The time to do an operation on memory, e.g. allocation/free.
 
@@ -188,7 +193,7 @@ This software is an official work of EDI, and thus belongs to the **public domai
 
 ### Prerequisites
 
-&ensp;&ensp;&ensp;&ensp;You need to choose a hardware platform listed above to run the tests. M7M1 is also needed t run the tests.
+&ensp;&ensp;&ensp;&ensp;You need to choose a hardware platform listed above to run the tests. M7M1 is also needed to run the tests. For RTE and ZPR, first create the guest build environment and toolchain and prove that the unmodified native guest tree builds a native application; only then apply the RVM overlay and build the virtualized image (see [Guest/GUEST.md](Guest/GUEST.md#environment-and-native-build-first-rte-and-zpr)).
 
 ### Compilation
 &ensp;&ensp;&ensp;&ensp;The **Vendor Toolchain** or **GNU Makefile** projects for various microcontrollers are available in the **_Project_** folder. Refer to the readme files in each folder for specific instructions about how to run them. However, keep in mind that some examples may need vendor-specific libraries such as the STM HAL. Some additional drivers may be required too.
@@ -210,7 +215,7 @@ This software is an official work of EDI, and thus belongs to the **public domai
 ### Deployment
 &ensp;&ensp;&ensp;&ensp;When deploying this into a production system, it is recommended that you read the manual in the **_Documents_** folder carefully to configure all options correctly. It is not recommended to configure the kernel yourself, anyway; it included too many details. Please use the default configuration file as much as possible. Also, read the user guide for the specific platform you are using.
 
-&ensp;&ensp;&ensp;&ensp;If you are deploying an RTOS (FreeRTOS, uC/OS-III or RMP) as a guest, see [Guest/GUEST.md](Guest/GUEST.md) for how to install the paravirtualized guest ports, and for each port's contract, implementation strategy and the subtle deviations between the two.
+&ensp;&ensp;&ensp;&ensp;If you are deploying an RTOS (FreeRTOS, uC/OS-III, RT-Thread, DjyOS, KLite, uC/OS-II, RTEMS/RTE or Zephyr/ZPR) as a guest, see [Guest/GUEST.md](Guest/GUEST.md) for how to install the paravirtualized guest ports, and for each port's contract, implementation strategy and the subtle deviations between the two.
 
 ## Built With
 

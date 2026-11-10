@@ -7,7 +7,7 @@ copyrights:
 - Copyright (C) 2026 Evo-Devo Instrum.
 default:
 - enabled-by: true
-  value: 0x40000
+  value: 0
 description: |
   Size of the RTE guest code region, including the 0x20 byte RVM descriptor.
 enabled-by: true

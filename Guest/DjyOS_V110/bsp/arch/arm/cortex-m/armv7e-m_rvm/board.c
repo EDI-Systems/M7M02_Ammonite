@@ -34,6 +34,12 @@
 #include "int.h"
 #include "systime.h"
 #include "cpu.h"
+#include "project_config.h"
+
+_Static_assert(
+    DATA_DATA1_SIZE >
+      (CFG_INIT_STACK_SIZE + CFG_MAINSTACK_LIMIT + CFG_IDLESTACK_LIMIT),
+    "DjyOS kernel stacks do not fit in the RVM Data1 block");
 
 /* The port's register-transfer helpers. */
 extern void djy_dbg_puts(const char *str);

@@ -7,10 +7,12 @@ copyrights:
 - Copyright (C) 2026 Evo-Devo Instrum.
 default:
 - enabled-by: true
-  value: C:/Code_Library/M7M02_Ammonite
+  value: ''
 description: |
-  Root of the M7M02 guest library tree.  RTE_Gen sets this from -m so the BSP
-  references the shared RVM Include/Source trees instead of vendored copies.
+  Root of the M7M02 guest library tree.  RTE_Gen always sets this from -m in
+  the generated rte_config.ini; there is deliberately no absolute build-host
+  default, so a BSP build without the generated configuration fails instead
+  of silently referencing another machine's tree.
 enabled-by: true
 links: []
 name: RVM_ROOT

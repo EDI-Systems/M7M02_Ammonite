@@ -15,7 +15,19 @@
 #ifndef _RTEMS_SCORE_CPU_RVM_H
 #define _RTEMS_SCORE_CPU_RVM_H
 
-#include_next <rtems/score/cpu.h>
+/* In a source build the overlay and the upstream CPU header are on the
+ * include path in that order, so include_next finds the upstream header.
+ * In an install tree the upstream header is installed as
+ * rtems/score/arm/cpu.h next to this file. */
+#if defined(__has_include)
+# if __has_include("arm/cpu.h")
+#  include "arm/cpu.h"
+# else
+#  include_next <rtems/score/cpu.h>
+# endif
+#else
+# include_next <rtems/score/cpu.h>
+#endif
 
 #if !defined(__ASSEMBLER__) && defined(RTEMS_RVM)
 

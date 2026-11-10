@@ -5,7 +5,7 @@ copyrights:
 - Copyright (C) 2026 Evo-Devo Instrum.
 cppflags: []
 cxxflags: []
-enabled-by: true
+enabled-by: BUILD_SAMPLES
 features: c cprogram
 includes: []
 ldflags: []

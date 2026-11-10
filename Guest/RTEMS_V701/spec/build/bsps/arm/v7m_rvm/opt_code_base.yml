@@ -7,7 +7,7 @@ copyrights:
 - Copyright (C) 2026 Evo-Devo Instrum.
 default:
 - enabled-by: true
-  value: 0x08050000
+  value: 0
 description: |
   Base address of the RTE guest code region (the RVM descriptor is placed here).
 enabled-by: true

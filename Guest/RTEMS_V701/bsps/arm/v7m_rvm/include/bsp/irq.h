@@ -22,11 +22,10 @@
 #include <rtems/irq-extension.h>
 #include <bspopts.h>
 
+#include "rte_config.h"
+
 #endif /* ASM */
 
-#define BSP_INTERRUPT_VECTOR_COUNT 8
-
-/* Virtual vector numbers used by this port */
-#define RTE_IRQ_TIMER 0
+#define BSP_INTERRUPT_VECTOR_COUNT RVM_VIRT_VCT_NUM
 
 #endif /* LIBBSP_ARM_V7M_RVM_IRQ_H */

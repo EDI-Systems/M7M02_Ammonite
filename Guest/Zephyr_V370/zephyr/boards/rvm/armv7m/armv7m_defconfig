@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: Unlicense
+
+# Common board options live in Kconfig.defconfig.
+CONFIG_MINIMAL_LIBC=y

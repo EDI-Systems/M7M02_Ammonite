@@ -5,8 +5,8 @@
  *
  * The RVM monitor delivers its virtual timer to the guest vector thread; the
  * RTE clock driver turns each delivery into a RTEMS clock tick.  The Init task
- * polls the tick counter and prints every 100 ticks.  It must not block: the
- * RVM context switch path is implemented in Phase 3.
+ * polls the tick counter and prints after at least 10 ticks have elapsed.  It
+ * must not block, so the idle task can park in the monitor.
  */
 
 #include <rtems.h>

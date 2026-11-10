@@ -169,16 +169,36 @@ void DJY_Gen::Process_Virt_Hdr(class Virtual* Virt)
     if(std::filesystem::exists(Port_Dir+"template/project_config.h")==false)
         Main::Error("DjyOS generator:\nThe RVM port folder '"+Port_Dir+"' does not contain 'template/project_config.h'.");
 
-    /* Add the kernel headers, the port headers, the port header shims, the
-     * port configuration templates and the machine-visible library
-     * headers into the VM.  Both port header folders stay on the include
-     * path - 'include/' carries the shims that shadow the upstream and
-     * libc headers, 'template/' carries the configuration layer.  They
-     * are the authoritative header set: the makefile generator sorts the
-     * include list alphabetically, and any workspace path
-     * ('../Include/...') sorts after the DjyOS kernel folders, so a copy
-     * could never shadow an upstream header - only the bsp-level port
-     * paths can. */
+    /* Copy the editable configuration layer into the VM workspace.  A user
+     * may change the clock, tick, stack or component limits per VM; an
+     * existing copy is never overwritten by regeneration. */
+    std::filesystem::create_directories(Virt->Virtual_Header_Output);
+    for(const std::filesystem::directory_entry& Entry:
+        std::filesystem::directory_iterator(Port_Dir+"template"))
+    {
+        if((Entry.is_regular_file()==false)||
+           (Entry.path().extension()!=".h"))
+            continue;
+
+        std::string Dest=Virt->Virtual_Header_Output+
+                          Entry.path().filename().string();
+        if(std::filesystem::exists(Dest)==false)
+        {
+            Main::Info("> Copying '"+Entry.path().filename().string()+
+                       "' into the VM configuration folder.");
+            std::filesystem::copy_file(Entry.path(),Dest);
+        }
+    }
+
+    /* Add the kernel headers, the port headers, the port header shims and
+     * the machine-visible library headers into the VM.  The editable
+     * configuration headers now live in the VM's Include folder; the port
+     * template is only the seed, not an include path.  The port header
+     * folder 'include/' still carries the shims that shadow upstream and
+     * libc headers.  The makefile generator sorts the include list
+     * alphabetically, and workspace paths sort after the DjyOS kernel
+     * folders, so only the bsp-level port paths can shadow upstream
+     * headers. */
     Virt->Virtual_Include.push_back(Main::Guest_DJY_Root+"djyos/");
     Virt->Virtual_Include.push_back(Main::Guest_DJY_Root+"djyos/include/");
     Virt->Virtual_Include.push_back(Main::Guest_DJY_Root+"djyos/core/");
@@ -190,7 +210,6 @@ void DJY_Gen::Process_Virt_Hdr(class Virtual* Virt)
     Virt->Virtual_Include.push_back(Main::Guest_DJY_Root+"bsp/arch/arm/cortex-m/src/");
     Virt->Virtual_Include.push_back(Port_Dir);
     Virt->Virtual_Include.push_back(Port_Dir+"include/");
-    Virt->Virtual_Include.push_back(Port_Dir+"template/");
 
     /* The test header only exists in benchmark builds - the plain
      * application boots through the port's board.c, which needs no test

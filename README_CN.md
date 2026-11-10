@@ -128,6 +128,8 @@ Click **[HERE](README.md)** for English version.
 |         ...|          ...|   uCOSII|12.48|6.75| N/A|  729|  693|  2629|  849| 1597|
 |         ...|          ...|   uCOSIII|14.67|8.09|  580|  812|  849|  1759| 1820|  227|
 |         ...|          ...| RT-Thread|17.63|7.27|  648| 1173|  893|  2236| 1975| 7764|
+|         ...|          ...|     RTEMS| N/A| N/A| 1226| 1638| 1726|  2971| 3042| 2113|
+|         ...|          ...|    Zephyr|13.95|19.47|  685|  584|  252|   909|  910|  977|
 |   Cortex-M7|Keil uVision 5|       RMP|22.73|37.06|  244|  384|  370|   920|  811|  284|
 |         ...|          ...|  FreeRTOS|15.06|41.57|  229|  494|  595|   954|  987|  347|
 |         ...|          ...|   uCOSII|13.35|7.73| N/A|  436|  445|  1503|  584|  849|
@@ -143,6 +145,8 @@ Click **[HERE](README.md)** for English version.
 |         ...|          ...|   uCOSII|12.49|6.75| N/A|  489|  468|  1544|  569|  909|
 |         ...|          ...|   uCOSIII|14.66|8.09|  404|  561|  578|  1216| 1291|  150|
 |         ...|          ...| RT-Thread|17.75|7.27|  465|  819|  674|  1570| 1435| 6402|
+|         ...|          ...|     RTEMS| N/A| N/A|  907| 1164| 1146|  2193| 2280| 1654|
+|         ...|          ...|    Zephyr|14.04|19.47|  473|  408|  190|   604|  604|  732|
 |      RISC-V|          GCC|       RMP|29.61|25.29|  322|  499|  437|  1719| 1652|  360|
 |         ...|          ...|  FreeRTOS|17.55|24.77|  319|  580|  630|  1778| 1827|  440|
 |         ...|          ...|   uCOSII|16.28|6.75| N/A|  571|  559|  2591|  570| 1337|
@@ -155,13 +159,16 @@ Click **[HERE](README.md)** for English version.
 - Cortex-M4平台使用STM32F429ZIT6进行评估。
 - Cortex-M7平台使用STM32H743ZIT6进行评估。
 - RV32IMAC平台使用CH32V307VCT6进行评估。
-- 所有数据均以同一套基准测试在RVM虚拟机中经真实硬件板测获得，覆盖表列全部工具链/RTOS组合：GCC使用-O3，IAR/Keil使用最高优化；Flash/SRAM为客机镜像占用（代码+数据/数据+bss），其余数值以CPU周期计。
+- 所有数据均以同一套基准测试在RVM虚拟机中经真实硬件板测获得，覆盖表列全部工具链/RTOS组合：GCC使用-O3（RTEMS 使用 BSP 固定的 -O2，Zephyr 使用其默认 -Os），IAR/Keil使用最高优化；Flash/SRAM为客机镜像占用（代码+数据/数据+bss），其余数值以CPU周期计。
+- Yield 采用单向口径：生产者在 yield 前打时间戳，消费者在被调度后立即打时间戳；RTE 基准使用同一定义。
+- Zephyr/ZPR 普通镜像用原生基准进程充当 TIM4 心跳（`generate.sh` 自动加 `-b`），因此用户应用前会先打印原生基准行。其两行填 15 项基准的公共列；Flash/SRAM 为生成的 Zephyr 镜像占用。ISR 行在 RVM 虚拟向量钩子中取样，再由轮询线程读出。完整的 ZPR 数据表在 `Zephyr_V370/zephyr/arch/arm/core/cortex_m/v7m_rvm/test/chip/zpr_test_*.h`。
+- RTEMS/RTE 仅支持 GCC，其两行只填 15 项基准的公共列；Flash/SRAM 由 RTE 数据块固定，见 `Guest/RTEMS_V701/bsps/arm/v7m_rvm/README.md`；消息队列、阻塞消息队列、FIFO、Alarm、Activation 和全 Vct 的完整数据在 RTE 芯片测试头中。
 
-&emsp;&emsp;在上面所列的两个表格中，所有的编译器选项都被设置为最高优化（通常是-O3），而且针对运行时间进行了优化。
+&emsp;&emsp;在上面所列的两个表格中，所有的编译器选项都被设置为最高优化（通常是-O3；RTEMS 使用 BSP 固定的 -O2），而且针对运行时间进行了优化。
 - Yield   ：两线程间进行切换所用的时间。  
-- Mail    ：两线程间使用邮箱进行发送-接收操作的耗时。  
+- Mail    ：两线程间邮箱通信的耗时；无邮箱的端口（如 RTEMS）使用其事件通知（Notification）行。
 - Sem     ：两线程间使用计数信号量进行发布-获取操作的耗时。  
-- Mail/I  ：从中断发送到某线程邮箱的耗时。 
+- Mail/I  ：从中断发送到某线程邮箱的耗时；RTEMS 使用 ISR Notification 行。
 - Sem/I   ：从中断发布信号量的耗时。 
 - Mem     ：进行一次内存操作（比如分配或释放）的用时。 
 
@@ -171,7 +178,7 @@ Click **[HERE](README.md)** for English version.
 
 ### 准备工作
 
-&ensp;&ensp;你需要一个上面列出的硬件平台来进行测试。要运行测试，M7M1也是必要的。
+&ensp;&ensp;你需要一个上面列出的硬件平台来进行测试。要运行测试，M7M1也是必要的。RTE 与 ZPR 还要先准备客机构建环境和工具链，确认未经 RVM 覆盖的原生客机树能构建原生应用，再覆盖端口并构建虚拟化镜像（见 [Guest/GUEST_CN.md](Guest/GUEST_CN.md)）。
 
 ### 编译指南
 &emsp;&emsp;在 **_Project_** 文件夹下能够找到多种微控制器的移植好的 **厂商集成开发环境** 或 **Eclipse** 的工程样板。参看各个工程文件夹下的自述文件以获取更多关于如何编译和运行该工程的信息。某些工程需要额外的厂商硬件抽象层库的支持，它们可以在 **[M0P0_Library](https://github.com/EDI-Systems/M0P0_Library)** 软件仓库被找到。
@@ -193,7 +200,7 @@ Click **[HERE](README.md)** for English version.
 ### 生产部署
 &emsp;&emsp;当部署本系统到生产环境时，请仔细阅读本系统自带的手册，以确保各项配置正确。本系统的手册可以在 **_Documents_** 文件夹下找到。不推荐由用户自己配置内核；它包含太多的细节。请尽量使用提供好的默认配置文件。此外，一定要阅读对应架构的用户手册。
 
-&emsp;&emsp;若要以客机方式部署 RTOS（FreeRTOS、uC/OS-III 或 RMP），请参阅 [Guest/GUEST_CN.md](Guest/GUEST_CN.md)，其中说明了半虚拟化客机端口的安装方法，以及各端口的契约、移植策略与两者之间的微妙出入。
+&emsp;&emsp;若要以客机方式部署 RTOS（FreeRTOS、uC/OS-III、RT-Thread、DjyOS、KLite、uC/OS-II、RTEMS/RTE 或 Zephyr/ZPR），请参阅 [Guest/GUEST_CN.md](Guest/GUEST_CN.md)，其中说明了半虚拟化客机端口的安装方法，以及各端口的契约、移植策略与两者之间的微妙出入。
 
 ## 支持的工具链
 

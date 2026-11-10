@@ -7,7 +7,7 @@ copyrights:
 - Copyright (C) 2026 Evo-Devo Instrum.
 default:
 - enabled-by: true
-  value: 0x24000000
+  value: 0
 description: |
   Base address of the RTE guest data region.
 enabled-by: true

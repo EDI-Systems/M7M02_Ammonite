@@ -24,8 +24,7 @@ DJY=../../DjyOS_V110/
 KLT=../../KLite_V521/
 UO2=../../uCOSII_V293/
 RTE="../../RTEMS_V701/"
-RTEMP="C:/Toolchain/RTEMS7"
-RTE_APP="rte_benchmark"
+ZPR="../../Zephyr_V370/"
 
 # Process project paths
 PROJFULL=$(basename $1)
@@ -33,8 +32,11 @@ PROJNAME="${PROJFULL%.*}"
 PROJUPPER=$(echo $PROJNAME | tr '[:lower:]' '[:upper:]')
 WORKSPACE=./$PROJUPPER/
 
+# ZPR_NORMAL is only for generate.sh; benchmark.sh always uses the bench app.
+unset ZPR_NORMAL
+
 # Do the project generation
-COMMAND="$RVGEN -p $1 -k $KERNEL -m $MONITOR -rmp $RMP -frt $FRT -uo3 $UO3 -rtt $RTT -djy $DJY -klt $KLT -uo2 $UO2 -rte $RTE -rte-prefix $RTEMP -rte-app $RTE_APP -w $WORKSPACE -r report.log -v -b"
+COMMAND="$RVGEN -p $1 -k $KERNEL -m $MONITOR -rmp $RMP -frt $FRT -uo3 $UO3 -rtt $RTT -djy $DJY -klt $KLT -uo2 $UO2 -rte $RTE -zpr $ZPR -w $WORKSPACE -r report.log -v -b"
 echo $COMMAND
 $COMMAND > ./output.log
 

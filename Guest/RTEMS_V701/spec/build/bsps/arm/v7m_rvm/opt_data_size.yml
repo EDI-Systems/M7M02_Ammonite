@@ -7,7 +7,7 @@ copyrights:
 - Copyright (C) 2026 Evo-Devo Instrum.
 default:
 - enabled-by: true
-  value: 0xCB50
+  value: 0
 description: |
   Size of the RTEMS DATA region inside the RVM data block.  This is the exact
   remainder of the block after the RVM register/state blocks and the two

@@ -1,0 +1,5 @@
+# SPDX-License-Identifier: Unlicense
+
+config BOARD_ARMV7M
+	bool "RVM ARMv7-M guest"
+	select SOC_RVM

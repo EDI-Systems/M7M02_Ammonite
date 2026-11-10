@@ -6,6 +6,10 @@
  * The generated per-VM rte_test.h selects this header from the .rvp chip
  * name, so the benchmark does not hard-code the board registers.
  *
+ * Yield measurement is one-way: task 1 timestamps before
+ * rtems_task_wake_after(RTEMS_YIELD_PROCESSOR); task 2 timestamps after it is
+ * scheduled.  The peer's yield back is outside the measured interval.
+ *
  * Benchmark archive (NUCLEO-H743ZI, STM32H743ZIT6 @ 400 MHz, RVM,
  * RTEMS 7.0-rc1, arm-rtems7-gcc 15.2.0, -O2 -g -fdata-sections
  * -ffunction-sections, TIM4 100 us, default fast path):
@@ -52,6 +56,8 @@
 
 #include <stdint.h>
 
+#include "rvm.h"
+
 #define RTE_TEST_CHIP_NAME "STM32H743ZI"
 
 /* Physical TIM4 interrupt and the guest virtual vector it is relayed to. */
@@ -65,7 +71,8 @@
 #define TIM4_BASE (0x40000800UL)
 #define RCC_BASE (0x58024400UL)
 
-#define RCC_APB1ENR (*((volatile uint32_t *) (RCC_BASE + 0xE8UL)))
+#define RCC_APB1ENR (*((volatile uint32_t *) (RCC_BASE + \
+	0xE8UL)))
 #define RCC_APB1ENR_TIM2 (1UL << 0UL)
 #define RCC_APB1ENR_TIM4 (1UL << 2UL)
 
@@ -86,5 +93,47 @@
 #define TIM_DIER_UIE (1UL << 0UL)
 
 #define BENCH_TIME_GET() ((uint32_t) (TIM2_CNT << 1))
+#define RTE_TEST_INT_CLEAR() do { TIM4_SR = 0U; } while (0)
+
+static inline void RTE_Test_Timer_Init(void)
+{
+	RCC_APB1ENR |= RCC_APB1ENR_TIM2;
+	TIM2_CR1 = 0U;
+	TIM2_PSC = 0U;
+	TIM2_ARR = 0xFFFFFFFFUL;
+	TIM2_CR1 |= TIM_CR1_CEN;
+}
+
+static inline void RTE_Test_Int_Init(void (*Handler)(void))
+{
+	RVM_ASSERT(RVM_Hyp_Vct_Phys(RTE_TEST_INT_PHYS,
+		RTE_TEST_INT_VCT) == 0);
+	RVM_ASSERT(RVM_A7M_Int_Local_Mod(KFN_INT_LOCAL_MOD,
+		RTE_TEST_INT_PHYS, RVM_A7M_KFN_INT_LOCAL_MOD_PRIO_SET,
+		0xFFU) == 0);
+	RVM_ASSERT(RVM_A7M_Int_Local_Mod(KFN_INT_LOCAL_MOD,
+		RTE_TEST_INT_PHYS, RVM_A7M_KFN_INT_LOCAL_MOD_STATE_SET,
+		1U) == 0);
+	RVM_Virt_Vct_Reg(RTE_TEST_INT_VCT, Handler, RVM_VCT_MASKABLE);
+
+	RCC_APB1ENR |= RCC_APB1ENR_TIM4;
+	TIM4_CR1 = TIM_CR1_DIR;
+	TIM4_PSC = 0U;
+	TIM4_ARR = RTE_TEST_TIM_ARR;
+	TIM4_SR &= ~TIM_SR_UIF;
+	TIM4_DIER |= TIM_DIER_UIE;
+	TIM4_CR1 |= TIM_CR1_CEN;
+}
+
+static inline void RTE_Test_Int_Disable(void)
+{
+	TIM4_CR1 = 0U;
+	TIM4_SR = 0U;
+	TIM4_DIER = 0U;
+	RVM_ASSERT(RVM_A7M_Int_Local_Mod(KFN_INT_LOCAL_MOD,
+		RTE_TEST_INT_PHYS, RVM_A7M_KFN_INT_LOCAL_MOD_STATE_SET,
+		0U) == 0);
+	RVM_Virt_Vct_Reg(RTE_TEST_INT_VCT, RVM_NULL, RVM_VCT_MASKABLE);
+}
 
 #endif /* RTE_TEST_STM32H743ZI_H */

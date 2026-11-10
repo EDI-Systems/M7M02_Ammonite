@@ -10,7 +10,6 @@ default:
 - enabled-by: RTE_FAST_PATH
   value:
   - -mthumb
-  - -mfloat-abi=hard
   - -pipe
   - -DRTEMS_RVM
   - -DRTE_FAST_PATH=1
@@ -18,7 +17,6 @@ default:
     not: RTE_FAST_PATH
   value:
   - -mthumb
-  - -mfloat-abi=hard
   - -pipe
   - -DRTEMS_RVM
   - -DRTE_FAST_PATH=0

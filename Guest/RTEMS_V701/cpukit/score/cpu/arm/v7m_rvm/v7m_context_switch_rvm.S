@@ -39,12 +39,13 @@
     .global _RVM_CPU_Context_switch_yield
     .type   _RVM_CPU_Context_switch_yield, %function
 
-#define RTE_CC_SP_OFFSET 36
+#include "rte_frame.h"
 
 /*
  * Push the rest of the hardware frame.  sz is the hardware frame size in
- * words (8 basic, 26/27 extended); the two words pushed at entry are the
- * protected real R0 and XPSR and are consumed by the frame's top slots.
+ * words (8 basic, 26/27 extended); the first word pushed at entry protects
+ * the executing pointer, the second protects the real XPSR.  Both are
+ * consumed by the frame's top slots.
  */
     .macro  RTE_EXC_PUSH sz, xpsr, exc_return
     ldr     r0, [sp, #4]
@@ -68,7 +69,7 @@
  * stacked XPSR is used to mark it. */
     .macro  RTE_ALIGN_POP label
     ldr     r0, [sp, #4*7]
-    tst     r0, #0x00000200
+    tst     r0, #RTE_XPSR_ALIGN_MASK
     bne     \label
     .endm
 
@@ -81,7 +82,7 @@
     ldr     lr, [sp, #4*5]              /* restore the frame's LR */
     pop     {r0}                        /* R0/XPSR/PC -> R0/R1/R2 */
     ldr     r1, [sp, #4*6]
-    ldr     r12, =0x0600FC00
+    ldr     r12, =RTE_XPSR_ICI_IT_MASK
     tst     r1, r12
     bne     rte_fast_err
     and     r1, #0xFFFFFDFF             /* clear XPSR[9] */
@@ -114,12 +115,12 @@ _RVM_CPU_Context_switch_yield:
     mov     r0, sp
     tst     r0, #0x00000007
     bne     2f
-    RTE_EXC_PUSH 8, 0x01000000, 0xFFFFFFFD
-    movs    r12, #36                /* hardware frame is 36 bytes above */
+    RTE_EXC_PUSH RTE_FRAME_BASIC_PUSH, 0x01000000, RTE_EXC_RETURN_BASIC
+    movs    r12, #RTE_FRAME_GP_BYTES                /* hardware frame is 36 bytes above */
     b       3f
 2:
-    RTE_EXC_PUSH 9, 0x01000200, 0xFFFFFFFD
-    movs    r12, #36
+    RTE_EXC_PUSH RTE_FRAME_BASIC_PUSH + 1, 0x01000200, RTE_EXC_RETURN_BASIC
+    movs    r12, #RTE_FRAME_GP_BYTES
     b       3f
 
 1:
@@ -127,17 +128,17 @@ _RVM_CPU_Context_switch_yield:
     mov     r0, sp
     tst     r0, #0x00000007
     bne     4f
-    RTE_EXC_PUSH 26, 0x01000000, 0xFFFFFFED
+    RTE_EXC_PUSH RTE_FRAME_EXT_PUSH, 0x01000000, RTE_EXC_RETURN_EXT
     b       5f
 4:
-    RTE_EXC_PUSH 27, 0x01000200, 0xFFFFFFED
+    RTE_EXC_PUSH RTE_FRAME_EXT_PUSH + 1, 0x01000200, RTE_EXC_RETURN_EXT
 5:
-    add     r0, sp, #4*8            /* FP area just above the basic frame */
+    add     r0, sp, #(4 * RTE_FRAME_BASIC)            /* FP area just above the basic frame */
     .short  0xECA0, 0x0A10          /* vstmia r0!, {s0-s15} */
     .short  0xEEF1, 0x1A10          /* vmrs r1, fpscr */
     str     r1, [r0]
     .short  0xED2D, 0x8A10          /* vpush {s16-s31} */
-    movs    r12, #100               /* 36 GP bytes + 64 S16-S31 bytes */
+    movs    r12, #RTE_FRAME_EXT_TAIL_BYTES               /* 36 GP bytes + 64 S16-S31 bytes */
 
 3:
     /* Save the GP registers; the hardware frame's pointers are above. */
@@ -189,12 +190,12 @@ _RVM_CPU_Context_switch_swt:
     mov     r0, sp
     tst     r0, #0x00000007
     bne     12f
-    RTE_EXC_PUSH 8, 0x01000000, 0xFFFFFFFD
-    movs    r12, #36
+    RTE_EXC_PUSH RTE_FRAME_BASIC_PUSH, 0x01000000, RTE_EXC_RETURN_BASIC
+    movs    r12, #RTE_FRAME_GP_BYTES
     b       13f
 12:
-    RTE_EXC_PUSH 9, 0x01000200, 0xFFFFFFFD
-    movs    r12, #36
+    RTE_EXC_PUSH RTE_FRAME_BASIC_PUSH + 1, 0x01000200, RTE_EXC_RETURN_BASIC
+    movs    r12, #RTE_FRAME_GP_BYTES
     b       13f
 
 11:
@@ -202,17 +203,17 @@ _RVM_CPU_Context_switch_swt:
     mov     r0, sp
     tst     r0, #0x00000007
     bne     14f
-    RTE_EXC_PUSH 26, 0x01000000, 0xFFFFFFED
+    RTE_EXC_PUSH RTE_FRAME_EXT_PUSH, 0x01000000, RTE_EXC_RETURN_EXT
     b       15f
 14:
-    RTE_EXC_PUSH 27, 0x01000200, 0xFFFFFFED
+    RTE_EXC_PUSH RTE_FRAME_EXT_PUSH + 1, 0x01000200, RTE_EXC_RETURN_EXT
 15:
-    add     r0, sp, #4*8
+    add     r0, sp, #(4 * RTE_FRAME_BASIC)
     .short  0xECA0, 0x0A10          /* vstmia r0!, {s0-s15} */
     .short  0xEEF1, 0x1A10          /* vmrs r1, fpscr */
     str     r1, [r0]
     .short  0xED2D, 0x8A10          /* vpush {s16-s31} */
-    movs    r12, #100
+    movs    r12, #RTE_FRAME_EXT_TAIL_BYTES
 
 13:
     push    {r4-r11, lr}
@@ -225,7 +226,14 @@ _RVM_CPU_Context_switch_swt:
 
     str     sp, [r4, #RTE_CC_SP_OFFSET]
     ldr     sp, [r5, #RTE_CC_SP_OFFSET]
-    ldr     r0, [r5, #40]           /* heir isr_nest_level */
+    ldr     r0, [r5, #RTE_CC_NEST_OFFSET]           /* heir isr_nest_level */
+    /*
+     * Unmask before restoring the registers.  A virtual interrupt taken in
+     * the restore window is captured at the restore PC with the current SP;
+     * the remaining heir frame is above SP, and rte_rvm_capture_executing()
+     * builds its frame below SP, so the resume frame stays intact.  Dirty
+     * frames never reach this path; they use the Vct switch below.
+     */
     bl      _RVM_CPU_ISR_Set_level
 
     /*
@@ -244,20 +252,20 @@ _RVM_CPU_Context_switch_swt:
 
     /* Extended frame: pop S16-S31 first, then reload S0-S15/FPSCR. */
     .short  0xECBD, 0x8A10          /* vpop {s16-s31} */
-    add     r0, sp, #4*(8+16)       /* FPSCR after the basic frame */
+    add     r0, sp, #(4 * (RTE_FRAME_BASIC + RTE_FRAME_FP16))       /* FPSCR after the basic frame */
     ldr     r1, [r0]
     .short  0xEEE1, 0x1A10          /* vmsr fpscr, r1 */
     .short  0xED30, 0x0A10          /* vldmdb r0!, {s0-s15} */
     RTE_ALIGN_POP 21f
-    RTE_EXC_POP 26
+    RTE_EXC_POP RTE_FRAME_EXT_PUSH
 21:
-    RTE_EXC_POP 27
+    RTE_EXC_POP RTE_FRAME_EXT_PUSH + 1
 
 20:
     RTE_ALIGN_POP 22f
-    RTE_EXC_POP 8
+    RTE_EXC_POP RTE_FRAME_BASIC_PUSH
 22:
-    RTE_EXC_POP 9
+    RTE_EXC_POP RTE_FRAME_BASIC_PUSH + 1
 
 rte_fast_err:
     b       rte_fast_err

@@ -34,11 +34,11 @@ public:
 
     /* RTEMS tree, toolchain prefix and in-tree application name. */
     std::string Root_Get(void);
-    std::string Prefix_Get(void);
-    std::string App_Get(void);
 
     virtual void Process_Virt_Hdr(class Virtual* Virt) final override;
     virtual void Process_Virt_Src(class Virtual* Virt, class Tool_Gen* Tool) final override;
+    virtual void Process_Linker(std::unique_ptr<std::vector<std::string>>& List,
+                                const class Process* Prc, class Tool_Gen* Tool) final override;
 };
 /*****************************************************************************/
 /* __RTE_GEN_CLASS__ */

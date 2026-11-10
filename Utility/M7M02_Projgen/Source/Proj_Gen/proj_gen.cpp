@@ -84,6 +84,7 @@ extern "C"
 #include "Proj_Gen/Guest_Gen/KLT_Gen/KLT_Gen.hpp"
 #include "Proj_Gen/Guest_Gen/UO2_Gen/uo2_gen.hpp"
 #include "Proj_Gen/Guest_Gen/RTE_Gen/rte_gen.hpp"
+#include "Proj_Gen/Guest_Gen/ZPR_Gen/zpr_gen.hpp"
 #undef __HDR_CLASS__
 /* End Include ***************************************************************/
 namespace RVM_GEN
@@ -249,6 +250,12 @@ void  Proj_Gen::Guest_Load(const std::string& Name)
             if(Main::Guest_RTE_Root=="")
                 Main::Error("XXXXX: Guest path for '"+Name+"' is missing.");
             Guest=std::make_unique<class RTE_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
+        }
+        else if(Name=="ZPR")
+        {
+            if(Main::Guest_ZPR_Root=="")
+                Main::Error("XXXXX: Guest path for '"+Name+"' is missing.");
+            Guest=std::make_unique<class ZPR_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
         }
         else
             Main::Error("XXXXX: Guest generator for '"+Name+"' is not found.");
@@ -2903,8 +2910,17 @@ void Proj_Gen::Process_Desc_Src(class Process* Prc)
     std::vector<std::string> Input;
     std::vector<std::string> Output;
     std::unique_ptr<std::vector<std::string>> List;
+    class Guest_Gen* Guest;
+    class Virtual* Virt;
 
     List=std::make_unique<std::vector<std::string>>();
+    Guest=NULL;
+    Virt=NULL;
+    if(Prc->Type==PROCESS_VIRTUAL)
+    {
+        Virt=static_cast<class Virtual*>(Prc);
+        Guest=this->Guest_Map[Virt->Guest_Type];
+    }
 
     Main::Info("> Generating descriptor source.");
     Filename=std::string("prc_")+Prc->Name_Lower+"_desc.c";
@@ -2920,7 +2936,10 @@ void Proj_Gen::Process_Desc_Src(class Process* Prc)
     /* Public prototypes */
     List->push_back("/* Public Function ***********************************************************/");
     if(Prc->Type==PROCESS_VIRTUAL)
+    {
         List->push_back("RVM_EXTERN rvm_ret_t Thd_Vct(rvm_ret_t Param);");
+        List->push_back("RVM_EXTERN void "+Guest->Desc_Usr_Entry()+"(void);");
+    }
     else
     {
 		for(const std::unique_ptr<class Thread>& Thd:Prc->Thread)
@@ -2967,7 +2986,7 @@ void Proj_Gen::Process_Desc_Src(class Process* Prc)
             if(Thd.get()==Prc->Thread[1].get())
             {
                 ASSERT(Thd->Name=="Usr");
-                List->push_back("    (rvm_ptr_t)__RVM_Entry,");
+                List->push_back("    (rvm_ptr_t)"+Guest->Desc_Usr_Entry()+",");
             }
             else
             {
@@ -3260,23 +3279,26 @@ Return      : None.
 void Proj_Gen::Process_Linker(class Process* Prc)
 {
     class Tool_Gen* Tool;
+    class Virtual* Virt;
+    class Guest_Gen* Guest;
     std::unique_ptr<std::vector<std::string>> List;
 
     List=std::make_unique<std::vector<std::string>>();
     Tool=this->Tool_Map[Prc->Toolchain];
     Prc->Linker_Filename=std::string("prc_")+Prc->Name_Lower+"_"+this->Plat->Chip->Name_Lower+Tool->Suffix(TOOL_LINKER);
 
-    if((Prc->Type==PROCESS_VIRTUAL) &&
-       (static_cast<class Virtual*>(Prc)->Guest_Type=="RTE"))
+    if(Prc->Type==PROCESS_VIRTUAL)
     {
-        std::filesystem::remove(Prc->Linker_Output+Prc->Linker_Filename);
-        Main::Info("> RTE: using the BSP linkcmds, skipping linker script generation.");
-        return;
+        Virt=static_cast<class Virtual*>(Prc);
+        Guest=this->Guest_Map[Virt->Guest_Type];
+        Guest->Process_Linker(List, Prc, Tool);
     }
-
-    Main::Info("> Generating linker script.");
-    Tool->Process_Linker(List, Prc);
-    Proj_Gen::Line_Write(List, Prc->Linker_Output+Prc->Linker_Filename);
+    else
+    {
+        Main::Info("> Generating linker script.");
+        Tool->Process_Linker(List, Prc);
+        Proj_Gen::Line_Write(List, Prc->Linker_Output+Prc->Linker_Filename);
+    }
 }
 /* End Function:Proj_Gen::Process_Linker *************************************/
 

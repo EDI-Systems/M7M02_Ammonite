@@ -7,7 +7,7 @@ copyrights:
 - Copyright (C) 2026 Evo-Devo Instrum.
 default:
 - enabled-by: true
-  value: 0x2400F000
+  value: 0
 description: |
   Top of the RVM-provided user thread stack.  __RVM_Stack is set to this value
   for compatibility with the RVM platform assembly.

@@ -9,8 +9,8 @@ default:
 - enabled-by: true
   value: false
 description: |
-  Enable the RTE application target.  RTE_Gen sets this when benchmark Virt1 is
-  selected or when a user application exists in the per-VM app folder.
+  Enable the RTE application target.  RTE_Gen sets this for every benchmark
+  Virt, or when a user application exists in the per-VM app folder.
 enabled-by: true
 links: []
 name: RTE_APP_ENABLE

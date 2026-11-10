@@ -15,6 +15,8 @@
 #ifndef LIBBSP_ARM_V7M_RVM_RTE_RVM_CONTEXT_H
 #define LIBBSP_ARM_V7M_RVM_RTE_RVM_CONTEXT_H
 
+#include <stdbool.h>
+
 #include <rtems/score/cpu.h>
 
 #ifdef __cplusplus
@@ -49,7 +51,7 @@ void rte_rvm_dispatch_complete( void );
  * Used by the vector-thread path when the hardware already stacked the
  * interrupted thread's exception frame.
  */
-void rte_rvm_capture_executing( Context_Control *executing );
+bool rte_rvm_capture_executing( Context_Control *executing );
 
 #ifdef __cplusplus
 }

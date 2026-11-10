@@ -2,7 +2,8 @@
 
 > **覆盖**：FreeRTOS V9 / uC-OS-III V3.08 / RT-Thread V4.1.1 的 A6M·RV32P·A7M 三架构 × GCC·Keil·IAR 链；
 > RMP-on-RVM（IAR 三链）；DjyOS V1.1.0 / KLite V5.2.1 的 A7M 纪念性移植；uC/OS-II V2.93 的 A6M·RV32·A7M 移植；RTEMS 7.0-rc1（RTE）的 A7M 移植；
-> RTEMS 链为 GCC-only，H743（M7）与 F429/F439（M4F）双板真机定档。
+> RTEMS 链为 GCC-only，H743（M7）与 F429/F439（M4F）双板真机定档；
+> Zephyr 3.7.0 LTS（ZPR）的 A7M 移植同样 GCC-only、H743/F429 双板，基准为 15 项（9 线程级 + 6 ISR）。
 > 面向贡献者：开工读 §1~§3；排障查 §4、§5；改端口前必读 §6（契约理论）与对应客机章；
 > 动手前扫一眼 §14 军规；复盘查 §15 判例索引。
 > **正式数据一律以各客机 `test/**/chip/*_test_*_rvm.h` 档案块为准（RTE 为 `rte_benchmark/chip/rte_test_*.h`）**——本文件只留索引、判例与方法论。
@@ -21,6 +22,7 @@
 | 改 A7M 快路径 | §7.1 fast yield（含 ICI/IT 脏帧过滤的三层架构） |
 | 改 RTE 端口 / BSP | 先读 `bsps/arm/v7m_rvm/README.md`，再按 §16 的 CPU port、帧格式和构建链检查 |
 | 查 RTE 成绩 / 工具链 | §13.7；正式数据在 `rte_benchmark/chip/rte_test_*.h` |
+| 改 ZPR 端口 / 板级 / 基准 | §17；正式数据在 `Zephyr_V370/zephyr/arch/arm/core/cortex_m/v7m_rvm/test/chip/zpr_test_*.h` |
 | 加一个新 RTOS | §6 契约理论 + §7.1 模板 + §12 生成器（rvp / rva / Guest_Type） |
 | 只关心成绩 | §13 成果基线（数值在 test 头档案块里） |
 
@@ -44,6 +46,7 @@
 | §14 | 一句话军规（事故浓缩，收工自检） | 收工 |
 | §15 | 历史判例总索引（一案一行） | 复盘 |
 | §16 | RTE（RTEMS 7-on-RVM）：CPU port、伪装帧、快路径、构建链与工具链 | 改 RTE / 排查 RTE 启动与性能 |
+| §17 | ZPR（Zephyr 3.7-on-RVM）：arch port、RVM 板级、west 生成链与 15 项基准 | 改 ZPR / 排查 Zephyr 启动与基准 |
 
 ### 1.3 维护约定
 
@@ -66,6 +69,7 @@
 | `../KLite_V521`（姊妹仓） | KLite V5.2.1 官方树 + RVM 移植层 | 内核源码零修改；我们的件在 `sources/cpu/armv7-m_rvm/` 与 `test/`，要点见 §11 |
 | `../uCOSII_V293`（姊妹仓） | uC/OS-II V2.93 官方树 + RVM 移植层 | 内核源码零修改；我们的件在 `Ports/ARM-Cortex-M/*-RVM/`、`Ports/RISC-V/RV32-RVM/` 与 `Test/` |
 | `../RTEMS_V701`（客机树） | RTEMS 7.0-rc1 + RTE BSP/spec/sample 增量 | 覆盖到官方 RTEMS 树后构建；RTE_Gen 写工作区并驱动 waf，RTE BSP 通过 `RVM_ROOT` 引用本仓 RVM；公共 `cpukit/score/cpu/arm` 未修改。详见 §16 |
+| `../Zephyr_V370`（客机树） | Zephyr 3.7.0 LTS west 工作区 + ZPR arch/board/port 增量 | `CONFIG_RVM_GUEST` arch port 与一块 multi-SoC 的 RVM 板；ZPR_Gen 只写工作区并用 `prc_<vm>` 驱动 west，不修改 Zephyr 树。详见 §17 |
 | `../M7M01_Eukaron`（姊妹仓） | RME 微内核（RVM 内核底座） | 平台头 `Include\Platform\{A6M,A7M}\Chip\<CHIP>\rme_platform_*.h`——**只是模板**（见坑 5.3 头条） |
 | `../M5P01_Prokaron`（姊妹仓） | RMP RTOS + RMP-on-RVM 移植 | A7M_RVM fast yield 参考实现；IAR 版 A7M 汇编金矿；**RTT armv7m 端口宏的修正蓝本**（rmp_platform_a7m_rvm_gcc.s） |
 | `../DjyOS_V110`（姊妹仓） | DjyOS V1.1.0 官方树 + RVM 移植层 | 内核源码**零修改**；我们的件在 `bsp/arch/arm/cortex-m/armv7e-m_rvm/` 与 `test/djy_*.c`，要点见 §10 |
@@ -76,7 +80,7 @@
 - `Project\*.rvp`：工程描述 XML（`gccmf-*`=GCC/Makefile，`rvmdk-*`=Keil，`ewarm-*`=IAR；`-frt`/`-uo3`/`-rtt`/`-djy`/`-klt`/`-uo2`/`-rte` 后缀=客机类型；`-nofpu`=无协处理器）
 - `Project\<TOOLCHAIN>-<CHIP>-<GUEST>\`：生成的工作区（Kernel/Monitor/Proc1/Proc2/Virt1 五子工程）
 - `Project\benchmark.sh <rvp>`：生成（带 `-b` 基准模式，挂 test 头/源）——**客机链必用**，否则 Virt1 编不过；`generate.sh` 出静默版
-- `Utility\M7M02_Final\rvgen.exe`：生成器；源在 `Utility\M7M02_Projgen\Source\`，改后 g++ @resp.txt 重建（§11.1）。RTE 由 `Guest_Gen/RTE_Gen` 处理：只写 Virt 工作区，生成 `rte_config.ini`/`rte_config.h`/`app/`/`rte_copy.sh`，不改 RTEMS 树
+- `Utility\M7M02_Final\rvgen.exe`：生成器；源在 `Utility\M7M02_Projgen\Source\`，改后 g++ @resp.txt 重建（§11.1）。RTE 由 `Guest_Gen/RTE_Gen` 处理：只写 Virt 工作区，生成 `rte_config.ini`/`rte_config.h`/`app/`/`rte_copy.sh`，不改 RTEMS 树；ZPR 由 `Guest_Gen/ZPR_Gen` 处理：写 Zephyr app、`zpr_config.h` 与 `prc_<vm>`，不改 Zephyr 树
 - `Utility\M7M02_Final\bincopy.exe`：把 VM .bin 转成 `*_image.c` 供 Kernel 链接
 - `Guest\update-maintainer-only.sh`：发布镜像刷新（增量单向，不参与构建，规范见 §12.2）
 
@@ -91,6 +95,7 @@
 | riscv-none-elf-gcc | 12.2.0 (xPack) | `C:\MounRiver\MounRiver_Studio\toolchain\RISC-V Embedded GCC12\bin` |
 | MinGW g++ | 12.2 | 重建 rvgen 用 |
 | arm-rtems7-gcc | 15.2.0 | `C:\Toolchain\RTEMS7`；Cortex-M3/M4/M7 的 libc/libgcc/libstdc++/libatomic 已补齐；PATH 需 MSYS2 与 `C:/Temp` 临时目录 |
+| Zephyr west / Python | 3.7.0 / 3.12 venv | `C:\Code_Library\Zephyr_V370` + `Zephyr_V370_Venv`；工具链用 `gnuarmemb` 指向 `C:/Toolchain/arm-none-eabi-mingw64` |
 | OpenOCD（WCH fork） | 0.11.0 | 坑多见 5.6；STM32 烧录主用 STM32CubeProgrammer CLI |
 | 调试串口 | 板载调试器 VCP | 115200-8N1；COM 口号随系统枚举变化（发现方法见 5.2），勿写死 |
 
@@ -123,8 +128,8 @@ DjyOS_V110\
 │            Board_Init/Sys_ModuleInit/__DjyInitTick，不含任何测试硬件）}
 │   + include\（15 个自包含垫片：stdint/heap/list/shell/blackbox/errno/stat/dirent/…）
 │   + template\（配置层：project_config、4 个 component_config_*、board-config）
-└── test\{djy_benchmark.c, djy_board.c（仅 benchmark：TIM2 计数器/TIM4 中断源 + benchmark 引导）,
-         djy_main.c（普通 main）, chip\djy_test_stm32h743zi_rvm.h（仅 benchmark）}
+└── test\{djy_benchmark.c（handler + 测量）, djy_board.c（仅 benchmark：VM 入口/引导）,
+         djy_main.c（普通 main）, chip\djy_test_stm32h743zi_rvm.h（仅 benchmark：TIM2/TIM4/RCC、中断线注册、清标志）}
 
 KLite_V521\
 ├── sources\cpu\armv7-m_rvm\{cpu.c（临界区/peek/swt 分派/ctx handler/停车机制）,
@@ -169,7 +174,7 @@ bash benchmark.sh gccmf-stm32f429zit6-rte.rvp    # RTE：RTE_Gen 生成 Virt1 + 
 ```
 
 - 两个脚本都带齐 `-rmp/-frt/-uo3/-rtt/-djy/-klt/-uo2/-rte` 的源码根；`generate.sh` 少任何一条都会在生成期报错（2026-10-29 前它还缺三家，普通工程根本生成不出来）。
-- RTE 的生成与别家不同：`RTE_Gen` 只写 `<WS>/Virt1` 工作区（`rte_config.ini`、`rte_config.h`、`app/`、`rte_copy.sh`、`prc_virt1`），不改 RTEMS 树；`benchmark.sh` 仍用 `-b` 让 Proc 侧停车。
+- RTE 的生成与别家不同：`RTE_Gen` 只写各 `<Virt>` 工作区（`rte_config.ini`、`rte_config.h`、`app/`、`rte_copy.sh`、`prc_<vm>`），不改 RTEMS 树；`benchmark.sh` 仍用 `-b` 让 Proc 侧停车。
 - 改 rvp 或生成器后**必须删工作区再生成**（Project_Overwrite=No，旧 .ewp/.icf/Makefile 不刷新——白编两轮的教训）；改了**配置模板**（FreeRTOSConfig.h / rtconfig.h / 端口 template/）或**客机 main 源文件**（`<guest>_main.c` 与 `djy_benchmark.c`）同理：它们都被复制进工作区，旧副本不会刷新。
 - 30s 命令上限内恰好一趟；**detached 并发多链会被拖超时**，逐链前台 + `timeout 28` 兜底。
 - 生成日志确认 Virt1 源路径含 `portasm.s`（RV32P/A6M/A7M）、A7M 另有 `tasks_rvm.c`；RTT 链含 `context_gcc.s`。
@@ -442,7 +447,7 @@ RVM 直切端口被迫全落③：恢复一致性由"每个被切走任务的恢
 - **放置（2026-10-29 定案）**：hook 本体写在**各客机的非 benchmark main**（生成器复制成 `main.c` 的那个文件），端口只提供机制。理由：idle hook 在四个 OS 里本来就是应用契约（FRT `vApplicationIdleHook` / UO3 `OS_AppIdleTaskHookPtr` / RTT `rt_thread_idle_sethook`），端口应保持"只是这家 OS 的官方端口"。`RVM_Hyp_Vct_Wait` 对内核是**透明挂起**（恢复点就在调用处，不进内核阻塞态、不碰任何内核数据结构），因此不违反各家 "idle hook 不得阻塞" 的约束。
 - **四家机制**：FRT——`vApplicationIdleHook` 调 `RVM_Hyp_Vct_Wait()`，模板 `configUSE_IDLE_HOOK 1`，`prvIdleTask` 负责调用；UO3——`OS_AppIdleTaskHookPtr = AppIdleHook`（端口 `OSIdleTaskHook` 转发）；RTT——`rt_thread_idle_sethook(App_IdleHook)`，模板加 `RT_USING_HOOK`/`RT_USING_IDLE_HOOK`（`idle.c` 只在这两个开关下编译 hook 列表与 sethook）；DJY——`djy_set_idle_hook(djy_idle_wait)`，由 `CleanWakeupEvent` 回调（调用点的掩码约束见 §10.9）。
 - **benchmark 一律保持忙等**：`configUSE_IDLE_HOOK` 是内核级宏、普通与 benchmark 共用同一份模板，所以 `frt_benchmark.c` 必须定义**空**的 hook（否则链接失败，且停车延迟会混进周期测量）；UO3/RTT/DJY 的 benchmark main 不注册即天然忙等。
-- **非 benchmark 生成链（同日修复）**：`generate.sh` 补齐 `-uo3/-rtt/-djy`；命令行解析由 if 级联改为 if/else-if 链（旧级联在最后一项不是 `-b` 时读 `argv[argc]`=NULL → strcmp 必崩，普通工程从来就生成不出来）；DjyOS 的板级胶水一分为二——内核必需的（SYS_Start 序列、tick、Ctx 注册、`Board_Init`/`Sys_ModuleInit`/`__DjyInitTick`）进端口 `board.c`，**测试硬件（TIM2 计数器、TIM4 中断源 + benchmark 引导）留在 `test/djy_board.c`，只随 benchmark 编**：普通工程源码表里一个 `test/` 文件都没有、也不含测试头，自然不需要任何 stub；idle 动作统一由应用注册（普通 main 注册停车，benchmark 在 `djy_bench_boot` 里注册 driver pulse）。
+- **非 benchmark 生成链（同日修复）**：`generate.sh` 补齐 `-uo3/-rtt/-djy`；命令行解析由 if 级联改为 if/else-if 链（旧级联在最后一项不是 `-b` 时读 `argv[argc]`=NULL → strcmp 必崩，普通工程从来就生成不出来）；DjyOS 的板级胶水一分为二——内核必需的（SYS_Start 序列、tick、Ctx 注册、`Board_Init`/`Sys_ModuleInit`/`__DjyInitTick`）进端口 `board.c`，**测试硬件全部收进 `test/chip/djy_test_stm32h743zi_rvm.h`（`djy_bench_timer_init`/`djy_bench_int_init`/`DJY_BENCH_INT_CLEAR`，含 TIM2/TIM4/RCC 与 DjyOS 中断线注册）；`test/djy_board.c` 只保留 benchmark VM 入口/引导，只随 benchmark 编**：普通工程源码表里一个 `test/` 文件都没有、也不含测试头，自然不需要任何 stub；idle 动作统一由应用注册（普通 main 注册停车，benchmark 在 `djy_bench_boot` 里注册 driver pulse）。
 - **⚠ 普通工程里 guest 不跑是正常形态（2026-10-30 实测，用户裁定）**：`generate.sh` 生成的 Proc1/Proc2 线程是空模板 `while(1);`，优先级在 VM 之上，会一直占着 CPU——所以普通镜像里看不到任何 guest 输出、PC 采样总落在 Proc1，**不是缺陷**，把 proc 线程填成会阻塞/返回的实现（benchmark 工程由 `Test/rvm_benchmark.h` 替换 proc 线程体，所以它的 guest 能跑）后 guest 才上电。因此 §6.8 的四个 hook 目前是**静态证据 + benchmark 链真机回归**；若要在普通工程上做停车验证，需临时把四个 proc 线程体改成空实现（验证完即弃，别改生成器）。
 
 ---
@@ -639,7 +644,7 @@ port.c/portmacro.h/FreeRTOSConfig.h/tasks_rvm.c 跨目录**必须哈希一致**�
 - `int_hard.c`：中断引擎 `__Int_EngineReal/__Int_EngineAsynSignal` **逐字保留**；NVIC 相关全部空操作（客机无权碰）；
   `djy_attach_phys` = `RVM_Hyp_Vct_Phys` + 两条 `RVM_A7M_Int_Local_Mod`（PRIO 0xFF、STATE 1）+ `RVM_Virt_Vct_Reg`；
   `Djy_Ctx_Handler` 在 Vct 线程上完成 RVM_REG ↔ 线程栈的转存（慢路径，只有脏帧/中断级切换会走到）。
-- 内核源码零修改；端口的头集合分成两个目录：`include/` 放**垫片**（stdint/heap/list/shell/multiplex/blackbox/dbug/errno/stat/dirent/fcntl/time/types/cpu_peri*/sys/time.h），`template/` 放**配置层**（project_config、4 个 component_config_*、board-config）。两层都直接进客机 include path（`djy_gen.cpp` 逐条 push），**不向工作区复制头文件**——makefile 生成器会把 include 列表按字典序排序，工作区路径（`../Include/...`）永远排在 `djyos/*` 之后，副本根本无法影子上游；而 `bsp/.../armv7e-m_rvm/include/` 与 `.../template/` 排在 `djyos/*` 之前，这才是垫片能压过上游的原因。端口目录是唯一真源，改 `template/project_config.h` 直接生效。
+- 内核源码零修改；端口的头集合分成两个目录：`include/` 放**垫片**（stdint/heap/list/shell/multiplex/blackbox/dbug/errno/stat/dirent/fcntl/time/types/cpu_peri*/sys/time.h），`template/` 放**可编辑配置层的种子**（project_config、4 个 component_config_*、board-config）。`include/` 仍直接进客机 include path；`template/*.h` 由 `DJY_Gen::Process_Virt_Hdr` 复制到 `<Virt>/Include/`，目标已存在则**不覆盖**，因此用户可逐 VM 修改 clock/tick/stack/component 配置且重生成保留修改。模板目录不再进 include path；配置头名唯一，工作区 Include 能找到，垫片仍靠 bsp 端口路径压过上游。`template/board-config.h` 和 `template/project_config.h` 从此只是缺省种子。
 - **C89 隐式声明陷阱**：堆函数是**函数指针变量**（`M_Malloc` 等），没有原型时 C89 会编成对 BSS 变量地址的直接 `BL`
   → 首炸 UNDEFINSTR。垫片 stdint.h 必须写全 `extern void *(*M_Malloc)(unsigned int,unsigned int);` 形式。
 - 中断原语映射：`Int_LowAtomStart/End` = `RVM_Int_Mask` 快照制（快照值放 R4 过超调用，放 R0 会被返回值毁）；
@@ -775,7 +780,7 @@ port.c/portmacro.h/FreeRTOSConfig.h/tasks_rvm.c 跨目录**必须哈希一致**�
 - **时间戳假新鲜**：旧 rvgen_new.exe 未删时 Test-Path 即真会换装陈货——换装前比对 exe 与 build_err 的 LastWriteTime。
 - **resp.txt 输出名是 rvgen_new.exe**：重建完成后须手动复制部署到 Release\rvgen.exe 与 Utility\M7M02_Final\rvgen.exe 两处（benchmark.sh 用后者）。
 - **命令行解析（2026-10-29 修）**：`rvm_gen.cpp` 的 `Main::Main` 是 if/else-if 级联，**每趟只解析一个选项**。旧代码是并列 `if` 级联，靠"参数按固定顺序排列"一趟吃完；一旦最后一项不是 `-b`（即普通工程），`-d` 的 `strcmp(argv[Count])` 读到 `argv[argc]`=NULL 直接段错误——普通工程从未生成成功过。新增选项必须挂进这条 else-if 链，不许另起并列 if。
-- **测试选择头只在 benchmark 模式生成**（`djy_test.h`、每个 VM 的 `rvm_test.h`，生成条件就是 `Main::Benchmark!=0`，设计如此，不要放宽）：DjyOS 的做法是把**内核必需的板级胶水**放进端口 `board.c`（内核的 `SYS_Start` 要 `Board_Init`/`Sys_ModuleInit`/`__DjyInitTick`，所以它们必须在任何模式都链接），测试硬件（TIM2/TIM4）留在 `test/djy_board.c`，该文件只在 benchmark 分支进源码表——普通工程的源码表里没有任何 `test/` 文件，也不需要 stub。
+- **测试选择头只在 benchmark 模式生成**（`djy_test.h`、每个 VM 的 `rvm_test.h`，生成条件就是 `Main::Benchmark!=0`，设计如此，不要放宽）：DjyOS 的做法是把**内核必需的板级胶水**放进端口 `board.c`（内核的 `SYS_Start` 要 `Board_Init`/`Sys_ModuleInit`/`__DjyInitTick`，所以它们必须在任何模式都链接），**测试硬件（TIM2/TIM4/RCC、DjyOS 中断线注册、清标志）全部收进 `test/chip/djy_test_stm32h743zi_rvm.h` 的 `djy_bench_timer_init`/`djy_bench_int_init`/`DJY_BENCH_INT_CLEAR`；`test/djy_board.c` 只保留 benchmark VM 入口/引导**，整个 `test/` 只在 benchmark 分支进源码表——普通工程的源码表里没有任何 `test/` 文件，也不需要 stub。
 - **客机生成器三件套 helper 家规**（FRT/UO3 同构）：`Plat_Get()`（平台→端口目录名）、`Toolchain_Get(Virt)`（工具链→目录名）、`Port_Dir_Get(Virt)`（合成端口路径）；hpp 声明+cpp 定义+完整函数注释块；Process_Virt_Hdr/Src 里调用之，不写裸三分支。
   - FRT 映射：A6M→ARM_A6M、A7M→ARM_A7M、RV32P→RISC-V_RV32P；ARMCC→RVDS、ICCARM→IAR、其余→GCC。
   - UO3 映射：A6M→ARMv6-M、A7M→ARMv7-M；ARMCC→ARM、ICCARM→IAR、其余→GNU（Micrium 命名）。
@@ -787,7 +792,7 @@ port.c/portmacro.h/FreeRTOSConfig.h/tasks_rvm.c 跨目录**必须哈希一致**�
 
 - 定位=全部客机"我方增量件"的镜像暂存区；官方件永不入镜。update-maintainer-only.sh：`rm -rf ./*/` 后逐条 `cp -r`（幂等）。
 - 条目规则：尾随空格分词、无尾斜杠、大小写逐字；按客机分段、段内变体成对、测试收尾；粒度随客机原生分类；循环对目录用 `[ -d ]`、对单文件用 `[ -f ]`（DjyOS 的 benchmark 文件寄生在发行版自己的 `test/` 里，整目录镜像会把作者的示例测试一起卷进来，只能逐文件列），两者都不命中才 skip（可提前挂未来条目当 intent 文档）。
-- 当前清单覆盖 FRT/UO3/RTT/DjyOS/KLite/uC-OS-II/RTEMS 全线；RTEMS 部分按 BSP、spec、样例子集和独立 CPU port 目录镜像，并统一清除 staging/构建产物。当前镜像共 60 个 RTEMS 文件（其中 cpukit 新 port 8 个）。
+- 当前清单覆盖 FRT/UO3/RTT/DjyOS/KLite/uC-OS-II/RTEMS/Zephyr 全线；RTEMS 部分按 BSP、spec、样例子集和独立 CPU port 目录镜像，并统一清除 staging/构建产物。当前镜像共 51 个 RTEMS 文件（其中 cpukit 新 port 4 个：3 个源文件 + `cpu.h` overlay）。
 
 ### 12.3 rvp 体系不变量与基础设施
 
@@ -909,6 +914,10 @@ G071/F429/H743 三板全部真机闭环（rvm_test_stm32*.h 各 ICCARM 块）。
 26. **RTE 的 BSP `grp.yml` 必须把 `../../opto2` 放在 `../../bspopts` 之前**——否则 `BSP_OPTIMIZATION_FLAGS` 替换为空，CFLAGS 没有 `-O2`，整机按 `-O0` 跑；这不是性能调优，是构建顺序错误（§16.4）。
 27. **`RTE_FAST_PATH` 是编译开关**：默认 1 走干净帧直接换栈；设 0 时 C 分支整个编译掉、汇编快路径例程也整段排除，全部切换走 Vct。不要保留“半开”状态。
 28. **RTE CPU port 文件统一 `v7m_*_rvm` + 下划线命名**（`v7m_context_rvm.c`、`v7m_context_switch_rvm.S`……），公共 `arm` 的 `armv7m-*.c` 保持原名；BSP/CPU port 注释按 RTEMS Doxygen 分组。
+29. **ZPR 的板级 defconfig 必须关 `CONFIG_EXTI_STM32` 与 `CONFIG_STM32_ENABLE_DEBUG_SLEEP_STOP`**，并在 `soc_config.c`/`stm32f4x/soc.c` 跳过公共 SoC 初始化——否则首个 NVIC/DBGMCU/FLASH 访问就是 precise data fault。
+30. **ZPR 的 `prc_<vm>` 必须带 `zpr_force` 伪目标**；west 的 `-p always` 只有真正跑到才生效，make 跳过目标时会静默复用旧 `virt1.bin`，改 app 等于没改。
+31. **Zephyr 的 `k_event_wait(reset=true)` 先清位再判断**，同线程 post→wait 永远 0；`k_queue_append` 会把链节点写进数据首字，FIFO item 不得复用循环计数器。
+32. **ZPR 非基准走 `generate.sh` 的 `ZPR_NORMAL` 心跳配置**：脚本对 `*-zpr` 自动加 `-b`，用原生基准进程提供 TIM4 心跳，再进入用户 app；`benchmark.sh` 走 15 项 app。两条链都依赖原生 TIM4，不能去掉该心跳。
 29. **RTE_Gen 只写 `<Virt>` 工作区**；任何 RTEMS 树内的入口/描述符/平台头都由 `rte_copy.sh` 在 waf 前暂存，BSP 里不保留 M7M02 实现副本。
 30. **ARMv7-M 工具链必须 M3/M4/M7 全 multilib 齐**（libc/libgcc/libstdc++/libatomic）；缺库从 GCC 源码补编，不用空归档或复制 M7 产物糊弄（§16.5）。
 
@@ -951,7 +960,7 @@ G071/F429/H743 三板全部真机闭环（rvm_test_stm32*.h 各 ICCARM 块）。
 
 ### 16.1 定位与文件布局
 
-RTE 是 RTEMS 7.0-rc1 作为非特权 RVM 客机的完整移植：RTEMS BSP `arm/v7m_rvm` + 新 CPU port + spec + 样例子集。它不复制 M7M02 的 RVM 实现；BSP 通过 `RVM_ROOT` 引用 `Include/` 与 `Source/`，生成器产出的入口/描述符/平台头只在 waf 前由 `rte_copy.sh` 暂存。覆盖安装会同时替换顶层 `wscript` 与 `spec/build` 下的选择文件，以注册 RTE 的 CPU port 与测试套件。
+RTE 是 RTEMS 7.0-rc1 作为非特权 RVM 客机的完整移植：RTEMS BSP `arm/v7m_rvm` + 新 CPU port + spec + 样例子集。BSP 不维护 M7M02 的 RVM 实现；它通过 `RVM_ROOT` 引用 `Include/` 与 `Source/`，生成器产出的入口/描述符/平台头只在 waf 前由 `rte_copy.sh` 暂存（平台汇编因此会作为 transient 文件出现在 BSP `start/`）。覆盖安装会同时替换顶层 `wscript` 与 `spec/build` 下的选择文件，以注册 RTE 的 CPU port 与测试套件。
 
 ```
 RTEMS_V701/
@@ -959,9 +968,7 @@ RTEMS_V701/
 ├─ cpukit/score/cpu/arm/v7m_rvm/     新 CPU port；文件统一 v7m_*_rvm
 │  ├─ v7m_context_rvm.c
 │  ├─ v7m_context_switch_rvm.S
-│  ├─ v7m_initialize_rvm.c
-│  ├─ v7m_isr_{enter_leave,level_get,level_set}_rvm.c
-│  ├─ v7m_rvm.c
+│  ├─ v7m_rvm.c                      _CPU_Initialize + ISR 原语 + ISR enter/leave
 │  └─ include/rtems/score/cpu.h       overlay：include_next 后重定向 ISR 原语
 ├─ spec/build/cpukit/cpuarm_rvm.yml   新 CPU port 的独立 spec
 ├─ spec/build/bsps/arm/v7m_rvm/       BSP 选项、linkcmds、CPU/FPU 选择
@@ -990,22 +997,24 @@ S0..S15, FPSCR, [pad]         18 words（仅扩展帧）
 
 ### 16.3 CPU port 的关键修复
 
-- **`_CPU_Initialize` 为空**：公共版本会通过 NVIC 写 SVC/PendSV 优先级；非特权客机在 F429 上启动即 precise data access fault。`v7m_initialize_rvm.c` 只保留空实现。
-- **ISR enter/leave 在 vector thread 上派发**：RTE 不能写 `SCB->ICSR`；`v7m_isr_enter_leave_rvm.c` 在中断嵌套/派发禁用都归零时调用 `_Thread_Dispatch()`，随后 `rte_rvm_dispatch_complete()` 触发 Vct，物理切换由 ctx handler 完成。
+- **`_CPU_Initialize` 为空**：公共版本会通过 NVIC 写 SVC/PendSV 优先级；非特权客机在 F429 上启动即 precise data access fault。该空实现现在在 `v7m_rvm.c`。
+- **ISR enter/leave 在 vector thread 上派发**：RTE 不能写 `SCB->ICSR`；`v7m_rvm.c` 的 `_ARMV7M_Interrupt_service_enter/leave` 在中断嵌套/派发禁用都归零时调用 `_Thread_Dispatch()`，随后 `rte_rvm_dispatch_complete()` 触发 Vct，物理切换由 ctx handler 完成。
+- **最终开中断点**：时钟驱动 init 只置 `rte_clock_ready`；`rte_rvm_start_heir()` 在发布 pending heir 后先 `RVM_Virt_Int_Unmask()`，再 `RVM_Virt_Yield()`，最后再 Unmask 一次。首线程因此带着虚拟中断运行，初始化期间保持关闭。
 - **快路径恢复用 `RTE_EXC_POP` 的变形布局**：先把 PC/xPSR/R0 放到帧尾，再按 pad 选择 26/27 字；手工恢复若漏掉 pad 或把 extended 当 basic，会直接把 PC 弹成 0。
 - **快路径开关**：`RTE_FAST_PATH` 为 0 时 C 分支编译掉、汇编 `v7m_context_switch_rvm.S` 的快例程整段排除，所有切换走 Vct。
 
 ### 16.4 生成、构建与优化顺序
 
-- `RTE_Gen` 从 `.rvp` 生成 `<Virt>/Project/{rte_config.ini,rte_config.h,rte_copy.sh,prc_<vm>}` 与 `Source/app/`；不写 RTEMS 树。
+- `RTE_Gen` 从 `.rvp` 生成 `<Virt>/Project/{rte_config.ini,rte_config.h,rte_copy.sh,prc_<vm>}` 与 `Source/app/`；不写 RTEMS 树。RTEMS 工程名恒为 `RTE_APP=prc_<vm>`，不再有 `-rte-app` 选项；benchmark 源固定为 `testsuites/samples/rte_benchmark/init.c`。`-b` 下每个 Virtual 都编 benchmark；若该 Virt 的 `Source/app/` 有用户 `.c`，用户 app 优先。
 - `prc_<vm>`：`rte_copy.sh` → `waf configure --rtems-config=rte_config.ini` → `waf` → `objcopy` → `bincopy`；RTEMS `build/arm/v7m_rvm` 共享，Virt 构建串行。
-- `RTE_CPU_FLAGS` 按 `.rvp` 的 coprocessor 选 `-mcpu/-mfpu`：FPV4_SP → Cortex-M4F/FPv4-SP，FPV5_SP/FPV5_DP → Cortex-M7/FPv5-SP/DP。
+- `RTE_CPU_FLAGS` 按 `.rvp` 的 coprocessor 选 `-mcpu/-mfpu/-mfloat-abi`：FPV4_SP → Cortex-M4F/FPv4-SP，FPV5_SP/FPV5_DP → Cortex-M7/FPv5-SP/DP；无 coprocessor 时输出 soft-float。`-mfloat-abi` 不再写死在 `abi.yml`。
 - **BSP `grp.yml` 必须 `opto2` 在 `bspopts` 之前**：否则 `BSP_OPTIMIZATION_FLAGS` 为空，CFLAGS 没有 `-O2`，整机退化为 `-O0`。这是构建顺序约束，不是可选调优。
 - `RTE_FAST_PATH`、`RTE_CPU_FLAGS` 都写在生成的 `rte_config.ini` 中；`RTE_FAST_PATH` 默认 `True`。
+- 链接脚本只有一个 spec（`linkcmds.yml` 的完整内容，target `linkcmds`），不再有 `linkcmds_rvm.yml` 包装层。布局 option 的 spec 默认值是 0 哨兵，`linkcmds` 用 `ASSERT` 要求 `RVM_CODE_BASE`/`SIZE`、`RVM_DATA_BASE`/`SIZE`、`RVM_USER_STACK_TOP` 都由 `rte_config.ini` 生成；直接构建 BSP 会在链接期失败，不会静默用旧布局。`rte_hello`/`rte_tick`/`rte_two_task_fpu` 的 spec 为 `enabled-by: BUILD_SAMPLES`；生成的 ini 是 `BUILD_SAMPLES=False`，正常构建只产出 `${RTE_APP}`。RTE 不建 `BUILD_TESTS`，因此未使用的 `tm27.h` 已删除；若以后启用 RTEMS 测试套件，需要补回该桩头。
 
 ### 16.5 工具链
 
-- `arm-rtems7-gcc` 15.2.0，前缀 `C:\Toolchain\RTEMS7`；waf 的 PATH 必须是 MSYS2，RTEMS 前缀用 `cygpath -u` 转 POSIX，临时目录设 `TMP/TEMP=C:/Temp`。
+- `arm-rtems7-gcc` 15.2.0。生成的 `prc_<vm>` 提供 `RTEMS_PREFIX ?=`：空则从 PATH 的 `arm-rtems7-gcc` 推导，非空则直接使用（可 `make RTEMS_PREFIX=...` 覆盖）；不再有 `-rte-prefix`。Windows 下用 `uname` 判断并只对 PATH/`USERPROFILE`/临时目录做 `cygpath` 转换，Linux 走同一套 makefile。
 - Cortex-M3、M4（soft/no-FP 与 hard-float）、M7 的 libc/libgcc/libstdc++/libatomic 必须齐。本机原工具链缺 M4 的 libatomic/libstdc++，已从 GCC 15.2 源码补建并安装；禁止用空归档或复制 M7 产物冒充 M4。
 - 原生 `arm/stm32f4` 的 C `hello.exe` 与 C++ `iostream.exe` 链接通过；RTE 构建已恢复 `librtemscxx`（不再为 RTEMS_RVM 禁用）。
 
@@ -1013,6 +1022,7 @@ S0..S15, FPSCR, [pad]         18 words（仅扩展帧）
 
 - `rte_benchmark` 共 15 行：RMP 的 7 个线程级项 + Notification/Activation + 5 个 ISR 项 + ISR RVM relay；TIM2 计时，TIM4 100 µs 虚拟向量。
 - 正式成绩只在 `testsuites/samples/rte_benchmark/chip/rte_test_<chip>.h` 档案块；BASELINE 文档只保留构建配置与 RMP 映射。
+- **芯片相关接线归芯片测试头（与 RMP 同构）**：`rte_test_<chip>.h` 定义 `RTE_Test_Timer_Init`（TIM2/RCC）、`RTE_Test_Int_Init(handler)`（`RVM_Hyp_Vct_Phys` + 本地中断 + `RVM_Virt_Vct_Reg` + TIM4）、`RTE_Test_Int_Disable`、`BENCH_TIME_GET` 和 `RTE_TEST_INT_CLEAR`；`rte_benchmark/init.c` 只定义 `Bench_TestIntHandler` 和测量流程，不再出现 TIM/RCC 寄存器名。ZPR 侧同构（`ZPR_Test_*` + `ZPR_TEST_CNT_READ`/`ZPR_TEST_INT_CLEAR`）。
 - 各芯片头记录实际验证模式的表：H743 含默认快路径与全 Vct，F429 为默认快路径；RTE 的 ISR relay 在任务恢复后采样，与 FreeRTOS 在 ISR 入口采样的数值不可直接横比。
 - RTE 的 Yield 是 `rtems_task_wake_after(RTEMS_YIELD_PROCESSOR)`（完整 RTEMS API + 调度器），FreeRTOS 的 Yield 是 `taskYIELD()`；比较时先对齐任务属性与测量口径。
 
@@ -1022,3 +1032,62 @@ S0..S15, FPSCR, [pad]         18 words（仅扩展帧）
 - RTEMS 每次切换会走完整派发器、CPU 时间记账和多次虚拟中断屏蔽，绝对数字高于 FreeRTOS/KLite 这类轻量内核是预期行为；不能把差距全部归因于 RVM。
 - 当前只在 H743（M7）与 F429/F439（M4F）验证；其他 Cortex-M 芯片需要新的 `.rvp` 与链接布局。
 
+
+
+---
+
+## 17. ZPR（Zephyr 3.7-on-RVM）
+
+### 17.1 端口形态
+
+- 选择开关：`CONFIG_RVM_GUEST`。新 arch port 位于 `arch/arm/core/cortex_m/v7m_rvm/`（`prep_c.c`/`thread.c`/`swap.c`/`cpu_idle.c` + 三个头文件覆盖层）；上游这些实现文件保持原样。`cortex_m/CMakeLists.txt` 只用 `zephyr_library_sources_ifndef/ifdef` + `add_subdirectory_ifdef`，公共 Cortex-M 源列表只出现一次，RVM 下排除 `reset.S/vector_table.S/swap_helper.S/exc_exit.c` 与四个 stock 实现并编入端口副本；`arch/arm/include/kernel_arch_func.h` 只做 include 分发。SoC 侧不再改 STM32：新增虚拟 family/series `v7m_rvm`（单一 SoC `rvm` + `RVM_CPU` choice），没有 `rvm_soc.c`，也不 include ST dtsi 或执行 ST SoC 初始化。
+- `RVM_GUEST` 的 Kconfig 依赖：`!SMP !USERSPACE !ARM_MPU !CORTEX_M_SYSTICK !TICKLESS_KERNEL !GEN_ISR_TABLES !THREAD_LOCAL_STORAGE`；板级 `NUM_IRQS=8` 必须不超过 VM 的 `RVM_VIRT_VCT_NUM`（当前生成项目为 8）。Zephyr 的 `irq_enable()`/`irq_connect_dynamic()` 没有虚拟化，设备中断必须用 `RVM_Hyp_Vct_Phys` + `RVM_Virt_Vct_Reg` 接线。
+- 周期计数器：RVM 不提供 free-running 硬件计数；`sys_clock_cycle_get_32/64()` 由 `k_uptime_ticks()` 按 `CONFIG_SYS_CLOCK_HW_CYCLES_PER_SEC` 合成，速率正确但分辨率是一个 tick；精细延时需客机自己申请定时器设备。
+- 两个真实线程：生成器的 `prc_<vm>.c` 提供 `Thd_Vct`，只跑 `RVM_Virt_Init()` / `RVM_Vct_Loop()`；端口的 `zpr_entry.c` 只提供 `__zpr_entry`，只进 `z_prep_c()`；RVM 中断在 `z_cstart()` 初始化完成、`zpr_switch_to_main()` 最后切换 main 时才使能。生成器的 `prc_<vm>_desc.c` 提供普通 `.rodata` 的 `RVM_Desc`，ZPR_Gen 只把 Usr 入口改成 `__zpr_entry`；`zpr_desc.ld` 按生成对象 `*prc_*_desc*.o*` 的 `.rodata` 收集并放在镜像基址，不用 `.PROCESS_DESC` 段属性。
+- `zpr_context.c` 把 Zephyr `arch_swap` 状态映射为 22 字伪装帧；SP 在偏移 36，慢路径复用 RTE 的 `v7m_context_switch_rvm.S`。快路径只在当前 XPSR 干净、heir 帧可执行/Thumb/干净时使用。
+- 虚拟定时器：`RVM_Virt_Tim_Reg(sys_clock_announce)`；控制台：`RVM_Hyp_Putchar`；`zpr_irq.c` 维护软件 nest 并把 `arch_irq_lock/unlock` 映射到 `RVM_Virt_Int_Mask/Unmask`。虚拟 IRQ 源不属于端口：benchmark 的 TIM2/TIM4 接线在 `test/chip/zpr_test_<chip>.h` 的 `ZPR_Test_Timer_Init`/`ZPR_Test_Int_Init`/`ZPR_Test_Int_Disable`，ISR handler 在 `test/bench.c`（RMP 式）；只有 benchmark app 编这些。
+- 空闲：先 `RVM_Hyp_Vct_Wait()`，唤醒后 `z_reschedule_irqlock()`；**不要**在 idle 里 `k_yield()`（idle 不在 ready queue，会破坏调度器）。
+- ctx handler 注册必须在 `z_bss_zero()` 之后：用 `SYS_INIT(PRE_KERNEL_1)`，不能放在 `Thd_Vct` 前。
+
+### 17.2 板级与内存
+
+- 只有一块板 `zephyr/boards/rvm/armv7m/`，`board.yml` 的 vendor 是 `rvm`，只有一个 SoC `rvm`，构建目标恒为 `armv7m`。SoC family/series 是 `v7m_rvm`（目录 `soc/arm/v7m_rvm`），CPU/FPU 由 `RVM_CPU_M7`/`RVM_CPU_M4` choice 选择。
+- 板级 fallback DTS 只用于脱离生成器的直接 west 构建；生成器为每个 VM 写完整 `zpr_board.dts`，内容含 CPU compatible、`flash0`/`sram0` 的真实窗口和 `chosen`，并通过 `DTS_SOURCE` 无条件覆盖板级 fallback。修改 `.rvp` 的代码/数据窗口不会留下旧 DTS。
+- **多 VM 的链接窗口按 Virt 分配**：生成器把该 Virt 的 Code/Data 真实窗口直接写进 `zpr_board.dts`；不再通过 `CONFIG_FLASH_*`/`CONFIG_SRAM_*` 在 `prj.conf` 里覆盖 DT。
+- 生成的 DTS 继承 `arm/armv7-m.dtsi` 的 NVIC 节点并覆盖 priority bits；没有 ST dtsi、RCC/PLL、sram1、DTCM/CCM 或时钟树。外设寄存器由 test 头（或应用的 `app.overlay`）引入，不进板级文件。
+- 虚拟 SoC 没有 STM32 HAL/SoC 初始化，因此 `CONFIG_EXTI_STM32`/`CONFIG_STM32_ENABLE_DEBUG_SLEEP_STOP` 不再是本板的构建路径；旧 STM32 SoC 模型时代的这两项只作为历史记录保留。
+
+### 17.3 生成与 west 构建
+
+- CLI：只传 `-zpr <west-root>`。生成的 `prc_<vm>` 提供 `PREFIX ?=`（空则从 PATH 的 `arm-none-eabi-gcc` 推导，非空则直接用）和 `WEST ?= west`（默认从 PATH 找，也可 `make WEST=...`）；不再有 `-zpr-prefix/-zpr-west`。工厂 `Guest_Type=ZPR`，`.rva` 的 `<Guest>`/`<Compatible>` 已登记。
+- `ZPR_Gen` 只写 `<Virt>`：`zpr_config.h`（代码/数据基址、快路径）、Zephyr app 的 `CMakeLists.txt`/`prj.conf`、`prc_<vm>`；benchmark app 才额外写 `zpr_test.h`（选中 `zpr_test_<chip>.h`，RCC/TIM4 等外设全在 test 头），普通 app 不生成该头。`prj.conf` 里的 `CONFIG_FLASH/SRAM_BASE_ADDRESS` 与 `SIZE` 是该 Virt 的链接窗口（多 VM 必需，见 17.2）。同时把生成器产出的 `prc_<vm>.c`/`prc_<vm>_desc.c` 加入 app target，并把描述符 Usr 入口改为 `__zpr_entry`。
+- benchmark 是“一个特殊的应用程序”：`test/bench.c` 定义 ISR handler 和测量流程，TIM2/TIM4 接线由 `test/chip/zpr_test_<chip>.h` 的 `ZPR_Test_Timer_Init`/`ZPR_Test_Int_Init`/`ZPR_Test_Int_Disable` 提供（与 RMP 的芯片头 `Timer_Init`/`Int_Init`/`Int_Disable` 同构）；`test/bench.c` 和 `zpr_test.h` 只在 benchmark app 的 source/include 列表里，普通 app 的 CMake 里没有它们，也不会碰 TIM4。用户 app 优先于 benchmark，benchmark 仅在 Virt 的 `Source/app/` 没有 `.c` 且未设 `ZPR_NORMAL` 时选中（与 RTE 相同）。两个 benchmark 客机会争用同一个 TIM4，因此不要让两个 VM 同时跑 15 项基准。
+- `prc_<vm>` 的 PATH 必须用 POSIX 形式（`/c/...`），并显式导出 `USERPROFILE`；否则 west 的 Python 找不到家目录，CMake/Ninja 也找不到。
+- 快路径环境变量是 `ZPR_FAST_PATH`（旧名 `RTE_FAST_PATH` 仍兼容）；值为 `0` 时生成器把 `ZPR_FAST_PATH=0` 写进 `zpr_config.h` 和汇编 compile definition，C 分支与 `v7m_context_switch_rvm.S` 的快例程一起消失。
+- `prc_<vm>` 对 `$(OBJDIR)/<vm>.bin` 挂 `zpr_force` 伪目标，确保每次 make 都重跑 west；否则改 app 后 make 会静默复用旧镜像。
+- 编译产物：`west build -p always -b armv7m -d <build> <app> -- -DDTS_SOURCE=<virt>/Project/zpr_board.dts` → bincopy → `*_image.c`；Kernel/Monitor/native 由工作区 `make -f rvm` 汇总。
+- 板名恒为 `armv7m`；生成器不再按芯片前缀推导 M7/M4 board，而是在 `prj.conf` 写 `CONFIG_RVM_CPU_M7=y` 或 `CONFIG_RVM_CPU_M4=y`，并在生成的 `zpr_board.dts` 写对应 CPU compatible。
+- `generate.sh` 对 `*-zpr*`（含 `-zpr2` 等多 VM 命名）自动加 `-b` 并设 `ZPR_NORMAL=1`：生成器保留用户 app/smoke，同时借用原生基准的 TIM4 心跳；`benchmark.sh` 不设该变量，但 Virt 的 `Source/app/` 有用户 `.c` 时仍优先用户 app，否则才用 `test/bench.c` 的 15 项 app（芯片头提供 `ZPR_Test_*` 接线）。
+
+### 17.4 基准与数据
+
+- `zephyr/arch/arm/core/cortex_m/v7m_rvm/test/bench.c` 15 项：9 项线程级 + ISR Notification / RVM activation relay / Semaphore / Message queue / Blocking message queue / Activation；TIM2 为周期计数器，TIM4 10 kHz 虚拟向量为中断源。
+- Yield 与 RTE 同为**单向**口径：生产者在 `Yield_Start` 后 yield，消费者在被调度后读 `TIM2_CNT` 记录，不把消费者再 yield 回来的时间算进去。
+- ISR 行在 `test/bench.c` 的 `Bench_Isr_Handler` 里清 TIM4 标志并用 `Bench_Isr_Hook` 取时间戳、置标志，轮询线程读 `TIM2_CNT` 得到“ISR 入口→线程恢复”的周期差；与 RTE 的“ISR 内释放、线程睡眠唤醒”口径不同，不能直接横比。
+- 正式成绩只以 `Zephyr_V370/zephyr/arch/arm/core/cortex_m/v7m_rvm/test/chip/zpr_test_<chip>.h` 的档案块为准；本节不复制数字，避免文档与实测脱节。
+- README 只取公共列（Yield/Mail/Sem/Mail-I/Sem-I/Mem），完整 15 行见芯片头。
+
+### 17.5 深坑
+
+- **Zephyr 的 `k_event_wait(reset=true)` 会先清位再判断**：同一线程 post 后 wait 会永远返回 0；必须 `reset=false`，成功后自己 `k_event_clear`。
+- **`k_queue_append` 把链节点写进数据首字**：FIFO 的 item 不能复用循环计数器，否则循环变量被链指针覆盖，测试挂死。
+- **VCP 回放**：ST-Link 串口在关闭期间缓存上一轮整段输出；测试前必须空读足够长时间（≥5 s），否则会把旧数据当新结果。烧录后必须用 `-hardRst`（软件复位有时留在停核/复位态）。
+- **ZPR 快路径 PC 校验不能要求 bit0=1**：`RTE_EXC_PUSH` 故意把保存的 PC 清成偶数，Cortex-M 异常返回仍按 Thumb 执行，快路径的 `RTE_EXC_POP` 才置 bit0。C 侧若要求 `pc&1`，所有 `k_yield` 会退回慢路径（双向口径实测 3671→810；改单向后 H743 Yield 约 473）。
+
+### 17.6 已知限制
+
+- 非基准启动依赖 `generate.sh` 对 ZPR 自动加 `-b` 的“原生基准心跳”配置：RVM 时间轮需要原生进程提供 TIM4 心跳；这会让镜像先跑完原生基准并打印其 15 行，再进入用户 Zephyr 应用。心跳本身已闭环，输出尚未静音。
+- FPU 已接入：板级 `CONFIG_FPU=y`/`CONFIG_FPU_SHARING=y`（hard-float），所有线程初始帧仍是 22 字基本帧，首次 VFP 指令后由切换路径生成 56 字扩展帧；H743（FPv5-DP）与 F429/F439（FPv4-SP）真机通过。userspace/MPU 仍关闭；Zephyr 内核对象、线程栈与堆都必须在 `RVM_DATA_SIZE` 内。
+- 周期计数器是由 tick 合成的，分辨率一个 tick；Zephyr IRQ API 未虚拟化，设备中断必须手工注册 RVM 虚拟向量。这两项已在 ZPR README 的已知限制中写明。
+- ISR 行是轮询观察口径，不是 Zephyr 内核对象在 ISR 内释放；接入真正的 Zephyr ISR 上下文仍是后续工作。
+- 2026-11-08 双客机实测（H743）：ZPR 与 RTE 各用两个 Virt、各带自己的 banner app，均能在同一 Kernel 下同时启动（串口分别出现 `ZPR guest Virt1 alive`/`Virt2 alive` 与 `RTE guest Virt1 alive`/`Virt2 alive`）。ZPR 每个 Virt 的链接窗口由生成的 `prj.conf` 固定；RTE 共享 waf 构建目录在 Virt1→Virt2→Virt1 切换时 `rte_entry.c`/`rte_prc.h`/`rte_config.h` 均正确换装。RTE 重新 configure 后链接顺序会造成 16 字节级 padding 差异（哈希不同），但逐符号检查未发现另一 Virt 的地址常量，属布局噪声而非串镜像。

@@ -47,7 +47,6 @@
 extern void djy_dbg_puts(const char *str);
 extern void djy_dbg_putc(char c);
 extern void djy_dbg_putu32(u32 val);
-extern void djy_bench_int_init(void);
 extern void djy_set_idle_hook(void (*hook)(void));
 
 /* The statistics block. */
@@ -600,7 +599,7 @@ u32 djy_bench_isr(ptu32_t para)
     u32 did = 0U;
 
     (void)para;
-    DJY_TIM4_SR &= ~DJY_TIM4_SR_UIF;    /* rc_w0: only a zero bit clears */
+    DJY_BENCH_INT_CLEAR();               /* rc_w0: only a zero bit clears */
     if((djy_isr_sequence_active == 0U) ||
        (djy_isr_phase >= DJY_ISR_PHASE_NUM))
         return 0U;                      /* no sequence running */
@@ -752,7 +751,7 @@ static ptu32_t djy_driver_script(void)
     djy_dbg_puts("====================================================\r\n");
     djy_dbg_puts("Test (number in CPU cycles)        : AVG / MAX / MIN\r\n");
 
-    djy_bench_int_init();
+    djy_bench_int_init(djy_bench_isr);
 
     /* The interrupt-driven items run first, while the ready queue holds
      * nothing but this driver: any event left over from a thread level

@@ -42,7 +42,7 @@ notes.
 - The common ARM `_CPU_Initialize()` programs SVC/PendSV priorities through
   the NVIC system registers.  The unprivileged RTE guest must not do that, so
   the RVM CPU port replaces it with an empty implementation
-  (`cpukit/score/cpu/arm/v7m_rvm/v7m_initialize_rvm.c`).  Without this the
+  (`cpukit/score/cpu/arm/v7m_rvm/v7m_rvm.c`).  Without this the
   F429 guest took a precise data access fault at startup.
 - The local RTEMS 7 GCC toolchain originally had `libatomic`/`libstdc++`
   only for Cortex-M7.  The missing target libraries were built from the GCC
