@@ -338,6 +338,7 @@ static void Bench_Task1(rtems_task_argument arg)
   (void) arg;
 
   printf("\r\nRTE on RVM - Standard benchmark test\r\n");
+  printf("====================================================\r\n");
   printf("Test (number in CPU cycles)        : AVG / MAX / MIN\r\n");
 
   /* Yield test: both tasks run at the same priority. */

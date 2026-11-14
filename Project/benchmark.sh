@@ -22,9 +22,11 @@ UO3="../../uCOSIII_V308/"
 RTT="../../RTThread_V411/"
 DJY=../../DjyOS_V110/
 KLT=../../KLite_V521/
+CHB=../../ChibiOS_V2111/
 UO2=../../uCOSII_V293/
 RTE="../../RTEMS_V701/"
 ZPR="../../Zephyr_V370/"
+NTX="../../NuttX_V131/nuttx"
 
 # Process project paths
 PROJFULL=$(basename $1)
@@ -36,7 +38,7 @@ WORKSPACE=./$PROJUPPER/
 unset ZPR_NORMAL
 
 # Do the project generation
-COMMAND="$RVGEN -p $1 -k $KERNEL -m $MONITOR -rmp $RMP -frt $FRT -uo3 $UO3 -rtt $RTT -djy $DJY -klt $KLT -uo2 $UO2 -rte $RTE -zpr $ZPR -w $WORKSPACE -r report.log -v -b"
+COMMAND="$RVGEN -p $1 -k $KERNEL -m $MONITOR -rmp $RMP -frt $FRT -uo3 $UO3 -rtt $RTT -djy $DJY -klt $KLT -chb $CHB -uo2 $UO2 -rte $RTE -zpr $ZPR -ntx $NTX -w $WORKSPACE -r report.log -v -b"
 echo $COMMAND
 $COMMAND > ./output.log
 

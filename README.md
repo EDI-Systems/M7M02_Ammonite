@@ -104,67 +104,81 @@ This software is an official work of EDI, and thus belongs to the **public domai
 
 ### Commemorative ports
 
-|Machine      |Toolchain     |RTOS                                   |Flash|SRAM|Yield|Mail |Sem  |Mail/I|Sem/I|Mem  |
-|:-----------:|:------------:|:-------------------------------------:|:---:|:--:|:---:|:---:|:---:|:----:|:---:|:---:|
-|Cortex-M7    |GCC           |[DjyOS](Guest/GUEST.md#27-djyos-contract-strategy-and-the-subtle-deviations)     |27.49|63.38| 1017| 1488|  892|  1873| 1220|  288|
-|Cortex-M7    |GCC           |[KLite](Guest/GUEST.md#28-klite-contract-strategy-and-the-subtle-deviations)     |11.65|20.27|  291| 1402|  379|  1964|  996| 2751|
+|Machine      |Toolchain     |RTOS                                                                        |Flash|SRAM |Yield|Mail |Sem  |Mail/I|Sem/I|Mem  |
+|:-----------:|:------------:|:--------------------------------------------------------------------------:|:---:|:---:|:---:|:---:|:---:|:----:|:---:|:---:|
+|Cortex-M7    |GCC           |[DjyOS](Guest/GUEST.md#27-djyos-contract-strategy-and-the-subtle-deviations)|27.49|63.38| 1017| 1488|  892|  1873| 1220|  288|
+|Cortex-M7    |GCC           |[KLite](Guest/GUEST.md#28-klite-contract-strategy-and-the-subtle-deviations)|11.65|20.27|  291| 1402|  379|  1964|  996| 2751|
 
 ### Practical ports
 
-|Machine      |Toolchain     |RTOS      |Flash|SRAM|Yield|Mail |Sem  |Mail/I|Sem/I|Mem  |
-|:-----------:|:------------:|:--------:|:---:|:--:|:---:|:---:|:---:|:----:|:---:|:---:|
-|  Cortex-M0+|Keil uVision 5|       RMP|16.71|3.88|  465|  783|  681|  1677| 1572|  N/A|
-|         ...|          ...|  FreeRTOS|12.74|9.57|  433|  949| 1023|  1789| 1808|  843|
-|         ...|          ...|   uCOSII|11.86|6.73| N/A| 1062| 1039|  3800| 1484| 2638|
-|         ...|          ...|   uCOSIII|13.63|8.09|  863| 1117| 1143|  2125| 2156|  363|
-|         ...|          ...| RT-Thread|18.69|8.27|  950| 1581| 1317|  2760| 2464|13221|
-|         ...|    IAR EWARM|       RMP|12.38|3.88|  511|  876|  770|  1764| 1642|  N/A|
-|         ...|          ...|  FreeRTOS|11.29|9.57|  432|  944| 1078|  1804| 1859|  944|
-|         ...|          ...|   uCOSII|10.62|6.73| N/A| 1089| 1067|  4899| 1072| 2737|
-|         ...|          ...|   uCOSIII|11.89|8.08|  892| 1154| 1187|  2161| 2189|  360|
-|         ...|          ...| RT-Thread|13.15|8.26| 1031| 1680| 1415|  2859| 2589|13861|
-|         ...|          GCC|       RMP|22.72|2.88|  507|  883|  773|  1746| 1680|  N/A|
-|         ...|          ...|  FreeRTOS|15.38|8.57|  455|  986| 1108|  1859| 1926| 1012|
-|         ...|          ...|   uCOSII|13.08|5.75| N/A| 1111| 1090|  1526| 1097| 2876|
-|         ...|          ...|   uCOSIII|15.38|7.09|  871| 1144| 1185|  2188| 2246|  396|
-|         ...|          ...| RT-Thread|18.57|7.27| 1080| 1755| 1450|  3042| 2694|14899|
-|   Cortex-M4|Keil uVision 5|       RMP|22.72|37.06|  336|  519|  452|  1278| 1176|  391|
-|         ...|          ...|  FreeRTOS|14.73|41.57|  308|  612|  776|  1394| 1428|  527|
-|         ...|          ...|   uCOSII|13.09|7.73| N/A|  671|  647|  2303|  773| 1425|
-|         ...|          ...|   uCOSIII|15.50|9.09|  504|  691|  713|  1570| 1588|  196|
-|         ...|          ...| RT-Thread|20.34|8.27|  532| 1036|  824|  1948| 1743| 7307|
-|         ...|    IAR EWARM|       RMP|14.29|36.07|  376|  602|  551|  1512| 1438|  403|
-|         ...|          ...|  FreeRTOS|11.48|40.57|  316|  648|  833|  1592| 1667|  549|
-|         ...|          ...|   uCOSII|10.75|6.73| N/A|  708|  696|  2483|  824| 1521|
-|         ...|          ...|   uCOSIII|11.65|8.08|  601|  809|  829|  1852| 1868|  207|
-|         ...|          ...| RT-Thread|13.78|7.26|  612| 1053|  852|  2231| 2020| 7646|
-|         ...|          GCC|       RMP|24.20|36.07|  416|  709|  552|  1434| 1344|  382|
-|         ...|          ...|  FreeRTOS|15.44|40.57|  372|  726|  882|  1544| 1611|  724|
-|         ...|          ...|   uCOSII|12.48|6.75| N/A|  729|  693|  2629|  849| 1597|
-|         ...|          ...|   uCOSIII|14.67|8.09|  580|  812|  849|  1759| 1820|  227|
-|         ...|          ...| RT-Thread|17.63|7.27|  648| 1173|  893|  2236| 1975| 7764| 
-|   Cortex-M7|Keil uVision 5|       RMP|22.73|37.06|  244|  384|  370|   920|  811|  284|
-|         ...|          ...|  FreeRTOS|15.06|41.57|  229|  494|  595|   954|  987|  347|
-|         ...|          ...|   uCOSII|13.35|7.73| N/A|  436|  445|  1503|  584|  849|
-|         ...|          ...|   uCOSIII|15.75|9.09|  410|  590|  594|  1227| 1252|  141|
-|         ...|          ...| RT-Thread|20.52|8.28|  457|  798|  651|  1537| 1391| 5197|
-|         ...|    IAR EWARM|       RMP|14.37|36.07|  272|  459|  412|  1030|  985|  284|
-|         ...|          ...|  FreeRTOS|11.50|40.57|  220|  526|  609|  1122| 1109|  363|
-|         ...|          ...|   uCOSII|10.83|6.73| N/A|  541|  512|  1674|  654|  938|
-|         ...|          ...|   uCOSIII|11.70|8.08|  411|  592|  620|  1282| 1313|  151|
-|         ...|          ...| RT-Thread|13.85|7.26|  424|  829|  675|  1585| 1441| 5710|
-|         ...|          GCC|       RMP|24.29|36.07|  248|  476|  414|   886|  939|  283|
-|         ...|          ...|  FreeRTOS|15.29|40.57|  225|  511|  596|  1020| 1036|  354|
-|         ...|          ...|   uCOSII|12.49|6.75| N/A|  489|  468|  1544|  569|  909|
-|         ...|          ...|   uCOSIII|14.66|8.09|  404|  561|  578|  1216| 1291|  150|
-|         ...|          ...| RT-Thread|17.75|7.27|  465|  819|  674|  1570| 1435| 6402|
-|         ...|          ...|     RTEMS| N/A| N/A|  907| 1164| 1146|  2193| 2280| 1654|
-|         ...|          ...|    Zephyr|14.04|19.47|  473|  408|  190|   604|  604|  732|
-|      RISC-V|          GCC|       RMP|29.61|25.29|  322|  499|  437|  1719| 1652|  360|
-|         ...|          ...|  FreeRTOS|17.55|24.77|  319|  580|  630|  1778| 1827|  440|
-|         ...|          ...|   uCOSII|16.28|6.75| N/A|  571|  559|  2591|  570| 1337|
-|         ...|          ...|   uCOSIII|16.72|8.09|  478|  606|  611|  2050| 2079|  182|
-|         ...|          ...| RT-Thread|19.45|9.77|  533|  846|  701|  2429| 2280| 6003|
+|Machine      |Toolchain     |RTOS      |Flash|SRAM |Yield|Mail |Sem  |Mail/I|Sem/I|Mem  |
+|:-----------:|:------------:|:--------:|:---:|:---:|:---:|:---:|:---:|:----:|:---:|:---:|
+|Cortex-M0+   |Keil uVision 5|RMP       |16.71| 3.88|  465|  783|  681|  1677| 1572|  N/A|
+|          ...|           ...|FreeRTOS  |12.74| 9.57|  431|  957| 1033|  1797| 1820|  845|
+|          ...|           ...|uCOSII    |11.86| 6.73|  N/A| 1062| 1039|  3800| 1484| 2638|
+|          ...|           ...|uCOSIII   |13.63| 8.09|  863| 1117| 1143|  2125| 2156|  363|
+|          ...|           ...|RT-Thread |18.69| 8.27|  950| 1581| 1317|  2760| 2464|13221|
+|          ...|           ...|ChibiOS   |10.92|20.45|  363|  868|  751|  1948| 1915|  939|
+|          ...|IAR EWARM     |RMP       |12.38| 3.88|  511|  876|  770|  1764| 1642|  N/A|
+|          ...|           ...|FreeRTOS  |11.29| 9.57|  408|  832|  973|  1826| 1845|  852|
+|          ...|           ...|uCOSII    |10.62| 6.73|  N/A| 1089| 1067|  4899| 1072| 2737|
+|          ...|           ...|uCOSIII   |11.89| 8.08|  892| 1154| 1187|  2161| 2189|  360|
+|          ...|           ...|RT-Thread |13.15| 8.26| 1031| 1680| 1415|  2859| 2589|13861|
+|          ...|           ...|ChibiOS   | 8.32|19.23|  383|  946|  800|  1977| 1929| 1142|
+|          ...|GCC           |RMP       |22.72| 2.88|  507|  883|  773|  1746| 1680|  N/A|
+|          ...|           ...|FreeRTOS  |15.38| 8.57|  459|  988| 1110|  1850| 1923| 1010|
+|          ...|           ...|uCOSII    |13.08| 5.75|  N/A| 1111| 1090|  1526| 1097| 2876|
+|          ...|           ...|uCOSIII   |15.38| 7.09|  871| 1144| 1185|  2188| 2246|  396|
+|          ...|           ...|RT-Thread |18.57| 7.27| 1080| 1755| 1450|  3042| 2694|14899|
+|          ...|           ...|ChibiOS   |10.25|19.23|  365|  877|  757|  2046| 2001|  993|
+|Cortex-M4    |Keil uVision 5|RMP       |22.72|37.06|  336|  519|  452|  1278| 1176|  391|
+|          ...|           ...|FreeRTOS  |14.73|41.57|  308|  612|  776|  1394| 1428|  527|
+|          ...|           ...|uCOSII    |13.09| 7.73|  N/A|  671|  647|  2303|  773| 1425|
+|          ...|           ...|uCOSIII   |15.50| 9.09|  504|  691|  713|  1570| 1588|  196|
+|          ...|           ...|RT-Thread |20.34| 8.27|  532| 1036|  824|  1948| 1743| 7307|
+|          ...|           ...|ChibiOS   | 9.71|29.13|  269|  649|  540|  1704| 1668|  550|
+|          ...|IAR EWARM     |RMP       |14.29|36.07|  376|  602|  551|  1512| 1438|  403|
+|          ...|           ...|FreeRTOS  |11.48|40.57|  316|  648|  833|  1592| 1667|  549|
+|          ...|           ...|uCOSII    |10.75| 6.73|  N/A|  708|  696|  2483|  824| 1521|
+|          ...|           ...|uCOSIII   |11.65| 8.08|  601|  809|  829|  1852| 1868|  207|
+|          ...|           ...|RT-Thread |13.78| 7.26|  612| 1053|  852|  2231| 2020| 7646|
+|          ...|           ...|ChibiOS   | 8.09|29.12|  248|  617|  521|  1775| 1716|  573|
+|          ...|GCC           |RMP       |24.20|36.07|  416|  709|  552|  1434| 1344|  382|
+|          ...|           ...|FreeRTOS  |15.44|40.57|  372|  726|  882|  1544| 1611|  724|
+|          ...|           ...|uCOSII    |12.48| 6.75|  N/A|  729|  693|  2629|  849| 1597|
+|          ...|           ...|uCOSIII   |14.67| 8.09|  580|  812|  849|  1759| 1820|  227|
+|          ...|           ...|RT-Thread |17.63| 7.27|  648| 1173|  893|  2236| 1975| 7764|
+|          ...|           ...|RTEMS     |  N/A|  N/A| 1226| 1638| 1726|  2971| 3042| 2113|
+|          ...|           ...|Zephyr    |13.95|19.47|  685|  584|  252|   909|  911|  977|
+|          ...|           ...|NuttX     |62.21| 4.58| 1602|  N/A|  204|   N/A| 3444| 2202|
+|          ...|           ...|ChibiOS   | 9.71|29.13|  269|  649|  540|  1704| 1668|  550|
+|Cortex-M7    |Keil uVision 5|RMP       |22.73|37.06|  244|  384|  370|   920|  811|  284|
+|          ...|           ...|FreeRTOS  |15.06|41.57|  229|  494|  595|   954|  987|  347|
+|          ...|           ...|uCOSII    |13.35| 7.73|  N/A|  436|  445|  1503|  584|  849|
+|          ...|           ...|uCOSIII   |15.75| 9.09|  419|  602|  580|  1212| 1246|  141|
+|          ...|           ...|RT-Thread |20.52| 8.28|  457|  798|  651|  1537| 1391| 5197|
+|          ...|           ...|ChibiOS   | 9.75|29.13|  161|  443|  371|  1229| 1189|  345|
+|          ...|IAR EWARM     |RMP       |14.37|36.07|  272|  459|  412|  1030|  985|  284|
+|          ...|           ...|FreeRTOS  |11.50|40.57|  220|  526|  609|  1122| 1109|  363|
+|          ...|           ...|uCOSII    |10.83| 6.73|  N/A|  541|  512|  1674|  654|  938|
+|          ...|           ...|uCOSIII   |11.70| 8.08|  408|  590|  607|  1262| 1305|  151|
+|          ...|           ...|RT-Thread |13.85| 7.26|  424|  829|  675|  1585| 1441| 5710|
+|          ...|           ...|ChibiOS   | 8.15|29.12|  162|  475|  386|  1252| 1234|  324|
+|          ...|GCC           |RMP       |24.29|36.07|  248|  476|  414|   886|  939|  283|
+|          ...|           ...|FreeRTOS  |15.29|40.57|  225|  511|  596|  1020| 1036|  354|
+|          ...|           ...|uCOSII    |12.49| 6.75|  N/A|  489|  468|  1544|  569|  909|
+|          ...|           ...|uCOSIII   |14.66| 8.09|  404|  561|  578|  1216| 1291|  150|
+|          ...|           ...|RT-Thread |17.75| 7.27|  465|  819|  674|  1570| 1435| 6402|
+|          ...|           ...|RTEMS     |  N/A|  N/A|  907| 1164| 1146|  2193| 2280| 1654|
+|          ...|           ...|Zephyr    |14.04|19.47|  473|  408|  190|   604|  604|  732|
+|          ...|           ...|NuttX     |59.87| 4.58| 1091|  N/A|  168|   N/A| 2640| 1634|
+|          ...|           ...|ChibiOS   | 9.75|29.13|  161|  443|  371|  1229| 1189|  345|
+|RISC-V       |GCC           |RMP       |29.61|25.29|  322|  499|  437|  1719| 1652|  360|
+|          ...|           ...|FreeRTOS  |17.55|24.77|  319|  580|  630|  1778| 1827|  440|
+|          ...|           ...|uCOSII    |16.28| 6.75|  N/A|  571|  559|  2591|  570| 1337|
+|          ...|           ...|uCOSIII   |16.72| 8.09|  478|  606|  611|  2050| 2079|  182|
+|          ...|           ...|RT-Thread |19.45| 9.77|  533|  846|  701|  2429| 2280| 6003|
+|          ...|           ...|ChibiOS   |10.79|21.62|  206|  489|  434|  1974| 1941|  467|
 
 &ensp;&ensp;&ensp;&ensp;**Flash and SRAM consumption is calculated in kB, while the other figures are calculated in CPU clock cycles. All values listed here are typical values that exercises the full system benchmark, not minimum values, because minimum values on system size seldom make any real sense.**
 
@@ -173,9 +187,6 @@ This software is an official work of EDI, and thus belongs to the **public domai
 - Cortex-M7 is evaluated with STM32H743ZIT6.
 - RV32IMAC is evaluated with CH32V307VCT6.
 - All figures are measured with the same benchmark suite as RVM guests, on real hardware, across all listed toolchain/RTOS combinations: GCC at -O3 (RTEMS uses -O2, the BSP's fixed optimization level; Zephyr uses its default -Os), IAR/Keil at their highest optimization. Flash/SRAM are guest image footprints (code+data / data+bss); all other figures are CPU clock cycles.
-- Yield is measured one-way: the producer timestamps before its yield and the consumer timestamps immediately after it is scheduled. This is the same definition used by the RTE benchmark.
-- Zephyr/ZPR normal images use the native benchmark process as the TIM4 heartbeat (`generate.sh` adds `-b`); the native benchmark rows are printed before the user application. The two Zephyr rows show the common columns of its 15-item benchmark; its Flash/SRAM footprint is the generated Zephyr image. The ISR rows sample in the RVM virtual-vector hook and expose the result to a polling thread. The full ZPR result table is in `Zephyr_V370/zephyr/arch/arm/core/cortex_m/v7m_rvm/test/chip/zpr_test_*.h`.
-- RTEMS/RTE is GCC-only. The two RTEMS rows show the common columns of its 15-item benchmark; its Flash/SRAM footprint is fixed by the RTE data block and is documented in `Guest/RTEMS_V701/bsps/arm/v7m_rvm/README.md`. The full RTE result table, including message queue, blocking message queue, FIFO, alarm, activation and all-Vct data, is in the RTE chip test headers.
 
 
 &ensp;&ensp;&ensp;&ensp;In the 2 tables above, all compiler options are the highest optimization (usually -O3; RTEMS uses the BSP's fixed -O2) and optimized for time.
@@ -215,7 +226,7 @@ This software is an official work of EDI, and thus belongs to the **public domai
 ### Deployment
 &ensp;&ensp;&ensp;&ensp;When deploying this into a production system, it is recommended that you read the manual in the **_Documents_** folder carefully to configure all options correctly. It is not recommended to configure the kernel yourself, anyway; it included too many details. Please use the default configuration file as much as possible. Also, read the user guide for the specific platform you are using.
 
-&ensp;&ensp;&ensp;&ensp;If you are deploying an RTOS (FreeRTOS, uC/OS-III, RT-Thread, DjyOS, KLite, uC/OS-II, RTEMS/RTE or Zephyr/ZPR) as a guest, see [Guest/GUEST.md](Guest/GUEST.md) for how to install the paravirtualized guest ports, and for each port's contract, implementation strategy and the subtle deviations between the two.
+&ensp;&ensp;&ensp;&ensp;If you are deploying an RTOS (FreeRTOS, uC/OS-III, RT-Thread, DjyOS, KLite, ChibiOS/CHB, uC/OS-II, RTEMS/RTE, Zephyr/ZPR or NuttX/NTX) as a guest, see [Guest/GUEST.md](Guest/GUEST.md) for how to install the paravirtualized guest ports, and for each port's contract, implementation strategy and the subtle deviations between the two.
 
 ## Built With
 

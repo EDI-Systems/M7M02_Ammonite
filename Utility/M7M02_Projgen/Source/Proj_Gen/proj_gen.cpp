@@ -82,9 +82,11 @@ extern "C"
 #include "Proj_Gen/Guest_Gen/RTT_Gen/rtt_gen.hpp"
 #include "Proj_Gen/Guest_Gen/DJY_Gen/djy_gen.hpp"
 #include "Proj_Gen/Guest_Gen/KLT_Gen/KLT_Gen.hpp"
+#include "Proj_Gen/Guest_Gen/CHB_Gen/chb_gen.hpp"
 #include "Proj_Gen/Guest_Gen/UO2_Gen/uo2_gen.hpp"
 #include "Proj_Gen/Guest_Gen/RTE_Gen/rte_gen.hpp"
 #include "Proj_Gen/Guest_Gen/ZPR_Gen/zpr_gen.hpp"
+#include "Proj_Gen/Guest_Gen/NTX_Gen/ntx_gen.hpp"
 #undef __HDR_CLASS__
 /* End Include ***************************************************************/
 namespace RVM_GEN
@@ -239,6 +241,12 @@ void  Proj_Gen::Guest_Load(const std::string& Name)
                 Main::Error("XXXXX: Guest path for '"+Name+"' is missing.");
             Guest=std::make_unique<class KLT_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
         }
+        else if(Name=="CHB")
+        {
+            if(Main::Guest_CHB_Root=="")
+                Main::Error("XXXXX: Guest path for '"+Name+"' is missing.");
+            Guest=std::make_unique<class CHB_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
+        }
         else if(Name=="UO2")
         {
             if(Main::Guest_UO2_Root=="")
@@ -256,6 +264,12 @@ void  Proj_Gen::Guest_Load(const std::string& Name)
             if(Main::Guest_ZPR_Root=="")
                 Main::Error("XXXXX: Guest path for '"+Name+"' is missing.");
             Guest=std::make_unique<class ZPR_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
+        }
+        else if(Name=="NTX")
+        {
+            if(Main::Guest_NTX_Root=="")
+                Main::Error("XXXXX: Guest path for '"+Name+"' is missing.");
+            Guest=std::make_unique<class NTX_Gen>(this->Plat->Proj,this->Plat->Plat,this->Plat->Chip);
         }
         else
             Main::Error("XXXXX: Guest generator for '"+Name+"' is not found.");

@@ -1,0 +1,82 @@
+#
+# For a description of the syntax of this configuration file,
+# see kconfig-language.txt in the NuttX tools repository.
+#
+
+if ARCH_BOARD_NTX
+
+config NTX_RVM_ROOT
+	string "RVM source root"
+	default "C:/Code_Library/M7M02_Ammonite"
+	---help---
+		Root of the RVM monitor source tree.  The generated per-Virt board
+		may override this with a relative path.
+
+comment "RVM guest memory window"
+
+config NTX_RVM_DATA_BASE
+	hex "Guest data window base"
+	default 0x24000000
+
+config NTX_RVM_DATA_SIZE
+	hex "Guest data window size"
+	default 0x11f50
+
+config NTX_RVM_STACK_BASE
+	hex "Guest stack region base"
+	default 0x24012000
+
+config NTX_RVM_STACK_SIZE
+	hex "Guest stack region size"
+	default 0x1000
+
+config NTX_RVM_DESC_BASE
+	hex "Guest descriptor base"
+	default 0x08050000
+
+config NTX_RVM_CODE_BASE
+	hex "Guest code base"
+	default 0x08050020
+
+config NTX_RVM_CODE_SIZE
+	hex "Guest code size"
+	default 0xffe0
+
+config NTX_RVM_STATE_BASE
+	hex "Monitor state block base"
+	default 0x24011fc0
+
+config NTX_RVM_STATE_SIZE
+	hex "Monitor state block size"
+	default 0x40
+
+config NTX_RVM_REG_BASE
+	hex "Monitor register block base"
+	default 0x24011f50
+
+config NTX_RVM_REG_SIZE
+	hex "Monitor register block size"
+	default 0x70
+
+choice NTX_RVM_COP
+	prompt "Guest coprocessor context"
+	default NTX_RVM_COP_FPV5_DP
+
+config NTX_RVM_COP_NONE
+	bool "No floating-point context"
+	---help---
+		The Virt has no coprocessor context.  RVM_COP_NUM is zero and
+		CONFIG_ARCH_FPU must not be selected.
+
+config NTX_RVM_COP_FPV4_SP
+	bool "FPv4-SP (Cortex-M4)"
+
+config NTX_RVM_COP_FPV5_SP
+	bool "FPv5-SP (Cortex-M7 single precision)"
+
+config NTX_RVM_COP_FPV5_DP
+	bool "FPv5-DP (Cortex-M7 double precision)"
+
+endchoice
+
+endif # ARCH_BOARD_NTX

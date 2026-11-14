@@ -12,6 +12,7 @@
 | RT-Thread | V4.1.1 | ARMv6-M、ARMv7-M、RV32P | GCC、RVDS (ARMCC)、IAR（RV32P 仅 GCC） |
 | DjyOS | V1.1.0 | ARMv7-M | GCC（纪念性移植，单组合：H743） |
 | KLite | V5.2.1 | ARMv7-M | GCC（纪念性移植，单组合：H743） |
+| ChibiOS（CHB） | 21.11 LTS | ARMv7-M（H743/F429）、RV32P（CH32V307） | GCC、IAR EWARM、Keil（RV32P 仅 GCC） |
 | uC/OS-II | V2.93 | ARMv6-M、ARMv7-M、RV32 | GCC、ARM、IAR（RV32 仅 GCC） |
 | RTEMS（RTE） | 7.0-rc1 | ARMv7-M（H743/F429） | GCC |
 | Zephyr（ZPR） | 3.7.0 LTS | ARMv7-M（H743/F429） | GCC |
@@ -92,6 +93,8 @@ RTEMS 其他目录和 BSP 公共代码都来自官方树。**不要把原版 cpu
 ├─ KLite_V521/         KLite V5.2.1 源码树——端口在 sources/cpu/armv7-m_rvm，
 │                      基准在 test/
 ├─ uCOSII_V293/        uC/OS-II V2.93 源码树——端口在 Ports/*-RVM，基准在 Test/
+├─ ChibiOS_V2111/      ChibiOS 21.11 LTS 源码树——CHB 端口在
+│                      os/common/ports/ARMv7-M-RVM + RV32P-RVM，基准在 test/
 ├─ RTEMS_V701/         RTEMS 7.0-rc1 源码树——RTE BSP/spec/样例子集覆盖包，
 │                      不是完整 RTEMS 树
 └─ Zephyr_V370/        Zephyr 3.7.0 LTS west 工作区覆盖包——ZPR 架构端口、
@@ -99,7 +102,7 @@ RTEMS 其他目录和 BSP 公共代码都来自官方树。**不要把原版 cpu
 ```
 
 按下一节的方法把本库覆盖到你的官方 FreeRTOS / uC/OS-III / RT-Thread /
-DjyOS / KLite / uC/OS-II / RTEMS / Zephyr 源码树之后，那些源码树就顶替了
+DjyOS / KLite / ChibiOS / uC/OS-II / RTEMS / Zephyr 源码树之后，那些源码树就顶替了
 上表布局中 `*_Vxxx/` 的位置。
 
 ---
@@ -131,7 +134,7 @@ DjyOS / KLite / uC/OS-II / RTEMS / Zephyr 源码树之后，那些源码树就�
   （合并目录；覆盖添加 ARMv6-M、ARMv7-M、RV32 的 `*-RVM` 端口与 `Test/`
   基准树）。
 
-### 先搭环境、装工具链、跑通原生应用（RTE/ZPR）
+### 先搭环境、装工具链、跑通原生应用（RTE/ZPR/CHB）
 
 不要一上来就编译虚拟化镜像。先准备客机源码树和对应工具链，确认未经 RVM 覆盖的原生应用能编译、链接，再覆盖 RVM 端口：
 
@@ -142,9 +145,13 @@ DjyOS / KLite / uC/OS-II / RTEMS / Zephyr 源码树之后，那些源码树就�
   CMake/Ninja 与 GNU Arm 工具链（或 Zephyr SDK），先用 `west build` 构建
   官方板级样例，例如 `nucleo_h743zi` 的 `hello_world`（M4F 路径用
   `nucleo_f429zi`）。
+- ChibiOS：使用 **21.11 LTS** 源码树和 GNU Arm 13.2.1 工具链，先构建官方
+  `demos/STM32/RT-STM32-MULTI` 的 H743 配置（MinGW 下加 `USE_LTO=no`，
+  LTO wrapper 在该环境无法生成临时 makefile），原生构建通过后再加 CHB
+  RVM 端口。
 
-原生构建通过后，再覆盖 `RTEMS_V701/` 或 `Zephyr_V370/` 并构建 RTE/ZPR
-虚拟化镜像。
+原生构建通过后，再覆盖 `RTEMS_V701/`、`Zephyr_V370/` 或 `ChibiOS_V2111/`，
+并构建 RTE/ZPR/CHB 虚拟化镜像。
 
 - RTEMS：准备一份完整的官方 RTEMS **7.0-rc1** 树，再把 `RTEMS_V701/`
   覆盖上去，同名文件选择覆盖。本目录是覆盖包，不是独立 RTEMS 树；不要把
@@ -156,6 +163,10 @@ DjyOS / KLite / uC/OS-II / RTEMS / Zephyr 源码树之后，那些源码树就�
   生成的 makefile 从 PATH 找 `arm-none-eabi-gcc` 和 `west`，可用
   `PREFIX`/`WEST` make 变量覆盖。覆盖包只含端口、一块 RVM 板与基准应用，不含第二份 Zephyr
   源码树。
+- ChibiOS：先准备一份 **21.11 LTS** 源码树，再把 `ChibiOS_V2111/`
+  覆盖上去，保留新增的 `os/common/ports/ARMv7-M-RVM` 与 `test/` 文件。
+  生成工程时传 `-chb <tree>`；GCC 变体使用标准 RVM makefile，IAR/Keil 则
+  由 RVM 构建层生成 EWARM/uVision 工程，编译同一份 CHB 源列表。
 
 覆盖后的目录结构（RVM 端口目录与官方端口目录并排，就像额外的官方端口）：
 
@@ -587,7 +598,150 @@ FPU 支持单独启用（`CONFIG_FPU=y`、`CONFIG_FPU_SHARING=y`、hard-float AB
 也不 include `zpr_test.h`，不会注册或改写 TIM4。原生基准输出尚未静音。
 `benchmark.sh` 使用同一心跳并运行 15 项 ZPR 基准。
 
+### 2.13 ChibiOS（CHB）：契约、策略与微妙出入
+
+**契约。** ChibiOS 21.11 LTS 以非特权 RVM 用户线程运行，保留自己的调度器和
+`chconf.h`。端口由两个新增的架构级目录组成：`os/common/ports/ARMv7-M-RVM`
+和 `os/common/ports/RV32P-RVM`，不修改 ChibiOS 内核。ARMv7-M 端口支持
+GCC、IAR EWARM（ICCARM）和 Keil MDK（ARMCC/ARMCLANG）；RV32P 端口仅
+GCC。客机用虚拟定时器作为系统 tick，干净任务帧走直切快路径，脏帧/向量切换
+统一走 RVM 上下文处理器，空闲线程调用 `RVM_Hyp_Vct_Wait()`。SMP、MPU、
+userspace、tickless 关闭。基本帧在 ARMv7-M 上为 22 字、在 RV32P 上为 37
+字（5 个 hypercall 参数、mstatus 和 31 字整数帧）；扩展帧再加浮点区
+（ARMv7-M 56 字，RV32P RVF 70 字、RVD 102 字）。RV32P 帧宽由 RVM 的
+`RVM_COP_NUM`、`RVM_RV32P_COP_RVF`、`RVM_RV32P_COP_RVD` 授权决定，而不是
+端口私有的开关；若与生成的 `CHB_USE_FPU` 不一致会在编译期报错。`.rvp` 的
+`Period=1` 对应基准使用的 100 Hz CHB 系统 tick。
+
+**策略。** `port_init()` 先掩蔽虚拟中断，再通过 `RVM_Virt_Tim_Reg` 注册
+`chb_tick_handler`、通过 `RVM_Virt_Ctx_Reg` 注册 `chb_ctx_handler`。
+`PORT_SETUP_CONTEXT` 构造与 RTE 相同的 22 字伪装帧：5 个 hypercall 参数、
+R4-R11/EXC_RETURN 和硬件帧；首入口 trampoline 调 `chb_thread_start()`，
+解掩蔽后进入 ChibiOS 线程函数。`port_switch()` 分两种情形：任务态记录
+`ntp`/`otp`，调 `RVM_Virt_Yield()`，再调 `RVM_Virt_Int_Unmask()`；这个
+解掩蔽是必需的，因为 ChibiOS 在持有内核锁时调用 `port_switch()`，且外出
+线程已被标记为 sleeping/ready。向量线程态只记录切换对并 yield，真正的
+物理切换留给 Ctx 处理器。这个分流是**必要**的：只有 Ctx 处理器运行时，
+`RVM_REG` 才描述被中断的用户线程；定时器/中断处理器运行在向量线程时并非
+如此。`chb_ctx_switch()` 保存/恢复 5 个 hypercall 字、R4-R11、EXC_RETURN，
+扩展帧还保存/恢复 S16-S31 与 S0-S15/FPSCR，并把新的用户 SP 写回
+`RVM_REG`。ARM 快路径位于各编译器子目录的 `chcoreasm.s`（GCC、IAR、
+RVCT/armasm）：在旧栈上构造同样的帧并手工展开 heir，干净帧不经过 monitor。
+IAR 与 armasm 版本实现相同的 basic/FPU 帧变换；Keil 版本把 VFP 指令写成
+原始半字，因此即使使用旧 armasm、未开启汇编器 FPU 选项也能汇编。
+`CHB_FAST_PATH=0` 为全 Vct 构建，脏目标帧和当前 ICI/IT 脏帧自动回退慢路径。
+
+RV32P 端口沿用同样的分流。`chb_ctx_switch()` 保存 RV32P 整数帧和可选浮点
+块；`chb_fpu_save()`/`load()` 按 RVM 选定的 33 字 RVF 或 65 字 RVD 布局
+遍历协处理器结构。其快路径在 `RV32P-RVM/compilers/GCC/chcoreasm.s`：在
+旧栈上构造 参数/mstatus/RVF/整数 帧，写 `otp->ctx.sp`，取
+`ntp->ctx.sp`，复制 hypercall 参数，按 heir 保存的 mstatus 决定是否恢复
+浮点块，解掩蔽，展开整数帧并经 `tp`（x4；无 TLS 时 GCC 不分配）恢复。
+用户态读不到 `mstatus.FS`，所以 RV32P 快路径无条件保存 33 字 RVF 块并把
+帧标为脏；这使 ISR 唤醒比慢路径多约 500 周期，但任务级各行快 4-5 倍。
+RVD 帧已能由慢路径处理，但直切快路径目前只实现 RVF，RVD VM 会自动令
+`CHB_FAST_PATH=0`。
+
+临界区把 `chSysLock()/Unlock()` 映射成软件嵌套计数 +
+`RVM_Virt_Int_Mask/Unmask`；tick 处理器调 `chSysTimerHandlerI()`，再调
+`chSchDoPreemption()`；`PORT_IRQ_EPILOGUE()` 在向量线程上做同样的抢占，
+完全不碰 PendSV/SCB。空闲线程经 `port_wait_for_interrupt()` 进入
+`RVM_Hyp_Vct_Wait()`。控制台用 RVM debug putchar。
+
+**生成器与基准。** `CHB_Gen` 采用小客机源列表模式：把 `templates/chconf.h`
+复制到每个 VM（用户已改的副本不覆盖），生成 `chb_config.h`
+（`CHB_ST_FREQUENCY=100`），加入端口和 `os/rt`/`os/oslib` 源列表，并选择
+`chb_benchmark.c` 或 `chb_main.c`。生成器不写 ChibiOS 构建系统文件：GCC 使用
+标准 RVM makefile/linker，IAR/Keil 使用 RVM 构建层生成的 EWARM/uVision 工程。
+`CHB_Gen` 把 `ICCARM` 映射到 `IAR` 编译器子目录、`ARMCC` 映射到 `RVCT`，
+选择对应的 `os/common/portability/IAR` 或 `ARMC6` 头，并把该编译器的汇编源
+加入 VM。`CHB_USE_FPU` 跟随 VM 协处理器；GCC 的 FPU VM 首次生成时会写一个
+`user` makefile 片段加 `-mfloat-abi=hard`（已存在不覆盖）。RV32P 端口会从
+RVM 协处理器宏重新推导有效 FPU 宽度，并拒绝与之不一致的 `chb_config.h`。
+`CHB_FAST_PATH` 在 A7M 和 RV32P 上都默认开启；生成时设环境变量
+`CHB_FAST_PATH=0` 可构建全 Vct 变体。芯片测试头
+`chb_test_stm32h743zi_rvm.h` 负责 TIM2/TIM4、RCC 和 TIM4 IRQ30→VCT 2
+映射；普通 app 不 include 它。九行是 Yield、Notification、Semaphore、
+Message queue、Memory allocation/free pair、ISR Notification、
+ISR Semaphore、ISR Message queue 和 RVM activation relay。四条 ISR 行先全部
+测完，`chb_test_int_disable()` 关闭 TIM4 并注销虚拟向量后再整块打印
+（2026-11-12 对齐 FRT/UO3/RTE/ZPR/NTX 约定）；旧档为逐行打印期所测，每行统
+计在打印前已封闭，数字可直接对比。H743 与 F429 档案分别在
+`chb_test_stm32h743zi_rvm.h` 和 `chb_test_stm32f429zi_rvm.h` 中，包含 IAR 与
+Keil 结果。ARMv6-M 端口（`os/common/ports/ARMv6-M-RVM`，仅 22 字 basic 帧、
+无 FPU、无 ICI/IT）已在 STM32G071RB 上以 GCC/Keil/IAR 三链验证；档案在
+`chb_test_stm32g071rb_rvm.h`（TIM2 16 位计数、按 2^16 模差、TIM3 向量源、
+基准工作区 512 字节、堆 4 KiB；TIM2 是 16 位计数器，差值按 2^16 模减）。iasmarm 对宏支持不稳，IAR 版把对齐/非对齐
+两条帧路径全部展开。`ewarm-*chb*` 和 `rvmdk-*chb*` 示例覆盖 H743 FPU 与 F429
+FPV4-SP。RV32P CH32V307 端口是独立的 `os/common/ports/RV32P-RVM`：所有
+寄存器都在 RVM_REG 中，任务帧为 RV32P 31 字整数帧 + mstatus + hypercall
+参数 + 可选 RVF/RVD 块。该端口已在 WCH-Link/CH32V307 真机上以直切快路径、
+RVM 继承的 RVF 帧跑通，`FPU context: PASS`；9 行快路径档案在
+`chb_test_ch32v307vc_rvm.h`，其中也记录了慢路径对照值。没有 RVD 硬件，
+RVD 慢路径未上真机验证。
+
+**出入。** 任务态 `port_switch()` 在 yield 后主动解虚拟掩蔽，让 monitor
+在返回 ChibiOS 调用者之前完成切换；这是其他端口慢路径解掩蔽的 CHB 等价
+形式。ARMv7-M 端口支持 GCC、IAR EWARM 和 Keil MDK；RV32P 仅 GCC。
+ARMv7-M 快路径要求当前 ICI/IT 和目标帧都干净；
+RV32P 快路径因用户态读不到 `mstatus.FS` 而无条件保存 RVF，RVD 帧回退
+慢路径。Memory 行用静态缓冲区上的 `chHeapObjectInit()`，不需要 linker
+heap 符号。H743 FPU 变体（`gccmf-stm32h743zit6-chb.rvp`，FPV5_DP，
+hard-float）和 F429 变体（`gccmf-stm32f429zit6-chb.rvp`，FPV4-SP，
+hard-float）都使用扩展帧，双线程 FPU 上下文测试在快路径和
+`CHB_FAST_PATH=0` 下均通过；同样的两块板也通过 IAR（`ewarm-*chb*`）和
+Keil（`rvmdk-*chb*`）工程及直切快路径的测试。CH32V307 RVF 变体
+（`gccmf-ch32v307vct6-chb.rvp`）也用 RV32P 快路径通过同一测试。
+
 ---
+
+### 2.14 NuttX（NTX）：契约、策略与微妙出入
+
+**契约。** NuttX 13.1.0 以内核扁平构建运行在 RVM 的非特权用户线程中。端口位于
+`arch/arm/src/armv7-m-rvm/` 与 `arch/arm/include/armv7-m-rvm/`，板级为不含芯片名的
+`boards/arm/armv7-m-rvm/ntx`，含 `virt`（Cortex-M7）与 `virt-m4`（Cortex-M4、
+FPv4-SP）两套配置。NuttX 保留自己的调度器，但 VTOR、NVIC、SysTick、SVC、PendSV、
+MPU 与 CPACR 都归 monitor；不支持用户态、MPU、SMP、tickless、SysTick 和物理 NVIC。
+
+**切换策略。** `RVM_Virt_Yield()` 只置切换标志，不保存调用者；`armv7m_rvm_switch.S`
+在当前栈上把现场伪装成 RVM 异常帧（参数、`R4..R11/EXC_RETURN`、硬件帧，FPU 上下文
+再加 `S16..S31` 与 `S0..S15/FPSCR`，共 22 或 56 字），恢复 PC 为 `ntx_ctx_exit`，
+硬件 LR 是 C 调用者返回地址。帧基址放在 `struct xcptcontext` 的第一个字
+`rvm_sp`，随后是虚拟嵌套层数和帧类型标记；`xcp.regs` 保持 NULL。向量线程上请求的
+切换把 monitor 的中断帧复制到 `RVM_REG->Reg.SP` 之下；任务级切换绝不从 `RVM_REG`
+取帧。切窗内调度就绪链头不等于实际运行任务，端口用 `g_ntx_running` 抓帧并保护在途
+帧不被定时器覆盖。`up_exit()` 的 `arm_fullcontextrestore()` 实现为直接装载新链头、
+不保存将亡任务。启动线程成为 IDLE，使用 monitor 提供的 `STK` 栈区，而不是
+`_ebss + CONFIG_IDLETHREAD_STACKSIZE`；注册向量处理时逻辑嵌套必须为 0，否则 idle
+会在 RVM 掩码关闭的状态下永久停车。`CONFIG_ARMV7M_RVM_FAST_PATH` 只在当前 XPSR
+与继任任务帧都干净时走直接栈交换；向量捕获的帧一律走 monitor。初始帧一律 basic；
+第一条 VFP 指令置 `CONTROL.FPCA`，下次切换生成扩展帧。FPv5-DP（H743）与 FPv4-SP
+（F439/F429）两条扩展帧路径均已在真机通过。
+
+**生成器与基准。** `NTX_Gen` 只写 Virt 工作区：每 Virt 的 NuttX 板
+（`configs/virt/defconfig`、`include/board.h`、含 RVM Kfunc ID 的
+`include/prc_virt.h`、`scripts/ntx.ld`、`src/CMakeLists.txt`）、无用户源时的 smoke
+app，以及运行
+`cmake -S <NuttX 树> -B build -DBOARD_CONFIG=<Virt>/Project/ntx_board/configs/virt`
+的 `prc_<vm>` makefile。框架的 `prc_<vm>.c` 提供 `Thd_Vct`，`prc_<vm>_desc.c` 提供
+`RVM_Desc`；板级链接脚本把 `*_desc*.o` 的 `.rodata` 固定在镜像基址。Virt 的 app
+目录中有用户 `.c` 时优先于 benchmark。基准源为
+`boards/arm/armv7-m-rvm/ntx/test/ntx_benchmark.c`，芯片头为
+`test/chip/ntx_test_stm32h743zi_rvm.h` 与 `ntx_test_stm32f429zi_rvm.h`，生成的
+`ntx_test.h` 只在 benchmark 模式选中其一。共 9 项：Yield、Semaphore、Message queue、
+Blocking message queue、Alarm、Memory allocation/free pair、ISR Semaphore、ISR
+Message queue、ISR RVM activation relay。relay 行是 RVM 机制基线（纯向量投递 +
+向量线程往返 + 自旋线程恢复，路径中无任何内核对象），其余 ISR 行以它为分母读数。
+FIFO、事件通知、Activation 因 NuttX 没有原生原语而刻意缺失；只测 NuttX 原生 API。TIM2 作周期计数器，TIM4 经物理 30→虚拟 2 驱动两条 ISR 行，ISR 行
+在中断源停止后整块打印。正式成绩在芯片头的档案块中。标准构建流程是在 `Project`
+目录执行 `bash benchmark.sh gccmf-stm32h743zit6-ntx.rvp`（或 `generate.sh`），脚本
+已带 `-ntx <NuttX 树>`；CMake、Ninja 与 kconfiglib 的 `olddefconfig` 须在 `PATH`。
+
+**出入。** 基准子集小于 RTE/RMP 的 15 项；消息队列行测的是 NuttX 基于 fd 的
+mqueue，比 Zephyr/RTE 的邮箱原语更重。由于 `xcp.regs` 为 NULL 且启用了
+`CONFIG_DISABLE_ALL_SIGNALS`/`FDCLONE_DISABLE`，信号、coredump、backtrace 和栈
+溢出检查不受支持。普通工程用 `generate.sh`，benchmark 用 `benchmark.sh`，两条
+流程严格分开。
 
 ## 3. RVM 中断模型（所有端口的共同地基）
 
@@ -615,5 +769,7 @@ FPU 支持单独启用（`CONFIG_FPU=y`、`CONFIG_FPU_SHARING=y`、hard-float AB
 - RTE 的 ISR relay 在任务恢复后采样，其他客机在 ISR 入口采样；relay 数字
   不能直接横比。
 - ZPR 的 ISR 行在 RVM 虚拟向量钩子中取样、由轮询线程读出，尚不是
+- NTX 的 `xcp.regs` 恒 NULL 且关闭信号——coredump、backtrace、栈溢出检查均不可用（`CONFIG_DISABLE_ALL_SIGNALS`）。
+- CHB 的 RV32P 快路径无条件保存/恢复 RVF 块（不管线程是否用了 FPU），ISR 唤醒比慢路径多约 500 周期；RVD 快路径未实现（C 侧对 RVD 构建强制 `CHB_FAST_PATH=0`）。
   Zephyr ISR 上下文内的内核对象释放。
 

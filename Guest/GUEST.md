@@ -13,6 +13,7 @@ Currently distributed:
 | RT-Thread | V4.1.1 | ARMv6-M, ARMv7-M, RV32P | GCC, RVDS (ARMCC), IAR (RV32P: GCC only) |
 | DjyOS | V1.1.0 | ARMv7-M | GCC (commemorative port, single combination: H743) |
 | KLite | V5.2.1 | ARMv7-M | GCC (commemorative port, single combination: H743) |
+| ChibiOS (CHB) | 21.11 LTS | ARMv7-M (H743/F429), RV32P (CH32V307) | GCC, IAR EWARM, Keil (RV32P: GCC only) |
 | uC/OS-II | V2.93 | ARMv6-M, ARMv7-M, RV32 | GCC, ARM, IAR (RV32: GCC only) |
 | RTEMS (RTE) | 7.0-rc1 | ARMv7-M (H743/F429) | GCC |
 | Zephyr (ZPR) | 3.7.0 LTS | ARMv7-M (H743/F429) | GCC |
@@ -112,6 +113,8 @@ root:
 │                      benchmark in test/
 ├─ uCOSII_V293/        the uC/OS-II V2.93 tree — ports in Ports/*-RVM,
 │                      benchmark in Test/
+├─ ChibiOS_V2111/      the ChibiOS 21.11 LTS tree — CHB port in
+│                      os/common/ports/ARMv7-M-RVM + RV32P-RVM, benchmark in test/
 ├─ RTEMS_V701/         the RTEMS 7.0-rc1 tree — RTE BSP/spec/sample subset
 │                      overlay, not a complete RTEMS tree
 └─ Zephyr_V370/        Zephyr 3.7.0 LTS west-workspace overlay — ZPR arch
@@ -119,7 +122,7 @@ root:
 ```
 
 When you overlay this library onto your official FreeRTOS / uC/OS-III /
-RT-Thread / DjyOS / KLite / uC/OS-II / RTEMS / Zephyr trees (next section),
+RT-Thread / DjyOS / KLite / ChibiOS / uC/OS-II / RTEMS / Zephyr trees (next section),
 those trees take the place of the `*_Vxxx/` entries in the layout above.
 
 ---
@@ -157,7 +160,7 @@ directories are new additions, and every port lands in its intended place.
   **V2.93** tree (merge directories; the overlay adds the ARMv6-M,
   ARMv7-M and RV32 `*-RVM` ports and the `Test/` benchmark tree).
 
-### Environment and native build first (RTE and ZPR)
+### Environment and native build first (RTE, ZPR and CHB)
 
 Do not start with the virtualized image.  Set up the guest tree and its
 toolchain, then prove that an unmodified native application builds and links
@@ -171,9 +174,13 @@ before copying the RVM overlay:
   CMake/Ninja and the GNU Arm toolchain (or Zephyr SDK), and build a stock
   board sample such as `nucleo_h743zi` `hello_world` with `west build`
   (`nucleo_f429zi` for the M4F path).
+- ChibiOS: use a **21.11 LTS** tree and the GNU Arm 13.2.1 toolchain.  Build
+  the official `demos/STM32/RT-STM32-MULTI` H743 configuration first (on
+  MinGW, pass `USE_LTO=no`; the LTO wrapper cannot create its temporary
+  makefile there).  Only then add the CHB RVM port.
 
-Only after the native build is green should you apply `RTEMS_V701/` or
-`Zephyr_V370/` and build the RTE/ZPR virtualized image.
+Only after the native build is green should you apply `RTEMS_V701/`,
+`Zephyr_V370/` or `ChibiOS_V2111/` and build the RTE/ZPR/CHB virtualized image.
 
 - For RTEMS, prepare a complete official RTEMS **7.0-rc1** tree, then
   copy `RTEMS_V701/` over it, overwriting same-name files.  This directory
@@ -185,9 +192,14 @@ Only after the native build is green should you apply `RTEMS_V701/` or
   `Zephyr_V370/` over it, overwriting same-name files (the arch/SoC files
   under `zephyr/` are intentional RVM changes).  Pass `-zpr <west-root>` to the
   project generator; the generated makefile finds `arm-none-eabi-gcc` and
-  `west` in PATH, with `PREFIX`/`WEST` make variables available as overrides.  The overlay ships the port,
-  the RVM board and the benchmark app; it does not ship a second Zephyr
-  tree.
+  `west` in PATH, with `PREFIX`/`WEST` make variables available as overrides.
+  The overlay ships the port, the RVM board and the benchmark app; it does not
+  ship a second Zephyr tree.
+- For ChibiOS, start from a **21.11 LTS** tree and copy `ChibiOS_V2111/`
+  over it, keeping the new `os/common/ports/ARMv7-M-RVM` and `test/` files.
+  Pass `-chb <tree>` to the project generator; the GCC variant uses the
+  standard RVM makefile, while IAR and Keil generate EWARM/uVision projects
+  for the same CHB source list.
 
 After the overlay, the RVM port directories sit beside the official ones,
 exactly like additional official ports:
@@ -714,7 +726,204 @@ does not register or rewrite TIM4.  The native benchmark output is not yet
 silenced.  `benchmark.sh` uses the same heartbeat and runs the 15-item ZPR
 benchmark.
 
+### 2.13 ChibiOS (CHB): contract, strategy, and the subtle deviations
+
+**Contract.** ChibiOS 21.11 LTS runs as an unprivileged RVM user thread with
+its own scheduler and `chconf.h`.  The port consists of two new
+architecture-level directories, `os/common/ports/ARMv7-M-RVM` and
+`os/common/ports/RV32P-RVM`; the ChibiOS kernel is not modified.  The
+ARMv7-M port is available for GCC, IAR EWARM (ICCARM) and Keil MDK
+(ARMCC/ARMCLANG); the RV32P port is GCC-only.  The guest uses the virtual
+timer for the system tick, a direct fast path for clean task frames, one
+virtual context handler for dirty/vector switches, and
+`RVM_Hyp_Vct_Wait()` for idle.  SMP, MPU, userspace and tickless mode are
+disabled.  Basic frames are 22 words on ARMv7-M and 37 words on RV32P
+(five hypercall parameters, mstatus and the 31-word integer frame); extended
+frames add the floating-point area (56 words on ARMv7-M, 70 words with RVF
+and 102 words with RVD on RV32P).  The RV32P frame width is selected from the
+RVM `RVM_COP_NUM`, `RVM_RV32P_COP_RVF` and `RVM_RV32P_COP_RVD` grants, not
+from a private port switch; a mismatch with the generated `CHB_USE_FPU`
+causes a compile-time error.  `.rvp` `Period=1` maps to the 100 Hz CHB system
+tick used by the benchmark.
+
+**Strategy.** `port_init()` masks virtual interrupts and registers
+`chb_tick_handler` through `RVM_Virt_Tim_Reg` and `chb_ctx_handler` through
+`RVM_Virt_Ctx_Reg`.  `PORT_SETUP_CONTEXT` builds the same 22-word
+masqueraded frame as RTE: five hypercall parameters, R4-R11/EXC_RETURN and
+the hardware frame; the first-entry trampoline calls
+`chb_thread_start()`, which unmasks and invokes the ChibiOS thread function.
+`port_switch()` has two cases.  From a task it records the selected
+`ntp`/`otp`, calls `RVM_Virt_Yield()` and then `RVM_Virt_Int_Unmask()`; the
+unmask is required because ChibiOS calls `port_switch()` with its kernel
+lock held and the outgoing thread has already been marked sleeping/ready.
+From the vector thread it only records the pair and yields; the physical
+switch is performed later by the context handler.  This split is essential:
+`RVM_REG` describes the interrupted user thread only in the context handler,
+not while a timer/interrupt handler runs on the vector thread.
+`chb_ctx_switch()` saves/restores the five hypercall words, R4-R11,
+EXC_RETURN and, for an extended frame, S16-S31 plus the S0-S15/FPSCR area,
+and writes the new user SP back to `RVM_REG`.  The ARM fast path is a direct
+task-stack switch in the compiler-specific `chcoreasm.s` (GCC, IAR and
+RVCT/armasm): it builds the same frame on the outgoing stack and manually
+unstacks the heir, bypassing the monitor for clean frames.  The IAR and
+armasm versions implement the same basic and FPU frame transforms; the Keil
+version emits the VFP instructions as raw halfwords so it assembles with the
+legacy armasm regardless of the assembler FPU option.
+`CHB_FAST_PATH=0` selects the all-Vct build; dirty target frames and dirty
+ICI/IT current frames always fall back to the slow path.
+
+The RV32P port follows the same split.  `chb_ctx_switch()` saves the
+RV32P integer frame and optional FPU block; `chb_fpu_save()`/`load()` walk
+the RVM coprocessor structure and use the RVM-selected 33-word RVF or
+65-word RVD layout.  Its fast path in `RV32P-RVM/compilers/GCC/chcoreasm.s`
+builds the same parameters/mstatus/RVF/integer frame on the outgoing stack,
+stores `otp->ctx.sp`, fetches `ntp->ctx.sp`, copies the hypercall parameters,
+restores the FPU block when the heir's saved mstatus says it is present,
+unmasks, restores the integer frame and resumes through `tp` (x4, which GCC
+does not allocate without TLS).  The user cannot probe `mstatus.FS`, so the
+RV32P fast path always saves the 33-word RVF block and marks its frame dirty;
+this adds roughly 500 cycles to an ISR wake compared with the slow path,
+while the task-level rows improve by 4-5x.  RVD frames are recognized and
+handled by the slow path, but the direct switch is currently RVF-only and
+`CHB_FAST_PATH` is forced to zero for an RVD VM.
+
+Critical sections map `chSysLock()/Unlock()` onto a software nesting count
+plus `RVM_Virt_Int_Mask/Unmask`; the tick handler calls
+`chSysTimerHandlerI()` and then `chSchDoPreemption()`, and
+`PORT_IRQ_EPILOGUE()` performs the same preemption on the vector thread
+without touching PendSV/SCB.  The idle thread enters
+`RVM_Hyp_Vct_Wait()` through `port_wait_for_interrupt()`.  Console output is
+the RVM debug putchar.
+
+**Generator and benchmark.** `CHB_Gen` follows the small-guest source-list
+mode: it copies `templates/chconf.h` into each VM (existing user edits are
+preserved), generates `chb_config.h` with `CHB_ST_FREQUENCY=100`, adds the
+port and the `os/rt`/`os/oslib` source list, and selects `chb_benchmark.c`
+or `chb_main.c`.  The generator writes no ChibiOS build-system files: GCC
+uses the standard RVM makefile/linker, while IAR and Keil get the normal
+EWARM and uVision projects generated by the RVM build layer.  `CHB_Gen`
+maps `ICCARM` to the `IAR` compiler subdirectory and `ARMCC` to `RVCT`,
+selects the matching `os/common/portability/IAR` or `ARMC6` headers, and
+copies the compiler's assembly source into the VM.  `CHB_USE_FPU` follows
+the VM coprocessor, and a GCC FPU VM gets a `user` makefile fragment adding
+`-mfloat-abi=hard` if it does not exist.  On RV32P the port re-derives the
+effective FPU width from the RVM coprocessor macros and rejects a
+`chb_config.h` that disagrees with them.  `CHB_FAST_PATH` defaults to 1 on
+both A7M and RV32P; set `CHB_FAST_PATH=0` in the environment when generating
+to build the all-Vct variant.  The benchmark chip header
+(`chb_test_stm32h743zi_rvm.h`) owns TIM2/TIM4, RCC and the TIM4 IRQ30 to
+VCT 2 mapping; a normal app does not include it.  The nine rows are Yield,
+Notification, Semaphore, Message queue, Memory allocation/free pair, ISR
+Notification, ISR Semaphore, ISR Message queue and the RVM activation relay.
+The four ISR rows are buffered and printed as one block after
+`chb_test_int_disable()` stops TIM4 and unregisters the vector (2026-11-12,
+aligned with the FRT/UO3/RTE/ZPR/NTX convention); the earlier archives were
+taken with row-by-row printing, whose per-row statistics were already closed
+before each print, so the numbers are comparable.  The H743 and F429 CHB archives are in `chb_test_stm32h743zi_rvm.h` and
+`chb_test_stm32f429zi_rvm.h`, including the IAR and Keil results.  The
+ARMv6-M port (`os/common/ports/ARMv6-M-RVM`, basic 22 word frames only, no
+FPU and no ICI/IT) is validated on the STM32G071RB with GCC, Keil and IAR;
+its archive is in `chb_test_stm32g071rb_rvm.h` (TIM2 16 bit counter with
+2^16 modular differences, TIM3 the vector source, 512 byte benchmark
+working areas and a 4 KiB heap).  The iasmarm file expands the aligned and
+unaligned frame paths inline because iasmarm macro handling is fragile.  The
+`ewarm-*chb*` and `rvmdk-*chb*` project samples cover the H743 FPU and F429
+FPV4-SP variants.  The RV32P CH32V307 port is a separate
+`os/common/ports/RV32P-RVM` port (all registers live in RVM_REG; the task
+frame is the RV32P 31-word integer frame plus mstatus, hypercall parameters
+and the optional RVF/RVD block).  It is verified on the WCH-Link/CH32V307
+board with the direct fast path, RVM-inherited RVF frames and
+`FPU context: PASS`; its 9-row fast-path archive is in
+`chb_test_ch32v307vc_rvm.h`, which also records the slow-path comparison.
+No RVD hardware was available, so the RVD slow path is untested on silicon.
+
+**Deviations.** The task-level `port_switch()` deliberately unmasks the
+virtual mask after yielding so that the monitor can perform the pending
+switch before returning to the ChibiOS caller; this is the CHB equivalent of
+the other ports' slow-path unmask.  The ARMv7-M port supports GCC, IAR
+EWARM and Keil MDK; RV32P supports GCC only.  On ARMv7-M the fast path
+currently requires clean ICI/IT and target frames; on RV32P
+the direct switch always saves RVF state because `mstatus.FS` is not
+readable from user mode, and RVD frames fall back to the slow path.
+`chHeapObjectInit()` on a static buffer is used for the memory row; no
+linker heap symbols are required.  The H743 FPU variant
+(`gccmf-stm32h743zit6-chb.rvp`, FPV5_DP, hard-float) and the F429
+variant (`gccmf-stm32f429zit6-chb.rvp`, FPV4-SP, hard-float) both use
+extended frames and pass the two-thread FPU context test with the fast path
+and `CHB_FAST_PATH=0`; the same two boards pass with the IAR
+(`ewarm-*chb*`) and Keil (`rvmdk-*chb*`) projects and the direct fast path.
+The CH32V307 RVF variant (`gccmf-ch32v307vct6-chb.rvp`) passes the same
+test with the RV32P fast path.
+
 ---
+
+### 2.14 NuttX (NTX): contract, strategy, and the subtle deviations
+
+**Contract.** NuttX 13.1.0 runs as an unprivileged RVM user thread in a flat
+build.  The port lives in `arch/arm/src/armv7-m-rvm/` and
+`arch/arm/include/armv7-m-rvm/`; the board is the chip-agnostic
+`boards/arm/armv7-m-rvm/ntx` with the `virt` (Cortex-M7) and `virt-m4`
+(Cortex-M4, FPv4-SP) configurations.  NuttX keeps its own scheduler, but the
+monitor owns VTOR, NVIC, SysTick, SVC, PendSV, MPU and CPACR.  There is no
+userspace, MPU, SMP, tickless mode, SysTick or physical NVIC support.
+
+**Switch strategy.** `RVM_Virt_Yield()` only posts the context-switch flag; it
+does not capture the caller.  `armv7m_rvm_switch.S` therefore masquerades the
+current context as an RVM exception frame on the current stack: parameters,
+`R4..R11/EXC_RETURN`, the hardware frame, and for an FPU context `S16..S31`
+plus `S0..S15/FPSCR` (22 or 56 words).  The resume PC is `ntx_ctx_exit`; the
+hardware LR is the C caller's return address.  The task's frame base is kept
+in the first word of `struct xcptcontext` (`rvm_sp`), with the virtual nesting
+level and a frame-kind marker next; `xcp.regs` stays NULL.  A switch requested
+on the vector thread copies the monitor's interrupted frame below
+`RVM_REG->Reg.SP`; a task-level switch never reads `RVM_REG`.  The ready-list
+head is not the actually running task while a switch is in flight, so the port
+keeps `g_ntx_running` for capture and protects the in-flight frame from the
+timer handler.  `up_exit()`'s `arm_fullcontextrestore()` is implemented as a
+load of the new head without saving the dying context.  The boot thread
+becomes the IDLE task on the monitor-provided stack region (the `STK` region),
+not on `_ebss + CONFIG_IDLETHREAD_STACKSIZE`; the logical interrupt nest is
+zero when the vector handler is registered or idle would park with the RVM
+mask closed forever.  `CONFIG_ARMV7M_RVM_FAST_PATH` selects the direct
+stack-swap path only when the current XPSR and the heir's task-level frame are
+clean; vector-captured frames always take the monitor path.  Initial frames
+are always basic; the first VFP instruction sets `CONTROL.FPCA` and the next
+switch builds the extended frame.  Both the FPv5-DP (H743) and FPv4-SP
+(F439/F429) extended paths pass on hardware.
+
+**Generator and benchmark.** `NTX_Gen` writes only the Virt workspace: a
+per-Virt NuttX board (`configs/virt/defconfig`, `include/board.h`,
+`include/prc_virt.h` with the RVM Kfunc IDs, `scripts/ntx.ld`,
+`src/CMakeLists.txt`), the smoke app when no user source exists, and a
+`prc_<vm>` makefile that runs
+`cmake -S <NuttX tree> -B build -DBOARD_CONFIG=<Virt>/Project/ntx_board/configs/virt`.
+The framework's `prc_<vm>.c` supplies `Thd_Vct` and `prc_<vm>_desc.c` supplies
+`RVM_Desc`; the board's linker script keeps `*_desc*.o` `.rodata` at the image
+base.  A user `.c` file in the Virt app folder takes precedence over the
+benchmark.  The benchmark is `boards/arm/armv7-m-rvm/ntx/test/ntx_benchmark.c`
+with the chip headers `test/chip/ntx_test_stm32h743zi_rvm.h` and
+`ntx_test_stm32f429zi_rvm.h`; the generated `ntx_test.h` selects one only in
+benchmark mode.  The suite has nine rows: Yield, Semaphore, Message queue,
+Blocking message queue, Alarm, Memory allocation/free pair, ISR Semaphore,
+ISR Message queue and the ISR RVM activation relay.  The relay row is the
+RVM-mechanism baseline (bare vector delivery, vector-thread round trip and
+resume of the spinning thread, with no kernel object in the path); the other
+ISR rows are read against it.  FIFO, event notification and activation are
+deliberately absent because NuttX has no native primitive for them; only
+NuttX-native APIs are measured.  TIM2 is the cycle counter and TIM4 is relayed to virtual vector
+2 for the two ISR rows, which are printed as one block after the source stops.
+Formal numbers live in the chip header archive blocks.  The standard build
+flow is `bash benchmark.sh gccmf-stm32h743zit6-ntx.rvp` or
+`bash generate.sh ...` with `-ntx <NuttX tree>` supplied by the scripts; CMake,
+Ninja and kconfiglib's `olddefconfig` must be on `PATH`.
+
+**Deviations.** The benchmark subset is smaller than the RMP/RTE 15-row suite,
+and the message-queue rows measure NuttX's fd-based mqueue, which is heavier
+than the Zephyr/RTE mailbox primitives.  Signals, coredump, backtrace and the
+stack-overflow checker are not supported because `xcp.regs` is NULL and
+`CONFIG_DISABLE_ALL_SIGNALS`/`FDCLONE_DISABLE` are set.  Normal projects use
+`generate.sh` and benchmarks use `benchmark.sh`; the two flows are kept
+separate.
 
 ## 3. The RVM interrupt model (what every port relies on)
 
@@ -753,4 +962,10 @@ benchmark.
   comparable.
 - ZPR's ISR rows sample in the RVM virtual-vector hook and expose the result
   to a polling thread; they are not yet a Zephyr ISR-context release.
+- NTX keeps `xcp.regs` NULL and disables signals; coredump, backtrace and
+  the stack-overflow checker are not available (`CONFIG_DISABLE_ALL_SIGNALS`).
+- CHB's RV32P fast path always saves/restores the RVF block regardless of
+  whether the thread used FPU, costing about 500 cycles per ISR wakeup over
+  the slow path.  RVD fast path is not implemented (C side forces
+  `CHB_FAST_PATH=0` for RVD builds).
 

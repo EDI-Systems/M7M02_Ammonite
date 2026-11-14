@@ -29,6 +29,33 @@
     ISR Message queue                  : 2057 / 2732 / 2056
     ISR RVM activation relay           : 3358 / 5780 / 3110
 
+
+    GNU Arm 13.2.1 -O3
+    ====================================================
+    Test (number in CPU cycles)        : AVG / MAX / MIN
+    Yield                             :   459 / 2818 /  458
+    Notification                      :   988 / 3351 /  985
+    Semaphore                         :  1110 / 7436 / 1106
+    Message queue                     :  1249 / 3609 / 1243
+    Memory allocation/free pair       :  1010 / 1304 /  997
+    ISR Notification                  :  1850 / 4151 / 1850
+    ISR Semaphore                     :  1923 / 5649 / 1915
+    ISR Message queue                 :  2114 / 4476 / 2103
+    ISR RVM activation relay          :  3355 / 5688 / 3322
+
+    ARMCLANG 6.23 -O3 (Keil MDK 5)
+    ====================================================
+    Test (number in CPU cycles)        : AVG / MAX / MIN
+    Yield                             :   431 / 3081 /  430
+    Notification                      :   957 / 3667 /  953
+    Semaphore                         :  1033 / 3680 / 1029
+    Message queue                     :  1119 / 7693 / 1114
+    Memory allocation/free pair       :   845 / 1183 /  838
+    ISR Notification                  :  1797 / 4502 / 1788
+    ISR Semaphore                     :  1820 / 5867 / 1811
+    ISR Message queue                 :  1958 / 4608 / 1956
+    ISR RVM activation relay          :  3329 / 6012 / 3315
+
     Setting up a project that uses this testbench:
       1. Add the benchmark source file to the project.
       2. Grant the virtual machine access to the peripheral registers:

@@ -131,8 +131,10 @@ std::string Main::Guest_UO2_Root;
 std::string Main::Guest_UO3_Root;
 std::string Main::Guest_DJY_Root;
 std::string Main::Guest_KLT_Root;
+std::string Main::Guest_CHB_Root;
 std::string Main::Guest_RTE_Root;
 std::string Main::Guest_ZPR_Root;
+std::string Main::Guest_NTX_Root;
 std::string Main::Workspace_Output;
 std::string Main::Report_Output;
 ptr_t Main::Verbose=0;
@@ -2162,12 +2164,28 @@ Return      : None.
                 Main::Guest_ZPR_Root=Main::Path_Absolute(PATH_DIR, "", argv[Count+1]);
                 Count+=2;
             }
+            /* Input NTX (NuttX-on-RVM) root */
+            else if(strcmp(argv[Count],"-ntx")==0)
+            {
+                if(Main::Guest_NTX_Root!="")
+                    Main::Error("XXXXX: More than one directory specified for the same guest.");
+                Main::Guest_NTX_Root=Main::Path_Absolute(PATH_DIR, "", argv[Count+1]);
+                Count+=2;
+            }
             /* Input KLite root folder */
             else if(strcmp(argv[Count],"-klt")==0)
             {
                 if(Main::Guest_KLT_Root!="")
                     Main::Error("XXXXX: More than one directory specified for the same guest.");
                 Main::Guest_KLT_Root=Main::Path_Absolute(PATH_DIR, "", argv[Count+1]);
+                Count+=2;
+            }
+            /* Input ChibiOS root folder */
+            else if(strcmp(argv[Count],"-chb")==0)
+            {
+                if(Main::Guest_CHB_Root!="")
+                    Main::Error("XXXXX: More than one directory specified for the same guest.");
+                Main::Guest_CHB_Root=Main::Path_Absolute(PATH_DIR, "", argv[Count+1]);
                 Count+=2;
             }
             /* Output workspace root folder */
@@ -2247,10 +2265,12 @@ Return      : None.
                                 "       -rtt: RT-Thread root folder; needed when RT-Thread is the guest.\n"
                                 "       -djy: DjyOS root folder; needed when DjyOS is the guest.\n"
                                 "       -klt: KLite root folder; needed when KLite is the guest.\n"
+                                "       -chb: ChibiOS root folder; needed when ChibiOS is the guest.\n"
                                 "       -uo2: uC/OS II root folder; needed when uC/OS II is the guest.\n"
                                 "       -uo3: uC/OS III root folder; needed when uC/OS III is the guest.\n"
                                 "       -rte: RTEMS root folder; needed when RTEMS is the guest.\n"
                                 "       -zpr: Zephyr workspace root; needed when Zephyr is the guest.\n"
+                                "       -ntx: NuttX tree root; needed when NuttX is the guest.\n"
                                 "       -w: Workspace output folder.\n"
                                 "Auxiliary parameters:\n"
                                 "       -r report.txt: Generate report.\n"

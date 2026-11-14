@@ -367,6 +367,7 @@ static void Bench_Memory(void)
 int main(void)
 {
 	printk("\r\nZPR: Zephyr-on-RVM benchmark\r\n");
+	printk("====================================================\r\n");
 	printk("Test (number in CPU cycles)        : AVG / MAX / MIN\r\n");
 
 	ZPR_Test_Timer_Init();

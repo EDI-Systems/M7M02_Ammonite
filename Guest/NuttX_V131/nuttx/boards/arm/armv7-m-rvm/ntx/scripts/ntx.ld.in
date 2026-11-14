@@ -1,0 +1,121 @@
+/****************************************************************************
+ * boards/arm/armv7-m-rvm/ntx/scripts/ntx.ld
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * RVM guest image layout.  The descriptor is at the image base; code follows
+ * it, .data is loaded from the end of the code image and .bss is cleared in
+ * the data window.  The monitor-owned register and state blocks sit between
+ * .bss and the guest stack and are not part of the loaded image.
+ ****************************************************************************/
+
+MEMORY
+{
+    DATA (rw) : ORIGIN = @CONFIG_NTX_RVM_DATA_BASE@, LENGTH = @CONFIG_NTX_RVM_DATA_SIZE@
+    STK  (rw) : ORIGIN = @CONFIG_NTX_RVM_STACK_BASE@, LENGTH = @CONFIG_NTX_RVM_STACK_SIZE@
+    DESC (r)  : ORIGIN = @CONFIG_NTX_RVM_DESC_BASE@, LENGTH = 0x20
+    CODE (rx) : ORIGIN = @CONFIG_NTX_RVM_CODE_BASE@, LENGTH = @CONFIG_NTX_RVM_CODE_SIZE@
+}
+
+__RVM_Stack = ORIGIN(STK) + LENGTH(STK);
+__RVM_Stack_Base = ORIGIN(STK);
+__RVM_Stack_End = ORIGIN(STK) + LENGTH(STK);
+
+ENTRY(__start)
+
+SECTIONS
+{
+    .PROCESS_DESC : ALIGN(4)
+    {
+        KEEP(*_desc*.o(.rodata.RVM_Desc .rodata.RVM_Desc.*))
+        KEEP(*_desc*.o(.rodata .rodata.* .srodata .srodata.*))
+    } > DESC
+
+    .PROCESS_CODE : ALIGN(4)
+    {
+        __RVM_Code_Start = .;
+        _stext = ABSOLUTE(.);
+        KEEP(*(.text.rvm_entry))
+        *(.text .text.*)
+        *(.srodata .srodata.* .sconstdata .sconstdata.*)
+        *(.rodata .rodata.* .constdata .constdata.*)
+        . = ALIGN(4);
+        __RVM_Code_End = .;
+        _etext = ABSOLUTE(.);
+    } > CODE
+
+    .init_section :
+    {
+        _sinit = ABSOLUTE(.);
+        KEEP(*(SORT_BY_INIT_PRIORITY(.init_array.*)
+               SORT_BY_INIT_PRIORITY(.ctors.*)))
+        KEEP(*(.init_array EXCLUDE_FILE(*crtbegin.o *crtbegin?.o
+                                        *crtend.o *crtend?.o) .ctors))
+        _einit = ABSOLUTE(.);
+        _sctors = _sinit;
+        _ectors = _einit;
+        _sdtors = _einit;
+        _edtors = _einit;
+    } > CODE
+
+    .ARM.extab :
+    {
+        *(.ARM.extab*)
+    } > CODE
+
+    .ARM.exidx :
+    {
+        *(.ARM.exidx*)
+    } > CODE
+
+    .PROCESS_DATA : ALIGN(4)
+    {
+        FILL(0xff)
+        __RVM_Data_Start = .;
+        _sdata = ABSOLUTE(.);
+        *(.sdata .sdata.*)
+        *(.data .data.*)
+        *(.got .got.*)
+        . = ALIGN(4);
+        __RVM_Data_End = .;
+        _edata = ABSOLUTE(.);
+    } > DATA AT > CODE
+
+    __RVM_Data_Load = LOADADDR(.PROCESS_DATA);
+    _eronly = __RVM_Data_Load;
+
+    .PROCESS_ZERO : ALIGN(8)
+    {
+        __RVM_Zero_Start = .;
+        _sbss = ABSOLUTE(.);
+        *(.sbss .sbss.*)
+        *(.bss .bss.*)
+        *(COMMON)
+        . = ALIGN(8);
+        __RVM_Zero_End = .;
+        _ebss = ABSOLUTE(.);
+    } > DATA
+
+    .PROCESS_NOINIT (NOLOAD) : ALIGN(4)
+    {
+        __RVM_Noinit_Start = .;
+        *(.snoinit .snoinit.*)
+        *(.noinit .noinit.*)
+        . = ALIGN(4);
+        __RVM_Noinit_End = .;
+    } > DATA
+
+    .stab 0 : { *(.stab) }
+    .stabstr 0 : { *(.stabstr) }
+    .comment 0 : { *(.comment) }
+    .debug_abbrev 0 : { *(.debug_abbrev) }
+    .debug_info 0 : { *(.debug_info) }
+    .debug_line 0 : { *(.debug_line) }
+    .debug_pubnames 0 : { *(.debug_pubnames) }
+    .debug_aranges 0 : { *(.debug_aranges) }
+}
+
+PROVIDE(__stack = __RVM_Stack);
+PROVIDE(__initial_sp = __RVM_Stack);
+PROVIDE(_end = __RVM_Noinit_End);
+PROVIDE(end = __RVM_Noinit_End);

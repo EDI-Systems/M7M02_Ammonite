@@ -855,7 +855,12 @@ void IAREW_Gen::Raw_Proj(std::unique_ptr<std::vector<std::string>>& List,
     List->push_back("                </option>");
     List->push_back("                <option>");
     List->push_back("                    <name>AUserIncludes</name>");
-    List->push_back("                    <state></state>");
+    for(const std::string& Inc:Include)
+    {
+        Path=Inc;
+        std::replace(Path.begin(),Path.end(),'/','\\');
+        List->push_back("                    <state>$PROJ_DIR$\\"+Path+"</state>");
+    }
     List->push_back("                </option>");
     List->push_back("                <option>");
     List->push_back("                    <name>AExtraOptionsCheckV2</name>");

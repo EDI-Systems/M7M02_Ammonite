@@ -58,6 +58,34 @@
 *                Semaphore 1738 / Message queue 1753, with the ISR rows unchanged (they never use
 *                the task level path).
 *
+/*
+ *            ARMCLANG 6.23 -O3 (Keil MDK 5)
+ *   ====================================================
+ *   Test (number in CPU cycles)        : AVG / MAX / MIN
+ *   Yield                             :   419 / 1740 /  404
+ *   Notification                      :   602 / 2068 /  572
+ *   Semaphore                         :   580 / 2040 /  576
+ *   Message queue                     :   600 / 2012 /  588
+ *   Memory allocation/free pair       :   141 /  314 /  141
+ *   ISR Notification                  :  1212 / 1500 / 1104
+ *   ISR Semaphore                     :  1246 / 1392 / 1124
+ *   ISR Message queue                 :  1271 / 2836 / 1148
+ *   ISR RVM activation relay          :  1977 / 3588 / 1832
+ */
+/*
+ *            ICCARM 9.40 -Oh
+ *   ====================================================
+ *   Test (number in CPU cycles)        : AVG / MAX / MIN
+ *   Yield                             :   408 / 2084 /  408
+ *   Notification                      :   590 / 2168 /  584
+ *   Semaphore                         :   607 / 2224 /  600
+ *   Message queue                     :   618 / 2184 /  612
+ *   Memory allocation/free pair       :   151 /  365 /  150
+ *   ISR Notification                  :  1262 / 1384 / 1216
+ *   ISR Semaphore                     :  1305 / 2816 / 1248
+ *   ISR Message queue                 :  1284 / 1352 / 1236
+ *   ISR RVM activation relay          :  2186 / 2440 / 2108
+ */
 *
 *            (3) Setting up a project that uses this testbench:
 * 1. Add the benchmark source file to the project.

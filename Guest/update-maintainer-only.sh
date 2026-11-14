@@ -49,6 +49,20 @@ GUESTS+="DjyOS_V110/test/chip/djy_test_stm32h743zi_rvm.h "
 GUESTS+="KLite_V521/sources/cpu/armv7-m_rvm "
 GUESTS+="KLite_V521/test "
 
+# ChibiOS 21.11 LTS (CHB)
+# The port is a new architecture-level directory; the benchmark and the
+# per-VM chconf template are ours.  The rest of the tree is the vendor
+# distribution and is not mirrored.
+GUESTS+="ChibiOS_V2111/os/common/ports/ARMv7-M-RVM "
+GUESTS+="ChibiOS_V2111/os/common/ports/ARMv6-M-RVM "
+GUESTS+="ChibiOS_V2111/os/common/ports/RV32P-RVM "
+GUESTS+="ChibiOS_V2111/test/chb_benchmark.c "
+GUESTS+="ChibiOS_V2111/test/chb_main.c "
+GUESTS+="ChibiOS_V2111/test/chip/chb_test_stm32h743zi_rvm.h "
+GUESTS+="ChibiOS_V2111/test/chip/chb_test_stm32g071rb_rvm.h "
+GUESTS+="ChibiOS_V2111/test/chip/chb_test_stm32f429zi_rvm.h "
+GUESTS+="ChibiOS_V2111/test/chip/chb_test_ch32v307vc_rvm.h "
+
 # uC/OS-II V2.93
 # The ports follow the official Ports/ tree layout; the test directory is ours.
 GUESTS+="uCOSII_V293/Ports/ARM-Cortex-M/ARMv6-M-RVM "
@@ -76,6 +90,18 @@ GUESTS+="RTEMS_V701/testsuites/samples/rte_benchmark "
 # The RVM CPU port is a new port; the upstream ARM sources are untouched.
 GUESTS+="RTEMS_V701/cpukit/score/cpu/arm/v7m_rvm "
 GUESTS+="RTEMS_V701/wscript "
+
+# NuttX 13.1.0 NTX guest.  The port is a new chip directory plus a new board
+# (the board also carries the benchmark and its chip headers under test/);
+# the shared arch files carry the small CONFIG_ARCH_CHIP_ARMV7M_RVM hooks.
+GUESTS+="NuttX_V131/nuttx/arch/arm/src/armv7-m-rvm "
+GUESTS+="NuttX_V131/nuttx/arch/arm/include/armv7-m-rvm "
+GUESTS+="NuttX_V131/nuttx/boards/arm/armv7-m-rvm "
+GUESTS+="NuttX_V131/nuttx/arch/arm/Kconfig "
+GUESTS+="NuttX_V131/nuttx/arch/arm/include/irq.h "
+GUESTS+="NuttX_V131/nuttx/arch/arm/include/armv7-m/irq.h "
+GUESTS+="NuttX_V131/nuttx/arch/arm/src/CMakeLists.txt "
+GUESTS+="NuttX_V131/nuttx/boards/Kconfig "
 
 # Zephyr 3.7.0 LTS ZPR guest.  Only the port, the benchmark app, the virtual
 # ARMv7-M SoC/board and the arch files changed for CONFIG_RVM_GUEST are

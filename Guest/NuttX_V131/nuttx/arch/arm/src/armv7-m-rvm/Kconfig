@@ -1,0 +1,42 @@
+#
+# For a description of the syntax of this configuration file,
+# see kconfig-language.txt in the NuttX tools repository.
+#
+
+if ARCH_CHIP_ARMV7M_RVM
+
+comment "ARMv7-M RVM virtual chip"
+
+choice
+	prompt "Guest core and FPU"
+	default ARMV7M_RVM_CORTEXM7
+
+config ARMV7M_RVM_CORTEXM7
+	bool "Cortex-M7 (FPv5)"
+	select ARCH_CORTEXM7
+	select ARCH_HAVE_DPFPU
+	---help---
+		The .rvp project assigned an ARMv7E-M core with the FPv5
+		floating-point unit.  ARCH_DPFPU decides whether the toolchain
+		uses the double-precision variant.
+
+config ARMV7M_RVM_CORTEXM4
+	bool "Cortex-M4 (FPv4-SP)"
+	select ARCH_CORTEXM4
+	select ARCH_HAVE_FPU
+	---help---
+		The .rvp project assigned a Cortex-M4 core with the FPv4-SP
+		single-precision floating-point unit.
+
+endchoice
+
+config ARMV7M_RVM_FAST_PATH
+	bool "Direct task-to-task context switch"
+	default n
+	depends on ARCH_FPU
+	---help---
+		Use the RVM direct switch fast path when both the outgoing and
+		incoming frames are clean.  The slow path remains the reference
+		and is used for every dirty or lazy-FPU frame.
+
+endif # ARCH_CHIP_ARMV7M_RVM
