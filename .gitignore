@@ -51,11 +51,23 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-# Example projects
+# Example projects - all generated workspaces are ignored, except the ones
+# explicitly kept below (the shipping workspaces with their tuned apps).
 Project/*/
 Project/*.log
 Project/test.sh
 Project/.autobench_flash.lock
+!Project/GCCMF-STM32H743ZIT6-AQUARIUM/
+Project/GCCMF-STM32H743ZIT6-AQUARIUM/**/Object/
+Project/GCCMF-STM32H743ZIT6-AQUARIUM/**/build/
+Project/GCCMF-STM32H743ZIT6-AQUARIUM/**/*.bin
+Project/GCCMF-STM32H743ZIT6-AQUARIUM/**/*.hex
+Project/GCCMF-STM32H743ZIT6-AQUARIUM/**/*.lst
+Project/GCCMF-STM32H743ZIT6-AQUARIUM/**/*.map
+Project/GCCMF-STM32H743ZIT6-AQUARIUM/**/*.elf
+Project/GCCMF-STM32H743ZIT6-AQUARIUM/**/*.d
+Project/GCCMF-STM32H743ZIT6-AQUARIUM/**/*.o
+Project/GCCMF-STM32H743ZIT6-AQUARIUM/**/*_image.c
 !Utility/M7M02_Bincopy/upx.exe
 !Utility/M7M02_Final/*.exe
 

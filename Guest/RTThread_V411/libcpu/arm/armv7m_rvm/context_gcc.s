@@ -25,23 +25,6 @@
 .cpu cortex-m7
 .syntax unified
 .thumb
-.text
-
-.equ    XPSR_ALIGN_PAD,    0x00000200              /* XPSR bit 9 marks the frame alignment padding. */
-
-/*
- * See whether the stack pointer is 8 byte aligned.  The entry sequence
- * below pushed two words (r0 and XPSR), so an 8 byte aligned SP here
- * means the stack was already aligned on entry: the polarity is
- * therefore NE, like the RMP and uC/OS-III ARMv7-M ports - NOT the
- * ARMv6-M original, whose three word entry runs the test the other way
- * round.
- */
-.macro RT_ALIGN_PUSH label
-    MOV     r0, sp
-    TST     r0, #0x00000007
-    BNE     \label                          /* two words pushed above, thus NE */
-.endm
 
 /*
  * Stack the remaining part of a basic exception frame of \sz words, with
@@ -51,6 +34,9 @@
  * so only r0 needs reloading, and the six register push leaves the
  * saved XPSR exactly at [sp,#4*(\sz-2)].
  */
+
+.equ    XPSR_ALIGN_PAD,    0x00000200              /* XPSR bit 9 marks the frame alignment padding. */
+
 .macro RT_EXC_PUSH sz, xpsr, exc_return
     LDR     r0, [sp, #4]                    /* load the real r0 value pushed at entry */
     .if ((\sz-8)!=0)                        /* adjust SP to push GP registers when needed */
@@ -72,6 +58,18 @@
 /*
  * See whether the stacked XPSR carries the 8 byte alignment padding.
  */
+/*
+ * See whether the stack needs one padding word below the exception frame:
+ * two words were pushed at entry, so an originally 8-byte-aligned stack
+ * leaves sp 8-byte aligned here (NE means a pad is needed).
+ */
+.macro RT_ALIGN_PUSH label
+    MOV     r0, sp
+    LDR     r1, =0x00000007
+    TST     r0, r1
+    BNE     \label                          /* two words pushed above, thus NE */
+.endm
+
 .macro RT_ALIGN_POP label
     LDR     r0, [sp, #4*7]                  /* load up the XPSR */
     TST     r0, #XPSR_ALIGN_PAD
@@ -223,6 +221,9 @@ swt_stacked:
     LDR     r1, [r1]
     LDR     r1, [r1]                        /* load the to thread's stack pointer */
     MOV     sp, r1
+
+    LDR     r1, =rt_interrupt_to_thread
+    STR     r2, [r1]
 
     /* enable the virtual interrupts through the wrapper: its
      * re-delivery signal drains any vectors and context switch requests

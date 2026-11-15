@@ -1,0 +1,136 @@
+###############################################################################
+#Filename    : virt_frt
+#Author      : The RVM project generator.
+#Date        : 14/11/2026 20:46:02
+#Licence     : Unlicense; see COPYING for details.
+#Description : Generic Makefile (based on gcc). This file is intended
+#              to be used with STM32H743ZI, and the GNU toolchain.
+###############################################################################
+
+# Config ######################################################################
+TARGET=virt_frt
+CPU=-mcpu=cortex-m7 -mthumb
+
+CFLAGS=-O2 -specs=nano.specs -fsigned-char -fno-common -fno-strict-aliasing -fdata-sections -ffunction-sections -ffreestanding
+AFLAGS=-fdata-sections -ffunction-sections
+WFLAGS=-Wall -Wno-strict-aliasing
+DFLAGS=-g3
+LFLAGS=-specs=nano.specs -specs=nosys.specs -nostartfiles -Wl,--gc-sections,--cref
+
+OBJDIR=Object
+PREFIX=arm-none-eabi-
+# End Config ##################################################################
+
+# Source ######################################################################
+INCS+=-I../../../../../FreeRTOS_V900/include/
+INCS+=-I../../../../../FreeRTOS_V900/portable/GCC/ARM_A7M_RVM/
+INCS+=-I../../../../Include/
+INCS+=-I../Include/
+INCS+=-I./
+
+# C source group
+CSRCS+=../Source/main.c
+CSRCS+=../Source/prc_virt_frt.c
+CSRCS+=../Source/prc_virt_frt_desc.c
+
+# C library group
+CSRCS+=../../../../../FreeRTOS_V900/list.c
+CSRCS+=../../../../../FreeRTOS_V900/portable/GCC/ARM_A7M_RVM/port.c
+CSRCS+=../../../../../FreeRTOS_V900/portable/GCC/ARM_A7M_RVM/tasks_rvm.c
+CSRCS+=../../../../../FreeRTOS_V900/portable/MemMang/heap_4.c
+CSRCS+=../../../../../FreeRTOS_V900/queue.c
+CSRCS+=../../../../../FreeRTOS_V900/timers.c
+CSRCS+=../../../../Source/Platform/A7M/rvm_platform_a7m.c
+CSRCS+=../../../../Source/Syslib/rvm_syslib.c
+CSRCS+=../../../../Source/Virtlib/rvm_virtlib.c
+
+# Assembly source group
+
+# Assembly library group
+ASRCS+=../../../../../FreeRTOS_V900/portable/GCC/ARM_A7M_RVM/portasm.s
+ASRCS+=../../../../Source/Platform/A7M/rvm_platform_a7m_gcc.s
+
+LDSCRIPT=prc_virt_frt_stm32h743zi.ld
+LIBS=-lc -lm
+# End Source ##################################################################
+
+# Toolchain ###################################################################
+ifdef GCC
+CC=$(GCC)/$(PREFIX)gcc
+AS=$(GCC)/$(PREFIX)gcc -x assembler-with-cpp
+CP=$(GCC)/$(PREFIX)objcopy
+LD=$(GCC)/$(PREFIX)gcc
+SZ=$(GCC)/$(PREFIX)size
+else
+CC=$(PREFIX)gcc
+AS=$(PREFIX)gcc -x assembler-with-cpp
+CP=$(PREFIX)objcopy
+LD=$(PREFIX)gcc
+SZ=$(PREFIX)size
+endif
+
+HEX=$(CP) -O ihex
+BIN=$(CP) -O binary -S
+# End Toolchain ###############################################################
+
+# User ########################################################################
+-include user
+# End User ####################################################################
+
+# Build #######################################################################
+COBJS=$(CSRCS:%.c=%.o)
+CDEPS=$(CSRCS:%.c=%.d)
+AOBJS=$(ASRCS:%.s=%.o)
+ADEPS=$(ASRCS:%.s=%.d)
+
+DEP=$(OBJDIR)/$(notdir $(@:%.o=%.d))
+LST=$(OBJDIR)/$(notdir $(@:%.o=%.lst))
+OBJ=$(OBJDIR)/$(notdir $@)
+MAP=$(OBJDIR)/$(TARGET).map
+
+# Build all
+all: mkdir $(COBJS) $(AOBJS) $(TARGET).elf $(TARGET).hex $(TARGET).bin
+	@echo "    COPY    $(TARGET)_image.c"
+	@../../../../Utility/M7M02_Final/bincopy.exe -i $(OBJDIR)/$(TARGET).bin -o ./virt_frt_image.c
+
+# Create output folder
+mkdir:
+	$(shell if [ ! -e $(OBJDIR) ];then mkdir -p $(OBJDIR); fi)
+
+# Compile C sources
+%.o:%.c
+	@echo "    CC      $(notdir $<)"
+	@$(CC) -c $(CPU) $(INCS) $(CFLAGS) $(DFLAGS) -MMD -MP -MF "$(DEP)" -Wa,-a,-ad,-alms="$(LST)" "$<" -o "$(OBJ)"
+
+# Assemble ASM sources
+%.o:%.s
+	@echo "    AS      $(notdir $<)"
+	@$(AS) -c $(CPU) $(INCS) $(AFLAGS) $(DFLAGS) "$<" -o "$(OBJ)"
+
+# Link ELF target file and print size
+$(TARGET).elf:$(COBJS) $(AOBJS)
+	@echo "    LD [P]  $(notdir $@)"
+	@$(LD) $(OBJDIR)/*.o $(CPU) $(LFLAGS) $(DFLAGS) -T $(LDSCRIPT) -Wl,-Map=$(MAP) $(LIBS) -o $(OBJ)
+	@$(SZ) $(OBJ)
+
+# Create hex/bin programming files
+$(TARGET).hex:$(TARGET).elf
+	@echo "    HEX     $(notdir $@)"
+	@$(HEX) "$(OBJDIR)/$<" "$(OBJDIR)/$@"
+
+$(TARGET).bin:$(TARGET).elf
+	@echo "    BIN     $(notdir $@)"
+	@$(BIN) "$(OBJDIR)/$<" "$(OBJDIR)/$@"
+
+# Clean up
+clean:
+	-rm -rf $(OBJDIR)
+
+# Dependencies
+-include $(wildcard $(OBJDIR)/*.d)
+# End Build ###################################################################
+
+# End Of File #################################################################
+
+# Copyright (C) Evo-Devo Instrum. All rights reserved #########################
+

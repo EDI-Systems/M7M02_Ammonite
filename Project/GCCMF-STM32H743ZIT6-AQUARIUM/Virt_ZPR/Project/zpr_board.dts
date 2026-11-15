@@ -1,0 +1,38 @@
+/dts-v1/;
+
+#include <arm/armv7-m.dtsi>
+
+&nvic {
+	arm,num-irq-priority-bits = <4>;
+};
+
+/ {
+	model = "RVM ARMv7-M guest";
+	compatible = "rvm,armv7m";
+
+	chosen {
+		zephyr,flash = &flash0;
+		zephyr,sram = &sram0;
+	};
+
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		cpu@0 {
+			compatible = "arm,cortex-m7";
+			reg = <0>;
+		};
+	};
+
+	flash0: flash@8030000 {
+		compatible = "soc-nv-flash";
+		reg = <0x8030000 0x30000>;
+	};
+
+	sram0: memory@24000000 {
+		compatible = "mmio-sram";
+		reg = <0x24000000 0x14B90>;
+	};
+};
+

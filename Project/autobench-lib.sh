@@ -11,6 +11,48 @@ cd "$PROJECT_DIR"
 CUBEPROG="C:/Program Files/STMicroelectronics/STM32Cube/STM32CubeProgrammer/bin/STM32_Programmer_CLI.exe"
 OPENOCD="C:/MounRiver/MounRiver_Studio/toolchain/OpenOCD/bin/openocd.exe"
 
+# ---- embedded resources (no Script/ folder dependency) -----------------------
+VCP_PAIR_PS1="/tmp/ab_vcp_pair_$$.ps1"
+WLINKE_CFG="/tmp/ab_wlinke_$$.cfg"
+PROBE307_TCL="/tmp/ab_probe307_$$.tcl"
+
+cat > "$VCP_PAIR_PS1" <<'PSEOF'
+Get-CimInstance Win32_PnPEntity | Where-Object { $_.Name -match '\(COM\d+\)' } | ForEach-Object {
+    $com = [regex]::Match($_.Name, '\((COM\d+)\)').Groups[1].Value
+    $id = $_.PNPDeviceID
+    if ($id -match 'VID_0483') {
+        $parent = (Get-PnpDeviceProperty -InstanceId $id -KeyName 'DEVPKEY_Device_Parent' -ErrorAction SilentlyContinue).Data
+        $sn = if ($parent) { ($parent -split '\\')[2] } else { '' }
+        "STLINK $sn $com"
+    } elseif ($id -match 'VID_1A86') {
+        "WCHLINK $com"
+    }
+}
+PSEOF
+
+cat > "$WLINKE_CFG" <<'CFGEOF'
+# WCH-LinkE + CH32V307 (SDI) - embedded equivalent of wch-riscv.cfg
+adapter driver wlinke
+adapter speed 6000
+transport select sdi
+
+wlink_set_address 0x00000000
+set _CHIPNAME wch_riscv
+sdi newtap $_CHIPNAME cpu -irlen 5 -expected-id 0x00001
+
+set _TARGETNAME $_CHIPNAME.cpu
+
+target create $_TARGETNAME.0 wch_riscv -chain-position $_TARGETNAME
+$_TARGETNAME.0 configure -work-area-phys 0x20000000 -work-area-size 10000 -work-area-backup 1
+set _FLASHNAME $_CHIPNAME.flash
+
+flash bank $_FLASHNAME wch_riscv 0x00000000 0 0 0 $_TARGETNAME.0
+CFGEOF
+
+printf 'init\nshutdown\n' > "$PROBE307_TCL"
+
+trap 'rm -f "$VCP_PAIR_PS1" "$WLINKE_CFG" "$PROBE307_TCL"' EXIT
+
 LOG="autobench_${CHIP}.log"
 CAP_SECONDS=92
 FLASH_LOCK="$PROJECT_DIR/.autobench_flash.lock"
@@ -40,7 +82,7 @@ probe_chip() {
     local pairs line sn com out devid wantid ocd
 
     pairs=$(powershell -NoProfile -ExecutionPolicy Bypass \
-                -File "$(cygpath -m Script/vcp_pair.ps1)" 2>/dev/null) \
+                -File "$(cygpath -m "$VCP_PAIR_PS1")" 2>/dev/null) \
         || { [ -n "$opt" ] && return 1; die "cannot enumerate USB serial devices"; }
 
     case "$want" in
@@ -49,7 +91,7 @@ probe_chip() {
                 case "$line" in
                     WCHLINK\ *)
                         COMPORT=$(echo "$line" | awk '{print $NF}')
-                        ocd=$("$OPENOCD" -f Script/wlinke_v307.cfg -f Script/probe_v307.cmd 2>&1) || true
+                        ocd=$("$OPENOCD" -f "$WLINKE_CFG" -f "$PROBE307_TCL" 2>&1) || true
                         echo "$ocd" | grep -q 'Examined RISC-V core' \
                             && echo "$ocd" | grep -q 'XLEN=32' \
                             && echo "$ocd" | grep -qi 'misa=0x40901125' \
@@ -84,6 +126,7 @@ scan_bins() {   # echoes "<ws>|<bin>" for each workspace with a built bin
     local pat=$(chip2wspat "$CHIP")
     local ws bin
     for ws in $(ls -d ${pat} 2>/dev/null); do
+        case "$ws" in *-AQUARIUM|*-AQUARIUM/) continue ;; esac   # kept shipping workspace
         for bin in "$ws/Kernel/Project/Object/kernel.bin" \
                    "$ws/Kernel/Project/Debug/Output/Kernel.bin" \
                    "$ws/Kernel/Project/kernel_keil.bin"; do
@@ -117,7 +160,7 @@ echo "FLASH_VERIFY_DONE"
 reset run
 shutdown
 EOF
-    "$OPENOCD" -f Script/wlinke_v307.cfg -f /tmp/flashwch_$$.cmd > "$log" 2>&1
+    "$OPENOCD" -f "$WLINKE_CFG" -f /tmp/flashwch_$$.cmd > "$log" 2>&1
     if ! grep -q 'FLASH_VERIFY_DONE' "$log" || grep -q 'Error:' "$log"; then
         return 1
     fi

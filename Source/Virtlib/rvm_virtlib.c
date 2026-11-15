@@ -241,12 +241,12 @@ Return      : None.
 void RVM_Virt_Int_Unmask(void)
 {
     RVM_Int_Mask=0U;
-    
+
     /* Trigger interrupt processing if there are pending ones */
     if((RVM_Int_Disable==0U)&&(RVM_Vct_Pend!=0U))
     {
         RVM_COV_MARKER();
-        
+
         RVM_ASSERT(RVM_Sig_Snd(RVM_SIG_VCT,1U)==0);
     }
     else
@@ -315,13 +315,13 @@ rvm_ret_t RVM_Hyp(rvm_ptr_t Number,
     if(RVM_STATE->Vct_Act!=0U)
     {
         RVM_COV_MARKER();
-        
+
         Arg=&(RVM_STATE->Vct);
     }
     else
     {
         RVM_COV_MARKER();
-        
+
         Arg=&(RVM_STATE->Usr);
     }
 
@@ -330,14 +330,14 @@ rvm_ret_t RVM_Hyp(rvm_ptr_t Number,
     Arg->Param[1]=Param2;
     Arg->Param[2]=Param3;
     Arg->Param[3]=Param4;
-    
+
     /* Set the number, do the hypercall */
     Arg->Number=Number;
     RVM_ASSERT(RVM_Sig_Snd(RVM_SIG_HYP,1U)==0);
-    
+
     /* The call must be processed */
     RVM_ASSERT(Arg->Number==RVM_HYP_SPURIOUS);
-    
+
     return (rvm_ret_t)Arg->Param[0];
 }
 /* End Function:RVM_Hyp ******************************************************/

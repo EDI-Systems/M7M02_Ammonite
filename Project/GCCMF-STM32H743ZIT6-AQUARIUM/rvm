@@ -1,0 +1,111 @@
+###############################################################################
+#Filename    : rvm
+#Author      : The RVM project generator.
+#Date        : 14/11/2026 19:26:22
+#Licence     : Unlicense; see COPYING for details.
+#Description : Project Makefile (based on gcc). This file is intended
+#              to be used with STM32H743ZI, and the GNU toolchain.
+###############################################################################
+
+# Build #######################################################################
+all:
+	@echo [32mBuild virtual: Virt_CHB/Project/prc_virt_chb[0m
+	@cd Virt_CHB/Project/ && $(MAKE) -f prc_virt_chb -j8 --no-print-directory
+	@echo
+	@echo
+	@echo [32mBuild virtual: Virt_DJY/Project/prc_virt_djy[0m
+	@cd Virt_DJY/Project/ && $(MAKE) -f prc_virt_djy -j8 --no-print-directory
+	@echo
+	@echo
+	@echo [32mBuild virtual: Virt_FRT/Project/prc_virt_frt[0m
+	@cd Virt_FRT/Project/ && $(MAKE) -f prc_virt_frt -j8 --no-print-directory
+	@echo
+	@echo
+	@echo [32mBuild virtual: Virt_KLT/Project/prc_virt_klt[0m
+	@cd Virt_KLT/Project/ && $(MAKE) -f prc_virt_klt -j8 --no-print-directory
+	@echo
+	@echo
+	@echo [32mBuild virtual: Virt_NTX/Project/prc_virt_ntx[0m
+	@cd Virt_NTX/Project/ && $(MAKE) -f prc_virt_ntx -j8 --no-print-directory
+	@echo
+	@echo
+	@echo [32mBuild virtual: Virt_RMP/Project/prc_virt_rmp[0m
+	@cd Virt_RMP/Project/ && $(MAKE) -f prc_virt_rmp -j8 --no-print-directory
+	@echo
+	@echo
+	@echo [32mBuild virtual: Virt_RTE/Project/prc_virt_rte[0m
+	@cd Virt_RTE/Project/ && $(MAKE) -f prc_virt_rte -j8 --no-print-directory
+	@echo
+	@echo
+	@echo [32mBuild virtual: Virt_RTT/Project/prc_virt_rtt[0m
+	@cd Virt_RTT/Project/ && $(MAKE) -f prc_virt_rtt -j8 --no-print-directory
+	@echo
+	@echo
+	@echo [32mBuild virtual: Virt_UO2/Project/prc_virt_uo2[0m
+	@cd Virt_UO2/Project/ && $(MAKE) -f prc_virt_uo2 -j8 --no-print-directory
+	@echo
+	@echo
+	@echo [32mBuild virtual: Virt_UO3/Project/prc_virt_uo3[0m
+	@cd Virt_UO3/Project/ && $(MAKE) -f prc_virt_uo3 -j8 --no-print-directory
+	@echo
+	@echo
+	@echo [32mBuild virtual: Virt_ZPR/Project/prc_virt_zpr[0m
+	@cd Virt_ZPR/Project/ && $(MAKE) -f prc_virt_zpr -j8 --no-print-directory
+	@echo
+	@echo
+	@echo [32mBuild native: Proc1/Project/prc_proc1[0m
+	@cd Proc1/Project/ && $(MAKE) -f prc_proc1 -j8 --no-print-directory
+	@echo
+	@echo
+	@echo [32mBuild native: Proc2/Project/prc_proc2[0m
+	@cd Proc2/Project/ && $(MAKE) -f prc_proc2 -j8 --no-print-directory
+	@echo
+	@echo
+	@echo [32mBuild monitor: Monitor/Project/monitor[0m
+	@cd Monitor/Project/ && $(MAKE) -f monitor -j8 --no-print-directory
+	@echo
+	@echo
+	@echo [32mBuild kernel: Kernel/Project/kernel[0m
+	@cd Kernel/Project/ && $(MAKE) -f kernel -j8 --no-print-directory
+	@echo
+	@echo
+# End Build ###################################################################
+
+# Clean #######################################################################
+clean:
+	@echo [32mClean virtual: Virt_CHB/Project/prc_virt_chb[0m
+	@cd Virt_CHB/Project/ && $(MAKE) clean -f prc_virt_chb --no-print-directory
+	@echo [32mClean virtual: Virt_DJY/Project/prc_virt_djy[0m
+	@cd Virt_DJY/Project/ && $(MAKE) clean -f prc_virt_djy --no-print-directory
+	@echo [32mClean virtual: Virt_FRT/Project/prc_virt_frt[0m
+	@cd Virt_FRT/Project/ && $(MAKE) clean -f prc_virt_frt --no-print-directory
+	@echo [32mClean virtual: Virt_KLT/Project/prc_virt_klt[0m
+	@cd Virt_KLT/Project/ && $(MAKE) clean -f prc_virt_klt --no-print-directory
+	@echo [32mClean virtual: Virt_NTX/Project/prc_virt_ntx[0m
+	@cd Virt_NTX/Project/ && $(MAKE) clean -f prc_virt_ntx --no-print-directory
+	@echo [32mClean virtual: Virt_RMP/Project/prc_virt_rmp[0m
+	@cd Virt_RMP/Project/ && $(MAKE) clean -f prc_virt_rmp --no-print-directory
+	@echo [32mClean virtual: Virt_RTE/Project/prc_virt_rte[0m
+	@cd Virt_RTE/Project/ && $(MAKE) clean -f prc_virt_rte --no-print-directory
+	@echo [32mClean virtual: Virt_RTT/Project/prc_virt_rtt[0m
+	@cd Virt_RTT/Project/ && $(MAKE) clean -f prc_virt_rtt --no-print-directory
+	@echo [32mClean virtual: Virt_UO2/Project/prc_virt_uo2[0m
+	@cd Virt_UO2/Project/ && $(MAKE) clean -f prc_virt_uo2 --no-print-directory
+	@echo [32mClean virtual: Virt_UO3/Project/prc_virt_uo3[0m
+	@cd Virt_UO3/Project/ && $(MAKE) clean -f prc_virt_uo3 --no-print-directory
+	@echo [32mClean virtual: Virt_ZPR/Project/prc_virt_zpr[0m
+	@cd Virt_ZPR/Project/ && $(MAKE) clean -f prc_virt_zpr --no-print-directory
+	@echo [32mClean native: Proc1/Project/prc_proc1[0m
+	@cd Proc1/Project/ && $(MAKE) clean -f prc_proc1 --no-print-directory
+	@echo [32mClean native: Proc2/Project/prc_proc2[0m
+	@cd Proc2/Project/ && $(MAKE) clean -f prc_proc2 --no-print-directory
+	@echo [32mClean monitor: Monitor/Project/monitor[0m
+	@cd Monitor/Project/ && $(MAKE) clean -f monitor --no-print-directory
+	@echo [32mClean kernel: Kernel/Project/kernel[0m
+	@cd Kernel/Project/ && $(MAKE) clean -f kernel --no-print-directory
+# End Clean ###################################################################
+
+# End Of File #################################################################
+
+# Copyright (C) Evo-Devo Instrum. All rights reserved #########################
+

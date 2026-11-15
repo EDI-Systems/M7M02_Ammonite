@@ -7,5 +7,11 @@ if [ $(basename "$PWD") != "Project" ]; then
 fi
 
 # Dangerous operation: removing every subfolder - including symbolic links!
-rm -rf ./*-*/
+# The kept workspaces below are exempt - they hold the shipping example
+# (also whitelisted in .gitignore).
+KEEP="GCCMF-STM32H743ZIT6-AQUARIUM"
+for dir in ./*-*/; do
+    [ "$dir" = "./$KEEP/" ] && continue
+    rm -rf "$dir"
+done
 rm -f ./*.log

@@ -19,9 +19,11 @@ config TICKLESS_KERNEL
 config PM
 	default n
 config FPU
-	default y
+	default y if RVM_CPU_M7
+	default y if RVM_CPU_M4
 config FPU_SHARING
-	default y
+	default y if RVM_CPU_M7
+	default y if RVM_CPU_M4
 config GEN_ISR_TABLES
 	default n
 
@@ -32,6 +34,7 @@ config SYS_CLOCK_EXISTS
 	default y
 config SYS_CLOCK_HW_CYCLES_PER_SEC
 	default 480000000 if RVM_CPU_M7
+	default 480000000 if RVM_CPU_M7_NOFPU
 	default 180000000 if RVM_CPU_M4
 config SYS_CLOCK_TICKS_PER_SEC
 	default 10

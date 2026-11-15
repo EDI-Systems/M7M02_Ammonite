@@ -272,7 +272,9 @@ void rte_rvm_ctx_handler( void )
 {
   Context_Control *heir;
   uint32_t *sp;
+#if RVM_COP_NUM != 0U
   uint32_t exc;
+#endif
 
   heir = rte_pending_heir;
 
@@ -303,9 +305,10 @@ void rte_rvm_ctx_handler( void )
   RVM_REG->Reg.R10 = *sp++;
   RVM_REG->Reg.R11 = *sp++;
   RVM_REG->Reg.LR = *sp++;
-  exc = RVM_REG->Reg.LR;
 
 #if RVM_COP_NUM != 0U
+  exc = RVM_REG->Reg.LR;
+
   if ( ( exc & 0x10U ) == 0U ) {
     volatile struct RVM_A7M_Cop_Struct *cop =
       (volatile struct RVM_A7M_Cop_Struct *) RVM_REG->Cop;

@@ -101,6 +101,29 @@ rt_uint32_t rt_interrupt_from_thread, rt_interrupt_to_thread;
 rt_uint32_t rt_thread_switch_interrupt_flag;
 
 /*
+ * Thread exit trampoline.  Upstream RT-Thread passes _thread_exit as the
+ * return linkage of every thread entry: an entry that returns falls into
+ * _thread_exit, which defuncts the thread and switches away through the
+ * scheduler, never to return.  On this port the exit switch can be
+ * interrupted and its context re-entered (a hypervisor-level preemption
+ * resume), walking the dying thread back into the scheduler with the
+ * defunct list already holding it - the re-entry re-enqueues the thread,
+ * the idle reclamation frees its blocks twice, and the heap corruption
+ * eventually crashes the container walk of a subsequent startup.  A
+ * returning entry on this port parks in the hypervisor instead: the
+ * thread is left runnable through the interrupt driven switch path only,
+ * and the labyrinth is unreachable from both the legal and the re-entered
+ * return path.
+ */
+static void rt_hw_thread_exit_park(void)
+{
+    for(;;)
+    {
+        RVM_Hyp_Vct_Wait();
+    }
+}
+
+/*
  * This function will initialize thread stack
  *
  * @param tentry the entry of thread
@@ -120,6 +143,8 @@ rt_uint8_t *rt_hw_stack_init(void       *tentry,
     rt_uint32_t        *words;
     rt_uint32_t         i;
 
+    (void)texit;
+
     stk  = stack_addr + sizeof(rt_uint32_t);
     stk  = (rt_uint8_t *)RT_ALIGN_DOWN((rt_uint32_t)stk, 8);
     stk -= sizeof(struct stack_frame);
@@ -137,7 +162,7 @@ rt_uint8_t *rt_hw_stack_init(void       *tentry,
 
     stack_frame->exception_stack_frame.psr = 0x01000000L;
     stack_frame->exception_stack_frame.pc = (rt_uint32_t)tentry;
-    stack_frame->exception_stack_frame.lr = (rt_uint32_t)texit;
+    stack_frame->exception_stack_frame.lr = (rt_uint32_t)rt_hw_thread_exit_park;
     stack_frame->exception_stack_frame.r0 = (rt_uint32_t)parameter;
 
     stack_frame->exception_return = 0xFFFFFFFDL;

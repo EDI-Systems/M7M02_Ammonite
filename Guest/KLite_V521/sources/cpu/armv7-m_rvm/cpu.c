@@ -57,11 +57,11 @@ static volatile uint32_t m_switch_pend;
 static uint32_t m_lock_nesting;
 
 /* The idle action of the application.  cpu_sys_sleep runs inside the
- * kernel's critical section with the virtual interrupt mask held, so the
- * park hook must be called between an unmask/mask bracket - parking with
- * the mask held would never be woken, because the vector thread's timer
- * and context processing is gated on the mask.  NULL keeps the busy idle
- * of the benchmark. */
+ * kernel's critical section with the virtual interrupt mask held, and the
+ * park hook is called exactly in that state - the wake-up arrives on the
+ * hypervisor's delivery side, and whatever the vector thread had to pend
+ * is flushed by the caller's own cpu_leave_critical() after the wake.
+ * NULL keeps the busy idle of the benchmark. */
 static void (*m_sleep_hook)(void);
 
 void klt_set_idle_hook(void (*hook)(void))
@@ -198,12 +198,18 @@ void cpu_sys_sleep(uint32_t time)
 	(void)time;
 	if(m_sleep_hook != NULL)
 	{
-		/* Inside the kernel's critical section: open the mask for
-		 * the park and take it back afterwards, so the kernel's
-		 * nesting still balances around this call. */
-		RVM_Virt_Int_Unmask();
+		/* Park with the kernel's critical section held as-is.  A delivery
+		 * re-inserts the machine and wakes both threads on the hypervisor
+		 * side, regardless of the guest mask; the parked thread resumes,
+		 * and the flags the vector thread had to pend (its loop only
+		 * processes Tim/Ctx under mask==0) are flushed the moment our
+		 * caller's cpu_leave_critical() drops the mask - unmask pends a
+		 * re-activation signal when RVM_Vct_Pend is set.  Holding the
+		 * section across the park also keeps the vector thread from ever
+		 * processing a timer against this context's raised nesting: its
+		 * kernel_tick enter/leave nests 1->2->1 and defers everything to
+		 * the nesting-zero flush. */
 		m_sleep_hook();
-		RVM_Virt_Int_Mask();
 	}
 }
 

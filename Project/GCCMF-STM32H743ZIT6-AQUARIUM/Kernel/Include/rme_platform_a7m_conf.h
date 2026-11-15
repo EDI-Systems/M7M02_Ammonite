@@ -1,0 +1,16 @@
+/******************************************************************************
+Filename    : rme_platform_a7m_conf.h
+Author      : The RVM project generator.
+Date        : 15/11/2026 04:05:58
+License     : Unlicense; see COPYING for details.
+Description : The chip selection header.
+******************************************************************************/
+
+/* Platform Include **********************************************************/
+#include "rme_platform_stm32h743zi.h"
+/* End Platform Include ******************************************************/
+
+/* End Of File ***************************************************************/
+
+/* Copyright (C) Evo-Devo Instrum. All rights reserved ***********************/
+

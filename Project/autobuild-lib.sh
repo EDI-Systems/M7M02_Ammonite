@@ -164,6 +164,7 @@ run_chain() {   # serially build every "$CHAIN"-*.rvp; returns 0 iff all OK
     echo "== $CHAIN build $(date '+%F %T') ==" > "$LOG"
 
     for rvp in $(ls "$CHAIN"-*.rvp 2>/dev/null | sort); do
+        case "$rvp" in *-aquarium.rvp) continue ;; esac   # kept shipping workspace
         total=$((total+1))
         base=${rvp%.rvp}
         ws=$(echo "$base" | tr '[:lower:]' '[:upper:]')
