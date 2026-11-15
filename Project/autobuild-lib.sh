@@ -76,6 +76,17 @@ rvp2board() {
 build_gcc() {
     local ws=$1 m lg err
     BUILD_WARN=0
+
+    # Some guests need extra toolchains that are not on the default PATH:
+    # NuttX needs cmake/ninja (and kconfiglib), Zephyr needs west, and the
+    # RTEMS guest needs the MSYS python for waf plus the RTEMS cross tools.
+    case "$ws" in
+        *-NTX*|*-ZPR*)
+            export PATH="/c/Toolchain/msys64/mingw64/bin:$PATH" ;;
+        *-RTE*)
+            export PATH="/c/Toolchain/msys64/usr/bin:/c/Toolchain/msys64/mingw64/bin:/c/Toolchain/RTEMS7/bin:$PATH"
+            export RTEMS_PREFIX="C:/Toolchain/RTEMS7" ;;
+    esac
     for m in "Monitor/Project/monitor" "Proc1/Project/prc_proc1" \
              "Proc2/Project/prc_proc2" "Virt1/Project/prc_virt1" \
              "Kernel/Project/kernel"; do

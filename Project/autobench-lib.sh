@@ -153,6 +153,8 @@ flash_wch() {
     win=$(cygpath -m "$bin" 2>/dev/null || echo "$bin")
     log=/tmp/flashwch_$$
     cat > /tmp/flashwch_$$.cmd <<EOF
+init
+halt
 flash write_image erase $win 0x00000000
 echo "FLASH_WRITE_DONE"
 verify_image $win 0x00000000

@@ -42,7 +42,7 @@ Output      : None.
 Return      : None.
 ******************************************************************************/
 /* void */ Setting_Dialog::Setting_Dialog(class wxWindow* Parent):
-wxDialog(Parent,wxID_ANY,_("Settings"),wxDefaultPosition,I2P(wxSize(640,510)))
+wxDialog(Parent,wxID_ANY,_("Settings"),wxDefaultPosition,I2P(wxSize(640,660)))
 {
     this->Center();
 
@@ -133,16 +133,65 @@ wxDialog(Parent,wxID_ANY,_("Settings"),wxDefaultPosition,I2P(wxSize(640,510)))
         this->UO3_Sizer->Add(this->UO3_Picker,4,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
         this->Guest_OS_Sizer->Add(this->UO3_Sizer,0,wxEXPAND);
 
-        this->Guest_Script_Sizer=new class wxStaticBoxSizer(wxVERTICAL,this,_("Guest Scripting Interpreter Folders"));
-        this->MPY_Sizer=new class wxBoxSizer(wxHORIZONTAL);
-        this->MPY_Label=new class wxStaticText(this,wxID_ANY,_("MicroPython"));
-        this->MPY_Picker=new class wxDirPickerCtrl(this,wxID_ANY,wxT(""),_("Select MicroPython Folder"),
+        this->CHB_Sizer=new class wxBoxSizer(wxHORIZONTAL);
+        this->CHB_Label=new class wxStaticText(this,wxID_ANY,_("ChibiOS"));
+        this->CHB_Picker=new class wxDirPickerCtrl(this,wxID_ANY,wxT(""),_("Select ChibiOS Folder"),
                                                    wxDefaultPosition,I2P(wxSize(480,-1)),wxDIRP_USE_TEXTCTRL|wxDIRP_DIR_MUST_EXIST|wxDIRP_SMALL);
-        this->MPY_Picker->GetTextCtrl()->SetEditable(false);
-        this->Bind(wxEVT_DIRPICKER_CHANGED,&Setting_Dialog::On_Dir_Picker,this,this->MPY_Picker->GetId());
-        this->MPY_Sizer->Add(this->MPY_Label,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->MPY_Sizer->Add(this->MPY_Picker,4,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
-        this->Guest_Script_Sizer->Add(this->MPY_Sizer,0,wxEXPAND);
+        this->CHB_Picker->GetTextCtrl()->SetEditable(false);
+        this->Bind(wxEVT_DIRPICKER_CHANGED,&Setting_Dialog::On_Dir_Picker,this,this->CHB_Picker->GetId());
+        this->CHB_Sizer->Add(this->CHB_Label,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->CHB_Sizer->Add(this->CHB_Picker,4,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Guest_OS_Sizer->Add(this->CHB_Sizer,0,wxEXPAND);
+
+        this->RTE_Sizer=new class wxBoxSizer(wxHORIZONTAL);
+        this->RTE_Label=new class wxStaticText(this,wxID_ANY,_("RTEMS"));
+        this->RTE_Picker=new class wxDirPickerCtrl(this,wxID_ANY,wxT(""),_("Select RTEMS Folder"),
+                                                   wxDefaultPosition,I2P(wxSize(480,-1)),wxDIRP_USE_TEXTCTRL|wxDIRP_DIR_MUST_EXIST|wxDIRP_SMALL);
+        this->RTE_Picker->GetTextCtrl()->SetEditable(false);
+        this->Bind(wxEVT_DIRPICKER_CHANGED,&Setting_Dialog::On_Dir_Picker,this,this->RTE_Picker->GetId());
+        this->RTE_Sizer->Add(this->RTE_Label,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->RTE_Sizer->Add(this->RTE_Picker,4,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Guest_OS_Sizer->Add(this->RTE_Sizer,0,wxEXPAND);
+
+        this->ZPR_Sizer=new class wxBoxSizer(wxHORIZONTAL);
+        this->ZPR_Label=new class wxStaticText(this,wxID_ANY,_("Zephyr"));
+        this->ZPR_Picker=new class wxDirPickerCtrl(this,wxID_ANY,wxT(""),_("Select Zephyr Folder"),
+                                                   wxDefaultPosition,I2P(wxSize(480,-1)),wxDIRP_USE_TEXTCTRL|wxDIRP_DIR_MUST_EXIST|wxDIRP_SMALL);
+        this->ZPR_Picker->GetTextCtrl()->SetEditable(false);
+        this->Bind(wxEVT_DIRPICKER_CHANGED,&Setting_Dialog::On_Dir_Picker,this,this->ZPR_Picker->GetId());
+        this->ZPR_Sizer->Add(this->ZPR_Label,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->ZPR_Sizer->Add(this->ZPR_Picker,4,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Guest_OS_Sizer->Add(this->ZPR_Sizer,0,wxEXPAND);
+
+        this->NTX_Sizer=new class wxBoxSizer(wxHORIZONTAL);
+        this->NTX_Label=new class wxStaticText(this,wxID_ANY,_("NuttX"));
+        this->NTX_Picker=new class wxDirPickerCtrl(this,wxID_ANY,wxT(""),_("Select NuttX Folder"),
+                                                   wxDefaultPosition,I2P(wxSize(480,-1)),wxDIRP_USE_TEXTCTRL|wxDIRP_DIR_MUST_EXIST|wxDIRP_SMALL);
+        this->NTX_Picker->GetTextCtrl()->SetEditable(false);
+        this->Bind(wxEVT_DIRPICKER_CHANGED,&Setting_Dialog::On_Dir_Picker,this,this->NTX_Picker->GetId());
+        this->NTX_Sizer->Add(this->NTX_Label,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->NTX_Sizer->Add(this->NTX_Picker,4,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Guest_OS_Sizer->Add(this->NTX_Sizer,0,wxEXPAND);
+
+        this->DJY_Sizer=new class wxBoxSizer(wxHORIZONTAL);
+        this->DJY_Label=new class wxStaticText(this,wxID_ANY,_("DjyOS"));
+        this->DJY_Picker=new class wxDirPickerCtrl(this,wxID_ANY,wxT(""),_("Select DjyOS Folder"),
+                                                   wxDefaultPosition,I2P(wxSize(480,-1)),wxDIRP_USE_TEXTCTRL|wxDIRP_DIR_MUST_EXIST|wxDIRP_SMALL);
+        this->DJY_Picker->GetTextCtrl()->SetEditable(false);
+        this->Bind(wxEVT_DIRPICKER_CHANGED,&Setting_Dialog::On_Dir_Picker,this,this->DJY_Picker->GetId());
+        this->DJY_Sizer->Add(this->DJY_Label,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->DJY_Sizer->Add(this->DJY_Picker,4,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Guest_OS_Sizer->Add(this->DJY_Sizer,0,wxEXPAND);
+
+        this->KLT_Sizer=new class wxBoxSizer(wxHORIZONTAL);
+        this->KLT_Label=new class wxStaticText(this,wxID_ANY,_("KLite"));
+        this->KLT_Picker=new class wxDirPickerCtrl(this,wxID_ANY,wxT(""),_("Select KLite Folder"),
+                                                   wxDefaultPosition,I2P(wxSize(480,-1)),wxDIRP_USE_TEXTCTRL|wxDIRP_DIR_MUST_EXIST|wxDIRP_SMALL);
+        this->KLT_Picker->GetTextCtrl()->SetEditable(false);
+        this->Bind(wxEVT_DIRPICKER_CHANGED,&Setting_Dialog::On_Dir_Picker,this,this->KLT_Picker->GetId());
+        this->KLT_Sizer->Add(this->KLT_Label,2,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->KLT_Sizer->Add(this->KLT_Picker,4,wxALL|wxALIGN_CENTER_VERTICAL,I2P(5));
+        this->Guest_OS_Sizer->Add(this->KLT_Sizer,0,wxEXPAND);
 
         this->Button_Sizer=new class wxBoxSizer(wxHORIZONTAL);
         this->Confirm=new class wxButton(this,wxID_OK,_("Confirm"));
@@ -168,8 +217,6 @@ wxDialog(Parent,wxID_ANY,_("Settings"),wxDefaultPosition,I2P(wxSize(640,510)))
         this->Main_Sizer->Add(this->Core_Component_Sizer, 0, wxEXPAND|wxALL,I2P(5));
         this->Main_Sizer->AddStretchSpacer(1);
         this->Main_Sizer->Add(this->Guest_OS_Sizer, 0, wxEXPAND|wxALL,I2P(5));
-        this->Main_Sizer->AddStretchSpacer(1);
-        this->Main_Sizer->Add(this->Guest_Script_Sizer, 0, wxEXPAND|wxALL,I2P(5));
         this->Main_Sizer->AddStretchSpacer(1);
         this->Main_Sizer->Add(this->Button_Sizer, 0, wxEXPAND);
 
@@ -240,7 +287,12 @@ void Setting_Dialog::File_Load(void)
                 Main::RTT_Folder=Main::Text_Load(Root, "RTT");
                 Main::UO2_Folder=Main::Text_Load(Root, "UO2");
                 Main::UO3_Folder=Main::Text_Load(Root, "UO3");
-                Main::MPY_Folder=Main::Text_Load(Root, "MPY");
+                Main::CHB_Folder=Main::Text_Load(Root, "CHB");
+                Main::RTE_Folder=Main::Text_Load(Root, "RTE");
+                Main::ZPR_Folder=Main::Text_Load(Root, "ZPR");
+                Main::NTX_Folder=Main::Text_Load(Root, "NTX");
+                Main::DJY_Folder=Main::Text_Load(Root, "DJY");
+                Main::KLT_Folder=Main::Text_Load(Root, "KLT");
             }
             catch(std::exception& Exc)
             {
@@ -257,14 +309,19 @@ void Setting_Dialog::File_Load(void)
         wxLogDebug("Setting_Dialog::File_Load - file missing or corrupted, loading defaults.");
         Main::Generate_Report=1;
         Main::Open_Report=1;
-        Main::RME_Folder="./../../../M7M01_Eukaron/";
-        Main::RVM_Folder="./../../../M7M02_Ammonite/";
-        Main::RMP_Folder="./../../../M5P01_Prokaron/";
-        Main::FRT_Folder="./../../../M7M00_Guest/FreeRTOS/";
-        Main::RTT_Folder="./../../../M7M00_Guest/RTThread/";
-        Main::UO2_Folder="./../../../M7M00_Guest/uCOSII/";
-        Main::UO3_Folder="./../../../M7M00_Guest/uCOSIII/";
-        Main::MPY_Folder="./../../../M7M00_Guest/MicroPython/";
+        Main::RME_Folder=RME_DEFAULT;
+        Main::RVM_Folder=RVM_DEFAULT;
+        Main::RMP_Folder=RMP_DEFAULT;
+        Main::FRT_Folder=FRT_DEFAULT;
+        Main::RTT_Folder=RTT_DEFAULT;
+        Main::UO2_Folder=UO2_DEFAULT;
+        Main::UO3_Folder=UO3_DEFAULT;
+        Main::CHB_Folder=CHB_DEFAULT;
+        Main::RTE_Folder=RTE_DEFAULT;
+        Main::ZPR_Folder=ZPR_DEFAULT;
+        Main::NTX_Folder=NTX_DEFAULT;
+        Main::DJY_Folder=DJY_DEFAULT;
+        Main::KLT_Folder=KLT_DEFAULT;
         this->File_Save();
     }
 }
@@ -296,7 +353,12 @@ void Setting_Dialog::File_Save(void)
     Main::Text_Save(Root,"RTT",Main::RTT_Folder);
     Main::Text_Save(Root,"UO2",Main::UO2_Folder);
     Main::Text_Save(Root,"UO3",Main::UO3_Folder);
-    Main::Text_Save(Root,"MPY",Main::MPY_Folder);
+    Main::Text_Save(Root,"CHB",Main::CHB_Folder);
+    Main::Text_Save(Root,"RTE",Main::RTE_Folder);
+    Main::Text_Save(Root,"ZPR",Main::ZPR_Folder);
+    Main::Text_Save(Root,"NTX",Main::NTX_Folder);
+    Main::Text_Save(Root,"DJY",Main::DJY_Folder);
+    Main::Text_Save(Root,"KLT",Main::KLT_Folder);
 
     /* Save setting.rvi */
     Doc->Save(Main::Exe_Folder+"setting.rvi");
@@ -331,7 +393,12 @@ void Setting_Dialog::Load(void)
     this->RTT_Picker->SetPath(Main::RTT_Folder);
     this->UO2_Picker->SetPath(Main::UO2_Folder);
     this->UO3_Picker->SetPath(Main::UO3_Folder);
-    this->MPY_Picker->SetPath(Main::MPY_Folder);
+    this->CHB_Picker->SetPath(Main::CHB_Folder);
+    this->RTE_Picker->SetPath(Main::RTE_Folder);
+    this->ZPR_Picker->SetPath(Main::ZPR_Folder);
+    this->NTX_Picker->SetPath(Main::NTX_Folder);
+    this->DJY_Picker->SetPath(Main::DJY_Folder);
+    this->KLT_Picker->SetPath(Main::KLT_Folder);
 }
 /* End Function:Setting_Dialog::Load *****************************************/
 
@@ -354,7 +421,12 @@ void Setting_Dialog::Save(void)
     Main::RTT_Folder=this->RTT_Picker->GetPath();
     Main::UO2_Folder=this->UO2_Picker->GetPath();
     Main::UO3_Folder=this->UO3_Picker->GetPath();
-    Main::MPY_Folder=this->MPY_Picker->GetPath();
+    Main::CHB_Folder=this->CHB_Picker->GetPath();
+    Main::RTE_Folder=this->RTE_Picker->GetPath();
+    Main::ZPR_Folder=this->ZPR_Picker->GetPath();
+    Main::NTX_Folder=this->NTX_Picker->GetPath();
+    Main::DJY_Folder=this->DJY_Picker->GetPath();
+    Main::KLT_Folder=this->KLT_Picker->GetPath();
 }
 /* End Function:Setting_Dialog::Save *****************************************/
 
@@ -473,14 +545,19 @@ void Setting_Dialog::On_Default(class wxCommandEvent& Event)
 {
     wxLogDebug("Setting_Dialog::On_Default");
 
-    this->RME_Picker->SetPath("./../../../M7M01_Eukaron/");
-    this->RVM_Picker->SetPath("./../../../M7M02_Ammonite/");
-    this->RMP_Picker->SetPath("./../../../M5P01_Prokaron/");
-    this->FRT_Picker->SetPath("./../../../M7M00_Guest/FreeRTOS/");
-    this->RTT_Picker->SetPath("./../../../M7M00_Guest/RTThread/");
-    this->UO2_Picker->SetPath("./../../../M7M00_Guest/uCOSII/");
-    this->UO3_Picker->SetPath("./../../../M7M00_Guest/uCOSIII/");
-    this->MPY_Picker->SetPath("./../../../M7M00_Guest/MicroPython/");
+    this->RME_Picker->SetPath(RME_DEFAULT);
+    this->RVM_Picker->SetPath(RVM_DEFAULT);
+    this->RMP_Picker->SetPath(RMP_DEFAULT);
+    this->FRT_Picker->SetPath(FRT_DEFAULT);
+    this->RTT_Picker->SetPath(RTT_DEFAULT);
+    this->UO2_Picker->SetPath(UO2_DEFAULT);
+    this->UO3_Picker->SetPath(UO3_DEFAULT);
+    this->CHB_Picker->SetPath(CHB_DEFAULT);
+    this->RTE_Picker->SetPath(RTE_DEFAULT);
+    this->ZPR_Picker->SetPath(ZPR_DEFAULT);
+    this->NTX_Picker->SetPath(NTX_DEFAULT);
+    this->DJY_Picker->SetPath(DJY_DEFAULT);
+    this->KLT_Picker->SetPath(KLT_DEFAULT);
 }
 /* End Function:Setting_Dialog::On_Default ***********************************/
 }

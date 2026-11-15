@@ -86,6 +86,7 @@
  *   ISR Message queue                 :  1284 / 1352 / 1236
  *   ISR RVM activation relay          :  2186 / 2440 / 2108
  */
+/*
 *
 *            (3) Setting up a project that uses this testbench:
 * 1. Add the benchmark source file to the project.

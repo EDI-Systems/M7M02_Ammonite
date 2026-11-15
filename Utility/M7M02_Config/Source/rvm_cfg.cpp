@@ -110,7 +110,12 @@ std::string Main::FRT_Folder;
 std::string Main::RTT_Folder;
 std::string Main::UO2_Folder;
 std::string Main::UO3_Folder;
-std::string Main::MPY_Folder;
+std::string Main::CHB_Folder;
+std::string Main::RTE_Folder;
+std::string Main::ZPR_Folder;
+std::string Main::NTX_Folder;
+std::string Main::DJY_Folder;
+std::string Main::KLT_Folder;
 
 /* Preferences */
 ptr_t Main::Generate_Report=0;
@@ -2228,7 +2233,12 @@ void Main::Generate_Begin(ptr_t Generate)
             " -rtt "+Main::RTT_Folder+
             " -uo2 "+Main::UO2_Folder+
             " -uo3 "+Main::UO3_Folder+
-            " -mpy "+Main::MPY_Folder+
+            " -chb "+Main::CHB_Folder+
+            " -rte "+Main::RTE_Folder+
+            " -zpr "+Main::ZPR_Folder+
+            " -ntx "+Main::NTX_Folder+
+            " -djy "+Main::DJY_Folder+
+            " -klt "+Main::KLT_Folder+
             " -w "+Workspace;
 
     /* See if we need to generate report */

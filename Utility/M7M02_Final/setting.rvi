@@ -5,9 +5,14 @@
   <RME>./../../../M7M01_Eukaron/</RME>
   <RVM>./../../../M7M02_Ammonite/</RVM>
   <RMP>./../../../M5P01_Prokaron/</RMP>
-  <FRT>./../../../M7M00_Guest/FreeRTOS/</FRT>
-  <RTT>./../../../M7M00_Guest/RTThread/</RTT>
-  <UO2>./../../../M7M00_Guest/uCOSII/</UO2>
-  <UO3>./../../../M7M00_Guest/uCOSIII/</UO3>
-  <MPY>./../../../M7M00_Guest/MicroPython/</MPY>
+  <FRT>./../../../FreeRTOS_V900/</FRT>
+  <RTT>./../../../RTThread_V411/</RTT>
+  <UO2>./../../../uCOSII_V293/</UO2>
+  <UO3>./../../../uCOSIII_V308/</UO3>
+  <CHB>./../../../ChibiOS_V2111/</CHB>
+  <RTE>./../../../RTEMS_V701/</RTE>
+  <ZPR>./../../../Zephyr_V370/</ZPR>
+  <NTX>./../../../NuttX_V131/</NTX>
+  <DJY>./../../../DjyOS_V110/</DJY>
+  <KLT>./../../../KLite_V521/</KLT>
 </Setting>

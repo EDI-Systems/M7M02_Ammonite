@@ -163,7 +163,12 @@ public:
     static std::string RTT_Folder;
     static std::string UO2_Folder;
     static std::string UO3_Folder;
-    static std::string MPY_Folder;
+    static std::string CHB_Folder;
+    static std::string RTE_Folder;
+    static std::string ZPR_Folder;
+    static std::string NTX_Folder;
+    static std::string DJY_Folder;
+    static std::string KLT_Folder;
 
     /* Preferences */
     static ptr_t Generate_Report;

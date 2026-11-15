@@ -26,6 +26,20 @@ namespace RVM_CFG
 /*****************************************************************************/
 /* My define */
 #define TEST _("TEST")
+/* Default paths */
+#define RME_DEFAULT "./../../../M7M01_Eukaron/"
+#define RVM_DEFAULT "./../../../M7M02_Ammonite/"
+#define RMP_DEFAULT "./../../../M5P01_Prokaron/"
+#define FRT_DEFAULT "./../../../FreeRTOS_V900/"
+#define RTT_DEFAULT "./../../../RTThread_V411/"
+#define UO2_DEFAULT "./../../../uCOSII_V293/"
+#define UO3_DEFAULT "./../../../uCOSIII_V308/"
+#define CHB_DEFAULT "./../../../ChibiOS_V2111/"
+#define RTE_DEFAULT "./../../../RTEMS_V701/"
+#define ZPR_DEFAULT "./../../../Zephyr_V370/"
+#define NTX_DEFAULT "./../../../NuttX_V131/"
+#define DJY_DEFAULT "./../../../DjyOS_V110/"
+#define KLT_DEFAULT "./../../../KLite_V521/"
 /*****************************************************************************/
 /* __SETTING_DIALOG_DEF__ */
 #endif
@@ -80,11 +94,29 @@ public:
     class wxBoxSizer* UO3_Sizer;
     class wxDirPickerCtrl* UO3_Picker;
 
-    class wxStaticBoxSizer* Guest_Script_Sizer;
+    class wxStaticText* CHB_Label;
+    class wxBoxSizer* CHB_Sizer;
+    class wxDirPickerCtrl* CHB_Picker;
 
-    class wxStaticText* MPY_Label;
-    class wxBoxSizer* MPY_Sizer;
-    class wxDirPickerCtrl* MPY_Picker;
+    class wxStaticText* RTE_Label;
+    class wxBoxSizer* RTE_Sizer;
+    class wxDirPickerCtrl* RTE_Picker;
+
+    class wxStaticText* ZPR_Label;
+    class wxBoxSizer* ZPR_Sizer;
+    class wxDirPickerCtrl* ZPR_Picker;
+
+    class wxStaticText* NTX_Label;
+    class wxBoxSizer* NTX_Sizer;
+    class wxDirPickerCtrl* NTX_Picker;
+
+    class wxStaticText* DJY_Label;
+    class wxBoxSizer* DJY_Sizer;
+    class wxDirPickerCtrl* DJY_Picker;
+
+    class wxStaticText* KLT_Label;
+    class wxBoxSizer* KLT_Sizer;
+    class wxDirPickerCtrl* KLT_Picker;
 
     class wxBoxSizer* Button_Sizer;
     class wxButton* Confirm;

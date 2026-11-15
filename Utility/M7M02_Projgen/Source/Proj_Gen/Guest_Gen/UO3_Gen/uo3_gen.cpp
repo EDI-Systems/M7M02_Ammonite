@@ -231,7 +231,7 @@ void UO3_Gen::Process_Virt_Hdr(class Virtual* Virt)
         Proj_Gen::Src_Head(List, "uo3_test.h", "The UO3 test header.");
         List->push_back("");
         List->push_back("/* Include *******************************************************************/");
-        List->push_back(std::string("#include \"chip/uo3_test_")+this->Chip->Name_Lower+"_rvm.h\"");
+        List->push_back(std::string("#include \"Chip/uo3_test_")+this->Chip->Name_Lower+"_rvm.h\"");
         List->push_back("/* End Include ***************************************************************/");
         List->push_back("");
         Proj_Gen::Src_Foot(List);

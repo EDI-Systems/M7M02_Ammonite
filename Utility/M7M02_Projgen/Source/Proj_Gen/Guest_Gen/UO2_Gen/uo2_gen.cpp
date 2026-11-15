@@ -213,7 +213,7 @@ void UO2_Gen::Process_Virt_Hdr(class Virtual* Virt)
         Proj_Gen::Src_Head(List, "uo2_test.h", "The uC/OS-II test header.");
         List->push_back("");
         List->push_back("/* Include *******************************************************************/");
-        List->push_back(std::string("#include \"chip/uo2_test_")+this->Chip->Name_Lower+"_rvm.h\"");
+        List->push_back(std::string("#include \"Chip/uo2_test_")+this->Chip->Name_Lower+"_rvm.h\"");
         List->push_back("/* End Include ***************************************************************/");
         List->push_back("");
         Proj_Gen::Src_Foot(List);
