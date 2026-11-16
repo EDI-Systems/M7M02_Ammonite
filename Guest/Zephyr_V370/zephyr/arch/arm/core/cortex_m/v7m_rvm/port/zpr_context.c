@@ -140,15 +140,6 @@ static bool zpr_frame_is_dirty(const zpr_ctx_t *heir)
 	return (sp[off] & ZPR_XPSR_ICI_IT_MASK) != 0U;
 }
 
-static bool zpr_xpsr_is_dirty(void)
-{
-	uint32_t xpsr;
-
-	__asm__ volatile ("mrs %0, xpsr" : "=r" (xpsr));
-
-	return (xpsr & ZPR_XPSR_ICI_IT_MASK) != 0U;
-}
-
 static bool zpr_capture_executing(zpr_ctx_t *executing)
 {
 	uint32_t *sp;
@@ -232,16 +223,22 @@ void zpr_reschedule_from_vector(void)
 	struct k_thread *next;
 
 	next = _kernel.ready_q.cache;
-	if (next != _current && zpr_isr_captured == false) {
-		executing = (zpr_ctx_t *) &_current->arch.rvm_r4;
-		if (zpr_capture_executing(executing) == false) {
-			zpr_ctx_fail();
+	if (next != _current) {
+		if (zpr_isr_captured == false) {
+			executing = (zpr_ctx_t *) &_current->arch.rvm_r4;
+			if (zpr_capture_executing(executing) == false) {
+				zpr_ctx_fail();
+			}
+
+			zpr_isr_captured = true;
+			RVM_Virt_Yield();
+			RVM_Virt_Int_Unmask();
 		}
 
-		zpr_isr_captured = true;
+		/* Always adopt the latest heir - a second decision in the same
+		 * dispatch window must upgrade the pending target, not leave
+		 * a stale lower-priority heir that defers the newcomer. */
 		zpr_pending_heir = (zpr_ctx_t *) &next->arch.rvm_r4;
-		RVM_Virt_Yield();
-		RVM_Virt_Int_Unmask();
 	}
 }
 
@@ -300,17 +297,19 @@ void zpr_switch_to_main(struct k_thread *thread, char *stack_ptr,
 	zpr_init_frame(thread, stack_ptr, entry, NULL, NULL, NULL);
 
 	/*
-	 * Publish the main-thread state before opening the RVM interrupt
-	 * gates.  This is the ZPR equivalent of arch_switch_to_main_thread():
-	 * native Zephyr keeps interrupts disabled through z_cstart() and
-	 * enables them only at this final switch.
+	 * Hand the main-thread frame to the context handler and let it do
+	 * the switch.  _current is NOT published here: the handler sets it
+	 * from the heir's owner when it loads the frame.  Publishing early
+	 * would let a vector arriving in the spin window attribute the boot
+	 * context to the main thread and overwrite its initial frame.
+	 * Interrupts stay masked through the yield; the handler's load path
+	 * restores the main-thread nest level, which unmasks at the switch
+	 * boundary - the equivalent of native Zephyr keeping interrupts
+	 * disabled through z_cstart().
 	 */
-	_current = thread;
 	zpr_pending_heir = (zpr_ctx_t *) &thread->arch.rvm_r4;
 	RVM_Hyp_Int_Ena();
-	RVM_Virt_Int_Unmask();
 	RVM_Virt_Yield();
-	RVM_Virt_Int_Unmask();
 
 	for (;;) {
 	}
@@ -346,7 +345,7 @@ int zpr_arch_swap(unsigned int key)
 	if (sp != NULL
 	    && heir->lr != NULL
 	    && !zpr_frame_is_dirty(heir)
-	    && !zpr_xpsr_is_dirty()) {
+) {
 		_current = next;
 		_RVM_CPU_Context_switch_swt(executing, heir, zpr_usr_params);
 	} else {

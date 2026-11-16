@@ -354,6 +354,7 @@ void xPortSysTickHandler( void )
     if(xTaskIncrementTick()!=pdFALSE)
     {
         /* Trigger PendSV */
+        RVM_Virt_Yield();
     }
     
     portENABLE_INTERRUPTS();

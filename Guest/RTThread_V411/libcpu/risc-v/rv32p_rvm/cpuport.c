@@ -54,6 +54,19 @@ extern rt_ubase_t __RVM_Global;
 extern void rt_hw_context_switch_swt(rt_ubase_t from, rt_ubase_t to);
 
 /*
+ * Thread exit trampoline: an entry that returns on this port parks in
+ * the hypervisor instead of walking back into the scheduler exit path,
+ * which cannot complete under hypervisor-level preemption resume.
+ */
+static void rt_hw_thread_exit_park(void)
+{
+    for(;;)
+    {
+        RVM_Hyp_Vct_Wait();
+    }
+}
+
+/*
  * This function will initialize thread stack
  *
  * @param tentry the entry of thread
@@ -70,6 +83,7 @@ rt_uint8_t *rt_hw_stack_init(void       *tentry,
 {
     rt_ubase_t *stk;
     rt_uint32_t i;
+    (void)texit;
 
     stk  = (rt_ubase_t *)stack_addr + 1;
     stk  = (rt_ubase_t *)RT_ALIGN_DOWN((rt_ubase_t)stk, 4);
@@ -113,7 +127,7 @@ rt_uint8_t *rt_hw_stack_init(void       *tentry,
     stk[10] = 0x05050505U;              /* x5/t0 */
     stk[9]  = 0x04040404U;              /* x4/tp - trashed on resume */
     stk[8]  = __RVM_Global;             /* x3/gp - the user global pointer */
-    stk[7]  = (rt_ubase_t)texit;        /* x1/ra - the thread exit */
+    stk[7]  = (rt_ubase_t)rt_hw_thread_exit_park; /* x1/ra - the exit park */
     stk[6]  = (rt_ubase_t)tentry;       /* the resume pc */
 #if(RVM_COP_NUM!=0U)
     stk[5]  = 0x00002088U;              /* mstatus: U-mode, FS=initial - the
@@ -292,7 +306,7 @@ void PendSV_Handler(void)
             fpu = (rt_ubase_t *)sp;
             for (i = 0U; i < 32U; i++)
             {
-                fpu[i] = ((volatile rt_ubase_t *)cop)[i];
+                fpu[i] = ((volatile rt_ubase_t *)&cop->F0)[i];
             }
             fpu[32] = cop->FCSR;
         }
@@ -336,7 +350,7 @@ void PendSV_Handler(void)
         fpu = (rt_ubase_t *)sp;
         for (i = 0U; i < 32U; i++)
         {
-            ((volatile rt_ubase_t *)cop)[i] = fpu[i];
+            ((volatile rt_ubase_t *)&cop->F0)[i] = fpu[i];
         }
         cop->FCSR = (rvm_ptr_t)fpu[32];
         sp += 33U;

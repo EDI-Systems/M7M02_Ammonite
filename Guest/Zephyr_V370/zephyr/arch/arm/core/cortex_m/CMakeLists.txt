@@ -7,10 +7,10 @@ zephyr_library_sources(
   fault_s.S
   fpu.c
   scb.c
-  irq_manage.c
 )
 
 zephyr_library_sources_ifndef(CONFIG_RVM_GUEST
+  irq_manage.c
   exc_exit.c
   reset.S
   thread_abort.c

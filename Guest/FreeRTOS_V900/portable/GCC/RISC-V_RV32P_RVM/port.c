@@ -205,6 +205,7 @@ void xPortSysTickHandler( void )
     if( xTaskIncrementTick() != pdFALSE )
     {
         /* Trigger yield. */
+        RVM_Virt_Yield();
     }
     portENABLE_INTERRUPTS();
 }

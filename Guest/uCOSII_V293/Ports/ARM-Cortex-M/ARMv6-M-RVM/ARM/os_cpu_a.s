@@ -209,11 +209,10 @@ OSStartHighRdy     PROC
     POP                 {R0}                                    ; Discard the stacked EXC_RETURN.
     POP                 {R0-R4}                                 ; Restore R0-R3, R12.
     MOV                 R12, R4
-    POP                 {R4}                                    ; The task return address, discarded.
+    POP                 {R1}                                    ; The task return linkage.
     POP                 {R0}                                    ; The task entry point.
-    MOV                 LR, R0                                  ; Enter the task through LR.
-    PUSH                {R4}                                    ; Keep the return address below SP.
-    BX                  LR                                      ; Branch to the task entry.
+    MOV                 LR, R1                                  ; Keep the return linkage in LR.
+    BX                  R0                                      ; Branch to the task entry.
     ENDP
 
 

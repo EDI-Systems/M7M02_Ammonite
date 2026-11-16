@@ -18,6 +18,7 @@
 #define   OS_CPU_GLOBALS
 
 #include  <ucos_ii.h>
+extern  OS_STK  __RVM_Global;   /* The gp value for the user land, from the linker script. */
 #include  "rvm.h"
 
 #ifdef __cplusplus
@@ -86,7 +87,7 @@ OS_STK  *OSTaskStkInit (void (*task)(void *), void *p_arg, OS_STK *ptos, INT16U 
     *(--p_stk) = (OS_STK)0x06060606u;
     *(--p_stk) = (OS_STK)0x05050505u;
     *(--p_stk) = (OS_STK)0x04040404u;
-    *(--p_stk) = (OS_STK)0u;
+    *(--p_stk) = (OS_STK)__RVM_Global;
     *(--p_stk) = (OS_STK)OS_TaskReturn;
     *(--p_stk) = (OS_STK)task;
     *(--p_stk) = (OS_STK)0x00000088u;
@@ -109,6 +110,11 @@ void  OS_Ctx_Handler (void)
 {
     OS_STK  *p_sp;
     OS_STK   stk_mstatus;
+#if (RVM_RV32P_COP_RVF != 0) || (RVM_RV32P_COP_RVD != 0)
+    volatile struct RVM_RV32P_Cop_Struct *p_cop;
+    rvm_ptr_t *p_fpu;
+    rvm_ptr_t  i;
+#endif
 
     p_sp = (OS_STK *)RVM_REG->Reg.X2_SP;
     p_sp -= 31u;
@@ -146,6 +152,27 @@ void  OS_Ctx_Handler (void)
 
     stk_mstatus = (OS_STK)RVM_REG->Reg.MSTATUS;
 
+#if (RVM_RV32P_COP_RVF != 0) || (RVM_RV32P_COP_RVD != 0)
+    if ((stk_mstatus & 0x00004000uL) != 0u) {                   /* FPU registers in the frame?                   */
+        p_cop = (volatile struct RVM_RV32P_Cop_Struct *)(RVM_REG->Cop);
+        p_fpu  = (rvm_ptr_t *)&p_cop->F0;
+#if (RVM_RV32P_COP_RVD != 0)
+        p_sp  -= 65u;                                           /* The double-precision registers and the FCSR.  */
+        p_sp[64u] = (OS_STK)p_cop->FCSR;
+        for (i = 0u; i < 32u; i++) {
+            p_sp[i * 2u]      = (OS_STK)p_fpu[i * 2u];
+            p_sp[i * 2u + 1u] = (OS_STK)p_fpu[i * 2u + 1u];
+        }
+#else
+        p_sp  -= 33u;                                           /* The single-precision registers and the FCSR.  */
+        p_sp[32u] = (OS_STK)p_cop->FCSR;
+        for (i = 0u; i < 32u; i++) {
+            p_sp[i] = (OS_STK)p_fpu[i];
+        }
+#endif
+    }
+#endif
+
     p_sp -= 1u;
     p_sp[0u]  = stk_mstatus;
 
@@ -173,6 +200,27 @@ void  OS_Ctx_Handler (void)
 
     stk_mstatus = p_sp[0u];
     p_sp += 1u;
+
+#if (RVM_RV32P_COP_RVF != 0) || (RVM_RV32P_COP_RVD != 0)
+    if ((stk_mstatus & 0x00004000uL) != 0u) {                   /* FPU registers in the frame?                   */
+        p_cop = (volatile struct RVM_RV32P_Cop_Struct *)(RVM_REG->Cop);
+        p_fpu  = (rvm_ptr_t *)&p_cop->F0;
+#if (RVM_RV32P_COP_RVD != 0)
+        for (i = 0u; i < 32u; i++) {
+            p_fpu[i * 2u]      = (rvm_ptr_t)p_sp[i * 2u];
+            p_fpu[i * 2u + 1u] = (rvm_ptr_t)p_sp[i * 2u + 1u];
+        }
+        p_cop->FCSR = (rvm_ptr_t)p_sp[64u];
+        p_sp += 65u;
+#else
+        for (i = 0u; i < 32u; i++) {
+            p_fpu[i] = (rvm_ptr_t)p_sp[i];
+        }
+        p_cop->FCSR = (rvm_ptr_t)p_sp[32u];
+        p_sp += 33u;
+#endif
+    }
+#endif
 
     RVM_REG->Reg.PC       = (rvm_ptr_t)p_sp[0u];
     RVM_REG->Reg.X1_RA    = (rvm_ptr_t)p_sp[1u];

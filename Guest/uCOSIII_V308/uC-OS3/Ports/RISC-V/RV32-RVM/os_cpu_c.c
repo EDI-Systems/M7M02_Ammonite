@@ -292,6 +292,13 @@ void  OSTaskReturnHook (OS_TCB  *p_tcb)
 *********************************************************************************************************
 */
 
+static  void  OS_TaskPark (void)
+{
+    for (;;) {
+        RVM_Hyp_Vct_Wait();
+    }
+}
+
 CPU_STK  *OSTaskStkInit (OS_TASK_PTR    p_task,
                          void          *p_arg,
                          CPU_STK       *p_stk_base,
@@ -337,7 +344,7 @@ CPU_STK  *OSTaskStkInit (OS_TASK_PTR    p_task,
     *(--p_stk) = (CPU_STK) 0x05050505uL;              /* x5/t0                                 */
     *(--p_stk) = (CPU_STK) 0x04040404uL;              /* x4/tp : not restored                  */
     *(--p_stk) = (CPU_STK) __RVM_Global;              /* x3/gp : the user global pointer       */
-    *(--p_stk) = (CPU_STK) OS_TaskReturn;             /* x1/ra : task return address           */
+    *(--p_stk) = (CPU_STK) OS_TaskPark;               /* x1/ra : task exit park trampoline     */
     *(--p_stk) = (CPU_STK) p_task;                    /* pc   : entry point                    */
 
 #if (RVM_RV32P_COP_RVF != 0) || (RVM_RV32P_COP_RVD != 0)

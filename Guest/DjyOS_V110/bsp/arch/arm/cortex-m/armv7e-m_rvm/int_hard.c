@@ -228,25 +228,6 @@ void Djy_Ctx_Handler(void)
     }
     djy_switch_flag = 0U;
 
-    /* Validate the target frame before touching anything: a frame that
-     * does not look like this port's 22 word layout (PC outside the
-     * guest image, Thumb bit clear, or the alignment pad marker set)
-     * belongs to a context this handler cannot resume.  Dropping the
-     * switch keeps the current context running and records the event
-     * instead of faulting on an invalid exception return. */
-    {
-        u32 *f = (u32 *)to->stack;
-        u32 pc = f[20];
-        u32 xs = f[21];
-
-        if((pc < CODE_CODE1_BASE) ||
-           (pc >= (CODE_CODE1_BASE + CODE_CODE1_SIZE)) ||
-           ((xs & 0x01000000U) == 0U) || ((xs & 0x00000200U) != 0U))
-        {
-            return;
-        }
-    }
-
     if(from != NULL)
     {
         u32 spv = (u32)RVM_REG->Reg.SP;

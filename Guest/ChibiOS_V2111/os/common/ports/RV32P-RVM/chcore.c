@@ -26,11 +26,18 @@ extern uint32_t __RVM_Global;
 
 static volatile uint32_t chb_nest;
 static thread_t *chb_pending_ntp;
-static thread_t *chb_pending_otp;
 #if CHB_FAST_PATH
 static thread_t *chb_fast_otp;
 static thread_t *chb_fast_ntp;
 #endif
+/* The thread that the RVM register block actually belongs to.  The
+ * scheduler's "current thread" is updated at decision time, before the
+ * physical switch happens, so it cannot be used as the save target when
+ * the context handler finally archives the register block - especially
+ * when more than one preemption decision lands inside a single vector
+ * dispatch window.  This shadow is the only authority on "who is really
+ * running"; it is maintained by the fast path and by the context handler. */
+static thread_t *chb_running;
 
 static void chb_tick_handler(void);
 static void chb_ctx_handler(void);
@@ -230,15 +237,18 @@ static void chb_tick_handler(void) {
 
 static void chb_ctx_handler(void) {
   thread_t *ntp;
-  thread_t *otp;
 
   ntp = chb_pending_ntp;
-  otp = chb_pending_otp;
   chb_pending_ntp = NULL;
-  chb_pending_otp = NULL;
 
   if (ntp != NULL) {
-    chb_ctx_switch(ntp, otp);
+    /* Save target is the shadow, never the scheduler's current thread:
+     * a second decision inside the same dispatch window overwrites the
+     * pending pair while the register block still belongs to whoever
+     * was switched out last - which is exactly what the shadow tracks.
+     * NULL shadow means the very first dispatch: nothing to archive. */
+    chb_ctx_switch(ntp, chb_running);
+    chb_running = ntp;
   }
 }
 
@@ -337,13 +347,19 @@ void chb_port_switch(thread_t *ntp, thread_t *otp) {
       chb_frame_is_valid(ntp)) {
     chb_fast_otp = otp;
     chb_fast_ntp = ntp;
+    chb_running = ntp;
     chb_fast_switch();
     return;
   }
 #endif
 
+  /* Only the destination is recorded here - the destination may be
+   * upgraded by a later preemption decision inside the same dispatch
+   * window (the last decision wins).  The save target is NOT taken from
+   * the arguments: the scheduler has already retargeted its "current
+   * thread" at decision time while the register block still belongs to
+   * the shadow thread, so the context handler archives into the shadow. */
   chb_pending_ntp = ntp;
-  chb_pending_otp = otp;
 
   if (RVM_STATE->Vct_Act == 0U) {
     RVM_Virt_Yield();
@@ -366,7 +382,7 @@ void port_init(os_instance_t *oip) {
 
   chb_nest = 1U;
   chb_pending_ntp = NULL;
-  chb_pending_otp = NULL;
+  chb_running = NULL;
 #if CHB_FAST_PATH
   chb_fast_otp = NULL;
   chb_fast_ntp = NULL;

@@ -27,6 +27,25 @@
 
 #include <rtems.h>
 
+/* The default ARMv7 idle body executes WFI, which halts the physical core
+ * under the hypervisor.  Park in the hypervisor instead: confdefs picks
+ * this up for every application on this BSP unless the application
+ * overrides CONFIGURE_IDLE_TASK_BODY explicitly. */
+extern int RVM_Hyp_Vct_Wait( void );
+
+static inline void *rvm_idle_body( uintptr_t ignored )
+{
+  (void) ignored;
+
+  for (;;) {
+    RVM_Hyp_Vct_Wait();
+  }
+
+  return NULL; /* not reached */
+}
+
+#define BSP_IDLE_TASK_BODY rvm_idle_body
+
 #endif /* ASM */
 
 #endif /* LIBBSP_ARM_V7M_RVM_BSP_H */

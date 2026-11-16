@@ -48,6 +48,9 @@
 #  define NTX_HAS_COP 1
 #else
 #  define NTX_HAS_COP 0
+#  ifdef CONFIG_ARCH_FPU
+#    error "NTX RVM: CONFIG_ARCH_FPU requires a coprocessor context (NTX_RVM_COP != NONE); the masquerade assembly would build extended frames while the C capture skips them"
+#  endif
 #endif
 
 /* armv7m_rvm_switch.S addresses these fields by fixed offset. */
@@ -187,14 +190,6 @@ static bool ntx_frame_ok(struct tcb_s *tcb, const uint32_t *frame)
 /* The direct switch may only run when the current EPSR carries no ICI/IT
  * continuation, because the manual unstack cannot restore them.
  */
-
-static bool ntx_xpsr_clean(void)
-{
-  uint32_t xpsr;
-
-  __asm__ volatile ("mrs %0, xpsr" : "=r" (xpsr));
-  return (xpsr & NTX_XPSR_ICI_IT_MASK) == 0;
-}
 
 static bool ntx_heir_fast(struct tcb_s *tcb)
 {
@@ -606,7 +601,7 @@ void ntx_switch_context(struct tcb_s *tcb, struct tcb_s *rtcb)
    * on the vector thread is never resumed directly.
    */
 
-  if (ntx_xpsr_clean() && ntx_heir_fast(tcb))
+  if (ntx_heir_fast(tcb))
     {
       g_running_tasks[0] = tcb;
       g_ntx_running = tcb;

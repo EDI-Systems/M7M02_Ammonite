@@ -30,6 +30,16 @@ CHIP_CSRCS += armv7m_rvm_fpu.c armv7m_rvm_irq_stubs.c
 
 CHIP_ASRCS += armv7m_rvm_saveusercontext.S armv7m_rvm_switch.S
 
-# RVM guest runtime
-CHIP_CSRCS += rvm_platform_a7m.c rvm_syslib.c rvm_virtlib.c
-CHIP_ASRCS += rvm_platform_a7m_gcc.s
+# RVM guest runtime - absolute paths to the hypervisor source tree, same
+# as the CMakeLists.txt.  CMake is the only supported build system for
+# this BSP; the Make paths below exist so that the source list is not
+# silently wrong, but the include paths and the generated test headers
+# (ntx_test.h etc.) are only produced by the CMake-driven generator.
+# Anyone building with plain Make must copy the test wiring themselves.
+
+NTX_RVM_ROOT ?= $(NUTTX_DIR)/../../M7M02_Ammonite
+
+CHIP_CSRCS += $(NTX_RVM_ROOT)/Source/Platform/A7M/rvm_platform_a7m.c
+CHIP_CSRCS += $(NTX_RVM_ROOT)/Source/Syslib/rvm_syslib.c
+CHIP_CSRCS += $(NTX_RVM_ROOT)/Source/Virtlib/rvm_virtlib.c
+CHIP_ASRCS += $(NTX_RVM_ROOT)/Source/Platform/A7M/rvm_platform_a7m_gcc.s

@@ -222,9 +222,6 @@ swt_stacked:
     LDR     r1, [r1]                        /* load the to thread's stack pointer */
     MOV     sp, r1
 
-    LDR     r1, =rt_interrupt_to_thread
-    STR     r2, [r1]
-
     /* enable the virtual interrupts through the wrapper: its
      * re-delivery signal drains any vectors and context switch requests
      * that piled up while the mask was raised, right here at the only
@@ -319,11 +316,10 @@ rt_hw_context_switch_to:
     POP     {r0}                            /* discard the stacked EXC_RETURN */
     POP     {r0-r4}                         /* restore r0-r3, r12 */
     MOV     r12, r4
-    POP     {r4}                            /* the thread return address, discarded */
+    POP     {r1}                            /* the thread exit linkage */
     POP     {r0}                            /* the thread entry point */
-    MOV     lr, r0                          /* enter the thread through lr */
-    PUSH    {r4}                            /* fix up sp/lr */
-    BX      lr                              /* branch to the thread entry */
+    MOV     lr, r1                          /* keep the exit linkage in lr */
+    BX      r0                              /* branch to the thread entry */
 
 /* compatible with old version */
 .global rt_hw_interrupt_thread_switch

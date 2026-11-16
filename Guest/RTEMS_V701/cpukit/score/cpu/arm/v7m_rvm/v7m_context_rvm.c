@@ -136,32 +136,6 @@ static bool rte_exc_return_is_valid( uint32_t exc )
   return valid;
 }
 
-static bool rte_frame_is_executable( const uint32_t *sp )
-{
-  uint32_t exc;
-  uint32_t hw;
-  uint32_t pc;
-  uint32_t xpsr;
-
-  if ( (uintptr_t) sp < DATA_DATA1_BASE
-    || (uintptr_t) sp >= RVM_VIRT_REG_BASE ) {
-    return false;
-  }
-
-  exc = sp[13];
-
-  if ( !rte_exc_return_is_valid( exc ) ) {
-    return false;
-  }
-
-  hw = ( exc & 0x10U ) == 0U ? RTE_FRAME_EXT_HW : RTE_FRAME_BASIC_HW;
-  pc = sp[hw + 6U];
-  xpsr = sp[hw + 7U];
-
-  return pc >= CODE_CODE1_BASE
-    && pc < CODE_CODE1_BASE + CODE_CODE1_SIZE
-    && ( xpsr & 0x01000000U ) != 0U;
-}
 
 #if RTE_USE_FAST_PATH
 
@@ -172,24 +146,10 @@ static bool rte_frame_is_dirty( const Context_Control *heir )
   uint32_t off;
 
   sp = (const uint32_t *) heir->register_sp;
-
-  if ( !rte_frame_is_executable( sp ) ) {
-    return true;
-  }
-
   exc = sp[13];
   off = ( exc & 0x10U ) == 0U ? 37U : 21U;
 
   return ( sp[off] & RTE_XPSR_ICI_IT_MASK ) != 0U;
-}
-
-static bool rte_xpsr_is_dirty( void )
-{
-  uint32_t xpsr;
-
-  __asm__ volatile ( "mrs %0, xpsr" : "=r" ( xpsr ) );
-
-  return ( xpsr & RTE_XPSR_ICI_IT_MASK ) != 0U;
 }
 
 #endif /* RTE_USE_FAST_PATH */
@@ -285,10 +245,6 @@ void rte_rvm_ctx_handler( void )
   rte_pending_heir = NULL;
 
   sp = (uint32_t *) heir->register_sp;
-
-  if ( !rte_frame_is_executable( sp ) ) {
-    rte_rvm_ctx_fail();
-  }
 
   RVM_STATE->Usr.Number = *sp++;
   RVM_STATE->Usr.Param[0] = *sp++;
@@ -425,10 +381,13 @@ void _CPU_Context_switch(
     }
 
     /*
-     * A second logical switch in the same ISR: the first heir is the one
-     * which will physically run.  The remaining ready thread keeps its
-     * scheduler state and is selected by the next dispatch.
+     * A second logical switch in the same ISR: upgrade the pending
+     * target to the latest decision - the scheduler's Heir already
+     * reflects it, and the captured context belongs to whoever was
+     * executing before the first switch, so loading the latest heir
+     * is always correct.  The first heir stays ready.
      */
+    rte_pending_heir = heir;
     return;
   }
 
@@ -438,14 +397,15 @@ void _CPU_Context_switch(
 
 #if RTE_USE_FAST_PATH
   /*
-   * The heir can be resumed directly only when neither side carries
-   * EPSR ICI/IT continuations and the heir is a fast/initial frame.  Dirty
-   * frames still need the monitor's exception return through the Vct.
+   * The heir can be resumed directly only when it carries no EPSR
+   * ICI/IT continuations and is a fast/initial frame.  Dirty frames
+   * still need the monitor's exception return through the Vct.  The
+   * executing side needs no check: the switch entry is a plain call
+   * boundary, which cannot carry active ICI/IT bits.
    */
   if ( heir != executing
     && rte_pending_heir == NULL
     && heir->register_lr != NULL
-    && !rte_xpsr_is_dirty()
     && !rte_frame_is_dirty( heir ) ) {
     _RVM_CPU_Context_switch_swt(
       executing,

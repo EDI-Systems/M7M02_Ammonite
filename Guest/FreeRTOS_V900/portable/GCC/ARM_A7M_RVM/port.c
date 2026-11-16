@@ -147,7 +147,6 @@ static void prvTaskExitError( void );
 
 /*-----------------------------------------------------------*/
 
-uint32_t SystemCoreClock=180000000U;
 
 /*
  * See header file for description.

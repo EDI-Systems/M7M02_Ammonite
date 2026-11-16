@@ -33,8 +33,8 @@
 #define RT_THREAD_PRIORITY_MAX         32
 
 // <o>the frequency of kernel tick<1-1000>
-//  <i>Default: 1000  (1ms)
-#define RT_TICK_PER_SECOND             1000
+//  <i>Default: 100  (10ms)
+#define RT_TICK_PER_SECOND             100
 
 /* Using the small memory first-fit allocator - the recommended heap
  * implementation for the small RAM systems */
